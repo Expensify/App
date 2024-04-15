@@ -3,13 +3,18 @@ import lodashGet from 'lodash/get';
 import lodashIsEmpty from 'lodash/isEmpty';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import transactionPropTypes from '@components/transactionPropTypes';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {
+    withCurrentUserPersonalDetailsDefaultProps,
+    WithCurrentUserPersonalDetailsProps,
+    withCurrentUserPersonalDetailsPropTypes
+} from '@components/withCurrentUserPersonalDetails';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
-import compose from '@libs/compose';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -23,47 +28,43 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import IOURequestStepRoutePropTypes from './IOURequestStepRoutePropTypes';
+import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import * as OnyxTypes from "@src/types/onyx";
+import IOURequestStepScanWithFullTransactionOrNotFound from "@pages/iou/request/step/IOURequestStepScan";
 
-const propTypes = {
-    /** Navigation route context info provided by react navigation */
-    route: IOURequestStepRoutePropTypes.isRequired,
+type AmountParams = {
+    amount: string;
+};
 
-    /* Onyx Props */
-    /** The report that the transaction belongs to */
-    report: reportPropTypes,
-
-    /** The transaction object being modified in Onyx */
-    transaction: transactionPropTypes,
-
+type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
-    splitDraftTransaction: transactionPropTypes,
+    splitDraftTransaction: OnyxEntry<Transaction>;
 
     /** Whether the confirmation step should be skipped */
-    skipConfirmation: PropTypes.bool,
+    skipConfirmation: OnyxEntry<boolean>;
 
     /** The draft transaction object being modified in Onyx */
-    draftTransaction: transactionPropTypes,
+    draftTransaction: OnyxEntry<Transaction>;
 
     /** Personal details of all users */
-    personalDetails: personalDetailsPropType,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
-    ...withCurrentUserPersonalDetailsPropTypes,
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-const defaultProps = {
-    report: {},
-    transaction: {},
-    policy: {},
-    personalDetails: {},
-    ...withCurrentUserPersonalDetailsDefaultProps,
-    splitDraftTransaction: {},
-    draftTransaction: {},
-    skipConfirmation: false,
-};
+type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
+    WithCurrentUserPersonalDetailsProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT | typeof SCREENS.MONEY_REQUEST.CREATE> & {
+        /** The transaction object being modified in Onyx */
+        transaction: OnyxEntry<Transaction>;
+    };
 
 function IOURequestStepAmount({
     report,
@@ -77,19 +78,19 @@ function IOURequestStepAmount({
     splitDraftTransaction,
     draftTransaction,
     skipConfirmation,
-}) {
+}: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
-    const textInput = useRef(null);
-    const focusTimeoutRef = useRef(null);
+    const textInput = useRef<BaseTextInputRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
-    const originalCurrency = useRef(null);
+    const originalCurrency = useRef<string | null>(null);
     const iouRequestType = getRequestType(transaction);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
-    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
-    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction);
+    const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
+    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -97,7 +98,7 @@ function IOURequestStepAmount({
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current && textInput.current.focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -112,16 +113,16 @@ function IOURequestStepAmount({
             // A temporary solution to not prevent users from editing the currency
             // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
             // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-            TransactionEdit.createBackupTransaction(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
+            TransactionEdit.createBackupTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
             return () => {
                 if (isSaveButtonPressed.current) {
                     return;
                 }
-                TransactionEdit.removeBackupTransaction(transaction.transactionID || '');
+                TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '');
             };
         }
-        if (transaction.originalCurrency) {
+        if (transaction?.originalCurrency) {
             originalCurrency.current = transaction.originalCurrency;
         } else {
             originalCurrency.current = currency;
@@ -131,7 +132,7 @@ function IOURequestStepAmount({
             if (isSaveButtonPressed.current) {
                 return;
             }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
+            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current ?? '', true);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -144,10 +145,7 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
     };
 
-    /**
-     * @param {Number} amount
-     */
-    const navigateToNextPage = ({amount, paymentMethod}) => {
+    const navigateToNextPage = ({amount}: AmountParams, paymentMethod) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
@@ -161,7 +159,7 @@ function IOURequestStepAmount({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report.reportID && !ReportUtils.isArchivedRoom(report)) {
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = _.map(selectedParticipants, (participant) => {
                 const participantAccountID = lodashGet(participant, 'accountID', 0);
@@ -221,7 +219,7 @@ function IOURequestStepAmount({
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
     };
 
-    const saveAmountAndCurrency = ({amount, paymentMethod}) => {
+    const saveAmountAndCurrency = ({amount}: AmountParams, paymentMethod) => {
         if (!isEditing) {
             navigateToNextPage({amount, paymentMethod});
             return;
@@ -241,7 +239,7 @@ function IOURequestStepAmount({
             return;
         }
 
-        IOU.updateMoneyRequestAmountAndCurrency(transactionID, reportID, currency, newAmount);
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount});
         Navigation.dismissModal();
     };
 
@@ -250,11 +248,11 @@ function IOURequestStepAmount({
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepAmount.displayName}
-            shouldShowWrapper={Boolean(backTo || isEditing)}
+            shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={Boolean(backTo || isEditing)}
+                isEditing={!!backTo || isEditing}
                 currency={currency}
                 amount={Math.abs(transactionAmount)}
                 skipConfirmation={shouldSkipConfirmation}
@@ -270,38 +268,41 @@ function IOURequestStepAmount({
     );
 }
 
-IOURequestStepAmount.propTypes = propTypes;
-IOURequestStepAmount.defaultProps = defaultProps;
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withWritableReportOrNotFound,
-    withFullTransactionOrNotFound,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
+    splitDraftTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
-        policy: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+    },
+    draftTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
-        splitDraftTransaction: {
-            key: ({route}) => {
-                const transactionID = lodashGet(route, 'params.transactionID', 0);
-                return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-            },
+    },
+    skipConfirmation: {
+        key: ({route}) => {
+            const transactionID = lodashGet(route, 'params.transactionID', 0);
+            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
-        draftTransaction: {
-            key: ({route}) => {
-                const transactionID = lodashGet(route, 'params.transactionID', 0);
-                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
-            },
-        },
-        skipConfirmation: {
-            key: ({route}) => {
-                const transactionID = lodashGet(route, 'params.transactionID', 0);
-                return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-            },
-        },
-    }),
-)(IOURequestStepAmount);
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+    },
+})(IOURequestStepAmount);
+
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
+
+export default IOURequestStepAmountWithFullTransactionOrNotFound;
