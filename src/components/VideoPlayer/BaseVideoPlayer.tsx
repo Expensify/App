@@ -55,7 +55,7 @@ function BaseVideoPlayer({
         currentVideoPlayerRef,
         updateCurrentlyPlayingURL,
         videoResumeTryNumber,
-        resetVideoPlayerData,
+        setCurrentlyPlayingURL,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -200,9 +200,9 @@ function BaseVideoPlayer({
                 return;
             }
 
-            resetVideoPlayerData();
+            setCurrentlyPlayingURL(null);
         },
-        [resetVideoPlayerData],
+        [setCurrentlyPlayingURL],
     );
     // update shared video elements
     useEffect(() => {

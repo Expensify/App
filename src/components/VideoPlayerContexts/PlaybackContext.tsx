@@ -95,13 +95,13 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             sharedElement,
             currentVideoPlayerRef,
             shareVideoPlayerElements,
+            setCurrentlyPlayingURL,
             playVideo,
             pauseVideo,
             checkVideoPlaying,
             videoResumeTryNumber,
-            resetVideoPlayerData,
         }),
-        [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying, resetVideoPlayerData],
+        [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying, setCurrentlyPlayingURL],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
