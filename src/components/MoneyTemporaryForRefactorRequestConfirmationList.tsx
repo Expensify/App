@@ -232,7 +232,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (customUnitRateID || !canUseP2PDistanceRequests) {
             return;
         }
-        if (!customUnitRateID && defaultMileageRate) {
+        if (!customUnitRateID) {
             const rateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? defaultMileageRate?.customUnitRateID ?? '';
             IOU.setCustomUnitRateID(transactionID, rateID);
         }
