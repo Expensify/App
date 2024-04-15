@@ -332,7 +332,7 @@ function MoneyRequestConfirmationList({
 
         const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency ?? '');
-    }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency]);
+    }, [shouldCalculateDistanceAmount, distance, rate, unit, transactionID, currency]);
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
@@ -344,7 +344,7 @@ function MoneyRequestConfirmationList({
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [taxRates?.defaultValue, transaction, previousTransactionAmount]);
+    }, [taxRates?.defaultValue, transaction, transactionID, previousTransactionAmount]);
 
     /**
      * Returns the participants with amount
@@ -472,7 +472,7 @@ function MoneyRequestConfirmationList({
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transactionID, distanceMerchant, true);
-    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
+    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transactionID]);
 
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
@@ -481,7 +481,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
-    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+    }, [iouCategory, shouldShowCategories, policyCategories, transactionID, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
@@ -497,7 +497,7 @@ function MoneyRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, canUseViolations]);
+    }, [policyTagLists, transaction, transactionID, policyTags, canUseViolations]);
 
     /**
      */
