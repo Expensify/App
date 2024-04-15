@@ -4367,8 +4367,7 @@ function buildTransactionThread(
     existingTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
-    const existingTransactionThreadReport = getReport(existingTransactionThreadReportID)
-
+    const existingTransactionThreadReport = getReport(existingTransactionThreadReportID);
 
     if (existingTransactionThreadReportID && existingTransactionThreadReport) {
         return {
@@ -4379,7 +4378,6 @@ function buildTransactionThread(
             reportName: getTransactionReportName(reportAction),
         };
     }
-
 
     return buildOptimisticChatReport(
         participantAccountIDs,
@@ -4396,8 +4394,7 @@ function buildTransactionThread(
         moneyRequestReport?.reportID,
         '',
         '',
-        existingTransactionThreadReportID,
-    );;
+    );
 }
 
 /**

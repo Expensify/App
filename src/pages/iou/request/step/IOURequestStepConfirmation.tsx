@@ -251,9 +251,13 @@ function IOURequestStepConfirmation({
                 policyCategories,
                 gpsPoints,
                 Object.keys(transaction?.comment?.waypoints ?? {}).length ? TransactionUtils.getValidWaypoints(transaction.comment.waypoints, true) : undefined,
+                action,
+                transaction.actionableWhisperReportActionID,
+                transaction.linkedTrackedExpenseReportAction,
+                transaction.linkedTrackedExpenseReportID,
             );
         },
-        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories],
+        [report, transaction, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, transactionTaxCode, transactionTaxAmount, policy, policyTags, policyCategories, action],
     );
 
     const createDistanceRequest = useCallback(
@@ -355,7 +359,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0) {
