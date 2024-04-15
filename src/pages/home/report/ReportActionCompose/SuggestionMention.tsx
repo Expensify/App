@@ -338,12 +338,8 @@ function SuggestionMention(
     );
 
     useEffect(() => {
-        if (!isComposerFocused) {
-            return;
-        }
         calculateMentionSuggestion(selection.end);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selection, isComposerFocused]);
+    }, [selection, calculateMentionSuggestion]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
