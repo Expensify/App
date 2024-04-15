@@ -16,7 +16,6 @@ import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -33,7 +32,6 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // const {environmentURL} = useEnvironment();
-    const waitForNavigate = useWaitForNavigation();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -159,11 +157,11 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.advanced'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))),
+                          onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
                       },
                   ]),
         ],
-        [styles.sectionMenuItemTopDescription, styles.popoverMenuIcon, translate, waitForNavigate, isSyncInProgress, theme.spinner, overflowMenu, threeDotsMenuPosition, policyID],
+        [styles.sectionMenuItemTopDescription, styles.popoverMenuIcon, translate, isSyncInProgress, theme.spinner, overflowMenu, threeDotsMenuPosition, policyID],
     );
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
