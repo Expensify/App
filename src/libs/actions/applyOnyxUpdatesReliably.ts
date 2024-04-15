@@ -1,4 +1,3 @@
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {handleOnyxUpdateGap} from './OnyxUpdateManager';
 import * as OnyxUpdates from './OnyxUpdates';
@@ -21,10 +20,7 @@ export default function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer,
 
     if (shouldRunSync) {
         handleOnyxUpdateGap(updates, clientLastUpdateID);
-        return;
+    } else {
+        OnyxUpdates.saveUpdateInformation(updates);
     }
-
-    // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
-    SequentialQueue.pause();
-    OnyxUpdates.saveUpdateInformation(updates);
 }

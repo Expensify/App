@@ -13,6 +13,12 @@ function promiseWhile(condition: () => boolean, action: (() => Promise<void>) | 
             } else {
                 const actionResult = action?.();
                 console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
+
+                if (!actionResult) {
+                    resolve();
+                    return;
+                }
+
                 Promise.resolve(actionResult).then(loop).catch(reject);
             }
         };
