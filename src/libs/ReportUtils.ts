@@ -2945,7 +2945,6 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parser = new ExpensiMark();
         const parentReportActionMessage = (
             ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
                 ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
