@@ -162,9 +162,9 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
-type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
-
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+
+type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
