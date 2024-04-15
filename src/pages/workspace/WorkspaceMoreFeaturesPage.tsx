@@ -48,6 +48,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline.config.syncTax;
 
     const spendItems: Item[] = [
         {
@@ -99,8 +100,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Coins,
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
-            isActive: (policy?.tax?.trackingEnabled ?? false) || !!policy?.connections?.quickbooksOnline.config.syncTax,
-            disabled: policy?.connections?.quickbooksOnline.config.syncTax,
+            isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
+            disabled: isSyncTaxEnabled,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
