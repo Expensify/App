@@ -125,6 +125,7 @@ function SuggestionMention(
             setSuggestionValues((prevState) => ({
                 ...prevState,
                 suggestedMentions: [],
+                shouldShowSuggestionMenu: false,
             }));
         },
         [
@@ -324,9 +325,8 @@ function SuggestionMention(
             const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
             if (!isCursorBeforeTheMention && prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
                 // filter reports by room name and current policy
-                const filteredRoomMentions = getRoomMentionOptions(prefix, reports);
-                nextState.suggestedMentions = filteredRoomMentions;
-                nextState.shouldShowSuggestionMenu = !!filteredRoomMentions.length;
+                nextState.suggestedMentions = getRoomMentionOptions(prefix, reports);
+                nextState.shouldShowSuggestionMenu = true;
             }
 
             setSuggestionValues((prevState) => ({
@@ -347,7 +347,7 @@ function SuggestionMention(
         if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
             ReportUserActions.searchInServer(value, policyID);
         }
-    }, [suggestionValues.suggestedMentions, policyID, suggestionValues.prefixType, value]);
+    }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
