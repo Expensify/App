@@ -68,7 +68,8 @@ Onyx.connect({
 
 /**
  * @param report
- * @returns BrickRoad for the policy passed as a param
+ * @param actionsByReport (optional) - similar to (local) reportActionsByReport, coming from (local) function getWorkspacesBrickRoads
+ * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
  */
 const getBrickRoadForPolicy = (report: Report, actionsByReport?: OnyxCollection<ReportActions>): BrickRoad => {
     const reportActions = (isEmptyObject(actionsByReport) ? reportActionsByReport : actionsByReport)?.[report.reportID] ?? {};
@@ -156,6 +157,9 @@ function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
 }
 
 /**
+ * @param reports
+ * @param policies
+ * @param reportActions (optional)
  * @returns a map where the keys are policyIDs and the values are BrickRoads for each policy
  */
 function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>, reportActions?: OnyxCollection<ReportActions>): Record<string, BrickRoad> {
@@ -178,12 +182,8 @@ function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: Onyx
 
     const actionsByReport: OnyxCollection<ReportActions> = {};
     Object.keys(reportActions ?? {}).forEach((key) => {
-        if (!reportActions) {
-            return;
-        }
-
         const reportID = CollectionUtils.extractCollectionItemID(key as typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-        actionsByReport[reportID] = reportActions[key];
+        actionsByReport[reportID] = reportActions?.[key] ?? {};
     });
 
     Object.values(reports).forEach((report) => {
@@ -204,6 +204,7 @@ function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: Onyx
 }
 
 /**
+ * @param reports
  * @returns a map where the keys are policyIDs and the values are truthy booleans if policy has unread content
  */
 function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<string, boolean> {
