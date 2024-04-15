@@ -941,11 +941,6 @@ export default {
         currentPassword: 'Current password',
         newPassword: 'New password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
-        error: {
-            currentPassword: 'Current password is required.',
-            newPasswordSameAsOld: 'New password must be different than your old password.',
-            newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
-        },
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',

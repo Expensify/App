@@ -939,11 +939,6 @@ export default {
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
-        error: {
-            currentPassword: 'Contraseña actual es requerido.',
-            newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua.',
-            newPassword: 'Su contraseña debe tener al menos 8 caracteres, 1 letra mayúscula, 1 letra minúscula y 1 número.',
-        },
     },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',
