@@ -180,8 +180,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    console.log(featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED], policy?.areWorkflowsEnabled);
-
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] || policy?.areWorkflowsEnabled) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
