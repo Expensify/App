@@ -81,7 +81,7 @@ function Composer(
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const markdownStyle = useMarkdownStyle();
+    const markdownStyle = useMarkdownStyle(value);
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
     const textRef = useRef<HTMLElement & RNText>(null);
