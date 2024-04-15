@@ -188,6 +188,8 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
+type ConnectionName = keyof Connections;
+
 type ACHAccount = {
     bankAccountID: number;
     accountNumber: string;
@@ -472,4 +474,6 @@ export type {
     PendingJoinRequestPolicy,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
+    Connections,
+    ConnectionName,
 };
