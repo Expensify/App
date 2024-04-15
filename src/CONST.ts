@@ -3,6 +3,7 @@ import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {ValueOf} from 'type-fest';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
@@ -682,6 +683,7 @@ const CONST = {
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
+                UPDATEGROUPCHATMEMBERROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -748,6 +750,7 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
+                    LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                 },
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -1487,6 +1490,15 @@ const CONST = {
         'callMeByMyName',
     ],
 
+    // Map updated pronouns key to deprecated pronouns
+    DEPRECATED_PRONOUNS_LIST: {
+        heHimHis: 'He/him',
+        sheHerHers: 'She/her',
+        theyThemTheirs: 'They/them',
+        zeHirHirs: 'Ze/hir',
+        callMeByMyName: 'Call me by my name',
+    },
+
     POLICY: {
         TYPE: {
             FREE: 'free',
@@ -1850,17 +1862,17 @@ const CONST = {
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
 
+    // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
-
     TAG_NAME_LIMIT: 256,
-
+    REPORT_NAME_LIMIT: 256,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
-
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -4301,6 +4313,9 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    DOT_SEPARATOR: '•',
+
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
         defaultValue: '0%',
@@ -4323,7 +4338,8 @@ const CONST = {
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
+type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 
-export type {Country};
+export type {Country, IOUType};
 
 export default CONST;
