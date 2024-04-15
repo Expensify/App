@@ -55,6 +55,9 @@ type MentionSuggestionsProps = {
 
     /** Measures the parent container's position and dimensions. */
     measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
+
+    /** Show ActivityIndicator when searching for mentions */
+    isSearchingForMentions?: boolean;
 };
 
 /**
@@ -62,7 +65,15 @@ type MentionSuggestionsProps = {
  */
 const keyExtractor = (item: Mention) => item.alternateText;
 
-function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSelect, isMentionPickerLarge, measureParentContainer = () => {}}: MentionSuggestionsProps) {
+function MentionSuggestions({
+    prefix,
+    mentions,
+    highlightedMentionIndex = 0,
+    onSelect,
+    isMentionPickerLarge,
+    measureParentContainer = () => {},
+    isSearchingForMentions,
+}: MentionSuggestionsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -148,6 +159,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
             isSuggestionPickerLarge={isMentionPickerLarge}
             accessibilityLabelExtractor={keyExtractor}
             measureParentContainer={measureParentContainer}
+            isSearchingForMentions={isSearchingForMentions}
         />
     );
 }

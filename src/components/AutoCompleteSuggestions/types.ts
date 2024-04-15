@@ -33,6 +33,9 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer?: (callback: MeasureParentContainerCallback) => void;
+
+    /** Show ActivityIndicator when searching for mentions */
+    isSearchingForMentions?: boolean;
 };
 
 export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps};

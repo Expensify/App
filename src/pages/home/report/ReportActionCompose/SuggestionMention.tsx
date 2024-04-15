@@ -1,8 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import lodashSortBy from 'lodash/sortBy';
-import type {ForwardedRef, RefAttributes} from 'react';
+import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
@@ -17,6 +17,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
+import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report} from '@src/types/onyx';
@@ -29,11 +30,6 @@ type SuggestionValues = {
     shouldShowSuggestionMenu: boolean;
     mentionPrefix: string;
     prefixType: string;
-};
-
-type RoomMentionOnyxProps = {
-    /** All reports shared with the user */
-    reports: OnyxCollection<Report>;
 };
 
 /**
@@ -50,26 +46,18 @@ const defaultSuggestionsValues: SuggestionValues = {
 };
 
 function SuggestionMention(
-    {
-        value,
-        selection,
-        setSelection,
-        updateComment,
-        isAutoSuggestionPickerLarge,
-        measureParentContainer,
-        isComposerFocused,
-        reports,
-        isGroupPolicyReport,
-        policyID,
-    }: SuggestionProps & RoomMentionOnyxProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const {translate, formatPhoneNumber} = useLocalize();
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS);
+
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
+    const isMentionSuggestionsMenuVisible = (!!suggestionValues.suggestedMentions.length || (isSearchingForReports ?? false)) && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -354,6 +342,13 @@ function SuggestionMention(
         calculateMentionSuggestion(selection.end);
     }, [selection, calculateMentionSuggestion]);
 
+    useEffect(() => {
+        const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
+        if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
+            ReportUserActions.searchInServer(value, policyID);
+        }
+    }, [suggestionValues.suggestedMentions, policyID, suggestionValues.prefixType, value]);
+
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
             if (prevState.shouldShowSuggestionMenu) {
@@ -396,14 +391,11 @@ function SuggestionMention(
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainer={measureParentContainer}
+            isSearchingForMentions={isSearchingForReports ?? false}
         />
     );
 }
 
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default withOnyx<SuggestionProps & RoomMentionOnyxProps & RefAttributes<SuggestionsRef>, RoomMentionOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-})(forwardRef(SuggestionMention));
+export default forwardRef(SuggestionMention);

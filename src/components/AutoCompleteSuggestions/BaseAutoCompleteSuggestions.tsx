@@ -2,12 +2,14 @@ import {FlashList} from '@shopify/flash-list';
 import type {ForwardedRef, ReactElement} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
+import {ActivityIndicator} from 'react-native';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import variables from '@styles/variables';
@@ -39,11 +41,13 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         suggestions,
         isSuggestionPickerLarge,
         keyExtractor,
+        isSearchingForMentions,
     }: AutoCompleteSuggestionsProps<TSuggestion>,
     ref: ForwardedRef<View | HTMLDivElement>,
 ) {
     const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
@@ -77,11 +81,11 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         [isLargeScreenWidth, suggestions.length, windowWidth],
     );
     useEffect(() => {
-        rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
+        rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length + (isSearchingForMentions ? 1 : 0), isSuggestionPickerLarge), {
             duration: 100,
             easing: Easing.inOut(Easing.ease),
         });
-    }, [suggestions.length, isSuggestionPickerLarge, rowHeight]);
+    }, [suggestions.length, isSuggestionPickerLarge, rowHeight, isSearchingForMentions]);
 
     useEffect(() => {
         if (!scrollRef.current) {
@@ -109,6 +113,15 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                     removeClippedSubviews={false}
                     showsVerticalScrollIndicator={innerHeight > rowHeight.value}
                     extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
+                    ListFooterComponent={
+                        isSearchingForMentions ? (
+                            <ActivityIndicator
+                                style={{height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}}
+                                color={theme.spinner}
+                                size="small"
+                            />
+                        ) : undefined
+                    }
                 />
             </ColorSchemeWrapper>
         </Animated.View>
