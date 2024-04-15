@@ -27,8 +27,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, SelectedTabRequest, Transaction} from '@src/types/onyx';
-import type OnyxPolicy from '@src/types/onyx/Policy';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import IOURequestStepAmount from './step/IOURequestStepAmount';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
@@ -49,7 +47,7 @@ type IOURequestStartPageOnyxProps = {
     transaction: OnyxEntry<Transaction>;
 
     /** The list of all policies */
-    allPolicies: OnyxCollection<OnyxPolicy> | EmptyObject;
+    allPolicies: OnyxCollection<Policy>;
 };
 
 type IOURequestStartPageProps = IOURequestStartPageOnyxProps & WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
@@ -106,12 +104,11 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate;
+    const shouldDisplayDistanceRequest = iouType !== CONST.IOU.TYPE.INVOICE && (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate);
+    const shouldDisplayScanRequest = iouType !== CONST.IOU.TYPE.INVOICE;
 
     // Allow the user to create the request if we are creating the request in global menu or the report can create the request
     const isAllowedToCreateRequest = isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType) || PolicyUtils.canSendInvoice(allPolicies);
-
-    const shouldDisplayScanRequest = iouType !== CONST.IOU.TYPE.INVOICE;
 
     const navigateBack = () => {
         Navigation.dismissModal();
@@ -192,7 +189,6 @@ export default withOnyx<IOURequestStartPageProps, IOURequestStartPageOnyxProps>(
     transaction: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID ?? 0}`,
     },
-    // @ts-expect-error - TODO: fix
     allPolicies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },
