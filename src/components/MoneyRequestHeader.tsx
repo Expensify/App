@@ -190,7 +190,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                                 src={Expensicons.CreditCardHourglass}
                                 height={variables.iconSizeSmall}
                                 width={variables.iconSizeSmall}
-                                fill={theme.textSupporting}
+                                fill={theme.icon}
                             />
                         }
                         description={translate('iou.transactionPendingDescription')}
@@ -204,7 +204,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                                 src={Expensicons.ReceiptScan}
                                 height={variables.iconSizeSmall}
                                 width={variables.iconSizeSmall}
-                                fill={theme.textSupporting}
+                                fill={theme.icon}
                             />
                         }
                         description={translate('iou.receiptScanInProgressDescription')}

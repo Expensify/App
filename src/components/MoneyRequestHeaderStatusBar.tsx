@@ -25,7 +25,7 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
                     <Text style={[styles.textStrong, styles.textMicroBold]}>{title}</Text>
                 </View>
             ) : (
-                <View style={[styles.mr1]}>{title}</View>
+                <View style={styles.mr2}>{title}</View>
             )}
             <View style={[styles.flexShrink1]}>
                 <Text style={[styles.textLabelSupporting]}>{description}</Text>
