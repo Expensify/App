@@ -109,8 +109,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
 
     const isGroupChat = ReportUtils.isGroupChat(optionItem) || ReportUtils.isDeprecatedGroupDM(optionItem);
 
-    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(report?.participantAccountIDs ?? []) : optionItem.text;
-
+    const fullTitle = isGroupChat ? ReportUtils.getGroupChatName(undefined, false, optionItem.reportID ?? '') : optionItem.text;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     return (
         <OfflineWithFeedback
@@ -202,7 +201,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isPolicyExpenseChat ||
                                                 !!optionItem.isTaskReport ||
                                                 !!optionItem.isThread ||
-                                                !!optionItem.isMoneyRequestReport
+                                                !!optionItem.isMoneyRequestReport ||
+                                                ReportUtils.isGroupChat(report)
                                             }
                                         />
                                         {isStatusVisible && (
