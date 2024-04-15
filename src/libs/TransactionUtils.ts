@@ -215,12 +215,10 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
 
     if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
         updatedTransaction.taxAmount = isFromExpenseReport ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
-        shouldStopSmartscan = true;
     }
 
     if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
         updatedTransaction.taxCode = transactionChanges.taxCode;
-        shouldStopSmartscan = true;
     }
 
     if (Object.hasOwn(transactionChanges, 'billable') && typeof transactionChanges.billable === 'boolean') {
