@@ -204,6 +204,7 @@ function ReportScreen({
             isOptimisticReport: reportProp?.isOptimisticReport,
             lastMentionedTime: reportProp?.lastMentionedTime,
             avatarUrl: reportProp?.avatarUrl,
+            invoiceReceiver: reportProp?.invoiceReceiver,
         }),
         [
             reportProp?.lastReadTime,
@@ -243,6 +244,7 @@ function ReportScreen({
             reportProp?.isOptimisticReport,
             reportProp?.lastMentionedTime,
             reportProp?.avatarUrl,
+            reportProp?.invoiceReceiver,
         ],
     );
 

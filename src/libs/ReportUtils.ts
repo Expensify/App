@@ -2983,19 +2983,30 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
 /**
  * Get the title for an invoice room.
  */
-function getInvoicesChatName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): string {
-    const policyName = getPolicyName(report, false, policy);
-    let receiverName = '';
+function getInvoicesChatName(report: OnyxEntry<Report>): string {
+    const invoiceReceiver = report?.invoiceReceiver;
+    const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
+    const policyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
+    let isReceiver = false;
 
-    if (report?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-        receiverName = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[report.invoiceReceiver.accountID]);
+    if (isIndividual && invoiceReceiverAccountID === currentUserAccountID) {
+        isReceiver = true;
     }
 
-    if (report?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.POLICY) {
-        receiverName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`]);
+    if (!isIndividual && PolicyUtils.isPolicyMember(policyID, allPolicies)) {
+        isReceiver = true;
     }
 
-    return `${receiverName} & ${policyName}`;
+    if (isReceiver) {
+        return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
+    }
+
+    if (isIndividual) {
+        return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]);
+    }
+
+    return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
 }
 
 /**
@@ -3070,7 +3081,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
     }
 
     if (isInvoiceRoom(report)) {
-        formattedName = getInvoicesChatName(report, policy);
+        formattedName = getInvoicesChatName(report);
     }
 
     if (formattedName) {
