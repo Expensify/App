@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
