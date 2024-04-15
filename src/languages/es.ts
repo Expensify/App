@@ -716,7 +716,7 @@ export default {
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
         requestOnHold: 'Este solicitud está bloqueada. Revisa los comentarios para saber como proceder.',
-        requestDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise el duplicado para eliminar la retención.',
+        requestDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise los duplicados para eliminar la retención.',
         reviewDuplicates: 'Revisar duplicados',
         confirmApprove: 'Confirma que quieres aprobar',
         confirmApprovalAmount: 'Aprobar el total o solo la parte no bloqueada.',
