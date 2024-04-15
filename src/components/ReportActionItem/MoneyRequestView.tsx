@@ -185,19 +185,19 @@ function MoneyRequestView({
 
     if (isCardTransaction) {
         if (formattedOriginalAmount) {
-            amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
         if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
     } else {
         if (!isDistanceRequest) {
-            amountDescription += ` • ${translate('iou.cash')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
         if (isApproved) {
-            amountDescription += ` • ${translate('iou.approved')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isSettled) {
             amountDescription += ` • ${translate('iou.settledExpensify')}`;
         }
@@ -483,6 +483,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={!!transactionBillable}
                             onToggle={saveBillable}
+                            disabled={!canEdit}
                         />
                     </View>
                 )}

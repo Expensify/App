@@ -249,7 +249,6 @@ export default {
         cantFindAddress: '¿No encuentras tu dirección? ',
         enterManually: 'Introducir manualmente',
         message: 'Chatear con ',
-        leaveRoom: 'Salir de la sala de chat',
         leaveThread: 'Salir del hilo',
         you: 'Tú',
         youAfterPreposition: 'ti',
@@ -1231,6 +1230,12 @@ export default {
     groupConfirmPage: {
         groupName: 'Nombre del grupo',
     },
+    groupChat: {
+        groupMembersListTitle: 'Directorio de los miembros del grupo.',
+        lastMemberTitle: '¡Atención!',
+        lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres salir del chat?',
+        defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
+    },
     languagePage: {
         language: 'Idioma',
         languages: {
@@ -2055,7 +2060,8 @@ export default {
             removeMembersPrompt: '¿Estás seguro de que deseas eliminar a estos miembros?',
             removeMembersTitle: 'Eliminar miembros',
             removeMemberButtonTitle: 'Quitar del espacio de trabajo',
-            removeMemberPrompt: ({memberName}) => `¿Estás seguro de que deseas eliminar a ${memberName}`,
+            removeMemberGroupButtonTitle: 'Quitar del grupo',
+            removeMemberPrompt: ({memberName}: {memberName: string}) => `¿Estás seguro de que deseas eliminar a ${memberName}?`,
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
             makeMember: 'Hacer miembro',
@@ -2168,6 +2174,7 @@ export default {
         },
         invite: {
             member: 'Invitar miembros',
+            members: 'Invitar miembros',
             invitePeople: 'Invitar nuevos miembros',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             pleaseEnterValidLogin: `Asegúrese de que el correo electrónico o el número de teléfono sean válidos (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -2175,6 +2182,7 @@ export default {
             users: 'usuarios',
             invited: 'invitó',
             removed: 'eliminó',
+            leftWorkspace: 'salió del espacio de trabajo',
             to: 'a',
             from: 'de',
         },
