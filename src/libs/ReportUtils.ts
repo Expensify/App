@@ -4687,9 +4687,9 @@ function getChatByParticipantsAndPolicy(newParticipantList: number[], policyID: 
             if (!report?.participantAccountIDs) {
                 return false;
             }
-            const sortedParticipanctsAccountIDs = report.participantAccountIDs?.sort();
+            const sortedParticipantsAccountIDs = report.participantAccountIDs?.sort();
             // Only return the room if it has all the participants and is not a policy room
-            return report.policyID === policyID && lodashIsEqual(newParticipantList, sortedParticipanctsAccountIDs);
+            return report.policyID === policyID && newParticipantList.every((newParticipant) => sortedParticipantsAccountIDs.includes(newParticipant));
         }) ?? null
     );
 }
@@ -5175,6 +5175,15 @@ function canCreateRequest(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, 
 
 function getWorkspaceChats(policyID: string, accountIDs: number[]): Array<OnyxEntry<Report>> {
     return Object.values(allReports ?? {}).filter((report) => isPolicyExpenseChat(report) && (report?.policyID ?? '') === policyID && accountIDs.includes(report?.ownerAccountID ?? -1));
+}
+
+/**
+ * Gets all reports that relate to the policy
+ *
+ * @param policyID - the workspace ID to get all associated reports
+ */
+function getAllWorkspaceReports(policyID: string): Array<OnyxEntry<Report>> {
+    return Object.values(allReports ?? {}).filter((report) => (report?.policyID ?? '') === policyID);
 }
 
 /**
@@ -5761,6 +5770,11 @@ function canBeAutoReimbursed(report: OnyxEntry<Report>, policy: OnyxEntry<Policy
     return isAutoReimbursable;
 }
 
+/** Check if the current user is an owner of the report */
+function isReportOwner(report: OnyxEntry<Report>): boolean {
+    return report?.ownerAccountID === currentUserPersonalDetails?.accountID;
+}
+
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number): boolean {
     const policy = getPolicy(report?.policyID);
     const {preventSelfApproval} = policy;
@@ -5818,6 +5832,10 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
 function hasActionsWithErrors(reportID: string): boolean {
     const reportActions = reportActionsByReport?.[reportID ?? ''] ?? {};
     return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
+}
+
+function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    return isPolicyExpenseChat(report) && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, currentUserAccountID ?? -1) || isReportOwner(report));
 }
 
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
@@ -6014,6 +6032,7 @@ export {
     isDM,
     isSelfDM,
     getWorkspaceChats,
+    getAllWorkspaceReports,
     shouldDisableRename,
     hasSingleParticipant,
     getReportRecipientAccountIDs,
@@ -6072,6 +6091,7 @@ export {
     hasUpdatedTotal,
     isReportFieldDisabled,
     getAvailableReportFields,
+    isReportOwner,
     getReportFieldKey,
     reportFieldsEnabled,
     getAllAncestorReportActionIDs,
@@ -6093,6 +6113,7 @@ export {
     hasActionsWithErrors,
     getReportActionActorAccountID,
     getGroupChatName,
+    canLeavePolicyExpenseChat,
     getOutstandingChildRequest,
     getVisibleChatMemberAccountIDs,
     getParticipantAccountIDs,
