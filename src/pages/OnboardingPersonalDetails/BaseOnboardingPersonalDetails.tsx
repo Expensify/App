@@ -46,6 +46,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
+            const openWorkPagePurposes = [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
+
+            if (openWorkPagePurposes.includes(onboardingPurposeSelected)) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORK);
+
+                return;
+            }
+
             Report.completeOnboarding(onboardingPurposeSelected, CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected], {
                 login: currentUserPersonalDetails.login ?? '',
                 firstName,
