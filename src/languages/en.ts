@@ -445,29 +445,18 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        conciergePlaceholderOptions: (option): string => {
-            switch (option) {
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.REPORT:
-                    return 'Ask for help!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.IOU:
-                    return 'Ask me how to pay people!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.CHAT:
-                    return 'Ask me to book travel!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.TRAVEL:
-                    return 'Ask me to book a flight!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.EXPENSES:
-                    return 'Ask me how to submit expenses!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.BILLS:
-                    return 'Ask me how to pay bills!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.CORPORATE_CARD:
-                    return 'Ask me how to get a free corporate card!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.INVOICES:
-                    return 'Ask me how to send an invoice!';
-                case CONST.CONCIERGE.PLACEHOLDER_OPTIONS.RECEIPTS:
-                    return 'Ask me how to scan a receipt!';
-                default:
-                    return 'Ask for help!';
-            }
+        conciergePlaceholderOptions: (): string => {
+            const options = [
+                'Ask for help!',
+                'Ask me anything!',
+                'Ask me to book travel!',
+                'Ask me what I can do!',
+                'Ask me how to pay people!',
+                'Ask me how to send an invoice!',
+                'Ask me how to scan a receipt!',
+                'Ask me how to get a free corporate card!',
+            ];
+            return options[Math.floor(Math.random() * options.length)];
         },
         blockedFromConcierge: 'Communication is barred',
         fileUploadFailed: 'Upload failed. File is not supported.',

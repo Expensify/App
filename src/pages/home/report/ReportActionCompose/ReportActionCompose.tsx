@@ -193,7 +193,7 @@ function ReportActionCompose({
 
     // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
     const conciergePlaceholderRandomIndex = useMemo(
-        () => Math.floor(Math.random() * (Object.keys(CONST.CONCIERGE.PLACEHOLDER_OPTIONS).length - (isSmallScreenWidth ? 4 : 1) + 1)),
+        () => Math.floor(Math.random() * (translate('reportActionCompose.conciergePlaceholderOptions').length - (isSmallScreenWidth ? 4 : 1) + 1)),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
@@ -205,8 +205,7 @@ function ReportActionCompose({
                 return translate('reportActionCompose.blockedFromConcierge');
             }
 
-            const conciergePlaceholderOptions = Object.values(CONST.CONCIERGE.PLACEHOLDER_OPTIONS);
-            return translate('reportActionCompose.conciergePlaceholderOptions', {option: conciergePlaceholderOptions[conciergePlaceholderRandomIndex]});
+            return translate('reportActionCompose.conciergePlaceholderOptions')[conciergePlaceholderRandomIndex];
         }
 
         return translate('reportActionCompose.writeSomething');

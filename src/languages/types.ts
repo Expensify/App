@@ -33,10 +33,6 @@ type AlreadySignedInParams = {
     email: string;
 };
 
-type ConciergeOptionsParams = {
-    option: string;
-};
-
 type GoBackMessageParams = {
     provider: string;
 };
@@ -314,7 +310,6 @@ export type {
     CanceledRequestParams,
     CharacterLimitParams,
     ConfirmThatParams,
-    ConciergeOptionsParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
     DeleteActionParams,
