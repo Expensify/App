@@ -14,7 +14,6 @@ import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as ComposerUtils from '@libs/ComposerUtils';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
@@ -57,7 +56,6 @@ function Composer(
         style,
         shouldClear = false,
         autoFocus = false,
-        isFullComposerAvailable = false,
         shouldCalculateCaretPosition = false,
         isDisabled = false,
         onClear = () => {},
@@ -80,7 +78,6 @@ function Composer(
     const styles = useThemeStyles();
     const markdownStyle = useMarkdownStyle(value);
     const StyleUtils = useStyleUtils();
-    const {windowWidth} = useWindowDimensions();
     const textRef = useRef<HTMLElement & RNText>(null);
     const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const [selection, setSelection] = useState<
@@ -230,22 +227,6 @@ function Composer(
         [onPasteFile, checkComposerVisibility],
     );
 
-    /**
-     * Check the current text input width and update the state with the new width.
-     */
-    const updateTextInputWidth = useCallback(() => {
-        if (!textInput.current) {
-            return;
-        }
-        const computedStyle = window.getComputedStyle(textInput.current);
-        setTextInputWidth(computedStyle.width);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [value, maxLines, isFullComposerAvailable, setIsFullComposerAvailable, windowWidth]);
-
-    useEffect(() => {
-        updateTextInputWidth();
-    }, [updateTextInputWidth]);
-
     useEffect(() => {
         if (!textInput.current) {
             return;
@@ -361,7 +342,10 @@ function Composer(
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
-                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
+                onContentSizeChange={(e) => {
+                    setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
+                    ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
+                }}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
                 onFocus={(e) => {
