@@ -283,6 +283,17 @@ function getPolicy(policyID: string | undefined): OnyxTypes.Policy | EmptyObject
 }
 
 /**
+ * Find the report preview action from given chat report and iou report
+ */
+function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
+    return (
+        Object.values(reportActionsByReport?.[chatReportID] ?? {}).find(
+            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
+        ) ?? null
+    );
+}
+
+/**
  * Initialize money request info
  * @param reportID to attach the transaction to
  * @param policy
@@ -1441,7 +1452,7 @@ function getMoneyRequestInformation(
             linkedTrackedExpenseReportAction,
         );
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
         reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
@@ -1648,7 +1659,7 @@ function getTrackExpenseInformation(
 
     let reportPreviewAction: OnyxEntry<OnyxTypes.ReportAction> = null;
     if (shouldUseMoneyReport && iouReport) {
-        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
         if (reportPreviewAction) {
             reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
         } else {
@@ -2563,6 +2574,7 @@ function convertTrackedExpenseToRequest(
     comment: string,
     merchant: string,
     created: string,
+    receipt?: Receipt,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -2590,6 +2602,7 @@ function convertTrackedExpenseToRequest(
         comment,
         created,
         merchant,
+        receipt,
         payerAccountID,
         chatReportID,
         transactionID,
@@ -2625,6 +2638,7 @@ function categorizeTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
+    receipt?: Receipt,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -2664,6 +2678,7 @@ function categorizeTrackedExpense(
         taxAmount,
         billable,
         created,
+        receipt,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -2690,6 +2705,7 @@ function shareTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
+    receipt?: Receipt,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -2729,6 +2745,7 @@ function shareTrackedExpense(
         taxCode,
         taxAmount,
         billable,
+        receipt,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -2829,6 +2846,7 @@ function requestMoney(
                 comment,
                 merchant,
                 currentCreated,
+                receipt,
             );
             break;
         }
@@ -2968,6 +2986,7 @@ function trackExpense(
                 taxCode,
                 taxAmount,
                 billable,
+                receipt,
             );
             break;
         }
@@ -2996,6 +3015,7 @@ function trackExpense(
                 taxCode,
                 taxAmount,
                 billable,
+                receipt,
             );
             break;
         }
@@ -3383,7 +3403,7 @@ function createSplitsAndOnyxData(
               }
             : {};
 
-        let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
@@ -4052,7 +4072,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
                 undefined,
             );
 
-        let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport?.reportID ?? '', oneOnOneIOUReport?.reportID ?? '');
+        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID ?? '', oneOnOneIOUReport?.reportID ?? '');
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
@@ -4454,7 +4474,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     const iouReportID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction.originalMessage.IOUReportID : '';
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport?.chatReportID ?? '', iouReport?.reportID ?? '');
+    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID ?? '', iouReport?.reportID ?? '');
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
@@ -5089,7 +5109,7 @@ function getPayMoneyRequestParams(
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
     // hence we need to make the updates to the action safely.
     let optimisticReportPreviewAction = null;
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
         optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
     }
