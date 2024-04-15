@@ -29,7 +29,7 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
         if (route?.params?.reportID !== reportID) {
             return;
         }
-
+        let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
         if (isFocused) {
             // Ensures subscription event succeeds when the report/workspace room is created optimistically.
             // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
@@ -38,7 +38,7 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
             const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
 
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-                InteractionManager.runAfterInteractions(() => {
+                interactionTask = InteractionManager.runAfterInteractions(() => {
                     Report.subscribeToReportTypingEvents(reportID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
@@ -53,6 +53,12 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
                 });
             }
         }
+        return () => {
+            if (!interactionTask) {
+                return;
+            }
+            interactionTask.cancel();
+        };
     }, [isFocused, report.pendingFields, didSubscribeToReportTypingEvents, lastVisitedPath, reportID, route]);
 
     return null;
