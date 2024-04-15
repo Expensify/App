@@ -30,6 +30,9 @@ type Icon = {
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
+
+    /** ID of the Icon */
+    id?: string;
 };
 
 type UserDetailsTooltipProps = ChildrenProps & {
