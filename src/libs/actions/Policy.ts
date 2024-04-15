@@ -976,7 +976,6 @@ function removeMembers(accountIDs: number[], policyID: string) {
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-/** Leave a workspace */
 function leaveWorkspace(policyID: string) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];

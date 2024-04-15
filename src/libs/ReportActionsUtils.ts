@@ -170,7 +170,7 @@ function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
 }
 
-function isLeaveMemberAction(reportAction: OnyxEntry<ReportAction>) {
+function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.LEAVE_POLICY;
 }
 
@@ -866,11 +866,10 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
-    const isLeaveAction = isLeaveMemberAction(reportAction);
+    const isLeaveAction = isLeavePolicyAction(reportAction);
 
     // Currently, we only render messages when members are invited
     let verb = Localize.translateLocal('workspace.invite.removed');
-
     if (isInviteAction) {
         verb = Localize.translateLocal('workspace.invite.invited');
     }
