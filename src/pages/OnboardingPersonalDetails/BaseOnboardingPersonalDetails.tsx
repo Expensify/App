@@ -46,7 +46,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            const openWorkPagePurposes = [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
+            const openWorkPagePurposes = [CONST.ONBOARDING_CHOICES.TRACK, CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
             if (openWorkPagePurposes.includes(onboardingPurposeSelected)) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORK);
