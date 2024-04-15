@@ -2172,7 +2172,7 @@ export default {
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
-            sendFrom: 'Enviado desde',
+            sendFrom: 'Enviar desde',
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
