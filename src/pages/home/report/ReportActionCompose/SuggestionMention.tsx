@@ -303,6 +303,7 @@ function SuggestionMention(
                 suggestionWord = `${secondToLastWord} ${lastWord}`;
 
                 prefix = suggestionWord.substring(1);
+                prefixType = suggestionWord.substring(0, 1);
             } else {
                 prefix = lastWord.substring(1);
             }
