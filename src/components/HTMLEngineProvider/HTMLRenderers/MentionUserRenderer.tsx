@@ -35,12 +35,12 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const htmlAttributeAccountID = tnode.attributes.accountid;
 
     let accountID: number;
-    let displayNameOrLogin: string;
+    let mentionDisplayText: string;
     let navigationRoute: Route;
 
     const tnodeClone = cloneDeep(tnode);
 
-    const getMentionDisplayText = (displayText: string, userAccountID: string, userLogin = '') => {
+    const getShortMentionIfFound = (displayText: string, userAccountID: string, userLogin = '') => {
         // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
         // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
         if (userAccountID && userLogin !== displayText) {
@@ -59,18 +59,18 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     if (!isEmpty(htmlAttribAccountID)) {
         const user = personalDetails[htmlAttribAccountID];
         accountID = parseInt(htmlAttribAccountID, 10);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        displayNameOrLogin = PersonalDetailsUtils.getDisplayNameOrDefault(user, LocalePhoneNumber.formatPhoneNumber(user?.login ?? ''));
+        mentionDisplayText = LocalePhoneNumber.formatPhoneNumber(user?.login ?? '') || PersonalDetailsUtils.getDisplayNameOrDefault(user);
+        mentionDisplayText = getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID, user?.login ?? '');
         navigationRoute = ROUTES.PROFILE.getRoute(htmlAttribAccountID);
     } else if ('data' in tnodeClone && !isEmptyObject(tnodeClone.data)) {
         // We need to remove the LTR unicode and leading @ from data as it is not part of the login
-        displayNameOrLogin = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
+        mentionDisplayText = tnodeClone.data.replace(CONST.UNICODE.LTR, '').slice(1);
         // We need to replace tnode.data here because we will pass it to TNodeChildrenRenderer below
-        asMutable(tnodeClone).data = tnodeClone.data.replace(displayNameOrLogin, Str.removeSMSDomain(getMentionDisplayText(displayNameOrLogin, htmlAttributeAccountID)));
+        asMutable(tnodeClone).data = tnodeClone.data.replace(mentionDisplayText, Str.removeSMSDomain(getShortMentionIfFound(mentionDisplayText, htmlAttributeAccountID)));
 
-        accountID = PersonalDetailsUtils.getAccountIDsByLogins([displayNameOrLogin])?.[0];
-        navigationRoute = ROUTES.DETAILS.getRoute(displayNameOrLogin);
-        displayNameOrLogin = Str.removeSMSDomain(displayNameOrLogin);
+        accountID = PersonalDetailsUtils.getAccountIDsByLogins([mentionDisplayText])?.[0];
+        navigationRoute = ROUTES.DETAILS.getRoute(mentionDisplayText);
+        mentionDisplayText = Str.removeSMSDomain(mentionDisplayText);
     } else {
         // If neither an account ID or email is provided, don't render anything
         return null;
@@ -97,7 +97,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                     <UserDetailsTooltip
                         accountID={accountID}
                         fallbackUserDetails={{
-                            displayName: displayNameOrLogin,
+                            displayName: mentionDisplayText,
                         }}
                     >
                         <Text
@@ -108,7 +108,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                             testID="span"
                             href={`/${navigationRoute}`}
                         >
-                            {htmlAttribAccountID ? `@${displayNameOrLogin}` : <TNodeChildrenRenderer tnode={tnodeClone} />}
+                            {htmlAttribAccountID ? `@${mentionDisplayText}` : <TNodeChildrenRenderer tnode={tnodeClone} />}
                         </Text>
                     </UserDetailsTooltip>
                 </Text>

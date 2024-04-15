@@ -3,6 +3,7 @@ import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {ValueOf} from 'type-fest';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
@@ -46,6 +47,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
+    GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
@@ -55,10 +57,24 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+const onboardingChoices = {
+    TRACK: 'newDotTrack',
+    EMPLOYER: 'newDotEmployer',
+    MANAGE_TEAM: 'newDotManageTeam',
+    PERSONAL_SPEND: 'newDotPersonalSpend',
+    CHAT_SPLIT: 'newDotSplitChat',
+    LOOKING_AROUND: 'newDotLookingAround',
+};
+
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+
+    // Note: Group and Self-DM excluded as these are not tied to a Workspace
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
     ANDROID_PACKAGE_NAME,
+    ANIMATED_HIGHLIGHT_DELAY: 500,
+    ANIMATED_HIGHLIGHT_DURATION: 500,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
@@ -117,6 +133,7 @@ const CONST = {
         NORMAL: 'normal',
     },
 
+    DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
@@ -329,7 +346,6 @@ const CONST = {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
         TRACK_EXPENSE: 'trackExpense',
@@ -606,6 +622,10 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        ROLE: {
+            ADMIN: 'admin',
+            MEMBER: 'member',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
@@ -663,6 +683,7 @@ const CONST = {
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
+                UPDATEGROUPCHATMEMBERROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -729,6 +750,7 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
+                    LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                 },
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -832,6 +854,7 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -844,11 +867,17 @@ const CONST = {
             RIGHT: 'right',
         },
         POPOVER_MENU_PADDING: 8,
+        RESTORE_FOCUS_TYPE: {
+            DEFAULT: 'default',
+            DELETE: 'delete',
+            PRESERVE: 'preserve',
+        },
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
+        OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
@@ -1174,6 +1203,24 @@ const CONST = {
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
+    INTEGRATION_ENTITY_MAP_TYPES: {
+        DEFAULT: 'DEFAULT',
+        NONE: 'NONE',
+        TAG: 'TAG',
+        REPORT_FIELD: 'REPORT_FIELD',
+        NOT_IMPORTED: 'NOT_IMPORTED',
+        IMPORTED: 'IMPORTED',
+    },
+    QUICK_BOOKS_ONLINE: 'quickbooksOnline',
+
+    QUICK_BOOKS_IMPORTS: {
+        SYNC_CLASSES: 'syncClasses',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_CUSTOMERS: 'syncCustomers',
+        SYNC_LOCATIONS: 'syncLocations',
+        SYNC_TAXES: 'syncTaxes',
+    },
+
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
@@ -1251,6 +1298,24 @@ const CONST = {
             ONFIDO: 'OnfidoStep',
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
+        },
+        STEP_REFACTOR: {
+            ADD_BANK_ACCOUNT: 'AddBankAccountStep',
+            ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            VERIFY_IDENTITY: 'VerifyIdentityStep',
+            TERMS_AND_FEES: 'TermsAndFeesStep',
+        },
+        STEP_NAMES: ['1', '2', '3', '4'],
+        SUBSTEP_INDEXES: {
+            BANK_ACCOUNT: {
+                ACCOUNT_NUMBERS: 0,
+            },
+            PERSONAL_INFO: {
+                LEGAL_NAME: 0,
+                DATE_OF_BIRTH: 1,
+                SSN: 2,
+                ADDRESS: 3,
+            },
         },
         TIER_NAME: {
             PLATINUM: 'PLATINUM',
@@ -1425,6 +1490,15 @@ const CONST = {
         'callMeByMyName',
     ],
 
+    // Map updated pronouns key to deprecated pronouns
+    DEPRECATED_PRONOUNS_LIST: {
+        heHimHis: 'He/him',
+        sheHerHers: 'She/her',
+        theyThemTheirs: 'They/them',
+        zeHirHirs: 'Ze/hir',
+        callMeByMyName: 'Call me by my name',
+    },
+
     POLICY: {
         TYPE: {
             FREE: 'free',
@@ -1518,13 +1592,35 @@ const CONST = {
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
-            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSER: 'reimburser',
             REIMBURSEMENT_CHOICE: 'reimbursementChoice',
             APPROVAL_MODE: 'approvalMode',
             AUTOREPORTING: 'autoReporting',
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
+        },
+        CONNECTIONS: {
+            SYNC_STATUS: {
+                STARTING: 'starting',
+                FINISHED: 'finished',
+                PROGRESS: 'progress',
+            },
+            NAME: {
+                // Here we will add other connections names when we add support for them
+                QBO: 'quickbooksOnline',
+            },
+            SYNC_STAGE_NAME: {
+                STARTING_IMPORT: 'startingImport',
+                QBO_CUSTOMERS: 'quickbooksOnlineImportCustomers',
+                QBO_EMPLOYEES: 'quickbooksOnlineImportEmployees',
+                QBO_ACCOUNTS: 'quickbooksOnlineImportAccounts',
+                QBO_CLASSES: 'quickbooksOnlineImportClasses',
+                QBO_LOCATIONS: 'quickbooksOnlineImportLocations',
+                QBO_PROCESSING: 'quickbooksOnlineImportProcessing',
+                QBO_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
+                QBO_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+            },
         },
     },
 
@@ -1640,7 +1736,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\n/g,
+        LINE_BREAK: /\r|\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1768,17 +1864,17 @@ const CONST = {
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
 
+    // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
-
     TAG_NAME_LIMIT: 256,
-
+    REPORT_NAME_LIMIT: 256,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
-
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -1818,6 +1914,8 @@ const CONST = {
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
         TAG: 'tag',
+        TAX_RATE: 'taxRate',
+        TAX_AMOUNT: 'taxAmount',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -3326,7 +3424,16 @@ const CONST = {
     },
 
     /**
-     * Constants for types of violations.
+     * Constants for types of violation.
+     */
+    VIOLATION_TYPES: {
+        VIOLATION: 'violation',
+        NOTICE: 'notice',
+        WARNING: 'warning',
+    },
+
+    /**
+     * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
      */
@@ -3390,6 +3497,11 @@ const CONST = {
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
+        CONTROLS_STATUS: {
+            SHOW: 'show',
+            HIDE: 'hide',
+            VOLUME_ONLY: 'volumeOnly',
+        },
         CONTROLS_POSITION: {
             NATIVE: 32,
             NORMAL: 8,
@@ -3418,6 +3530,73 @@ const CONST = {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
         MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
+    },
+
+    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+
+    ONBOARDING_CHOICES: {...onboardingChoices},
+
+    ONBOARDING_CONCIERGE: {
+        [onboardingChoices.TRACK]:
+            "# Welcome to Expensify, let's start tracking your expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My business expenses”).\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.EMPLOYER]:
+            '# Welcome to Expensify, the fastest way to get paid back!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            'To submit expenses for reimbursement:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
+            '\n' +
+            "That'll send a request to get you paid back. Let me know if you have any questions!",
+        [onboardingChoices.MANAGE_TEAM]:
+            "# Welcome to Expensify, let's start managing your team's expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. “Sales team expenses”).\n' +
+            '\n' +
+            'Then, invite your team to your workspace via the Members pane and connect a business bank account to reimburse them. Let me know if you have any questions!',
+        [onboardingChoices.PERSONAL_SPEND]:
+            "# Welcome to Expensify, let's start tracking your expenses!\n" +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My expenses”).\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.CHAT_SPLIT]:
+            '# Welcome to Expensify, where splitting the bill is an easy conversation!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            'To split an expense:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
+            '\n' +
+            "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
+        [onboardingChoices.LOOKING_AROUND]:
+            '# Welcome to Expensify!\n' +
+            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '\n' +
+            "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -4136,6 +4315,9 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    DOT_SEPARATOR: '•',
+
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
         defaultValue: '0%',
@@ -4153,11 +4335,13 @@ const CONST = {
         },
     },
 
+    MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
+type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 
-export type {Country};
+export type {Country, IOUType};
 
 export default CONST;

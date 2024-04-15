@@ -1,6 +1,7 @@
-import type {AVPlaybackStatusToSet, Video} from 'expo-av';
+import type {AVPlaybackStatusToSet} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
@@ -9,10 +10,11 @@ const Context = React.createContext<PlaybackContext | null>(null);
 
 function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<string | null>(null);
-    const [sharedElement, setSharedElement] = useState<View | null>(null);
-    const [originalParent, setOriginalParent] = useState<View | null>(null);
-    const currentVideoPlayerRef = useRef<Video | null>(null);
+    const [sharedElement, setSharedElement] = useState<View | HTMLDivElement | null>(null);
+    const [originalParent, setOriginalParent] = useState<View | HTMLDivElement | null>(null);
+    const currentVideoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
     const {currentReportID} = useCurrentReportID() ?? {};
+    const videoResumeTryNumber = useRef<number>(0);
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
@@ -47,7 +49,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const shareVideoPlayerElements = useCallback(
-        (ref: Video, parent: View, child: View, isUploading: boolean) => {
+        (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => {
             currentVideoPlayerRef.current = ref;
             setOriginalParent(parent);
             setSharedElement(child);
@@ -69,6 +71,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const resetVideoPlayerData = useCallback(() => {
+        videoResumeTryNumber.current = 0;
         stopVideo();
         setCurrentlyPlayingURL(null);
         setSharedElement(null);
@@ -95,6 +98,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             playVideo,
             pauseVideo,
             checkVideoPlaying,
+            videoResumeTryNumber,
         }),
         [updateCurrentlyPlayingURL, currentlyPlayingURL, originalParent, sharedElement, shareVideoPlayerElements, playVideo, pauseVideo, checkVideoPlaying],
     );
@@ -111,4 +115,4 @@ function usePlaybackContext() {
 
 PlaybackContextProvider.displayName = 'PlaybackContextProvider';
 
-export {PlaybackContextProvider, usePlaybackContext};
+export {Context as PlaybackContext, PlaybackContextProvider, usePlaybackContext};

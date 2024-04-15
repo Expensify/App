@@ -1,7 +1,6 @@
 import {I18nManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import intlPolyfill from '@libs/IntlPolyfill';
-import * as Metrics from '@libs/Metrics';
 import * as Device from '@userActions/Device';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,9 +26,8 @@ export default function () {
         keys: ONYXKEYS,
 
         // Increase the cached key count so that the app works more consistently for accounts with large numbers of reports
-        maxCachedKeysCount: 10000,
+        maxCachedKeysCount: 20000,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-        captureMetrics: Metrics.canCaptureOnyxMetrics(),
         initialKeyStates: {
             // Clear any loading and error messages so they do not appear on app startup
             [ONYXKEYS.SESSION]: {loading: false},

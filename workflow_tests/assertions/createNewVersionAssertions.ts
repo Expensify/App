@@ -68,4 +68,4 @@ function assertCreateNewVersionJobExecuted(workflowResult: Step[], semverLevel =
     });
 }
 
-export {assertValidateActorJobExecuted, assertCreateNewVersionJobExecuted};
+export default {assertValidateActorJobExecuted, assertCreateNewVersionJobExecuted};

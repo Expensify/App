@@ -191,4 +191,4 @@ function assertUpdateStagingJobExecuted(workflowResult: Step[], didExecute = tru
     });
 }
 
-export {assertValidateJobExecuted, assertUpdateProductionJobExecuted, assertCreateNewPatchVersionJobExecuted, assertUpdateStagingJobExecuted};
+export default {assertValidateJobExecuted, assertUpdateProductionJobExecuted, assertCreateNewPatchVersionJobExecuted, assertUpdateStagingJobExecuted};

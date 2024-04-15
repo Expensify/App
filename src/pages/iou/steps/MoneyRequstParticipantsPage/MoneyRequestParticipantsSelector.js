@@ -1,17 +1,20 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -19,7 +22,6 @@ import useSearchTermAndSearch from '@hooks/useSearchTermAndSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import reportPropTypes from '@pages/reportPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -36,9 +38,6 @@ const propTypes = {
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
 
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
-
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
@@ -50,52 +49,32 @@ const propTypes = {
         }),
     ),
 
-    /** All reports shared with the user */
-    reports: PropTypes.objectOf(reportPropTypes),
-
-    /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
 
     /** Whether the money request is a distance request or not */
     isDistanceRequest: PropTypes.bool,
 
-    /** Whether we are searching for reports in the server */
-    isSearchingForReports: PropTypes.bool,
+    /** Whether the screen transition has ended */
+    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
-    dismissedReferralBanners: {},
     participants: [],
-    safeAreaPaddingBottomStyle: {},
-    reports: {},
     betas: [],
     isDistanceRequest: false,
-    isSearchingForReports: false,
+    didScreenTransitionEnd: false,
 };
 
-function MoneyRequestParticipantsSelector({
-    betas,
-    dismissedReferralBanners,
-    participants,
-    reports,
-    navigateToRequest,
-    navigateToSplit,
-    onAddParticipants,
-    safeAreaPaddingBottomStyle,
-    iouType,
-    isDistanceRequest,
-    isSearchingForReports,
-}) {
+function MoneyRequestParticipantsSelector({betas, participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest, didScreenTransitionEnd}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {canUseP2PDistanceRequests} = usePermissions();
+    const {options, areOptionsInitialized} = useOptionsList({shouldInitialize: didScreenTransitionEnd});
+    const {canUseP2PDistanceRequests} = usePermissions(iouType);
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const setSearchTermAndSearchInServer = useSearchTermAndSearch(setSearchTerm, maxParticipantsReached);
@@ -104,10 +83,10 @@ function MoneyRequestParticipantsSelector({
 
     const newChatOptions = useMemo(() => {
         const chatOptions = OptionsListUtils.getFilteredOptions(
-            reports,
-            personalDetails,
+            options.reports,
+            options.personalDetails,
             betas,
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             CONST.EXPENSIFY_EMAILS,
 
@@ -132,7 +111,7 @@ function MoneyRequestParticipantsSelector({
             personalDetails: chatOptions.personalDetails,
             userToInvite: chatOptions.userToInvite,
         };
-    }, [betas, reports, participants, personalDetails, searchTerm, iouType, isDistanceRequest, canUseP2PDistanceRequests]);
+    }, [options.reports, options.personalDetails, betas, debouncedSearchTerm, participants, iouType, canUseP2PDistanceRequests, isDistanceRequest]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -141,20 +120,17 @@ function MoneyRequestParticipantsSelector({
      */
     const sections = useMemo(() => {
         const newSections = [];
-        let indexOffset = 0;
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            searchTerm,
+            debouncedSearchTerm,
             participants,
             newChatOptions.recentReports,
             newChatOptions.personalDetails,
             maxParticipantsReached,
-            indexOffset,
             personalDetails,
             true,
         );
         newSections.push(formatResults.section);
-        indexOffset = formatResults.newIndexOffset;
 
         if (maxParticipantsReached) {
             return newSections;
@@ -164,17 +140,13 @@ function MoneyRequestParticipantsSelector({
             title: translate('common.recents'),
             data: newChatOptions.recentReports,
             shouldShow: !_.isEmpty(newChatOptions.recentReports),
-            indexOffset,
         });
-        indexOffset += newChatOptions.recentReports.length;
 
         newSections.push({
             title: translate('common.contacts'),
             data: newChatOptions.personalDetails,
             shouldShow: !_.isEmpty(newChatOptions.personalDetails),
-            indexOffset,
         });
-        indexOffset += newChatOptions.personalDetails.length;
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
@@ -184,12 +156,11 @@ function MoneyRequestParticipantsSelector({
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
-                indexOffset,
             });
         }
 
         return newSections;
-    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, searchTerm, translate]);
+    }, [maxParticipantsReached, newChatOptions.personalDetails, newChatOptions.recentReports, newChatOptions.userToInvite, participants, personalDetails, debouncedSearchTerm, translate]);
 
     /**
      * Adds a single participant to the request
@@ -264,11 +235,11 @@ function MoneyRequestParticipantsSelector({
             OptionsListUtils.getHeaderMessage(
                 _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
-                searchTerm.trim(),
+                debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(searchTerm.trim().toLowerCase())),
+                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, searchTerm],
+        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -276,7 +247,9 @@ function MoneyRequestParticipantsSelector({
     // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
-    const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && iouType !== CONST.IOU.TYPE.SEND;
+
+    // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
+    const isAllowedToSplit = (canUseP2PDistanceRequests || !isDistanceRequest) && (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -296,13 +269,19 @@ function MoneyRequestParticipantsSelector({
         [shouldShowSplitBillErrorMessage, navigateToSplit, addSingleParticipant, participants.length],
     );
 
-    const footerContent = useMemo(
-        () => (
+    const {isDismissed} = useDismissedReferralBanners({referralContentType});
+
+    const footerContent = useMemo(() => {
+        if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
+            return null;
+        }
+        return (
             <View>
-                {!dismissedReferralBanners[referralContentType] && (
-                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA referralContentType={referralContentType} />
-                    </View>
+                {!isDismissed && (
+                    <ReferralProgramCTA
+                        referralContentType={referralContentType}
+                        style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    />
                 )}
 
                 {shouldShowSplitBillErrorMessage && (
@@ -324,9 +303,8 @@ function MoneyRequestParticipantsSelector({
                     />
                 )}
             </View>
-        ),
-        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
-    );
+        );
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
     const itemRightSideComponent = useCallback(
         (item) => {
@@ -360,23 +338,21 @@ function MoneyRequestParticipantsSelector({
     );
 
     return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={sections}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTermAndSearchInServer}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={isSearchingForReports}
-                rightHandSideComponent={itemRightSideComponent}
-            />
-        </View>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={sections}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTermAndSearchInServer}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={!areOptionsInitialized && !didScreenTransitionEnd}
+            rightHandSideComponent={itemRightSideComponent}
+        />
     );
 }
 
@@ -385,17 +361,7 @@ MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
 export default withOnyx({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
     },
 })(MoneyRequestParticipantsSelector);

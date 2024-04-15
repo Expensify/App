@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
-import {WRITE_COMMANDS} from '@libs/API/types';
 import * as Request from '@libs/Request';
 import * as RequestThrottle from '@libs/RequestThrottle';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -47,47 +46,6 @@ function flushOnyxUpdatesQueue() {
 }
 
 /**
- * Identifies and removes conflicting requests from the queue
- */
-function reconcileRequests(persistedRequests: OnyxRequest[], commands: string[]) {
-    const requestsByActionID: Record<string, OnyxRequest[]> = {};
-
-    // Group requests by reportActionID
-    persistedRequests.forEach((request) => {
-        const {data} = request;
-        const reportActionID = data?.reportActionID as string;
-        if (reportActionID) {
-            if (!requestsByActionID[reportActionID]) {
-                requestsByActionID[reportActionID] = [];
-            }
-            requestsByActionID[reportActionID].push(request);
-        }
-    });
-
-    // Process requests with conflicting actions
-    Object.values(requestsByActionID).forEach((requests) => {
-        const conflictingRequests: OnyxRequest[] = [];
-        commands.forEach((command) => {
-            const conflictingRequest = requests.find((request) => request.command === command);
-            if (conflictingRequest) {
-                conflictingRequests.push(conflictingRequest);
-            }
-        });
-
-        if (conflictingRequests.length > 1) {
-            // Remove all requests as they cancel each other out
-            conflictingRequests.forEach((request) => {
-                // Perform action: Remove request from persisted requests
-                const index = persistedRequests.findIndex((req) => req === request);
-                if (index !== -1) {
-                    persistedRequests.splice(index, 1);
-                }
-            });
-        }
-    });
-}
-
-/**
  * Process any persisted requests, when online, one at a time until the queue is empty.
  *
  * If a request fails due to some kind of network error, such as a request being throttled or when our backend is down, then we retry it with an exponential back off process until a response
@@ -105,10 +63,6 @@ function process(): Promise<void> {
     if (persistedRequests.length === 0 || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
-
-    // Remove conflicting requests from the queue to avoid processing them
-    const commands = [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.DELETE_COMMENT];
-    reconcileRequests(persistedRequests, commands);
 
     const requestToProcess = persistedRequests[0];
 

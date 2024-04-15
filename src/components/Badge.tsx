@@ -41,6 +41,9 @@ type BadgeProps = {
 
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
+
+    /** Additional styles from OfflineWithFeedback applied to the row */
+    style?: StyleProp<ViewStyle>;
 };
 
 function Badge({
@@ -54,12 +57,15 @@ function Badge({
     onPress = () => {},
     icon,
     iconStyles = [],
+    style,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const textColorStyles = success || error ? styles.textWhite : undefined;
     const Wrapper = pressable ? PressableWithoutFeedback : View;
+
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
 
     const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
         ({pressed}) => [styles.badge, styles.ml2, StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC), badgeStyles],
@@ -86,7 +92,7 @@ function Badge({
                 </View>
             )}
             <Text
-                style={[styles.badgeText, textColorStyles, textStyles]}
+                style={[styles.badgeText, textColorStyles, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
                 numberOfLines={1}
             >
                 {text}

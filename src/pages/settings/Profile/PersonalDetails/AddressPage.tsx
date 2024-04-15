@@ -6,13 +6,14 @@ import AddressForm from '@components/AddressForm';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import type {FormOnyxValues} from '@src/components/Form/types';
+import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -22,6 +23,8 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 type AddressPageOnyxProps = {
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** Whether app is loading */
+    isLoadingApp: OnyxEntry<boolean>;
 };
 
 type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & AddressPageOnyxProps;
@@ -41,14 +44,16 @@ function updateAddress(values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS
     );
 }
 
-function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
+function AddressPage({privatePersonalDetails, route, isLoadingApp = true}: AddressPageProps) {
     const styles = useThemeStyles();
-    usePrivatePersonalDetails();
     const {translate} = useLocalize();
     const address = useMemo(() => privatePersonalDetails?.address, [privatePersonalDetails]);
-    const countryFromUrl = route.params?.country;
+    const countryFromUrlTemp = route?.params?.country;
+
+    // Check if country is valid
+    const countryFromUrl = CONST.ALL_COUNTRIES[countryFromUrlTemp as keyof typeof CONST.ALL_COUNTRIES] ? countryFromUrlTemp : '';
+    const stateFromUrl = useGeographicalStateFromRoute();
     const [currentCountry, setCurrentCountry] = useState(address?.country);
-    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
     const [street1, street2] = (address?.street ?? '').split('\n');
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
@@ -99,6 +104,13 @@ function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
         handleAddressChange(countryFromUrl, 'country');
     }, [countryFromUrl, handleAddressChange]);
 
+    useEffect(() => {
+        if (!stateFromUrl) {
+            return;
+        }
+        handleAddressChange(stateFromUrl, 'state');
+    }, [handleAddressChange, stateFromUrl]);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -109,7 +121,7 @@ function AddressPage({privatePersonalDetails, route}: AddressPageProps) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {isLoadingPersonalDetails ? (
+            {isLoadingApp ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <AddressForm
@@ -134,5 +146,8 @@ AddressPage.displayName = 'AddressPage';
 export default withOnyx<AddressPageProps, AddressPageOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
     },
 })(AddressPage);
