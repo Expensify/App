@@ -1,13 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
@@ -43,9 +42,14 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
     };
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, failureData});
 }
-
-function updatePolicyConnectionConfig(policyID: string, settingName: ValueOf<typeof CONST.QUICK_BOOKS_IMPORTS>, settingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>) {
-    const parameters = {policyID, connectionName: CONST.QUICK_BOOKS_ONLINE, settingName, settingValue, idempotencyKey: settingName};
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(policyID: string, connectionName: TConnectionName, settingName: TSettingName, settingValue: Connections[TConnectionName]['config'][TSettingName]) {
+    const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
+        policyID,
+        connectionName,
+        settingName,
+        settingValue,
+        idempotencyKey: String(settingName)
+    };
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
