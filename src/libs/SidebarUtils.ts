@@ -323,15 +323,8 @@ function getOptionData({
     const isThreadMessage =
         ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-    // Currently the back-end is not returning the `lastActionName` so I use this to mock,
-    // ideally it should be returned from the back-end in the `report`, like the `lastMessageText` and `lastMessageHtml`
-    if (report.lastMessageHtml && report.lastMessageHtml.includes('invited <mention-user')) {
-        report.lastActionName = CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM;
-    }
-
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
-
-        const lastActionName = lastAction?.actionName ?? report.lastActionName;
+        const lastActionName = lastAction?.actionName ?? report.lastActionType;
 
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lastAction?.originalMessage?.newName ?? '';
