@@ -12,6 +12,7 @@ import type Report from '@src/types/onyx/Report';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type { ChangeLog } from '@src/types/onyx/OriginalMessage';
 import * as CollectionUtils from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -337,7 +338,9 @@ function getOptionData({
             lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
             lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
         ) {
-            const targetAccountIDsLength = lastAction?.originalMessage?.targetAccountIDs?.length ?? report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? [];
+            const lastActionOriginalMessage = lastAction.actionName ? lastAction?.originalMessage as ChangeLog : null ;
+            const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? []
+            const targetAccountIDsLength = targetAccountIDs.length ?? report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
             const verb =
                 lastActionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastActionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
                     ? Localize.translate(preferredLocale, 'workspace.invite.invited')
@@ -345,7 +348,7 @@ function getOptionData({
             const users = Localize.translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
             result.alternateText = `${lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`.trim();
 
-            const roomName = lastAction?.originalMessage?.roomName ?? '';
+            const roomName = lastActionOriginalMessage?.roomName ?? '';
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM

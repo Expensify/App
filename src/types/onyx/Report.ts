@@ -138,7 +138,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageHtml?: string;
         lastActorAccountID?: number;
         // indicate the type of the last action
-        lastActionType?: typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG;
+        lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
         ownerEmail?: string;
         participants?: Participants;
