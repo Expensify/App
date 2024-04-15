@@ -1,7 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,8 +36,6 @@ type ChatFinderPageOnyxProps = {
 };
 
 type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
-
-type Options = OptionsListUtils.Options & {headerMessage: string};
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];
@@ -77,8 +75,8 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         Report.searchInServer(debouncedSearchValue.trim());
     }, [debouncedSearchValue]);
 
-    const searchOptions: Options = useMemo(() => {
-        if (!areOptionsInitialized) {
+    const searchOptions = useMemo(() => {
+        if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return {
                 recentReports: [],
                 personalDetails: [],
@@ -93,7 +91,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         const optionList = OptionsListUtils.getSearchOptions(options, '', betas ?? []);
         const header = OptionsListUtils.getHeaderMessage(optionList.recentReports.length + optionList.personalDetails.length !== 0, Boolean(optionList.userToInvite), '');
         return {...optionList, headerMessage: header};
-    }, [areOptionsInitialized, betas, options]);
+    }, [areOptionsInitialized, betas, isScreenTransitionEnd, options]);
 
     const filteredOptions = useMemo(() => {
         if (debouncedSearchValue.trim() === '') {
@@ -161,6 +159,8 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         setIsScreenTransitionEnd(true);
     };
 
+    const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND});
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -169,32 +169,26 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             shouldEnableMaxHeight
             navigation={navigation}
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        // ASK: What text do we want to use for the title?
-                        title={translate('common.search')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <View style={[themeStyles.flex1, themeStyles.w100, safeAreaPaddingBottomStyle]}>
-                        <SelectionList<OptionData>
-                            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                            ListItem={UserListItem}
-                            textInputValue={searchValue}
-                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputHint={offlineMessage}
-                            onChangeText={setSearchValue}
-                            headerMessage={headerMessage}
-                            headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
-                            onLayout={setPerformanceTimersEnd}
-                            onSelectRow={selectReport}
-                            showLoadingPlaceholder={!areOptionsInitialized}
-                            footerContent={ChatFinderPageFooterInstance}
-                            isLoadingNewOptions={isSearchingForReports ?? undefined}
-                        />
-                    </View>
-                </>
-            )}
+            <HeaderWithBackButton
+                // ASK: What text do we want to use for the title?
+                title={translate('common.search')}
+                onBackButtonPress={Navigation.goBack}
+            />
+            <SelectionList<OptionData>
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                ListItem={UserListItem}
+                textInputValue={searchValue}
+                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+                textInputHint={offlineMessage}
+                onChangeText={setSearchValue}
+                headerMessage={headerMessage}
+                headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
+                onLayout={setPerformanceTimersEnd}
+                onSelectRow={selectReport}
+                showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
+                footerContent={!isDismissed && ChatFinderPageFooterInstance}
+                isLoadingNewOptions={isSearchingForReports ?? undefined}
+            />
         </ScreenWrapper>
     );
 }
