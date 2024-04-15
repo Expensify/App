@@ -3098,19 +3098,6 @@ const CONST = {
     },
 
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
-    CONCIERGE: {
-        PLACEHOLDER_OPTIONS: {
-            REPORT: 'REPORT',
-            IOU: 'IOU',
-            CHAT: 'CHAT',
-            TRAVEL: 'TRAVEL',
-            EXPENSES: 'EXPENSES',
-            BILLS: 'BILLS',
-            CORPORATE_CARD: 'CORPORATE_CARD',
-            INVOICES: 'INVOICES',
-            RECEIPTS: 'RECEIPTS',
-        },
-    },
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
