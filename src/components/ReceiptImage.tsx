@@ -46,7 +46,7 @@ type ReceiptImageProps = (
           isEReceipt?: boolean;
           isThumbnail?: boolean;
           source: string;
-          isPDFThumbnail: string;
+          isPDFThumbnail?: string;
       }
 ) & {
     /** Whether we should display the receipt with ThumbnailImage component */
