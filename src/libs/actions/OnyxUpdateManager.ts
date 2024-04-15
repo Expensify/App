@@ -175,11 +175,6 @@ export default () => {
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value: unknown) => {
-            // When there is no value or an invalid value, there's nothing to process, so let's return early.
-            if (!isValidOnyxUpdateFromServer(value)) {
-                return;
-            }
-
             // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
             // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
             // we'll only have them overriten by the openApp response. So let's skip it and return.
@@ -194,6 +189,11 @@ export default () => {
             // It is very important to only process the missing onyx updates from leader client otherwise requests we'll execute
             // several duplicated requests that are not controlled by the SequentialQueue.
             if (!ActiveClientManager.isClientTheLeader()) {
+                return;
+            }
+
+            // When there is no value or an invalid value, there's nothing to process, so let's return early.
+            if (!isValidOnyxUpdateFromServer(value)) {
                 return;
             }
 
