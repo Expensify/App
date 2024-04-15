@@ -117,6 +117,7 @@ const ReportDetailsModalStackNavigator = createModalStackNavigator<ReportDetails
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
     [SCREENS.REPORT_SETTINGS.ROOT]: () => require('../../../../pages/settings/Report/ReportSettingsPage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: () => require('../../../../pages/settings/Report/RoomNamePage').default as React.ComponentType,
+    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: () => require('../../../../pages/GroupChatNameEditPage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require('../../../../pages/settings/Report/NotificationPreferencePage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: () => require('../../../../pages/settings/Report/WriteCapabilityPage').default as React.ComponentType,
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: () => require('../../../../pages/settings/Report/VisibilityPage').default as React.ComponentType,
@@ -132,7 +133,10 @@ const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDes
 });
 
 const ReportParticipantsModalStackNavigator = createModalStackNavigator<ParticipantsNavigatorParamList>({
-    [SCREENS.REPORT_PARTICIPANTS_ROOT]: () => require('../../../../pages/ReportParticipantsPage').default as React.ComponentType,
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: () => require('../../../../pages/ReportParticipantsPage').default as React.ComponentType,
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: () => require('../../../../pages/InviteReportParticipantsPage').default as React.ComponentType,
+    [SCREENS.REPORT_PARTICIPANTS.DETAILS]: () => require('../../../../pages/ReportParticipantDetailsPage').default as React.ComponentType,
+    [SCREENS.REPORT_PARTICIPANTS.ROLE]: () => require('../../../../pages/ReportParticipantRoleSelectionPage').default as React.ComponentType,
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
@@ -150,6 +154,7 @@ const SearchModalStackNavigator = createModalStackNavigator<SearchNavigatorParam
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
     [SCREENS.NEW_CHAT.ROOT]: () => require('../../../../pages/NewChatSelectorPage').default as React.ComponentType,
     [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: () => require('../../../../pages/NewChatConfirmPage').default as React.ComponentType,
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: () => require('../../../../pages/GroupChatNameEditPage').default as React.ComponentType,
 });
 
 const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorParamList>({
@@ -197,7 +202,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require('../../../../pages/settings/AppDownloadLinks').default as React.ComponentType,
-    [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../../pages/settings/AboutPage/TroubleshootPage').default as React.ComponentType,
     [SCREENS.SETTINGS.CONSOLE]: () => require('../../../../pages/settings/AboutPage/ConsolePage').default as React.ComponentType,
     [SCREENS.SETTINGS.SHARE_LOG]: () => require('../../../../pages/settings/AboutPage/ShareLogPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: () => require('../../../../pages/settings/Profile/PersonalDetails/AddressPage').default as React.ComponentType,
