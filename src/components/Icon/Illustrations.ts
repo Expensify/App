@@ -55,6 +55,7 @@ import HotDogStand from '@assets/images/simple-illustrations/simple-illustration
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
@@ -77,6 +78,7 @@ import ShieldYellow from '@assets/images/simple-illustrations/simple-illustratio
 import SmallRocket from '@assets/images/simple-illustrations/simple-illustration__smallrocket.svg';
 import SplitBill from '@assets/images/simple-illustrations/simple-illustration__splitbill.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
+import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
 import ThumbsUpStars from '@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg';
 import TrackShoe from '@assets/images/simple-illustrations/simple-illustration__track-shoe.svg';
 import TrashCan from '@assets/images/simple-illustrations/simple-illustration__trashcan.svg';
@@ -158,6 +160,7 @@ export {
     Workflows,
     ThreeLeggedLaptopWoman,
     House,
+    TeachersUnite,
     Abacus,
     Binoculars,
     CompanyCard,
@@ -170,4 +173,5 @@ export {
     Pencil,
     Tag,
     CarIce,
+    Lightbulb,
 };

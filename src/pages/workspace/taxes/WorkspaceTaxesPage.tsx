@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openPolicyTaxesPage} from '@libs/actions/Policy';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -34,6 +35,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {TaxRate} from '@src/types/onyx';
 
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
@@ -66,17 +68,19 @@ function WorkspaceTaxesPage({
     );
 
     const textForDefault = useCallback(
-        (taxID: string): string => {
+        (taxID: string, taxRate: TaxRate): string => {
+            let suffix;
             if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-                return translate('common.default');
+                suffix = translate('common.default');
+            } else if (taxID === defaultExternalID) {
+                suffix = translate('workspace.taxes.workspaceDefault');
+            } else if (taxID === foreignTaxDefault) {
+                suffix = translate('workspace.taxes.foreignDefault');
             }
-            if (taxID === defaultExternalID) {
-                return translate('workspace.taxes.workspaceDefault');
+            if (suffix) {
+                return `${taxRate.value} ${CONST.DOT_SEPARATOR} ${suffix}`;
             }
-            if (taxID === foreignTaxDefault) {
-                return translate('workspace.taxes.foreignDefault');
-            }
-            return '';
+            return `${taxRate.value}`;
         },
         [defaultExternalID, foreignTaxDefault, translate],
     );
@@ -88,7 +92,7 @@ function WorkspaceTaxesPage({
         return Object.entries(policy.taxRates?.taxes ?? {})
             .map(([key, value]) => ({
                 text: value.name,
-                alternateText: textForDefault(key),
+                alternateText: textForDefault(key, value),
                 keyForList: key,
                 isSelected: !!selectedTaxesIDs.includes(key),
                 isDisabledCheckbox: !PolicyUtils.canEditTaxRate(policy, key),
@@ -268,6 +272,7 @@ function WorkspaceTaxesPage({
                             showScrollIndicator
                             ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                         />

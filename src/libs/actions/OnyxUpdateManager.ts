@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +27,14 @@ let lastUpdateIDAppliedToClient: number | null = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
     callback: (value) => (lastUpdateIDAppliedToClient = value),
+});
+
+let isLoadingApp = false;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        isLoadingApp = value ?? false;
+    },
 });
 
 let queryPromise: Promise<Response | Response[] | void> | undefined;
@@ -167,6 +176,23 @@ export default () => {
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value: unknown) => {
             if (!isValidOnyxUpdateFromServer(value)) {
+                return;
+            }
+
+            // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
+            // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
+            // we'll only have them overriten by the openApp response. So let's skip it and return.
+            if (isLoadingApp) {
+                // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
+                // it so the app is not stuck forever without processing requests.
+                SequentialQueue.unpause();
+                console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
+                return;
+            }
+            // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
+            // It is very important to only process the missing onyx updates from leader client otherwise requests we'll execute
+            // several duplicated requests that are not controlled by the SequentialQueue.
+            if (!ActiveClientManager.isClientTheLeader()) {
                 return;
             }
 
