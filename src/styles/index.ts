@@ -3021,9 +3021,9 @@ const styles = (theme: ThemeColors) =>
         roundCheckmarkWrapper: {
             alignItems: 'center',
             justifyContent: 'center',
-            height: 24,
-            width: 24,
-            borderRadius: 12,
+            height: 28,
+            width: 28,
+            borderRadius: 14,
             borderColor: theme.borderLighter,
             borderWidth: 1,
         },

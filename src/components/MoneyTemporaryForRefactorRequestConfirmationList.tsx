@@ -1011,7 +1011,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     onPress={() => {
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
-                    style={[styles.moneyRequestMenuItem]}
+                    style={styles.moneyRequestMenuItem}
+                    labelStyle={styles.mt2}
                     titleStyle={styles.flex1}
                     disabled={didConfirm || !canUpdateSenderWorkspace}
                 />
