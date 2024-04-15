@@ -1,5 +1,4 @@
 import {isEmpty, isEqual} from 'lodash';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -12,7 +11,8 @@ import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFo
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -194,7 +194,7 @@ function IOURequestStepDistance({
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = lodashGet(participant, 'accountID', 0);
+                const participantAccountID = participant?.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             if (shouldSkipConfirmation) {
@@ -409,7 +409,7 @@ const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOU
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = lodashGet(route, 'params.transactionID', 0);
+            const transactionID = route.params.transactionID ?? 0;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },

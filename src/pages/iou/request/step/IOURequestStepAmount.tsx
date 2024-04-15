@@ -1,11 +1,10 @@
 import {useFocusEffect} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import withCurrentUserPersonalDetails, {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import * as TransactionEdit from '@libs/actions/TransactionEdit';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -21,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -159,8 +158,8 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
             const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            const participants = _.map(selectedParticipants, (participant) => {
-                const participantAccountID = lodashGet(participant, 'accountID', 0);
+            const participants = selectedParticipants.map((participant) => {
+                const participantAccountID = participant?.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             });
             const backendAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
@@ -256,7 +255,7 @@ function IOURequestStepAmount({
                 amount={Math.abs(transactionAmount)}
                 skipConfirmation={shouldSkipConfirmation ?? false}
                 iouType={iouType}
-                policyID={policy?.policyID ?? 0}
+                policyID={policy?.id ?? ''}
                 bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
@@ -284,7 +283,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
     },
     skipConfirmation: {
         key: ({route}) => {
-            const transactionID = lodashGet(route, 'params.transactionID', 0);
+            const transactionID = route.params.transactionID ?? 0;
             return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
         },
     },
