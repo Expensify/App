@@ -9,6 +9,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
@@ -219,6 +220,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
+    const {isOffline} = useNetwork();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -242,10 +244,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         ? DistanceRequestUtils.getRateForP2P(policy?.outputCurrency ?? CONST.CURRENCY.USD)
         : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
 
-    const {unit, rate} = mileageRate ?? {
-        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-        rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * 100,
-    };
+    const {unit, rate} = mileageRate ?? {};
 
     const prevRate = usePrevious(rate);
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
@@ -283,7 +282,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : CurrencyUtils.convertToDisplayString(
-              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0) : iouAmount,
+              shouldCalculateDistanceAmount ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0) : iouAmount,
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
@@ -352,7 +351,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return;
         }
 
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate ?? 0);
+        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
         IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amount, currency ?? '');
     }, [shouldCalculateDistanceAmount, distance, rate, unit, transaction, currency, transactionID]);
 
@@ -763,16 +762,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.rate')}
-                    shouldShowRightIcon={!isReadOnly && isPolicyExpenseChat}
-                    title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit)}
+                    shouldShowRightIcon={Boolean(rate) && !isReadOnly && isPolicyExpenseChat}
+                    title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit, isOffline)}
                     description={translate('common.rate')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     disabled={didConfirm}
-                    interactive={!isReadOnly && isPolicyExpenseChat}
+                    interactive={Boolean(rate) && !isReadOnly && isPolicyExpenseChat}
                 />
             ),
             shouldShow: isDistanceRequest && canUseP2PDistanceRequests,

@@ -116,14 +116,18 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  */
 function getRateForDisplay(
     hasRoute: boolean,
-    unit: Unit,
+    unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    isOffline?: boolean,
 ): string {
-    if (!hasRoute || !rate || !currency) {
+    if (isOffline) {
         return translate('iou.defaultRate');
+    }
+    if (!hasRoute || !rate || !currency || !unit) {
+        return translate('iou.routePending');
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
@@ -142,8 +146,8 @@ function getRateForDisplay(
  * @param translate Translate function
  * @returns A string that describes the distance traveled
  */
-function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, rate: number | undefined, translate: LocaleContextProps['translate']): string {
-    if (!hasRoute || !rate) {
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, translate: LocaleContextProps['translate']): string {
+    if (!hasRoute || !rate || !unit) {
         return translate('iou.routePending');
     }
 
@@ -168,7 +172,7 @@ function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit
 function getDistanceMerchant(
     hasRoute: boolean,
     distanceInMeters: number,
-    unit: Unit,
+    unit: Unit | undefined,
     rate: number | undefined,
     currency: string,
     translate: LocaleContextProps['translate'],

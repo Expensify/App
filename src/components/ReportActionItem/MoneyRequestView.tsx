@@ -12,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -99,6 +100,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate, toLocaleDigit} = useLocalize();
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions();
@@ -185,7 +187,7 @@ function MoneyRequestView({
     const {unit, rate} = mileageRate;
 
     const distance = DistanceRequestUtils.getDistanceFromMerchant(transactionMerchant, unit);
-    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
+    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const saveBillable = useCallback(
@@ -471,7 +473,14 @@ function MoneyRequestView({
                                         ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, orderWeight, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={
+                                    getErrorForField('tag', {
+                                        tagListIndex: index,
+                                        tagListName: name,
+                                    })
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
                                 error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
                             />
                         </OfflineWithFeedback>

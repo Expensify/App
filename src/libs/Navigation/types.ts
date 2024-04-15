@@ -478,7 +478,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_RATE]: {
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         backTo: Routes;

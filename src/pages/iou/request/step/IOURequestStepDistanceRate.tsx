@@ -21,7 +21,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepRateOnyxProps = {
+type IOURequestStepDistanceRateOnyxProps = {
     /** Policy details */
     policy: OnyxEntry<Policy>;
 
@@ -29,20 +29,20 @@ type IOURequestStepRateOnyxProps = {
     rates: Record<string, MileageRate>;
 };
 
-type IOURequestStepRateProps = IOURequestStepRateOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_RATE> & {
+type IOURequestStepDistanceRateProps = IOURequestStepDistanceRateOnyxProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<Transaction>;
     };
 
-function IOURequestStepRate({
+function IOURequestStepDistanceRate({
     policy,
     route: {
         params: {backTo, transactionID},
     },
     transaction,
     rates,
-}: IOURequestStepRateProps) {
+}: IOURequestStepDistanceRateProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
 
@@ -92,9 +92,9 @@ function IOURequestStepRate({
     );
 }
 
-IOURequestStepRate.displayName = 'IOURequestStepRate';
+IOURequestStepDistanceRate.displayName = 'IOURequestStepDistanceRate';
 
-const IOURequestStepRateWithOnyx = withOnyx<IOURequestStepRateProps, IOURequestStepRateOnyxProps>({
+const IOURequestStepDistanceRateWithOnyx = withOnyx<IOURequestStepDistanceRateProps, IOURequestStepDistanceRateOnyxProps>({
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
@@ -102,11 +102,11 @@ const IOURequestStepRateWithOnyx = withOnyx<IOURequestStepRateProps, IOURequestS
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`,
         selector: DistanceRequestUtils.getMileageRates,
     },
-})(IOURequestStepRate);
+})(IOURequestStepDistanceRate);
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepRateWithOnyx);
+const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRateWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepRateWithWritableReportOrNotFound);
+const IOURequestStepDistanceRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceRateWithWritableReportOrNotFound);
 
-export default IOURequestStepRateWithFullTransactionOrNotFound;
+export default IOURequestStepDistanceRateWithFullTransactionOrNotFound;
