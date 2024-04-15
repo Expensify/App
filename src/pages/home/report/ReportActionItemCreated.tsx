@@ -118,6 +118,7 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
             prevProps.personalDetails === nextProps.personalDetails &&
             prevProps.policy?.description === nextProps.policy?.description &&
             prevProps.report?.reportName === nextProps.report?.reportName &&
+            prevProps.report?.avatarUrl === nextProps.report?.avatarUrl &&
             prevProps.report?.errorFields === nextProps.report?.errorFields,
     ),
 );

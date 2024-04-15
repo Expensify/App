@@ -47,7 +47,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
             }
             if (ReportUtils.isMoneyRequestReport(report)) {
                 // generate subtitle from participants
-                return ReportUtils.getVisibleMemberIDs(report)
+                return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID)
                     .map((accountID) => ReportUtils.getDisplayNameForParticipant(accountID))
                     .join(' & ');
             }
