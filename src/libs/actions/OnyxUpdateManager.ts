@@ -175,6 +175,7 @@ export default () => {
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value: unknown) => {
+            // When there is no value or an invalid value, there's nothing to process, so let's return early.
             if (!isValidOnyxUpdateFromServer(value)) {
                 return;
             }
@@ -207,11 +208,6 @@ export default () => {
             // fully migrating to the reliable updates mode.
             // 2. This client already has the reliable updates mode enabled, but it's missing some updates and it
             // needs to fetch those.
-            //
-            // For both of those, we need to pause the sequential queue. This is important so that the updates are
-            // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
-            // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
-            SequentialQueue.pause();
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
             if (!lastUpdateIDAppliedToClient) {
