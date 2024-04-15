@@ -238,7 +238,7 @@ function MoneyRequestConfirmationList({
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
     // Do not hide fields in case of send money request
-    const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
+    const shouldShowAllFields = !!isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || !!isEditingSplitBill;
 
     const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
