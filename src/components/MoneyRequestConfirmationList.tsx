@@ -197,7 +197,7 @@ function MoneyRequestConfirmationList({
     hasMultipleParticipants,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
-    canModifyParticipants = false,
+    canModifyParticipants: canModifyParticipantsProp = false,
     session,
     isReadOnly = false,
     bankAccountRoute = '',
@@ -390,12 +390,9 @@ function MoneyRequestConfirmationList({
         [selectedParticipantsProp],
     );
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
-    const userCanModifyParticipants = useRef(!isReadOnly && canModifyParticipants && hasMultipleParticipants);
-    useEffect(() => {
-        userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
-    }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
-    const shouldDisablePaidBySection = userCanModifyParticipants.current;
-
+    const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
+    const shouldDisablePaidBySection = canModifyParticipants;
+    
     const optionSelectorSections: OptionsListUtils.CategorySection[] = useMemo(() => {
         const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
@@ -974,18 +971,18 @@ function MoneyRequestConfirmationList({
         // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
             sections={optionSelectorSections}
-            onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
+            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
-            canSelectMultipleOptions={userCanModifyParticipants.current}
-            disableArrowKeysActions={!userCanModifyParticipants.current}
+            canSelectMultipleOptions={canModifyParticipants}
+            disableArrowKeysActions={!canModifyParticipants}
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
-            optionHoveredStyle={userCanModifyParticipants.current ? styles.hoveredComponentBG : {}}
+            optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={!isEditingSplitBill && footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
