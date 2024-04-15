@@ -115,7 +115,7 @@ Onyx.connect({
     key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
     initWithStoredValues: false,
     callback: (value) => {
-        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.show logic
+        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.isOnboardingFlowCompleted logic
         // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
 
         isFirstTimeNewExpensifyUser = value ?? undefined;
