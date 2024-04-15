@@ -41,11 +41,18 @@ export default () => {
     Onyx.connect({
         key: ONYXKEYS.ONYX_UPDATES_FROM_SERVER,
         callback: (value) => {
-            // When the OpenApp command hasn't finished yet, we should not process any updates.
-            if (!value || isLoadingApp) {
-                if (isLoadingApp) {
-                    console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
-                }
+            // When there's no value, there's nothing to process, so let's return early.
+            if (!value) {
+                return;
+            }
+            // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
+            // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
+            // we'll only have them overriten by the openApp response. So let's skip it and return.
+            if (isLoadingApp) {
+                // When ONYX_UPDATES_FROM_SERVER is set, we pause the queue. Let's unpause
+                // it so the app is not stuck forever without processing requests.
+                SequentialQueue.unpause();
+                console.debug(`[OnyxUpdateManager] Ignoring Onyx updates while OpenApp hans't finished yet.`);
                 return;
             }
             // This key is shared across clients, thus every client/tab will have a copy and try to execute this method.
@@ -80,11 +87,6 @@ export default () => {
             // fully migrating to the reliable updates mode.
             // 2. This client already has the reliable updates mode enabled, but it's missing some updates and it
             // needs to fetch those.
-            //
-            // For both of those, we need to pause the sequential queue. This is important so that the updates are
-            // applied in their correct and specific order. If this queue was not paused, then there would be a lot of
-            // onyx data being applied while we are fetching the missing updates and that would put them all out of order.
-            SequentialQueue.pause();
             let canUnpauseQueuePromise;
 
             // The flow below is setting the promise to a reconnect app to address flow (1) explained above.
