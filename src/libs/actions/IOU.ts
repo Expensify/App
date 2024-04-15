@@ -56,7 +56,7 @@ import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, ReceiptSource, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -5388,6 +5388,25 @@ function setShownHoldUseExplanation() {
     Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
 }
 
+function resetSplitShares(transactionID: string, participantAccountIDs: number[], amount: number, currency: string) {
+    const participantAccountIDsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== userAccountID);
+    const splitShares: SplitShares = [userAccountID, ...participantAccountIDsWithoutCurrentUser].reduce((result: SplitShares, accountID): SplitShares => {
+        const isPayer = accountID === userAccountID;
+        const splitAmount = IOUUtils.calculateAmount(participantAccountIDsWithoutCurrentUser.length, amount, currency, isPayer);
+        return {
+            ...result,
+            [accountID]: {
+                amount: splitAmount,
+            },
+        };
+    }, {});
+
+    // TODO: figure out why this needs `then`
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares: null}).then(() => {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares});
+    });
+}
+
 /**
  * Put money request on HOLD
  */
@@ -5582,6 +5601,7 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
+    resetSplitShares,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,

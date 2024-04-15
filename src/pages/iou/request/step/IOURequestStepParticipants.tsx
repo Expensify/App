@@ -133,11 +133,17 @@ function IOURequestStepParticipants({
                 nextStepIOUType = CONST.IOU.TYPE.SEND;
             }
 
+            const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
+            if (nextStepIOUType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat) {
+                const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
+                IOU.resetSplitShares(transactionID, participantAccountIDs, transaction?.amount ?? 0, transaction?.currency ?? CONST.CURRENCY.USD);
+            }
+
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, nextStepIOUType, transactionID, selectedReportID.current || reportID));
         },
-        [iouType, transactionID, reportID],
+        [iouType, transactionID, reportID, participants, transaction?.amount, transaction?.currency],
     );
 
     const navigateBack = useCallback(() => {

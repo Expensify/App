@@ -127,6 +127,10 @@ function IOURequestStepAmount({
         // to the confirm step.
         if (report?.reportID) {
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
+                const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
+                IOU.resetSplitShares(transactionID, participantAccountIDs, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+            }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
         }
