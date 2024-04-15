@@ -11,7 +11,7 @@ import Tooltip from './Tooltip';
 
 type AvatarWithIndicatorProps = {
     /** URL for the avatar */
-    source: UserUtils.AvatarSource;
+    source?: UserUtils.AvatarSource;
 
     /** account id if it's user avatar */
     accountID?: number;

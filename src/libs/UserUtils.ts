@@ -183,7 +183,7 @@ function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: n
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource | undefined {
+function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource | undefined {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
