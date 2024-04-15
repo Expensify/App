@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -33,9 +33,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
 
@@ -65,11 +62,10 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
-    betas: [],
     action: CONST.IOU.ACTION.CREATE,
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType, action}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onFinish, onParticipantsAdded, iouType, iouRequestType, action}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -79,6 +75,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {canUseP2PDistanceRequests} = usePermissions();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -266,10 +263,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
-    const isAllowedToSplit =
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
-        (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE) &&
-        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(action);
+    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(action);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -407,17 +401,11 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.propTypes = propTypes;
 MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(
-    memo(
-        MoneyTemporaryForRefactorRequestParticipantsSelector,
-        (prevProps, nextProps) =>
-            _.isEqual(prevProps.participants, nextProps.participants) &&
-            prevProps.iouRequestType === nextProps.iouRequestType &&
-            prevProps.iouType === nextProps.iouType &&
-            _.isEqual(prevProps.betas, nextProps.betas),
-    ),
+export default memo(
+    MoneyTemporaryForRefactorRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        _.isEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouRequestType === nextProps.iouRequestType &&
+        prevProps.iouType === nextProps.iouType &&
+        _.isEqual(prevProps.betas, nextProps.betas),
 );

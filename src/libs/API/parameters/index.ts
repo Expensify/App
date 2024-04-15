@@ -209,3 +209,4 @@ export type {default as DismissTrackExpenseActionableWhisperParams} from './Dism
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
 export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpenseParams';
 export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';
+export type {default as LeavePolicyParams} from './LeavePolicyParams';
