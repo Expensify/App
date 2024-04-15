@@ -197,7 +197,8 @@ function ReportActionsList({
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
-
+    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -322,14 +323,13 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportAction) {
+            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [hasNewestReportAction, reportScrollManager],
+        [reportScrollManager],
     );
-
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -348,12 +348,10 @@ function ReportActionsList({
         const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
-            if (unsubscribe) {
-                unsubscribe();
+            if (!unsubscribe) {
+                return;
             }
-            InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(report.reportID);
-            });
+            unsubscribe();
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
