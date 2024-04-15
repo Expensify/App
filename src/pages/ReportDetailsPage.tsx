@@ -81,13 +81,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-<<<<<<< HEAD
-    const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(report), [report]);
-    const activeChatMembers = participants.flatMap((accountID) => {
-        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
-    });
-=======
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
@@ -96,7 +89,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
     }, [report, isGroupChat]);
->>>>>>> main
+
+    // Get the active chat members by filtering out the pending members with delete action
+    const activeChatMembers = participants.flatMap((accountID) => {
+        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+    });
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
@@ -208,11 +206,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         session,
         isSelfDM,
         isDefaultRoom,
-<<<<<<< HEAD
         activeChatMembers.length,
-=======
         isGroupChat,
->>>>>>> main
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
