@@ -293,6 +293,9 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
+        reportID?: string;
+    };
 };
 
 type SearchNavigatorParamList = {
@@ -324,6 +327,7 @@ type ReportDetailsNavigatorParamList = {
 type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
+    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: undefined;
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
@@ -336,7 +340,16 @@ type ReportDescriptionNavigatorParamList = {
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS_ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
+        reportID: string;
+        accountID: string;
+    };
+    [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
+        reportID: string;
+        accountID: string;
+    };
 };
 
 type RoomMembersNavigatorParamList = {
@@ -478,6 +491,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         pageIndex: number;
         backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: Routes;
     };
 };
 
