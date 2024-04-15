@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
@@ -14,9 +13,11 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -27,9 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
 
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
@@ -48,45 +46,28 @@ const propTypes = {
         }),
     ),
 
-    /** Padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
-
-    /** Whether the parent screen transition has ended */
-    didScreenTransitionEnd: PropTypes.bool,
 };
 
 const defaultProps = {
     participants: [],
-    safeAreaPaddingBottomStyle: {},
     betas: [],
-    dismissedReferralBanners: {},
-    didScreenTransitionEnd: false,
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({
-    betas,
-    participants,
-    onFinish,
-    onParticipantsAdded,
-    safeAreaPaddingBottomStyle,
-    iouType,
-    iouRequestType,
-    dismissedReferralBanners,
-    didScreenTransitionEnd,
-}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {canUseP2PDistanceRequests} = usePermissions(iouType);
+    const {isDismissed} = useDismissedReferralBanners({referralContentType});
+    const {canUseP2PDistanceRequests} = usePermissions();
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -106,7 +87,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, {}];
         }
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -185,6 +166,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         maxParticipantsReached,
         personalDetails,
         translate,
+        didScreenTransitionEnd,
     ]);
 
     /**
@@ -269,8 +251,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
-    const isAllowedToSplit =
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE);
+    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE;
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -289,13 +270,18 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
     );
 
-    const footerContent = useMemo(
-        () => (
-            <View>
-                {!dismissedReferralBanners[referralContentType] && (
-                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA referralContentType={referralContentType} />
-                    </View>
+    const footerContent = useMemo(() => {
+        if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
+            return;
+        }
+
+        return (
+            <>
+                {!isDismissed && (
+                    <ReferralProgramCTA
+                        referralContentType={referralContentType}
+                        style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    />
                 )}
 
                 {shouldShowSplitBillErrorMessage && (
@@ -316,10 +302,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
-            </View>
-        ),
-        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
-    );
+            </>
+        );
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
     const itemRightSideComponent = useCallback(
         (item) => {
@@ -356,23 +341,21 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     );
 
     return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTerm}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={!areOptionsInitialized}
-                rightHandSideComponent={itemRightSideComponent}
-            />
-        </View>
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTerm}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+            rightHandSideComponent={itemRightSideComponent}
+        />
     );
 }
 
@@ -381,12 +364,6 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default withOnyx({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
     betas: {
         key: ONYXKEYS.BETAS,
     },
@@ -395,8 +372,6 @@ export default withOnyx({
         MoneyTemporaryForRefactorRequestParticipantsSelector,
         (prevProps, nextProps) =>
             _.isEqual(prevProps.participants, nextProps.participants) &&
-            prevProps.didScreenTransitionEnd === nextProps.didScreenTransitionEnd &&
-            _.isEqual(prevProps.dismissedReferralBanners, nextProps.dismissedReferralBanners) &&
             prevProps.iouRequestType === nextProps.iouRequestType &&
             prevProps.iouType === nextProps.iouType &&
             _.isEqual(prevProps.betas, nextProps.betas),
