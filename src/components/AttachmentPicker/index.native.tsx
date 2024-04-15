@@ -237,7 +237,9 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
 
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
-            if (fileData.width === -1 || fileData.height === -1 || (fileData.height === 0 && fileData.width === 0)) {
+            // Check if the file dimensions indicate corruption
+            // The width/height for corrupt file is -1 on android native and 0 on ios native
+            if (!fileData.width || !fileData.height || (fileData.width <= 0 && fileData.height <= 0)) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }
