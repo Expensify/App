@@ -2949,12 +2949,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         const parentReportActionMessage = (
             ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
                 ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
-                : parser.htmlToText(
-                      (parentReportAction?.message?.[0]?.html ?? '').replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag, content, closeTag) => {
-                          const innerContent = Str.removeSMSDomain(content);
-                          return openTag + innerContent + closeTag;
-                      }),
-                  )
+                : Str.removeSMSDomain(parentReportAction?.message?.[0]?.text ?? '')
         ).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
