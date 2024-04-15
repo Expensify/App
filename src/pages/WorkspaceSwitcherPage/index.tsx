@@ -167,7 +167,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
         return options;
     }, [activeWorkspaceID, filteredAndSortedUserWorkspaces, getIndicatorTypeForPolicy, translate]);
 
-    const headerMessage = filteredAndSortedUserWorkspaces.length === 0 ? translate('common.noResultsFound') : '';
+    const headerMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length ? translate('common.noResultsFound') : '';
     const shouldShowCreateWorkspace = usersWorkspaces.length === 0;
 
     return (
