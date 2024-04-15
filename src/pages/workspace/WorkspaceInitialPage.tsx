@@ -176,7 +176,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             const keys = Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[];
             keys.forEach((key) => {
                 const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
-                if ((prevPendingFields?.[key] !== policy?.pendingFields?.[key]) || isOffline || !policy?.pendingFields?.[key]) {
+                if (prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key]) {
                     newFeatureStates[key] = isFeatureEnabled;
 
                     return;
