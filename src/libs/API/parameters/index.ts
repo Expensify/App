@@ -206,3 +206,4 @@ export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrenc
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
 export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
+export type {default as LeavePolicyParams} from './LeavePolicyParams';
