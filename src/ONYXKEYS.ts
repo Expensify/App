@@ -157,7 +157,7 @@ const ONYXKEYS = {
     FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** The NVP with the last distance rate used per policy */
-    NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
+    NVP_LAST_SELECTED_DISTANCE_RATES: 'nvp_expensify_lastSelectedDistanceRates',
 
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
@@ -290,6 +290,9 @@ const ONYXKEYS = {
     /** Indicates whether an forced upgrade is required */
     UPDATE_REQUIRED: 'updateRequired',
 
+    /** Indicates whether an forced reset is required. Used in emergency situations where we must completely erase the Onyx data in the client because it is in a bad state. This will clear Oynx data without signing the user out. */
+    RESET_REQUIRED: 'resetRequired',
+
     /** Stores the logs of the app for debugging purposes */
     LOGS: 'logs',
 
@@ -336,9 +339,10 @@ const ONYXKEYS = {
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
+        TRANSACTION_DRAFT: 'transactionsDraft_',
 
         // Holds temporary transactions used during the creation and edit flow
-        TRANSACTION_DRAFT: 'transactionsDraft_',
+        TRANSACTION_BACKUP: 'transactionsBackup_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
@@ -436,8 +440,8 @@ const ONYXKEYS = {
         REPORT_FIELD_EDIT_FORM_DRAFT: 'reportFieldEditFormDraft',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         REIMBURSEMENT_ACCOUNT_FORM_DRAFT: 'reimbursementAccountDraft',
-        PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccountForm',
-        PERSONAL_BANK_ACCOUNT_FORM_DRAFT: 'personalBankAccountFormDraft',
+        PERSONAL_BANK_ACCOUNT_FORM: 'personalBankAccount',
+        PERSONAL_BANK_ACCOUNT_FORM_DRAFT: 'personalBankAccountDraft',
         EXIT_SURVEY_REASON_FORM: 'exitSurveyReasonForm',
         EXIT_SURVEY_REASON_FORM_DRAFT: 'exitSurveyReasonFormDraft',
         EXIT_SURVEY_RESPONSE_FORM: 'exitSurveyResponseForm',
@@ -452,6 +456,8 @@ const ONYXKEYS = {
         WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
         WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
+        NEW_CHAT_NAME_FORM: 'newChatNameForm',
+        NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
     },
 } as const;
 
@@ -507,6 +513,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
+    [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -538,6 +545,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.TRANSACTION_BACKUP]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS]: OnyxTypes.RecentlyUsedTags;
@@ -640,6 +648,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.RECENTLY_USED_REPORT_FIELDS]: OnyxTypes.RecentlyUsedReportFields;
     [ONYXKEYS.UPDATE_REQUIRED]: boolean;
+    [ONYXKEYS.RESET_REQUIRED]: boolean;
     [ONYXKEYS.PLAID_CURRENT_EVENT]: string;
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
