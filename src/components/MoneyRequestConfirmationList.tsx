@@ -50,6 +50,8 @@ import Switch from './Switch';
 import Text from './Text';
 import ShowMoreButton from './ShowMoreButton';
 
+type IouType = ValueOf<typeof CONST.IOU.TYPE>;
+
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -72,7 +74,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     onConfirm?: (selectedParticipants: Participant[]) => void;
 
     /** Callback to parent modal to send money */
-    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
+    onSendMoney?: (paymentMethod: IouType | PaymentMethodType | undefined) => void;
 
     /** Callback to inform a participant is selected */
     onSelectParticipant?: (option: Participant) => void;
@@ -90,7 +92,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    iouType?: IouType;
 
     /** IOU date */
     iouCreated?: string;
@@ -193,7 +195,7 @@ function MoneyRequestConfirmationList({
     iouMerchant,
     hasMultipleParticipants,
     selectedParticipants: pickedParticipants,
-    payeePersonalDetails,
+    payeePersonalDetails: payeePersonalDetailsProp,
     canModifyParticipants = false,
     session,
     isReadOnly = false,
@@ -224,7 +226,7 @@ function MoneyRequestConfirmationList({
     const {unit, rate, currency} = mileageRate ?? {
         unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
         rate: 0,
-        currency: 'USD',
+        currency: CONST.CURRENCY.USD,
     };
     const distance = transaction?.routes?.route0.distance ?? 0;
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
@@ -253,7 +255,7 @@ function MoneyRequestConfirmationList({
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction );
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
@@ -285,7 +287,7 @@ function MoneyRequestConfirmationList({
             return false;
         }
 
-        return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction)) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction));
+        return (!!hasSmartScanFailed && TransactionUtils.hasMissingSmartscanFields(transaction )) || (didConfirmSplit && TransactionUtils.areRequiredFieldsEmpty(transaction ));
     }, [isEditingSplitBill, hasSmartScanFailed, transaction, didConfirmSplit]);
 
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
@@ -359,7 +361,7 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
-    const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
+    const splitOrRequestOptions: Array<DropdownOption<IouType>> = useMemo(() => {
         let text;
         if (isTypeTrackExpense) {
             text = translate('iou.trackExpense');
@@ -382,15 +384,15 @@ function MoneyRequestConfirmationList({
         ];
     }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
 
-    const selectedParticipants = useMemo(() => pickedParticipants.filter((participant) => participant.selected), [pickedParticipants]);
-    const personalDetailsOfPayee = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
+    const selectedParticipants: Participant[] = useMemo(() => pickedParticipants.filter((participant) => participant.selected), [pickedParticipants]);
+    const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const userCanModifyParticipants = useRef(!isReadOnly && canModifyParticipants && hasMultipleParticipants);
     useEffect(() => {
         userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
     const shouldDisablePaidBySection = userCanModifyParticipants.current;
 
-    const optionSelectorSections = useMemo(() => {
+    const optionSelectorSections: OptionsListUtils.CategorySection[] = useMemo(() => {
         const sections = [];
         const unselectedParticipants = pickedParticipants.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
@@ -406,7 +408,7 @@ function MoneyRequestConfirmationList({
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                personalDetailsOfPayee,
+                payeePersonalDetails,
                 iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
             );
 
@@ -442,18 +444,18 @@ function MoneyRequestConfirmationList({
         iouAmount,
         iouCurrencyCode,
         getParticipantsWithAmount,
-        personalDetailsOfPayee,
+        payeePersonalDetails,
         translate,
         shouldDisablePaidBySection,
         canModifyParticipants,
     ]);
 
-    const selectedOptions = useMemo(() => {
+    const selectedOptions: Array<Participant | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee)];
-    }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee]);
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
+    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
 
     useEffect(() => {
         if (!isDistanceRequest) {
@@ -467,7 +469,7 @@ function MoneyRequestConfirmationList({
         */
         IOU.setMoneyRequestPendingFields(transaction?.transactionID ?? '', {waypoints: isDistanceRequestWithPendingRoute ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null});
 
-        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? 'USD', translate, toLocaleDigit);
+        const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transaction?.transactionID ?? '', distanceMerchant, true);
     }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction]);
 
@@ -482,16 +484,16 @@ function MoneyRequestConfirmationList({
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
-        let updatedTagsString = TransactionUtils.getTag(transaction);
+        let updatedTagsString = TransactionUtils.getTag(transaction );
         policyTagLists.forEach((tagList, index) => {
             const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
             const isTagListRequired = tagList.required === undefined ? false : tagList.required && canUseViolations;
-            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
+            if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction , index)) {
                 return;
             }
             updatedTagsString = IOUUtils.insertTagIntoTransactionTagsString(updatedTagsString, enabledTags[0] ? enabledTags[0].name : '', index);
         });
-        if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
+        if (updatedTagsString !== TransactionUtils.getTag(transaction ) && updatedTagsString) {
             IOU.setMoneyRequestTag(transaction?.transactionID ?? '', updatedTagsString);
         }
     }, [policyTagLists, transaction, policyTags, canUseViolations]);
@@ -531,11 +533,11 @@ function MoneyRequestConfirmationList({
      * @param {String} paymentMethod
      */
     const confirm = useCallback(
-        (paymentMethod: PaymentMethodType | undefined) => {
+        (paymentMethod: IouType | PaymentMethodType | undefined) => {
             if (selectedParticipants.length === 0) {
                 return;
             }
-            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))) {
+            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ))) {
                 setMerchantError(true);
                 return;
             }
@@ -561,7 +563,7 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction ?? null)) {
+                if (isEditingSplitBill && TransactionUtils.areRequiredFieldsEmpty(transaction )) {
                     setDidConfirmSplit(true);
                     setFormError('iou.error.genericSmartscanFailureMessage');
                     return;
@@ -624,7 +626,7 @@ function MoneyRequestConfirmationList({
                 success
                 pressOnEnter
                 isDisabled={shouldDisableButton}
-                onPress={(event, value) => confirm(value as PaymentMethodType)}
+                onPress={(_event, value) => confirm(value)}
                 options={splitOrRequestOptions}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                 enterKeyEventListenerPriority={1}
@@ -672,8 +674,8 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ?? null) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={shouldDisplayFieldError && TransactionUtils.isAmountMissing(transaction ) ? translate('common.error.enterAmount') : ''}
                 />
             ),
             shouldShow: shouldShowSmartScanFields,
@@ -784,8 +786,8 @@ function MoneyRequestConfirmationList({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction) ? translate('common.error.enterDate') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction ) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={shouldDisplayFieldError && TransactionUtils.isCreatedMissing(transaction ) ? translate('common.error.enterDate') : ''}
                 />
             ),
             shouldShow: shouldShowDate,
@@ -936,7 +938,7 @@ function MoneyRequestConfirmationList({
         isThumbnail,
         fileExtension,
         isLocalFile,
-    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
+    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction , receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
 
     const receiptThumbnailContent = useMemo(
         () =>
@@ -987,7 +989,7 @@ function MoneyRequestConfirmationList({
         >
             {isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
-                    <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
+                    <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
             {
