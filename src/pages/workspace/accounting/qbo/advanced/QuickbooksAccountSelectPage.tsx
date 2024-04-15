@@ -52,7 +52,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
-    const updateMode = useCallback((mode: SelectorType) => {
+    const saveSelection = useCallback((mode: SelectorType) => {
         // TODO add API call for change
         setSelectedAccount(mode.value);
         Navigation.goBack();
@@ -75,7 +75,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                             sections={[{data: qboOnlineSelectorOptions}]}
                             ListItem={RadioListItem}
                             headerContent={listHeaderComponent}
-                            onSelectRow={updateMode}
+                            onSelectRow={saveSelection}
                             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                         />
                     </ScreenWrapper>
