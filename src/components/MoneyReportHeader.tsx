@@ -102,6 +102,8 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldShowWaitingNote = ReportUtils.isInvoiceAwaitingPayment(moneyRequestReport);
 
+    const invoicePayerName = ReportUtils.getInvoicePayerName(chatReport);
+
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
@@ -266,12 +268,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
                 )}
-                {shouldShowWaitingNote && (
-                    <PaymentWaitingBanner
-                        // TODO: Integrate a getter for the payer name
-                        payerName=""
-                    />
-                )}
+                {shouldShowWaitingNote && <PaymentWaitingBanner payerName={invoicePayerName} />}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu

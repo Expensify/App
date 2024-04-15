@@ -2964,6 +2964,17 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
 }
 
+function getInvoicePayerName(report: OnyxEntry<Report>): string {
+    const invoiceReceiver = report?.invoiceReceiver;
+    const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+
+    if (isIndividual) {
+        return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiver.accountID]);
+    }
+
+    return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
+}
+
 /**
  * Get the report action message for a report action.
  */
@@ -6078,7 +6089,9 @@ export {
     getIcons,
     getRoomWelcomeMessage,
     getDisplayNamesWithTooltips,
+    getInvoicePayerName,
     getInvoicesChatName,
+    getInvoicesChatSubtitle,
     getReportName,
     getReport,
     getReportNotificationPreference,
