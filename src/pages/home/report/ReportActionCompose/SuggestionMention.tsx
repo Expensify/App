@@ -234,7 +234,7 @@ function SuggestionMention(
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
-                    login: detail?.login,
+                    handle: detail?.login,
                     icons: [
                         {
                             name: detail?.login,
