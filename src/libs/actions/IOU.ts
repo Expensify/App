@@ -26,6 +26,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as CollectionUtils from '@libs/CollectionUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -257,6 +258,19 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (value) => (allPolicies = value),
+});
+
+const reportActionsByReport: OnyxCollection<OnyxTypes.ReportActions> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActionsByReport[reportID] = actions;
+    },
 });
 
 /**
@@ -1968,6 +1982,7 @@ function createDistanceRequest(
         moneyRequestReportID,
     );
 
+    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : chatReport.reportID;
     const parameters: CreateDistanceRequestParams = {
         comment,
         iouReportID: iouReport.reportID,
@@ -1988,8 +2003,8 @@ function createDistanceRequest(
     };
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    Navigation.dismissModal(isMoneyRequestReport ? report?.reportID : chatReport.reportID);
-    Report.notifyNewAction(chatReport.reportID, userAccountID);
+    Navigation.dismissModal(activeReportID);
+    Report.notifyNewAction(activeReportID, userAccountID);
 }
 
 /**
@@ -2596,15 +2611,24 @@ function updateMoneyRequestTaxRate(
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
 }
 
+type UpdateMoneyRequestDistanceParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    waypoints: WaypointCollection;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the waypoints of a distance money request */
-function updateMoneyRequestDistance(
-    transactionID: string,
-    transactionThreadReportID: string,
-    waypoints: WaypointCollection,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestDistance({
+    transactionID,
+    transactionThreadReportID,
+    waypoints,
+    policy = {} as OnyxTypes.Policy,
+    policyTagList = {},
+    policyCategories = {},
+}: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         waypoints,
     };
@@ -4297,21 +4321,39 @@ function editMoneyRequest(
     }
 }
 
+type UpdateMoneyRequestAmountAndCurrencyParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    currency: string;
+    amount: number;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the amount and currency fields of a money request */
-function updateMoneyRequestAmountAndCurrency(
-    transactionID: string,
-    transactionThreadReportID: string,
-    currency: string,
-    amount: number,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestAmountAndCurrency({
+    transactionID,
+    transactionThreadReportID,
+    currency,
+    amount,
+    policy,
+    policyTagList,
+    policyCategories,
+}: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(
+        transactionID,
+        transactionThreadReportID,
+        transactionChanges,
+        policy ?? null,
+        policyTagList ?? null,
+        policyCategories ?? null,
+        true,
+    );
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
@@ -5324,7 +5366,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
 }
 
 function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, excludedIOUReportID: string): boolean {
-    const chatReportActions = ReportActionsUtils.getAllReportActions(chatReport?.reportID ?? '');
+    const chatReportActions = reportActionsByReport?.[chatReport?.reportID ?? ''] ?? {};
 
     return Object.values(chatReportActions).some((action) => {
         const iouReport = ReportUtils.getReport(action.childReportID ?? '');
@@ -5337,7 +5379,8 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
 function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full?: boolean) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     let total = expenseReport.total ?? 0;
-    if (ReportUtils.hasHeldExpenses(expenseReport.reportID) && !full && !!expenseReport.unheldTotal) {
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(expenseReport.reportID);
+    if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
@@ -5431,6 +5474,31 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
             value: currentNextStep,
         },
     ];
+
+    // Clear hold reason of all transactions if we approve all requests
+    if (full && hasHeldExpenses) {
+        const heldTransactions = ReportUtils.getAllHeldTransactions(expenseReport.reportID);
+        heldTransactions.forEach((heldTransaction) => {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: '',
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: heldTransaction.comment.hold,
+                    },
+                },
+            });
+        });
+    }
 
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,

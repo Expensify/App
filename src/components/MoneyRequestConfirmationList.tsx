@@ -275,7 +275,7 @@ function MoneyRequestConfirmationList({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) ${CONST.DOT_SEPARATOR} ${translate('common.default')}`) ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing is not working when a left hand side value is ''
     const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 

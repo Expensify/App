@@ -869,6 +869,14 @@ const styles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeSmall: {
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+            paddingHorizontal: 6,
+            minHeight: 20,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -2269,7 +2277,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         avatarInnerText: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeSmall,
             lineHeight: undefined,
             marginLeft: -3,
