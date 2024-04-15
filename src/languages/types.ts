@@ -251,6 +251,10 @@ type ViolationsTaxOutOfPolicyParams = {taxName?: string};
 
 type TaskCreatedActionParams = {title: string};
 
+type InvoicesFromParams = {sender: string};
+
+type InvoicesToParams = {receiver: string};
+
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
@@ -403,4 +407,6 @@ export type {
     ZipCodeExampleFormatParams,
     LogSizeParams,
     HeldRequestParams,
+    InvoicesFromParams,
+    InvoicesToParams,
 };
