@@ -85,7 +85,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             return {};
         }
 
-        return OptionsListUtils.getFilteredOptions(
+        const optionList = OptionsListUtils.getFilteredOptions(
             options.reports,
             options.personalDetails,
             betas,
@@ -107,6 +107,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
             false,
         );
+
+        return optionList;
     }, [areOptionsInitialized, betas, canUseP2PDistanceRequests, didScreenTransitionEnd, iouRequestType, iouType, options.personalDetails, options.reports, participants]);
 
     const filteredOptions = useMemo(() => {
@@ -115,23 +117,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         }
 
         const newOptions = OptionsListUtils.filterOptions(chatOptions, debouncedSearchTerm, {
-            canInviteUser: true,
             betas,
             selectedOptions: participants,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
         });
-        console.log({newOptions});
         return newOptions;
     }, [areOptionsInitialized, betas, chatOptions, debouncedSearchTerm, didScreenTransitionEnd, participants]);
-
-    const requestMoneyOptions = debouncedSearchTerm.trim() !== '' ? filteredOptions : chatOptions;
 
     /**
      * Returns the sections needed for the OptionsSelector
      *
      * @returns {Array}
      */
-    const [sections, newChatOptions] = useMemo(() => {
+    const [sections, header] = useMemo(() => {
+        const requestMoneyOptions = debouncedSearchTerm.trim() !== '' ? filteredOptions : chatOptions;
         const newSections = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, {}];
@@ -176,21 +175,27 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             });
         }
 
-        return [newSections, chatOptions];
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            _.get(requestMoneyOptions, 'personalDetails', []).length + _.get(requestMoneyOptions, 'recentReports', []).length !== 0,
+            Boolean(requestMoneyOptions.userToInvite),
+            debouncedSearchTerm.trim(),
+            maxParticipantsReached,
+            _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+        );
+
+        return [newSections, headerMessage];
     }, [
+        debouncedSearchTerm,
+        filteredOptions,
+        chatOptions,
         areOptionsInitialized,
         didScreenTransitionEnd,
-        debouncedSearchTerm,
         participants,
-        requestMoneyOptions.recentReports,
-        requestMoneyOptions.personalDetails,
-        requestMoneyOptions.userToInvite,
         maxParticipantsReached,
         personalDetails,
         translate,
         options.recentReports,
         options.personalDetails,
-        chatOptions,
     ]);
 
     /**
@@ -256,18 +261,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
         [participants, onParticipantsAdded],
     );
 
-    const headerMessage = useMemo(
-        () =>
-            OptionsListUtils.getHeaderMessage(
-                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
-                Boolean(newChatOptions.userToInvite),
-                debouncedSearchTerm.trim(),
-                maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
-            ),
-        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
-    );
-    console.log({headerMessage});
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
@@ -377,7 +370,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             onSelectRow={addSingleParticipant}
             footerContent={footerContent}
-            headerMessage={headerMessage}
+            headerMessage={header}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             rightHandSideComponent={itemRightSideComponent}
         />
