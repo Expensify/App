@@ -24,6 +24,7 @@ function TableListItem({
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     onFocus,
+    shouldPreventFocusSync,
 }: TableListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -58,6 +59,7 @@ function TableListItem({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            shouldPreventFocusSync={shouldPreventFocusSync}
         >
             {(hovered) => (
                 <>

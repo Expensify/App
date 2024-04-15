@@ -26,6 +26,8 @@ function InviteMemberListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    onFocus,
+    shouldPreventFocusSync,
 }: InviteMemberListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -66,6 +68,8 @@ function InviteMemberListItem({
                 ) : undefined
             }
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldPreventFocusSync={shouldPreventFocusSync}
         >
             {(hovered?: boolean) => (
                 <>
