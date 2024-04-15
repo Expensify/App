@@ -286,8 +286,11 @@ function getPolicy(policyID: string | undefined): OnyxTypes.Policy | EmptyObject
  * Find the report preview action from given chat report and iou report
  */
 function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
+    const reportActions = reportActionsByReport?.[chatReportID] ?? {};
+
+    // Find the report preview action from the chat report
     return (
-        Object.values(reportActionsByReport?.[chatReportID] ?? {}).find(
+        Object.values(reportActions).find(
             (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
         ) ?? null
     );
@@ -1660,6 +1663,7 @@ function getTrackExpenseInformation(
     let reportPreviewAction: OnyxEntry<OnyxTypes.ReportAction> = null;
     if (shouldUseMoneyReport && iouReport) {
         reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+
         if (reportPreviewAction) {
             reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
         } else {
@@ -2568,6 +2572,7 @@ function convertTrackedExpenseToRequest(
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
+    reportPreviewReportActionID: string,
     onyxData: OnyxData,
     amount: number,
     currency: string,
@@ -2613,6 +2618,7 @@ function convertTrackedExpenseToRequest(
         moneyRequestPreviewReportActionID,
         transactionThreadReportID,
         modifiedExpenseReportActionID,
+        reportPreviewReportActionID,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
@@ -2627,6 +2633,7 @@ function categorizeTrackedExpense(
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
+    reportPreviewReportActionID: string,
     onyxData: OnyxData,
     amount: number,
     currency: string,
@@ -2668,6 +2675,7 @@ function categorizeTrackedExpense(
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
+        reportPreviewReportActionID,
         amount,
         currency,
         comment,
@@ -2694,6 +2702,7 @@ function shareTrackedExpense(
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
+    reportPreviewReportActionID: string,
     onyxData: OnyxData,
     amount: number,
     currency: string,
@@ -2735,6 +2744,7 @@ function shareTrackedExpense(
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
+        reportPreviewReportActionID,
         amount,
         currency,
         comment,
@@ -2840,6 +2850,7 @@ function requestMoney(
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
+                reportPreviewAction.reportActionID,
                 onyxData,
                 amount,
                 currency,
@@ -2975,6 +2986,7 @@ function trackExpense(
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
+                reportPreviewAction?.reportActionID ?? '',
                 onyxData,
                 amount,
                 currency,
@@ -3004,6 +3016,7 @@ function trackExpense(
                 linkedTrackedExpenseReportAction,
                 linkedTrackedExpenseReportID,
                 transactionThreadReportID,
+                reportPreviewAction?.reportActionID ?? '',
                 onyxData,
                 amount,
                 currency,

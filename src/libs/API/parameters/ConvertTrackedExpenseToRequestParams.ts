@@ -15,6 +15,7 @@ type ConvertTrackedExpenseToRequestParams = {
     moneyRequestReportID: string;
     moneyRequestCreatedReportActionID: string;
     moneyRequestPreviewReportActionID: string;
+    reportPreviewReportActionID: string,
 };
 
 export default ConvertTrackedExpenseToRequestParams;
