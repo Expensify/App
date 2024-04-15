@@ -114,10 +114,15 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             return {};
         }
 
-        const newOptions = OptionsListUtils.filterOptions(chatOptions, debouncedSearchTerm, {canInviteUser: true, betas});
-
+        const newOptions = OptionsListUtils.filterOptions(chatOptions, debouncedSearchTerm, {
+            canInviteUser: true,
+            betas,
+            selectedOptions: participants,
+            excludeLogins: CONST.EXPENSIFY_EMAILS,
+        });
+        console.log({newOptions});
         return newOptions;
-    }, [areOptionsInitialized, betas, chatOptions, debouncedSearchTerm, didScreenTransitionEnd]);
+    }, [areOptionsInitialized, betas, chatOptions, debouncedSearchTerm, didScreenTransitionEnd, participants]);
 
     const requestMoneyOptions = debouncedSearchTerm.trim() !== '' ? filteredOptions : chatOptions;
 
@@ -262,7 +267,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             ),
         [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
-
+    console.log({headerMessage});
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants

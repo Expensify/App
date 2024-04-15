@@ -1528,6 +1528,9 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
     );
 }
 
+/**
+ * Builds the option with optimistic personal details
+ */
 function createOptimisticPersonalDetailOption(searchValue: string, {reportActions = {}, showChatPreviewLine = false}) {
     const optimisticAccountID = UserUtils.generateAccountID(searchValue);
     const personalDetailsExtended = {
@@ -1859,6 +1862,7 @@ function getOptions(
         currentUserOption = undefined;
     }
 
+    // TODO: creating user to invite can be removed once we implement filtering in all search pages. This logic will be handled in filtering instead.
     let userToInvite: ReportUtils.OptionData | null = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
@@ -2229,7 +2233,7 @@ function formatSectionsFromSearchTerm(
 function filterOptions(
     options: Options,
     searchInputValue: string,
-    {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], selectedOptions = []}: Partial<GetOptionsConfig>,
+    {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], selectedOptions = [], excludeUnknownUsers = false, excludeLogins = []}: Partial<GetOptionsConfig>,
 ): Options {
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
@@ -2310,16 +2314,24 @@ function filterOptions(
     }
 
     let userToInvite = null;
-    if (
-        canInviteUser &&
-        searchValue &&
-        !isCurrentUser({login: searchValue} as PersonalDetails) &&
-        selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
-        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
-        (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
-    ) {
-        userToInvite = createOptimisticPersonalDetailOption(searchValue, {});
+    if (canInviteUser) {
+        const noOptions = recentReports.length + personalDetails.length === 0;
+        const noOptionsMatchExactly = !personalDetails
+            .concat(recentReports)
+            .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
+        if (
+            searchValue &&
+            (noOptions || noOptionsMatchExactly) &&
+            !isCurrentUser({login: searchValue} as PersonalDetails) &&
+            selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
+            ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
+                (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
+            !excludeLogins.find((optionToExclude) => optionToExclude === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
+            (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
+            !excludeUnknownUsers
+        ) {
+            userToInvite = createOptimisticPersonalDetailOption(searchValue, {});
+        }
     }
 
     return {
