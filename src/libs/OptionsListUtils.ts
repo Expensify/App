@@ -2234,7 +2234,11 @@ function formatSectionsFromSearchTerm(
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string, config?: Partial<GetOptionsConfig>): Options {
+function filterOptions(
+    options: Options,
+    searchInputValue: string,
+    config?: Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins'>,
+): Options {
     const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], selectedOptions = [], excludeUnknownUsers = false, excludeLogins = []} = config ?? {};
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();

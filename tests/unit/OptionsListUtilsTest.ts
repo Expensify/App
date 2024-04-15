@@ -2601,20 +2601,19 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
             const filteredOptions = OptionsListUtils.filterOptions(options, '');
 
-            expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length);
+            expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length + filteredOptions.personalDetails.length);
         });
 
         it('should return filtered options in correct order', () => {
             const searchText = 'man';
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-            expect(filteredOptions.recentReports.length).toBe(5);
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
+            expect(filteredOptions.recentReports.length).toBe(4);
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
             expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
         });
 
         it('should filter users by email', () => {
@@ -2641,7 +2640,7 @@ describe('OptionsListUtils', () => {
             const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
             const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, '', [CONST.BETAS.ALL]);
 
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
 
             expect(filteredOptions.recentReports.length).toBe(1);
             expect(filteredOptions.recentReports[0].login).toBe('barry.allen@expensify.com');
@@ -2661,7 +2660,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'reedrichards@expensify.com';
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {});
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports[0].login).toBe(searchText);
