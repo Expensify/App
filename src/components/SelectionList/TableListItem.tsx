@@ -23,6 +23,7 @@ function TableListItem<TItem extends ListItem>({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    onFocus,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -56,6 +57,7 @@ function TableListItem<TItem extends ListItem>({
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
+            onFocus={onFocus}
         >
             {(hovered) => (
                 <>
