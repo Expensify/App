@@ -77,6 +77,51 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
 );
 
 /**
+ * Helper function to handle pluralized translations.
+ *
+ * This function takes the result of a translated phrase function,
+ * along with the language, phrase key, and count, and returns the
+ * appropriate pluralized form of the translation.
+ *
+ * It uses the Intl.PluralRules API to determine the correct plural form
+ * based on the count and the language's pluralization rules.
+ *
+ * If the specific plural form is not found, it falls back to the 'other' form.
+ *
+ * @param result - The result of the translated phrase function.
+ * @param language - The language of the translation.
+ * @param phraseKey - The key of the phrase being translated.
+ * @param count - The count used to determine the plural form.
+ * @returns The pluralized form of the translation, or null if not found.
+ */
+function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl.LDMLPluralRule, Phrase<TKey>>, language: string, phraseKey: TKey, count: number): string | null {
+    const pluralRules = new Intl.PluralRules(language);
+    const pluralForm = pluralRules.select(count);
+
+    if (pluralForm in result) {
+        const translatedPluralForm = result[pluralForm];
+        if (typeof translatedPluralForm === 'string') {
+            return translatedPluralForm;
+        }
+        if (typeof translatedPluralForm === 'function') {
+            return translatedPluralForm();
+        }
+    }
+
+    Log.warn(`Pluralization form '${pluralForm}' not found for phrase '${phraseKey}'. Falling back to 'other' form.`);
+    
+    const otherForm = result.other;
+    if (typeof otherForm === 'function') {
+        return otherForm();
+    }
+    if (typeof otherForm === 'string') {
+        return otherForm;
+    }
+
+    return null;
+}
+
+/**
  * Helper function to get the translated string for given
  * locale and phrase. This function is used to avoid
  * duplicate code in getTranslatedPhrase and translate functions.
@@ -117,32 +162,13 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(...phraseParameters);
-            const countParam = phraseParameters.find((param: unknown) => !!(param as Record<string, number>).count) as Record<string, number>;
-            const count = countParam ? countParam.count : undefined;
 
-            if (typeof result === 'object' && count !== undefined) {
-                const pluralRules = new Intl.PluralRules(language);
-                const pluralForm = pluralRules.select(count);
-
-                if (pluralForm in result) {
-                    const translatedPluralForm = result[pluralForm as keyof typeof result];
-                    if (typeof translatedPluralForm === 'string') {
-                        return translatedPluralForm;
-                    }
-                }
-
-                Log.warn(`Pluralization form '${pluralForm}' not found for phrase '${phraseKey}'. Falling back to 'other' form.`);
-                if ('other' in result) {
-                    const otherForm = (result as unknown as Record<string, string>).other;
-                    if (typeof otherForm === 'string') {
-                        return otherForm;
-                    }
-                }
-
-                return null;
+            if (typeof result === 'object') {
+                const pluralForm = phraseParameters.find((param) => typeof param === 'number') as Record<string, number>;
+                return getPluralTranslation(result, language, phraseKey, pluralForm.count);
             }
 
-            return translatedPhrase(...phraseParameters);
+            return result;
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
