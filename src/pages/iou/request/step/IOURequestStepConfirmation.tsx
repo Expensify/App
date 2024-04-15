@@ -186,8 +186,6 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            console.log(receiptObj, 'receiptObj');
-
             IOU.requestMoney(
                 report,
                 transaction.amount,
