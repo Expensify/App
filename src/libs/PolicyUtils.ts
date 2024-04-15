@@ -140,6 +140,11 @@ const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => 
 const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
 
 /**
+ * Checks if the current user is an owner (creator) of the policy.
+ */
+const isPolicyOwner = (policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+
+/**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
@@ -354,6 +359,7 @@ export {
     getCountOfEnabledTagsOfList,
     isPendingDeletePolicy,
     isPolicyMember,
+    isPolicyOwner,
     isPaidGroupPolicy,
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
