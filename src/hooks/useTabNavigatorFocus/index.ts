@@ -54,12 +54,10 @@ function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
         if (!tabPositionAnimation) {
             return;
         }
-        const index = Number(tabIndex);
-
         const listenerId = tabPositionAnimation.addListener(({value}: PositionAnimationListenerCallback) => {
             // Activate camera as soon the index is animating towards the `tabIndex`
             DomUtils.requestAnimationFrame(() => {
-                setIsTabFocused(value > index - 1 && value < index + 1);
+                setIsTabFocused(value > tabIndex - 1 && value < tabIndex + 1);
             });
         });
 
@@ -72,7 +70,7 @@ function useTabNavigatorFocus({tabIndex}: UseTabNavigatorFocusParams): boolean {
 
         if (typeof initialTabPositionValue === 'number') {
             DomUtils.requestAnimationFrame(() => {
-                setIsTabFocused(initialTabPositionValue > index - 1 && initialTabPositionValue < index + 1);
+                setIsTabFocused(initialTabPositionValue > tabIndex - 1 && initialTabPositionValue < tabIndex + 1);
             });
         }
 
