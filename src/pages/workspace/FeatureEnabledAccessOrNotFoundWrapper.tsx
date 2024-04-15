@@ -5,10 +5,10 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -36,10 +36,14 @@ type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFou
 
 function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNotFoundComponentProps) {
     const isPolicyIDInRoute = !!props.policyID?.length;
-    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName));
+    const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const {isOffline} = useNetwork();
+
+    const pendingField = props.policy?.pendingFields?.[props.featureName];
+    const prevPendingField = usePrevious(pendingField);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
@@ -51,14 +55,14 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, props.policyID]);
 
-    const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
-
     useEffect(() => {
-        if (props.policy?.pendingFields?.[props.featureName] === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE && !isFeatureEnabled && !isOffline) {
-            return;
-        }
-        setIsPolicyFeatureEnabled(isFeatureEnabled);
-    }, [props.policy, props.featureName, isFeatureEnabled, isOffline]);
+        setIsPolicyFeatureEnabled((isCurrencyPolicyFeatureEnabled) => {
+            if (prevPendingField !== pendingField || isOffline || !pendingField) {
+                return isFeatureEnabled;
+            }
+            return isCurrencyPolicyFeatureEnabled;
+        });
+    }, [pendingField, isFeatureEnabled, isOffline, prevPendingField]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;

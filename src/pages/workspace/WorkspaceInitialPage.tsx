@@ -75,6 +75,19 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const {canUseAccountingIntegrations} = usePermissions();
     const {isOffline} = useNetwork();
 
+    const prevPendingFields = usePrevious(policy?.pendingFields);
+    const policyFeatureStates = useMemo(
+        () => ({
+            [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]: policy?.areWorkflowsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+        }),
+        [policy],
+    ) as Record<PolicyFeatureName, boolean>;
+
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
 
@@ -111,7 +124,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
 
-    const [featureStates, setFeatureStates] = useState({} as Record<PolicyFeatureName, boolean>);
+    const [featureStates, setFeatureStates] = useState(policyFeatureStates);
 
     const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
         {
@@ -158,20 +171,27 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
     useEffect(() => {
-        const newFeatureStates = {} as Record<PolicyFeatureName, boolean>;
-        const keys = Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[];
-        keys.forEach((key) => {
-            const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
-            if (policy?.pendingFields?.[key] === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE && !isFeatureEnabled && !isOffline) {
-                return;
-            }
-            newFeatureStates[key] = isFeatureEnabled;
+        setFeatureStates((currentFeatureStates) => {
+            const newFeatureStates = {} as Record<PolicyFeatureName, boolean>;
+            const keys = Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[];
+            keys.forEach((key) => {
+                const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
+                if ((prevPendingFields?.[key] !== policy?.pendingFields?.[key]) || isOffline || !policy?.pendingFields?.[key]) {
+                    newFeatureStates[key] = isFeatureEnabled;
+
+                    return;
+                }
+
+                newFeatureStates[key] = currentFeatureStates[key];
+            });
+            return {
+                ...policyFeatureStates,
+                ...newFeatureStates,
+            };
         });
+    }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
 
-        setFeatureStates(newFeatureStates);
-    }, [policy, isOffline]);
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED] ?? policy?.areDistanceRatesEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
@@ -180,7 +200,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED] || policy?.areWorkflowsEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
@@ -190,7 +210,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED] ?? policy?.areCategoriesEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
@@ -200,7 +220,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED] ?? policy?.areTagsEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
@@ -209,7 +229,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED] ?? policy?.tax?.trackingEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Tax,
@@ -219,7 +239,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
-    if ((featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? policy?.areConnectionsEnabled) && canUseAccountingIntegrations) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canUseAccountingIntegrations) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
