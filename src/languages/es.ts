@@ -2179,6 +2179,7 @@ export default {
             users: 'usuarios',
             invited: 'invitó',
             removed: 'eliminó',
+            leftWorkspace: 'salió del espacio de trabajo',
             to: 'a',
             from: 'de',
         },

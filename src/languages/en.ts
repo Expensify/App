@@ -2151,6 +2151,7 @@ export default {
             users: 'users',
             invited: 'invited',
             removed: 'removed',
+            leftWorkspace: 'left the workspace',
             to: 'to',
             from: 'from',
         },
