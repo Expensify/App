@@ -85,6 +85,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
         merchant: splitMerchant,
         created: splitCreated,
         category: splitCategory,
+        tag: splitTag,
         billable: splitBillable,
     } = ReportUtils.getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
@@ -116,6 +117,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             iouCreated={splitCreated}
                             iouMerchant={splitMerchant}
                             iouCategory={splitCategory}
+                            iouTag={splitTag}
                             iouIsBillable={splitBillable}
                             iouType={CONST.IOU.TYPE.SPLIT}
                             isReadOnly={!isEditingSplitBill}

@@ -100,6 +100,9 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** IOU Category */
     iouCategory?: string;
+    
+    /** IOU Tag */
+    iouTag?: string;
 
     /** IOU isBillable */
     iouIsBillable?: boolean;
@@ -181,6 +184,7 @@ function MoneyRequestConfirmationList({
     policy,
     isPolicyExpenseChat = false,
     iouCategory = '',
+    iouTag = '',
     shouldShowSmartScanFields = true,
     isEditingSplitBill,
     policyTags,
@@ -240,7 +244,7 @@ function MoneyRequestConfirmationList({
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     // A flag for showing the tags field
-    const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
+    const shouldShowTags = isPolicyExpenseChat && (!!iouTag || OptionsListUtils.hasEnabledTags(policyTagLists));
 
     // A flag for showing tax rate
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
