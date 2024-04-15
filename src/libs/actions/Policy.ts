@@ -968,52 +968,47 @@ function removeMembers(accountIDs: number[], policyID: string) {
 }
 
 function leaveWorkspace(policyID: string) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                [sessionAccountID]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                employeeList: {
+                    [sessionEmail]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
                 },
             },
         },
+    ];
+
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            },
-        },
-    ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: {
-                [sessionAccountID]: null,
+                employeeList: {
+                    [sessionEmail]: null,
+                },
             },
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: {
-                [sessionAccountID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingAction: policy?.pendingAction,
+                employeeList: {
+                    [sessionEmail]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove'),
+                    },
+                },
             },
         },
     ];
