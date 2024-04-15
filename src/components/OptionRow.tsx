@@ -154,14 +154,14 @@ function OptionRow({
     }
 
     return (
-        <OfflineWithFeedback
-            pendingAction={option.pendingAction}
-            errors={option.allReportErrors}
-            shouldShowErrorMessages={false}
-            needsOffscreenAlphaCompositing
-        >
-            <Hoverable>
-                {(hovered) => (
+        <Hoverable>
+            {(hovered) => (
+                <OfflineWithFeedback
+                    pendingAction={option.pendingAction}
+                    errors={option.allReportErrors}
+                    shouldShowErrorMessages={false}
+                    needsOffscreenAlphaCompositing
+                >
                     <PressableWithFeedback
                         nativeID={keyForList}
                         ref={pressableRef}
@@ -314,9 +314,9 @@ function OptionRow({
                             </View>
                         )}
                     </PressableWithFeedback>
-                )}
-            </Hoverable>
-        </OfflineWithFeedback>
+                </OfflineWithFeedback>
+            )}
+        </Hoverable>
     );
 }
 

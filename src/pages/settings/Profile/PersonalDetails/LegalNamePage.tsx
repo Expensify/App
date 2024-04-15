@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,6 +24,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 type LegalNamePageOnyxProps = {
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** Whether app is loading */
+    isLoadingApp: OnyxEntry<boolean>;
 };
 
 type LegalNamePageProps = LegalNamePageOnyxProps;
@@ -33,13 +34,11 @@ const updateLegalName = (values: PrivatePersonalDetails) => {
     PersonalDetails.updateLegalName(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '');
 };
 
-function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
+function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNamePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    usePrivatePersonalDetails();
     const legalFirstName = privatePersonalDetails?.legalFirstName ?? '';
     const legalLastName = privatePersonalDetails?.legalLastName ?? '';
-    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
     const validate = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>) => {
         const errors: Errors = {};
@@ -86,7 +85,7 @@ function LegalNamePage({privatePersonalDetails}: LegalNamePageProps) {
                 title={translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {isLoadingPersonalDetails ? (
+            {isLoadingApp ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <FormProvider
@@ -132,5 +131,8 @@ LegalNamePage.displayName = 'LegalNamePage';
 export default withOnyx<LegalNamePageProps, LegalNamePageOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
     },
 })(LegalNamePage);

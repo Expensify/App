@@ -8,7 +8,9 @@ import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, Polic
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Navigation from './Navigation/Navigation';
+import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
+import Navigation, {navigationRef} from './Navigation/Navigation';
+import type {RootStackParamList, State} from './Navigation/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -179,19 +181,15 @@ function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagList>): Array<keyof 
 }
 
 /**
- * Gets a tag name of policy tags based on a tag index.
+ * Gets a tag name of policy tags based on a tag's orderWeight.
  */
-function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, tagIndex: number): string {
+function getTagListName(policyTagList: OnyxEntry<PolicyTagList>, orderWeight: number): string {
     if (isEmptyObject(policyTagList)) {
         return '';
     }
 
-    const policyTagKeys = getSortedTagKeys(policyTagList ?? {});
-    const policyTagKey = policyTagKeys[tagIndex] ?? '';
-
-    return policyTagList?.[policyTagKey]?.name ?? '';
+    return Object.values(policyTagList).find((tag) => tag.orderWeight === orderWeight)?.name ?? '';
 }
-
 /**
  * Gets all tag lists of a policy
  */
@@ -240,6 +238,10 @@ function isPendingDeletePolicy(policy: OnyxEntry<Policy>): boolean {
 
 function isPaidGroupPolicy(policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
+}
+
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>): boolean {
+    return (isPolicyExpenseChat && (policy?.tax?.trackingEnabled ?? policy?.isTaxTrackingEnabled)) ?? false;
 }
 
 /**
@@ -304,6 +306,13 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+/**
+ *  Get the currently selected policy ID stored in the navigation state.
+ */
+function getPolicyIDFromNavigationState() {
+    return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -319,6 +328,7 @@ export {
     isInstantSubmitEnabled,
     isFreeGroupPolicy,
     isPolicyAdmin,
+    isTaxTrackingEnabled,
     isSubmitAndClose,
     getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
@@ -340,6 +350,7 @@ export {
     hasTaxRateError,
     getTaxByID,
     hasPolicyCategoriesError,
+    getPolicyIDFromNavigationState,
 };
 
 export type {MemberEmailsToAccountIDs};

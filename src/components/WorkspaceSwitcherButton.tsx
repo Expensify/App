@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
+import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -23,6 +24,8 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
+    const pressableRef = useRef<HTMLDivElement | View | null>(null);
+
     const {source, name, type} = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
@@ -39,14 +42,16 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     return (
         <Tooltip text={translate('workspace.switcher.headerTitle')}>
             <PressableWithFeedback
+                ref={pressableRef}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.workspaces')}
                 accessible
-                onPress={() =>
+                onPress={() => {
+                    pressableRef?.current?.blur();
                     interceptAnonymousUser(() => {
                         Navigation.navigate(ROUTES.WORKSPACE_SWITCHER);
-                    })
-                }
+                    });
+                }}
             >
                 {({hovered}) => (
                     <SubscriptAvatar

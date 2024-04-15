@@ -397,7 +397,7 @@ function assertPostGithubCommentJobExecuted(
     });
 }
 
-export {
+export default {
     assertValidateActorJobExecuted,
     assertGetBranchRefJobExecuted,
     assertAndroidJobExecuted,

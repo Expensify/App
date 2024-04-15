@@ -442,6 +442,24 @@ describe('libs/NextStepUtils', () => {
 
                 expect(result).toMatchObject(optimisticNextStep);
             });
+
+            test('submit and close approval mode', () => {
+                report.ownerAccountID = strangeAccountID;
+                optimisticNextStep.title = 'Finished!';
+                optimisticNextStep.message = [
+                    {
+                        text: 'No further action required!',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                }).then(() => {
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
@@ -551,14 +569,6 @@ describe('libs/NextStepUtils', () => {
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: false});
 
                 expect(result).toMatchObject(optimisticNextStep);
-            });
-        });
-
-        describe('it generates a nullable optimistic nextStep', () => {
-            test('closed status', () => {
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
-
-                expect(result).toBeNull();
             });
         });
     });

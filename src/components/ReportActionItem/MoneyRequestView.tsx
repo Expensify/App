@@ -23,6 +23,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -100,6 +101,8 @@ function MoneyRequestView({
     const {
         created: transactionDate,
         amount: transactionAmount,
+        taxAmount: transactionTaxAmount,
+        taxCode: transactionTaxCode,
         currency: transactionCurrency,
         comment: transactionDescription,
         merchant: transactionMerchant,
@@ -119,6 +122,15 @@ function MoneyRequestView({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const taxRates = policy?.taxRates;
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
+
+    const taxRatesDescription = taxRates?.name;
+    const taxRateTitle =
+        taxRates &&
+        (transactionTaxCode === taxRates?.defaultExternalID
+            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+            : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
     // Flags for allowing or disallowing editing a money request
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
@@ -146,6 +158,9 @@ function MoneyRequestView({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
+
+    // A flag for showing tax rate
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -301,7 +316,9 @@ function MoneyRequestView({
                         titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
-                        onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                        }
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         error={getErrorForField('amount')}
                     />
@@ -391,7 +408,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag &&
-                    policyTagLists.map(({name}, index) => (
+                    policyTagLists.map(({name, orderWeight}, index) => (
                         <OfflineWithFeedback
                             key={name}
                             pendingAction={getPendingFieldAction('tag')}
@@ -404,7 +421,7 @@ function MoneyRequestView({
                                 titleStyle={styles.flex1}
                                 onPress={() =>
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, orderWeight, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
                                 brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -418,6 +435,39 @@ function MoneyRequestView({
                             description={translate('iou.card')}
                             title={cardProgramName}
                             titleStyle={styles.flex1}
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {shouldShowTax && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
+                        <MenuItemWithTopDescription
+                            title={taxRateTitle ?? ''}
+                            description={taxRatesDescription}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
+                            }
+                        />
+                    </OfflineWithFeedback>
+                )}
+
+                {shouldShowTax && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
+                        <MenuItemWithTopDescription
+                            title={formattedTaxAmount ? formattedTaxAmount.toString() : ''}
+                            description={translate('iou.taxAmount')}
+                            interactive={canEdit}
+                            shouldShowRightIcon={canEdit}
+                            titleStyle={styles.flex1}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
+                            }
                         />
                     </OfflineWithFeedback>
                 )}
