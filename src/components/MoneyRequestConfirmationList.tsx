@@ -161,6 +161,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Whether smart scan failed */
     hasSmartScanFailed?: boolean;
 
+    /** The ID of the report action */
     reportActionID?: string;
 };
 
