@@ -218,6 +218,8 @@ function ReportPreview({
 
     const shouldShowWaitingNote = ReportUtils.isInvoiceAwaitingPayment(iouReport);
 
+    const invoicePayerName = ReportUtils.getInvoicePayerName(chatReport);
+
     /*
      Show subtitle if at least one of the money requests is not being smart scanned, and either:
      - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
@@ -355,12 +357,7 @@ function ReportPreview({
                                         isDisabled={shouldDisableSubmitButton}
                                     />
                                 )}
-                                {shouldShowWaitingNote && (
-                                    <PaymentWaitingBanner
-                                        // TODO: Integrate a getter for the payer name
-                                        payerName=""
-                                    />
-                                )}
+                                {shouldShowWaitingNote && <PaymentWaitingBanner payerName={invoicePayerName} />}
                             </View>
                         </View>
                     </View>
