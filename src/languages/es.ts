@@ -517,7 +517,6 @@ export default {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'track-expense': 'rastrear un gasto',
         },
-        beginningOfChatHistoryInvoiceRoom: '¡Este es el lugar para colaborar! 🎉\nUsa esta sala para ver, discutir y pagar facturas.',
     },
     reportAction: {
         asCopilot: 'como copiloto de',

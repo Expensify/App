@@ -419,7 +419,21 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [transaction, report, iouType, receiptFile, requestType, requestMoney, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trackExpense, createDistanceRequest],
+        [
+            transaction,
+            iouType,
+            receiptFile,
+            requestType,
+            requestMoney,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            report,
+            policy,
+            policyTags,
+            policyCategories,
+            trackExpense,
+            createDistanceRequest,
+        ],
     );
 
     /**

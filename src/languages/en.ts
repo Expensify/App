@@ -521,7 +521,6 @@ export default {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'track-expense': 'track an expense',
         },
-        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 \nUse this room to view, discuss, and pay invoices.',
     },
     reportAction: {
         asCopilot: 'as copilot for',
