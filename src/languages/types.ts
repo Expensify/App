@@ -281,7 +281,7 @@ type TranslateType<TObject, TPath extends string> = TPath extends keyof TObject
 
 type EnglishTranslation = typeof en;
 
-type TranslationPaths = FlattenObject<EnglishTranslation>;
+type TranslationPaths = keyof EnglishTranslation;
 
 type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;

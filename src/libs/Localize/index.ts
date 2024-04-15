@@ -47,7 +47,7 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
+type PhraseParameters<T> = T extends (...args: infer A) => string ? A : [] | Record<string, T>;
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
@@ -91,12 +91,12 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
  * @param result - The result of the translated phrase function.
  * @param language - The language of the translation.
  * @param phraseKey - The key of the phrase being translated.
- * @param count - The count used to determine the plural form.
+ * @param count - The count used to determine the plural form as a string but numerical form (e.g. '5').
  * @returns The pluralized form of the translation, or null if not found.
  */
-function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl.LDMLPluralRule, Phrase<TKey>>, language: string, phraseKey: TKey, count: number): string | null {
+function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl.LDMLPluralRule, Phrase<TKey>>, language: string, phraseKey: TKey, count: string): string | null {
     const pluralRules = new Intl.PluralRules(language);
-    const pluralForm = pluralRules.select(count);
+    const pluralForm = pluralRules.select(Number(count));
 
     if (pluralForm in result) {
         const translatedPluralForm = result[pluralForm];
@@ -142,8 +142,8 @@ function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl
 function getTranslatedPhrase<TKey extends TranslationPaths>(
     language: 'en' | 'es' | 'es-ES',
     phraseKey: TKey,
+    phraseParameters: PhraseParameters<Phrase<TKey>>,
     fallbackLanguage: 'en' | 'es' | null = null,
-    ...phraseParameters: PhraseParameters<Phrase<TKey>>
 ): string | null {
     // Get the cache for the above locale
     const cacheForLocale = translationCache.get(language);
@@ -161,11 +161,10 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
-            const result = translatedPhrase(...phraseParameters);
-            const pluralForm = phraseParameters[0] as {count: number} | undefined;
+            const result = translatedPhrase(phraseParameters);
 
-            if (typeof result === 'object' && pluralForm) {
-                return getPluralTranslation(result, language, phraseKey, pluralForm.count);
+            if (typeof result === 'object' && 'count' in phraseParameters) {
+                return getPluralTranslation(result, language, phraseKey, phraseParameters.count);
             }
 
             return result;
@@ -181,7 +180,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     }
 
     // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...phraseParameters);
+    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, phraseParameters);
 
     if (fallbackTranslatedPhrase) {
         return fallbackTranslatedPhrase;
@@ -192,7 +191,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     }
 
     // Phrase is not translated, search it in default language (en)
-    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...phraseParameters);
+    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, phraseParameters);
 }
 
 /**
@@ -201,13 +200,13 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
  * @param [desiredLanguage] eg 'en', 'es-ES'
  * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
+function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, phraseParameters: PhraseParameters<Phrase<TKey>>): string {
     // Search phrase in full locale e.g. es-ES
     const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
 
-    const translatedPhrase = getTranslatedPhrase(language, phraseKey, languageAbbreviation, ...phraseParameters);
+    const translatedPhrase = getTranslatedPhrase(language, phraseKey, phraseParameters, languageAbbreviation);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
@@ -228,8 +227,8 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
+function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: PhraseParameters<Phrase<TKey>>) {
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
 }
 
 /**
