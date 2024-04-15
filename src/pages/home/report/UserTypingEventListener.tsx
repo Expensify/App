@@ -38,13 +38,10 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
             const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
 
             if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-                const interactionTask = InteractionManager.runAfterInteractions(() => {
+                InteractionManager.runAfterInteractions(() => {
                     Report.subscribeToReportTypingEvents(reportID);
                     didSubscribeToReportTypingEvents.current = true;
                 });
-                return () => {
-                    interactionTask.cancel();
-                };
             }
         } else {
             const topmostReportId = Navigation.getTopmostReportId();
