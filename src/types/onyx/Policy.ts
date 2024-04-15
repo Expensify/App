@@ -402,6 +402,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** All the integration connections attached to the policy */
         connections?: Connections;
 
+        /** Whether the connections data is being fetched */
+        isLoadingConnections?: boolean;
+
         /** Report fields attached to the policy */
         fieldList?: Record<string, PolicyReportField>;
 
