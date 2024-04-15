@@ -29,7 +29,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {autoSync, syncPeople, autoCreateVendor, reimbursementAccountID, collectionAccountID, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const {bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
 
-    const qboSyncToggleSettings: ToggleSettingOptionRowProps[] = [
+    const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
@@ -68,7 +68,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                         <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
 
                         <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                            {qboSyncToggleSettings.map((item) => (
+                            {qboToggleSettingItems.map((item) => (
                                 <ToggleSettingOptionRow
                                     key={item.title}
                                     title={item.title}
