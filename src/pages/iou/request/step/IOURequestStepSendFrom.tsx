@@ -59,7 +59,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
             ],
             isSelected: !!transaction?.participants?.find((participant) => participant.policyID === policy.id),
         }));
-    }, [allPolicies, transaction, styles.mh2, styles.roundCheckmarkWrapper, theme.success]);
+    }, [allPolicies, transaction]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -88,7 +88,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
                 )}
             </View>
         ),
-        [workspaceOptions],
+        [styles.roundCheckmarkWrapper, styles.mh2, theme.success],
     );
 
     return (

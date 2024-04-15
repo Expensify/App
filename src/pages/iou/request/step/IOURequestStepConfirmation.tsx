@@ -419,7 +419,21 @@ function IOURequestStepConfirmation({
 
             requestMoney(selectedParticipants, trimmedComment);
         },
-        [transaction, report, iouType, receiptFile, requestType, requestMoney, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, trackExpense, createDistanceRequest],
+        [
+            transaction,
+            report,
+            iouType,
+            receiptFile,
+            requestType,
+            requestMoney,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            trackExpense,
+            createDistanceRequest,
+            policy,
+            policyTags,
+            policyCategories,
+        ],
     );
 
     /**
@@ -478,7 +492,10 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
+                        shouldShowThreeDotsButton={
+                            requestType === CONST.IOU.REQUEST_TYPE.MANUAL &&
+                            (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE || iouType === CONST.IOU.TYPE.INVOICE)
+                        }
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {

@@ -661,29 +661,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const classifiedFields = [
         {
             item: (
-                <MenuItem
-                    key={translate('workspace.invoices.sendFrom')}
-                    shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
-                    title={senderWorkspace?.name}
-                    icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
-                    iconType={CONST.ICON_TYPE_WORKSPACE}
-                    description={translate('workspace.common.workspace')}
-                    label={translate('workspace.invoices.sendFrom')}
-                    isLabelHoverable={false}
-                    interactive={!isReadOnly && canUpdateSenderWorkspace}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
-                    }}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    disabled={didConfirm || !canUpdateSenderWorkspace}
-                />
-            ),
-            shouldShow: isTypeInvoice,
-            isSupplementary: false,
-        },
-        {
-            item: (
                 <MenuItemWithTopDescription
                     key={translate('iou.amount')}
                     shouldShowRightIcon={!isReadOnly && !isDistanceRequest}
@@ -1019,6 +996,25 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
+            )}
+            {isTypeInvoice && (
+                <MenuItem
+                    key={translate('workspace.invoices.sendFrom')}
+                    shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
+                    title={senderWorkspace?.name}
+                    icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                    iconType={CONST.ICON_TYPE_WORKSPACE}
+                    description={translate('workspace.common.workspace')}
+                    label={translate('workspace.invoices.sendFrom')}
+                    isLabelHoverable={false}
+                    interactive={!isReadOnly && canUpdateSenderWorkspace}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm || !canUpdateSenderWorkspace}
+                />
             )}
             {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
