@@ -116,12 +116,14 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                                     </View>
                                 </View>
                             </OfflineWithFeedback>
-                            <MenuItemWithTopDescription
-                                title={policyCategory.name}
-                                description={translate(`workspace.categories.categoryName`)}
-                                onPress={navigateToEditCategory}
-                                shouldShowRightIcon
-                            />
+                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
+                                <MenuItemWithTopDescription
+                                    title={policyCategory.name}
+                                    description={translate(`workspace.categories.categoryName`)}
+                                    onPress={navigateToEditCategory}
+                                    shouldShowRightIcon
+                                />
+                            </OfflineWithFeedback>
                         </View>
                     </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>
