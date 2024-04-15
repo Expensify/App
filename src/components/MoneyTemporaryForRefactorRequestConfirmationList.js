@@ -418,7 +418,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     useEffect(() => {
         userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
-    const shouldDisablePaidBySection = userCanModifyParticipants.current;
 
     // Validate that the total of split amounts does not exceed the total amount of the bill
     //useEffect(() => {
@@ -430,17 +429,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const [splitShareAccountIDsWithError, setSplitShareAccountIDsWithError] = useState(-1);
     const onSplitShareChange = useCallback(
         (participantOption, value) => {
-            console.log('value', value);
-            const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
-            if (!MoneyRequestUtils.validateAmount(String(value), decimals)) {
-                setSplitShareAccountIDsWithError(participantOption.accountID);
-                setFormError('Please enter valid amounts');
-                return;
-            }
-            setSplitShareAccountIDsWithError(-1);
             IOU.setSplitShare(routeTransactionID, participantOption.accountID, value, iouCurrencyCode, true);
         },
-        [routeTransactionID, iouCurrencyCode, splitShareAccountIDsWithError],
+        [routeTransactionID, iouCurrencyCode],
     );
 
     useEffect(() => {
@@ -502,14 +493,16 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const unselectedParticipants = _.filter(pickedParticipants, (participant) => !participant.selected);
         if (hasMultipleParticipants) {
             const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
+            console.log(draftTransaction.splitShares);
+            console.log(draftTransaction.splitShares[payeeOption.accountID].amount);
             const formattedParticipantsList = _.union([payeeOption], selectedParticipants, unselectedParticipants, []).map((participantOption) => ({
                 ...participantOption,
-                descriptiveText: CurrencyUtils.convertToDisplayString(draftTransaction.splitShares[participantOption.accountID], iouCurrencyCode),
-                onInputChange: (value) => onSplitShareChange(participantOption, value),
-                hasError: participantOption.accountID == splitShareAccountIDsWithError,
+                descriptiveText: draftTransaction.splitShares[participantOption.accountID].amount,
+                onInputChange: (value) => {
+                    onSplitShareChange(participantOption, value);
+                },
             }));
 
-            console.log('creating options');
             sections.push({
                 title: translate('moneyRequestConfirmationList.splitWith'),
                 data: formattedParticipantsList,
@@ -527,17 +520,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             });
         }
         return sections;
-    }, [
-        draftTransaction,
-        onSplitShareChange,
-        selectedParticipants,
-        pickedParticipants,
-        hasMultipleParticipants,
-        personalDetailsOfPayee,
-        translate,
-        splitShareAccountIDsWithError,
-        iouCurrencyCode,
-    ]);
+    }, [draftTransaction, onSplitShareChange, selectedParticipants, pickedParticipants, hasMultipleParticipants, personalDetailsOfPayee, translate]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {

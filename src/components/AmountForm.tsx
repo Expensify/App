@@ -188,6 +188,7 @@ function AmountForm(
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
+    console.log(selection);
     return (
         <>
             <View
@@ -219,6 +220,8 @@ function AmountForm(
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}
+                    inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+                    textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />

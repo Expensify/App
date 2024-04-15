@@ -1,7 +1,9 @@
 import React from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import {View} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import CurrencySymbolButton from '@components/CurrencySymbolButton';
+import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -68,11 +70,16 @@ function BaseTextInputWithCurrencySymbol(
 
     if (isCurrencySymbolLTR) {
         return (
-            <>
-                {currencySymbolButton}
+            <View style={[styles.flexRow, styles.alignItemsStartt]}>
+                <TextInput
+                    value={currencySymbol}
+                    inputStyle={{minWidth: 10, maxWidth: 30, height: 40}}
+                    textInputContainerStyles={[{height: 40}]}
+                    disabled
+                    disabledStyle={[]}
+                />
                 {amountTextInput}
-                {extraSymbol}
-            </>
+            </View>
         );
     }
 

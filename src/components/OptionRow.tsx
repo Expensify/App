@@ -2,7 +2,6 @@ import lodashIsEqual from 'lodash/isEqual';
 import React, {useEffect, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {InteractionManager, StyleSheet, View} from 'react-native';
-import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -16,6 +15,7 @@ import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import AmountForm from './MoneyRequestAmountTextInput';
 import MultipleAvatars from './MultipleAvatars';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -248,14 +248,13 @@ function OptionRow({
                                     ) : null}
                                 </View>
                                 <View style={[styles.flexWrap, styles.pl2]}>
-                                    <TextInput
-                                        onChangeText={option.onInputChange}
-                                        touchableInputWrapperStyle={{height: 40, width: 50}}
-                                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                                        autoCorrect={false}
-                                        accessibilityRole="text"
-                                        hasError={option.hasError}
-                                        defaultValue={option.descriptiveText}
+                                    <AmountForm
+                                        amount={+option.descriptiveText}
+                                        currency="USD"
+                                        onInputChange={option.onInputChange}
+                                        onSelectionChange={option.onSelectionChange}
+                                        isCurrencyPressable={false}
+                                        previousSelection={option.previousSelection}
                                     />
                                 </View>
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
@@ -351,9 +350,7 @@ export default React.memo(
         prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
         prevProps.option.subtitle === nextProps.option.subtitle &&
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon &&
-        prevProps.option.onInputChange === nextProps.option.onInputChange &&
-        prevProps.option.hasError === nextProps.option.hasError,
+        prevProps.option.customIcon === nextProps.option.customIcon,
 );
 
 export type {OptionRowProps};

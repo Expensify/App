@@ -397,11 +397,13 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
 }
 
 function resetSplitShares(transactionID: string, participantAccountIDs: number[], amount: number, currency: string) {
-    const participantAccountIDsWithoutCurrentUser = participantAccountIDs.filter((p) => p.accountID !== userAccountID);
+    const participantAccountIDsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== userAccountID);
     const splitShares = [userAccountID, ...participantAccountIDsWithoutCurrentUser].reduce((result, accountID) => {
         const isPayer = accountID === userAccountID;
         const splitAmount = IOUUtils.calculateAmount(participantAccountIDsWithoutCurrentUser.length, amount, currency, isPayer);
-        result[accountID] = splitAmount;
+        result[accountID] = {
+            amount: splitAmount,
+        };
         return result;
     }, {});
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares: null});

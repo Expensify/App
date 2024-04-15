@@ -380,7 +380,7 @@ function BaseTextInput(
                                         : []),
 
                                     // Add disabled color theme when field is not editable.
-                                    inputProps.disabled && styles.textInputDisabled,
+                                    inputProps.disabled && (inputProps.disabledStyle ?? styles.textInputDisabled),
                                     styles.pointerEventsAuto,
                                 ]}
                                 multiline={isMultiline}

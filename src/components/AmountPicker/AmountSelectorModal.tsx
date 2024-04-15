@@ -42,7 +42,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...rest}
                             autoFocus
-                            value={currentValue}
+                            value={'100'}
                             onInputChange={setValue}
                         />
                     </View>
