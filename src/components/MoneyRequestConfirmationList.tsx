@@ -35,13 +35,11 @@ import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
-import * as Expensicons from './Icon/Expensicons';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
@@ -50,6 +48,7 @@ import ReceiptImage from './ReceiptImage';
 import SettlementButton from './SettlementButton';
 import Switch from './Switch';
 import Text from './Text';
+import ShowMoreButton from './ShowMoreButton';
 
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -1010,19 +1009,10 @@ function MoneyRequestConfirmationList({
             }
             {primaryFields}
             {!shouldShowAllFields && (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter, styles.mb2, styles.mt1]}>
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
-                    <Button
-                        small
-                        onPress={toggleShouldExpandFields}
-                        text={translate('common.showMore')}
-                        shouldShowRightIcon
-                        iconRight={Expensicons.DownArrow}
-                        iconFill={theme.icon}
-                        style={styles.mh0}
-                    />
-                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
-                </View>
+                <ShowMoreButton
+                    containerStyle={[styles.mt1, styles.mb2]}
+                    onPress={toggleShouldExpandFields}
+                />
             )}
             {shouldShowAllFields && supplementaryFields}
             <ConfirmModal
