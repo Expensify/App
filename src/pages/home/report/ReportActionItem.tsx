@@ -747,18 +747,15 @@ function ReportActionItem({
         }
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
             return (
-                // eslint-disable-next-line react/jsx-no-useless-fragment
-                <>
+                <OfflineWithFeedback pendingAction={action.pendingAction}>
                     {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                         <>
                             {transactionCurrency !== report.currency && (
-                                <OfflineWithFeedback pendingAction={action.pendingAction}>
-                                    <MoneyReportView
-                                        report={report}
-                                        policy={policy}
-                                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                                    />
-                                </OfflineWithFeedback>
+                                <MoneyReportView
+                                    report={report}
+                                    policy={policy}
+                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                />
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
                                 <MoneyRequestView
@@ -769,15 +766,13 @@ function ReportActionItem({
                             </ShowContextMenuContext.Provider>
                         </>
                     ) : (
-                        <OfflineWithFeedback pendingAction={action.pendingAction}>
-                            <MoneyReportView
-                                report={report}
-                                policy={policy}
-                                shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                            />
-                        </OfflineWithFeedback>
+                        <MoneyReportView
+                            report={report}
+                            policy={policy}
+                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                        />
                     )}
-                </>
+                </OfflineWithFeedback>
             );
         }
 
