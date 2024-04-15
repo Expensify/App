@@ -162,7 +162,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(...phraseParameters);
-            const pluralForm = phraseParameters.find((param) => typeof param === 'number') as Record<string, number>;
+            const pluralForm = phraseParameters[0] as {count: number} | undefined;
 
             if (typeof result === 'object' && pluralForm) {
                 return getPluralTranslation(result, language, phraseKey, pluralForm.count);
