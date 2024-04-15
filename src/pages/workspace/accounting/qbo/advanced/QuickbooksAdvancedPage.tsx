@@ -67,7 +67,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                     >
                         <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
 
-                        <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
+                        <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
                             {qboToggleSettingItems.map((item) => (
                                 <ToggleSettingOptionRow
                                     key={item.title}
