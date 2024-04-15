@@ -111,6 +111,7 @@ process.argv.forEach((arg) => {
 // happens correctly.
 let hasUpdate = false;
 let downloadedVersion: string;
+let isSilentUpdate = false;
 
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
@@ -128,11 +129,12 @@ const quitAndInstallWithUpdate = () => {
 };
 
 /** Menu Item callback to triggers an update check */
-const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWindow) => {
+const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWindow) => {
     // Disable item until the check (and download) is complete
-    // eslint: menu item flags like enabled or visible can be dynamically toggled by mutating the object
-    // eslint-disable-next-line no-param-reassign
-    menuItem.enabled = false;
+    if (menuItem) {
+        // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
+        menuItem.enabled = false;
+    }
 
     autoUpdater
         .checkForUpdates()
@@ -172,6 +174,9 @@ const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWind
             return downloadPromise;
         })
         .finally(() => {
+            if (!menuItem) {
+                return;
+            }
             // eslint-disable-next-line no-param-reassign
             menuItem.enabled = true;
         });
@@ -201,7 +206,7 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (checkForUpdatesMenuItem) {
                 checkForUpdatesMenuItem.visible = false;
             }
-            if (browserWindow.isVisible()) {
+            if (browserWindow.isVisible() && !isSilentUpdate) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 quitAndInstallWithUpdate();
@@ -602,6 +607,12 @@ const mainWindow = (): Promise<void> => {
                     } else {
                         app.setBadgeCount(totalCount);
                     }
+                });
+
+                // Automatically check for and install the latest version in the background
+                ipcMain.on(ELECTRON_EVENTS.SILENT_UPDATE, () => {
+                    isSilentUpdate = true;
+                    manuallyCheckForUpdates();
                 });
 
                 return browserWindow;
