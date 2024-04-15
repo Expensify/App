@@ -47,7 +47,7 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : [] | Record<string, T>;
+type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[] | Record<string, T>;
 type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
 
 /**
