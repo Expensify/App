@@ -680,6 +680,13 @@ function isChatReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
+ * Checks if a report is an invoice report.
+ */
+function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+/**
  * Checks if a report is an Expense report.
  */
 function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
@@ -2185,7 +2192,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
 function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
-    if (isMoneyRequestReport(report)) {
+    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         moneyRequestReport = report;
     }
     if (allAvailableReports && report?.iouReportID) {
@@ -6227,6 +6234,7 @@ export {
     buildOptimisticInviteReportAction,
     isInvoiceRoom,
     getInvoiceChatByParticipants,
+    isInvoiceReport,
 };
 
 export type {
