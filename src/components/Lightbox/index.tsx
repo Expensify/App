@@ -168,7 +168,6 @@ function Lightbox({isAuthTokenRequired = false, uri, onScaleChanged: onScaleChan
             return;
         }
         isLightboxImageLoaded.current = false;
-        setLightboxImageLoading(true);
         setContentSize(undefined);
     }, [isLightboxVisible, setContentSize]);
 
