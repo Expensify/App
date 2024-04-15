@@ -2999,6 +2999,39 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
 }
 
 /**
+ * Get the subtitle for an invoice room.
+ */
+function getInvoicesChatSubtitle(report: OnyxEntry<Report>): string {
+    const invoiceReceiver = report?.invoiceReceiver;
+    const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
+    const policyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
+    let isReceiver = false;
+
+    if (isIndividual && invoiceReceiverAccountID === currentUserAccountID) {
+        isReceiver = true;
+    }
+
+    if (!isIndividual && PolicyUtils.isPolicyMember(policyID, allPolicies)) {
+        isReceiver = true;
+    }
+
+    if (isReceiver) {
+        let receiver = '';
+
+        if (isIndividual) {
+            receiver = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]);
+        } else {
+            receiver = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
+        }
+
+        return Localize.translateLocal('workspace.invoices.invoicesTo', {receiver});
+    }
+
+    return Localize.translateLocal('workspace.invoices.invoicesFrom', {sender: getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`])});
+}
+
+/**
  * Get the title for a report.
  */
 function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
@@ -3095,6 +3128,9 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
  * Get either the policyName or domainName the chat is tied to
  */
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
+    if (isInvoiceRoom(report)) {
+        return getInvoicesChatSubtitle(report);
+    }
     if (isChatThread(report)) {
         return '';
     }
@@ -3110,9 +3146,6 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     }
     if (isArchivedRoom(report)) {
         return report?.oldPolicyName ?? '';
-    }
-    if (isInvoiceRoom(report)) {
-        return Localize.translateLocal('workspace.common.invoices');
     }
     return getPolicyName(report);
 }

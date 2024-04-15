@@ -30,6 +30,8 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    InvoicesFromParams,
+    InvoicesToParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -2147,6 +2149,8 @@ export default {
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
             sendFrom: 'Send from',
+            invoicesFrom: ({sender}: InvoicesFromParams) => `Invoices from ${sender}`,
+            invoicesTo: ({receiver}: InvoicesToParams) => `Invoices to ${receiver}`,
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',

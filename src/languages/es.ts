@@ -29,6 +29,8 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
+    InvoicesFromParams,
+    InvoicesToParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -2175,6 +2177,8 @@ export default {
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
             sendFrom: 'Enviado desde',
+            invoicesFrom: ({sender}: InvoicesFromParams) => `Facturas de ${sender}`,
+            invoicesTo: ({receiver}: InvoicesToParams) => `Facturas a ${receiver}`,
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
