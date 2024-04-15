@@ -56,11 +56,11 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     }, [isPolicyIDInRoute, props.policyID]);
 
     useEffect(() => {
-        setIsPolicyFeatureEnabled((isCurrencyPolicyFeatureEnabled) => {
+        setIsPolicyFeatureEnabled((isCurrentPolicyFeatureEnabled) => {
             if (prevPendingField !== pendingField || isOffline || !pendingField) {
                 return isFeatureEnabled;
             }
-            return isCurrencyPolicyFeatureEnabled;
+            return isCurrentPolicyFeatureEnabled;
         });
     }, [pendingField, isFeatureEnabled, isOffline, prevPendingField]);
 
