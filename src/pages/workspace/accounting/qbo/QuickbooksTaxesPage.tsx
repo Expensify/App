@@ -48,6 +48,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                         onToggle={() =>
                                             Connections.updatePolicyConnectionConfig(
                                                 policyID,
+                                                CONST.POLICY.CONNECTIONS.NAME.QBO,
                                                 CONST.QUICK_BOOKS_IMPORTS.SYNC_TAXES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
