@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {EReceiptOnyxProps, EReceiptProps} from '@components/EReceipt';
@@ -7,7 +7,7 @@ import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
-type EReceiptStory = ComponentStory<typeof EReceipt>;
+type EReceiptStory = StoryFn<typeof EReceipt>;
 
 const transactionData = {
     [`${ONYXKEYS.COLLECTION.TRANSACTION}FAKE_1`]: {
@@ -164,7 +164,7 @@ Onyx.merge('cardList', {
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof EReceipt> = {
+const story: Meta<typeof EReceipt> = {
     title: 'Components/EReceipt',
     component: EReceipt,
 };
