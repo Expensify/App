@@ -31,9 +31,9 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const selectedAccount = DRAFT[0].name; // selected
 
     const policyID = policy?.id ?? '';
-    const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {bankAccounts, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])] || DRAFT;
+    const accountOptions = [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])] || DRAFT;
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
