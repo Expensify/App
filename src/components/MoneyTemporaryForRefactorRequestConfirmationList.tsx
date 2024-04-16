@@ -72,7 +72,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Callback to inform parent modal of success */
     onConfirm?: (selectedParticipants: Participant[]) => void;
 
-    /** Callback to parent modal to send money */
+    /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
     /** Callback to inform a participant is selected */

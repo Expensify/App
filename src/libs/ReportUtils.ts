@@ -2713,7 +2713,7 @@ function getReportPreviewMessage(
 
             const transactionDetails = getTransactionDetails(linkedTransaction);
             const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency ?? '');
-            return Localize.translateLocal('iou.submittedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
+            return Localize.translateLocal('iou.trackedAmount', {formattedAmount, comment: transactionDetails?.comment ?? ''});
         }
     }
 
@@ -3317,7 +3317,7 @@ function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle:
  * @param total - IOU amount in the smallest unit of the currency.
  * @param chatReportID - Report ID of the chat where the IOU is.
  * @param currency - IOU currency.
- * @param isSendingMoney - If we send money the IOU should be created as settled
+ * @param isSendingMoney - If we pay someone the IOU should be created as settled
  */
 
 function buildOptimisticIOUReport(payeeAccountID: number, payerAccountID: number, total: number, chatReportID: string, currency: string, isSendingMoney = false): OptimisticIOUReport {
@@ -3510,7 +3510,7 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
  * @param [paymentType] - Only required if the IOUReportAction type is 'pay'. Can be oneOf(elsewhere, Expensify).
  * @param [iouReportID] - Only required if the IOUReportActions type is oneOf(decline, cancel, pay). Generates a randomID as default.
  * @param [isSettlingUp] - Whether we are settling up an IOU.
- * @param [isSendMoneyFlow] - Whether this is send money flow
+ * @param [isSendMoneyFlow] - Whether this is pay someone flow
  * @param [receipt]
  * @param [isOwnPolicyExpenseChat] - Whether this is an expense report create from the current user's policy expense chat
  */
@@ -3541,7 +3541,7 @@ function buildOptimisticIOUReportAction(
     };
 
     if (type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
-        // In send money flow, we store amount, comment, currency in IOUDetails when type = pay
+        // In pay someone flow, we store amount, comment, currency in IOUDetails when type = pay
         if (isSendMoneyFlow) {
             const keys = ['amount', 'comment', 'currency'] as const;
             keys.forEach((key) => {
@@ -5016,7 +5016,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
         }
     }
 
-    // Send money option should be visible only in 1:1 DMs
+    // Pay someone option should be visible only in 1:1 DMs
     if (isDM(report) && hasSingleOtherParticipantInReport) {
         options = [...options, CONST.IOU.TYPE.SEND];
     }
@@ -5383,7 +5383,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     if (originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
         // The `REPORT_ACTION_TYPE.PAY` action type is used for both fulfilling existing requests and sending money. To
         // differentiate between these two scenarios, we check if the `originalMessage` contains the `IOUDetails`
-        // property. If it does, it indicates that this is a 'Send money' action.
+        // property. If it does, it indicates that this is a 'Pay someone' action.
         const {amount, currency} = originalMessage.IOUDetails ?? originalMessage;
         const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(amount), currency) ?? '';
 

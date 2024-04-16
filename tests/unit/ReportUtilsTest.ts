@@ -490,7 +490,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT)).toBe(true);
             });
 
-            it('user has send money permission', () => {
+            it('user has pay expense permission', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
@@ -525,7 +525,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
-            it('it is an IOU report in submitted state even with send money permissions', () => {
+            it('it is an IOU report in submitted state even with pay expense permissions', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
@@ -598,7 +598,7 @@ describe('ReportUtils', () => {
                 expect(moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)).toBe(true);
             });
 
-            it('it is an IOU report in submitted state even with send money permissions', () => {
+            it('it is an IOU report in submitted state even with pay expense permissions', () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport(),
                     type: CONST.REPORT.TYPE.IOU,
