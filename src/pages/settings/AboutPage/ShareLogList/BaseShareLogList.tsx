@@ -23,30 +23,37 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const betas = useBetas();
     const {options, areOptionsInitialized} = useOptionsList();
 
-    const searchOptions = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
             return {
                 recentReports: [],
                 personalDetails: [],
-                userToInvite: undefined,
+                userToInvite: null,
+                currentUserOption: null,
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
                 headerMessage: '',
             };
         }
-        const {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
-        } = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
+        const shareLogOptions = OptionsListUtils.getShareLogOptions(options, debouncedSearchValue.trim(), betas ?? []);
 
-        const header = OptionsListUtils.getHeaderMessage((localRecentReports?.length || 0) + (localPersonalDetails?.length || 0) !== 0, Boolean(localUserToInvite), debouncedSearchValue);
-
-        return {
-            recentReports: localRecentReports,
-            personalDetails: localPersonalDetails,
-            userToInvite: localUserToInvite,
-            headerMessage: header,
-        };
+        return {...shareLogOptions, headerMessage: ''};
     }, [areOptionsInitialized, options, debouncedSearchValue, betas]);
+
+    const searchOptions = useMemo(() => {
+        if (debouncedSearchValue.trim() === '') {
+            return defaultOptions;
+        }
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0,
+            Boolean(filteredOptions.userToInvite),
+            debouncedSearchValue.trim(),
+        );
+
+        return {...filteredOptions, headerMessage};
+    }, [debouncedSearchValue, defaultOptions]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
