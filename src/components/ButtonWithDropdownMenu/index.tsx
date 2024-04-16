@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -10,10 +10,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
     success = false,
+    isSplit = true,
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
@@ -40,7 +42,7 @@ function ButtonWithDropdownMenu<IValueType>({
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const caretButton = useRef<View & HTMLDivElement>(null);
+    const caretButton = useRef<View | HTMLDivElement | null>(null);
     const selectedItem = options[selectedItemIndex] || options[0];
     const innerStyleDropButton = StyleUtils.getDropDownButtonHeight(buttonSize);
     const isButtonSizeLarge = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE;
@@ -65,6 +67,18 @@ function ButtonWithDropdownMenu<IValueType>({
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
 
+    const iconRight = useMemo(
+        () => (
+            <Icon
+                medium={isButtonSizeLarge}
+                small={!isButtonSizeLarge}
+                src={Expensicons.DownArrow}
+                fill={success ? theme.buttonSuccessText : theme.icon}
+            />
+        ),
+        [isButtonSizeLarge, success, theme.buttonSuccessText, theme.icon],
+    );
+
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -72,8 +86,10 @@ function ButtonWithDropdownMenu<IValueType>({
                     <Button
                         success={success}
                         pressOnEnter={pressOnEnter}
-                        ref={buttonRef}
-                        onPress={(event) => onPress(event, selectedItem.value)}
+                        ref={(ref) => {
+                            caretButton.current = ref;
+                        }}
+                        onPress={(event) => (!isSplit ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
                         isDisabled={isDisabled || !!selectedItem.disabled}
                         isLoading={isLoading}
@@ -81,34 +97,38 @@ function ButtonWithDropdownMenu<IValueType>({
                         style={[styles.flex1, styles.pr0]}
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
-                        innerStyles={[innerStyleDropButton, customText !== undefined && styles.cursorDefault, customText !== undefined && styles.pointerEventsNone]}
+                        innerStyles={[innerStyleDropButton, !isSplit && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                        iconRight={iconRight as IconAsset}
+                        shouldShowRightIcon={!isSplit}
                     />
 
-                    <Button
-                        ref={caretButton}
-                        success={success}
-                        isDisabled={isDisabled}
-                        style={[styles.pl0]}
-                        onPress={() => setIsMenuVisible(!isMenuVisible)}
-                        shouldRemoveLeftBorderRadius
-                        large={isButtonSizeLarge}
-                        medium={!isButtonSizeLarge}
-                        innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
-                        enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                    >
-                        <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
-                            <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
-                            <View style={[isButtonSizeLarge ? styles.dropDownLargeButtonArrowContain : styles.dropDownMediumButtonArrowContain]}>
-                                <Icon
-                                    medium={isButtonSizeLarge}
-                                    small={!isButtonSizeLarge}
-                                    src={Expensicons.DownArrow}
-                                    fill={success ? theme.buttonSuccessText : theme.icon}
-                                />
+                    {isSplit && (
+                        <Button
+                            ref={caretButton}
+                            success={success}
+                            isDisabled={isDisabled}
+                            style={[styles.pl0]}
+                            onPress={() => setIsMenuVisible(!isMenuVisible)}
+                            shouldRemoveLeftBorderRadius
+                            large={isButtonSizeLarge}
+                            medium={!isButtonSizeLarge}
+                            innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton]}
+                            enterKeyEventListenerPriority={enterKeyEventListenerPriority}
+                        >
+                            <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
+                                <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />
+                                <View style={[isButtonSizeLarge ? styles.dropDownLargeButtonArrowContain : styles.dropDownMediumButtonArrowContain]}>
+                                    <Icon
+                                        medium={isButtonSizeLarge}
+                                        small={!isButtonSizeLarge}
+                                        src={Expensicons.DownArrow}
+                                        fill={success ? theme.buttonSuccessText : theme.icon}
+                                    />
+                                </View>
                             </View>
-                        </View>
-                    </Button>
+                        </Button>
+                    )}
                 </View>
             ) : (
                 <Button
