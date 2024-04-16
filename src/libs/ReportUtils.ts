@@ -5155,10 +5155,31 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
  * `invoice` - Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
 function canLeaveRoom(report: OnyxEntry<Report>, isPolicyMember: boolean): boolean {
-    if (report?.chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
-        const isAdmin = !!Object.entries(report.participants ?? {}).find(([participantID, {role}]) => Number(participantID) === currentUserAccountID && role !== CONST.POLICY.ROLE.ADMIN);
+    if (isInvoiceRoom(report)) {
+        const invoiceReport = getReport(report?.iouReportID ?? '');
 
-        return report.managerID !== currentUserAccountID && report.ownerAccountID !== currentUserAccountID && !isAdmin;
+        if (invoiceReport?.ownerAccountID === currentUserAccountID) {
+            return false;
+        }
+
+        if (invoiceReport?.managerID === currentUserAccountID) {
+            return false;
+        }
+
+        const isSenderPolicyAdmin = getPolicy(report?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
+
+        if (isSenderPolicyAdmin) {
+            return false;
+        }
+
+        const isReceiverPolicyAdmin =
+            report?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.POLICY ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
+
+        if (isReceiverPolicyAdmin) {
+            return false;
+        }
+
+        return true;
     }
 
     if (!report?.visibility) {
