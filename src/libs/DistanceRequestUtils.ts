@@ -70,7 +70,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
         return null;
     }
 
-    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(distanceUnit.rates)[0];
     if (!distanceRate) {
         return null;
     }
