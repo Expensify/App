@@ -230,7 +230,7 @@ function buildNextStep(
             };
 
             // Self review & another reviewer
-            if (!isSelfApproval) {
+            if (!isSelfApproval || (isSelfApproval && isOwner)) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
