@@ -1,9 +1,10 @@
 import React from 'react';
 import GenericPressable from './GenericPressable';
-import PressableProps, {PressableRef} from './GenericPressable/types';
+import type {PressableRef} from './GenericPressable/types';
+import type PressableProps from './GenericPressable/types';
 
 function PressableWithoutFeedback(
-    {pressStyle, hoverStyle, focusStyle, disabledStyle, screenReaderActiveStyle, shouldUseHapticsOnPress, shouldUseHapticsOnLongPress, ...rest}: PressableProps,
+    {pressStyle, hoverStyle, focusStyle, screenReaderActiveStyle, shouldUseHapticsOnPress, shouldUseHapticsOnLongPress = false, ...rest}: PressableProps,
     ref: PressableRef,
 ) {
     return (
@@ -11,6 +12,7 @@ function PressableWithoutFeedback(
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             ref={ref}
+            shouldUseHapticsOnLongPress={shouldUseHapticsOnLongPress}
         />
     );
 }

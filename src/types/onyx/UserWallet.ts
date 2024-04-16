@@ -1,10 +1,12 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type WalletLinkedAccountType = 'debitCard' | 'bankAccount';
 
 type ErrorCode = 'ssnError' | 'kbaNeeded' | 'kycFailed';
+
+type SetupType = ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
 
 type UserWallet = {
     /** The user's available wallet balance */
@@ -54,6 +56,9 @@ type UserWallet = {
 
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
+
+    /** The type of setup for adding the bank account */
+    setupType?: SetupType;
 };
 
 export default UserWallet;

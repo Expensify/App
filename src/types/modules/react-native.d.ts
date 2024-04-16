@@ -3,9 +3,14 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
-import {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties, FocusEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, UIEventHandler, WheelEventHandler} from 'react';
 import 'react-native';
-import {BootSplashModule} from '@libs/BootSplash/types';
+import type {BootSplashModule} from '@libs/BootSplash/types';
+
+type HybridAppModule = {
+    closeReactNativeApp: () => void;
+};
 
 declare module 'react-native' {
     // <------ REACT NATIVE WEB (0.19.0) ------>
@@ -278,12 +283,11 @@ declare module 'react-native' {
      * Extracted from react-native-web, packages/react-native-web/src/exports/TextInput/types.js
      */
     interface WebTextInputProps extends WebSharedProps {
-        dir?: 'auto' | 'ltr' | 'rtl';
         disabled?: boolean;
-        enterKeyHint?: 'enter' | 'done' | 'go' | 'next' | 'previous' | 'search' | 'send';
-        readOnly?: boolean;
     }
-    interface TextInputProps extends WebTextInputProps {}
+    interface TextInputProps extends WebTextInputProps {
+        isFullComposerAvailable?: boolean;
+    }
 
     /**
      * Image
@@ -326,6 +330,14 @@ declare module 'react-native' {
     }
     interface PressableProps extends WebPressableProps {}
 
+    interface AppStateStatic {
+        emitCurrentTestState: (status: string) => void;
+    }
+
+    interface LinkingStatic {
+        setInitialURL: (url: string) => void;
+    }
+
     /**
      * Styles
      */
@@ -344,12 +356,8 @@ declare module 'react-native' {
     interface ImageStyle extends WebStyle {}
     // <------ REACT NATIVE WEB (0.19.0) ------>
 
-    interface TextInput {
-        // Typescript type declaration is missing in React Native for setting text selection.
-        setSelection: (start: number, end: number) => void;
-    }
-
     interface NativeModulesStatic {
         BootSplash: BootSplashModule;
+        HybridAppModule: HybridAppModule;
     }
 }

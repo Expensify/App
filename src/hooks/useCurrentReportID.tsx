@@ -1,5 +1,6 @@
 import {useContext} from 'react';
-import {CurrentReportIDContext, CurrentReportIDContextValue} from '@components/withCurrentReportID';
+import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
+import {CurrentReportIDContext} from '@components/withCurrentReportID';
 
 export default function useCurrentReportID(): CurrentReportIDContextValue | null {
     return useContext(CurrentReportIDContext);

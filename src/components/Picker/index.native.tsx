@@ -1,6 +1,7 @@
-import React, {ForwardedRef, forwardRef} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {forwardRef} from 'react';
 import BasePicker from './BasePicker';
-import {BasePickerHandle, BasePickerProps} from './types';
+import type {BasePickerHandle, BasePickerProps} from './types';
 
 function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: ForwardedRef<BasePickerHandle>) {
     return (

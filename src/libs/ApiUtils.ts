@@ -1,9 +1,9 @@
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Request} from '@src/types/onyx';
+import type {Request} from '@src/types/onyx';
 import proxyConfig from '../../config/proxyConfig';
 import * as Environment from './Environment/Environment';
 
@@ -52,7 +52,8 @@ function getApiRoot(request?: Request): string {
  * @param - the name of the API command
  */
 function getCommandURL(request: Request): string {
-    return `${getApiRoot(request)}api?command=${request.command}`;
+    // If request.command already contains ? then we don't need to append it
+    return `${getApiRoot(request)}api/${request.command}${request.command.includes('?') ? '' : '?'}`;
 }
 
 /**

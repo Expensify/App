@@ -1,7 +1,7 @@
 import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {Request} from '@src/types/onyx';
+import type {Request} from '@src/types/onyx';
 
 let persistedRequests: Request[] = [];
 
@@ -18,18 +18,8 @@ function clear() {
 }
 
 function save(requestToPersist: Request) {
-    const requests = [...persistedRequests];
-    const existingRequestIndex = requests.findIndex((request) => request.data?.idempotencyKey && request.data?.idempotencyKey === requestToPersist.data?.idempotencyKey);
-    if (existingRequestIndex > -1) {
-        // Merge the new request into the existing one, keeping its place in the queue
-        requests.splice(existingRequestIndex, 1, requestToPersist);
-    } else {
-        // If not, push the new request to the end of the queue
-        requests.push(requestToPersist);
-    }
-    persistedRequests = requests;
-
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
+    persistedRequests.push(requestToPersist);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
 function remove(requestToRemove: Request) {

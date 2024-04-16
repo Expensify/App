@@ -1,6 +1,7 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
-import Beta from '@src/types/onyx/Beta';
+import type {IOUType} from '@src/CONST';
+import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
@@ -14,25 +15,29 @@ function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
-function canUseCommentLinking(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.BETA_COMMENT_LINKING) || canUseAllBetas(betas);
-}
-
 function canUseReportFields(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.REPORT_FIELDS) || canUseAllBetas(betas);
 }
 
-/**
- * We're requiring you to be added to the policy rooms beta on dev,
- * since contributors have been reporting a number of false issues related to the feature being under development.
- * See https://expensify.slack.com/archives/C01GTK53T8Q/p1641921996319400?thread_ts=1641598356.166900&cid=C01GTK53T8Q
- */
-function canUsePolicyRooms(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
-}
-
 function canUseViolations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.VIOLATIONS) || canUseAllBetas(betas);
+}
+
+function canUseTrackExpense(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.TRACK_EXPENSE) || canUseAllBetas(betas);
+}
+
+function canUseP2PDistanceRequests(betas: OnyxEntry<Beta[]>, iouType: IOUType | undefined): boolean {
+    // Allow using P2P distance request for TrackExpense outside of the beta, because that project doesn't want to be limited by the more cautious P2P distance beta
+    return !!betas?.includes(CONST.BETAS.P2P_DISTANCE_REQUESTS) || canUseAllBetas(betas) || iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
+}
+
+function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
+}
+
+function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.ACCOUNTING_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 /**
@@ -45,9 +50,11 @@ function canUseLinkPreviews(): boolean {
 export default {
     canUseChronos,
     canUseDefaultRooms,
-    canUseCommentLinking,
-    canUsePolicyRooms,
     canUseLinkPreviews,
     canUseViolations,
+    canUseTrackExpense,
     canUseReportFields,
+    canUseP2PDistanceRequests,
+    canUseWorkflowsDelayedSubmission,
+    canUseAccountingIntegrations,
 };

@@ -1,6 +1,6 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import * as OnyxCommon from './OnyxCommon';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
+import type * as OnyxCommon from './OnyxCommon';
 
 type Card = {
     cardID: number;
@@ -8,15 +8,22 @@ type Card = {
     bank: string;
     availableSpend: number;
     domainName: string;
-    maskedPan?: string; // do not reference, removing as part of Expensify/App#27943
     lastFourPAN?: string;
-    cardName: string;
-    isVirtual: boolean;
+    isVirtual: boolean; // Deprecating, use nameValuePairs.isVirtual
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
-    cardholderFirstName: string;
-    cardholderLastName: string;
     errors?: OnyxCommon.Errors;
     isLoading?: boolean;
+    nameValuePairs?: {
+        limitType?: ValueOf<typeof CONST.EXPENSIFY_CARD.LIMIT_TYPES>;
+        cardTitle?: string; // Used only for admin-issued virtual cards
+        issuedBy?: number;
+        hasCustomUnapprovedExpenseLimit?: boolean;
+        unapprovedExpenseLimit?: number;
+        feedCountry?: string;
+        isVirtual?: boolean;
+        previousState?: number;
+        expirationDate?: string;
+    };
 };
 
 type TCardDetails = {
@@ -33,5 +40,7 @@ type TCardDetails = {
     };
 };
 
+type CardList = Record<string, Card>;
+
 export default Card;
-export type {TCardDetails};
+export type {TCardDetails, CardList};

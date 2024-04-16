@@ -1,12 +1,13 @@
+import getSplashBackgroundColor from '@libs/getSplashBackgroundColor';
 import colors from '@styles/theme/colors';
-import {type ThemeColors} from '@styles/theme/types';
+import type {ThemeColors} from '@styles/theme/types';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
 const darkTheme = {
     // Figma keys
     appBG: colors.productDark100,
-    splashBG: colors.green400,
+    splashBG: getSplashBackgroundColor(),
     highlightBG: colors.productDark200,
     border: colors.productDark400,
     borderLighter: colors.productDark400,
@@ -14,17 +15,20 @@ const darkTheme = {
     icon: colors.productDark700,
     iconMenu: colors.green400,
     iconHovered: colors.productDark900,
+    iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
     iconReversed: colors.productDark100,
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.productDark800,
     text: colors.productDark900,
     textColorfulBackground: colors.ivory,
+    syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
     buttonPressedBG: colors.productDark600,
+    buttonSuccessText: colors.productLight100,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -41,10 +45,11 @@ const darkTheme = {
     inverse: colors.productDark900,
     shadow: colors.black,
     componentBG: colors.productDark100,
-    hoverComponentBG: colors.productDark200,
+    hoverComponentBG: colors.productDark300,
+    messageHighlightBG: colors.messageHighlightDark,
     activeComponentBG: colors.productDark400,
     signInSidebar: colors.green800,
-    sidebar: colors.productDark200,
+    sidebar: colors.productDark100,
     sidebarHover: colors.productDark300,
     heading: colors.productDark900,
     textLight: colors.productDark900,
@@ -65,7 +70,6 @@ const darkTheme = {
     dropUIBG: 'rgba(6,27,9,0.92)',
     receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green400,
-    pickerOptionsTextColor: colors.productDark900,
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
@@ -82,9 +86,10 @@ const darkTheme = {
     skeletonLHNOut: colors.productDark600,
     QRLogo: colors.green400,
     starDefaultBG: 'rgb(254, 228, 94)',
-    loungeAccessOverlay: colors.blue800,
     mapAttributionText: colors.black,
     white: colors.white,
+    videoPlayerBG: `${colors.productDark100}cc`,
+    transparentWhite: `${colors.white}51`,
 
     // Adding a color here will animate the status bar to the right color when the screen is opened.
     // Note that it needs to be a screen name, not a route url.
@@ -92,7 +97,7 @@ const darkTheme = {
     // The screen name (see SCREENS.ts) is the name of the screen as far as react-navigation is concerned, and the linkingConfig maps screen names to URLs
     PAGE_THEMES: {
         [SCREENS.HOME]: {
-            backgroundColor: colors.productDark200,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.REPORT]: {
@@ -104,31 +109,47 @@ const darkTheme = {
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.PREFERENCES.ROOT]: {
-            backgroundColor: colors.blue500,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.WORKSPACES]: {
-            backgroundColor: colors.pink800,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
             backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.SETTINGS.SECURITY]: {
-            backgroundColor: colors.ice500,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
-        },
         [SCREENS.SETTINGS.PROFILE.STATUS]: {
-            backgroundColor: colors.darkAppBackground,
+            backgroundColor: colors.productDark100,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
         [SCREENS.SETTINGS.ROOT]: {
+            backgroundColor: colors.productDark100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.WORKSPACE_SWITCHER.ROOT]: {
+            backgroundColor: colors.productDark100,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.SETTINGS.TROUBLESHOOT]: {
+            backgroundColor: colors.blue700,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.REFERRAL_DETAILS]: {
+            backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
-        [SCREENS.RIGHT_MODAL.REFERRAL]: {
+        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: {
             backgroundColor: colors.pink800,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+        },
+        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: {
+            backgroundColor: colors.green600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },

@@ -10,7 +10,7 @@ Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensif
 <InputWrapper
     // `InputWrapper` required props
     InputComponent={TextInput}
-    inputID="uniqueTextInputID"
+    inputID={INPUT_IDS.UNIQUE_INPUT_ID}
     // `TextInput` specific props
     placeholder="Text input placeholder"
     label="Text input label"
@@ -161,7 +161,7 @@ function validate(values) {
             errors = ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
 
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
+        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             errors = ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
@@ -240,7 +240,7 @@ function onSubmit(values) {
         <InputWrapper
             InputComponent={TextInput}
             label="Routing number"
-            inputID="routingNumber"
+            inputID={INPUT_IDS.ROUTING_NUMBER}
             maxLength={8}
             shouldSaveDraft
         />
@@ -248,7 +248,7 @@ function onSubmit(values) {
     <InputWrapper
         InputComponent={TextInput}
         label="Account number"
-        inputID="accountNumber"
+        inputID={INPUT_IDS.ACCOUNT_NUMBER}
         containerStyles={[styles.mt4]}
     />
 </FormProvider>
@@ -263,7 +263,7 @@ const BankAccountForm = () => (
             <InputWrapper
                 InputComponent={TextInput}
                 label="Routing number"
-                inputID="routingNumber"
+                inputID={INPUT_IDS.ROUTING_NUMBER}
                 maxLength={8}
                 shouldSaveDraft
             />
@@ -271,7 +271,7 @@ const BankAccountForm = () => (
         <InputWrapper
             InputComponent={TextInput}
             label="Account number"
-            inputID="accountNumber"
+            inputID={INPUT_IDS.ACCOUNT_NUMBER}
             containerStyles={[styles.mt4]}
         />
     </>

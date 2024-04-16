@@ -25,6 +25,13 @@ function isDevelopment(): boolean {
 }
 
 /**
+ * Are we running the app in production?
+ */
+function isProduction(): Promise<boolean> {
+    return getEnvironment().then((environment) => environment === CONST.ENVIRONMENT.PRODUCTION);
+}
+
+/**
  * Are we running an internal test build?
  */
 function isInternalTestBuild(): boolean {
@@ -47,4 +54,4 @@ function getOldDotEnvironmentURL(): Promise<string> {
     return getEnvironment().then((environment) => OLDDOT_ENVIRONMENT_URLS[environment]);
 }
 
-export {getEnvironment, isInternalTestBuild, isDevelopment, getEnvironmentURL, getOldDotEnvironmentURL};
+export {getEnvironment, isInternalTestBuild, isDevelopment, isProduction, getEnvironmentURL, getOldDotEnvironmentURL};

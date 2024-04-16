@@ -1,4 +1,4 @@
-import UseNativeDriver from './types';
+import type UseNativeDriver from './types';
 
 const useNativeDriver: UseNativeDriver = false;
 

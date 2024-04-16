@@ -1,5 +1,5 @@
 import React from 'react';
-import {PopoverContextProps, PopoverContextValue} from './types';
+import type {PopoverContextProps, PopoverContextValue} from './types';
 
 const PopoverContext = React.createContext<PopoverContextValue>({
     onOpen: () => {},

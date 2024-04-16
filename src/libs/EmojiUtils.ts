@@ -2,18 +2,19 @@ import {getUnixTime} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import memoize from 'lodash/memoize';
 import Onyx from 'react-native-onyx';
-import {SvgProps} from 'react-native-svg';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
-import {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {FrequentlyUsedEmoji} from '@src/types/onyx';
-import {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
-import {SupportedLanguage} from './EmojiTrie';
+import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
+import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
+import type IconAsset from '@src/types/utils/IconAsset';
 
-type HeaderIndice = {code: string; index: number; icon: React.FC<SvgProps>};
+type HeaderIndice = {code: string; index: number; icon: IconAsset};
 type EmojiSpacer = {code: string; spacer: boolean};
-type EmojiPickerList = Array<EmojiSpacer | Emoji | HeaderEmoji>;
+type EmojiPickerListItem = EmojiSpacer | Emoji | HeaderEmoji;
+type EmojiPickerList = EmojiPickerListItem[];
 type ReplacedEmoji = {text: string; emojis: Emoji[]; cursorPosition?: number};
 
 let frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [];
@@ -37,7 +38,10 @@ const findEmojiByName = (name: string): Emoji => Emojis.emojiNameTable[name];
 
 const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTones[code];
 
-const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): string => {
+const getEmojiName = (emoji: Emoji, lang: Locale = CONST.LOCALES.DEFAULT): string => {
+    if (!emoji) {
+        return '';
+    }
     if (lang === CONST.LOCALES.DEFAULT) {
         return emoji.name;
     }
@@ -48,13 +52,13 @@ const getEmojiName = (emoji: Emoji, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): 
 /**
  * Given an English emoji name, get its localized version
  */
-const getLocalizedEmojiName = (name: string, lang: 'en' | 'es'): string => {
+const getLocalizedEmojiName = (name: string, lang: OnyxEntry<Locale>): string => {
     if (lang === CONST.LOCALES.DEFAULT) {
         return name;
     }
 
     const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
-    return Emojis.localeEmojis[lang]?.[emojiCode]?.name ?? '';
+    return (lang && Emojis.localeEmojis[lang]?.[emojiCode]?.name) ?? '';
 };
 
 /**
@@ -152,7 +156,7 @@ function containsOnlyEmojis(message: string): boolean {
 /**
  * Get the header emojis with their code, icon and index
  */
-function getHeaderEmojis(emojis: PickerEmojis): HeaderIndice[] {
+function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndice[] {
     const headerIndices: HeaderIndice[] = [];
     emojis.forEach((emoji, index) => {
         if (!('header' in emoji)) {
@@ -242,9 +246,10 @@ function getFrequentlyUsedEmojis(newEmoji: Emoji | Emoji[]): FrequentlyUsedEmoji
 /**
  * Given an emoji item object, return an emoji code based on its type.
  */
-const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: number): string => {
+const getEmojiCodeWithSkinColor = (item: Emoji, preferredSkinToneIndex: OnyxEntry<number | string>): string => {
     const {code, types} = item;
-    if (types?.[preferredSkinToneIndex]) {
+
+    if (typeof preferredSkinToneIndex === 'number' && types?.[preferredSkinToneIndex]) {
         return types[preferredSkinToneIndex];
     }
 
@@ -305,7 +310,7 @@ function getAddedEmojis(currentEmojis: Emoji[], formerEmojis: Emoji[]): Emoji[] 
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  */
-function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: 'en' | 'es' = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
@@ -345,9 +350,9 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
 
             // Set the cursor to the end of the last replaced Emoji. Note that we position after
             // the extra space, if we added one.
-            cursorPosition = newText.indexOf(emoji) + emojiReplacement.length;
+            cursorPosition = newText.indexOf(emoji) + (emojiReplacement?.length ?? 0);
 
-            newText = newText.replace(emoji, emojiReplacement);
+            newText = newText.replace(emoji, emojiReplacement ?? '');
         }
     }
 
@@ -369,7 +374,7 @@ function replaceEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKI
 /**
  * Find all emojis in a text and replace them with their code.
  */
-function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT): ReplacedEmoji {
+function replaceAndExtractEmojis(text: string, preferredSkinTone: OnyxEntry<number | string> = CONST.EMOJI_DEFAULT_SKIN_TONE, lang: Locale = CONST.LOCALES.DEFAULT): ReplacedEmoji {
     const {text: convertedText = '', emojis = [], cursorPosition} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
@@ -383,7 +388,7 @@ function replaceAndExtractEmojis(text: string, preferredSkinTone = CONST.EMOJI_D
  * Suggest emojis when typing emojis prefix after colon
  * @param [limit] - matching emojis limit
  */
-function suggestEmojis(text: string, lang: keyof SupportedLanguage, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
+function suggestEmojis(text: string, lang: Locale, limit: number = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS): Emoji[] | undefined {
     // emojisTrie is importing the emoji JSON file on the app starting and we want to avoid it
     const emojisTrie = require('./EmojiTrie').default;
 
@@ -438,8 +443,8 @@ const getPreferredSkinToneIndex = (value: string | number | null): number => {
  * Given an emoji object it returns the correct emoji code
  * based on the users preferred skin tone.
  */
-const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: number): string => {
-    if (emoji.types) {
+const getPreferredEmojiCode = (emoji: Emoji, preferredSkinTone: OnyxEntry<string | number>): string => {
+    if (emoji.types && typeof preferredSkinTone === 'number') {
         const emojiCodeWithSkinTone = emoji.types[preferredSkinTone];
 
         // Note: it can happen that preferredSkinTone has a outdated format,
@@ -547,6 +552,25 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
     };
 };
 
+/**
+ * Given an emoji code, returns an base emoji code without skin tone
+ */
+const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replace(CONST.REGEX.EMOJI_SKIN_TONES, '');
+
+function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
+    const spacersIndexes: number[] = [];
+    allEmojis.forEach((emoji, index) => {
+        if (!(CONST.EMOJI_PICKER_ITEM_TYPES.SPACER in emoji)) {
+            return;
+        }
+
+        spacersIndexes.push(index);
+    });
+    return spacersIndexes;
+}
+
+export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
+
 export {
     findEmojiByName,
     findEmojiByCode,
@@ -569,4 +593,6 @@ export {
     getAddedEmojis,
     isFirstLetterEmoji,
     hasAccountIDEmojiReacted,
+    getRemovedSkinToneEmoji,
+    getSpacersIndexes,
 };

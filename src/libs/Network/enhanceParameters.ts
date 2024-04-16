@@ -1,3 +1,4 @@
+import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
 import * as NetworkStore from './NetworkStore';
@@ -15,12 +16,8 @@ function isAuthTokenRequired(command: string): boolean {
 export default function enhanceParameters(command: string, parameters: Record<string, unknown>): Record<string, unknown> {
     const finalParameters = {...parameters};
 
-    if (isAuthTokenRequired(command)) {
-        if (NetworkStore.getSupportAuthToken() && NetworkStore.isSupportRequest(command)) {
-            finalParameters.authToken = NetworkStore.getSupportAuthToken();
-        } else if (!parameters.authToken) {
-            finalParameters.authToken = NetworkStore.getAuthToken();
-        }
+    if (isAuthTokenRequired(command) && !parameters.authToken) {
+        finalParameters.authToken = NetworkStore.getAuthToken();
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
@@ -37,8 +34,7 @@ export default function enhanceParameters(command: string, parameters: Record<st
     // Include current user's email in every request and the server logs
     finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
 
-    // idempotencyKey declared in JS is front-end-only. We delete it here so it doesn't interfere with idempotency in other layers.
-    delete finalParameters.idempotencyKey;
+    finalParameters.isFromDevEnv = Environment.isDevelopment();
 
     return finalParameters;
 }

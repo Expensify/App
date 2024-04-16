@@ -1,6 +1,6 @@
-import CONST from '@src/CONST';
-import AccountData from './AccountData';
-import * as OnyxCommon from './OnyxCommon';
+import type CONST from '@src/CONST';
+import type AccountData from './AccountData';
+import type * as OnyxCommon from './OnyxCommon';
 
 type AdditionalData = {
     isP2PDebitCard?: boolean;
@@ -11,7 +11,7 @@ type AdditionalData = {
     country?: string;
 };
 
-type BankAccount = {
+type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The bank account type */
     accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
 
@@ -40,10 +40,7 @@ type BankAccount = {
 
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
-
-    /** Indicates the type of change made to the bank account that hasn't been synced with the server yet  */
-    pendingAction?: OnyxCommon.PendingAction;
-};
+}>;
 
 type BankAccountList = Record<string, BankAccount>;
 

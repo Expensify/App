@@ -1,14 +1,55 @@
-import {RouteProp, useNavigationState} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import {useNavigationState} from '@react-navigation/native';
 import PropTypes from 'prop-types';
-import React, {ComponentType, ForwardedRef, forwardRef, RefAttributes} from 'react';
-import {OnyxEntry, withOnyx} from 'react-native-onyx';
+import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
+import React, {forwardRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import taxPropTypes from '@components/taxPropTypes';
+import {translatableTextPropTypes} from '@libs/Localize';
+import type {
+    BottomTabNavigatorParamList,
+    CentralPaneNavigatorParamList,
+    FullScreenNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
+    SettingsNavigatorParamList,
+    WorkspacesCentralPaneNavigatorParamList,
+} from '@navigation/types';
 import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 
-type PolicyRoute = RouteProp<{params: {policyID: string}}>;
+type NavigatorsParamList = BottomTabNavigatorParamList &
+    CentralPaneNavigatorParamList &
+    SettingsNavigatorParamList &
+    ReimbursementAccountNavigatorParamList &
+    FullScreenNavigatorParamList &
+    WorkspacesCentralPaneNavigatorParamList;
+
+type PolicyRoute = RouteProp<
+    NavigatorsParamList,
+    | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
+    | typeof SCREENS.WORKSPACE.INITIAL
+    | typeof SCREENS.WORKSPACE.BILLS
+    | typeof SCREENS.WORKSPACE.MORE_FEATURES
+    | typeof SCREENS.WORKSPACE.MEMBERS
+    | typeof SCREENS.WORKSPACE.INVITE
+    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
+    | typeof SCREENS.WORKSPACE.TRAVEL
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
+    | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.INVOICES
+    | typeof SCREENS.WORKSPACE.CARD
+    | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
+    | typeof SCREENS.WORKSPACE.TAX_EDIT
+>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
@@ -50,7 +91,31 @@ const policyPropTypes = {
          *     }
          * }
          */
-        errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
+        errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
+
+        /** Whether or not the policy requires tags */
+        requiresTag: PropTypes.bool,
+
+        /** Whether or not the policy requires categories */
+        requiresCategory: PropTypes.bool,
+
+        /** Whether or not the policy has multiple tag lists */
+        hasMultipleTagLists: PropTypes.bool,
+
+        /**
+         * Whether or not the policy has tax tracking enabled
+         *
+         * @deprecated - use tax.trackingEnabled instead
+         */
+        isTaxTrackingEnabled: PropTypes.bool,
+
+        /** Whether or not the policy has tax tracking enabled */
+        tax: PropTypes.shape({
+            trackingEnabled: PropTypes.bool,
+        }),
+
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
     }),
 
     /** The employee list of this policy */
@@ -115,5 +180,5 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
     })(forwardRef(WithPolicy));
 }
 
-export {policyPropTypes, policyDefaultProps};
-export type {WithPolicyOnyxProps, WithPolicyProps};
+export {policyDefaultProps, policyPropTypes};
+export type {PolicyRoute, WithPolicyOnyxProps, WithPolicyProps};

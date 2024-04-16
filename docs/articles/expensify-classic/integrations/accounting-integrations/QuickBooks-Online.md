@@ -302,7 +302,7 @@ Here are the QuickBooks Online fields that can be mapped as a report field withi
 - Customers/Projects
 - Locations
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What happens if the report can't be exported to QuickBooks Online automatically?
 
@@ -320,3 +320,5 @@ To ensure reports are reviewed before export, set up your Workspaces with the ap
 - If a report has been exported and reimbursed via ACH, it will be automatically marked as paid in QuickBooks Online during the next sync.
 - If a report has been exported and marked as paid in QuickBooks Online, it will be automatically marked as reimbursed in Expensify during the next sync.
 - Reports that have yet to be exported to QuickBooks Online won't be automatically exported.
+
+{% include faq-end.md %}

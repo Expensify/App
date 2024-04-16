@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import RNDeviceInfo from 'react-native-device-info';
-import {GetOSAndName} from './types';
+import type {GetOSAndName} from './types';
 
 const getOSAndName: GetOSAndName = () => {
     const deviceName = RNDeviceInfo.getDeviceNameSync();

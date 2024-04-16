@@ -6,7 +6,7 @@ import * as PersistedRequests from '@userActions/PersistedRequests';
 import * as QueuedOnyxUpdates from '@userActions/QueuedOnyxUpdates';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import OnyxRequest from '@src/types/onyx/Request';
+import type OnyxRequest from '@src/types/onyx/Request';
 import * as NetworkStore from './NetworkStore';
 
 let resolveIsReadyPromise: ((args?: unknown[]) => void) | undefined;
@@ -63,6 +63,7 @@ function process(): Promise<void> {
     if (persistedRequests.length === 0 || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
+
     const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
@@ -176,7 +177,7 @@ function push(request: OnyxRequest) {
     flush();
 }
 
-function getCurrentRequest(): OnyxRequest | Promise<void> {
+function getCurrentRequest(): Promise<void> {
     if (currentRequest === null) {
         return Promise.resolve();
     }

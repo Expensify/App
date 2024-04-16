@@ -31,6 +31,9 @@ const propTypes = {
 
     /** Function to call to handle key presses in the text input */
     onKeyPress: PropTypes.func,
+
+    /** Whether the currency symbol is pressable */
+    isCurrencyPressable: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -40,6 +43,7 @@ const defaultProps = {
     selection: undefined,
     onSelectionChange: () => {},
     onKeyPress: () => {},
+    isCurrencyPressable: true,
 };
 
 export {propTypes, defaultProps};

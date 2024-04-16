@@ -1,7 +1,7 @@
 import React from 'react';
 import Log from '@libs//Log';
 import BaseErrorBoundary from './BaseErrorBoundary';
-import {BaseErrorBoundaryProps, LogError} from './types';
+import type {BaseErrorBoundaryProps, LogError} from './types';
 
 const logError: LogError = (errorMessage, error, errorInfo) => {
     // Log the error to the server

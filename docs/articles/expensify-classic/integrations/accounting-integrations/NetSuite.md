@@ -558,7 +558,7 @@ Here's how you can send them to us:
 
 Send these two files to your Account Manager or Concierge so we can continue troubleshooting! 
 
-# FAQ
+{% include faq-begin.md %}
 
 ## What type of Expensify plan is required for connecting to NetSuite?
 
@@ -573,3 +573,5 @@ If a report is exported to NetSuite and then marked as paid in NetSuite, the rep
 ## If I enable Auto Sync, what happens to existing approved and reimbursed reports? 
 
 If you previously had Auto Sync disabled but want to allow that feature to be used going forward, you can safely turn on Auto Sync without affecting existing reports. Auto Sync will only take effect for reports created after enabling that feature.
+
+{% include faq-end.md %}

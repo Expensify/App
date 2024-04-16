@@ -1,4 +1,4 @@
-import {Color} from './types';
+import type {Color} from './types';
 
 /**
  * DO NOT import colors.js into files. Use the theme switching hooks and HOCs instead.
@@ -28,6 +28,7 @@ const colors: Record<string, Color> = {
     productDark700: '#8B9C8F',
     productDark800: '#AFBBB0',
     productDark900: '#E7ECE9',
+    messageHighlightDark: '#402B02',
 
     // Light Mode Theme Colors
     productLight100: '#FCFBF9',

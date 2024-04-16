@@ -3,6 +3,7 @@ package com.expensify.chat.customairshipextender;
 import static androidx.core.app.NotificationCompat.CATEGORY_MESSAGE;
 import static androidx.core.app.NotificationCompat.PRIORITY_MAX;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
@@ -14,7 +15,11 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.media.AudioAttributes;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
+import android.service.notification.StatusBarNotification;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -26,7 +31,9 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
+import androidx.versionedparcelable.ParcelUtils;
 
+import com.expensify.chat.R;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -40,17 +47,13 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
-import com.expensify.chat.customairshipextender.NotificationCache.NotificationData;
-import com.expensify.chat.customairshipextender.NotificationCache.NotificationMessage;
 
 public class CustomNotificationProvider extends ReactNotificationProvider {
     // Resize icons to 100 dp x 100 dp
@@ -73,6 +76,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private static final String PAYLOAD_KEY = "payload";
     private static final String ONYX_DATA_KEY = "onyxData";
 
+    // Notification extras keys
+    public static final String EXTRAS_REPORT_ID_KEY = "reportID";
+    public static final String EXTRAS_AVATAR_KEY = "avatar";
+    public static final String EXTRAS_NAME_KEY = "name";
+    public static final String EXTRAS_ACCOUNT_ID_KEY = "accountID";
+
+
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public CustomNotificationProvider(@NonNull Context context, @NonNull AirshipConfigOptions configOptions) {
@@ -91,12 +101,16 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
         // Improve notification delivery by categorising as a time-critical message
         builder.setCategory(CATEGORY_MESSAGE);
+        builder.setVisibility(NotificationCompat.VISIBILITY_PRIVATE);
 
         // Configure the notification channel or priority to ensure it shows in foreground
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(CHANNEL_MESSAGES_ID);
         } else {
             builder.setPriority(PRIORITY_MAX);
+            // Set sound for versions below Oreo
+            // for Oreo and above we set sound on the notification's channel level
+            builder.setSound(getSoundFile(context));
         }
 
         // Attempt to parse data and apply custom notification styling
@@ -121,6 +135,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private void createAndRegisterNotificationChannel(@NonNull Context context) {
         NotificationChannelGroup channelGroup = new NotificationChannelGroup(NOTIFICATION_GROUP_CHATS, CHANNEL_GROUP_NAME);
         NotificationChannel channel = new NotificationChannel(CHANNEL_MESSAGES_ID, CHANNEL_MESSAGES_NAME, NotificationManager.IMPORTANCE_HIGH);
+
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .build();
+
+        channel.setSound(getSoundFile(context), audioAttributes);
 
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannelGroup(channelGroup);
@@ -158,7 +179,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     /**
      * Applies the message style to the notification builder. It also takes advantage of the
-     * notification cache to build conversations style notifications.
+     * android notification API to build conversations style notifications.
      *
      * @param builder Notification builder that will receive the message style
      * @param payload Notification payload, which contains all the data we need to build the notifications.
@@ -170,10 +191,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             return;
         }
 
-        // Retrieve and check for cached notifications 
-        NotificationData notificationData = NotificationCache.getNotificationData(reportID);
-        boolean hasExistingNotification = notificationData.messages.size() >= 1;
-
+        // Retrieve and check for existing notifications
+        StatusBarNotification existingReportNotification = getActiveNotificationByReportId(context, reportID);
+        boolean hasExistingNotification = existingReportNotification != null;
         try {
             JsonMap reportMap = payload.get(ONYX_DATA_KEY).getList().get(1).getMap().get("value").getMap();
             String reportId = reportMap.keySet().iterator().next();
@@ -187,31 +207,15 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String message = alert != null ? alert : messageData.get("message").getList().get(0).getMap().get("text").getString();
             String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
-            // Retrieve or create the Person object who sent the latest report comment
-            Person person = notificationData.getPerson(accountID);
-            Bitmap personIcon = notificationData.getIcon(accountID);
-
-            if (personIcon == null) {
-                personIcon = fetchIcon(context, avatar);
-            }
+            // create the Person object who sent the latest report comment
+            Bitmap personIcon = fetchIcon(context, avatar);
             builder.setLargeIcon(personIcon);
 
-            // Persist the person and icon to the notification cache
-            if (person == null) {
-                IconCompat iconCompat = IconCompat.createWithBitmap(personIcon);
-                person = new Person.Builder()
-                    .setIcon(iconCompat)
-                    .setKey(accountID)
-                    .setName(name)
-                    .build();
+            Person person = createMessagePersonObject(IconCompat.createWithBitmap(personIcon), accountID, name);
 
-                notificationData.putPerson(accountID, name, personIcon);
-            }
-
-            // Despite not using conversation style for the initial notification from each chat, we need to cache it to enable conversation style for future notifications
+            // Create latest received message object
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
-            notificationData.messages.add(new NotificationMessage(accountID, message, createdTimeInMillis));
-
+            NotificationCompat.MessagingStyle.Message newMessage = new NotificationCompat.MessagingStyle.Message(message, createdTimeInMillis, person);
 
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
             if (!conversationName.isEmpty() || hasExistingNotification) {
@@ -220,30 +224,77 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                         .setGroupConversation(true)
                         .setConversationTitle(conversationName);
 
+
                 // Add all conversation messages to the notification, including the last one we just received.
-                for (NotificationMessage cachedMessage : notificationData.messages) {
-                    messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, notificationData.getPerson(cachedMessage.accountID));
+                List<NotificationCompat.MessagingStyle.Message> messages;
+                if (hasExistingNotification) {
+                    NotificationCompat.MessagingStyle previousStyle = NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(existingReportNotification.getNotification());
+                    messages = previousStyle != null ? previousStyle.getMessages() : new ArrayList<>(List.of(recreatePreviousMessage(existingReportNotification)));
+                } else {
+                    messages = new ArrayList<>();
                 }
+
+                // add the last one message we just received.
+                messages.add(newMessage);
+
+                for (NotificationCompat.MessagingStyle.Message activeMessage : messages) {
+                    messagingStyle.addMessage(activeMessage);
+                }
+
                 builder.setStyle(messagingStyle);
             }
 
+            // save reportID and person info for future merging
+            builder.addExtras(createMessageExtrasBundle(reportID, person));
+
             // Clear the previous notification associated to this conversation so it looks like we are
             // replacing them with this new one we just built.
-            if (notificationData.prevNotificationID != -1) {
-                NotificationManagerCompat.from(context).cancel(notificationData.prevNotificationID);
+            if (hasExistingNotification) {
+                int previousNotificationID = existingReportNotification.getId();
+                NotificationManagerCompat.from(context).cancel(previousNotificationID);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Store the new notification ID so we can replace the notification if this conversation
-        // receives more messages
-        notificationData.prevNotificationID = notificationID;
-
-        NotificationCache.setNotificationData(reportID, notificationData);
     }
 
+    private Person createMessagePersonObject (IconCompat icon, String key, String name) {
+        return new Person.Builder().setIcon(icon).setKey(key).setName(name).build();
+    }
+
+    private NotificationCompat.MessagingStyle.Message recreatePreviousMessage (StatusBarNotification statusBarNotification) {
+        // Get previous message
+        Notification previousNotification = statusBarNotification.getNotification();
+        String previousMessage = previousNotification.extras.getString("android.text");
+        long time = statusBarNotification.getNotification().when;
+        // Recreate Person object
+        IconCompat avatarBitmap = ParcelUtils.getVersionedParcelable(previousNotification.extras, EXTRAS_AVATAR_KEY);
+        String previousName = previousNotification.extras.getString(EXTRAS_NAME_KEY);
+        String previousAccountID = previousNotification.extras.getString(EXTRAS_ACCOUNT_ID_KEY);
+        Person previousPerson = createMessagePersonObject(avatarBitmap, previousAccountID, previousName);
+
+        return new NotificationCompat.MessagingStyle.Message(previousMessage, time, previousPerson);
+    }
+
+    private Bundle createMessageExtrasBundle(long reportID, Person person) {
+        Bundle extrasBundle = new Bundle();
+        extrasBundle.putLong(EXTRAS_REPORT_ID_KEY, reportID);
+        ParcelUtils.putVersionedParcelable(extrasBundle, EXTRAS_AVATAR_KEY, person.getIcon());
+        extrasBundle.putString(EXTRAS_ACCOUNT_ID_KEY, person.getKey());
+        extrasBundle.putString(EXTRAS_NAME_KEY, person.getName().toString());
+
+        return extrasBundle;
+    }
+
+    private StatusBarNotification getActiveNotificationByReportId(@NonNull Context context, long reportId) {
+        List<StatusBarNotification> notifications = NotificationManagerCompat.from(context).getActiveNotifications();
+        for (StatusBarNotification currentNotification : notifications) {
+            long associatedReportId = currentNotification.getNotification().extras.getLong("reportID", -1);
+            if (associatedReportId == reportId) return currentNotification;
+        }
+        return null;
+    }
     /**
      * Safely retrieve the message time in milliseconds
      */
@@ -258,26 +309,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             }
         }
         return Calendar.getInstance().getTimeInMillis();
-    }
-
-    /**
-     * Remove the notification data from the cache when the user dismisses the notification.
-     *
-     * @param message Push notification's message
-     */
-    public void onDismissNotification(PushMessage message) {
-        try {
-            JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
-            long reportID = payload.get("reportID").getLong(-1);
-
-            if (reportID == -1) {
-                return;
-            }
-
-            NotificationCache.setNotificationData(reportID, null);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to delete conversation cache. SendID=" + message.getSendId(), e);
-        }
     }
 
     private Bitmap fetchIcon(@NonNull Context context, String urlString) {
@@ -314,5 +345,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         return null;
+    }
+
+    private Uri getSoundFile(Context context) {
+        return Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.receive);
     }
 }

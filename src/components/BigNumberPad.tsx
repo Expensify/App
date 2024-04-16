@@ -17,7 +17,7 @@ type BigNumberPadProps = {
     id?: string;
 
     /** Whether long press is disabled */
-    isLongPressDisabled: boolean;
+    isLongPressDisabled?: boolean;
 };
 
 const padNumbers = [
@@ -31,7 +31,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
     const {toLocaleDigit} = useLocalize();
 
     const styles = useThemeStyles();
-    const [timer, setTimer] = useState<NodeJS.Timer | null>(null);
+    const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
     const {isExtraSmallScreenHeight} = useWindowDimensions();
 
     /**
@@ -71,6 +71,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                             <Button
                                 key={column}
                                 medium={isExtraSmallScreenHeight}
+                                large={!isExtraSmallScreenHeight}
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? column : toLocaleDigit(column)}

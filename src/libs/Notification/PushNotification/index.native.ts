@@ -1,11 +1,14 @@
-import Airship, {EventType, PushPayload} from '@ua/react-native-airship';
+import type {PushPayload} from '@ua/react-native-airship';
+import Airship, {EventType} from '@ua/react-native-airship';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as PushNotificationActions from '@userActions/PushNotification';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ForegroundNotifications from './ForegroundNotifications';
-import NotificationType, {NotificationData} from './NotificationType';
-import PushNotificationType, {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
+import type {NotificationData} from './NotificationType';
+import NotificationType from './NotificationType';
+import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
+import type PushNotificationType from './types';
 
 type NotificationEventActionCallback = (data: NotificationData) => void;
 
@@ -81,11 +84,6 @@ function refreshNotificationOptInStatus() {
 const init: Init = () => {
     // Setup event listeners
     Airship.addListener(EventType.PushReceived, (notification) => {
-        // By default, refresh notification opt-in status to true if we receive a notification
-        if (!isUserOptedInToPushNotifications) {
-            PushNotificationActions.setPushNotificationOptInStatus(true);
-        }
-
         pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload);
     });
 

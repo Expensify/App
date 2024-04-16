@@ -161,19 +161,23 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/expensify_chat_adhoc.mobileprovision"
+        path: "./ios/NewApp_AdHoc.mobileprovision"
+    )
+
+    install_provisioning_profile(
+        path: "./ios/NewApp_AdHoc_Notification_Service.mobileprovision"
     )
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "New Expensify AdHoc",
-        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "expensify_chat_adhoc", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
             provisioningProfiles: {
-              "com.expensify.chat.adhoc" => "expensify_chat_adhoc",
+              "com.expensify.chat.adhoc" => "(NewApp) AdHoc",
+              "com.expensify.chat.adhoc.NotificationServiceExtension" => "(NewApp) AdHoc: Notification Service",
             },
             manageAppVersionAndBuildNumber: false
         }
@@ -215,7 +219,11 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/chat_expensify_appstore.mobileprovision"
+        path: "./ios/NewApp_AppStore.mobileprovision"
+    )
+
+    install_provisioning_profile(
+        path: "./ios/NewApp_AppStore_Notification_Service.mobileprovision"
     )
 
     build_app(
@@ -223,6 +231,10 @@ platform :ios do
         scheme: "New Expensify",
         output_name: "New Expensify.ipa",
         export_options: {
+            provisioningProfiles: {
+              "com.chat.expensify.chat" => "(NewApp) AppStore",
+              "com.chat.expensify.chat.NotificationServiceExtension" => "(NewApp) AppStore: Notification Service",
+            },
             manageAppVersionAndBuildNumber: false
         }
     )

@@ -1,5 +1,5 @@
-import GetPlaidOAuthReceivedRedirectURI from './types';
+import type GetPlaidOAuthReceivedRedirectURI from './types';
 
-const getPlaidOAuthReceivedRedirectURI: GetPlaidOAuthReceivedRedirectURI = () => null;
+const getPlaidOAuthReceivedRedirectURI: GetPlaidOAuthReceivedRedirectURI = () => undefined;
 
 export default getPlaidOAuthReceivedRedirectURI;

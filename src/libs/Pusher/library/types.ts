@@ -1,5 +1,5 @@
-import PusherClass from 'pusher-js/with-encryption';
-import {LiteralUnion} from 'type-fest';
+import type PusherClass from 'pusher-js/with-encryption';
+import type {LiteralUnion} from 'type-fest';
 
 type Pusher = typeof PusherClass;
 

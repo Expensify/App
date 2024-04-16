@@ -1,5 +1,5 @@
-import {LinkEventMetadata, LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
-import {PlaidLinkOnEventMetadata, PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
+import type {LinkEventMetadata, LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
+import type {PlaidLinkOnEventMetadata, PlaidLinkOnSuccessMetadata} from 'react-plaid-link';
 
 type PlaidLinkProps = {
     // Plaid Link SDK public token used to initialize the Plaid SDK

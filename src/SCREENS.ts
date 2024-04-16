@@ -2,7 +2,7 @@
  * This is a file containing constants for all of the screen names. In most cases, we should use the routes for
  * navigation. But there are situations where we may need to access screen names directly.
  */
-import DeepValueOf from './types/utils/DeepValueOf';
+import type DeepValueOf from './types/utils/DeepValueOf';
 
 const PROTECTED_SCREENS = {
     HOME: 'Home',
@@ -12,24 +12,34 @@ const PROTECTED_SCREENS = {
 
 const SCREENS = {
     ...PROTECTED_SCREENS,
+    ALL_SETTINGS: 'AllSettings',
     REPORT: 'Report',
+    PROFILE_AVATAR: 'ProfileAvatar',
+    WORKSPACE_AVATAR: 'WorkspaceAvatar',
+    REPORT_AVATAR: 'ReportAvatar',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
     UNLINK_LOGIN: 'UnlinkLogin',
+    SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
         WORKSPACES: 'Settings_Workspaces',
         SECURITY: 'Settings_Security',
         ABOUT: 'Settings_About',
+        SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',
-        LOUNGE_ACCESS: 'Settings_Lounge_Access',
         ADD_DEBIT_CARD: 'Settings_Add_Debit_Card',
         ADD_BANK_ACCOUNT: 'Settings_Add_Bank_Account',
+        ADD_BANK_ACCOUNT_REFACTOR: 'Settings_Add_Bank_Account_Refactor',
         CLOSE: 'Settings_Close',
         TWO_FACTOR_AUTH: 'Settings_TwoFactorAuth',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
+        TROUBLESHOOT: 'Settings_Troubleshoot',
+        CONSOLE: 'Settings_Console',
+        SHARE_LOG: 'Share_Log',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -44,14 +54,11 @@ const SCREENS = {
             PRONOUNS: 'Settings_Pronouns',
             TIMEZONE: 'Settings_Timezone',
             TIMEZONE_SELECT: 'Settings_Timezone_Select',
-
-            PERSONAL_DETAILS: {
-                INITIAL: 'Settings_PersonalDetails_Initial',
-                LEGAL_NAME: 'Settings_PersonalDetails_LegalName',
-                DATE_OF_BIRTH: 'Settings_PersonalDetails_DateOfBirth',
-                ADDRESS: 'Settings_PersonalDetails_Address',
-                ADDRESS_COUNTRY: 'Settings_PersonalDetails_Address_Country',
-            },
+            LEGAL_NAME: 'Settings_LegalName',
+            DATE_OF_BIRTH: 'Settings_DateOfBirth',
+            ADDRESS: 'Settings_Address',
+            ADDRESS_COUNTRY: 'Settings_Address_Country',
+            ADDRESS_STATE: 'Settings_Address_State',
         },
 
         PREFERENCES: {
@@ -77,22 +84,35 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
         },
+
+        EXIT_SURVEY: {
+            REASON: 'Settings_ExitSurvey_Reason',
+            RESPONSE: 'Settings_ExitSurvey_Response',
+            CONFIRM: 'Settings_ExitSurvey_Confirm',
+        },
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
     },
+    LEFT_MODAL: {
+        SEARCH: 'Search',
+        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
+    },
+    WORKSPACE_SWITCHER: {
+        ROOT: 'WorkspaceSwitcher_Root',
+    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         NEW_CHAT: 'NewChat',
-        SEARCH: 'Search',
         DETAILS: 'Details',
         PROFILE: 'Profile',
         REPORT_DETAILS: 'Report_Details',
         REPORT_SETTINGS: 'Report_Settings',
-        REPORT_WELCOME_MESSAGE: 'Report_WelcomeMessage',
+        REPORT_DESCRIPTION: 'Report_Description',
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
+        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -106,18 +126,22 @@ const SCREENS = {
         ROOM_MEMBERS: 'RoomMembers',
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
+        PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+    },
+    ONBOARDING_MODAL: {
+        ONBOARDING: 'Onboarding',
     },
     SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
     SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
     DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
     SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
 
     MONEY_REQUEST: {
-        MANUAL_TAB: 'manual',
-        SCAN_TAB: 'scan',
-        DISTANCE_TAB: 'distance',
         CREATE: 'Money_Request_Create',
+        HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
+        START: 'Money_Request_Start',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
         STEP_CURRENCY: 'Money_Request_Step_Currency',
@@ -129,20 +153,14 @@ const SCREENS = {
         STEP_SCAN: 'Money_Request_Step_Scan',
         STEP_TAG: 'Money_Request_Step_Tag',
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
-        ROOT: 'Money_Request',
-        AMOUNT: 'Money_Request_Amount',
+        STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
+        STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
         PARTICIPANTS: 'Money_Request_Participants',
-        CONFIRMATION: 'Money_Request_Confirmation',
         CURRENCY: 'Money_Request_Currency',
-        DATE: 'Money_Request_Date',
-        DESCRIPTION: 'Money_Request_Description',
-        CATEGORY: 'Money_Request_Category',
-        TAG: 'Money_Request_Tag',
-        MERCHANT: 'Money_Request_Merchant',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
-        DISTANCE: 'Money_Request_Distance',
         RECEIPT: 'Money_Request_Receipt',
+        STATE_SELECTOR: 'Money_Request_State_Selector',
     },
 
     IOU_SEND: {
@@ -154,8 +172,10 @@ const SCREENS = {
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
         ROOM_NAME: 'Report_Settings_Room_Name',
+        GROUP_NAME: 'Report_Settings_Group_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
+        VISIBILITY: 'Report_Settings_Visibility',
     },
 
     NEW_TASK: {
@@ -169,12 +189,10 @@ const SCREENS = {
 
     TASK: {
         TITLE: 'Task_Title',
-        DESCRIPTION: 'Task_Description',
         ASSIGNEE: 'Task_Assignee',
     },
 
     PRIVATE_NOTES: {
-        VIEW: 'PrivateNotes_View',
         LIST: 'PrivateNotes_List',
         EDIT: 'PrivateNotes_Edit',
     },
@@ -186,27 +204,77 @@ const SCREENS = {
 
     WORKSPACE: {
         INITIAL: 'Workspace_Initial',
-        SETTINGS: 'Workspace_Settings',
+        PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
         REIMBURSE: 'Workspace_Reimburse',
         RATE_AND_UNIT: 'Workspace_RateAndUnit',
+        RATE_AND_UNIT_RATE: 'Workspace_RateAndUnit_Rate',
+        RATE_AND_UNIT_UNIT: 'Workspace_RateAndUnit_Unit',
         BILLS: 'Workspace_Bills',
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
+        ACCOUNTING: 'Workspace_Accounting',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
-        CURRENCY: 'Workspace_Settings_Currency',
+        CATEGORIES: 'Workspace_Categories',
+        TAGS: 'Workspace_Tags',
+        TAGS_SETTINGS: 'Tags_Settings',
+        TAGS_EDIT: 'Tags_Edit',
+        TAG_EDIT: 'Tag_Edit',
+        TAXES: 'Workspace_Taxes',
+        TAX_EDIT: 'Workspace_Tax_Edit',
+        TAX_NAME: 'Workspace_Tax_Name',
+        TAX_VALUE: 'Workspace_Tax_Value',
+        TAXES_SETTINGS: 'Workspace_Taxes_Settings',
+        TAXES_SETTINGS_CUSTOM_TAX_NAME: 'Workspace_Taxes_Settings_CustomTaxName',
+        TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',
+        TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
+        TAX_CREATE: 'Workspace_Tax_Create',
+        TAG_CREATE: 'Tag_Create',
+        TAG_SETTINGS: 'Tag_Settings',
+        CURRENCY: 'Workspace_Profile_Currency',
+        WORKFLOWS: 'Workspace_Workflows',
+        WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
+        WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
+        WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
+        WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
+        DESCRIPTION: 'Workspace_Profile_Description',
+        SHARE: 'Workspace_Profile_Share',
+        NAME: 'Workspace_Profile_Name',
+        CATEGORY_CREATE: 'Category_Create',
+        CATEGORY_EDIT: 'Category_Edit',
+        CATEGORY_SETTINGS: 'Category_Settings',
+        CATEGORIES_SETTINGS: 'Categories_Settings',
+        MORE_FEATURES: 'Workspace_More_Features',
+        MEMBER_DETAILS: 'Workspace_Member_Details',
+        OWNER_CHANGE_CHECK: 'Workspace_Owner_Change_Check',
+        OWNER_CHANGE_SUCCESS: 'Workspace_Owner_Change_Success',
+        OWNER_CHANGE_ERROR: 'Workspace_Owner_Change_Error',
+        DISTANCE_RATES: 'Distance_Rates',
+        CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
+        DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
+        QUICKBOOKS_ONLINE_IMPORT: 'Workspace_Accounting_Quickbooks_Online_Import',
+        QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Workspace_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
+        QUICKBOOKS_ONLINE_CLASSES: 'Workspace_Accounting_Quickbooks_Online_Import_Classes',
+        QUICKBOOKS_ONLINE_CUSTOMERS: 'Workspace_Accounting_Quickbooks_Online_Import_Customers',
+        QUICKBOOKS_ONLINE_LOCATIONS: 'Workspace_Accounting_Quickbooks_Online_Import_Locations',
+        QUICKBOOKS_ONLINE_TAXES: 'Workspace_Accounting_Quickbooks_Online_Import_Taxes',
+        DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
+        DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
 
     EDIT_REQUEST: {
         ROOT: 'EditRequest_Root',
         CURRENCY: 'EditRequest_Currency',
+        REPORT_FIELD: 'EditRequest_ReportField',
     },
 
     NEW_CHAT: {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
+        NEW_CHAT_CONFIRM: 'NewChat_Confirm',
+        NEW_CHAT_EDIT_NAME: 'NewChat_Edit_Name',
         NEW_ROOM: 'room',
     },
 
@@ -214,6 +282,21 @@ const SCREENS = {
         ROOT: 'SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+
+    ONBOARDING: {
+        PERSONAL_DETAILS: 'Onboarding_Personal_Details',
+        PURPOSE: 'Onboarding_Purpose',
+    },
+
+    ONBOARD_ENGAGEMENT: {
+        ROOT: 'Onboard_Engagement_Root',
+        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
+        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
+    },
+
+    WELCOME_VIDEO: {
+        ROOT: 'Welcome_Video_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
@@ -226,8 +309,14 @@ const SCREENS = {
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',
     PROFILE_ROOT: 'Profile_Root',
-    REPORT_WELCOME_MESSAGE_ROOT: 'Report_WelcomeMessage_Root',
-    REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
+    PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
+    REPORT_PARTICIPANTS: {
+        ROOT: 'ReportParticipants_Root',
+        INVITE: 'ReportParticipants_Invite',
+        DETAILS: 'ReportParticipants_Details',
+        ROLE: 'ReportParticipants_Role',
+    },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
     SEARCH_ROOT: 'Search_Root',
@@ -236,6 +325,7 @@ const SCREENS = {
     GET_ASSISTANCE: 'GetAssistance',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    TRANSACTION_RECEIPT: 'TransactionReceipt',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

@@ -1,32 +1,23 @@
-/* eslint-disable no-console */
-import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-
-type AnchorOrigin = {
-    horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
-    vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
-    shiftVertical?: number;
-};
-
-type AnchorPosition = {
-    horizontal: number;
-    vertical: number;
-};
+import type {AnchorDimensions, AnchorPosition} from '@src/styles';
+import type {AnchorOrigin} from './actions/EmojiPickerAction';
 
 /**
  * Gets the x,y position of the passed in component for the purpose of anchoring another component to it.
  */
-export default function calculateAnchorPosition(anchorComponent: View, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition> {
+export default function calculateAnchorPosition(anchorComponent: ContextMenuAnchor, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition & AnchorDimensions> {
     return new Promise((resolve) => {
-        if (!anchorComponent) {
-            return resolve({horizontal: 0, vertical: 0});
+        if (!anchorComponent || !('measureInWindow' in anchorComponent)) {
+            resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
+            return;
         }
         anchorComponent.measureInWindow((x, y, width, height) => {
             if (anchorOrigin?.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP && anchorOrigin?.horizontal === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT) {
-                return resolve({horizontal: x, vertical: y + height + (anchorOrigin?.shiftVertical ?? 0)});
+                resolve({horizontal: x, vertical: y + height + (anchorOrigin?.shiftVertical ?? 0), width, height});
+                return;
             }
-            return resolve({horizontal: x + width, vertical: y});
+            resolve({horizontal: x + width, vertical: y + (anchorOrigin?.shiftVertical ?? 0), width, height});
         });
     });
 }

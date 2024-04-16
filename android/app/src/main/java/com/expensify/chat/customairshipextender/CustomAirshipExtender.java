@@ -14,8 +14,5 @@ public class CustomAirshipExtender implements AirshipExtender {
 
         CustomNotificationProvider notificationProvider = new CustomNotificationProvider(context, airship.getAirshipConfigOptions());
         pushManager.setNotificationProvider(notificationProvider);
-
-        NotificationListener notificationListener = airship.getPushManager().getNotificationListener();
-        pushManager.setNotificationListener(new CustomNotificationListener(notificationListener, notificationProvider));
     }
 }

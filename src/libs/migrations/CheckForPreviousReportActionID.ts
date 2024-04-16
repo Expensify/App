@@ -1,7 +1,8 @@
-import Onyx, {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
-import * as OnyxTypes from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 
 function getReportActionsFromOnyx(): Promise<OnyxCollection<OnyxTypes.ReportActions>> {
     return new Promise((resolve) => {
@@ -20,7 +21,7 @@ function getReportActionsFromOnyx(): Promise<OnyxCollection<OnyxTypes.ReportActi
  * This migration checks for the 'previousReportActionID' key in the first valid reportAction of a report in Onyx.
  * If the key is not found then all reportActions for all reports are removed from Onyx.
  */
-export default function (): Promise<void> {
+export default function (): Promise<void | void[]> {
     return getReportActionsFromOnyx().then((allReportActions) => {
         if (Object.keys(allReportActions ?? {}).length === 0) {
             Log.info(`[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no reportActions`);

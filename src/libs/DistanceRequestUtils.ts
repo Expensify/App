@@ -1,13 +1,15 @@
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import Policy, {Unit} from '@src/types/onyx/Policy';
+import type {Unit} from '@src/types/onyx/Policy';
+import type Policy from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as PolicyUtils from './PolicyUtils';
 
 type DefaultMileageRate = {
-    rate: number;
-    currency: string;
+    customUnitRateID?: string;
+    rate?: number;
+    currency?: string;
     unit: Unit;
 };
 
@@ -37,6 +39,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy>): DefaultMileageRate | 
     }
 
     return {
+        customUnitRateID: distanceRate.customUnitRateID,
         rate: distanceRate.rate,
         currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
@@ -80,6 +83,27 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
+ * @param translate Translate function
+ * @returns A string that describes the distance traveled
+ */
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, rate: number, translate: LocaleContextProps['translate']): string {
+    if (!hasRoute || !rate) {
+        return translate('iou.routePending');
+    }
+
+    const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
+    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
+    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
+
+    return `${distanceInUnits} ${unitString}`;
+}
+
+/**
+ * @param hasRoute Whether the route exists for the distance request
+ * @param distanceInMeters Distance traveled
+ * @param unit Unit that should be used to display the distance
+ * @param rate Expensable amount allowed per unit
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
@@ -94,16 +118,18 @@ function getDistanceMerchant(
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
 ): string {
-    const distanceInUnits = hasRoute ? getRoundedDistanceInUnits(distanceInMeters, unit) : translate('common.tbd');
+    if (!hasRoute || !rate) {
+        return translate('iou.routePending');
+    }
 
-    const distanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.miles') : translate('common.kilometers');
+    const formattedDistance = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const unitString = distanceInUnits === '1' ? singularDistanceUnit : distanceUnit;
-    const ratePerUnit = rate ? PolicyUtils.getUnitRateValue({rate}, toLocaleDigit) : translate('common.tbd');
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const currencySymbol = rate ? CurrencyUtils.getCurrencySymbol(currency) || `${currency} ` : '';
+    const ratePerUnit = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
 
-    return `${distanceInUnits} ${unitString} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
+
+    return `${formattedDistance} @ ${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
 }
 
 /**
@@ -121,3 +147,5 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
 }
 
 export default {getDefaultMileageRate, getDistanceMerchant, getDistanceRequestAmount};
+
+export type {DefaultMileageRate};

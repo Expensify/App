@@ -1,5 +1,5 @@
-import CONST from '@src/CONST';
-import {type ColorScheme, type StatusBarStyle} from '..';
+import type CONST from '@src/CONST';
+import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
 
@@ -11,23 +11,27 @@ type ThemeColors = {
     appBG: Color;
     splashBG: Color;
     highlightBG: Color;
+    messageHighlightBG: Color;
     border: Color;
     borderLighter: Color;
     borderFocus: Color;
     icon: Color;
     iconMenu: Color;
     iconHovered: Color;
+    iconMenuHovered: Color;
     iconSuccessFill: Color;
     iconReversed: Color;
     iconColorfulBackground: Color;
     textSupporting: Color;
     text: Color;
     textColorfulBackground: Color;
+    syntax: Color;
     link: Color;
     linkHover: Color;
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
     buttonPressedBG: Color;
+    buttonSuccessText: Color;
     danger: Color;
     dangerHover: Color;
     dangerPressed: Color;
@@ -68,7 +72,6 @@ type ThemeColors = {
     dropUIBG: Color;
     receiptDropUIBG: Color;
     checkBox: Color;
-    pickerOptionsTextColor: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
@@ -85,9 +88,10 @@ type ThemeColors = {
     skeletonLHNOut: Color;
     QRLogo: Color;
     starDefaultBG: Color;
-    loungeAccessOverlay: Color;
     mapAttributionText: Color;
     white: Color;
+    videoPlayerBG: Color;
+    transparentWhite: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 

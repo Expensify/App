@@ -15,14 +15,21 @@ const propTypes = {
     /** The policyID we are getting tags for */
     policyID: PropTypes.string.isRequired,
 
-    /** The tag name to which the default tag belongs to */
-    tagName: PropTypes.string.isRequired,
+    /** The tag list name to which the default tag belongs to */
+    tagListName: PropTypes.string,
+
+    /** Indicates which tag list index was selected */
+    tagListIndex: PropTypes.number.isRequired,
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
+const defaultProps = {
+    tagListName: '',
+};
+
+function EditRequestTagPage({defaultTag, policyID, tagListName, tagListIndex, onSubmit}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -36,28 +43,25 @@ function EditRequestTagPage({defaultTag, policyID, tagName, onSubmit}) {
             shouldEnableMaxHeight
             testID={EditRequestTagPage.displayName}
         >
-            {({insets}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={tagName || translate('common.tag')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {tagName: tagName || translate('common.tag')})}</Text>
-                    <TagPicker
-                        selectedTag={defaultTag}
-                        tag={tagName}
-                        policyID={policyID}
-                        shouldShowDisabledAndSelectedOption
-                        insets={insets}
-                        onSubmit={selectTag}
-                    />
-                </>
-            )}
+            <HeaderWithBackButton
+                title={tagListName || translate('common.tag')}
+                onBackButtonPress={Navigation.goBack}
+            />
+            <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
+            <TagPicker
+                selectedTag={defaultTag}
+                tagListName={tagListName}
+                tagListIndex={tagListIndex}
+                policyID={policyID}
+                shouldShowDisabledAndSelectedOption
+                onSubmit={selectTag}
+            />
         </ScreenWrapper>
     );
 }
 
 EditRequestTagPage.propTypes = propTypes;
+EditRequestTagPage.defaultProps = defaultProps;
 EditRequestTagPage.displayName = 'EditRequestTagPage';
 
 export default EditRequestTagPage;

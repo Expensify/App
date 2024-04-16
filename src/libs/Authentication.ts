@@ -1,6 +1,6 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import Response from '@src/types/onyx/Response';
+import type Response from '@src/types/onyx/Response';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import redirectToSignIn from './actions/SignInRedirect';
 import * as ErrorUtils from './ErrorUtils';

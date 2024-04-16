@@ -1,4 +1,4 @@
-import GetPlaidOAuthReceivedRedirectURI from './types';
+import type GetPlaidOAuthReceivedRedirectURI from './types';
 
 /**
  * After a user authenticates their bank in the Plaid OAuth flow, Plaid returns us to the redirectURI we
@@ -12,7 +12,7 @@ const getPlaidOAuthReceivedRedirectURI: GetPlaidOAuthReceivedRedirectURI = () =>
 
     // If no stateID passed in then we are either not in OAuth flow or flow is broken
     if (!oauthStateID) {
-        return null;
+        return undefined;
     }
     return receivedRedirectURI;
 };

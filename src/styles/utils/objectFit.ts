@@ -1,5 +1,4 @@
-import {CSSProperties} from 'react';
-import {ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 
 export default {
     oFCover: {
@@ -14,4 +13,4 @@ export default {
     oFNone: {
         objectFit: 'none',
     },
-} satisfies Record<string, ViewStyle | CSSProperties>;
+} satisfies Record<string, ViewStyle>;

@@ -1,4 +1,4 @@
-import {ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 
 /**
  * Flex layout utility styles with Bootstrap inspired naming.

@@ -82,6 +82,7 @@ When the user is offline:
     - `optimisticData` - always include this object when using the Pattern B
     - `successData` - include this if the action is `update` or `delete`. You do not have to include this if the action is `add` (same data was already passed using the `optimisticData` object)
     - `failureData` - always include this object. In case of `add` action, you will want to add some generic error which covers some unexpected failures which were not handled in the backend
+       - In the event that `successData` and `failureData` are the same, you can use a single object `finallyData` in place of both. 
 
 **Handling errors:**
 - The [OfflineWithFeedback component](https://github.com/Expensify/App/blob/main/src/components/OfflineWithFeedback.js) already handles showing errors too, as long as you pass the error field in the [errors prop](https://github.com/Expensify/App/blob/128ea378f2e1418140325c02f0b894ee60a8e53f/src/components/OfflineWithFeedback.js#L29-L31)

@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
 import Navigation from '@libs/Navigation/Navigation';
@@ -7,7 +8,9 @@ import * as Url from '@libs/Url';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import * as Session from './Session';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -54,7 +57,7 @@ function openOldDotLink(url: string) {
     // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
     asyncOpenURL(
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
+        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
             .then((response) => (response ? buildOldDotURL(url, response.shortLivedAuthToken) : buildOldDotURL(url)))
             .catch(() => buildOldDotURL(url)),
         (oldDotURL) => oldDotURL,
@@ -64,7 +67,7 @@ function openOldDotLink(url: string) {
 function getInternalNewExpensifyPath(href: string) {
     const attrPath = Url.getPathFromURL(href);
     return (Url.hasSameExpensifyOrigin(href, CONST.NEW_EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONST.STAGING_NEW_EXPENSIFY_URL) || href.startsWith(CONST.DEV_NEW_EXPENSIFY_URL)) &&
-        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => path === attrPath)
+        !CONST.PATHS_TO_TREAT_AS_EXTERNAL.find((path) => attrPath.startsWith(path))
         ? attrPath
         : '';
 }
@@ -100,6 +103,10 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
+        if (Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
     }

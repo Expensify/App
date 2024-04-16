@@ -1,4 +1,4 @@
-import {ViewStyle} from 'react-native';
+import type {ViewStyle} from 'react-native';
 
 /**
  * Sizing utility styles with Bootstrap inspired naming.
@@ -8,6 +8,14 @@ import {ViewStyle} from 'react-native';
 export default {
     h100: {
         height: '100%',
+    },
+
+    h68: {
+        height: 272,
+    },
+
+    h13: {
+        height: 52,
     },
 
     w15: {
@@ -22,6 +30,10 @@ export default {
         width: '25%',
     },
 
+    mh100: {
+        maxHeight: '100%',
+    },
+
     mnh100: {
         minHeight: '100%',
     },
@@ -32,6 +44,14 @@ export default {
 
     mnw25: {
         minWidth: '25%',
+    },
+
+    mnw60: {
+        minWidth: '60%',
+    },
+
+    mnw100: {
+        minWidth: '100%',
     },
 
     mnw120: {
@@ -62,10 +82,13 @@ export default {
         maxWidth: 'auto',
     },
 
+    mw75: {
+        maxWidth: '75%',
+    },
+
     mw100: {
         maxWidth: '100%',
     },
-
     wAuto: {
         width: 'auto',
     },

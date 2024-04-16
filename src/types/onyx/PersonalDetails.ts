@@ -1,6 +1,6 @@
-import {AvatarSource} from '@libs/UserUtils';
-import TIMEZONES from '@src/TIMEZONES';
-import * as OnyxCommon from './OnyxCommon';
+import type {AvatarSource} from '@libs/UserUtils';
+import type TIMEZONES from '@src/TIMEZONES';
+import type * as OnyxCommon from './OnyxCommon';
 
 type SelectedTimezone = (typeof TIMEZONES)[number];
 
@@ -12,7 +12,18 @@ type Timezone = {
     automatic?: boolean;
 };
 
-type PersonalDetails = {
+type Status = {
+    /** The emoji code of the status */
+    emojiCode: string;
+
+    /** The text of the draft status */
+    text?: string;
+
+    /** The timestamp of when the status should be cleared */
+    clearAfter: string; // ISO 8601 format;
+};
+
+type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the current user from their personal details */
     accountID: number;
 
@@ -32,7 +43,7 @@ type PersonalDetails = {
     phoneNumber?: string;
 
     /** Avatar URL of the current user from their personal details */
-    avatar: AvatarSource;
+    avatar?: AvatarSource;
 
     /** Avatar thumbnail URL of the current user from their personal details */
     avatarThumbnail?: string;
@@ -57,24 +68,23 @@ type PersonalDetails = {
     /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
-
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
-
-    /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.PendingFields<'avatar' | 'originalFileName'>;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: string;
 
     /** Status of the current user from their personal details */
-    status?: string;
+    status?: Status;
+}>;
+
+type PersonalDetailsMetadata = {
+    /** Whether we are waiting for the data to load via the API */
+    isLoading?: boolean;
 };
 
-type PersonalDetailsList = Record<string, PersonalDetails>;
+type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 
-export type {Timezone, SelectedTimezone, PersonalDetailsList};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata};
