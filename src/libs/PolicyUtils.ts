@@ -1,6 +1,8 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as NetworkStore from '@libs/Network/NetworkStore';
+import type {RootStackParamList, State} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -10,7 +12,6 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
-import type {RootStackParamList, State} from './Navigation/types';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -321,7 +322,7 @@ function getPolicyIDFromNavigationState() {
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
     const activePolicies = getActivePolicies(policies);
-    return activePolicies.filter((policy) => isPolicyAdmin(policy));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
 /** Whether the user can send invoice */
