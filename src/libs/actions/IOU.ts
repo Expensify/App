@@ -5407,6 +5407,27 @@ function resetSplitShares(transactionID: string, participantAccountIDs: number[]
     });
 }
 
+function setSplitShare(transactionID: string, participantAccountID: number, participantShare: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        splitShares: {
+            [participantAccountID]: {amount: participantShare, isModified: true},
+        },
+    });
+}
+
+function adjustRemainingSplitShares(transactionID: string, remainingAccountIDs: number[], remainingAmount: number, currency: string) {
+    const splitShares: SplitShares = remainingAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
+        const splitAmount = IOUUtils.calculateAmount(remainingAccountIDs.length - 1, remainingAmount, currency, index === 0);
+        return {
+            ...result,
+            [accountID]: {
+                amount: splitAmount,
+            },
+        };
+    }, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares});
+}
+
 /**
  * Put money request on HOLD
  */
@@ -5602,6 +5623,8 @@ export {
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
     resetSplitShares,
+    setSplitShare,
+    adjustRemainingSplitShares,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
