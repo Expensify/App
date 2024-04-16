@@ -19,4 +19,3 @@ Bank accounts are easy to delete! Simply click the red **Delete** button in the 
 ![Click the Delete button](https://help.expensify.com/assets/images/delete-australian-bank-account.png){:width="100%"}
 
 You can complete this process on a computer or on the mobile app.
-

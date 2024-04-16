@@ -1,25 +1,24 @@
 PODS:
-  - Airship (16.12.1):
-    - Airship/Automation (= 16.12.1)
-    - Airship/Basement (= 16.12.1)
-    - Airship/Core (= 16.12.1)
-    - Airship/ExtendedActions (= 16.12.1)
-    - Airship/MessageCenter (= 16.12.1)
-  - Airship/Automation (16.12.1):
+  - Airship (17.7.3):
+    - Airship/Automation (= 17.7.3)
+    - Airship/Basement (= 17.7.3)
+    - Airship/Core (= 17.7.3)
+    - Airship/FeatureFlags (= 17.7.3)
+    - Airship/MessageCenter (= 17.7.3)
+    - Airship/PreferenceCenter (= 17.7.3)
+  - Airship/Automation (17.7.3):
     - Airship/Core
-  - Airship/Basement (16.12.1)
-  - Airship/Core (16.12.1):
+  - Airship/Basement (17.7.3)
+  - Airship/Core (17.7.3):
     - Airship/Basement
-  - Airship/ExtendedActions (16.12.1):
+  - Airship/FeatureFlags (17.7.3):
     - Airship/Core
-  - Airship/MessageCenter (16.12.1):
+  - Airship/MessageCenter (17.7.3):
     - Airship/Core
-  - Airship/PreferenceCenter (16.12.1):
+  - Airship/PreferenceCenter (17.7.3):
     - Airship/Core
-  - AirshipFrameworkProxy (2.1.1):
-    - Airship (= 16.12.1)
-    - Airship/MessageCenter (= 16.12.1)
-    - Airship/PreferenceCenter (= 16.12.1)
+  - AirshipFrameworkProxy (5.1.1):
+    - Airship (= 17.7.3)
   - AirshipServiceExtension (17.8.0)
   - AppAuth (1.6.2):
     - AppAuth/Core (= 1.6.2)
@@ -1162,8 +1161,8 @@ PODS:
   - React-Mapbuffer (0.73.4):
     - glog
     - React-debug
-  - react-native-airship (15.3.1):
-    - AirshipFrameworkProxy (= 2.1.1)
+  - react-native-airship (17.2.1):
+    - AirshipFrameworkProxy (= 5.1.1)
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1237,7 +1236,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-geolocation (3.0.6):
+  - react-native-geolocation (3.2.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1836,7 +1835,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.38):
+  - RNLiveMarkdown (0.1.47):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1854,9 +1853,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.38)
+    - RNLiveMarkdown/common (= 0.1.47)
     - Yoga
-  - RNLiveMarkdown/common (0.1.38):
+  - RNLiveMarkdown/common (0.1.47):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1945,7 +1944,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.29.0):
+  - RNScreens (3.30.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1963,9 +1962,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.29.0)
+    - RNScreens/common (= 3.30.1)
     - Yoga
-  - RNScreens/common (3.29.0):
+  - RNScreens/common (3.30.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2438,8 +2437,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: 2f4510b497a8200780752a5e0304a9072bfffb6d
-  AirshipFrameworkProxy: ea1b6c665c798637b93c465b5e505be3011f1d9d
+  Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
+  AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
   AirshipServiceExtension: 0a5fb14c3fd1879355ab05a81d10f64512a4f79c
   AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
@@ -2508,12 +2507,12 @@ SPEC CHECKSUMS:
   React-jsitracing: e8a2dafb9878dbcad02b6b2b88e66267fb427b74
   React-logger: 0a57b68dd2aec7ff738195f081f0520724b35dab
   React-Mapbuffer: 63913773ed7f96b814a2521e13e6d010282096ad
-  react-native-airship: 2ed75ff2278f11ff1c1ab08ed68f5bf02727b971
+  react-native-airship: 6ab7a7974d53f92b0c46548fc198f797fdbf371f
   react-native-blob-util: a3ee23cfdde79c769c138d505670055de233b07a
   react-native-cameraroll: 95ce0d1a7d2d1fe55bf627ab806b64de6c3e69e9
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
-  react-native-geolocation: dcc37809bc117ffdb5946fecc127d62319ccd4a9
+  react-native-geolocation: c1c21a8cda4abae6724a322458f64ac6889b8c2b
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 74d18ad516037536c2f671ef0914bcce7739b2f5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
@@ -2565,13 +2564,13 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 1190c218cdaaf029ee1437076a3fbbc3297d89fb
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: 9d974f060d0bd857f7d96fac0e9a1539363baa5e
+  RNLiveMarkdown: f172c7199283dc9d21bccf7e21ea10741fd19e1d
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 3e273e0e867a079ec33df9ee33bb0482434b897d
   RNPermissions: 8990fc2c10da3640938e6db1647cb6416095b729
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 605409e0d0ced6f2e194ae585fedc2f8a1935bf2
-  RNScreens: f7b8bb892b4957f6f91e5dfd9a191e7f13ce8baa
+  RNScreens: 65a936f4e227b91e4a8e2a7d4c4607355bfefda0
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: db32cfcad0a221fd175e0882eff7bcba7690380a
@@ -2582,7 +2581,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 3033e0dd5272d46e97bcb406adea4ae0e6907abf
-  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
 

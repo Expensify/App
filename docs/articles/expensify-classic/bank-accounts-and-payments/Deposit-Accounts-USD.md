@@ -33,7 +33,7 @@ You should be all set! You’ll receive reimbursement for your expense reports d
 **Connect a business deposit-only bank account if you are:**  
 
 - A US-based vendor who wants to be paid directly for bills sent to customers/clients
-- A US-based vendor who want to pay invoices directly via Expensify
+- A US-based vendor who wants to pay invoices directly via Expensify
 
 **To establish the connection to a business bank account, follow these steps:**    
 
