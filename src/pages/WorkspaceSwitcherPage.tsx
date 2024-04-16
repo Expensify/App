@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -14,6 +14,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -57,8 +58,8 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [selectedOption, setSelectedOption] = useState<SimpleWorkspaceItem>();
     const [searchTerm, setSearchTerm] = useState('');
+    const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
@@ -104,15 +105,12 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
 
             const {policyID} = option;
 
-            if (policyID) {
-                setSelectedOption(option);
-            } else {
-                setSelectedOption(undefined);
-            }
             setActiveWorkspaceID(policyID);
-            Navigation.goBack();
+
             if (policyID !== activeWorkspaceID) {
                 Navigation.navigateWithSwitchPolicyID({policyID});
+            } else {
+                Navigation.goBack();
             }
         },
         [activeWorkspaceID, setActiveWorkspaceID],
@@ -137,12 +135,12 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
-                isBold: hasUnreadData(policy?.id),
+                boldStyle: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
-                isSelected: selectedOption?.policyID === policy?.id,
+                isSelected: policy?.id === activeWorkspaceID,
             }));
-    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline, selectedOption?.policyID]);
+    }, [policies, getIndicatorTypeForPolicy, hasUnreadData, isOffline, activeWorkspaceID]);
 
     const filteredAndSortedUserWorkspaces = useMemo(
         () =>
@@ -172,7 +170,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 },
             ],
             brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
-            isBold: hasUnreadData(undefined),
+            boldStyle: hasUnreadData(undefined),
         };
 
         return (
@@ -237,36 +235,40 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
 
                 {usersWorkspaces.length > 0 ? (
                     <SelectionList
+                        ListItem={UserListItem}
                         textInputPlaceholder={translate('workspace.switcher.placeholder')}
+                        textInputRef={inputCallbackRef}
                         sections={[usersWorkspacesSectionData]}
                         textInputValue={searchTerm}
-                        shouldShowTextInput={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH}
                         onChangeText={setSearchTerm}
                         onSelectRow={selectPolicy}
                         shouldPreventDefaultFocusOnSelectRow
                         headerMessage={headerMessage}
-                        canSelectMultiple={false}
-                        shouldShowTooltips={false}
-                        contentContainerStyles={[styles.pt0, styles.mt0]}
-                        textInputIconLeft={MagnifyingGlass}
+                        containerStyle={[styles.pt0, styles.mt0]}
+                        textInputIconLeft={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? MagnifyingGlass : undefined}
                         initiallyFocusedOptionKey={activeWorkspaceID}
-                        ListItem={UserListItem}
+                        textInputAutoFocus={false}
                     />
                 ) : (
                     <WorkspaceCardCreateAWorkspace />
                 )}
             </>
         ),
-        [setSearchTerm, searchTerm, selectPolicy, styles, theme.textSupporting, translate, usersWorkspaces.length, usersWorkspacesSectionData, activeWorkspaceID, theme.icon, headerMessage],
+        [
+            inputCallbackRef,
+            setSearchTerm,
+            searchTerm,
+            selectPolicy,
+            styles,
+            theme.textSupporting,
+            translate,
+            usersWorkspaces.length,
+            usersWorkspacesSectionData,
+            activeWorkspaceID,
+            theme.icon,
+            headerMessage,
+        ],
     );
-
-    useEffect(() => {
-        if (!activeWorkspaceID) {
-            return;
-        }
-        const optionToSet = usersWorkspaces.find((option) => option.policyID === activeWorkspaceID);
-        setSelectedOption(optionToSet);
-    }, [activeWorkspaceID, usersWorkspaces]);
 
     return (
         <ScreenWrapper testID={WorkspaceSwitcherPage.displayName}>
