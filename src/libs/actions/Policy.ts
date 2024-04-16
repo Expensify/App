@@ -3919,9 +3919,9 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     new Promise<void>((resolve) => {
         resolve();
     }).then(() => {
-        requestAnimationFrame(() => {
+        setTimeout(() => {
             Navigation.navigate(featureRoute);
-        });
+        }, 300);
     });
 }
 

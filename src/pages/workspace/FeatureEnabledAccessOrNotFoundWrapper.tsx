@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/no-negated-variables */
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -42,6 +43,8 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const {isOffline} = useNetwork();
 
+    const isFocused = useIsFocused();
+    const prevIsFocused = usePrevious(isFocused);
     const pendingField = props.policy?.pendingFields?.[props.featureName];
     const prevPendingField = usePrevious(pendingField);
 
@@ -57,12 +60,12 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
 
     useEffect(() => {
         setIsPolicyFeatureEnabled((isCurrentPolicyFeatureEnabled) => {
-            if (prevPendingField !== pendingField || isOffline || !pendingField) {
+            if (prevPendingField !== pendingField || isOffline || !pendingField || !prevIsFocused) {
                 return isFeatureEnabled;
             }
             return isCurrentPolicyFeatureEnabled;
         });
-    }, [pendingField, isFeatureEnabled, isOffline, prevPendingField]);
+    }, [pendingField, isFeatureEnabled, isOffline, prevPendingField, prevIsFocused]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
