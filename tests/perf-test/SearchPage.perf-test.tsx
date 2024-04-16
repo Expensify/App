@@ -13,7 +13,7 @@ import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {createOptionList} from '@libs/OptionsListUtils';
-import SearchPage from '@pages/SearchPage';
+import SearchPage from '@pages/Search/SearchPage';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
