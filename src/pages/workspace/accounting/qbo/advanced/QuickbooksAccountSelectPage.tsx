@@ -43,7 +43,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                 keyForList: name,
                 isSelected: selectedAccount === name,
             })),
-        [selectedAccount, translate, accountOptions],
+        [selectedAccount, accountOptions],
     );
     const listHeaderComponent = useMemo(
         () => (
@@ -59,7 +59,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const saveSelection = useCallback(({value}: SelectorType) => {
         Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
         Navigation.goBack();
-    }, []);
+    }, [policyID]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>

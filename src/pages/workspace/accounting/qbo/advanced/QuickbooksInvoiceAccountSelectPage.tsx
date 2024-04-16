@@ -43,7 +43,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
                 keyForList: name,
                 isSelected: selectedAccount === name,
             })),
-        [selectedAccount, translate, accountOptions],
+        [selectedAccount, accountOptions],
     );
 
     const listHeaderComponent = useMemo(
@@ -57,10 +57,13 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
-    const updateMode = useCallback(({value}: SelectorType) => {
-        Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
-        Navigation.goBack();
-    }, []);
+    const updateMode = useCallback(
+        ({value}: SelectorType) => {
+            Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, value);
+            Navigation.goBack();
+        },
+        [policyID],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
