@@ -104,30 +104,30 @@ function ExpensifyCardPage({
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
 
-    const handleRevealDetails = (revealedcardID: number) => {
+    const handleRevealDetails = (revealedCardID: number) => {
         setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({
             ...prevState,
-            [revealedcardID]: true,
+            [revealedCardID]: true,
         }));
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state
         // Hence eslint disable here.
         // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
-        Card.revealVirtualCardDetails(revealedcardID)
+        Card.revealVirtualCardDetails(revealedCardID)
             .then((value) => {
-                setCardsDetails((prevState: Record<number, TCardDetails | null>) => ({...prevState, [revealedcardID]: value as TCardDetails}));
+                setCardsDetails((prevState: Record<number, TCardDetails | null>) => ({...prevState, [revealedCardID]: value as TCardDetails}));
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedcardID]: '',
+                    [revealedCardID]: '',
                 }));
             })
             .catch((error) => {
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
-                    [revealedcardID]: error,
+                    [revealedCardID]: error,
                 }));
             })
-            .finally(() => setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [revealedcardID]: false})));
+            .finally(() => setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [revealedCardID]: false})));
     };
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);

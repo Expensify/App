@@ -110,8 +110,11 @@ function ActivatePhysicalCardPage({
             setFormError('activateCardPage.error.thatDidntMatch');
             return;
         }
+        if (physicalCard?.cardID) {
+            return;
+        }
 
-        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, physicalCard?.cardID ?? 0);
+        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, physicalCard?.cardID);
     }, [lastFourDigits, physicalCard?.cardID]);
 
     if (isEmptyObject(physicalCard)) {
