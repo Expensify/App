@@ -93,6 +93,4 @@ export default PropTypes.shape({
 
     /** Server side errors keyed by microtime */
     errorFields: PropTypes.objectOf(PropTypes.objectOf(translatableTextPropTypes)),
-
-    skipConfirmation: PropTypes.bool,
 });
