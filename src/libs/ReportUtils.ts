@@ -2926,6 +2926,22 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
 }
 
 /**
+ * Get the report action message for a report action.
+ */
+function getReportActionMessage(reportAction: ReportAction | EmptyObject, parentReportID?: string) {
+    if (isEmptyObject(reportAction)) {
+        return '';
+    }
+    if (ReportActionsUtils.isApprovedOrSubmittedReportAction(reportAction)) {
+        return ReportActionsUtils.getReportActionMessageText(reportAction);
+    }
+    if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
+        return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
+    }
+    return reportAction?.message?.[0]?.text ?? '';
+}
+
+/**
  * Get the title for a report.
  */
 function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
@@ -2945,11 +2961,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         }
 
         const isAttachment = ReportActionsUtils.isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : null);
-        const parentReportActionMessage = (
-            ReportActionsUtils.isApprovedOrSubmittedReportAction(parentReportAction)
-                ? ReportActionsUtils.getReportActionMessageText(parentReportAction)
-                : parentReportAction?.message?.[0]?.text ?? ''
-        ).replace(/(\r\n|\n|\r)/gm, ' ');
+        const parentReportActionMessage = getReportActionMessage(parentReportAction, report?.parentReportID).replace(/(\r\n|\n|\r)/gm, ' ');
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
