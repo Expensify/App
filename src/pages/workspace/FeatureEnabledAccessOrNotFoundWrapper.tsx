@@ -42,7 +42,6 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const {isOffline} = useNetwork();
-
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const pendingField = props.policy?.pendingFields?.[props.featureName];
