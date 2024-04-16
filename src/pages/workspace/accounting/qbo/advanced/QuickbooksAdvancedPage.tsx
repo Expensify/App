@@ -101,7 +101,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoPayrollAccount')} // TODO: set to the current selected value
+                                title="Croissant Co Payroll Account" // TODO: set to the current selected value
                                 description={translate('workspace.qbo.advancedConfig.qboAccount')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                 onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
@@ -125,7 +125,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                             />
 
                             <MenuItemWithTopDescription
-                                title={translate('workspace.qbo.advancedConfig.croissantCo.CroissantCoMoneyInClearing')}
+                                title="Croissant Co Money in Clearing"
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                 onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
