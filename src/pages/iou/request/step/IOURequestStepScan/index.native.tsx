@@ -138,30 +138,28 @@ function IOURequestStepScan({
     );
 
     const validateReceipt = (file: FileObject): Promise<boolean> =>
-        new Promise((resolve) => {
-            checkPDFDocument.isValidPDF(file.uri ?? '', (isCorrect) => {
-                const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
-                if (
-                    !isCorrect ||
-                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                        fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
-                    )
-                ) {
-                    Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
-                    resolve(false);
-                }
+        checkPDFDocument.isValidPDF(file.uri ?? '').then((isValid) => {
+            const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+            if (
+                !isValid ||
+                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                    fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                )
+            ) {
+                Alert.alert(translate('attachmentPicker.wrongFileType'), translate('attachmentPicker.notAllowedExtension'));
+                return false;
+            }
 
-                if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                    Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
-                    resolve(false);
-                }
+            if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                Alert.alert(translate('attachmentPicker.attachmentTooLarge'), translate('attachmentPicker.sizeExceeded'));
+                return false;
+            }
 
-                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                    Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
-                    resolve(false);
-                }
-                resolve(true);
-            });
+            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                Alert.alert(translate('attachmentPicker.attachmentTooSmall'), translate('attachmentPicker.sizeNotMet'));
+                return false;
+            }
+            return true;
         });
 
     const navigateBack = () => {
