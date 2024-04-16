@@ -90,6 +90,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
     }, [report, isGroupChat]);
 
+    // Get the active chat members by filtering out the pending members with delete action
+    const activeChatMembers = participants.flatMap((accountID) => {
+        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+    });
+
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
@@ -140,7 +146,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: participants.length,
+                subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 action: () => {
                     if (isUserCreatedPolicyRoom || isChatThread) {
@@ -200,6 +206,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         session,
         isSelfDM,
         isDefaultRoom,
+        activeChatMembers.length,
         isGroupChat,
     ]);
 
