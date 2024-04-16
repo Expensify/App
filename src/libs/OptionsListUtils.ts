@@ -1460,7 +1460,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 
             const isSelfDM = ReportUtils.isSelfDM(report);
             // Currently, currentUser is not included in participants, so for selfDM we need to add the currentUser as participants.
-            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : ReportUtils.getParticipantAccountIDs(report.reportID);
+            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number);
 
             if (!accountIDs || accountIDs.length === 0) {
                 return;
@@ -1680,7 +1680,7 @@ function getOptions(
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
         // Currently, currentUser is not included in participants, so for selfDM we need to add the currentUser as participants.
-        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : ReportUtils.getParticipantAccountIDs(report.reportID);
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number);
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
