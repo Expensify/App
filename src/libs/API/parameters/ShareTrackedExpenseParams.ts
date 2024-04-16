@@ -13,7 +13,7 @@ type ShareTrackedExpenseParams = {
     moneyRequestCreatedReportActionID: string;
     actionableWhisperReportActionID: string;
     modifiedExpenseReportActionID: string;
-    reportPreviewReportActionID: string,
+    reportPreviewReportActionID: string;
     category?: string;
     tag?: string;
     receipt?: Receipt;
