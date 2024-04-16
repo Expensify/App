@@ -444,17 +444,12 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        conciergePlaceholderOptions: (): string => {
-            const options = [
-                'Ask for help!',
-                'Ask me anything!',
-                'Ask me to book travel!',
-                'Ask me what I can do!',
-                'Ask me how to pay people!',
-                'Ask me how to send an invoice!',
-                'Ask me how to scan a receipt!',
-                'Ask me how to get a free corporate card!',
-            ];
+        conciergePlaceholderOptions: ({isSmallScreenWidth}): string => {
+            // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
+            const options = ['Ask for help!', 'Ask me anything!', 'Ask me to book travel!', 'Ask me what I can do!', 'Ask me how to pay people!'];
+            if (!isSmallScreenWidth) {
+                options.push('Ask me how to send an invoice!', 'Ask me how to scan a receipt!', 'Ask me how to get a free corporate card!');
+            }
             return options[Math.floor(Math.random() * options.length)];
         },
         blockedFromConcierge: 'Communication is barred',
