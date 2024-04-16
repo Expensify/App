@@ -1,6 +1,5 @@
 import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
 import Hand from '@assets/images/hand.svg';
 import ReceiptUpload from '@assets/images/receipt-upload.svg';
@@ -21,29 +20,19 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import checkPDFDocument from '@libs/CheckPDFDocument';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
-import type IOURequestStepOnyxProps from './types';
-
-type IOURequestStepScanProps = IOURequestStepOnyxProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-        transaction: OnyxEntry<OnyxTypes.Transaction>;
-    };
+import type {IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({
     report,
@@ -51,7 +40,7 @@ function IOURequestStepScan({
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
-}: IOURequestStepScanProps) {
+}: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -175,33 +164,35 @@ function IOURequestStepScan({
         setAttachmentValidReason(reason);
     };
 
-    function validateReceipt(file: FileObject): Promise<boolean> {
-        return new Promise((resolve) => {
-            checkPDFDocument.isValidPDF(file.uri ?? '').then((isValid) => {
+    function validateReceipt(file: FileObject) {
+        return FileUtils.validateImageForCorruption(file)
+            .then(() => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
                 if (
-                    !isValid ||
                     !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
                         fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
                     )
                 ) {
                     setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                    resolve(false);
+                    return false;
                 }
 
                 if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
-                    resolve(false);
+                    return false;
                 }
 
                 if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                     setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                    resolve(false);
+                    return false;
                 }
 
-                resolve(true);
+                return true;
+            })
+            .catch(() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedImage');
+                return false;
             });
-        });
     }
 
     const navigateBack = () => {
@@ -238,11 +229,10 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (file: FileObject) => {
-        validateReceipt(file).then((isValid) => {
-            if (!isValid) {
+        validateReceipt(file).then((isFileValid) => {
+            if (!isFileValid) {
                 return;
             }
-
             // Store the receipt on the transaction object in Onyx
             const source = URL.createObjectURL(file as Blob);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
