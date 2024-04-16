@@ -4385,7 +4385,7 @@ function buildOptimisticMoneyRequestEntities(
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail, iouReport.lastVisibleActionCreated);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
-    const iouActionCreationTime = iouReport.lastVisibleActionCreated ?? DateUtils.getDBTime();
+    const iouActionCreationTime = !iouReport.lastVisibleActionCreated || isEmpty(iouReport.lastVisibleActionCreated) ? DateUtils.getDBTime() : iouReport.lastVisibleActionCreated;
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
     const iouAction = buildOptimisticIOUReportAction(
         type,
