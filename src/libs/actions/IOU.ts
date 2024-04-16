@@ -5335,6 +5335,14 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
         return false;
     }
 
+    if (ReportUtils.isInvoiceReport(iouReport)) {
+        if (chatReport?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+            return chatReport?.invoiceReceiver?.accountID === userAccountID;
+        }
+
+        return getPolicy(chatReport?.invoiceReceiver?.policyID).role === CONST.POLICY.ROLE.ADMIN;
+    }
+
     const isPayer = ReportUtils.isPayer(
         {
             email: currentUserEmail,
