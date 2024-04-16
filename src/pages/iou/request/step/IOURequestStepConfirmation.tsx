@@ -77,6 +77,7 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
+    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
@@ -84,7 +85,7 @@ function IOURequestStepConfirmation({
         if (isSharingTrackExpense) {
             return translate('iou.categorize');
         }
-        if (action === CONST.IOU.ACTION.MOVE) {
+        if (isRequestingFromTrackExpense) {
             return translate('iou.request');
         }
         if (isCategorizingTrackExpense) {
@@ -100,7 +101,7 @@ function IOURequestStepConfirmation({
             return translate('common.send');
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, action]);
+    }, [iouType, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
 
     const participants = useMemo(
         () =>
@@ -435,6 +436,8 @@ function IOURequestStepConfirmation({
             report?.reportID,
             trackExpense,
             createDistanceRequest,
+            isSharingTrackExpense,
+            isCategorizingTrackExpense,
             action,
         ],
     );
