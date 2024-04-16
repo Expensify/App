@@ -4,7 +4,6 @@ const OUTPUT_DIR = process.env.WORKING_DIRECTORY || './tests/e2e/results';
 // add your test name here …
 const TEST_NAMES = {
     AppStartTime: 'App start time',
-    // ASK: Should we also update this name?
     OpenChatFinderPage: 'Open chat finder page TTI',
     ReportTyping: 'Report typing',
     ChatOpening: 'Chat opening',

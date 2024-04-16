@@ -9,7 +9,7 @@ import ROUTES from '@src/ROUTES';
 
 const test = () => {
     // check for login (if already logged in the action will simply resolve)
-    console.debug('[E2E] Logging in for chat finding');
+    console.debug('[E2E] Logging in for chat finder');
 
     E2ELogin().then((neededLogin: boolean): Promise<Response> | undefined => {
         if (neededLogin) {
@@ -19,7 +19,7 @@ const test = () => {
             );
         }
 
-        console.debug('[E2E] Logged in, getting chat finding metrics and submitting them…');
+        console.debug('[E2E] Logged in, getting chat finder metrics and submitting them…');
 
         Performance.subscribeToMeasurements((entry) => {
             if (entry.name === CONST.TIMING.SIDEBAR_LOADED) {
@@ -29,7 +29,7 @@ const test = () => {
             }
 
             console.debug(`[E2E] Entry: ${JSON.stringify(entry)}`);
-            if (entry.name !== CONST.TIMING.SEARCH_RENDER) {
+            if (entry.name !== CONST.TIMING.CHAT_FINDER_RENDER) {
                 return;
             }
 

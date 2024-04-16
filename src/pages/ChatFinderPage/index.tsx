@@ -45,7 +45,6 @@ type ChatFinderPageSectionItem = {
 type ChatFinderPageSectionList = ChatFinderPageSectionItem[];
 
 const setPerformanceTimersEnd = () => {
-    // ASK: Should we also update this name?
     Timing.end(CONST.TIMING.CHAT_FINDER_RENDER);
     Performance.markEnd(CONST.TIMING.CHAT_FINDER_RENDER);
 };
@@ -66,7 +65,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     useEffect(() => {
-        // ASK: Should we also update this name?
         Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
         Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
     }, []);
