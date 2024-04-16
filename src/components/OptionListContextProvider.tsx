@@ -37,12 +37,11 @@ const OptionsListContext = createContext<OptionsListContextProps>({
     areOptionsInitialized: false,
 });
 
-const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, personalDetail: PersonalDetails | null) => (
-        prevPersonalDetail?.firstName === personalDetail?.firstName &&
-        prevPersonalDetail?.lastName === personalDetail?.lastName &&
-        prevPersonalDetail?.login === personalDetail?.login &&
-        prevPersonalDetail?.displayName === personalDetail?.displayName
-    );
+const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, personalDetail: PersonalDetails | null) =>
+    prevPersonalDetail?.firstName === personalDetail?.firstName &&
+    prevPersonalDetail?.lastName === personalDetail?.lastName &&
+    prevPersonalDetail?.login === personalDetail?.login &&
+    prevPersonalDetail?.displayName === personalDetail?.displayName;
 
 function OptionsListContextProvider({reports, children}: OptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
@@ -130,7 +129,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             }
 
             Object.values(reports ?? {})
-                .filter((report) => (Boolean(report?.participantAccountIDs?.includes(Number(accoutID))) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accoutID))))
+                .filter((report) => Boolean(report?.participantAccountIDs?.includes(Number(accoutID))) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accoutID)))
                 .forEach((report) => {
                     if (!report) {
                         return;
