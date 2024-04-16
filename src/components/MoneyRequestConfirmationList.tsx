@@ -26,11 +26,12 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AllRoutes} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -67,7 +68,7 @@ type MoneyRequestConfirmationListOnyxProps = {
 };
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
     /** Callback to inform parent modal of success */
-    onConfirm?: (selectedParticipants: Participant[]) => void;
+    onConfirm?: (selectedParticipants: Array<Participant | ReportUtils.OptionData>) => void;
 
     /** Callback to parent modal to send money */
     onSendMoney?: (paymentMethod: IouType | PaymentMethodType | undefined) => void;
@@ -109,10 +110,10 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     onToggleBillable?: (isOn: boolean) => void;
 
     /** Selected participants from MoneyRequestModal with login / accountID */
-    selectedParticipants: Participant[];
+    selectedParticipants: Array<Participant | ReportUtils.OptionData>;
 
     /** Payee of the money request with login */
-    payeePersonalDetails?: OnyxTypes.PersonalDetails;
+    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
 
     /** Can the participants be modified or not */
     canModifyParticipants?: boolean;
@@ -121,7 +122,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     isReadOnly?: boolean;
 
     /** Depending on expense report or personal IOU report, respective bank account route */
-    bankAccountRoute?: AllRoutes;
+    bankAccountRoute?: Route;
 
     /** The policyID of the request */
     policyID?: string;
@@ -130,7 +131,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     reportID?: string;
 
     /** File path of the receipt */
-    receiptPath?: string;
+    receiptPath?: ReceiptSource;
 
     /** File name of the receipt */
     receiptFilename?: string;
@@ -222,13 +223,12 @@ function MoneyRequestConfirmationList({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseP2PDistanceRequests, canUseViolations} = usePermissions();
+    const {canUseViolations} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-    const canEditDistance = isTypeRequest || (canUseP2PDistanceRequests && isSplitBill);
 
     const isSplitWithScan = isSplitBill && isScanRequest;
 
@@ -275,7 +275,7 @@ function MoneyRequestConfirmationList({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) ${CONST.DOT_SEPARATOR} ${translate('common.default')}`) ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing is not working when a left hand side value is ''
     const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 
@@ -322,7 +322,7 @@ function MoneyRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]): Participant[] => {
+        (participantsList: Array<Participant | ReportUtils.OptionData>): Array<Participant | ReportUtils.OptionData> => {
             const calculatedIouAmount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
@@ -358,7 +358,10 @@ function MoneyRequestConfirmationList({
         ];
     }, [isSplitBill, isTypeRequest, iouType, iouAmount, receiptPath, formattedAmount, isDistanceRequestWithPendingRoute, translate]);
 
-    const selectedParticipants: Participant[] = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
+    const selectedParticipants: Array<Participant | ReportUtils.OptionData> = useMemo(
+        () => selectedParticipantsProp.filter((participant) => participant.selected),
+        [selectedParticipantsProp],
+    );
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
@@ -388,14 +391,12 @@ function MoneyRequestConfirmationList({
                     title: translate('moneyRequestConfirmationList.paidBy'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
-                    indexOffset: 0,
                     isDisabled: shouldDisablePaidBySection,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
-                    indexOffset: 1,
                 },
             );
         } else {
@@ -407,7 +408,6 @@ function MoneyRequestConfirmationList({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
                 shouldShow: true,
-                indexOffset: 0,
             });
         }
         return sections;
@@ -424,7 +424,7 @@ function MoneyRequestConfirmationList({
         canModifyParticipants,
     ]);
 
-    const selectedOptions: Array<Participant | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
+    const selectedOptions: Array<Participant | ReportUtils.OptionData | OptionsListUtils.PayeePersonalDetails> = useMemo(() => {
         if (!hasMultipleParticipants) {
             return [];
         }
@@ -536,7 +536,6 @@ function MoneyRequestConfirmationList({
                 onPress={confirm}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
-                addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
                 currency={iouCurrencyCode}
                 policyID={policyID}
                 buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
@@ -650,11 +649,9 @@ function MoneyRequestConfirmationList({
                         if (isDistanceRequest) {
                             return;
                         }
-                        if (isEditingSplitBill) {
-                            Navigation.navigate(ROUTES.EDIT_SPLIT_BILL.getRoute(reportID, reportActionID ?? '', CONST.EDIT_REQUEST_FIELD.AMOUNT));
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_AMOUNT.getRoute(iouType, reportID));
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
                     }}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
@@ -721,7 +718,7 @@ function MoneyRequestConfirmationList({
                     )}
                     {isDistanceRequest && (
                         <MenuItemWithTopDescription
-                            shouldShowRightIcon={!isReadOnly && canEditDistance}
+                            shouldShowRightIcon={!isReadOnly}
                             title={iouMerchant}
                             description={translate('common.distance')}
                             style={styles.moneyRequestMenuItem}
@@ -737,7 +734,7 @@ function MoneyRequestConfirmationList({
                                     ),
                                 )
                             }
-                            disabled={didConfirm || !canEditDistance}
+                            disabled={didConfirm}
                             interactive={!isReadOnly}
                         />
                     )}
@@ -831,7 +828,13 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
                                 )
                             }
                             disabled={didConfirm}
@@ -848,7 +851,13 @@ function MoneyRequestConfirmationList({
                             titleStyle={styles.flex1}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(
+                                        CONST.IOU.ACTION.CREATE,
+                                        iouType,
+                                        transaction?.transactionID ?? '',
+                                        reportID,
+                                        Navigation.getActiveRouteWithoutParams(),
+                                    ),
                                 )
                             }
                             disabled={didConfirm}

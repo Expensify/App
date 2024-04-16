@@ -68,7 +68,7 @@ E2EClient.getTestConfig()
             return E2EClient.submitTestResults({
                 name: config.name,
                 error: `Test '${config.name}' not found`,
-                critical: false, 
+                isCritical: false, 
             });
         }
 

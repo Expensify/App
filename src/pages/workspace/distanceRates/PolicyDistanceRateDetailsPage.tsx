@@ -129,7 +129,7 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
                             </OfflineWithFeedback>
                             <OfflineWithFeedback
                                 errors={ErrorUtils.getLatestErrorField(rate, 'rate')}
-                                pendingAction={rate?.pendingFields?.rate}
+                                pendingAction={rate?.pendingFields?.rate ?? rate?.pendingFields?.currency}
                                 errorRowStyles={styles.mh5}
                                 onClose={() => clearErrorFields('rate')}
                             >

@@ -1,5 +1,5 @@
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
@@ -41,10 +41,9 @@ describe('actions/Policy', () => {
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
-            let policy: OnyxCollection<PolicyType> = await new Promise((resolve) => {
+            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    waitForCollectionCallback: true,
                     callback: (workspace) => {
                         Onyx.disconnect(connectionID);
                         resolve(workspace);
@@ -55,16 +54,15 @@ describe('actions/Policy', () => {
             // check if policy was created with correct values
             expect(policy?.id).toBe(policyID);
             expect(policy?.name).toBe(WORKSPACE_NAME);
-            expect(policy?.type).toBe(CONST.POLICY.TYPE.FREE);
+            expect(policy?.type).toBe(CONST.POLICY.TYPE.TEAM);
             expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-            const policyMembers: OnyxCollection<PolicyMembers> = await new Promise((resolve) => {
+            const policyMembers: OnyxEntry<PolicyMembers> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-                    waitForCollectionCallback: true,
                     callback: (members) => {
                         Onyx.disconnect(connectionID);
                         resolve(members);

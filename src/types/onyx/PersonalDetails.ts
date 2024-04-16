@@ -68,9 +68,6 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
-
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
 
@@ -81,8 +78,13 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     status?: Status;
 }>;
 
+type PersonalDetailsMetadata = {
+    /** Whether we are waiting for the data to load via the API */
+    isLoading?: boolean;
+};
+
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 
-export type {Timezone, Status, SelectedTimezone, PersonalDetailsList};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata};

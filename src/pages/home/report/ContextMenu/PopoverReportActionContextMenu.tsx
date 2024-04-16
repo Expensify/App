@@ -9,9 +9,11 @@ import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
+import ROUTES from '@src/ROUTES';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -62,6 +64,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [isChatPinned, setIsChatPinned] = useState(false);
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
+    const [shoudSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -218,6 +221,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             setIsChronosReportEnabled(isChronosReport);
             setIsChatPinned(isPinnedChat);
             setHasUnreadMessages(isUnreadChat);
+            setShoudSwitchPositionIfOverflow(isOverflowMenu);
         });
     };
 
@@ -270,6 +274,9 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             }
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
+            if (!((reportAction?.childVisibleActionCount ?? 0) > 0)) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportIDRef.current));
+            }
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
@@ -328,7 +335,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 withoutOverlay
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
-                shoudSwitchPositionIfOverflow
+                shoudSwitchPositionIfOverflow={shoudSwitchPositionIfOverflow}
             >
                 <BaseReportActionContextMenu
                     isVisible

@@ -64,7 +64,7 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
  */
 function refreshNotificationOptInStatus() {
     Airship.push.getNotificationStatus().then((notificationStatus) => {
-        const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+        const isOptedIn = notificationStatus.isOptedIn && notificationStatus.areNotificationsAllowed;
         if (isOptedIn === isUserOptedInToPushNotifications) {
             return;
         }
@@ -94,7 +94,7 @@ const init: Init = () => {
     });
 
     // Keep track of which users have enabled push notifications via an NVP.
-    Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
+    Airship.addListener(EventType.PushNotificationStatusChangedStatus, refreshNotificationOptInStatus);
 
     ForegroundNotifications.configureForegroundNotifications();
 };

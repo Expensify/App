@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
 import Log from '@libs/Log';
@@ -27,7 +27,7 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response) {
     console.debug('[OnyxUpdateManager] Applying https update');
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
+    const updateHandler: (updates: OnyxUpdate[]) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? QueuedOnyxUpdates.queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
@@ -119,6 +119,11 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
+    // If we got here, that means we are missing some updates on our local storage. To
+    // guarantee that we're not fetching more updates before our local data is up to date,
+    // let's stop the sequential queue from running until we're done catching up.
+    SequentialQueue.pause();
+
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
@@ -148,9 +153,6 @@ function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer) {
         apply(updates);
         return;
     }
-
-    // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
-    SequentialQueue.pause();
     saveUpdateInformation(updates);
 }
 

@@ -22,6 +22,7 @@ import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvide
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
@@ -80,6 +81,7 @@ function App({url}: AppProps) {
                         ActiveWorkspaceContextProvider,
                         ReportIDsContextProvider,
                         PlaybackContextProvider,
+                        FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
                     ]}

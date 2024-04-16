@@ -1,6 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-type PolicyTag = {
+type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of a Tag */
     name: string;
 
@@ -13,9 +13,9 @@ type PolicyTag = {
 
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
-};
+}>;
 
-type PolicyTags = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyTag>>;
+type PolicyTags = Record<string, PolicyTag>;
 
 type PolicyTagList<T extends string = string> = Record<
     T,

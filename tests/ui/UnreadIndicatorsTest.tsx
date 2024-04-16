@@ -233,7 +233,7 @@ function signInAndGetAppWithUnreadChat(): Promise<void> {
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
             });
-            const createdReportActionID = NumberUtils.rand64();
+            const createdReportActionID = NumberUtils.rand64().toString();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
                 [createdReportActionID]: {
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -604,7 +604,7 @@ describe('Unread Indicators', () => {
                     // Simulate the response from the server so that the comment can be deleted in this test
                     lastReportAction = reportActions ? CollectionUtils.lastItem(reportActions) : undefined;
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                        lastMessageText: lastReportAction?.message?.[0].text,
+                        lastMessageText: lastReportAction?.message?.[0]?.text,
                         lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction?.timestamp),
                         lastActorAccountID: lastReportAction?.actorAccountID,
                         reportID: REPORT_ID,

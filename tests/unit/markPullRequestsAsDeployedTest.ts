@@ -3,6 +3,7 @@
 /**
  * @jest-environment node
  */
+import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
 import GitUtils from '../../.github/libs/GitUtils';
 
@@ -129,8 +130,7 @@ beforeAll(() => {
         paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
     };
 
-    // @ts-expect-error TODO: Remove this once GithubUtils (https://github.com/Expensify/App/issues/25382) is migrated to TypeScript.
-    GithubUtils.internalOctokit = moctokit;
+    GithubUtils.internalOctokit = moctokit as unknown as InternalOctokit;
 
     // Mock GitUtils
     GitUtils.getPullRequestsMergedBetween = jest.fn();

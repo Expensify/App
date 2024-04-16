@@ -103,6 +103,8 @@ function ReportActionsListWrapper() {
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
+                        transactionThreadReport={LHNTestUtilsModule.getFakeReport()}
+                        reportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>

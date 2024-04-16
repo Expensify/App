@@ -38,11 +38,11 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    SVGAvatarColorStyle,
     TextColorStyle,
-    WorkspaceColorStyle,
 } from './types';
 
-const workspaceColorOptions: WorkspaceColorStyle[] = [
+const workspaceColorOptions: SVGAvatarColorStyle[] = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
     {backgroundColor: colors.blue400, fill: colors.blue800},
     {backgroundColor: colors.blue700, fill: colors.blue200},
@@ -274,6 +274,13 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+/**
+ * Helper method to return formatted backgroundColor and fill styles
+ */
+function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAvatarColorStyle {
+    return {backgroundColor, fill};
 }
 
 /**
@@ -818,21 +825,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false, shouldShowAnimatedBackground = true): ViewStyle {
     const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
-        return {
-            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
-            display: 'flex',
-            justifyContent: 'space-between',
-        };
-    }
-
-    return {
-        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+    const baseStyles: ViewStyle = {
         display: 'flex',
         justifyContent: 'space-between',
     };
+
+    if (shouldShowAnimatedBackground) {
+        baseStyles.minHeight = isSmallScreenWidth ? emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT : emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT;
+    }
+
+    return baseStyles;
 }
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -1126,6 +1130,7 @@ const staticStyleUtils = {
     getComposeTextAreaPadding,
     getColorStyle,
     getDefaultWorkspaceAvatarColor,
+    getBackgroundColorAndFill,
     getDirectionStyle,
     getDropDownButtonHeight,
     getEmojiPickerListHeight,
@@ -1231,7 +1236,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             height: avatarSize,
             width: avatarSize,
             borderRadius: avatarSize,
-            backgroundColor: theme.offline,
+            backgroundColor: theme.border,
         };
     },
 
@@ -1454,7 +1459,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Generate the styles for the ReportActionItem wrapper view.
      */
-    getReportActionItemStyle: (isHovered = false): ViewStyle =>
+    getReportActionItemStyle: (isHovered = false, isClickable = false): ViewStyle =>
         // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ({
@@ -1465,7 +1470,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 : // Warning: Setting this to a non-transparent color will cause unread indicator to break on Android
                   theme.transparent,
             opacity: 1,
-            ...styles.cursorInitial,
+            ...(isClickable ? styles.cursorPointer : styles.cursorInitial),
         }),
 
     /**

@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,7 +11,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import StatePicker from '@components/StatePicker';
+import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
@@ -22,6 +23,8 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {AddDebitCardForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 
@@ -58,6 +61,7 @@ function DebitCardPage({formData}: DebitCardPageProps) {
     const {translate} = useLocalize();
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
     const nameOnCardRef = useRef<AnimatedTextInputRef>(null);
+    const route = useRoute();
 
     /**
      * Reset the form values on the mount and unmount so that old errors don't show when this form is displayed again.
@@ -200,7 +204,8 @@ function DebitCardPage({formData}: DebitCardPageProps) {
                 />
                 <View style={[styles.mt4, styles.mhn5]}>
                     <InputWrapper
-                        InputComponent={StatePicker}
+                        stateSelectorRoute={route.name === SCREENS.IOU_SEND.ADD_DEBIT_CARD ? ROUTES.MONEY_REQUEST_STATE_SELECTOR : undefined}
+                        InputComponent={StateSelector}
                         inputID={INPUT_IDS.ADDRESS_STATE}
                     />
                 </View>

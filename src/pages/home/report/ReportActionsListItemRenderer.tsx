@@ -11,6 +11,9 @@ type ReportActionsListItemRendererProps = {
     /** All the data of the action item */
     reportAction: ReportAction;
 
+    /** Array of report actions for the report */
+    reportActions: ReportAction[];
+
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
 
@@ -19,6 +22,9 @@ type ReportActionsListItemRendererProps = {
 
     /** Report for this action */
     report: Report;
+
+    /** The transaction thread report associated with the report for this action, if any */
+    transactionThreadReport: OnyxEntry<Report>;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
@@ -34,18 +40,24 @@ type ReportActionsListItemRendererProps = {
 
     /** Linked report action ID */
     linkedReportActionID?: string;
+
+    /** Whether we should display "Replies" divider */
+    shouldDisplayReplyDivider: boolean;
 };
 
 function ReportActionsListItemRenderer({
     reportAction,
+    reportActions = [],
     parentReportAction,
     index,
     report,
+    transactionThreadReport,
     displayAsGroup,
     mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
+    shouldDisplayReplyDivider,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -71,6 +83,7 @@ function ReportActionsListItemRenderer({
                 error: reportAction.error,
                 created: reportAction.created,
                 actorAccountID: reportAction.actorAccountID,
+                adminAccountID: reportAction.adminAccountID,
                 childVisibleActionCount: reportAction.childVisibleActionCount,
                 childOldestFourAccountIDs: reportAction.childOldestFourAccountIDs,
                 childType: reportAction.childType,
@@ -86,25 +99,26 @@ function ReportActionsListItemRenderer({
                 childMoneyRequestCount: reportAction.childMoneyRequestCount,
             } as ReportAction),
         [
-            reportAction.actionName,
-            reportAction.childCommenterCount,
-            reportAction.childLastVisibleActionCreated,
-            reportAction.childReportID,
-            reportAction.created,
-            reportAction.error,
-            reportAction.errors,
-            reportAction.linkMetadata,
-            reportAction.message,
-            reportAction.originalMessage,
-            reportAction.pendingAction,
             reportAction.reportActionID,
+            reportAction.message,
+            reportAction.pendingAction,
+            reportAction.actionName,
+            reportAction.errors,
+            reportAction.originalMessage,
+            reportAction.childCommenterCount,
+            reportAction.linkMetadata,
+            reportAction.childReportID,
+            reportAction.childLastVisibleActionCreated,
             reportAction.whisperedToAccountIDs,
+            reportAction.error,
+            reportAction.created,
             reportAction.actorAccountID,
+            reportAction.adminAccountID,
             reportAction.childVisibleActionCount,
             reportAction.childOldestFourAccountIDs,
+            reportAction.childType,
             reportAction.person,
             reportAction.isOptimisticAction,
-            reportAction.childType,
             reportAction.delegateAccountID,
             reportAction.previousMessage,
             reportAction.attachmentInfo,
@@ -119,9 +133,12 @@ function ReportActionsListItemRenderer({
     return shouldDisplayParentAction ? (
         <ReportActionItemParentAction
             shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
+            shouldDisplayReplyDivider={shouldDisplayReplyDivider}
             parentReportAction={parentReportAction}
             reportID={report.reportID}
             report={report}
+            reportActions={reportActions}
+            transactionThreadReport={transactionThreadReport}
             index={index}
         />
     ) : (
@@ -129,7 +146,9 @@ function ReportActionsListItemRenderer({
             shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             parentReportAction={parentReportAction}
             report={report}
+            transactionThreadReport={transactionThreadReport}
             action={action}
+            reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
