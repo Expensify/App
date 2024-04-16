@@ -485,8 +485,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                // We use marginTop to prevent glitching on the initial frame that renders before scrollTo.
-                contentContainerStyle={[!isAfterOnLayout && !!scrollOffset && {marginTop: -scrollOffset}, styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100, styles.pt4]}
             >
                 {headerContent}
                 {accountMenuItems}
