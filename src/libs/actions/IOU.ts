@@ -826,9 +826,9 @@ function buildOnyxDataForTrackExpense(
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = CONST.QUICK_ACTIONS.TRACK_MANUAL;
     if (isScanRequest) {
-        newQuickAction = CONST.QUICK_ACTIONS.TRACK_SCAN
+        newQuickAction = CONST.QUICK_ACTIONS.TRACK_SCAN;
     } else if (isDistanceRequest) {
-        newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE
+        newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE;
     }
     optimisticData.push({
         onyxMethod: Onyx.METHOD.SET,
