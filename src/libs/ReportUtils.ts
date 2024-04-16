@@ -1439,7 +1439,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
             return false;
         }
 
-        const linkedReport = isChatThread(report) ? getReport(report?.parentReportID) : report;
+        const linkedReport = isThreadFirstChat(reportAction, reportID) ? getReport(report?.parentReportID) : report;
         if (isActionOwner) {
             if (!isEmptyObject(linkedReport) && isMoneyRequestReport(linkedReport)) {
                 return canAddOrDeleteTransactions(linkedReport);
