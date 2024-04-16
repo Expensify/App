@@ -6,6 +6,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
+import type ReportAction from './ReportAction';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
@@ -215,6 +216,15 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
+
+        /** The actionable report action ID associated with the transaction */
+        actionableWhisperReportActionID?: string;
+
+        /** The linked reportAction id for the tracked expense */
+        linkedTrackedExpenseReportAction?: ReportAction;
+
+        /** The linked report id for the tracked expense */
+        linkedTrackedExpenseReportID?: string;
     },
     keyof Comment
 >;
