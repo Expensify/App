@@ -252,10 +252,27 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (29.6.0)
+  - Onfido (29.7.1)
   - onfido-react-native-sdk (10.6.0):
-    - Onfido (~> 29.6.0)
-    - React
+    - glog
+    - hermes-engine
+    - Onfido (~> 29.7.0)
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Plaid (5.2.1)
   - PromisesObjC (2.4.0)
   - RCT-Folly (2022.05.16.00):
@@ -1297,13 +1314,24 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-pdf (6.7.3):
-    - RCT-Folly
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
     - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-performance (5.1.0):
     - glog
     - hermes-engine
@@ -2444,8 +2472,8 @@ SPEC CHECKSUMS:
   MapboxMaps: e8d94fb4782295df68172ce7ed567da8228c629e
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: c52e797b10cc9e6d29ba91996cb62e501000bfdd
-  onfido-react-native-sdk: 4e7f0a7a986ed93cb906d2e0b67a6aab9202de0b
+  Onfido: 342cbecd7a4383e98dfe7f9c35e98aaece599062
+  onfido-react-native-sdk: 81e930e77236a0fc3da90e6a6eb834734d8ec2f5
   Plaid: 7829e84db6d766a751c91a402702946d2977ddcb
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
@@ -2481,7 +2509,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6479e7e2198f936e5abc14a3ec4d469ccbaf81e2
   react-native-pager-view: 9ac6bc0fb3fa31c6d403b253ee361e62ff7ccf7f
-  react-native-pdf: 37418fbb4e4285a5864c22cf55fa7f8883bbb04c
+  react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
   react-native-performance: 1aa5960d005159f4ab20be15b44714b53b44e075
   react-native-plaid-link-sdk: 93870f8cd1de8e0acca5cb5020188bdc94e15db6
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
