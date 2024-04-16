@@ -225,9 +225,12 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         return result;
     };
 
-    const dismissError = useCallback((item: ListItem) => {
-        Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? ''));
-    }, [report.reportID]);
+    const dismissError = useCallback(
+        (item: ListItem) => {
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? ''));
+        },
+        [report.reportID],
+    );
 
     const isPolicyMember = useMemo(() => {
         if (!report?.policyID || policies === null) {
