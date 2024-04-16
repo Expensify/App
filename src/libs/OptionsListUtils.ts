@@ -1327,7 +1327,8 @@ function getReportFieldOptionsSection(options: string[], recentlyUsedOptions: st
  */
 function transformedTaxRates(taxRates: TaxRatesWithDefault | undefined): Record<string, TaxRate> {
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const getModifiedName = (data: TaxRate, code: string) => `${data.name} (${data.value})${defaultTaxKey === code ? ` • ${Localize.translateLocal('common.default')}` : ''}`;
+    const getModifiedName = (data: TaxRate, code: string) =>
+        `${data.name} (${data.value})${defaultTaxKey === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
@@ -2104,9 +2105,11 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins: string[] = [],
     includeSelectedOptions = false,
+    reports: Array<SearchOption<Report>> = [],
+    includeRecentReports = false,
 ): Options {
     return getOptions(
-        {reports: [], personalDetails},
+        {reports, personalDetails},
         {
             betas,
             searchInputValue: searchValue.trim(),
@@ -2114,6 +2117,7 @@ function getMemberInviteOptions(
             excludeLogins,
             sortPersonalDetailsByAlphaAsc: true,
             includeSelectedOptions,
+            includeRecentReports,
         },
     );
 }
@@ -2223,6 +2227,18 @@ function formatSectionsFromSearchTerm(
     };
 }
 
+/**
+ * Helper method to get the `keyForList` for the first option in the OptionsList
+ */
+function getFirstKeyForList(data?: Option[] | null) {
+    if (!data?.length) {
+        return '';
+    }
+
+    const firstNonEmptyDataObj = data[0];
+
+    return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
+}
 /**
  * Filters options based on the search input value
  */
@@ -2344,6 +2360,7 @@ export {
     createOptionFromReport,
     getReportOption,
     getTaxRatesSection,
+    getFirstKeyForList,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option};
