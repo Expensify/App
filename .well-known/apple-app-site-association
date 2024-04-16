@@ -82,7 +82,7 @@
                     },
                     {
                         "/": "/send/*",
-                        "comment": "Pay Someone"
+                        "comment": "Pay someone"
                     },
                     {
                         "/": "/money2020/*",
