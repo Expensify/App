@@ -681,13 +681,6 @@ function isChatReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
- * Checks if a report is an invoice report.
- */
-function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return report?.type === CONST.REPORT.TYPE.INVOICE;
-}
-
-/**
  * Checks if a report is an Expense report.
  */
 function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
@@ -6155,7 +6148,6 @@ export {
     isAdminsOnlyPostingRoom,
     isAnnounceRoom,
     isUserCreatedPolicyRoom,
-    isInvoiceReport,
     isChatRoom,
     getChatRoomSubtitle,
     getParentNavigationSubtitle,
@@ -6398,4 +6390,5 @@ export type {
     OptimisticIOUReportAction,
     TransactionDetails,
     OptimisticInviteReportAction,
+    DisplayNameWithTooltips, 
 };
