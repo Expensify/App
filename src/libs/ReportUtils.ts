@@ -2519,7 +2519,7 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
  * Check if any of the transactions in the report has required missing fields
  *
  */
-function hasMissingSmartscanFields(iouReportID: string, isLHNPreview = false): boolean {
+function hasMissingSmartscanFields(iouReportID: string, isLHNPreview: boolean): boolean {
     if (isLHNPreview) {
         const reportActions = Object.values(ReportActionsUtils.getAllReportActions(iouReportID));
         return reportActions.some((action) => {
