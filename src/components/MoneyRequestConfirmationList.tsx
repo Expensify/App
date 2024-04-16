@@ -237,7 +237,7 @@ function MoneyRequestConfirmationList({
         rate: 0,
         currency: CONST.CURRENCY.USD,
     };
-    const distance = transaction?.routes?.route0.distance ?? 0;
+    const distance = transaction?.comment?.customUnit?.quantity ?? 0;
     const shouldCalculateDistanceAmount = isDistanceRequest && iouAmount === 0;
     const taxRates = policy?.taxRates;
 
