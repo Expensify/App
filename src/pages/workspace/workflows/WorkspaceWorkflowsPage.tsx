@@ -179,7 +179,7 @@ function WorkspaceWorkflowsPage({policy, betas, route}: WorkspaceWorkflowsPagePr
                     Policy.setWorkspaceReimbursement(policy?.id ?? '', newReimbursementChoice, newReimburserEmail ?? '');
                 },
                 subMenuItems:
-                    policy?.isLoadingWorkspaceReimbursement === true ? (
+                    !isOffline && policy?.isLoadingWorkspaceReimbursement === true ? (
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             color={theme.spinner}
