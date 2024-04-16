@@ -67,8 +67,7 @@ Onyx.connect({
 });
 
 /**
- * @param report
- * @param actionsByReport (optional) - similar to (local) reportActionsByReport, coming from (local) function getWorkspacesBrickRoads
+ * @param actionsByReport Replaces (local) reportActionsByReport used within (local) function getWorkspacesBrickRoads
  * @returns BrickRoad for the policy passed as a param and optionally actionsByReport (if passed)
  */
 const getBrickRoadForPolicy = (report: Report, actionsByReport?: OnyxCollection<ReportActions>): BrickRoad => {
@@ -157,9 +156,6 @@ function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
 }
 
 /**
- * @param reports
- * @param policies
- * @param reportActions (optional)
  * @returns a map where the keys are policyIDs and the values are BrickRoads for each policy
  */
 function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>, reportActions?: OnyxCollection<ReportActions>): Record<string, BrickRoad> {
@@ -204,7 +200,6 @@ function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: Onyx
 }
 
 /**
- * @param reports
  * @returns a map where the keys are policyIDs and the values are truthy booleans if policy has unread content
  */
 function getWorkspacesUnreadStatuses(reports: OnyxCollection<Report>): Record<string, boolean> {
