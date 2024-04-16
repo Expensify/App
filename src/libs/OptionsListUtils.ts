@@ -2234,6 +2234,18 @@ function formatSectionsFromSearchTerm(
 }
 
 /**
+ * Helper method to get the `keyForList` for the first option in the OptionsList
+ */
+function getFirstKeyForList(data?: Option[] | null) {
+    if (!data?.length) {
+        return '';
+    }
+
+    const firstNonEmptyDataObj = data[0];
+
+    return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
+}
+/**
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
@@ -2385,6 +2397,7 @@ export {
     createOptionFromReport,
     getReportOption,
     getTaxRatesSection,
+    getFirstKeyForList,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option};
