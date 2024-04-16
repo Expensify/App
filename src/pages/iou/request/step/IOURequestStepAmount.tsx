@@ -59,7 +59,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
 function IOURequestStepAmount({
     report,
     route: {
-        params: {iouType, reportID, transactionID, backTo, action},
+        params: {iouType, reportID, transactionID, backTo, action, currency: selectedCurrency = ''},
     },
     transaction,
     policy,
@@ -73,14 +73,14 @@ function IOURequestStepAmount({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
-    const originalCurrency = useRef<string | null>(null);
     const iouRequestType = getRequestType(transaction);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -105,30 +105,19 @@ function IOURequestStepAmount({
     );
 
     useEffect(() => {
-        if (isEditing) {
-            // A temporary solution to not prevent users from editing the currency
-            // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
-            // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-            TransactionEdit.createBackupTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
+        if (!isEditing) {
+            return;
+        }
+        // A temporary solution to not prevent users from editing the currency
+        // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
+        // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
+        TransactionEdit.createBackupTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
-            return () => {
-                if (isSaveButtonPressed.current) {
-                    return;
-                }
-                TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '');
-            };
-        }
-        if (transaction?.originalCurrency) {
-            originalCurrency.current = transaction.originalCurrency;
-        } else {
-            originalCurrency.current = currency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, currency);
-        }
         return () => {
             if (isSaveButtonPressed.current) {
                 return;
             }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current ?? '', true);
+            TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '');
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -138,14 +127,17 @@ function IOURequestStepAmount({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
+        );
     };
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
         isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, true);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);

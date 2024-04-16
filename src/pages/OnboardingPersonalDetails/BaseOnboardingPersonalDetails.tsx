@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
@@ -35,6 +36,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+
+    useDisableModalDismissOnEscape();
 
     const saveAndNavigate = useCallback((values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());

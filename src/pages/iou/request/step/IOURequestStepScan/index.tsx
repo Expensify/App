@@ -180,25 +180,34 @@ function IOURequestStepScan({
     };
 
     function validateReceipt(file: FileObject) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
-        if (
-            !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number])
-        ) {
-            setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-            return false;
-        }
+        return FileUtils.validateImageForCorruption(file)
+            .then(() => {
+                const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+                if (
+                    !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                        fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
+                    )
+                ) {
+                    setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+                    return false;
+                }
 
-        if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
-            return false;
-        }
+                if ((file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceeded');
+                    return false;
+                }
 
-        if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-            return false;
-        }
+                if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+                    return false;
+                }
 
-        return true;
+                return true;
+            })
+            .catch(() => {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedImage');
+                return false;
+            });
     }
 
     const navigateBack = () => {
@@ -276,21 +285,21 @@ function IOURequestStepScan({
      * Sets the Receipt objects and navigates the user to the next page
      */
     const setReceiptAndNavigate = (file: FileObject) => {
-        if (!validateReceipt(file)) {
-            return;
-        }
+        validateReceipt(file).then((isFileValid) => {
+            if (!isFileValid) {
+                return;
+            }
+            // Store the receipt on the transaction object in Onyx
+            const source = URL.createObjectURL(file as Blob);
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
 
-        // Store the receipt on the transaction object in Onyx
-        const source = URL.createObjectURL(file as Blob);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestReceipt(transactionID, source, file.name || '', action !== CONST.IOU.ACTION.EDIT);
-
-        if (action === CONST.IOU.ACTION.EDIT) {
-            updateScanAndNavigate(file, source);
-            return;
-        }
-
-        navigateToConfirmationStep(file, source);
+            if (action === CONST.IOU.ACTION.EDIT) {
+                updateScanAndNavigate(file, source);
+                return;
+            }
+            navigateToConfirmationStep(file, source);
+        });
     };
 
     const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
