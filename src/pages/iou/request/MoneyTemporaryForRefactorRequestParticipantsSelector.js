@@ -264,7 +264,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
-    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE, CONST.IOU.TYPE.INVOICE].includes(iouType);
+    const isAllowedToSplit =
+        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE, CONST.IOU.TYPE.INVOICE].includes(iouType);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -382,6 +383,5 @@ export default memo(
         _.isEqual(prevProps.participants, nextProps.participants) &&
         prevProps.iouRequestType === nextProps.iouRequestType &&
         prevProps.iouType === nextProps.iouType &&
-        _.isEqual(prevProps.betas, nextProps.betas) &&
-        prevProps.activePolicyID === nextProps.activePolicyID,
+        _.isEqual(prevProps.betas, nextProps.betas),
 );
