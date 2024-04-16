@@ -110,7 +110,7 @@ function ActivatePhysicalCardPage({
             setFormError('activateCardPage.error.thatDidntMatch');
             return;
         }
-        if (physicalCard?.cardID) {
+        if (physicalCard?.cardID === undefined) {
             return;
         }
 
