@@ -1,8 +1,50 @@
 diff --git a/node_modules/react-native-vision-camera/VisionCamera.podspec b/node_modules/react-native-vision-camera/VisionCamera.podspec
-index 3a0e313..357a282 100644
+index 3a0e313..e983153 100644
 --- a/node_modules/react-native-vision-camera/VisionCamera.podspec
 +++ b/node_modules/react-native-vision-camera/VisionCamera.podspec
-@@ -40,6 +40,7 @@ Pod::Spec.new do |s|
+@@ -2,7 +2,13 @@ require "json"
+ 
+ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+ 
+-nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('react-native/package.json')"`), '..')
++pkgJsonPath = ENV['REACT_NATIVE_DIR'] ? '../react-native/package.json' : 'react-native/package.json'
++nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('../react-native/package.json')"`), '..')
++
++frameworks_flags = {
++  "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++  "OTHER_CPLUSPLUSFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++}
+ 
+ forceDisableFrameProcessors = false
+ if defined?($VCDisableFrameProcessors)
+@@ -15,6 +21,13 @@ workletsPath = File.join(nodeModules, "react-native-worklets-core")
+ hasWorklets = File.exist?(workletsPath) && !forceDisableFrameProcessors
+ Pod::UI.puts("[VisionCamera] react-native-worklets-core #{hasWorklets ? "found" : "not found"}, Frame Processors #{hasWorklets ? "enabled" : "disabled"}!")
+ 
++default_config = {
++  "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SK_METAL=1 SK_GANESH=1 VISION_CAMERA_ENABLE_FRAME_PROCESSORS=#{hasWorklets}",
++  "OTHER_SWIFT_FLAGS" => "$(inherited) -DRCT_NEW_ARCH_ENABLED #{hasWorklets ? "-D VISION_CAMERA_ENABLE_FRAME_PROCESSORS" : ""}",
++  "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
++  "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/cpp/\"/** "
++}
++
+ Pod::Spec.new do |s|
+   s.name         = "VisionCamera"
+   s.version      = package["version"]
+@@ -27,19 +40,13 @@ Pod::Spec.new do |s|
+   s.platforms    = { :ios => "12.4" }
+   s.source       = { :git => "https://github.com/mrousavy/react-native-vision-camera.git", :tag => "#{s.version}" }
+ 
+-  s.pod_target_xcconfig = {
+-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SK_METAL=1 SK_GANESH=1 VISION_CAMERA_ENABLE_FRAME_PROCESSORS=#{hasWorklets}",
+-    "OTHER_SWIFT_FLAGS" => "$(inherited) #{hasWorklets ? "-D VISION_CAMERA_ENABLE_FRAME_PROCESSORS" : ""}",
+-    "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
+-    "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/cpp/\"/** "
+-  }
+-
+   s.requires_arc = true
+ 
+   # All source files that should be publicly visible
    # Note how this does not include headers, since those can nameclash.
    s.source_files = [
      # Core
@@ -10,7 +52,7 @@ index 3a0e313..357a282 100644
      "ios/*.{m,mm,swift}",
      "ios/Core/*.{m,mm,swift}",
      "ios/Extensions/*.{m,mm,swift}",
-@@ -47,6 +48,7 @@ Pod::Spec.new do |s|
+@@ -47,6 +54,7 @@ Pod::Spec.new do |s|
      "ios/React Utils/*.{m,mm,swift}",
      "ios/Types/*.{m,mm,swift}",
      "ios/CameraBridge.h",
@@ -18,16 +60,18 @@ index 3a0e313..357a282 100644
  
      # Frame Processors
      hasWorklets ? "ios/Frame Processor/*.{m,mm,swift}" : "",
-@@ -66,9 +68,10 @@ Pod::Spec.new do |s|
+@@ -66,9 +74,12 @@ Pod::Spec.new do |s|
      "ios/**/*.h"
    ]
- 
+   
 -  s.dependency "React"
 -  s.dependency "React-Core"
 -  s.dependency "React-callinvoker"
-+  s.pod_target_xcconfig    = {
-+      "OTHER_SWIFT_FLAGS" => "-DRCT_NEW_ARCH_ENABLED"
-+  }
++  if ENV['USE_FRAMEWORKS'] == '1'
++    s.pod_target_xcconfig = default_config.merge(frameworks_flags)
++  else
++    s.pod_target_xcconfig = default_config
++  end
 +  install_modules_dependencies(s)
  
    if hasWorklets
@@ -609,8 +653,7 @@ index 0000000..56a6c3d
 +include ':VisionCamera'
 diff --git a/node_modules/react-native-vision-camera/android/src/main/.DS_Store b/node_modules/react-native-vision-camera/android/src/main/.DS_Store
 new file mode 100644
-index 0000000..63b728b
-Binary files /dev/null and b/node_modules/react-native-vision-camera/android/src/main/.DS_Store differ
+index 0000000..e69de29
 diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt
 index a7c8358..a935ef6 100644
 --- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt
@@ -1273,13 +1316,12 @@ index 0000000..46c2c2c
 +#endif /* RCT_NEW_ARCH_ENABLED */
 diff --git a/node_modules/react-native-vision-camera/ios/RNCameraView.mm b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
 new file mode 100644
-index 0000000..63fb00f
+index 0000000..019be20
 --- /dev/null
 +++ b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
-@@ -0,0 +1,373 @@
+@@ -0,0 +1,377 @@
 +// This guard prevent the code from being compiled in the old architecture
 +#ifdef RCT_NEW_ARCH_ENABLED
-+//#import "RNCameraView.h"
 +#import <React/RCTViewComponentView.h>
 +
 +#import <react/renderer/components/RNVisionCameraSpec/ComponentDescriptors.h>
@@ -1292,7 +1334,12 @@ index 0000000..63fb00f
 +#import <AVFoundation/AVCaptureVideoDataOutput.h>
 +#import <React/RCTViewManager.h>
 +#import <React/RCTConversions.h>
++
++#ifdef USE_FRAMEWORKS
++#import <VisionCamera/VisionCamera-Swift.h>
++#else
 +#import "VisionCamera-Swift.h"
++#endif
 +
 +@interface RNCameraView : RCTViewComponentView <RNCameraViewDirectEventDelegate>
 +@end
@@ -1939,25 +1986,6 @@ index 0000000..e47e42f
 @@ -0,0 +1 @@
 +{"version":3,"file":"CameraViewNativeComponent.d.ts","sourceRoot":"","sources":["../../../src/specs/CameraViewNativeComponent.ts"],"names":[],"mappings":"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"}
 \ No newline at end of file
-diff --git a/node_modules/react-native-vision-camera/package.json b/node_modules/react-native-vision-camera/package.json
-index 86352fa..7af9577 100644
---- a/node_modules/react-native-vision-camera/package.json
-+++ b/node_modules/react-native-vision-camera/package.json
-@@ -166,5 +166,13 @@
-       ]
-     ]
-   },
--  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
-+  "codegenConfig": {
-+    "name": "RNVisioncameraSpec",
-+    "type": "all",
-+    "jsSrcsDir": "./src/specs",
-+    "android": {
-+      "javaPackageName": "com.mrousavy.camera"
-+    }
-+  },
-+  "packageManager": "yarn@1.22.19"
- }
 diff --git a/node_modules/react-native-vision-camera/src/Camera.tsx b/node_modules/react-native-vision-camera/src/Camera.tsx
 index 18733ba..1668322 100644
 --- a/node_modules/react-native-vision-camera/src/Camera.tsx
