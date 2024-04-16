@@ -20,12 +20,15 @@ type SelectorType = ListItem & {
     value: string;
 };
 
+// TODO: remove once UI is approved
+const DRAFT = [{name: 'Croissant Co Payroll Account'}, {name: 'Croissant Co Money in Clearing'}, {name: 'Croissant Co Debts and Loans'}];
+
 function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = bankAccounts || creditCards;
+    const accountOptions = bankAccounts || creditCards || DRAFT;
 
     const [selectedAccount, setSelectedAccount] = useState('selected');
 
@@ -39,7 +42,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                 keyForList: name,
                 isSelected: selectedAccount === name,
             })),
-        [selectedAccount, translate],
+        [selectedAccount, translate, accountOptions],
     );
     const listHeaderComponent = useMemo(
         () => (
