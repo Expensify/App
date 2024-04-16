@@ -377,14 +377,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         </>
     );
 
-    const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
-    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
-        return renderEmptyWorkspaceView();
-    }
-
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
+
+        const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
+    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+        return renderEmptyWorkspaceView();
+    }
 
     return (
         <SelectionList
