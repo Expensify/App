@@ -1,7 +1,6 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
-import type {Phrase, PhraseParameters} from '@libs/Localize';
 import {getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';

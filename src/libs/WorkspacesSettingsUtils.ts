@@ -7,7 +7,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
-import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasPolicyError, hasPolicyMemberError, hasTaxRateError} from './PolicyUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
