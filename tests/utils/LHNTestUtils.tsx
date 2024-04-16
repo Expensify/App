@@ -297,6 +297,7 @@ function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
                         right: 0,
                         bottom: 0,
                     }}
+                    // @ts-expect-error - we need this prop to be able to test the component but normally its provided by HOC
                     currentReportID={currentReportID}
                 />
             </ReportIDsContextProvider>
