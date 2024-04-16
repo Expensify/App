@@ -27,7 +27,10 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         if (hasSetIsInModal.current) {
             return;
         }
-        setIsInModal(Navigation.isDisplayedInModal());
+        const isDisplayedInModal = Navigation.isDisplayedInModal();
+        if (isInModal !== isDisplayedInModal) {
+            setIsInModal(isDisplayedInModal);
+        }
         hasSetIsInModal.current = true;
     };
 
