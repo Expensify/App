@@ -43,7 +43,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
 
             const work = values.work.trim();
 
-            Policy.createWorkspace(currentUserPersonalDetails.login ?? '', true, work);
+            Policy.createWorkspace(undefined, true, work);
 
             Report.completeOnboarding(onboardingPurposeSelected, CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected], {
                 login: currentUserPersonalDetails.login ?? '',
