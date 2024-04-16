@@ -157,7 +157,7 @@ const ONYXKEYS = {
     FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** The NVP with the last distance rate used per policy */
-    NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
+    NVP_LAST_SELECTED_DISTANCE_RATES: 'nvp_expensify_lastSelectedDistanceRates',
 
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
@@ -456,6 +456,8 @@ const ONYXKEYS = {
         WORKSPACE_TAX_NAME_FORM_DRAFT: 'workspaceTaxNameFormDraft',
         WORKSPACE_TAX_VALUE_FORM: 'workspaceTaxValueForm',
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
+        NEW_CHAT_NAME_FORM: 'newChatNameForm',
+        NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
     },
 } as const;
 
@@ -511,6 +513,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
+    [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
 };
 
 type OnyxFormDraftValuesMapping = {
