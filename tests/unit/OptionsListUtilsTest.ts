@@ -418,7 +418,6 @@ describe('OptionsListUtils', () => {
         // When we filter in the Search view without providing a searchValue
         let results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
         // Then the 2 personalDetails that don't have reports should be returned
-        console.log('personal details', OPTIONS.personalDetails.length, results.personalDetails.length)
         expect(results.personalDetails.length).toBe(2);
 
         // Then all of the reports should be shown including the archived rooms.
