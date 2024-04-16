@@ -14,11 +14,11 @@ import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import getSubstepValues from '@pages/ReimbursementAccount/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 import type {WalletAdditionalDetails} from '@src/types/onyx';
+import getSubstepValues from '../../utils/getSubstepValues';
 
 type ConfirmationOnyxProps = {
     /** wallet additional details from ONYX */
@@ -31,7 +31,7 @@ type ConfirmationOnyxProps = {
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
-const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.PERSONAL_INFO;
+const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
 
 function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
@@ -64,6 +64,14 @@ function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, on
                         shouldShowRightIcon
                         onPress={() => {
                             onMove(PERSONAL_INFO_STEP_INDEXES.DATE_OF_BIRTH);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('common.phoneNumber')}
+                        title={values[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER]}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(PERSONAL_INFO_STEP_INDEXES.PHONE_NUMBER);
                         }}
                     />
                     <MenuItemWithTopDescription
@@ -139,6 +147,7 @@ export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
     walletAdditionalDetails: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
     walletAdditionalDetailsDraft: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
     },

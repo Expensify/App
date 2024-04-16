@@ -26,15 +26,14 @@ type PhoneNumberOnyxProps = {
 type PhoneNumberProps = PhoneNumberOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
-const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
+const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
 
 const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-    if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-        errors.ssnLast4 = 'bankAccount.error.ssnLast4';
+    if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
+        errors.phoneNumber = 'bankAccount.error.phoneNumber';
     }
-
     return errors;
 };
 function PhoneNumber({walletAdditionalDetails, onNext, isEditing}: PhoneNumberProps) {

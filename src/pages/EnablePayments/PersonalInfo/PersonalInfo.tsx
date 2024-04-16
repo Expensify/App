@@ -42,7 +42,7 @@ type PersonalInfoPageOnyxProps = {
 type PersonalInfoPageProps = PersonalInfoPageOnyxProps;
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
-const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, SocialSecurityNumber, PhoneNumber, Address, Confirmation];
+const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, PhoneNumber, SocialSecurityNumber, Address, Confirmation];
 
 function PersonalInfoPage({userWallet, walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
     const {translate} = useLocalize();
