@@ -794,10 +794,10 @@ describe('ReportUtils', () => {
         ];
 
         const reportActions: ReportAction[] = [
-            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: 'MARKED_REIMBURSED'},
-            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: 'MARKED_REIMBURSED'},
-            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: 'MARKED_REIMBURSED'},
-            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: 'MARKED_REIMBURSED'},
+            {reportActionID: '1', created: '2024-02-01 04:42:22.965', actionName: 'MARKEDREIMBURSED'},
+            {reportActionID: '2', created: '2024-02-01 04:42:28.003', actionName: 'MARKEDREIMBURSED'},
+            {reportActionID: '3', created: '2024-02-01 04:42:31.742', actionName: 'MARKEDREIMBURSED'},
+            {reportActionID: '4', created: '2024-02-01 04:42:35.619', actionName: 'MARKEDREIMBURSED'},
         ];
 
         beforeAll(() => {

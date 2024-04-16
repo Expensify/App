@@ -1932,7 +1932,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 created: '2023-08-01 16:00:00',
                 reportActionID: 'action1',
-                actionName: 'ADD_COMMENT',
+                actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
                     whisperedTo: [],
@@ -1942,7 +1942,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
                 created: '2023-08-01 18:00:00',
                 reportActionID: 'action2',
-                actionName: 'ADD_COMMENT',
+                actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
                     whisperedTo: [],

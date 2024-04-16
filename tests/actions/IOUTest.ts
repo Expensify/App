@@ -1717,7 +1717,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
-                                    expect(updatedAction?.actionName).toEqual('MODIFIED_EXPENSE');
+                                    expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
                                     expect(updatedAction?.originalMessage).toEqual(
                                         expect.objectContaining({amount: 20000, newComment: 'Double the amount!', oldAmount: amount, oldComment: comment}),
                                     );
@@ -1873,7 +1873,7 @@ describe('actions/IOU', () => {
                                 callback: (allActions) => {
                                     Onyx.disconnect(connectionID);
                                     const updatedAction = Object.values(allActions ?? {}).find((reportAction) => !isEmptyObject(reportAction));
-                                    expect(updatedAction?.actionName).toEqual('MODIFIED_EXPENSE');
+                                    expect(updatedAction?.actionName).toEqual('MODIFIEDEXPENSE');
                                     expect(Object.values(updatedAction?.errors ?? {})).toEqual(expect.arrayContaining([['iou.error.genericEditFailureMessage', {isTranslated: false}]]));
                                     resolve();
                                 },
