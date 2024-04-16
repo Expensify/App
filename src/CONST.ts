@@ -640,7 +640,7 @@ const CONST = {
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
-                CHRONOS_OO_LIST: 'CHRONOSOOLIST',
+                CHRONOSOOLIST: 'CHRONOSOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
@@ -658,7 +658,7 @@ const CONST = {
                 MANAGER_DETACH_RECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
-                MODIFIED_EXPENSE: 'MODIFIED_EXPENSE',
+                MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -675,7 +675,7 @@ const CONST = {
                 SHARE: 'SHARE', // OldDot Action
                 STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
-                TAKE_CONTROL: 'TAKE_CONTROL', // OldDot Action
+                TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
                 TASK_CANCELLED: 'TASKCANCELLED',
                 TASK_COMPLETED: 'TASKCOMPLETED',
                 TASK_EDITED: 'TASKEDITED',
