@@ -277,7 +277,7 @@ function ReportActionItem({
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const latestDecision = action.message?.[0].moderationDecision?.decision ?? '';
+    const latestDecision = action.message?.[0]?.moderationDecision?.decision ?? '';
     useEffect(() => {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             return;
@@ -480,10 +480,11 @@ function ReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID ?? -1]);
+            const linkedReport = ReportUtils.isChatThread(report) ? ReportUtils.getReport(report.parentReportID) : report;
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
-            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, report.reportID, action);
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '', action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
@@ -494,7 +495,7 @@ function ReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(report.reportID)}
+                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID)}
                                 pressOnEnter
                                 large
                             />
@@ -505,7 +506,7 @@ function ReportActionItem({
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                chatReportID={report.reportID}
+                                chatReportID={linkedReport?.reportID}
                                 iouReport={iouReport}
                             >
                                 {(triggerKYCFlow, buttonRef) => (
@@ -533,7 +534,7 @@ function ReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldRequest')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT) {
-            children = <ReportActionItemBasicMessage message={action.message?.[0].text ?? ''} />;
+            children = <ReportActionItemBasicMessage message={action.message?.[0]?.text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldRequest')} />;
         } else {
@@ -753,18 +754,15 @@ function ReportActionItem({
         }
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
             return (
-                // eslint-disable-next-line react/jsx-no-useless-fragment
-                <>
+                <OfflineWithFeedback pendingAction={action.pendingAction}>
                     {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
                         <>
                             {transactionCurrency !== report.currency && (
-                                <OfflineWithFeedback pendingAction={action.pendingAction}>
-                                    <MoneyReportView
-                                        report={report}
-                                        policy={policy}
-                                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                                    />
-                                </OfflineWithFeedback>
+                                <MoneyReportView
+                                    report={report}
+                                    policy={policy}
+                                    shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                                />
                             )}
                             <ShowContextMenuContext.Provider value={contextValue}>
                                 <MoneyRequestView
@@ -775,15 +773,13 @@ function ReportActionItem({
                             </ShowContextMenuContext.Provider>
                         </>
                     ) : (
-                        <OfflineWithFeedback pendingAction={action.pendingAction}>
-                            <MoneyReportView
-                                report={report}
-                                policy={policy}
-                                shouldShowHorizontalRule={!shouldHideThreadDividerLine}
-                            />
-                        </OfflineWithFeedback>
+                        <MoneyReportView
+                            report={report}
+                            policy={policy}
+                            shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                        />
                     )}
-                </>
+                </OfflineWithFeedback>
             );
         }
 
