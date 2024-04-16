@@ -477,7 +477,21 @@ function MoneyRequestConfirmationList({
 
         const distanceMerchant = DistanceRequestUtils.getDistanceMerchant(hasRoute, distance, unit, rate ?? 0, currency ?? CONST.CURRENCY.USD, translate, toLocaleDigit);
         IOU.setMoneyRequestMerchant(transactionID, distanceMerchant, true);
-    }, [isDistanceRequestWithPendingRoute, hasRoute, distance, unit, rate, currency, translate, toLocaleDigit, isDistanceRequest, transaction, action, isMovingTransactionFromTrackExpense]);
+    }, [
+        isDistanceRequestWithPendingRoute,
+        hasRoute,
+        distance,
+        unit,
+        rate,
+        currency,
+        translate,
+        toLocaleDigit,
+        isDistanceRequest,
+        transaction,
+        transactionID,
+        action,
+        isMovingTransactionFromTrackExpense,
+    ]);
 
     // Auto select the category if there is only one enabled category and it is required
     useEffect(() => {
@@ -784,7 +798,14 @@ function MoneyRequestConfirmationList({
                     numberOfLinesTitle={2}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                action,
+                                iouType,
+                                transaction?.transactionID ?? '',
+                                reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                                reportActionID,
+                            ),
                         )
                     }
                     style={[styles.moneyRequestMenuItem]}
@@ -809,7 +830,15 @@ function MoneyRequestConfirmationList({
                         numberOfLinesTitle={2}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(
+                                    action,
+                                    iouType,
+                                    index,
+                                    transaction?.transactionID ?? '',
+                                    reportID,
+                                    Navigation.getActiveRouteWithoutParams(),
+                                    reportActionID,
+                                ),
                             )
                         }
                         style={[styles.moneyRequestMenuItem]}
@@ -912,6 +941,7 @@ function MoneyRequestConfirmationList({
                 <ReceiptImage
                     style={styles.moneyRequestImage}
                     isThumbnail={isThumbnail}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     source={resolvedThumbnail || resolvedReceiptImage || ''}
                     // AuthToken is required when retrieving the image from the server
                     // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
