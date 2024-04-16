@@ -1,4 +1,4 @@
-package com.expensify.chat;
+package com.expensify.chat.checkpdf;
 
 import android.util.Log;
 
@@ -18,7 +18,7 @@ public class PdfUtils {
 
             // Check if the PDF file starts with the "%PDF" header
             String pdfHeader = new String(buffer, 0, 4);
-            Log.d("SomeTag" , !pdfHeader.equals("%PDF")?"true":"false");
+            Log.d("CheckPDF" , !pdfHeader.equals("%PDF")?"true":"false");
             return !pdfHeader.equals("%PDF");
         } catch (IOException e) {
             // Handle IO errors

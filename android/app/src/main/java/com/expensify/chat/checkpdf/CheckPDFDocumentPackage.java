@@ -1,9 +1,10 @@
-package com.expensify.chat;
+package com.expensify.chat.checkpdf;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.expensify.chat.checkpdf.CheckPDFDocument;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;

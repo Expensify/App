@@ -16,18 +16,15 @@ RCT_EXPORT_METHOD(checkPdf:(NSString *)fileurl callback: (RCTResponseSenderBlock
 {
   NSURL *url = [NSURL URLWithString:fileurl];
   NSFileManager *fileManager = [NSFileManager defaultManager];
-      NSData *ns = [NSData dataWithContentsOfURL:url];
-      if ([ns length] >= 1024)
-      {
+  NSData *ns = [NSData dataWithContentsOfURL:url];
+      if ([ns length] >= 1024) {
           uint8_t pdfBytes[] = { 0x25, 0x50, 0x44, 0x46 };
           NSData *pdfHeader = [NSData dataWithBytes:pdfBytes length:4];
           NSRange range = [ns rangeOfData:pdfHeader options:NSDataSearchAnchored range:NSMakeRange(0, 1024)];
-          if (range.length > 0)
-          {
+          if (range.length > 0) {
             callback(@[@YES]);
           }
-          else
-          {
+          else {
             callback(@[@NO]);
           }
       }

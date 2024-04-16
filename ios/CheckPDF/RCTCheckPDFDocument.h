@@ -8,6 +8,7 @@
 #ifndef RCTCheckPDFDocument_h
 #define RCTCheckPDFDocument_h
 #import <React/RCTBridgeModule.h>
+
 @interface RCTCheckPDFDocument : NSObject <RCTBridgeModule>
 @end
 
