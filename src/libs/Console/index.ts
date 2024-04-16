@@ -24,7 +24,7 @@ Onyx.connect({
 const originalConsoleLog = console.log;
 
 /* List of patterns to ignore in logs. "logs" key always needs to be ignored because otherwise it will cause infinite loop */
-const logPatternsToIgnore = [`merge() called for key: ${ONYXKEYS.LOGS}`];
+const logPatternsToIgnore = [`merge called for key: ${ONYXKEYS.LOGS}`];
 
 /**
  * Check if the log should be attached to the console

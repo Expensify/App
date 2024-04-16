@@ -1,16 +1,18 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
 import type {MaybePhraseKey} from '@libs/Localize';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
-type CommonListItemProps<TItem> = {
+type CommonListItemProps<TItem extends ListItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
 
@@ -33,7 +35,7 @@ type CommonListItemProps<TItem> = {
     onDismissError?: (item: TItem) => void;
 
     /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | null) | ReactElement | null;
 
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
@@ -49,6 +51,9 @@ type CommonListItemProps<TItem> = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type ListItem = {
@@ -110,11 +115,16 @@ type ListItem = {
 
     /** The search value from the selection list */
     searchText?: string | null;
+
+    /** What text to show inside the badge (if none present the badge will be omitted) */
+    badgeText?: string;
+
+    brickRoadIndicator?: BrickRoad | '' | null;
 };
 
-type ListItemProps = CommonListItemProps<ListItem> & {
+type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
-    item: ListItem;
+    item: TItem;
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
@@ -136,10 +146,10 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
+    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
 };
 
-type UserListItemProps = ListItemProps & {
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Errors that this user may contain */
     errors?: Errors | ReceiptErrors | null;
 
@@ -150,11 +160,11 @@ type UserListItemProps = ListItemProps & {
     FooterComponent?: ReactElement;
 };
 
-type InviteMemberListItemProps = UserListItemProps;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
-type RadioListItemProps = ListItemProps;
+type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type TableListItemProps = ListItemProps;
+type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
 
@@ -214,6 +224,12 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Max length for the text input */
     textInputMaxLength?: number;
 
+    /** Icon to display on the left side of TextInput */
+    textInputIconLeft?: IconAsset;
+
+    /** Whether text input should be focused */
+    textInputAutoFocus?: boolean;
+
     /** Callback to fire when the text input changes */
     onChangeText?: (text: string) => void;
 
@@ -221,7 +237,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     inputMode?: InputModeOptions;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string;
+    initiallyFocusedOptionKey?: string | null;
 
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
@@ -272,13 +288,13 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     disableKeyboardShortcuts?: boolean;
 
     /** Styles to apply to SelectionList container */
-    containerStyle?: ViewStyle;
+    containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether keyboard is visible on the screen */
-    isKeyboardShown?: boolean;
+    /** Whether focus event should be delayed */
+    shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | null) | ReactElement | null;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -296,7 +312,16 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     isRowMultilineSupported?: boolean;
 
     /** Ref for textInput */
-    textInputRef?: MutableRefObject<TextInput | null>;
+    textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
+
+    /** Styles for the section title */
+    sectionTitleStyles?: StyleProp<ViewStyle>;
+
+    /**
+     * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
+     * When false, the list will render immediately and scroll to the bottom which works great for small lists.
+     */
+    shouldHideListOnInitialRender?: boolean;
 };
 
 type SelectionListHandle = {

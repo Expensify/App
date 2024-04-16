@@ -6,11 +6,11 @@
 import * as fns from 'date-fns';
 import {vol} from 'memfs';
 import path from 'path';
+import run from '@github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy';
 import CONST from '@github/libs/CONST';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
-import run from '../../.github/actions/javascript/createOrUpdateStagingDeploy/createOrUpdateStagingDeploy';
 
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 
