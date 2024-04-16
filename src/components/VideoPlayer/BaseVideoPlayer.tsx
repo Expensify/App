@@ -10,6 +10,7 @@ import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -45,8 +46,18 @@ function BaseVideoPlayer({
     isVideoHovered = false,
 }: VideoPlayerProps) {
     const styles = useThemeStyles();
-    const {pauseVideo, playVideo, currentlyPlayingURL, sharedElement, originalParent, shareVideoPlayerElements, currentVideoPlayerRef, updateCurrentlyPlayingURL, videoResumeTryNumber} =
-        usePlaybackContext();
+    const {
+        pauseVideo,
+        playVideo,
+        currentlyPlayingURL,
+        sharedElement,
+        originalParent,
+        shareVideoPlayerElements,
+        currentVideoPlayerRef,
+        updateCurrentlyPlayingURL,
+        videoResumeTryNumber,
+        setCurrentlyPlayingURL,
+    } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
     const [duration, setDuration] = useState(videoDuration * 1000);
@@ -67,6 +78,7 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
+    const {updateVolume} = useVolumeContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -146,6 +158,16 @@ function BaseVideoPlayer({
 
             if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 isFullScreenRef.current = false;
+
+                // Sync volume updates in full screen mode after leaving it
+                currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+                    if (!('isMuted' in status)) {
+                        return;
+                    }
+
+                    updateVolume(status.isMuted ? 0 : status.volume || 1);
+                });
+
                 // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
                 // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
                 if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
@@ -155,7 +177,7 @@ function BaseVideoPlayer({
                 }
             }
         },
-        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber, updateVolume, currentVideoPlayerRef],
     );
 
     const bindFunctions = useCallback(() => {
@@ -181,6 +203,19 @@ function BaseVideoPlayer({
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading]);
 
+    const isCurrentlyURLSetRef = useRef<boolean>();
+    isCurrentlyURLSetRef.current = isCurrentlyURLSet;
+
+    useEffect(
+        () => () => {
+            if (!isCurrentlyURLSetRef.current) {
+                return;
+            }
+
+            setCurrentlyPlayingURL(null);
+        },
+        [setCurrentlyPlayingURL],
+    );
     // update shared video elements
     useEffect(() => {
         if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || isFullScreenRef.current) {
