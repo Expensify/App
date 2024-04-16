@@ -145,8 +145,7 @@ function ReportActionsView({
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
         const moneyRequestAction = allReportActions.find((action) => {
-            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
-            return actionType === CONST.IOU.REPORT_ACTION_TYPE.CREATE || actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK || ReportActionsUtils.isSentMoneyReportAction(action);
+            return action.reportActionID === transactionThreadReport?.parentReportActionID;
         });
 
         // Filter out the money request actions because we don't want to show any preview actions for one-transaction reports
@@ -155,7 +154,7 @@ function ReportActionsView({
             return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
         });
         return [ReportActionsUtils.getSortedReportActions(filteredReportActions, true), moneyRequestAction ?? null];
-    }, [allReportActions, transactionThreadReportActions]);
+    }, [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID]);
 
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID) {
