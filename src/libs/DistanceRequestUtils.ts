@@ -71,9 +71,6 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
     }
 
     const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(distanceUnit.rates)[0];
-    if (!distanceRate) {
-        return null;
-    }
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -131,7 +128,7 @@ function getRateForDisplay(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
     isOffline?: boolean,
 ): string {
-    if (isOffline) {
+    if (isOffline && !rate) {
         return translate('iou.defaultRate');
     }
     if (!hasRoute || !rate || !currency || !unit) {
