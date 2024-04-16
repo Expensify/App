@@ -233,7 +233,7 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: Record<string, unknown>) {
+function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables?: Record<string, unknown>) {
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
 }
 
