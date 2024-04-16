@@ -101,8 +101,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
                     submitFlexEnabled
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
+                    shouldValidateOnBlur={false}
+                    shouldValidateOnChange={false}
                     shouldTrimValues={false}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
