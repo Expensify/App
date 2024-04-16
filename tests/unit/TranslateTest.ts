@@ -2,7 +2,7 @@
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as translations from '@src/languages/translations';
-import type {TranslationBase, TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import * as Localize from '@src/libs/Localize';
 import asMutable from '@src/types/utils/asMutable';
 import arrayDifference from '@src/utils/arrayDifference';
