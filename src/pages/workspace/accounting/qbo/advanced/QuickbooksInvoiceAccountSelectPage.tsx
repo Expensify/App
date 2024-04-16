@@ -28,13 +28,13 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = bankAccounts || creditCards || DRAFT;
+    const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])] || DRAFT;
 
     const [selectedAccount, setSelectedAccount] = useState('Croissant Co Money in Clearing');
 
     const policyID = policy?.id ?? '';
 
-    const qboOnlineSelectorOptions = useMemo<SelectorType[] | undefined>(
+    const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
             accountOptions?.map(({name}) => ({
                 value: name,

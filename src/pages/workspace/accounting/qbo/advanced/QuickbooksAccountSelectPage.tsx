@@ -28,7 +28,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = bankAccounts || creditCards || DRAFT;
+    const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])] || DRAFT;
 
     const [selectedAccount, setSelectedAccount] = useState('Croissant Co Payroll Account');
 
