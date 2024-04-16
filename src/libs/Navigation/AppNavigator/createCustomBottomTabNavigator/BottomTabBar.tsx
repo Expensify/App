@@ -101,6 +101,8 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                         )}
                     </View>
                 </PressableWithFeedback>
+            </Tooltip>
+            <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
                         Navigation.navigate(ROUTES.SEARCH.getRoute('all'));
@@ -120,7 +122,6 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-
             <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
             <BottomTabBarFloatingActionButton />
         </View>
