@@ -21,7 +21,7 @@ type RequestData = {
     finallyData?: OnyxUpdate[];
     resolve?: (value: Response) => void;
     reject?: (value?: unknown) => void;
-    skipWebProxy?: boolean,
+    skipWebProxy?: boolean;
 };
 
 type Request = RequestData & OnyxData;
