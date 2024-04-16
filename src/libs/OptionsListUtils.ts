@@ -2098,9 +2098,11 @@ function getMemberInviteOptions(
     searchValue = '',
     excludeLogins: string[] = [],
     includeSelectedOptions = false,
+    reports: Array<SearchOption<Report>> = [],
+    includeRecentReports = false,
 ): Options {
     return getOptions(
-        {reports: [], personalDetails},
+        {reports, personalDetails},
         {
             betas,
             searchInputValue: searchValue.trim(),
@@ -2108,6 +2110,7 @@ function getMemberInviteOptions(
             excludeLogins,
             sortPersonalDetailsByAlphaAsc: true,
             includeSelectedOptions,
+            includeRecentReports,
         },
     );
 }
@@ -2217,6 +2220,18 @@ function formatSectionsFromSearchTerm(
     };
 }
 
+/**
+ * Helper method to get the `keyForList` for the first option in the OptionsList
+ */
+function getFirstKeyForList(data?: Option[] | null) {
+    if (!data?.length) {
+        return '';
+    }
+
+    const firstNonEmptyDataObj = data[0];
+
+    return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
+}
 /**
  * Filters options based on the search input value
  */
@@ -2338,6 +2353,7 @@ export {
     createOptionFromReport,
     getReportOption,
     getTaxRatesSection,
+    getFirstKeyForList,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option};
