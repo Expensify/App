@@ -94,7 +94,12 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
  * @param count - The count used to determine the plural form as a string but numerical form (e.g. '5').
  * @returns The pluralized form of the translation, or null if not found.
  */
-function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl.LDMLPluralRule, Phrase<TKey>>, language: string, phraseKey: TKey, phraseParams?: Record<string, unknown>): string | null {
+function getPluralTranslation<TKey extends TranslationPaths>(
+    result: Record<Intl.LDMLPluralRule, Phrase<TKey>>,
+    language: string,
+    phraseKey: TKey,
+    phraseParams?: Record<string, unknown>,
+): string | null {
     const pluralRules = new Intl.PluralRules(language);
     const count = phraseParams?.count ?? 1;
     const pluralForm = pluralRules.select(Number(count));
@@ -163,8 +168,8 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(phraseParameters);
-            
-            if (typeof result === 'object'){
+
+            if (typeof result === 'object') {
                 return getPluralTranslation(result, language, phraseKey, phraseParameters);
             }
 

@@ -183,10 +183,7 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(
-        violation: TransactionViolation,
-        translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
-    ): string {
+    getViolationTranslation(violation: TransactionViolation, translate: <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Record<string, unknown>) => string): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,

@@ -225,7 +225,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
  */
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    translate: <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Record<string, unknown>) => string,
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {
