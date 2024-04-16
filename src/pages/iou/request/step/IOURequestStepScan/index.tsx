@@ -20,6 +20,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import checkPDFDocument from '@libs/CheckPDFDocument';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
@@ -165,6 +166,7 @@ function IOURequestStepScan({
     };
 
     function validateReceipt(file: FileObject) {
+        console.debug('hello');
         return FileUtils.validateImageForCorruption(file)
             .then(() => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
@@ -187,6 +189,13 @@ function IOURequestStepScan({
                     return false;
                 }
 
+                return checkPDFDocument.isValidPDF(file.uri ?? '');
+            })
+            .then((isValid) => {
+                if (!isValid) {
+                    setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedImage');
+                    return false;
+                }
                 return true;
             })
             .catch(() => {
@@ -508,3 +517,10 @@ const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFo
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 
 export default IOURequestStepScanWithFullTransactionOrNotFound;
+
+// function validateReceipt(file: FileObject): Promise<boolean> {
+//     return new Promise((resolve) => {
+//         checkPDFDocument.isValidPDF(file.uri ?? '').then((isValid) => {
+//             const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+//             if (
+//                 !isValid ||
