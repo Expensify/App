@@ -130,6 +130,10 @@ function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED;
+}
+
 function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
 }
@@ -157,12 +161,17 @@ function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.LEAVE_POLICY
     );
 }
 
 function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+}
+
+function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>) {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.LEAVE_POLICY;
 }
 
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageReimbursementDequeued {
@@ -182,7 +191,7 @@ function isThreadParentMessage(reportAction: OnyxEntry<ReportAction>, reportID: 
  *
  * @deprecated Use Onyx.connect() or withOnyx() instead
  */
-function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportAction | Record<string, never> {
+function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportAction | EmptyObject {
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
@@ -216,7 +225,13 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
 /**
  * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
-function getOneTransactionThreadReportID(reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
+    // If the report is not an IOU or Expense report, it shouldn't be treated as one-transaction report.
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE) {
+        return null;
+    }
+
     const reportActionsArray = Object.values(reportActions ?? {});
 
     if (!reportActionsArray.length) {
@@ -444,6 +459,18 @@ function isConsecutiveActionMadeByPreviousActor(reportActions: ReportAction[] | 
         return false;
     }
 
+    if (isReportActionSubmitted(currentAction)) {
+        const currentActionAdminAccountID = currentAction.adminAccountID;
+
+        return currentActionAdminAccountID === previousAction.actorAccountID || currentActionAdminAccountID === previousAction.adminAccountID;
+    }
+
+    if (isReportActionSubmitted(previousAction)) {
+        return typeof previousAction.adminAccountID === 'number'
+            ? currentAction.actorAccountID === previousAction.adminAccountID
+            : currentAction.actorAccountID === previousAction.actorAccountID;
+    }
+
     return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
@@ -558,7 +585,9 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
         return updatedReportAction;
     }
 
-    updatedReportAction.message[0].html = reportAction.message[0].html?.replace('%baseURL', environmentURL);
+    if (updatedReportAction.message[0]) {
+        updatedReportAction.message[0].html = reportAction.message?.[0]?.html?.replace('%baseURL', environmentURL);
+    }
 
     return updatedReportAction;
 }
@@ -837,9 +866,17 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
 
 function getMemberChangeMessageElements(reportAction: OnyxEntry<ReportAction>): readonly MemberChangeMessageElement[] {
     const isInviteAction = isInviteMemberAction(reportAction);
+    const isLeaveAction = isLeavePolicyAction(reportAction);
 
     // Currently, we only render messages when members are invited
-    const verb = isInviteAction ? Localize.translateLocal('workspace.invite.invited') : Localize.translateLocal('workspace.invite.removed');
+    let verb = Localize.translateLocal('workspace.invite.removed');
+    if (isInviteAction) {
+        verb = Localize.translateLocal('workspace.invite.invited');
+    }
+
+    if (isLeaveAction) {
+        verb = Localize.translateLocal('workspace.invite.leftWorkspace');
+    }
 
     const originalMessage = reportAction?.originalMessage as ChangeLog;
     const targetAccountIDs: number[] = originalMessage?.targetAccountIDs ?? [];
@@ -908,7 +945,7 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
 
     return {
         html: `<muted-text>${html}</muted-text>`,
-        text: reportAction?.message ? reportAction?.message[0].text : '',
+        text: reportAction?.message?.[0] ? reportAction?.message?.[0]?.text : '',
         type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
     };
 }
@@ -951,7 +988,7 @@ function isOldDotReportAction(action: ReportAction): boolean {
  * For now, we just concat all of the text elements of the message to create the full message.
  */
 function getMessageOfOldDotReportAction(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.message?.map((element) => element.text).join('') ?? '';
+    return reportAction?.message?.map((element) => element?.text).join('') ?? '';
 }
 
 function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>): string {
@@ -1063,13 +1100,12 @@ function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction> | Emp
  * Gets the text version of the message in a report action
  */
 function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | EmptyObject): string {
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr.text}`, '') ?? '';
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
 }
 
 export {
     extractLinksFromMessageHtml,
     getOneTransactionThreadReportID,
-    getAllReportActions,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
     getLastVisibleAction,
