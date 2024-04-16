@@ -27,7 +27,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
     const policyID = policy?.id ?? '';
     const {autoSync, syncPeople, autoCreateVendor, reimbursementAccountID, collectionAccountID, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const {bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])];
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
@@ -96,7 +97,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={pendingFields?.reimbursementAccountID || pendingFields?.collectionAccountID}
                                 isActive={Boolean(reimbursementAccountID && collectionAccountID)}
-                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, bankAccounts?.[0].id ?? '')}
+                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, accountOptions[0].id)}
                             />
 
                             <MenuItemWithTopDescription

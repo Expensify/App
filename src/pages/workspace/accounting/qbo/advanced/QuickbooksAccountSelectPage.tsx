@@ -22,7 +22,11 @@ type SelectorType = ListItem & {
 };
 
 // TODO: remove once UI is approved
-const DRAFT = [{name: 'Croissant Co Payroll Account'}, {name: 'Croissant Co Money in Clearing'}, {name: 'Croissant Co Debts and Loans'}];
+const DRAFT = [
+    {name: 'Croissant Co Payroll Account', id: 'Croissant Co Payroll Account'},
+    {name: 'Croissant Co Money in Clearing', id: 'Croissant Co Money in Clearing'},
+    {name: 'Croissant Co Debts and Loans', id: 'Croissant Co Debts and Loans'},
+];
 
 function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
@@ -33,7 +37,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])] || DRAFT;
+    const accountOptions = useMemo(() => DRAFT || [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[] | undefined>(
         () =>
@@ -56,10 +60,13 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
-    const saveSelection = useCallback(({value}: SelectorType) => {
-        Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
-        Navigation.goBack();
-    }, [policyID]);
+    const saveSelection = useCallback(
+        ({value}: SelectorType) => {
+            Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
+            Navigation.goBack();
+        },
+        [policyID],
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
