@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -32,6 +32,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
@@ -251,6 +252,9 @@ type MenuItemBaseProps = {
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
 
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
+
     /** Whether to show the tooltip */
     shouldRenderTooltip?: boolean;
 
@@ -337,13 +341,14 @@ function MenuItem(
         contentFit = 'cover',
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
+        onFocus,
         shouldRenderTooltip = false,
         shouldRenderTooltipWithoutHover = false,
         shouldForceRenderingTooltipLeft = false,
         tooltipWrapperStyle = {},
         renderTooltipContent,
     }: MenuItemProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -480,6 +485,7 @@ function MenuItem(
                                 role={CONST.ROLE.MENUITEM}
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible
+                        onFocus={onFocus}
                             >
                                 {({pressed}) => (
                                     <>
@@ -716,5 +722,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {IconProps, AvatarProps, NoIcon, MenuItemBaseProps, MenuItemProps};
+export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
 export default forwardRef(MenuItem);

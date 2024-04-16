@@ -17,6 +17,7 @@ type PlaybackContext = {
     playVideo: () => void;
     pauseVideo: () => void;
     checkVideoPlaying: (statusCallback: StatusCallback) => void;
+    setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 type VolumeContext = {
