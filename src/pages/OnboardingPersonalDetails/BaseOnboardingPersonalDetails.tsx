@@ -120,7 +120,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={66.6}
+                progressBarPercentage={50}
                 onBackButtonPress={handleGoBack}
             />
             <KeyboardAvoidingView
