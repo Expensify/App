@@ -58,7 +58,7 @@ const propTypes = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
-  
+
     /** Whether or not we are searching for reports on the server */
     isSearchingForReports: PropTypes.bool,
 };
@@ -381,7 +381,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-        const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
+    const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
     if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
         return renderEmptyWorkspaceView();
     }

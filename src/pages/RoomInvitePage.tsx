@@ -43,7 +43,10 @@ type RoomInvitePageOnyxProps = {
     /** Whether or not we are searching for reports on the server */
     isSearchingForReports: OnyxEntry<boolean>;
 };
-type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & RoomInvitePageOnyxProps & StackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
+type RoomInvitePageProps = WithReportOrNotFoundProps &
+    WithNavigationTransitionEndProps &
+    RoomInvitePageOnyxProps &
+    StackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 
