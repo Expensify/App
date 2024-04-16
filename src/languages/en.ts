@@ -1903,11 +1903,6 @@ export default {
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
                 invoiceAccountSelectDescription:
                     'If you are exporting Invoices from Expensify to Quickbooks Online, this is the account the Invoice will appear against once marked as Paid.',
-                croissantCo: {
-                    [CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_PAYROLL_ACCOUNT]: 'Croissant Co Payroll Account',
-                    [CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_MONEY_IN_CLEARING]: 'Croissant Co Money in Clearing',
-                    [CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_DEBTS_AND_LOANS]: 'Croissant Co Debts and Loans',
-                },
             },
         },
         type: {
