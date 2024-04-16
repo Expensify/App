@@ -43,13 +43,18 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
 
             const work = values.work.trim();
 
-            Policy.createWorkspace(undefined, true, work);
+            const adminsChatReportID = Policy.createWorkspace(undefined, true, work);
 
-            Report.completeOnboarding(onboardingPurposeSelected, CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected], {
-                login: currentUserPersonalDetails.login ?? '',
-                firstName: currentUserPersonalDetails.firstName ?? '',
-                lastName: currentUserPersonalDetails.lastName ?? '',
-            });
+            Report.completeOnboarding(
+                onboardingPurposeSelected,
+                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                {
+                    login: currentUserPersonalDetails.login ?? '',
+                    firstName: currentUserPersonalDetails.firstName ?? '',
+                    lastName: currentUserPersonalDetails.lastName ?? '',
+                },
+                adminsChatReportID,
+            );
 
             Navigation.dismissModal();
             // Only navigate to concierge chat when central pane is visible

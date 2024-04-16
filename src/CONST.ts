@@ -3734,17 +3734,11 @@ const CONST = {
                 {
                     title: 'Meet your setup specialist',
                     subtitle: '',
-                    message:
-                        'Meet your setup specialist, {guideName}, who can answer any questions as you get started with Expensify. Yes, a real human!\n' +
+                    message: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
+                        `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
-                        'Chat with {guideName} in your [admins room]({adminsRoomID}) or [schedule a call]({guideCalendarLink}) today',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
+                        `Chat with the specialist in your [#admins room](${adminsRoomLink}) or [schedule a call](${guideCalendarLink}) today.`,
+                    video: null,
                 },
                 {
                     title: 'Set up categories',

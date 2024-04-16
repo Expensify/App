@@ -127,7 +127,7 @@ type TaskForParameters =
           createdTaskReportActionID: string;
           title: string;
           description: string;
-          video: Video;
+          video?: Video;
       }
     | {
           type: 'message';
@@ -160,6 +160,14 @@ Onyx.connect({
         }
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
+    },
+});
+
+let guideCalendarLink: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        guideCalendarLink = value?.guideCalendarLink ?? '';
     },
 });
 
@@ -2978,6 +2986,7 @@ function completeOnboarding(
         firstName: string;
         lastName: string;
     },
+    adminsChatReportID?: string,
 ) {
     const targetEmail = CONST.EMAIL.CONCIERGE;
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
@@ -3037,9 +3046,16 @@ function completeOnboarding(
                 childOldestFourAccountIDs: `${actorAccountID}`,
             },
         );
-        const subtitleComment = ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID);
-        const taskVideoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 1);
-        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(task.message, undefined, actorAccountID, 2, false);
+        const subtitleComment = task.subtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID) : null;
+        const taskVideoComment = task.video ? ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 1) : null;
+        const taskMessage =
+            typeof task.message === 'function'
+                ? task.message({
+                      adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '')}`,
+                      guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
+                  })
+                : task.message;
+        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 2, false);
 
         return {
             task,
@@ -3054,22 +3070,6 @@ function completeOnboarding(
 
     const tasksForParameters = tasksData.reduce<TaskForParameters[]>(
         (acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, taskVideoComment, instructionComment}) => {
-            const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-            const subtitleCommentText = subtitleComment.commentText;
-            const subtitleMessage: TaskMessage = {
-                reportID: currentTask.reportID,
-                reportActionID: subtitleCommentAction.reportActionID,
-                reportComment: subtitleCommentText,
-            };
-
-            const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
-            const taskVideoCommentText = instructionComment.commentText;
-            const taskVideoMessage: TaskMessage = {
-                reportID: currentTask.reportID,
-                reportActionID: taskVideoCommentAction.reportActionID,
-                reportComment: taskVideoCommentText,
-            };
-
             const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
             const instructionCommentText = instructionComment.commentText;
             const instructionMessage: TaskMessage = {
@@ -3078,7 +3078,7 @@ function completeOnboarding(
                 reportComment: instructionCommentText,
             };
 
-            return [
+            const tasksForParametersAcc: TaskForParameters[] = [
                 ...acc,
                 {
                     type: 'task',
@@ -3090,31 +3090,53 @@ function completeOnboarding(
                     createdTaskReportActionID: taskCreatedAction.reportActionID,
                     title: currentTask.reportName ?? '',
                     description: currentTask.description ?? '',
-                    video: task.video,
-                },
-                {
-                    type: 'message',
-                    ...taskVideoMessage,
-                },
-                {
-                    type: 'message',
-                    ...subtitleMessage,
+                    video: task.video ?? undefined,
                 },
                 {
                     type: 'message',
                     ...instructionMessage,
                 },
             ];
+
+            if (subtitleComment) {
+                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+                const subtitleCommentText = subtitleComment.commentText;
+                const subtitleMessage: TaskMessage = {
+                    reportID: currentTask.reportID,
+                    reportActionID: subtitleCommentAction.reportActionID,
+                    reportComment: subtitleCommentText,
+                };
+
+                tasksForParametersAcc.push({
+                    type: 'message',
+                    ...subtitleMessage,
+                });
+            }
+
+            if (taskVideoComment) {
+                const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
+                const taskVideoCommentText = instructionComment.commentText;
+                const taskVideoMessage: TaskMessage = {
+                    reportID: currentTask.reportID,
+                    reportActionID: taskVideoCommentAction.reportActionID,
+                    reportComment: taskVideoCommentText,
+                };
+
+                tasksForParametersAcc.push({
+                    type: 'message',
+                    ...taskVideoMessage,
+                });
+            }
+
+            return tasksForParametersAcc;
         },
         [],
     );
 
     const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, taskVideoComment, instructionComment}) => {
-        const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-        const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
         const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
 
-        return [
+        const tasksForOptimisticDataAcc: OnyxUpdate[] = [
             ...acc,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -3142,12 +3164,36 @@ function completeOnboarding(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
                     [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
-                    [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
-                    [taskVideoCommentAction.reportActionID]: taskVideoCommentAction as ReportAction,
                     [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
                 },
             },
         ];
+
+        if (subtitleComment) {
+            const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+
+            tasksForOptimisticDataAcc.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
+                },
+            });
+        }
+
+        if (taskVideoComment) {
+            const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
+
+            tasksForOptimisticDataAcc.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [taskVideoCommentAction.reportActionID]: taskVideoCommentAction as ReportAction,
+                },
+            });
+        }
+
+        return tasksForOptimisticDataAcc;
     }, []);
 
     const optimisticData: OnyxUpdate[] = [
