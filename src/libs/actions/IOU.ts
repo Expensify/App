@@ -882,6 +882,7 @@ function buildOnyxDataForInvoice(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
+                [iouCreatedAction.reportActionID]: iouCreatedAction as OnyxTypes.ReportAction,
                 [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
             },
         },
