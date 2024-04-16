@@ -25,6 +25,7 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as CollectionUtils from '@libs/CollectionUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -258,6 +259,19 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
+const reportActionsByReport: OnyxCollection<OnyxTypes.ReportActions> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions, key) => {
+        if (!key || !actions) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        reportActionsByReport[reportID] = actions;
+    },
+});
+
 /**
  * Returns the policy of the report
  */
@@ -357,11 +371,7 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string, removeOriginalCurrency = false) {
-    if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
-        return;
-    }
+function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
@@ -371,18 +381,9 @@ function setMoneyRequestCreated(transactionID: string, created: string, isDraft:
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string, removeOriginalCurrency = false, isEditing = false) {
+function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string, isEditing = false) {
     const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
-    if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency, originalCurrency: null});
-        return;
-    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID: string, originalCurrency: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {originalCurrency});
 }
 
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
@@ -1491,7 +1492,7 @@ function getTrackExpenseInformation(
 
 /** Requests money based on a distance (e.g. mileage from a map) */
 function createDistanceRequest(
-    report: OnyxTypes.Report,
+    report: OnyxEntry<OnyxTypes.Report>,
     participant: Participant,
     comment: string,
     created: string,
@@ -1508,8 +1509,8 @@ function createDistanceRequest(
 ) {
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
-    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
+    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
 
     const optimisticReceipt: Receipt = {
@@ -1549,6 +1550,7 @@ function createDistanceRequest(
         moneyRequestReportID,
     );
 
+    const activeReportID = isMoneyRequestReport ? report?.reportID ?? '' : chatReport.reportID;
     const parameters: CreateDistanceRequestParams = {
         comment,
         iouReportID: iouReport.reportID,
@@ -1569,8 +1571,8 @@ function createDistanceRequest(
     };
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
-    Report.notifyNewAction(chatReport.reportID, userAccountID);
+    Navigation.dismissModal(activeReportID);
+    Report.notifyNewAction(activeReportID, userAccountID);
 }
 
 /**
@@ -2177,15 +2179,24 @@ function updateMoneyRequestTaxRate(
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
 }
 
+type UpdateMoneyRequestDistanceParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    waypoints: WaypointCollection;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the waypoints of a distance money request */
-function updateMoneyRequestDistance(
-    transactionID: string,
-    transactionThreadReportID: string,
-    waypoints: WaypointCollection,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestDistance({
+    transactionID,
+    transactionThreadReportID,
+    waypoints,
+    policy = {} as OnyxTypes.Policy,
+    policyTagList = {},
+    policyCategories = {},
+}: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         waypoints,
     };
@@ -3820,21 +3831,39 @@ function editMoneyRequest(
     }
 }
 
+type UpdateMoneyRequestAmountAndCurrencyParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    currency: string;
+    amount: number;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
 /** Updates the amount and currency fields of a money request */
-function updateMoneyRequestAmountAndCurrency(
-    transactionID: string,
-    transactionThreadReportID: string,
-    currency: string,
-    amount: number,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+function updateMoneyRequestAmountAndCurrency({
+    transactionID,
+    transactionThreadReportID,
+    currency,
+    amount,
+    policy,
+    policyTagList,
+    policyCategories,
+}: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(
+        transactionID,
+        transactionThreadReportID,
+        transactionChanges,
+        policy ?? null,
+        policyTagList ?? null,
+        policyCategories ?? null,
+        true,
+    );
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
@@ -4313,7 +4342,7 @@ function deleteTrackExpense(chatReportID: string, transactionID: string, reportA
  * @param recipient - The user receiving the money
  */
 function getSendMoneyParams(
-    report: OnyxTypes.Report,
+    report: OnyxEntry<OnyxTypes.Report> | EmptyObject,
     amount: number,
     currency: string,
     comment: string,
@@ -4332,11 +4361,8 @@ function getSendMoneyParams(
         idempotencyKey: Str.guid(),
     });
 
-    let chatReport = report.reportID ? report : null;
+    let chatReport = !isEmptyObject(report) && report?.reportID ? report : ReportUtils.getChatByParticipants([recipientAccountID]);
     let isNewChat = false;
-    if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([recipientAccountID]);
-    }
     if (!chatReport) {
         chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
         isNewChat = true;
@@ -4768,7 +4794,7 @@ function getPayMoneyRequestParams(
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
+function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
@@ -4782,7 +4808,7 @@ function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: 
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
+function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | ReportUtils.OptionData) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
@@ -4850,7 +4876,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
 }
 
 function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, excludedIOUReportID: string): boolean {
-    const chatReportActions = ReportActionsUtils.getAllReportActions(chatReport?.reportID ?? '');
+    const chatReportActions = reportActionsByReport?.[chatReport?.reportID ?? ''] ?? {};
 
     return Object.values(chatReportActions).some((action) => {
         const iouReport = ReportUtils.getReport(action.childReportID ?? '');
@@ -4863,7 +4889,8 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
 function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full?: boolean) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
     let total = expenseReport.total ?? 0;
-    if (ReportUtils.hasHeldExpenses(expenseReport.reportID) && !full && !!expenseReport.unheldTotal) {
+    const hasHeldExpenses = ReportUtils.hasHeldExpenses(expenseReport.reportID);
+    if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
@@ -4958,6 +4985,31 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
         },
     ];
 
+    // Clear hold reason of all transactions if we approve all requests
+    if (full && hasHeldExpenses) {
+        const heldTransactions = ReportUtils.getAllHeldTransactions(expenseReport.reportID);
+        heldTransactions.forEach((heldTransaction) => {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: '',
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: heldTransaction.comment.hold,
+                    },
+                },
+            });
+        });
+    }
+
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
@@ -4969,11 +5021,12 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
 
 function submitReport(expenseReport: OnyxTypes.Report) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
     const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
     const policy = getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);
+    const adminAccountID = policy.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails.accountID : undefined;
+    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
 
     const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
@@ -5277,9 +5330,9 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report) {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
+    const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
     const participants: Participant[] =
@@ -5501,7 +5554,6 @@ export {
     setMoneyRequestCreated,
     setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestDescription,
-    setMoneyRequestOriginalCurrency_temporaryForRefactor,
     setMoneyRequestParticipants_temporaryForRefactor,
     setMoneyRequestPendingFields,
     setMoneyRequestReceipt,

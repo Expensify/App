@@ -46,6 +46,12 @@ type SuggestionProps = {
 
     /** The height of the composer */
     composerHeight?: number;
+
+    /** If current composer is connected with report from group policy */
+    isGroupPolicyReport: boolean;
+
+    /** The policyID of the report connected to current composer */
+    policyID?: string;
 };
 
 /**
@@ -66,6 +72,8 @@ function Suggestions(
         measureParentContainer,
         isAutoSuggestionPickerLarge = true,
         isComposerFocused,
+        isGroupPolicyReport,
+        policyID,
     }: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
@@ -155,6 +163,8 @@ function Suggestions(
         isAutoSuggestionPickerLarge,
         measureParentContainer,
         isComposerFocused,
+        isGroupPolicyReport,
+        policyID,
     };
 
     return (

@@ -2,8 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
@@ -30,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, PolicyCategories, PolicyTagList} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -97,20 +96,11 @@ function IOURequestStepConfirmation({
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-            }),
+            }) ?? [],
         [transaction?.participants, personalDetails],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     const formHasBeenSubmitted = useRef(false);
-
-    useEffect(() => {
-        if (!transaction?.originalCurrency) {
-            return;
-        }
-        // If user somehow lands on this page without the currency reset, then reset it here.
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, transaction.originalCurrency, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
@@ -236,7 +226,7 @@ function IOURequestStepConfirmation({
 
     const createDistanceRequest = useCallback(
         (selectedParticipants: Participant[], trimmedComment: string) => {
-            if (!report || !transaction) {
+            if (!transaction) {
                 return;
             }
             IOU.createDistanceRequest(
@@ -422,27 +412,25 @@ function IOURequestStepConfirmation({
 
     /**
      * Checks if user has a GOLD wallet then creates a paid IOU report on the fly
-     *
-     * @param {String} paymentMethodType
      */
     const sendMoney = useCallback(
-        (paymentMethodType: ValueOf<typeof CONST.IOU.PAYMENT_TYPE>) => {
+        (paymentMethod: PaymentMethodType | undefined) => {
             const currency = transaction?.currency;
 
             const trimmedComment = transaction?.comment?.comment ? transaction.comment.comment.trim() : '';
 
             const participant = participants?.[0];
 
-            if (!participant || !report || !transaction?.amount || !currency) {
+            if (!participant || !transaction?.amount || !currency) {
                 return;
             }
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 IOU.sendMoneyElsewhere(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
                 return;
             }
 
-            if (paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 IOU.sendMoneyWithWallet(report, transaction.amount, currency, trimmedComment, currentUserPersonalDetails.accountID, participant);
             }
         },
@@ -462,10 +450,6 @@ function IOURequestStepConfirmation({
     const setBillable = (billable: boolean) => {
         IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
     };
-
-    // This loading indicator is shown because the transaction originalCurrency is being updated later than the component mounts.
-    // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
-    const isLoading = !!transaction?.originalCurrency;
 
     return (
         <ScreenWrapper
@@ -488,41 +472,37 @@ function IOURequestStepConfirmation({
                             },
                         ]}
                     />
-                    {isLoading && <FullScreenLoadingIndicator />}
-                    <View style={[styles.flex1, isLoading && styles.opacity0]}>
-                        {/* @ts-expect-error TODO: Remove this once MoneyRequestConfirmationList (https://github.com/Expensify/App/issues/36130) is migrated to TypeScript. */}
-                        <MoneyRequestConfirmationList
-                            transaction={transaction}
-                            hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
-                            selectedParticipants={participants}
-                            iouAmount={transaction?.amount}
-                            iouComment={transaction?.comment.comment ?? ''}
-                            iouCurrencyCode={transaction?.currency}
-                            iouIsBillable={transaction?.billable}
-                            onToggleBillable={setBillable}
-                            iouCategory={transaction?.category}
-                            onConfirm={createTransaction}
-                            onSendMoney={sendMoney}
-                            onSelectParticipant={addNewParticipant}
-                            receiptPath={receiptPath}
-                            receiptFilename={receiptFilename}
-                            iouType={iouType}
-                            reportID={reportID}
-                            isPolicyExpenseChat={isPolicyExpenseChat}
-                            // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
-                            // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
-                            // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
-                            // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
-                            // the floating-action-button (since it is something that exists outside the context of a report).
-                            canModifyParticipants={!transaction?.isFromGlobalCreate}
-                            policyID={report?.policyID}
-                            bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
-                            iouMerchant={transaction?.merchant}
-                            iouCreated={transaction?.created}
-                            isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
-                            shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
-                        />
-                    </View>
+                    <MoneyRequestConfirmationList
+                        transaction={transaction}
+                        hasMultipleParticipants={iouType === CONST.IOU.TYPE.SPLIT}
+                        selectedParticipants={participants}
+                        iouAmount={transaction?.amount ?? 0}
+                        iouComment={transaction?.comment.comment ?? ''}
+                        iouCurrencyCode={transaction?.currency}
+                        iouIsBillable={transaction?.billable}
+                        onToggleBillable={setBillable}
+                        iouCategory={transaction?.category}
+                        onConfirm={createTransaction}
+                        onSendMoney={sendMoney}
+                        onSelectParticipant={addNewParticipant}
+                        receiptPath={receiptPath}
+                        receiptFilename={receiptFilename}
+                        iouType={iouType}
+                        reportID={reportID}
+                        isPolicyExpenseChat={isPolicyExpenseChat}
+                        // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.
+                        // This is because when there is a group of people, say they are on a trip, and you have some shared expenses with some of the people,
+                        // but not all of them (maybe someone skipped out on dinner). Then it's nice to be able to select/deselect people from the group chat bill
+                        // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
+                        // the floating-action-button (since it is something that exists outside the context of a report).
+                        canModifyParticipants={!transaction?.isFromGlobalCreate}
+                        policyID={report?.policyID}
+                        bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
+                        iouMerchant={transaction?.merchant}
+                        iouCreated={transaction?.created}
+                        isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
+                        shouldShowSmartScanFields={requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
+                    />
                 </View>
             )}
         </ScreenWrapper>

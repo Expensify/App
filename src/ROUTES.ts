@@ -1,6 +1,7 @@
-import type {IsEqual, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
+import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -189,6 +190,7 @@ const ROUTES = {
     NEW: 'new',
     NEW_CHAT: 'new/chat',
     NEW_CHAT_CONFIRM: 'new/chat/confirm',
+    NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
     REPORT: 'r',
@@ -225,6 +227,18 @@ const ROUTES = {
         route: 'r/:reportID/participants',
         getRoute: (reportID: string) => `r/${reportID}/participants` as const,
     },
+    REPORT_PARTICIPANTS_INVITE: {
+        route: 'r/:reportID/participants/invite',
+        getRoute: (reportID: string) => `r/${reportID}/participants/invite` as const,
+    },
+    REPORT_PARTICIPANTS_DETAILS: {
+        route: 'r/:reportID/participants/:accountID',
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}` as const,
+    },
+    REPORT_PARTICIPANTS_ROLE_SELECTION: {
+        route: 'r/:reportID/participants/:accountID/role',
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}/role` as const,
+    },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
@@ -236,6 +250,10 @@ const ROUTES = {
     REPORT_SETTINGS_ROOM_NAME: {
         route: 'r/:reportID/settings/room-name',
         getRoute: (reportID: string) => `r/${reportID}/settings/room-name` as const,
+    },
+    REPORT_SETTINGS_GROUP_NAME: {
+        route: 'r/:reportID/settings/group-name',
+        getRoute: (reportID: string) => `r/${reportID}/settings/group-name` as const,
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
@@ -334,8 +352,8 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID',
@@ -368,20 +386,20 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:tagIndex/:transactionID/:reportID/:reportActionID?',
+        route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
         getRoute: (
             action: ValueOf<typeof CONST.IOU.ACTION>,
             iouType: ValueOf<typeof CONST.IOU.TYPE>,
-            tagIndex: number,
+            orderWeight: number,
             transactionID: string,
             reportID: string,
             backTo = '',
             reportActionID?: string,
-        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID?: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`${action}/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
@@ -730,20 +748,18 @@ export default ROUTES;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
 
-type AllRoutes = {
+/**
+ * Represents all routes in the app as a union of literal strings.
+ */
+type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type RouteIsPlainString = IsEqual<AllRoutes, string>;
+type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
-/**
- * Represents all routes in the app as a union of literal strings.
- *
- * If this type resolves to `never`, it implies that one or more routes defined within `ROUTES` have not correctly used
- * `as const` in their `getRoute` function return value.
- */
-type Route = RouteIsPlainString extends true ? never : AllRoutes;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute, AllRoutes};
+export type {Route, HybridAppRoute};
