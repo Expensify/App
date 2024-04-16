@@ -305,23 +305,17 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
         reversedDefaultValues[item[1]] = item[0];
     });
 
-    return accountIDs
-        .map<OnyxCommon.Icon | undefined>((accountID) => {
-            const login = reversedDefaultValues[accountID] ?? '';
-            const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID, avatar: ''};
+    return accountIDs.map((accountID) => {
+        const login = reversedDefaultValues[accountID] ?? '';
+        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID, avatar: ''};
 
-            if (!userPersonalDetail.avatar) {
-                return;
-            }
-
-            return {
-                id: accountID,
-                source: userPersonalDetail.avatar,
-                type: CONST.ICON_TYPE_AVATAR,
-                name: userPersonalDetail.login ?? '',
-            };
-        })
-        .filter((icon): icon is OnyxCommon.Icon => icon !== undefined);
+        return {
+            id: accountID,
+            source: userPersonalDetail.avatar ?? FallbackAvatar,
+            type: CONST.ICON_TYPE_AVATAR,
+            name: userPersonalDetail.login ?? '',
+        };
+    });
 }
 
 /**
@@ -1941,7 +1935,7 @@ function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[]
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails | EmptyObject, amountText?: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
-    const icons = personalDetail.avatar ? [{source: personalDetail.avatar, name: personalDetail.login ?? '', type: CONST.ICON_TYPE_AVATAR, id: personalDetail.accountID}] : [];
+    const icons = [{source: personalDetail.avatar ?? FallbackAvatar, name: personalDetail.login ?? '', type: CONST.ICON_TYPE_AVATAR, id: personalDetail.accountID}];
 
     return {
         text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),

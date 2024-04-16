@@ -101,7 +101,7 @@ function ReportActionItemSingle({
         actorHint = `${delegateDisplayName} (${translate('reportAction.asCopilot')} ${displayName})`;
         displayName = actorHint;
         avatarSource = delegateDetails?.avatar;
-        avatarAccountId = Number(action.delegateAccountID);
+        avatarAccountId = action.delegateAccountID;
     }
 
     // If this is a report preview, display names and avatars of both people involved
@@ -133,7 +133,7 @@ function ReportActionItemSingle({
         source: avatarSource ?? FallbackAvatar,
         type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR,
         name: primaryDisplayName ?? '',
-        id: isWorkspaceActor ? undefined : avatarAccountId,
+        id: avatarAccountId,
     };
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
