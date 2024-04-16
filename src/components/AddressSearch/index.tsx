@@ -375,7 +375,7 @@ function AddressSearch(
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
                             return (
                                 <View>
-                                    {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
+                                    {!!title && <Text style={styles.googleSearchText}>{title}</Text>}
                                     <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
                                 </View>
                             );
