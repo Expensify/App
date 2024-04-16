@@ -6,7 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
-import PolicyMember from '@src/types/onyx/PolicyMember';
+import type PolicyMember from '@src/types/onyx/PolicyMember';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
