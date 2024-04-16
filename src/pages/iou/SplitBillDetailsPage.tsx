@@ -59,7 +59,6 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
     const {translate} = useLocalize();
     const reportAction = useMemo(() => reportActions?.[route.params.reportActionID] ?? ({} as ReportAction), [reportActions, route.params.reportActionID]);
     const participantAccountIDs = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction?.originalMessage.participantAccountIDs ?? [] : [];
-
     // In case this is workspace split bill, we manually add the workspace as the second participant of the split bill
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
     let participants: Array<Participant | ReportUtils.OptionData>;
@@ -132,6 +131,7 @@ function SplitBillDetailsPage({personalDetails, report, route, reportActions, tr
                             onConfirm={onConfirm}
                             isPolicyExpenseChat={ReportUtils.isPolicyExpenseChat(report)}
                             policyID={ReportUtils.isPolicyExpenseChat(report) ? report?.policyID : undefined}
+                            action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                         />
                     )}
                 </View>
