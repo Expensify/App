@@ -54,9 +54,9 @@ const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
 function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
+    const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const themeStyles = useThemeStyles();
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: isScreenTransitionEnd,
     });
