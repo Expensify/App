@@ -178,7 +178,7 @@ function MoneyRequestView({
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '0';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;

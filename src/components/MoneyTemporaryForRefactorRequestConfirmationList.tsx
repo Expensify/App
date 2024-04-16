@@ -277,7 +277,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
