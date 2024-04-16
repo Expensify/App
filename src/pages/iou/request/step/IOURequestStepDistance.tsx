@@ -105,12 +105,12 @@ function IOURequestStepDistance({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
+        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy]);
+    }, [report, skipConfirmation, policy, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.request');

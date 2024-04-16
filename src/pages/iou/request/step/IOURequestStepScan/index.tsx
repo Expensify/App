@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState} from 'react';
 import {ActivityIndicator, PanResponder, PixelRatio, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type Webcam from 'react-webcam';
@@ -79,8 +79,13 @@ function IOURequestStepScan({
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
-    const shouldSkipConfirmation =
-        skipConfirmation && !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+    const shouldSkipConfirmation: boolean = useMemo(() => {
+        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            return false;
+        }
+
+        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+    }, [report, skipConfirmation, policy, iouType]);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
