@@ -5379,8 +5379,9 @@ function setShownHoldUseExplanation() {
  * Put money request on HOLD
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction();
-    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment);
+    const currentTime = DateUtils.getDBTime();
+    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(currentTime);
+    const createdReportActionComment = ReportUtils.buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
 
     const optimisticData: OnyxUpdate[] = [
         {
