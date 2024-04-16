@@ -88,7 +88,7 @@ type MenuItemBaseProps = {
     badgeStyle?: ViewStyle;
 
     /** Any additional styles to apply to the label */
-    labelStyle?: ViewStyle;
+    labelStyle?: StyleProp<ViewStyle>;
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;

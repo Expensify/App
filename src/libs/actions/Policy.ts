@@ -288,7 +288,7 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 }
 
 /**
- * Returns the primary policy for the user
+ * Returns a primary policy for the user
  */
 function getPrimaryPolicy(activePolicyID?: string): Policy | undefined {
     const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);

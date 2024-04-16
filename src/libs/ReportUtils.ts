@@ -874,7 +874,7 @@ function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObje
 }
 
 /**
- * Whether the provided report is an Invoice room chat.
+ * Whether the provided report is an invoice room chat.
  */
 function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
@@ -3184,10 +3184,12 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return parser.htmlToText(policy.description);
 }
 
+/** Builds an optimistic reportAction for the invite message */
 function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invitedUserID: number): OptimisticInviteReportAction {
     const text = `${Localize.translateLocal('workspace.invite.invited')} ${invitedUserDisplayName}`;
     const commentText = getParsedComment(text);
     const parser = new ExpensiMark();
+    const currentUser = allPersonalDetails?.[currentUserAccountID ?? -1];
 
     return {
         reportActionID: NumberUtils.rand64(),
@@ -3196,12 +3198,12 @@ function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invit
         person: [
             {
                 style: 'strong',
-                text: allPersonalDetails?.[currentUserAccountID ?? -1]?.displayName ?? currentUserEmail,
+                text: currentUser?.displayName ?? currentUserEmail,
                 type: 'TEXT',
             },
         ],
         automatic: false,
-        avatar: allPersonalDetails?.[currentUserAccountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
+        avatar: currentUser?.avatar ?? UserUtils.getDefaultAvatarURL(currentUserAccountID),
         created: DateUtils.getDBTime(),
         message: [
             {
@@ -3423,7 +3425,7 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
     return result.trim().length ? result : formula;
 }
 
-/** Builds an optimistic Invoice report with a randomly generated reportID */
+/** Builds an optimistic invoice report with a randomly generated reportID */
 function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, receiverAccountID: number, receiverName: string, total: number, currency: string): OptimisticExpenseReport {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
 
@@ -3996,7 +3998,7 @@ function buildOptimisticChatReport(
     };
 
     if (chatType === CONST.REPORT.CHAT_TYPE.INVOICE) {
-        // TODO: update to support workspace receiver when workspace-workspace invoice room exists
+        // TODO: update to support workspace as an invoice receiver when workspace-to-workspace invoice room implemented
         optimisticChatReport.invoiceReceiver = {
             type: 'individual',
             accountID: participantList[0],
