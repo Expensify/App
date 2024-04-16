@@ -247,6 +247,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
+    useEffect(() => {
+        if (!isEmptyObject(prevPolicy) && !PolicyUtils.isPendingDeletePolicy(prevPolicy) && PolicyUtils.isPendingDeletePolicy(policy)) {
+            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+        }
+    }, [policy, prevPolicy]);
+
     // We are checking if the user can access the route.
     // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
     const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
@@ -298,6 +304,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                         onClose={() => dismissError(policyID)}
                         errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
+                        shouldDisableStrikeThrough={false}
+                        shouldHideOnDelete={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
