@@ -36,7 +36,7 @@ export default function () {
                             nameValuePairs: {
                                 isVirtual: card.isVirtual,
                             },
-                            isVirtual: null,
+                            isVirtual: undefined,
                         },
                     };
                 }, {});
