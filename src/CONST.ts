@@ -640,7 +640,7 @@ const CONST = {
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
-                CHRONOSOOLIST: 'CHRONOSOOLIST',
+                CHRONOS_OO_LIST: 'CHRONOSOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action

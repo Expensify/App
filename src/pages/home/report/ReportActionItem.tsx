@@ -793,7 +793,7 @@ function ReportActionItem({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
         return <RenameAction action={action} />;
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOLIST) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOS_OO_LIST) {
         return (
             <ChronosOOOListActions
                 action={action}
