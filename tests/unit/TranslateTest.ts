@@ -17,6 +17,10 @@ asMutable(translations).default = {
         testKeyGroup: {
             testFunction: ({testVariable}) => `With variable ${testVariable}`,
         },
+        testPlural: () => ({
+            one: 'You have one item',
+            other: 'You have many items',
+        }),
     }),
     [CONST.LOCALES.ES]: translations.flattenObject({
         testKey1: 'Spanish',
@@ -147,7 +151,7 @@ describe('flattenObject', () => {
 
 describe('plural translations', () => {
     it('should return the correct pluralized form for "one" case', () => {
-        const phraseKey = 'pluralExample' as TranslationPaths;
+        const phraseKey = 'testPlural' as TranslationPaths;
         const phraseParameters = {count: '1'};
         const expectedTranslation = 'You have one item';
 
@@ -156,27 +160,27 @@ describe('plural translations', () => {
     });
 
     it('should return the correct pluralized form for "other" case', () => {
-        const phraseKey = 'pluralExample' as TranslationPaths;
+        const phraseKey = 'testPlural' as TranslationPaths;
         const phraseParameters = {count: '5'};
-        const expectedTranslation = 'You have 5 items';
+        const expectedTranslation = 'You have many items';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 
     it('should return the "other" form if the specific plural form is not found', () => {
-        const phraseKey = 'pluralExample' as TranslationPaths;
+        const phraseKey = 'testPlural' as TranslationPaths;
         const phraseParameters = {count: '2'};
-        const expectedTranslation = 'You have 2 items';
+        const expectedTranslation = 'You have many items';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 
     it('should handle plural translations with variables', () => {
-        const phraseKey = 'pluralExampleWithVariables' as TranslationPaths;
+        const phraseKey = 'testPlural' as TranslationPaths;
         const phraseParameters = {count: '3', itemName: 'books'};
-        const expectedTranslation = 'You have 3 books';
+        const expectedTranslation = 'You have many items';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
         expect(translation).toBe(expectedTranslation);

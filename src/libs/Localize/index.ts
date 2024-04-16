@@ -169,6 +169,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(phraseParameters);
 
+            console.log('translatedPhrase result: ', result);
             if (typeof result === 'object') {
                 return getPluralTranslation(result, language, phraseKey, phraseParameters);
             }
