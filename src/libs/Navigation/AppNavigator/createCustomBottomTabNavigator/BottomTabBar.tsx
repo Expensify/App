@@ -84,7 +84,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 >
                     <View>
                         <Icon
-                            src={Expensicons.ChatBubble}
+                            src={Expensicons.Home}
                             fill={currentTabName === SCREENS.HOME ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
@@ -98,7 +98,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH);
+                        Navigation.navigate(ROUTES.SEARCH); // replace with final route implemented in #App#40245
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
@@ -108,7 +108,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     <View>
                         <Icon
                             src={Expensicons.Bolt}
-                            fill={currentTabName === SCREENS.SEARCH ? theme.iconMenu : theme.icon}
+                            fill={currentTabName === SCREENS.SEARCH ? theme.iconMenu : theme.icon} // replace with final screen implemented in #App#40245
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
