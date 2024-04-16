@@ -307,7 +307,7 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
 
     return accountIDs.map((accountID) => {
         const login = reversedDefaultValues[accountID] ?? '';
-        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID, avatar: ''};
+        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
 
         return {
             id: accountID,
