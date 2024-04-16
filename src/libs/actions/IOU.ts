@@ -821,9 +821,9 @@ function buildOnyxDataForTrackExpense(
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
-    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = CONST.QUICK_ACTIONS.TRACK_MANUAL;
     if (isScanRequest) {
         newQuickAction = CONST.QUICK_ACTIONS.TRACK_SCAN;
