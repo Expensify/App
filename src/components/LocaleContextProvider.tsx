@@ -29,7 +29,7 @@ type LocaleContextProviderProps = LocaleContextProviderOnyxProps &
 
 type LocaleContextProps = {
     /** Returns translated string for given locale and phrase */
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Localize.PhraseParameters<Localize.Phrase<TKey>>) => string;
+    translate: <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Localize.PhraseParameters<Record<string, unknown>>) => string;
 
     /** Formats number formatted according to locale and options */
     numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
@@ -80,7 +80,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>
-            (phraseKey, phraseParameters) =>
+            <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Record<string, unknown>) =>
                 Localize.translate(locale, phraseKey, phraseParameters),
         [locale],
     );
