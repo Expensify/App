@@ -72,6 +72,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
+import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -3190,7 +3191,7 @@ function completeOnboarding(
  * - Sets the introSelected NVP to the choice the user made
  * - Creates an optimistic report comment from concierge
  */
-function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>) {
+function completeEngagementModal(text: string, choice: OnboardingPurposeType) {
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;

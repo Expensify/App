@@ -66,6 +66,8 @@ const onboardingChoices = {
     LOOKING_AROUND: 'newDotLookingAround',
 };
 
+type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
+
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
@@ -4673,6 +4675,6 @@ const CONST = {
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 
-export type {Country, IOUType};
+export type {Country, IOUType, OnboardingPurposeType};
 
 export default CONST;

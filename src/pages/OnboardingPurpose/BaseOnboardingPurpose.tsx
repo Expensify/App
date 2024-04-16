@@ -21,13 +21,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
+import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
-
-type ValuesType<T> = T[keyof T];
-type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
 
 const menuIcons = {
     [CONST.ONBOARDING_CHOICES.TRACK]: Illustrations.CompanyCard,
@@ -42,7 +40,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const [selectedPurpose, setSelectedPurpose] = useState<SelectedPurposeType>(undefined);
+    const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const [error, setError] = useState(false);
     const theme = useTheme();
@@ -155,4 +153,4 @@ export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxPro
     },
 })(BaseOnboardingPurpose);
 
-export type {BaseOnboardingPurposeProps, SelectedPurposeType};
+export type {BaseOnboardingPurposeProps};
