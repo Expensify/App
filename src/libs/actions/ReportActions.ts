@@ -1,6 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -59,7 +58,7 @@ function clearReportActionErrors(reportID: string, reportAction: ReportAction, k
     });
 }
 
-let reportActionsByReport: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -67,7 +66,7 @@ Onyx.connect({
         if (!actions) {
             return;
         }
-        reportActionsByReport = Object.fromEntries(Object.entries(actions).map(([key, value]) => [CollectionUtils.extractCollectionItemID(key as `reportActions_${string}`), value]));
+        allReportActions = actions;
     },
 });
 
@@ -93,7 +92,7 @@ function clearAllRelatedReportActionErrors(reportID: string, reportAction: Repor
     }
 
     if (reportAction.childReportID && ignore !== 'child') {
-        const childActions = reportActionsByReport?.[reportAction.childReportID] ?? {};
+        const childActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`] ?? {};
         Object.values(childActions).forEach((action) => {
             const childErrorKeys = Object.keys(action.errors ?? {}).filter((err) => errorKeys.includes(err));
             clearAllRelatedReportActionErrors(reportAction.childReportID ?? '', action, 'parent', childErrorKeys);

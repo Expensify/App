@@ -6,7 +6,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyMembers, ReimbursementAccount, Report, ReportActions} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
-import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
 import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
@@ -52,7 +51,7 @@ Onyx.connect({
     },
 });
 
-let reportActionsByReport: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
@@ -60,7 +59,7 @@ Onyx.connect({
         if (!actions) {
             return;
         }
-        reportActionsByReport = Object.fromEntries(Object.entries(actions).map(([key, value]) => [CollectionUtils.extractCollectionItemID(key as `reportActions_${string}`), value]));
+        allReportActions = actions;
     },
 });
 
@@ -69,7 +68,7 @@ Onyx.connect({
  * @returns BrickRoad for the policy passed as a param
  */
 const getBrickRoadForPolicy = (report: Report): BrickRoad => {
-    const reportActions = reportActionsByReport?.[report.reportID] ?? {};
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
     const reportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     const doesReportContainErrors = Object.keys(reportErrors ?? {}).length !== 0 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     if (doesReportContainErrors) {
@@ -79,7 +78,7 @@ const getBrickRoadForPolicy = (report: Report): BrickRoad => {
     // To determine if the report requires attention from the current user, we need to load the parent report action
     let itemParentReportAction = {};
     if (report.parentReportID) {
-        const itemParentReportActions = reportActionsByReport?.[report.parentReportID] ?? {};
+        const itemParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`] ?? {};
         itemParentReportAction = report.parentReportActionID ? itemParentReportActions[report.parentReportActionID] : {};
     }
     const reportOption = {...report, isUnread: ReportUtils.isUnread(report), isUnreadWithMention: ReportUtils.isUnreadWithMention(report)};

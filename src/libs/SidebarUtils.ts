@@ -23,35 +23,28 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
 
-const reportActionsByReport: OnyxCollection<ReportActions> = {};
 const visibleReportActionItems: ReportActions = {};
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
-    callback: (actions) => {
-        if (!actions) {
+    callback: (actions, key) => {
+        if (!actions || !key) {
             return;
         }
+        const reportID = CollectionUtils.extractCollectionItemID(key);
 
-        Object.entries(actions).forEach(([reportKey, reportActions]) => {
-            const reportID = CollectionUtils.extractCollectionItemID(reportKey as `reportActions_${string}`);
+        const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
-            reportActionsByReport[reportID] = reportActions;
+        // The report is only visible if it is the last action not deleted that
+        // does not match a closed or created state.
+        const reportActionsForDisplay = actionsArray.filter(
+            (reportAction, actionKey) =>
+                ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
+                !ReportActionsUtils.isWhisperAction(reportAction) &&
+                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
 
-            const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}));
-            // The report is only visible if it is the last action not deleted that
-            // does not match a closed or created state.
-            const reportActionsForDisplay = actionsArray.filter(
-                (reportAction, actionKey) =>
-                    ReportActionsUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                    !ReportActionsUtils.isWhisperAction(reportAction) &&
-                    reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                    reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            );
-
-            visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
-        });
+        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
 
@@ -91,7 +84,7 @@ function getOrderedReportIDs(
 
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const reportActions = reportActionsByReport?.[report.reportID] ?? {};
+        const reportActions = allReportActions?.[report.reportID] ?? {};
         const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
