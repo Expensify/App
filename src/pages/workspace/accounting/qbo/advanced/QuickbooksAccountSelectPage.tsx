@@ -30,7 +30,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountOptions = bankAccounts || creditCards || DRAFT;
 
-    const [selectedAccount, setSelectedAccount] = useState('selected');
+    const [selectedAccount, setSelectedAccount] = useState('Croissant Co Payroll Account');
 
     const policyID = policy?.id ?? '';
 
