@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
-const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow', '@babel/preset-typescript'];
+const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-typescript'];
 const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
     ['react-native-web'],
@@ -26,10 +26,6 @@ const webpack = {
 const metro = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
-        // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
-        // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
-        '@babel/plugin-transform-flow-strip-types',
-
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
