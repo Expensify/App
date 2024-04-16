@@ -203,6 +203,7 @@ function ReportScreen({
             policyName: reportProp?.policyName,
             isOptimisticReport: reportProp?.isOptimisticReport,
             lastMentionedTime: reportProp?.lastMentionedTime,
+            avatarUrl: reportProp?.avatarUrl,
         }),
         [
             reportProp?.lastReadTime,
@@ -241,6 +242,7 @@ function ReportScreen({
             reportProp?.policyName,
             reportProp?.isOptimisticReport,
             reportProp?.lastMentionedTime,
+            reportProp?.avatarUrl,
         ],
     );
 
@@ -333,6 +335,14 @@ function ReportScreen({
     }
 
     const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? []), [report.reportID, reportActions]);
+
+    useEffect(() => {
+        if (!transactionThreadReportID || !route.params.reportActionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
+    }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
+
     if (ReportUtils.isMoneyRequestReport(report)) {
         headerView = (
             <MoneyReportHeader
@@ -380,6 +390,16 @@ function ReportScreen({
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [reportIDFromRoute, reportActionIDFromRoute]);
+
+    useEffect(() => {
+        if (!report.reportID) {
+            return;
+        }
+
+        if (report?.errorFields?.notFound) {
+            Report.clearReportNotFoundErrors(report.reportID);
+        }
+    }, [report?.errorFields?.notFound, report.reportID]);
 
     useEffect(() => {
         if (!report.reportID || !isFocused) {
@@ -472,18 +492,21 @@ function ReportScreen({
 
         const onyxReportID = report.reportID;
         const prevOnyxReportID = prevReport.reportID;
+        const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
+        const isRemovalExpectedForReportType =
+            isEmpty(report) &&
+            (ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport) || ReportUtils.isGroupChat(prevReport));
+        const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+        const isTopLevelPolicyRoomWithNoStatus = !report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+        const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
 
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
             (!prevUserLeavingStatus && !!userLeavingStatus) ||
-            // optimistic case
-            (!!prevOnyxReportID &&
-                prevOnyxReportID === reportIDFromRoute &&
-                !onyxReportID &&
-                prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
-            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport)) && isEmpty(report))
+            didReportClose ||
+            isRemovalExpectedForReportType ||
+            isClosedTopLevelPolicyRoom
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
