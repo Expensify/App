@@ -167,7 +167,7 @@ let guideCalendarLink: string | undefined;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
-        guideCalendarLink = value?.guideCalendarLink ?? '';
+        guideCalendarLink = value?.guideCalendarLink ?? undefined;
     },
 });
 
