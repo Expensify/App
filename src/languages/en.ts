@@ -1887,22 +1887,22 @@ export default {
                 'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
             advancedConfig: {
                 advanced: 'Advanced',
-                autoSync: 'Auto-Sync',
+                autoSync: 'Auto-sync',
                 autoSyncDescription: 'Changes made in Quickbooks will automatically be reflected in Expensify.',
-                inviteEmployees: 'Invite Employees',
+                inviteEmployees: 'Invite employees',
                 inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite them to this workspace.',
-                createEntities: 'Automatically Create Entities',
+                createEntities: 'Automatically create entities',
                 createEntitiesDescription:
                     'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
-                reimbursedReports: 'Sync Reimbursed Reports',
-                reimbursedReportsDescription: 'Any time report is reimbursed using Expensify ACH, the corresponding bill payment will be created in the Quickbooks accounts below.',
-                qboAccount: 'Quickbooks Account',
-                collectionAccount: 'Invoice Collection Account',
-                collectionAccountDescription: 'Once invoices have been Paid, the payment will appear in the account configured below.',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks accounts below.',
+                qboAccount: 'Quickbooks account',
+                collectionAccount: 'Invoice collection account',
+                collectionAccountDescription: 'Once invoices have been paid, the payment will appear in the account configured below.',
                 accountSelectDescription:
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
                 invoiceAccountSelectDescription:
-                    'If you are exporting Invoices from Expensify to Quickbooks Online, this is the account the Invoice will appear against once marked as Paid.',
+                    'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
         },
         type: {
