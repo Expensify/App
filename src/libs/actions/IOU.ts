@@ -823,6 +823,22 @@ function buildOnyxDataForTrackExpense(
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
+    const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
+    let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = CONST.QUICK_ACTIONS.TRACK_MANUAL;
+    if (isScanRequest) {
+        newQuickAction = CONST.QUICK_ACTIONS.TRACK_SCAN
+    } else if (isDistanceRequest) {
+        newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE
+    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: {
+            action: newQuickAction,
+            chatReportID: chatReport?.reportID,
+            isFirstQuickAction: isEmptyObject(quickAction),
+        },
+    });
 
     if (chatReport) {
         optimisticData.push({
