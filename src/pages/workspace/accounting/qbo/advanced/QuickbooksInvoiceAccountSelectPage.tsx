@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -17,27 +16,28 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 
-type CustomSelectorTypes = ValueOf<typeof CONST.QBO_SELECTOR_OPTIONS>;
-
 type SelectorType = ListItem & {
-    value: CustomSelectorTypes;
+    value: string;
 };
 
 function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const accountOptions = bankAccounts || creditCards;
 
-    const [selectedAccount, setSelectedAccount] = useState<CustomSelectorTypes>(CONST.QBO_SELECTOR_OPTIONS.CROISSANT_CO_MONEY_IN_CLEARING);
+    const [selectedAccount, setSelectedAccount] = useState('selected');
 
     const policyID = policy?.id ?? '';
 
-    const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
+    const qboOnlineSelectorOptions = useMemo<SelectorType[] | undefined>(
         () =>
-            Object.entries(CONST.QBO_SELECTOR_OPTIONS).map(([key, value]) => ({
-                value,
-                text: translate(`workspace.qbo.advancedConfig.croissantCo.${value}`),
-                keyForList: key,
-                isSelected: selectedAccount === value,
+            accountOptions?.map(({name}) => ({
+                value: name,
+                text: name,
+                keyForList: name,
+                isSelected: selectedAccount === name,
             })),
         [selectedAccount, translate],
     );
@@ -51,10 +51,10 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
+    const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
     const updateMode = useCallback((mode: SelectorType) => {
-        // TODO add API call for change
+        // TODO add API call for change instead setting state
         setSelectedAccount(mode.value);
         Navigation.goBack();
     }, []);
@@ -73,7 +73,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
                         <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.collectionAccount')} />
 
                         <SelectionList
-                            sections={[{data: qboOnlineSelectorOptions}]}
+                            sections={[{data: qboOnlineSelectorOptions ?? []}]}
                             ListItem={RadioListItem}
                             headerContent={listHeaderComponent}
                             onSelectRow={updateMode}
