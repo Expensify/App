@@ -709,9 +709,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     title={iouComment}
                     description={translate('common.description')}
                     onPress={() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        );
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
@@ -732,15 +730,47 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm}
                     // todo: handle edit for transaction while moving from track expense
                     interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
+                />
+            ),
+            shouldShow: isDistanceRequest && !canUseP2PDistanceRequests,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.distance')}
+                    shouldShowRightIcon={!isReadOnly}
+                    title={DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate)}
+                    description={translate('common.distance')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
+                    }
+                    disabled={didConfirm}
+                    interactive={!isReadOnly}
+                />
+            ),
+            shouldShow: isDistanceRequest && canUseP2PDistanceRequests,
+            isSupplementary: false,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.rate')}
+                    shouldShowRightIcon={Boolean(rate) && !isReadOnly && isPolicyExpenseChat}
+                    title={DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit, isOffline)}
+                    description={translate('common.rate')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
+                    disabled={didConfirm}
+                    interactive={Boolean(rate) && !isReadOnly && isPolicyExpenseChat}
                 />
             ),
             shouldShow: isDistanceRequest,
@@ -798,9 +828,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     title={iouCategory}
                     description={translate('common.category')}
                     numberOfLinesTitle={2}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
@@ -821,11 +849,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                         title={TransactionUtils.getTagForDisplay(transaction, index)}
                         description={name}
                         numberOfLinesTitle={2}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                            )
-                        }
+                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, index, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
@@ -845,9 +869,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -864,11 +886,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                        )
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -970,11 +988,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                       !isDistanceRequest &&
                       iouType === CONST.IOU.TYPE.REQUEST && (
                           <ReceiptEmptyState
-                              onPress={() =>
-                                  Navigation.navigate(
-                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                                  )
-                              }
+                              onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                           />
                       ))}
             {primaryFields}
