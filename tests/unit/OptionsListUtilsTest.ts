@@ -2660,7 +2660,7 @@ describe('OptionsListUtils', () => {
             const searchText = 'reedrichards@expensify.com';
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
-            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {});
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports[0].login).toBe(searchText);

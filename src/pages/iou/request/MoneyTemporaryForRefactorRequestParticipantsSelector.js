@@ -112,7 +112,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     }, [areOptionsInitialized, betas, canUseP2PDistanceRequests, didScreenTransitionEnd, iouRequestType, iouType, options.personalDetails, options.reports, participants]);
 
     const filteredOptions = useMemo(() => {
-        if (!areOptionsInitialized || !didScreenTransitionEnd || debouncedSearchTerm.trim() === '') {
+        if (!areOptionsInitialized || debouncedSearchTerm.trim() === '') {
             return {};
         }
 
@@ -122,11 +122,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
             excludeLogins: CONST.EXPENSIFY_EMAILS,
         });
         return newOptions;
-    }, [areOptionsInitialized, betas, chatOptions, debouncedSearchTerm, didScreenTransitionEnd, participants]);
+    }, [areOptionsInitialized, betas, chatOptions, debouncedSearchTerm, participants]);
 
     /**
      * Returns the sections needed for the OptionsSelector
-     *
      * @returns {Array}
      */
     const [sections, header] = useMemo(() => {

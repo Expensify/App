@@ -193,6 +193,8 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
+type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins'>;
+
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
  * be configured to display different results based on the options passed to the private getOptions() method. Public
@@ -2234,11 +2236,7 @@ function formatSectionsFromSearchTerm(
 /**
  * Filters options based on the search input value
  */
-function filterOptions(
-    options: Options,
-    searchInputValue: string,
-    config?: Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins'>,
-): Options {
+function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
     const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], selectedOptions = [], excludeUnknownUsers = false, excludeLogins = []} = config ?? {};
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number?.e164 ?? '' : searchInputValue.toLowerCase();
