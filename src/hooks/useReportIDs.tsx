@@ -1,5 +1,5 @@
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -16,18 +16,7 @@ type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>;
 type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
-type OnyxProps = {
-    chatReports: OnyxCollection<ChatReportSelector>;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    policies: OnyxCollection<PolicySelector>;
-    allReportActions: OnyxCollection<ReportActionsSelector>;
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
-    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
-    priorityMode: OnyxEntry<OnyxTypes.PriorityMode>;
-    reportsDrafts: OnyxCollection<string>;
-};
-
-type WithReportIDsContextProviderProps = OnyxProps & {
+type ReportIDsContextProviderProps = {
     children: React.ReactNode;
     currentReportIDForTests?: string;
 };
@@ -41,71 +30,6 @@ const ReportIDsContext = createContext<ReportIDsContextValue>({
     orderedReportIDs: [],
     currentReportID: '',
 });
-
-function WithReportIDsContextProvider({
-    children,
-    chatReports,
-    betas,
-    policies,
-    allReportActions,
-    transactionViolations,
-    policyMembers,
-    priorityMode,
-    reportsDrafts,
-    /**
-     * Only required to make unit tests work, since we
-     * explicitly pass the currentReportID in LHNTestUtils
-     * to SidebarLinksData, so this context doesn't have
-     * access to currentReportID in that case.
-     *
-     * This is a workaround to have currentReportID available in testing environment.
-     */
-    currentReportIDForTests,
-}: WithReportIDsContextProviderProps) {
-    const {accountID} = useCurrentUserPersonalDetails();
-    const currentReportIDValue = useCurrentReportID();
-    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
-    const {activeWorkspaceID} = useActiveWorkspace();
-
-    const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID), [activeWorkspaceID, policyMembers, accountID]);
-
-    const getOrderedReportIDs = useCallback(
-        (currentReportID?: string) =>
-            SidebarUtils.getOrderedReportIDs(
-                currentReportID ?? null,
-                chatReports,
-                betas,
-                policies as OnyxCollection<OnyxTypes.Policy>,
-                priorityMode,
-                allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
-                transactionViolations,
-                activeWorkspaceID,
-                policyMemberAccountIDs,
-            ),
-        // we need reports draft in deps array for reloading of list when reportsDrafts will change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
-    );
-
-    const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
-    const contextValue: ReportIDsContextValue = useMemo(() => {
-        // We need to make sure the current report is in the list of reports, but we do not want
-        // to have to re-generate the list every time the currentReportID changes. To do that
-        // we first generate the list as if there was no current report, then we check if
-        // the current report is missing from the list, which should very rarely happen. In this
-        // case we re-generate the list a 2nd time with the current report included.
-        if (derivedCurrentReportID && !orderedReportIDs.includes(derivedCurrentReportID)) {
-            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? ''};
-        }
-
-        return {
-            orderedReportIDs: getOrderedReportIDs(),
-            currentReportID: derivedCurrentReportID ?? '',
-        };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID]);
-
-    return <ReportIDsContext.Provider value={contextValue}>{children}</ReportIDsContext.Provider>;
-}
 
 /**
  * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
@@ -176,42 +100,85 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         avatar: policy.avatar,
     }) as PolicySelector;
 
-const ReportIDsContextProvider = withOnyx<WithReportIDsContextProviderProps, OnyxProps>({
-    chatReports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-        selector: chatReportSelector,
-        initialValue: {},
-    },
-    priorityMode: {
-        key: ONYXKEYS.NVP_PRIORITY_MODE,
-        initialValue: CONST.PRIORITY_MODE.DEFAULT,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-        initialValue: [],
-    },
-    allReportActions: {
-        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        selector: reportActionsSelector,
-        initialValue: {},
-    },
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-        selector: policySelector,
-        initialValue: {},
-    },
-    policyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    },
-    transactionViolations: {
-        key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-        initialValue: {},
-    },
-    reportsDrafts: {
-        key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-        initialValue: {},
-    },
-})(WithReportIDsContextProvider);
+const priorityModeOptions = {
+    initialValue: CONST.PRIORITY_MODE.DEFAULT,
+};
+
+const chatReportsOptions = {
+    selector: chatReportSelector,
+};
+
+const policiesOptions = {selector: policySelector};
+
+const allReportActionsOptions = {selector: reportActionsSelector};
+
+const betasOptions = {initialValue: []};
+
+function ReportIDsContextProvider({
+    children,
+    /**
+     * Only required to make unit tests work, since we
+     * explicitly pass the currentReportID in LHNTestUtils
+     * to SidebarLinksData, so this context doesn't have
+     * access to currentReportID in that case.
+     *
+     * This is a workaround to have currentReportID available in testing environment.
+     */
+    currentReportIDForTests,
+}: ReportIDsContextProviderProps) {
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, priorityModeOptions);
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, chatReportsOptions);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, policiesOptions);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, allReportActionsOptions);
+    const [policyMembers] = useOnyx(ONYXKEYS.COLLECTION.POLICY_MEMBERS);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, betasOptions);
+
+    const {accountID} = useCurrentUserPersonalDetails();
+    const currentReportIDValue = useCurrentReportID();
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
+    const {activeWorkspaceID} = useActiveWorkspace();
+
+    const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID), [activeWorkspaceID, policyMembers, accountID]);
+
+    const getOrderedReportIDs = useCallback(
+        (currentReportID?: string) =>
+            SidebarUtils.getOrderedReportIDs(
+                currentReportID ?? null,
+                chatReports,
+                betas,
+                policies as OnyxCollection<OnyxTypes.Policy>,
+                priorityMode,
+                allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
+                transactionViolations,
+                activeWorkspaceID,
+                policyMemberAccountIDs,
+            ),
+        // we need reports draft in deps array for reloading of list when reportsDrafts will change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [chatReports, betas, policies, priorityMode, allReportActions, transactionViolations, activeWorkspaceID, policyMemberAccountIDs, reportsDrafts],
+    );
+
+    const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
+    const contextValue: ReportIDsContextValue = useMemo(() => {
+        // We need to make sure the current report is in the list of reports, but we do not want
+        // to have to re-generate the list every time the currentReportID changes. To do that
+        // we first generate the list as if there was no current report, then we check if
+        // the current report is missing from the list, which should very rarely happen. In this
+        // case we re-generate the list a 2nd time with the current report included.
+        if (derivedCurrentReportID && !orderedReportIDs.includes(derivedCurrentReportID)) {
+            return {orderedReportIDs: getOrderedReportIDs(derivedCurrentReportID), currentReportID: derivedCurrentReportID ?? ''};
+        }
+
+        return {
+            orderedReportIDs: getOrderedReportIDs(),
+            currentReportID: derivedCurrentReportID ?? '',
+        };
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID]);
+
+    return <ReportIDsContext.Provider value={contextValue}>{children}</ReportIDsContext.Provider>;
+}
 
 function useReportIDs() {
     return useContext(ReportIDsContext);
