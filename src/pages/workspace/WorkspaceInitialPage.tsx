@@ -249,7 +249,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
 
     useEffect(() => {
         if (!isEmptyObject(prevPolicy) && !PolicyUtils.isPendingDeletePolicy(prevPolicy) && PolicyUtils.isPendingDeletePolicy(policy)) {
-            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
+            PolicyUtils.goBackFromInvalidPolicy();
         }
     }, [policy, prevPolicy]);
 

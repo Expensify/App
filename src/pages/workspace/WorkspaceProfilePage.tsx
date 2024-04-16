@@ -97,7 +97,6 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
 
         Policy.deleteWorkspace(policy?.id, policyName);
-        PolicyUtils.goBackFromInvalidPolicy();
         setIsDeleteModalOpen(false);
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
