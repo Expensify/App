@@ -1969,21 +1969,23 @@ function getIcons(
         return [groupChatIcon];
     }
 
-    if (isInvoiceRoom(report)) {
-        const workspaceIcon = getWorkspaceIcon(report, policy);
+    if (isInvoiceReport(report)) {
+        const invoiceRoomReport = getReport(report.chatReportID);
+        const icons = [getWorkspaceIcon(invoiceRoomReport, policy)];
 
-        const receiverPolicyID = Object.values(report.participants ?? {})?.find((participant) => participant.type === 'policy')?.policyID ?? '';
-        const receiverPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${receiverPolicyID}`];
-        const isWorkspaceToWorkspace = !!receiverPolicyID && receiverPolicy;
-        const icons = [];
+        if (invoiceRoomReport?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+            icons.push(...getIconsForParticipants([invoiceRoomReport?.invoiceReceiver.accountID], personalDetails));
 
-        if (isWorkspaceToWorkspace) {
-            icons.push(getWorkspaceIcon(report, receiverPolicy));
-        } else {
-            icons.push(...getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails));
+            return icons;
         }
 
-        return [workspaceIcon, ...icons];
+        const receiverPolicy = getPolicy(invoiceRoomReport?.invoiceReceiver?.policyID);
+
+        if (!isEmptyObject(receiverPolicy)) {
+            icons.push(getWorkspaceIcon(invoiceRoomReport, receiverPolicy));
+        }
+
+        return icons;
     }
 
     return getIconsForParticipants(report?.participantAccountIDs ?? [], personalDetails);
@@ -5738,7 +5740,9 @@ function isReportParticipant(accountID: number, report: OnyxEntry<Report>): bool
 }
 
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
-    return isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report) || isGroupChat(report);
+    return (
+        isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report) || isGroupChat(report) || isInvoiceReport(report)
+    );
 }
 
 function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string): OnyxEntry<Report> | undefined {
