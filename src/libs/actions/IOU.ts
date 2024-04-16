@@ -327,7 +327,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
     });
 }
 
-function clearMoneyRequest(transactionID: string, skipConfirmation: boolean = false) {
+function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
@@ -355,7 +355,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation: boolean = false) {
+function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
