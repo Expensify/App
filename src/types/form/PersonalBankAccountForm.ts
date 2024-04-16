@@ -22,6 +22,7 @@ const INPUT_IDS = {
         CITY: 'addressCity',
         STATE: 'addressState',
         ZIP_CODE: 'addressZipCode',
+        PHONE_NUMBER: 'phoneNumber',
         IS_ONFIDO_SETUP_COMPLETE: 'isOnfidoSetupComplete',
     },
 } as const;
@@ -44,6 +45,7 @@ type PersonalInfoStepProps = {
     [INPUT_IDS.PERSONAL_INFO_STEP.STATE]: string;
     [INPUT_IDS.PERSONAL_INFO_STEP.ZIP_CODE]: string;
     [INPUT_IDS.PERSONAL_INFO_STEP.DOB]: string;
+    [INPUT_IDS.PERSONAL_INFO_STEP.PHONE_NUMBER]: string;
     [INPUT_IDS.PERSONAL_INFO_STEP.SSN_LAST_4]: string;
     [INPUT_IDS.PERSONAL_INFO_STEP.IS_ONFIDO_SETUP_COMPLETE]: boolean;
 };

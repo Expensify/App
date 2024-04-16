@@ -1725,6 +1725,8 @@ export default {
         address: 'Dirección',
         letsDoubleCheck: 'Revisemos que todo esté bien',
         byAddingThisBankAccount: 'Añadiendo esta cuenta bancaria, confirmas que has leído, entendido y aceptado',
+        whatsYourPhoneNumber: '¿Cuál es tu número de teléfono?',
+        weNeedThisToVerify: 'Necesitamos esto para verificar tu billetera.',
     },
     businessInfoStep: {
         businessInfo: 'Información de la empresa',

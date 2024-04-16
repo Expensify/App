@@ -1700,6 +1700,8 @@ export default {
         address: 'Address',
         letsDoubleCheck: "Let's double check that everything looks right.",
         byAddingThisBankAccount: 'By adding this bank account, you confirm that you have read, understand and accept',
+        whatsYourPhoneNumber: 'What’s your phone number?',
+        weNeedThisToVerify: 'We need this to verify your wallet.',
     },
     businessInfoStep: {
         businessInfo: 'Business info',

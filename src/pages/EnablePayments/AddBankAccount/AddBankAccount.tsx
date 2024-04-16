@@ -54,7 +54,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
     const exitFlow = (shouldContinue = false) => {
         const exitReportID = personalBankAccount?.exitReportID;
-        const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
+        const onSuccessFallbackRoute = ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR;
 
         if (exitReportID) {
             Navigation.dismissModal(exitReportID);

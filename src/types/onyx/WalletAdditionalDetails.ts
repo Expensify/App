@@ -29,6 +29,7 @@ type WalletAdditionalDetails = {
     addressCity: string;
     addressState: string;
     addressZipCode: string;
+    phoneNumber: string;
 };
 
 export default WalletAdditionalDetails;
