@@ -462,18 +462,10 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: ({action}: EditActionParams) =>
-            `Editar ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'
-            }`,
-        deleteAction: ({action}: DeleteActionParams) =>
-            `Eliminar ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'
-            }`,
+        editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'}`,
         deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `¿Estás seguro de que quieres eliminar esta ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'
-            }`,
+            `¿Estás seguro de que quieres eliminar esta ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
@@ -934,8 +926,7 @@ export default {
         reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
         enterMessageHere: 'Escribe aquí tu mensaje',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
-        closeAccountPermanentlyDeleteData:
-            'Are you sure you want to delete your account? This will permanently delete any outstanding expenses.',
+        closeAccountPermanentlyDeleteData: 'Are you sure you want to delete your account? This will permanently delete any outstanding expenses.',
         enterDefaultContactToConfirm: 'Por favor, escribe tu método de contacto predeterminado para confirmar que deseas eliminar tu cuenta. Tu método de contacto predeterminado es:',
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
