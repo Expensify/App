@@ -187,6 +187,9 @@ function FloatingActionButtonAndPopover(
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
                 break;
+            case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
+                break;
             default:
         }
     };
