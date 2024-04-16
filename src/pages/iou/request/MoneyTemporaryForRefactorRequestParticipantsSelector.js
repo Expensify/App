@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -27,9 +27,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
 
@@ -52,18 +49,13 @@ const propTypes = {
 
     /** The request type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
-
-    /** ID of the user's active policy */
-    activePolicyID: PropTypes.string,
 };
 
 const defaultProps = {
     participants: [],
-    betas: [],
-    activePolicyID: '',
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participants, onFinish, onParticipantsAdded, iouType, iouRequestType, activePolicyID}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onFinish, onParticipantsAdded, iouType, iouRequestType}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -73,6 +65,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {canUseP2PDistanceRequests} = usePermissions();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -270,8 +264,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({betas, participan
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
-    const isAllowedToSplit =
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE, CONST.IOU.TYPE.INVOICE].includes(iouType);
+    const isAllowedToSplit = (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE, CONST.IOU.TYPE.INVOICE].includes(iouType);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -383,21 +376,12 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.propTypes = propTypes;
 MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-    activePolicyID: {
-        key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    },
-})(
-    memo(
-        MoneyTemporaryForRefactorRequestParticipantsSelector,
-        (prevProps, nextProps) =>
-            _.isEqual(prevProps.participants, nextProps.participants) &&
-            prevProps.iouRequestType === nextProps.iouRequestType &&
-            prevProps.iouType === nextProps.iouType &&
-            _.isEqual(prevProps.betas, nextProps.betas) &&
-            prevProps.activePolicyID === nextProps.activePolicyID,
-    ),
+export default memo(
+    MoneyTemporaryForRefactorRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        _.isEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouRequestType === nextProps.iouRequestType &&
+        prevProps.iouType === nextProps.iouType &&
+        _.isEqual(prevProps.betas, nextProps.betas) &&
+        prevProps.activePolicyID === nextProps.activePolicyID,
 );
