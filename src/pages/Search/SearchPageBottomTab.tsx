@@ -27,17 +27,17 @@ function SearchPageBottomTab() {
         {
             title: 'All',
             icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.ALL))),
+            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL))),
         },
         {
             title: 'Sent',
             icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.SENT))),
+            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SENT))),
         },
         {
             title: 'Drafts',
             icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.DRAFTS))),
+            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS))),
         },
     ];
 

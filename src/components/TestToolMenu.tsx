@@ -110,7 +110,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     small
                     text="Navigate"
                     onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.ALL));
+                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
                     }}
                 />
             </TestToolRow>
