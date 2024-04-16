@@ -7,7 +7,6 @@ import Button from '@components/Button';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
-import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
 import CONST from '@src/CONST';
