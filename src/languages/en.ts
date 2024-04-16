@@ -621,6 +621,8 @@ export default {
         addToSplit: 'Add to split',
         splitBill: 'Split bill',
         request: 'Request',
+        categorize: 'Categorize',
+        share: 'Share',
         participants: 'Participants',
         requestMoney: 'Request money',
         sendMoney: 'Send money',
@@ -2578,6 +2580,12 @@ export default {
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accept',
         decline: 'Decline',
+    },
+    actionableMentionTrackExpense: {
+        request: 'Request someone to pay it',
+        categorize: 'Categorize it',
+        share: 'Share it with my accountant',
+        nothing: 'Nothing for now',
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
