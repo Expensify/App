@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +14,7 @@ import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabl
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 
 type SelectorType = ListItem & {
@@ -27,7 +28,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [selectedAccount, setSelectedAccount] = useState(DRAFT[0].name);
+    const selectedAccount = DRAFT[0].name; // selected
 
     const policyID = policy?.id ?? '';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -56,9 +57,8 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
 
     const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
 
-    const updateMode = useCallback((mode: SelectorType) => {
-        // TODO add API call for change instead setting state
-        setSelectedAccount(mode.value);
+    const updateMode = useCallback(({value}: SelectorType) => {
+        Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
         Navigation.goBack();
     }, []);
 
