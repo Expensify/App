@@ -1185,7 +1185,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         let backgroundColor;
 
         if (currentEmojiIndex === highlightedEmojiIndex) {
-            backgroundColor = theme.buttonHoveredBG;
+            backgroundColor = theme.activeComponentBG;
         } else if (isHovered) {
             backgroundColor = theme.hoverComponentBG;
         }
