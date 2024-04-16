@@ -7,6 +7,8 @@ import type {RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
+// We need to make sure that the central pane screen and bottom tab won't be desynchronized after using the physical back button on Android.
+// To achieve that we will call additional POP on the bottom tab navigator if the search page would disappear from the central pane.
 function useCustomBackHandler() {
     useFocusEffect(
         useCallback(() => {
