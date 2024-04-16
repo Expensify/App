@@ -108,6 +108,14 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
+type Video = {
+    url: string;
+    thumbnailUrl: string;
+    duration: number;
+    width: number;
+    height: number;
+};
+
 type TaskForParameters =
     | {
           type: 'task';
@@ -119,13 +127,7 @@ type TaskForParameters =
           createdTaskReportActionID: string;
           title: string;
           description: string;
-          video: {
-              url: string;
-              thumbnailUrl: string;
-              duration: number;
-              width: number;
-              height: number;
-          };
+          video: Video;
       }
     | {
           type: 'message';
@@ -135,6 +137,15 @@ type TaskForParameters =
       };
 
 type TaskMessage = Required<Pick<AddCommentOrAttachementParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
+
+type GuidedSetupData = Array<
+    | AddCommentOrAttachementParams
+    | TaskForParameters
+    | ({
+          type: 'video';
+      } & Video &
+          AddCommentOrAttachementParams)
+>;
 
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
@@ -3175,11 +3186,18 @@ function completeOnboarding(
         },
     ];
 
+    const guidedSetupData: GuidedSetupData = [
+        {type: 'message', ...mentionMessage},
+        {type: 'message', ...textMessage},
+        {type: 'video', ...data.video, ...videoMessage},
+        ...tasksForParameters,
+    ];
+
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
         firstName,
         lastName,
-        guidedSetupData: JSON.stringify([{type: 'message', ...mentionMessage}, {type: 'message', ...textMessage}, {type: 'video', ...data.video, ...videoMessage}, ...tasksForParameters]),
+        guidedSetupData: JSON.stringify(guidedSetupData),
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData});
