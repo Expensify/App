@@ -1937,10 +1937,14 @@ export default {
             optionBelow: 'Elija una opción a continuación:',
             creditCard: 'Tarjeta de crédito',
             vendorBill: 'Factura del proveedor',
+            accountsPayable: 'Cuentas por pagar',
+            accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
+            companyCardsLocationEnabledDescription:
+                'Nota: QuickBooks Online no admite un campo para Ubicaciones como etiquetas en las exportaciones de facturas de proveedores. A medida que importa ubicaciones, esta opción de exportación no está disponible.',
             exportPreferredExporterNote:
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
-            journalEntry: 'Anotación en el diario', // I have no idea what this means in english, sounds ok as a literal tranlsation
+            journalEntry: 'Asiento contable',
             exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
             exportVendorBillDescription:
                 'Crearemos una única factura de proveedor detallada para cada informe de Expensify. Si el período de la factura está cerrado, lo publicaremos en el día 1 del siguiente período abierto. Puede agregar la factura del proveedor a la cuenta A/P de su elección (a continuación).',

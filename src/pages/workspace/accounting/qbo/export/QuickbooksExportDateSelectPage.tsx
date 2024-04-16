@@ -10,30 +10,33 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function QuickbooksExportDateSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    // const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '';
     const {exportDate} = policy?.connections?.quickbooksOnline?.config ?? {};
     const data = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.qbo.${dateType}.label`),
         alternateText: translate(`workspace.qbo.${dateType}.description`),
         keyForList: dateType,
-        isSelected: exportDate ? CONST.QUICKBOOKS_EXPORT_DATE[exportDate] === dateType : false,
+        isSelected: exportDate ? exportDate === dateType : false,
     }));
 
-    const updateMode = useCallback(
-        (mode: {value: string}) => {
-            if (exportDate && mode.value === CONST.QUICKBOOKS_EXPORT_DATE[exportDate]) {
-                Navigation.goBack();
+    const onSelectRow = useCallback(
+        (row: {value: string}) => {
+            if (exportDate && row.value === exportDate) {
+                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID));
                 return;
             }
-            // TODO add API call for change
+            Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_DATE, row.value);
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID));
         },
-        [exportDate],
+        [exportDate, policyID],
     );
 
     return (
@@ -48,7 +51,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyProps) {
                 <SelectionList
                     sections={[{data}]}
                     ListItem={RadioListItem}
-                    onSelectRow={updateMode}
+                    onSelectRow={onSelectRow}
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScrollView>

@@ -262,30 +262,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD_EXPENSE]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
-        policyID: string;
-    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
@@ -723,6 +699,30 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD_EXPENSE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
 };

@@ -16,6 +16,7 @@ function QuickbooksCompanyCardExpenseConfigurationPage({policy}: WithPolicyProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
+    const {exportCompanyCard} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     return (
         <ScreenWrapper
@@ -28,7 +29,7 @@ function QuickbooksCompanyCardExpenseConfigurationPage({policy}: WithPolicyProps
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>
                 <OfflineWithFeedback>
                     <MenuItemWithTopDescription
-                        title="Debit Card"
+                        title={exportCompanyCard}
                         description={translate('workspace.qbo.exportAs')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
                         brickRoadIndicator={undefined}

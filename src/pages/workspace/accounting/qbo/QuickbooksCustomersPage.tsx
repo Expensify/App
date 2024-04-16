@@ -50,7 +50,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                                         onToggle={() =>
                                             Policy.updatePolicyConnectionConfig(
                                                 policyID,
-                                                CONST.QUICK_BOOKS_IMPORTS.SYNC_CUSTOMERS,
+                                                CONST.QUICK_BOOKS_CONFIG.SYNC_CUSTOMERS,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }

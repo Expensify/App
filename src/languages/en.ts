@@ -1914,8 +1914,12 @@ export default {
             exportVendorBillDescription:
                 'We`ll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we`ll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).',
             check: 'Check',
+            accountsPayable: 'Accounts Payable',
+            accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
             journalEntry: 'Journal Entry',
             optionBelow: 'Choose an option below:',
+            companyCardsLocationEnabledDescription:
+                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
             outOfPocketTaxEnabledDescription:
                 'Note: QuickBooks Online doesn`t support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.',
             outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',

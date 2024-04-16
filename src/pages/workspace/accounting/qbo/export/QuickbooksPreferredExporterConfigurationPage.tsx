@@ -8,30 +8,53 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getAdminEmailList} from '@libs/PolicyUtils';
+import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
+// TODO - should be removed after API fully working
+const draft = [
+    {name: '+14153166423@expensify.sms', currency: 'USD', id: '94', email: '+14153166423@expensify.sms'},
+    {name: 'Account Maintenance Fee', currency: 'USD', id: '141', email: 'alberto@expensify213.com'},
+    {name: 'Admin Test', currency: 'USD', id: '119', email: 'admin@qbocard.com'},
+    {name: 'Alberto Gonzalez-Cela', currency: 'USD', id: '104', email: 'alberto@expensify.com'},
+    {name: 'Aldo test QBO2 QBO2 Last name', currency: 'USD', id: '140', email: 'admin@qbo.com'},
+];
 function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {data, config} = policy?.connections?.quickbooksOnline ?? {};
+    const {exporter} = policy?.connections?.quickbooksOnline?.config ?? {};
     const exporters = getAdminEmailList(policy);
+    const result = exporters?.length ? exporters : draft;
 
-    // const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '';
     const sections = useMemo(
         () =>
-            exporters?.map((vendor) => ({
+            result?.map((vendor) => ({
                 value: vendor.email,
                 text: vendor.email,
                 keyForList: vendor.email,
-                isSelected: config?.export?.exporter === vendor.email,
+                isSelected: exporter === vendor.email,
             })) ?? [],
-        [config?.export?.exporter, data?.vendors],
+        [result, exporter],
     );
 
-    const updateMode = useCallback((mode: {value?: string}) => {
-        // TODO add API call for change
-    }, []);
+    const onSelectRow = useCallback(
+        (row: {value?: string}) => {
+            if (exporter && row.value === exporter) {
+                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
+                return;
+            }
+            if (row?.value) {
+                Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
+                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
+            }
+        },
+        [policyID, exporter],
+    );
 
     return (
         <ScreenWrapper
@@ -44,9 +67,10 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterSubNote')}</Text>
                 <SelectionList
+                    shouldStopPropagation
                     sections={[{data: sections}]}
                     ListItem={RadioListItem}
-                    onSelectRow={updateMode}
+                    onSelectRow={onSelectRow}
                     initiallyFocusedOptionKey={sections.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScrollView>

@@ -1214,12 +1214,25 @@ const CONST = {
     },
     QUICK_BOOKS_ONLINE: 'quickbooksOnline',
 
-    QUICK_BOOKS_IMPORTS: {
+    QUICK_BOOKS_CONFIG: {
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_TAXES: 'syncTaxes',
+        PREFERRED_EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        OUT_OF_POCKET_EXPENSES: 'outOfPocketExpenses',
+        EXPORT_INVOICE: 'exportInvoice',
+        EXPORT_ENTITY: 'exportEntity',
+        EXPORT_ACCOUNT: 'exportAccount',
+        EXPORT_COMPANY_CARD: 'exportCompanyCard',
+    },
+
+    QUICKBOOKS_EXPORT_ENTITY: {
+        VENDOR_BILL: 'vendorBill',
+        CHECK: 'check',
+        JOURNAL_ENTRY: 'journalEntry',
     },
 
     ACCOUNT_ID: {

@@ -51,7 +51,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                                         onToggle={() =>
                                             Policy.updatePolicyConnectionConfig(
                                                 policyID,
-                                                CONST.QUICK_BOOKS_IMPORTS.SYNC_CLASSES,
+                                                CONST.QUICK_BOOKS_CONFIG.SYNC_CLASSES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }

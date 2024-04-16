@@ -20,38 +20,37 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const policyOwner = policy?.owner ?? '';
-    const {exporter} = policy?.connections?.quickbooksOnline?.config?.export ?? {};
-
+    const {exporter, exportDate, exportEntity, exportInvoice, exportCompanyCard} = policy?.connections?.quickbooksOnline?.config ?? {};
     const sections = [
         {
             description: translate('workspace.qbo.preferredExporter'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.enableNewCategories),
+            hasError: Boolean(policy?.errors?.exporter),
             title: exporter ?? policyOwner,
         },
         {
             description: translate('workspace.qbo.date'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncClasses),
-            title: 'Date of last expense',
+            hasError: Boolean(policy?.errors?.exportDate),
+            title: exportDate ? translate(`workspace.qbo.${exportDate}.label`) : undefined,
         },
         {
             description: translate('workspace.qbo.exportExpenses'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncCustomers),
-            title: 'Vendor bill',
+            title: exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined,
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncLocations),
-            title: 'Accounts Receivable (A/R)',
+            hasError: Boolean(policy?.errors?.exportInvoice),
+            title: exportInvoice,
         },
         {
             description: translate('workspace.qbo.exportCompany'),
             action: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncTaxes),
-            title: 'Debit card',
+            hasError: Boolean(policy?.errors?.exportCompanyCard),
+            title: exportCompanyCard,
         },
         {
             description: translate('workspace.qbo.exportExpensifyCard'),

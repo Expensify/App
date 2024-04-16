@@ -7,50 +7,55 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
-
-const CARDS = {
-    CHECK: 'check',
-    JOURNAL_ENTRY: 'journal_entry',
-    VENDOR_BILL: 'vendor_bill',
-};
+import ROUTES from '@src/ROUTES';
 
 function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {nonReimbursableExpensesExportDestination, syncTaxes} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {exportEntity, syncTaxes} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
-    // const policyID = policy?.id ?? '';
+    const policyID = policy?.id ?? '';
     const data = [
         {
-            value: CARDS.CHECK,
+            value: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
             text: translate(`workspace.qbo.check`),
-            keyForList: CARDS.CHECK,
-            isSelected: nonReimbursableExpensesExportDestination === CARDS.CHECK,
+            keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
+            isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
             isShown: true,
         },
         {
-            value: CARDS.JOURNAL_ENTRY,
+            value: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
             text: translate(`workspace.qbo.journalEntry`),
-            keyForList: CARDS.JOURNAL_ENTRY,
-            isSelected: nonReimbursableExpensesExportDestination === CARDS.JOURNAL_ENTRY,
+            keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
+            isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
             isShown: !isTaxesEnabled,
         },
         {
-            value: CARDS.VENDOR_BILL,
+            value: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
             text: translate(`workspace.qbo.vendorBill`),
-            keyForList: CARDS.VENDOR_BILL,
-            isSelected: nonReimbursableExpensesExportDestination === CARDS.VENDOR_BILL,
+            keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
+            isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
             isShown: true,
         },
     ];
 
-    const updateMode = useCallback((mode: {value: string}) => {
-        // TODO add API call for change
-    }, []);
+    const onSelectRow = useCallback(
+        (row: {value: string}) => {
+            if (exportEntity && row.value === exportEntity) {
+                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
+                return;
+            }
+            Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY, row.value);
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
+        },
+        [exportEntity, policyID],
+    );
 
     return (
         <ScreenWrapper
@@ -64,7 +69,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
                 <SelectionList
                     sections={[{data: data.filter((item) => item.isShown)}]}
                     ListItem={RadioListItem}
-                    onSelectRow={updateMode}
+                    onSelectRow={onSelectRow}
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
                 <Text style={[styles.mutedTextLabel, styles.pt2, styles.ph5]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>

@@ -13,12 +13,11 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const isVendorBill = true;
 function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncLocations, exportAccount, exportEntity} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     return (
@@ -32,21 +31,22 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                 {!isLocationEnabled && <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>}
                 <OfflineWithFeedback>
                     <MenuItemWithTopDescription
-                        title={isLocationEnabled ? translate('workspace.qbo.journalEntry') : 'Vendor Bill'}
+                        title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
                         description={translate('workspace.qbo.exportAs')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                         brickRoadIndicator={undefined}
-                        shouldShowRightIcon={!isLocationEnabled}
-                        interactive={!isLocationEnabled}
+                        shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
-                {isVendorBill && !isLocationEnabled && <Text style={[styles.ph5, styles.mutedTextLabel, styles.pt2]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>}
+                {exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL && !isLocationEnabled && (
+                    <Text style={[styles.ph5, styles.mutedTextLabel, styles.pt2, styles.pb2]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>
+                )}
                 {isLocationEnabled && <Text style={[styles.ph5, styles.mutedTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
                 {!isLocationEnabled && (
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
-                            title="Accounts Payable (A/P)"
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
+                            title={exportAccount}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
                             brickRoadIndicator={undefined}
                             shouldShowRightIcon
                         />

@@ -51,7 +51,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                         onToggle={() =>
                                             Policy.updatePolicyConnectionConfig(
                                                 policyID,
-                                                CONST.QUICK_BOOKS_IMPORTS.SYNC_LOCATIONS,
+                                                CONST.QUICK_BOOKS_CONFIG.SYNC_LOCATIONS,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
