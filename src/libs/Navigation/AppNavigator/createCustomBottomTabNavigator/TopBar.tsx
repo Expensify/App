@@ -53,7 +53,7 @@ function TopBar({policy, session}: TopBarProps) {
                             breadcrumbs={[
                                 headerBreadcrumb,
                                 {
-                                    text: translate('common.chats'),
+                                    text: translate('common.inbox'),
                                 },
                             ]}
                         />
