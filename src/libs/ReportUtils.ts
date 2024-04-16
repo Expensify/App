@@ -5712,7 +5712,7 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
     const isIOUAction = ReportActionsUtils.isMoneyRequestAction(reportAction);
-    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
     const isArchivedReport = isArchivedRoom(getReport(reportID));
 
     return (

@@ -3048,10 +3048,10 @@ export default {
         decline: 'Rechazar',
     },
     actionableMentionTrackExpense: {
-        request: 'Request someone to pay it',
-        categorize: 'Categorize it',
-        share: 'Share it with my accountant',
-        nothing: 'Nothing for now',
+        request: 'Pedirle a alguien que lo pague',
+        categorize: 'Categorizarlo',
+        share: 'Compartirlo con mi contador',
+        nothing: 'Por ahora, nada',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
