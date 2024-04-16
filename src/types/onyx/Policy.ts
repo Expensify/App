@@ -186,6 +186,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
 type ACHAccount = {
@@ -448,7 +449,6 @@ type PolicyConnectionSyncProgress = {
     stageInProgress: PolicyConnectionSyncStage;
     connectionName: PolicyConnectionName;
 };
-type PolicyConnectionSyncProgressList = Record<string, PolicyConnectionSyncProgress>;
 
 export default Policy;
 
@@ -467,5 +467,4 @@ export type {
     PendingJoinRequestPolicy,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
-    PolicyConnectionSyncProgressList,
 };
