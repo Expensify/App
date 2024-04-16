@@ -40,6 +40,7 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
             zip: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
+        Navigation.goBack();
     };
 
     const handleAddressChange = useCallback((value: unknown, key: unknown) => {
