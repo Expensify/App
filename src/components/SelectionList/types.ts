@@ -186,7 +186,7 @@ type Section<TItem extends ListItem> = {
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset: number;
+    indexOffset?: number;
 };
 
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
