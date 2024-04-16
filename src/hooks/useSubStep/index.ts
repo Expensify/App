@@ -6,8 +6,9 @@ import type {SubStepProps, UseSubStep} from './types';
  * @param bodyContent - array of components to display in particular step
  * @param onFinished - callback triggered after finish last step
  * @param startFrom - initial index for bodyContent array
+ * @param onNextSubStep - callback triggered after finish each step
  */
-export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0}: UseSubStep<TProps>) {
+export default function useSubStep<TProps extends SubStepProps>({bodyContent, onFinished, startFrom = 0, onNextSubStep = () => {}}: UseSubStep<TProps>) {
     const [screenIndex, setScreenIndex] = useState(startFrom);
     const isEditing = useRef(false);
 
@@ -35,9 +36,10 @@ export default function useSubStep<TProps extends SubStepProps>({bodyContent, on
         if (nextScreenIndex === bodyContent.length) {
             onFinished();
         } else {
+            onNextSubStep();
             setScreenIndex(nextScreenIndex);
         }
-    }, [screenIndex, bodyContent.length, onFinished]);
+    }, [screenIndex, bodyContent.length, onFinished, onNextSubStep]);
 
     const moveTo = useCallback((step: number) => {
         isEditing.current = true;
