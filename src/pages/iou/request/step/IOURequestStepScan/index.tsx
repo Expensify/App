@@ -578,7 +578,9 @@ const IOURequestStepScanWithOnyx = withOnyx<Omit<IOURequestStepScanProps, 'user'
 })(IOURequestStepScan);
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails);
+// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 
 export default IOURequestStepScanWithFullTransactionOrNotFound;

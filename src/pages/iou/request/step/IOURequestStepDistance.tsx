@@ -416,7 +416,9 @@ const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOU
 })(IOURequestStepDistance);
 
 const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails);
+// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceWithFullTransactionOrNotFound;
