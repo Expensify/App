@@ -301,7 +301,7 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
     },
     ROOM_INVITE: {
-        route: 'r/:reportID/invite/:role',
+        route: 'r/:reportID/invite/:role?',
         getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
     MONEY_REQUEST_PARTICIPANTS: {

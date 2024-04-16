@@ -75,17 +75,19 @@ function IOURequestStepConfirmation({
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const transactionTaxCode = transaction?.taxRate ? transaction.taxRate.data?.code : foreignTaxDefault;
     const transactionTaxAmount = transaction?.taxAmount;
+    const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
+    const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
-        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+        if (isSharingTrackExpense) {
             return translate('iou.categorize');
         }
         if (action === CONST.IOU.ACTION.MOVE) {
             return translate('iou.request');
         }
-        if (action === CONST.IOU.ACTION.SHARE) {
+        if (isCategorizingTrackExpense) {
             return translate('iou.share');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -349,10 +351,10 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
+            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE || isCategorizingTrackExpense || isSharingTrackExpense) {
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                    if (transaction.amount === 0) {
+                    if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense) {
                         getCurrentPosition(
                             (successData) => {
                                 trackExpense(selectedParticipants, trimmedComment, receiptFile, {
@@ -386,7 +388,7 @@ function IOURequestStepConfirmation({
 
             if (receiptFile && !!transaction) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
-                if (transaction.amount === 0) {
+                if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense) {
                     getCurrentPosition(
                         (successData) => {
                             requestMoney(selectedParticipants, trimmedComment, receiptFile, {
