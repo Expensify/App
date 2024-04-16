@@ -500,7 +500,8 @@ function MoneyRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
-    }, [iouCategory, shouldShowCategories, policyCategories, transactionID, isCategoryRequired]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldShowCategories, policyCategories, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
