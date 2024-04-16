@@ -478,7 +478,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transaction?.transactionID ?? '', enabledCategories[0].name);
-    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldShowCategories, policyCategories, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
@@ -494,7 +495,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transaction?.transactionID ?? '', updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, canUseViolations]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyTagLists, policyTags, canUseViolations]);
 
     /**
      */
