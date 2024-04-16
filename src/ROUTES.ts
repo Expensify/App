@@ -475,10 +475,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/invite-message',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/invite-message` as const,
     },
-    WORKSPACE_SETTINGS: {
-        route: 'workspace/:policyID/settings',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings` as const,
-    },
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
@@ -508,8 +504,8 @@ const ROUTES = {
         getRoute: (policyID: string, inviterEmail: string) => `settings/workspaces/${policyID}/join?email=${inviterEmail}` as const,
     },
     WORKSPACE_SETTINGS_CURRENCY: {
-        route: 'workspace/:policyID/settings/currency',
-        getRoute: (policyID: string) => `workspace/${policyID}/settings/currency` as const,
+        route: 'settings/workspaces/:policyID/settings/currency',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/currency` as const,
     },
     WORKSPACE_WORKFLOWS: {
         route: 'settings/workspaces/:policyID/workflows',
