@@ -17,7 +17,7 @@ function CurrencySelectionList({textInputLabel, initiallySelectedCurrencyCode, o
             const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
             return {
                 currencyName: currencyInfo?.name ?? '',
-                text: `${currencyCode} - ${CurrencyUtils.getLocalizedCurrencySymbol(currencyCode)}`,
+                text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
                 currencyCode,
                 keyForList: currencyCode,
                 isSelected: isSelectedCurrency,
