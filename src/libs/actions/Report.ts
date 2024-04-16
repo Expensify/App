@@ -3038,8 +3038,8 @@ function completeOnboarding(
             },
         );
         const subtitleComment = ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID);
-        const taskVideoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID);
-        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(task.message, undefined, actorAccountID, undefined, false);
+        const taskVideoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 1);
+        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(task.message, undefined, actorAccountID, 2, false);
 
         return {
             task,
