@@ -485,7 +485,7 @@ function MenuItem(
                                 role={CONST.ROLE.MENUITEM}
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible
-                        onFocus={onFocus}
+                                onFocus={onFocus}
                             >
                                 {({pressed}) => (
                                     <>
