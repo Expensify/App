@@ -517,7 +517,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
 
             for (const data of flatten) {
                 // Someone completes a task
-                if (data.actionName === 'TASK_COMPLETED') {
+                if (data.actionName === 'TASKCOMPLETED') {
                     return playSound(SOUNDS.SUCCESS);
                 }
             }

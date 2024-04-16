@@ -6,25 +6,25 @@ type PaymentMethodType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONS
 
 type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
-    | 'ADD_COMMENT'
+    | 'ADDCOMMENT'
     | 'APPROVED'
-    | 'CHRONOS_OO_LIST'
+    | 'CHRONOSOOLIST'
     | 'CLOSED'
     | 'CREATED'
     | 'HOLD'
     | 'UNHOLD'
     | 'IOU'
-    | 'MODIFIED_EXPENSE'
-    | 'REIMBURSEMENT_QUEUED'
+    | 'MODIFIEDEXPENSE'
+    | 'REIMBURSEMENTQUEUED'
     | 'RENAMED'
-    | 'REPORT_PREVIEW'
+    | 'REPORTPREVIEW'
     | 'SUBMITTED'
-    | 'TASK_CANCELLED'
-    | 'TASK_COMPLETED'
-    | 'TASK_EDITED'
-    | 'TASK_REOPENED'
-    | 'ACTIONABLE_JOIN_REQUEST'
-    | 'ACTIONABLE_MENTION_WHISPER'
+    | 'TASKCANCELLED'
+    | 'TASKCOMPLETED'
+    | 'TASKEDITED'
+    | 'TASKREOPENED'
+    | 'ACTIONABLEJOINREQUEST'
+    | 'ACTIONABLEMENTIONWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
