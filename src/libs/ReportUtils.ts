@@ -5414,7 +5414,7 @@ function canEditPolicyDescription(policy: OnyxEntry<Policy>): boolean {
 /**
  * Checks if report action has error when smart scanning
  */
-function hasSmartscanError(reportActions: ReportAction[], isLHNPreview = false) {
+function hasSmartscanError(reportActions: ReportAction[], isLHNPreview: boolean) {
     return reportActions.some((action) => {
         if (!ReportActionsUtils.isSplitBillAction(action) && !ReportActionsUtils.isReportPreviewAction(action)) {
             return false;
