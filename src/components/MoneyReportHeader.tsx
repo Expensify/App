@@ -193,7 +193,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth) && !shouldShowWaitingNote}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -268,7 +268,11 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
                     </View>
                 )}
-                {shouldShowWaitingNote && <PaymentWaitingBanner payerName={invoicePayerName} />}
+                {shouldShowWaitingNote && (
+                    <View style={[styles.ph5, styles.pb3]}>
+                        <PaymentWaitingBanner payerName={invoicePayerName} />
+                    </View>
+                )}
             </View>
             {isHoldMenuVisible && requestType !== undefined && (
                 <ProcessMoneyReportHoldMenu

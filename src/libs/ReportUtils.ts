@@ -921,6 +921,13 @@ function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
+ * Checks if the supplied report is an invoice report in Open state and status.
+ */
+function isOpenInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return isInvoiceReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+}
+
+/**
  * Whether the provided report is a chat room
  */
 function isChatRoom(report: OnyxEntry<Report>): boolean {
@@ -2414,7 +2421,7 @@ function getMoneyRequestReportName(report: OnyxEntry<Report>, policy: OnyxEntry<
         return Localize.translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
-    if (isProcessingReport(report) || isOpenExpenseReport(report) || moneyRequestTotal === 0) {
+    if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
@@ -3112,7 +3119,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         formattedName = getPolicyExpenseChatName(report, policy);
     }
 
-    if (isMoneyRequestReport(report)) {
+    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         formattedName = getMoneyRequestReportName(report, policy);
     }
 
@@ -3183,6 +3190,10 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
     const parentReport = getParentReport(report);
     if (isEmptyObject(parentReport)) {
         return {};
+    }
+
+    if (isInvoiceReport(report)) {
+        return {reportName: `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`};
     }
 
     return {

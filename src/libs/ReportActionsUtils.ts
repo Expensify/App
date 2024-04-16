@@ -228,7 +228,7 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
 function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
     // If the report is not an IOU or Expense report, it shouldn't be treated as one-transaction report.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE) {
+    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return null;
     }
 
