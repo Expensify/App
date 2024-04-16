@@ -118,6 +118,13 @@ type TaskForParameters =
           createdTaskReportActionID: string;
           title: string;
           description: string;
+          video: {
+              url: string;
+              thumbnailUrl: string;
+              duration: number;
+              width: number;
+              height: number;
+          };
       }
     | {
           type: 'message';
@@ -3019,60 +3026,80 @@ function completeOnboarding(
             },
         );
         const subtitleComment = ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID);
+        const taskVideoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID);
         const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(task.message, undefined, actorAccountID, undefined, false);
 
         return {
+            task,
             currentTask,
             taskCreatedAction,
             taskReportAction,
             subtitleComment,
+            taskVideoComment,
             instructionComment,
         };
     });
 
-    const tasksForParameters = tasksData.reduce<TaskForParameters[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
+    const tasksForParameters = tasksData.reduce<TaskForParameters[]>(
+        (acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, taskVideoComment, instructionComment}) => {
+            const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+            const subtitleCommentText = subtitleComment.commentText;
+            const subtitleMessage: TaskMessage = {
+                reportID: currentTask.reportID,
+                reportActionID: subtitleCommentAction.reportActionID,
+                reportComment: subtitleCommentText,
+            };
+
+            const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
+            const taskVideoCommentText = instructionComment.commentText;
+            const taskVideoMessage: TaskMessage = {
+                reportID: currentTask.reportID,
+                reportActionID: taskVideoCommentAction.reportActionID,
+                reportComment: taskVideoCommentText,
+            };
+
+            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
+            const instructionCommentText = instructionComment.commentText;
+            const instructionMessage: TaskMessage = {
+                reportID: currentTask.reportID,
+                reportActionID: instructionCommentAction.reportActionID,
+                reportComment: instructionCommentText,
+            };
+
+            return [
+                ...acc,
+                {
+                    type: 'task',
+                    task: engagementChoice,
+                    taskReportID: currentTask.reportID,
+                    parentReportID: currentTask.parentReportID ?? '',
+                    parentReportActionID: taskReportAction.reportAction.reportActionID,
+                    assigneeChatReportID: '',
+                    createdTaskReportActionID: taskCreatedAction.reportActionID,
+                    title: currentTask.reportName ?? '',
+                    description: currentTask.description ?? '',
+                    video: task.video,
+                },
+                {
+                    type: 'message',
+                    ...taskVideoMessage,
+                },
+                {
+                    type: 'message',
+                    ...subtitleMessage,
+                },
+                {
+                    type: 'message',
+                    ...instructionMessage,
+                },
+            ];
+        },
+        [],
+    );
+
+    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, taskVideoComment, instructionComment}) => {
         const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-        const subtitleCommentText = subtitleComment.commentText;
-        const subtitleMessage: TaskMessage = {
-            reportID: currentTask.reportID,
-            reportActionID: subtitleCommentAction.reportActionID,
-            reportComment: subtitleCommentText,
-        };
-
-        const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
-        const instructionCommentText = instructionComment.commentText;
-        const instructionMessage: TaskMessage = {
-            reportID: currentTask.reportID,
-            reportActionID: instructionCommentAction.reportActionID,
-            reportComment: instructionCommentText,
-        };
-
-        return [
-            ...acc,
-            {
-                type: 'task',
-                task: engagementChoice,
-                taskReportID: currentTask.reportID,
-                parentReportID: currentTask.parentReportID ?? '',
-                parentReportActionID: taskReportAction.reportAction.reportActionID,
-                assigneeChatReportID: '',
-                createdTaskReportActionID: taskCreatedAction.reportActionID,
-                title: currentTask.reportName ?? '',
-                description: currentTask.description ?? '',
-            },
-            {
-                type: 'message',
-                ...subtitleMessage,
-            },
-            {
-                type: 'message',
-                ...instructionMessage,
-            },
-        ];
-    }, []);
-
-    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
-        const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+        const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
         const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
 
         return [
@@ -3104,6 +3131,7 @@ function completeOnboarding(
                 value: {
                     [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
                     [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
+                    [taskVideoCommentAction.reportActionID]: taskVideoCommentAction as ReportAction,
                     [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
                 },
             },
