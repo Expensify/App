@@ -11,6 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
+import * as NetworkStore from './Network/NetworkStore';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -321,7 +322,7 @@ function getPolicyIDFromNavigationState() {
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
     const activePolicies = getActivePolicies(policies);
-    return activePolicies.filter((policy) => isPolicyAdmin(policy));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
 }
 
 /** Whether the user can send invoice */

@@ -480,10 +480,11 @@ function ReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[report.ownerAccountID ?? -1]);
+            const linkedReport = ReportUtils.isChatThread(report) ? ReportUtils.getReport(report.parentReportID) : report;
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
-            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, report.reportID, action);
+            const missingPaymentMethod = ReportUtils.getIndicatedMissingPaymentMethod(userWallet, linkedReport?.reportID ?? '', action);
             children = (
                 <ReportActionItemBasicMessage
                     message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', {submitterDisplayName})}
@@ -494,7 +495,7 @@ function ReportActionItem({
                                 success
                                 style={[styles.w100, styles.requestPreviewBox]}
                                 text={translate('bankAccount.addBankAccount')}
-                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(report.reportID)}
+                                onPress={() => BankAccounts.openPersonalBankAccountSetupView(Navigation.getTopmostReportId() ?? linkedReport?.reportID)}
                                 pressOnEnter
                                 large
                             />
@@ -505,7 +506,7 @@ function ReportActionItem({
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
                                 addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                chatReportID={report.reportID}
+                                chatReportID={linkedReport?.reportID}
                                 iouReport={iouReport}
                             >
                                 {(triggerKYCFlow, buttonRef) => (

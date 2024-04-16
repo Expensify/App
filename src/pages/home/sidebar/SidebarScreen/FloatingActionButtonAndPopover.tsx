@@ -354,7 +354,7 @@ function FloatingActionButtonAndPopover(
                               {
                                   icon: getQuickActionIcon(quickAction?.action),
                                   text: quickActionTitle,
-                                  label: translate('quickAction.shortcut'),
+                                  label: translate('quickAction.header'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,

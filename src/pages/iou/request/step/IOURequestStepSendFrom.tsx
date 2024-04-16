@@ -88,7 +88,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
                 )}
             </View>
         ),
-        [styles.mh2, styles.roundCheckmarkWrapper, theme.success],
+        [styles.roundCheckmarkWrapper, styles.mh2, theme.success],
     );
 
     return (
