@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -466,18 +466,13 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         [route, saveScrollOffset],
     );
 
-    const [isAfterOnLayout, setIsAfterOnLayout] = useState(false);
-
-    const onLayout = useCallback(() => {
+    useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
-        setIsAfterOnLayout(true);
         if (!scrollOffset || !scrollViewRef.current) {
             return;
         }
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
-
-    const scrollOffset = getScrollOffset(route);
 
     return (
         <ScreenWrapper
@@ -488,11 +483,8 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         >
             <ScrollView
                 ref={scrollViewRef}
-                onLayout={onLayout}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                // We use marginTop to prevent glitching on the initial frame that renders before scrollTo.
-                contentContainerStyle={[!isAfterOnLayout && !!scrollOffset && {marginTop: -scrollOffset}]}
                 style={[styles.w100, styles.pt4]}
             >
                 {headerContent}
