@@ -178,6 +178,7 @@ function IOURequestStepDescription({
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         shouldSubmitForm
+                        isMarkdownEnabled
                     />
                 </View>
             </FormProvider>
