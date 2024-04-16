@@ -54,7 +54,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    quickbooksOnline: {
+                    [connectionName]: {
                         config: {
                             [settingName]: settingValue,
                             pendingFields: {
@@ -76,7 +76,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    quickbooksOnline: {
+                    [connectionName]: {
                         config: {
                             [settingName]: settingValue,
                             pendingFields: {
@@ -98,7 +98,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 connections: {
-                    quickbooksOnline: {
+                    [connectionName]: {
                         config: {
                             [settingName]: settingValue,
                             pendingFields: {
