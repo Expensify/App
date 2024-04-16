@@ -48,13 +48,6 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
     settingName: TSettingName,
     settingValue: Connections[TConnectionName]['config'][TSettingName],
 ) {
-    const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
-        policyID,
-        connectionName,
-        settingName,
-        settingValue,
-        idempotencyKey: String(settingName),
-    };
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -121,6 +114,13 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
         },
     ];
 
+    const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
+        policyID,
+        connectionName,
+        settingName,
+        settingValue,
+        idempotencyKey: String(settingName),
+    };
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
