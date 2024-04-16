@@ -282,6 +282,7 @@ function BaseReportActionContextMenu({
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
                             shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
+                            onFocus={() => setFocusedIndex(index)}
                         />
                     );
                 })}
