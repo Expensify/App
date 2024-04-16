@@ -59,7 +59,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -2186,8 +2186,8 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         Modal.close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : false;
+            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
