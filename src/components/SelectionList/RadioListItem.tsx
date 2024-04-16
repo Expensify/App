@@ -4,9 +4,9 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {RadioListItemProps} from './types';
+import type {ListItem, RadioListItemProps} from './types';
 
-function RadioListItem({
+function RadioListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -16,7 +16,8 @@ function RadioListItem({
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     isMultilineSupported = false,
-}: RadioListItemProps) {
+    onFocus,
+}: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
@@ -34,6 +35,7 @@ function RadioListItem({
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
             keyForList={item.keyForList}
+            onFocus={onFocus}
         >
             <>
                 <View style={[styles.flex1, styles.alignItemsStart]}>

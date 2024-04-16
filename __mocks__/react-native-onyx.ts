@@ -5,7 +5,7 @@
 
 /* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import Onyx, {useOnyx, withOnyx} from 'react-native-onyx';
 
 let connectCallbackDelay = 0;
 function addDelayToConnectCallback(delay: number) {
@@ -40,4 +40,4 @@ const reactNativeOnyxMock: ReactNativeOnyxMock = {
 };
 
 export default reactNativeOnyxMock;
-export {withOnyx};
+export {withOnyx, useOnyx};
