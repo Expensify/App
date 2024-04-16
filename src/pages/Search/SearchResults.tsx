@@ -1,12 +1,15 @@
 import React from 'react';
 import Text from '@components/Text';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 type SearchResultsProps = {
-    filter: string;
+    query: string;
 };
 
-function SearchResults({filter}: SearchResultsProps) {
-    return <Text style={{color: 'white', fontSize: 30}}>Search results for: |{filter}| filter</Text>;
+function SearchResults({query}: SearchResultsProps) {
+    const styles = useThemeStyles();
+
+    return <Text style={styles.textHeadlineH1}>Search results for: |{query}| filter</Text>;
 }
 
 SearchResults.displayName = 'SearchResults';

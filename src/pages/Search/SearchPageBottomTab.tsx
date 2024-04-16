@@ -7,6 +7,7 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -20,23 +21,23 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const activeRoute = useActiveRoute();
-    const currentQuery = activeRoute?.params?.query;
+    const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
 
     const searchMenuItems: SearchMenuItem[] = [
         {
             title: 'All',
             icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute('all'))),
+            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.ALL))),
         },
         {
             title: 'Sent',
             icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute('sent'))),
+            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.SENT))),
         },
         {
             title: 'Drafts',
             icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute('drafts'))),
+            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.DRAFTS))),
         },
     ];
 

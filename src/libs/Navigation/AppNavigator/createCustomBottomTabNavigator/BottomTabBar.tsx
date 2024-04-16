@@ -102,10 +102,11 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            <Tooltip text={translate('common.search')}>
+            {/** @TODO: Uncomment this code and change order of the items according to the designs once the new search tab is ready */}
+            {/* <Tooltip text={translate('common.search')}>
                 <PressableWithFeedback
                     onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH.getRoute('all'));
+                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.SEARCH_QUERIES.ALL));
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.search')}
@@ -121,9 +122,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                         />
                     </View>
                 </PressableWithFeedback>
-            </Tooltip>
-            <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
+            </Tooltip> */}
             <BottomTabBarFloatingActionButton />
+            <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
         </View>
     );
 }

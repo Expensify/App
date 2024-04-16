@@ -13,7 +13,7 @@ function SearchPage({route}: SearchPageProps) {
 
     return (
         <ScreenWrapper testID="testPage">
-            <SearchResults filter={route.params.query} />
+            <SearchResults query={route.params.query} />
         </ScreenWrapper>
     );
 }

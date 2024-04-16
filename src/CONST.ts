@@ -4345,6 +4345,12 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+
+    SEARCH_QUERIES: {
+        ALL: 'all',
+        SENT: 'sent',
+        DRAFTS: 'drafts'
+    }
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
