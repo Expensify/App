@@ -4388,6 +4388,7 @@ function buildTransactionThread(
             parentReportActionID: reportAction?.reportActionID,
             parentReportID: moneyRequestReport?.reportID,
             reportName: getTransactionReportName(reportAction),
+            policyID: moneyRequestReport?.policyID,
         };
     }
 
