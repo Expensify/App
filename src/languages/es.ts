@@ -435,17 +435,11 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Añadir archivo adjunto',
         writeSomething: 'Escribe algo...',
-        conciergePlaceholderOptions: (): string => {
-            const options = [
-                '¡Pide ayuda!',
-                '¡Pregúntame lo que sea!',
-                '¡Pídeme que te reserve un viaje!',
-                '¡Pregúntame qué puedo hacer!',
-                '¡Pregúntame cómo pagar a la gente!',
-                '¡Pregúntame cómo enviar una factura!',
-                '¡Pregúntame cómo escanear un recibo!',
-                '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!',
-            ];
+        conciergePlaceholderOptions: ({isSmallScreenWidth}): string => {
+            const options = ['¡Pide ayuda!', '¡Pregúntame lo que sea!', '¡Pídeme que te reserve un viaje!', '¡Pregúntame qué puedo hacer!', '¡Pregúntame cómo pagar a la gente!'];
+            if (!isSmallScreenWidth) {
+                options.push('¡Pregúntame cómo enviar una factura!', '¡Pregúntame cómo escanear un recibo!', '¡Pregúntame cómo obtener una tarjeta de crédito corporativa gratis!');
+            }
             return options[Math.floor(Math.random() * options.length)];
         },
         blockedFromConcierge: 'Comunicación no permitida',
