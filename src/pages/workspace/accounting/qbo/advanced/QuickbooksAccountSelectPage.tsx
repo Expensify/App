@@ -26,13 +26,13 @@ const DRAFT = [{name: 'Croissant Co Payroll Account'}, {name: 'Croissant Co Mone
 function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [selectedAccount, setSelectedAccount] = useState(DRAFT[0].name);
+
+    const policyID = policy?.id ?? '';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])] || DRAFT;
-
-    const [selectedAccount, setSelectedAccount] = useState('Croissant Co Payroll Account');
-
-    const policyID = policy?.id ?? '';
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[] | undefined>(
         () =>
