@@ -46,6 +46,11 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     const {transactionID, reportID, backTo} = route.params;
 
     const report = ReportUtils.getReport(reportID);
+
+    // We check if the report is part of a policy, if not then it's a personal request (1:1 request)
+    // We need to allow both users in the 1:1 request to put the request on hold
+    const isWorkspaceRequest = ReportUtils.isGroupPolicy(report);
+    console.log('isWorkspaceRequest', isWorkspaceRequest);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
     const navigateBack = () => {
@@ -53,7 +58,10 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        if (!ReportUtils.canEditMoneyRequest(parentReportAction)) {
+        // We have extra !!isWorkspaceRequest condition as in case of 1:1 request, canEditMoneyRequest will rightly return false
+        // as we do not allow requestee to edit fields like description and amount,
+        // but we still want the requestee to be able to put the request on hold
+        if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
             return;
         }
 
@@ -68,7 +76,11 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             if (!values.comment) {
                 errors.comment = 'common.error.fieldRequired';
             }
-            if (!ReportUtils.canEditMoneyRequest(parentReportAction)) {
+
+            // We have extra !!isWorkspaceRequest condition as in case of 1:1 request, canEditMoneyRequest will rightly return false
+            // as we do not allow requestee to edit fields like description and amount,
+            // but we still want the requestee to be able to put the request on hold
+            if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
                 const formErrors = {};
                 ErrorUtils.addErrorMessage(formErrors, 'reportModified', 'common.error.requestModified');
                 FormActions.setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
