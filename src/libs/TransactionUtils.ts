@@ -518,7 +518,7 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
  * Check if the transaction has a defined route
  */
 function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: boolean): boolean {
-    return isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity;
+    return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
 function getAllReportTransactions(reportID?: string): Transaction[] {
