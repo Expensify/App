@@ -47,8 +47,8 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[] | Record<string, T>;
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
+type PhraseParameters<T> = T extends (args: infer A) => string ? A : never[];
+type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (args: infer A) => unknown ? (args: A) => string : string;
 
 /**
  * Map to store translated values for each locale.
@@ -94,8 +94,9 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
  * @param count - The count used to determine the plural form as a string but numerical form (e.g. '5').
  * @returns The pluralized form of the translation, or null if not found.
  */
-function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl.LDMLPluralRule, Phrase<TKey>>, language: string, phraseKey: TKey, count: string): string | null {
+function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl.LDMLPluralRule, Phrase<TKey>>, language: string, phraseKey: TKey, phraseParams?: Record<string, unknown>): string | null {
     const pluralRules = new Intl.PluralRules(language);
+    const count = phraseParams?.count ?? 1;
     const pluralForm = pluralRules.select(Number(count));
 
     if (pluralForm in result) {
@@ -104,7 +105,7 @@ function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl
             return translatedPluralForm;
         }
         if (typeof translatedPluralForm === 'function') {
-            return translatedPluralForm();
+            return translatedPluralForm(phraseParams);
         }
     }
 
@@ -112,7 +113,7 @@ function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl
 
     const otherForm = result.other;
     if (typeof otherForm === 'function') {
-        return otherForm();
+        return otherForm(phraseParams);
     }
     if (typeof otherForm === 'string') {
         return otherForm;
@@ -142,7 +143,7 @@ function getPluralTranslation<TKey extends TranslationPaths>(result: Record<Intl
 function getTranslatedPhrase<TKey extends TranslationPaths>(
     language: 'en' | 'es' | 'es-ES',
     phraseKey: TKey,
-    phraseParameters: PhraseParameters<Phrase<TKey>>,
+    phraseParameters?: Record<string, unknown>,
     fallbackLanguage: 'en' | 'es' | null = null,
 ): string | null {
     // Get the cache for the above locale
@@ -162,9 +163,9 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(phraseParameters);
-
-            if (typeof result === 'object' && 'count' in phraseParameters) {
-                return getPluralTranslation(result, language, phraseKey, phraseParameters.count);
+            
+            if (typeof result === 'object'){
+                return getPluralTranslation(result, language, phraseKey, phraseParameters);
             }
 
             return result;
@@ -200,7 +201,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
  * @param [desiredLanguage] eg 'en', 'es-ES'
  * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, phraseParameters: PhraseParameters<Phrase<TKey>>): string {
+function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, phraseParameters?: Record<string, unknown>): string {
     // Search phrase in full locale e.g. es-ES
     const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
     // Phrase is not found in full locale, search it in fallback language e.g. es
@@ -227,7 +228,7 @@ function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' |
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: PhraseParameters<Phrase<TKey>>) {
+function translateLocal<TKey extends TranslationPaths>(phrase: TKey, variables: Record<string, unknown>) {
     return translate(BaseLocaleListener.getPreferredLocale(), phrase, variables);
 }
 
