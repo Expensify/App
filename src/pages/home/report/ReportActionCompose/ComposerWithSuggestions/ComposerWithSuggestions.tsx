@@ -156,6 +156,12 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
 
         /** Whether to include chronos */
         includeChronos?: boolean;
+
+        /** Whether report is from group policy */
+        isGroupPolicyReport: boolean;
+
+        /** policy ID of the report */
+        policyID: string;
     };
 
 const {RNTextInputReset} = NativeModules;
@@ -195,6 +201,8 @@ function ComposerWithSuggestions(
         reportID,
         includeChronos,
         lastReportAction,
+        isGroupPolicyReport,
+        policyID,
 
         // Focus
         onFocus,
@@ -787,6 +795,8 @@ function ComposerWithSuggestions(
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                isGroupPolicyReport={isGroupPolicyReport}
+                policyID={policyID}
                 // Input
                 value={value}
                 setValue={setValue}

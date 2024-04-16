@@ -48,10 +48,10 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
                 ErrorUtils.addErrorMessage(errors, 'legalFirstName', 'privatePersonalDetails.error.hasInvalidCharacter');
             } else if (!values.legalFirstName) {
                 errors.legalFirstName = 'common.error.fieldRequired';
-            } else if (values.legalFirstName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                 ErrorUtils.addErrorMessage(errors, 'legalFirstName', [
                     'common.error.characterLimitExceedCounter',
-                    {length: values.legalFirstName.length, limit: CONST.TITLE_CHARACTER_LIMIT},
+                    {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH},
                 ]);
             }
             if (ValidationUtils.doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
@@ -64,8 +64,8 @@ function LegalNamePage({privatePersonalDetails, isLoadingApp = true}: LegalNameP
                 ErrorUtils.addErrorMessage(errors, 'legalLastName', 'privatePersonalDetails.error.hasInvalidCharacter');
             } else if (!values.legalLastName) {
                 errors.legalLastName = 'common.error.fieldRequired';
-            } else if (values.legalLastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
+            } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
+                ErrorUtils.addErrorMessage(errors, 'legalLastName', ['common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}]);
             }
             if (ValidationUtils.doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
                 ErrorUtils.addErrorMessage(errors, 'legalLastName', 'personalDetails.error.containsReservedWord');

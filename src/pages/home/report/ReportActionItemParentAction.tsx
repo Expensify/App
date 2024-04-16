@@ -108,7 +108,7 @@ function ReportActionItemParentAction({
                     <ReportActionItem
                         onPress={() => {
                             const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
-                            Navigation.navigate(
+                            Navigation.goBack(
                                 ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', isVisibleAction && !isOffline ? ancestor.reportAction.reportActionID : undefined),
                             );
                         }}

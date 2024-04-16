@@ -20,6 +20,7 @@ To change the roles and permissions for members of your workspace,
 | Approve workspace reports |  Only reports submitted to them  |  Yes    |  Yes            |
 | Edit workspace settings   |  No                              |  No     |  Yes            |
 
+{:start="7"}
 7. If your workspace uses Advanced Approvals, select an “Approves to.” This determines who the member’s reports must be approved by, if applicable. If “no one” is selected, then any one with the Auditor or Workspace Admin role can approve the member’s reports. 
 8. Click **Save**.
 
