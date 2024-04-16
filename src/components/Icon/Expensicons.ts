@@ -84,6 +84,8 @@ import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
+import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
@@ -100,6 +102,7 @@ import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
@@ -140,6 +143,7 @@ import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
 import Tax from '@assets/images/tax.svg';
+import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
@@ -229,6 +233,7 @@ export {
     Folder,
     Tag,
     Tax,
+    Thread,
     Gallery,
     Gear,
     Globe,
@@ -257,6 +262,7 @@ export {
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneyWaving,
     Monitor,
     Mute,
     ExpensifyLogoNew,
@@ -276,6 +282,7 @@ export {
     Plus,
     Printer,
     Profile,
+    QBOSquare,
     QrCode,
     QuestionMark,
     Receipt,
@@ -304,6 +311,7 @@ export {
     Wallet,
     Workflows,
     Workspace,
+    XeroSquare,
     Zoom,
     Twitter,
     Youtube,

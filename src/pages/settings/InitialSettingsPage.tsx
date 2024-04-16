@@ -1,5 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+import {useRoute} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +15,7 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -248,6 +251,16 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                     routeName: ROUTES.SETTINGS_ABOUT,
                 },
                 {
+                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
+                    icon: Expensicons.Lightbulb,
+                    routeName: ROUTES.SETTINGS_TROUBLESHOOT,
+                },
+                {
+                    translationKey: 'sidebarScreen.saveTheWorld',
+                    icon: Expensicons.Heart,
+                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
+                },
+                {
                     translationKey: signOutTranslationKey,
                     icon: Expensicons.Exit,
                     action: () => {
@@ -437,6 +450,30 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
         </View>
     );
 
+    const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
+    const route = useRoute();
+    const scrollViewRef = useRef<RNScrollView>(null);
+
+    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
+        (e) => {
+            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
+            // We should ignore this case.
+            if (e.nativeEvent.layoutMeasurement.height === 0) {
+                return;
+            }
+            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        },
+        [route, saveScrollOffset],
+    );
+
+    useLayoutEffect(() => {
+        const scrollOffset = getScrollOffset(route);
+        if (!scrollOffset || !scrollViewRef.current) {
+            return;
+        }
+        scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
+    }, [getScrollOffset, route]);
+
     return (
         <ScreenWrapper
             style={[styles.w100, styles.pb0]}
@@ -444,7 +481,12 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             includeSafeAreaPaddingBottom={false}
             testID={InitialSettingsPage.displayName}
         >
-            <ScrollView style={[styles.w100, styles.pt4]}>
+            <ScrollView
+                ref={scrollViewRef}
+                onScroll={onScroll}
+                scrollEventThrottle={16}
+                style={[styles.w100, styles.pt4]}
+            >
                 {headerContent}
                 {accountMenuItems}
                 {workspaceMenuItems}

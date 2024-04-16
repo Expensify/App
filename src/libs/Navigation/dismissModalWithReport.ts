@@ -38,6 +38,10 @@ function dismissModalWithReport(targetReport: Report | EmptyObject, navigationRe
         case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
         case SCREENS.NOT_FOUND:
         case SCREENS.REPORT_ATTACHMENTS:
+        case SCREENS.TRANSACTION_RECEIPT:
+        case SCREENS.PROFILE_AVATAR:
+        case SCREENS.WORKSPACE_AVATAR:
+        case SCREENS.REPORT_AVATAR:
         case SCREENS.CONCIERGE:
             // If we are not in the target report, we need to navigate to it after dismissing the modal
             if (targetReport.reportID !== getTopmostReportId(state)) {

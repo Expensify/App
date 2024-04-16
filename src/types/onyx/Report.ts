@@ -24,7 +24,7 @@ type PendingChatMember = {
 };
 
 type Participant = {
-    hidden: boolean;
+    hidden?: boolean;
     role?: 'admin' | 'member';
 };
 
@@ -132,7 +132,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         parentReportID?: string;
         parentReportActionID?: string;
         isOptimisticReport?: boolean;
-        hasDraft?: boolean;
         managerID?: number;
         lastVisibleActionLastModified?: string;
         displayName?: string;
@@ -144,6 +143,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         participantAccountIDs?: number[];
         visibleChatMemberAccountIDs?: number[];
         total?: number;
+        unheldTotal?: number;
         currency?: string;
         errors?: OnyxCommon.Errors;
         managerEmail?: string;
@@ -182,7 +182,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Pending members of the report */
         pendingChatMembers?: PendingChatMember[];
 
-        /** If the report contains reportFields, save the field id and its value */
+        /** The ID of the single transaction thread report associated with this report, if one exists */
+        transactionThreadReportID?: string;
+
         fieldList?: Record<string, PolicyReportField>;
     },
     PolicyReportField['fieldID']
@@ -192,4 +194,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, PendingChatMember, ReportCollectionDataSet};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants};

@@ -11,10 +11,10 @@ import * as IOU from '@userActions/IOU';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
-import type {LastPaymentMethod, Report} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -33,6 +33,9 @@ type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEN
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
     nvpLastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The policy of the report */
+    policy: OnyxEntry<Policy>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
@@ -98,10 +101,13 @@ type SettlementButtonProps = SettlementButtonOnyxProps & {
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
+
+    /** Callback to open confirmation modal if any of the transactions is on HOLD */
+    confirmApproval?: () => void;
 };
 
 function SettlementButton({
-    addDebitCardRoute = '',
+    addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
     addBankAccountRoute = '',
     kycWallAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, // button is at left, so horizontal anchor is at LEFT
@@ -131,6 +137,8 @@ function SettlementButton({
     style,
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
+    confirmApproval,
+    policy,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -139,10 +147,9 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
-    const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const paymentButtonOptions = useMemo(() => {
@@ -203,7 +210,7 @@ function SettlementButton({
         return buttonOptions;
         // We don't want to reorder the options when the preferred payment method changes while the button is still visible
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton]);
+    }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
             triggerKYCFlow(event, iouPaymentType);
@@ -212,7 +219,11 @@ function SettlementButton({
         }
 
         if (iouPaymentType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-            IOU.approveMoneyRequest(iouReport ?? {});
+            if (confirmApproval) {
+                confirmApproval();
+            } else {
+                IOU.approveMoneyRequest(iouReport ?? {});
+            }
             return;
         }
 
@@ -263,5 +274,8 @@ export default withOnyx<SettlementButtonProps, SettlementButtonOnyxProps>({
     nvpLastPaymentMethod: {
         key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         selector: (paymentMethod) => paymentMethod ?? {},
+    },
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
 })(SettlementButton);

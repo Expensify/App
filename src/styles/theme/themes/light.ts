@@ -45,6 +45,7 @@ const lightTheme = {
     inverse: colors.productLight900,
     shadow: colors.black,
     componentBG: colors.productLight100,
+    messageHighlightBG: colors.yellow100,
     hoverComponentBG: colors.productLight300,
     activeComponentBG: colors.productLight400,
     signInSidebar: colors.green800,

@@ -40,16 +40,16 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string | null, isTranslated = false): Errors {
-    return {[DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
+function getMicroSecondOnyxError(error: string, isTranslated = false, errorKey?: number): Errors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
 }
 
 /**
  * Method used to get an error object with microsecond as the key and an object as the value.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxErrorObject(error: Errors): ErrorFields {
-    return {[DateUtils.getMicroseconds()]: error};
+function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorFields {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: error};
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error

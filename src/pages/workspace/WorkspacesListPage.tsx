@@ -33,10 +33,11 @@ import * as ReportUtils from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import * as App from '@userActions/App';
 import * as Policy from '@userActions/Policy';
+import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report} from '@src/types/onyx';
+import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report, Session as SessionType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -79,6 +80,9 @@ type WorkspaceListPageOnyxProps = {
 
     /** All reports shared with the user (coming from Onyx) */
     reports: OnyxCollection<Report>;
+
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<SessionType>;
 };
 
 type WorkspaceListPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceListPageOnyxProps;
@@ -114,7 +118,7 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports}: WorkspaceListPageProps) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports, session}: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -148,6 +152,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
     const getMenuItem = useCallback(
         ({item, index}: GetMenuItem) => {
             const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
+            const isOwner = item.ownerAccountID === session?.accountID;
             // Menu options to navigate to the chat report of #admins and #announce room.
             // For navigation, the chat report ids may be unavailable due to the missing chat reports in Onyx.
             // In such cases, let us use the available chat report ids from the policy.
@@ -162,6 +167,14 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                         setPolicyNameToDelete(item.title);
                         setIsDeleteModalOpen(true);
                     },
+                });
+            }
+
+            if (!(isAdmin || isOwner)) {
+                threeDotsMenuItems.push({
+                    icon: Expensicons.ChatBubbles,
+                    text: translate('common.leave'),
+                    onSelected: Session.checkIfActionIsAllowed(() => Policy.leaveWorkspace(item.policyID ?? '')),
                 });
             }
 
@@ -182,21 +195,22 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
             }
 
             return (
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel="row"
-                    style={[styles.mh5, styles.mb3]}
-                    disabled={item.disabled}
-                    onPress={item.action}
+                <OfflineWithFeedback
+                    key={`${item.title}_${index}`}
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={styles.ph5}
+                    onClose={item.dismissError}
+                    errors={item.errors}
+                    style={styles.mb3}
                 >
-                    {({hovered}) => (
-                        <OfflineWithFeedback
-                            key={`${item.title}_${index}`}
-                            pendingAction={item.pendingAction}
-                            errorRowStyles={styles.ph5}
-                            onClose={item.dismissError}
-                            errors={item.errors}
-                        >
+                    <PressableWithoutFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel="row"
+                        style={[styles.mh5]}
+                        disabled={item.disabled}
+                        onPress={item.action}
+                    >
+                        {({hovered}) => (
                             <WorkspacesListRow
                                 title={item.title}
                                 menuItems={threeDotsMenuItems}
@@ -208,13 +222,14 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                                 layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
                                 brickRoadIndicator={item.brickRoadIndicator}
                                 shouldDisableThreeDotsMenu={item.disabled}
+                                style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
                             />
-                        </OfflineWithFeedback>
-                    )}
-                </PressableWithoutFeedback>
+                        )}
+                    </PressableWithoutFeedback>
+                </OfflineWithFeedback>
             );
         },
-        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate],
+        [isLessThanMediumScreen, styles.mb3, styles.mh5, styles.ph5, styles.hoveredComponentBG, translate, styles.offlineFeedback.deleted, session?.accountID],
     );
 
     const listHeaderComponent = useCallback(() => {
@@ -443,6 +458,9 @@ export default withPolicyAndFullscreenLoading(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     })(WorkspacesListPage),
 );

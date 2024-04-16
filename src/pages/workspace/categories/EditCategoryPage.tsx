@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -32,9 +32,29 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
 
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+            const newCategoryName = values.categoryName.trim();
+
+            if (!newCategoryName) {
+                errors.categoryName = 'workspace.categories.categoryRequiredError';
+            } else if (policyCategories?.[newCategoryName] && currentCategoryName !== newCategoryName) {
+                errors.categoryName = 'workspace.categories.existingCategoryError';
+            }
+
+            return errors;
+        },
+        [policyCategories, currentCategoryName],
+    );
+
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            Policy.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
+            const newCategoryName = values.categoryName.trim();
+            // Do not call the API if the edited category name is the same as the current category name
+            if (currentCategoryName !== newCategoryName) {
+                Policy.renamePolicyCategory(route.params.policyID, {oldName: currentCategoryName, newName: values.categoryName});
+            }
         },
         [currentCategoryName, route.params.policyID],
     );
@@ -58,6 +78,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
                         />
                         <CategoryForm
                             onSubmit={editCategory}
+                            validateEdit={validate}
                             categoryName={currentCategoryName}
                             policyCategories={policyCategories}
                         />

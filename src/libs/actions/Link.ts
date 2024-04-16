@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import * as Session from './Session';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -102,6 +103,10 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
+        if (Session.isAnonymousUser() && !Session.canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
         Navigation.navigate(internalNewExpensifyPath as Route);
         return;
     }

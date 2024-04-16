@@ -58,6 +58,8 @@ export type {default as UpdateChatPriorityModeParams} from './UpdateChatPriority
 export type {default as UpdateDateOfBirthParams} from './UpdateDateOfBirthParams';
 export type {default as UpdateDisplayNameParams} from './UpdateDisplayNameParams';
 export type {default as UpdateFrequentlyUsedEmojisParams} from './UpdateFrequentlyUsedEmojisParams';
+export type {default as UpdateGroupChatNameParams} from './UpdateGroupChatNameParams';
+export type {default as UpdateGroupChatMemberRolesParams} from './UpdateGroupChatMemberRolesParams';
 export type {default as UpdateHomeAddressParams} from './UpdateHomeAddressParams';
 export type {default as UpdateLegalNameParams} from './UpdateLegalNameParams';
 export type {default as UpdateNewsletterSubscriptionParams} from './UpdateNewsletterSubscriptionParams';
@@ -69,6 +71,7 @@ export type {default as UpdateSelectedTimezoneParams} from './UpdateSelectedTime
 export type {default as UpdateStatusParams} from './UpdateStatusParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
+export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
 export type {default as ValidateBankAccountWithTransactionsParams} from './ValidateBankAccountWithTransactionsParams';
 export type {default as ValidateLoginParams} from './ValidateLoginParams';
 export type {default as ValidateSecondaryLoginParams} from './ValidateSecondaryLoginParams';
@@ -77,7 +80,6 @@ export type {default as VerifyIdentityForBankAccountParams} from './VerifyIdenti
 export type {default as AnswerQuestionsForWalletParams} from './AnswerQuestionsForWalletParams';
 export type {default as AddCommentOrAttachementParams} from './AddCommentOrAttachementParams';
 export type {default as OptInOutToPushNotificationsParams} from './OptInOutToPushNotificationsParams';
-export type {default as ReconnectToReportParams} from './ReconnectToReportParams';
 export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
@@ -92,8 +94,11 @@ export type {default as UpdatePolicyRoomNameParams} from './UpdatePolicyRoomName
 export type {default as AddEmojiReactionParams} from './AddEmojiReactionParams';
 export type {default as RemoveEmojiReactionParams} from './RemoveEmojiReactionParams';
 export type {default as LeaveRoomParams} from './LeaveRoomParams';
+export type {default as LeaveGroupChatParams} from './LeaveGroupChatParams';
 export type {default as InviteToRoomParams} from './InviteToRoomParams';
+export type {default as InviteToGroupChatParams} from './InviteToGroupChatParams';
 export type {default as RemoveFromRoomParams} from './RemoveFromRoomParams';
+export type {default as RemoveFromGroupChatParams} from './RemoveFromGroupChatParams';
 export type {default as FlagCommentParams} from './FlagCommentParams';
 export type {default as UpdateReportPrivateNoteParams} from './UpdateReportPrivateNoteParams';
 export type {default as UpdateCompanyInformationForBankAccountParams} from './UpdateCompanyInformationForBankAccountParams';
@@ -129,6 +134,7 @@ export type {default as CompleteEngagementModalParams} from './CompleteEngagemen
 export type {default as SetNameValuePairParams} from './SetNameValuePairParams';
 export type {default as SetReportFieldParams} from './SetReportFieldParams';
 export type {default as SetReportNameParams} from './SetReportNameParams';
+export type {default as DeleteReportFieldParams} from './DeleteReportFieldParams';
 export type {default as CompleteSplitBillParams} from './CompleteSplitBillParams';
 export type {default as UpdateMoneyRequestParams} from './UpdateMoneyRequestParams';
 export type {default as RequestMoneyParams} from './RequestMoneyParams';
@@ -187,6 +193,8 @@ export type {default as UpdatePolicyDistanceRateValueParams} from './UpdatePolic
 export type {default as SetPolicyDistanceRatesEnabledParams} from './SetPolicyDistanceRatesEnabledParams';
 export type {default as DeletePolicyDistanceRatesParams} from './DeletePolicyDistanceRatesParams';
 export type {default as CreatePolicyTagsParams} from './CreatePolicyTagsParams';
+export type {default as RequestWorkspaceOwnerChangeParams} from './RequestWorkspaceOwnerChangeParams';
+export type {default as AddBillingCardAndRequestWorkspaceOwnerChangeParams} from './AddBillingCardAndRequestWorkspaceOwnerChangeParams';
 export type {default as SetPolicyTaxesEnabledParams} from './SetPolicyTaxesEnabledParams';
 export type {default as DeletePolicyTaxesParams} from './DeletePolicyTaxesParams';
 export type {default as UpdatePolicyTaxValueParams} from './UpdatePolicyTaxValueParams';
@@ -195,4 +203,6 @@ export type {default as DeletePolicyTagsParams} from './DeletePolicyTagsParams';
 export type {default as SetPolicyCustomTaxNameParams} from './SetPolicyCustomTaxNameParams';
 export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicyForeignCurrencyDefaultParams';
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
+export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
+export type {default as LeavePolicyParams} from './LeavePolicyParams';
