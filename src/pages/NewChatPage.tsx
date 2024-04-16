@@ -31,6 +31,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 type NewChatPageProps = {
     isGroupChat?: boolean;
@@ -250,10 +251,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
-        const selectedParticipants = selectedOptions.map((option) => ({
-            login: option.login ?? '',
-            accountID: option.accountID ?? -1,
-        }));
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
         Report.setGroupDraft({participants: logins});
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
