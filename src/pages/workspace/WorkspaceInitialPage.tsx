@@ -248,9 +248,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
     useEffect(() => {
-        if (!isEmptyObject(prevPolicy) && !PolicyUtils.isPendingDeletePolicy(prevPolicy) && PolicyUtils.isPendingDeletePolicy(policy)) {
-            PolicyUtils.goBackFromInvalidPolicy();
+        if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
+            return;
         }
+        PolicyUtils.goBackFromInvalidPolicy();
     }, [policy, prevPolicy]);
 
     // We are checking if the user can access the route.
