@@ -245,9 +245,6 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     );
 
     const createGroup = useCallback(() => {
-        if (selectedOptions.length === 1) {
-            createChat();
-        }
         if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
@@ -255,7 +252,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
         Report.setGroupDraft({participants: logins});
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
-    }, [selectedOptions, createChat, personalData]);
+    }, [selectedOptions, personalData]);
 
     const footerContent = useMemo(
         () => (
