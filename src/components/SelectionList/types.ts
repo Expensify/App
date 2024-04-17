@@ -12,7 +12,7 @@ import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
-type CommonListItemProps<TItem> = {
+type CommonListItemProps<TItem extends ListItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
 
@@ -51,6 +51,9 @@ type CommonListItemProps<TItem> = {
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type ListItem = {
@@ -113,12 +116,15 @@ type ListItem = {
     /** The search value from the selection list */
     searchText?: string | null;
 
+    /** What text to show inside the badge (if none present the badge will be omitted) */
+    badgeText?: string;
+
     brickRoadIndicator?: BrickRoad | '' | null;
 };
 
-type ListItemProps = CommonListItemProps<ListItem> & {
+type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
-    item: ListItem;
+    item: TItem;
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
@@ -140,10 +146,11 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
+    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+    hoverStyle?: StyleProp<ViewStyle>;
 };
 
-type UserListItemProps = ListItemProps & {
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Errors that this user may contain */
     errors?: Errors | ReceiptErrors | null;
 
@@ -154,11 +161,11 @@ type UserListItemProps = ListItemProps & {
     FooterComponent?: ReactElement;
 };
 
-type InviteMemberListItemProps = UserListItemProps;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
-type RadioListItemProps = ListItemProps;
+type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type TableListItemProps = ListItemProps;
+type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
 
@@ -288,7 +295,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     shouldDelayFocus?: boolean;
 
     /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem> | null) | ReactElement | null;
+    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | null) | ReactElement | null;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;

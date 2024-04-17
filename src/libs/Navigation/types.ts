@@ -11,6 +11,7 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -58,6 +59,7 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
@@ -103,6 +105,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.CONSOLE]: undefined;
@@ -292,6 +295,9 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
+        reportID?: string;
+    };
 };
 
 type SearchNavigatorParamList = {
@@ -323,6 +329,7 @@ type ReportDetailsNavigatorParamList = {
 type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
+    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: undefined;
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
@@ -335,7 +342,16 @@ type ReportDescriptionNavigatorParamList = {
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS_ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
+        reportID: string;
+        accountID: string;
+    };
+    [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
+        reportID: string;
+        accountID: string;
+    };
 };
 
 type RoomMembersNavigatorParamList = {
@@ -345,17 +361,11 @@ type RoomMembersNavigatorParamList = {
 type RoomInviteNavigatorParamList = {
     [SCREENS.ROOM_INVITE_ROOT]: {
         reportID: string;
+        role?: 'accountant';
     };
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
-        reportID: string;
-        backTo: string;
-    };
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
@@ -389,6 +399,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAG]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -431,7 +442,7 @@ type MoneyRequestNavigatorParamList = {
         threadReportID: number;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
-        action: string;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -441,7 +452,33 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
+    [SCREENS.MONEY_REQUEST.CREATE]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistance and IOURequestStepAmount components
+        backTo: never;
+        action: never;
+        currency: never;
+    };
+    [SCREENS.MONEY_REQUEST.START]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+        iouRequestType: IOURequestType;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        reportID: string;
+        transactionID: string;
+        backTo: Routes;
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        currency?: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -461,6 +498,15 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         pageIndex: number;
         backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: Routes;
+        currency?: string;
     };
 };
 

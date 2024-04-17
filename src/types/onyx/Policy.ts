@@ -188,6 +188,8 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
+type ConnectionName = keyof Connections;
+
 type ACHAccount = {
     bankAccountID: number;
     accountNumber: string;
@@ -331,7 +333,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: OnyxTypes.PolicyMembers | [];
+        employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
@@ -466,4 +468,6 @@ export type {
     PendingJoinRequestPolicy,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
+    Connections,
+    ConnectionName,
 };
