@@ -3011,26 +3011,20 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
-    const policyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
-    let isReceiver = false;
+    const invoiceReceiverPolicyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
+    const isCurrentUserReceiver =
+        (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && PolicyUtils.isPolicyEmployee(invoiceReceiverPolicyID, allPolicies));
 
-    if (isIndividual && invoiceReceiverAccountID === currentUserAccountID) {
-        isReceiver = true;
-    }
-
-    if (!isIndividual && PolicyUtils.isPolicyEmployee(policyID, allPolicies)) {
-        isReceiver = true;
-    }
-
-    if (isReceiver) {
-        return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
+    if (isCurrentUserReceiver) {
+        return getPolicyName(report);
     }
 
     if (isIndividual) {
         return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]);
     }
 
-    return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
+    // TODO: Check this flow in a scope of the Invoice V0.3
+    return getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`]);
 }
 
 /**
