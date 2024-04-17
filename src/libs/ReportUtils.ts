@@ -53,6 +53,7 @@ import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/o
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as IOU from './actions/IOU';
 import * as store from './actions/ReimbursementAccount/store';
 import * as CollectionUtils from './CollectionUtils';
 import * as CurrencyUtils from './CurrencyUtils';
@@ -194,6 +195,8 @@ type OptimisticIOUReportAction = Pick<
     | 'receipt'
     | 'whisperedToAccountIDs'
     | 'childReportID'
+    | 'childVisibleActionCount'
+    | 'childCommenterCount'
 >;
 
 type ReportRouteParams = {
@@ -1443,9 +1446,10 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
             return false;
         }
 
+        const linkedReport = isThreadFirstChat(reportAction, reportID) ? getReport(report?.parentReportID) : report;
         if (isActionOwner) {
-            if (!isEmptyObject(report) && isMoneyRequestReport(report)) {
-                return canAddOrDeleteTransactions(report);
+            if (!isEmptyObject(linkedReport) && isMoneyRequestReport(linkedReport)) {
+                return canAddOrDeleteTransactions(linkedReport);
             }
             return true;
         }
@@ -3554,6 +3558,7 @@ function buildOptimisticIOUReportAction(
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
     created = DateUtils.getDBTime(),
+    linkedExpenseReportAction: ReportAction | EmptyObject = {},
 ): OptimisticIOUReportAction {
     const IOUReportID = iouReportID || generateReportID();
 
@@ -3598,6 +3603,7 @@ function buildOptimisticIOUReportAction(
     }
 
     return {
+        ...linkedExpenseReportAction,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
         automatic: false,
@@ -3806,6 +3812,44 @@ function buildOptimisticModifiedExpenseReportAction(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThread?.reportID,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Builds an optimistic modified expense action for a tracked expense move with a randomly generated reportActionID.
+ * @param transactionThreadID - The reportID of the transaction thread
+ * @param movedToReportID - The reportID of the report the transaction is moved to
+ */
+function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: getCurrentUserAvatarOrDefault(),
+        created: DateUtils.getDBTime(),
+        isAttachment: false,
+        message: [
+            {
+                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
+                text: 'You',
+                style: 'strong',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ],
+        originalMessage: {
+            movedToReportID,
+        },
+        person: [
+            {
+                style: 'strong',
+                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: NumberUtils.rand64(),
+        reportID: transactionThreadID,
         shouldShow: true,
     };
 }
@@ -4093,7 +4137,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
 function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
@@ -4370,8 +4414,25 @@ function buildOptimisticTaskReport(
  * @param reportAction - the parent IOU report action from which to create the thread
  * @param moneyRequestReport - the report which the report action belongs to
  */
-function buildTransactionThread(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, moneyRequestReport: OnyxEntry<Report>): OptimisticChatReport {
+function buildTransactionThread(
+    reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
+    moneyRequestReport: OnyxEntry<Report>,
+    existingTransactionThreadReportID?: string,
+): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
+    const existingTransactionThreadReport = getReport(existingTransactionThreadReportID);
+
+    if (existingTransactionThreadReportID && existingTransactionThreadReport) {
+        return {
+            ...existingTransactionThreadReport,
+            isOptimisticReport: true,
+            parentReportActionID: reportAction?.reportActionID,
+            parentReportID: moneyRequestReport?.reportID,
+            reportName: getTransactionReportName(reportAction),
+            policyID: moneyRequestReport?.policyID,
+        };
+    }
+
     return buildOptimisticChatReport(
         participantAccountIDs,
         getTransactionReportName(reportAction),
@@ -4385,6 +4446,8 @@ function buildTransactionThread(reportAction: OnyxEntry<ReportAction | Optimisti
         CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         reportAction?.reportActionID,
         moneyRequestReport?.reportID,
+        '',
+        '',
     );
 }
 
@@ -4411,13 +4474,16 @@ function buildOptimisticMoneyRequestEntities(
     isSendMoneyFlow = false,
     receipt: Receipt = {},
     isOwnPolicyExpenseChat = false,
-    isPersonalTrackingExpense = false,
-): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction] {
+    isPersonalTrackingExpense?: boolean,
+    existingTransactionThreadReportID?: string,
+    linkedTrackedExpenseReportAction?: ReportAction,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | EmptyObject] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
     const iouActionCreationTime = DateUtils.getDBTime();
     const createdActionForIOUReport = buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(iouActionCreationTime, 1));
+
     const iouAction = buildOptimisticIOUReportAction(
         type,
         amount,
@@ -4432,14 +4498,15 @@ function buildOptimisticMoneyRequestEntities(
         receipt,
         isOwnPolicyExpenseChat,
         iouActionCreationTime,
+        linkedTrackedExpenseReportAction,
     );
 
-    // Create optimistic transactionThread and the `CREATED` action for it
-    const transactionThread = buildTransactionThread(iouAction, iouReport);
-    const createdActionForTransactionThread = buildOptimisticCreatedReportAction(payeeEmail);
+    // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
+    const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
+    const createdActionForTransactionThread = existingTransactionThreadReportID ? {} : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = transactionThread.reportID;
+    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread.reportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
@@ -5063,7 +5130,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
  * `dm` - Nobody can leave (it's auto-shared with users)
  * `private` - Anybody can leave (though you can only be invited to join)
  */
-function canLeaveRoom(report: OnyxEntry<Report>, isPolicyMember: boolean): boolean {
+function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boolean {
     if (!report?.visibility) {
         if (
             report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ||
@@ -5076,7 +5143,7 @@ function canLeaveRoom(report: OnyxEntry<Report>, isPolicyMember: boolean): boole
             // DM chats don't have a chatType
             return false;
         }
-    } else if (isPublicAnnounceRoom(report) && isPolicyMember) {
+    } else if (isPublicAnnounceRoom(report) && isPolicyEmployee) {
         return false;
     }
     return true;
@@ -5686,7 +5753,7 @@ function shouldDisableThread(reportAction: OnyxEntry<ReportAction>, reportID: st
     const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
     const isReportPreviewAction = ReportActionsUtils.isReportPreviewAction(reportAction);
     const isIOUAction = ReportActionsUtils.isMoneyRequestAction(reportAction);
-    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
+    const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction) || ReportActionsUtils.isActionableTrackExpense(reportAction);
     const isArchivedReport = isArchivedRoom(getReport(reportID));
 
     return (
@@ -5903,6 +5970,31 @@ function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, io
     }
 }
 
+function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
+    const reportActions = reportActionsByReport?.[reportID] ?? ([] as ReportAction[]);
+
+    if (!transaction || !reportActions) {
+        return;
+    }
+
+    const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
+
+    const transactionAmount = Math.abs(transaction.amount);
+    const transactionCreated = format(new Date(transaction.created), CONST.DATE.FNS_FORMAT_STRING);
+
+    IOU.createDraftTransaction({
+        ...transaction,
+        actionableWhisperReportActionID: reportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID: reportID,
+        amount: transactionAmount,
+        created: transactionCreated,
+    } as Transaction);
+
+    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
+}
+
 /**
  * @returns the object to update `report.hasOutstandingChildRequest`
  */
@@ -6021,6 +6113,7 @@ export {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticReportPreview,
     buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticCancelPaymentReportAction,
     updateReportPreview,
     buildOptimisticTaskReportAction,
@@ -6163,6 +6256,7 @@ export {
     isGroupChat,
     isTrackExpenseReport,
     hasActionsWithErrors,
+    createDraftTransactionAndNavigateToParticipantSelector,
     getReportActionActorAccountID,
     getGroupChatName,
     canLeavePolicyExpenseChat,

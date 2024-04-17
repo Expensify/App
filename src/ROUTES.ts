@@ -301,8 +301,8 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
     },
     ROOM_INVITE: {
-        route: 'r/:reportID/invite',
-        getRoute: (reportID: string) => `r/${reportID}/invite` as const,
+        route: 'r/:reportID/invite/:role?',
+        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
@@ -376,9 +376,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/merchant/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: 'create/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/participants/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
+            getUrlWithBackToParam(`${action}/${iouType}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
