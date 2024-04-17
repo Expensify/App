@@ -12,6 +12,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 // TODO: uncomment in the next PR
 // import {parsePhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@navigation/Navigation';
+import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
+import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,8 +21,6 @@ import ROUTES from '@src/ROUTES';
 import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
-import getSubstepValues from '../utils/getSubstepValues';
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import DateOfBirth from './substeps/DateOfBirthStep';

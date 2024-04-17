@@ -14,12 +14,12 @@ import useNetwork from '@hooks/useNetwork';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsForm} from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-import getSubstepValues from '../../utils/getSubstepValues';
 
 type ConfirmationOnyxProps = {
     /** wallet additional details from ONYX */
