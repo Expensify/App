@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -69,7 +68,6 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.TRACK_EXPENSE]: translate('iou.trackExpense'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
-    const previousIOURequestType = usePrevious(transactionRequestType.current);
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
@@ -109,16 +107,9 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIouType: IOURequestType) => {
-            if (newIouType === previousIOURequestType) {
-                return;
-            }
-            if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.isFromGlobalCreate) {
-                IOU.updateMoneyRequestTypeParams(navigation.getState()?.routes ?? [], CONST.IOU.TYPE.REQUEST, newIouType);
-            }
             IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
-            transactionRequestType.current = newIouType;
         },
-        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction?.isFromGlobalCreate],
+        [policy, reportID, isFromGlobalCreate],
     );
 
     if (!transaction?.transactionID) {

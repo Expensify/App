@@ -1,5 +1,3 @@
-import {useNavigation} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -41,7 +39,6 @@ function IOURequestStepParticipants({
 }: IOURequestStepParticipantsProps) {
     const participants = transaction?.participants;
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const selectedReportID = useRef<string>(reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
@@ -107,7 +104,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = val[0]?.reportID ?? reportID;
         },
-        [reportID, transactionID, iouType, participants],
+        [reportID, transactionID, iouType],
     );
 
     const goToNextStep = useCallback(() => {

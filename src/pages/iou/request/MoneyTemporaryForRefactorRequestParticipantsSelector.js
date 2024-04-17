@@ -362,7 +362,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             footerContent={footerContent}
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
-            canSelectMultiple={isIOUSplit}
+            canSelectMultiple={isIOUSplit && isAllowedToSplit}
         />
     );
 }
