@@ -187,7 +187,7 @@ function MoneyRequestView({
     const {unit, rate} = mileageRate;
 
     const distance = DistanceRequestUtils.getDistanceFromMerchant(transactionMerchant, unit);
-    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit, isOffline);
+    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const saveBillable = useCallback(

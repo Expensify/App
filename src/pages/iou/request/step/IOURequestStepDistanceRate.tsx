@@ -53,7 +53,7 @@ function IOURequestStepDistanceRate({
     };
 
     const sections = Object.values(rates).map((rate) => {
-        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(true, rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
+        const rateForDisplay = DistanceRequestUtils.getRateForDisplay(rate.unit, rate.rate, rate.currency, translate, toLocaleDigit);
 
         return {
             text: rate.name ?? rateForDisplay,

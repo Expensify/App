@@ -111,7 +111,6 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
 }
 
 /**
- * @param hasRoute Whether the route exists for the distance request
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
  * @param currency The currency associated with the rate
@@ -120,7 +119,6 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @returns A string that describes the distance traveled and the rate used for expense calculation
  */
 function getRateForDisplay(
-    hasRoute: boolean,
     unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
@@ -131,7 +129,7 @@ function getRateForDisplay(
     if (isOffline && !rate) {
         return translate('iou.defaultRate');
     }
-    if (!hasRoute || !rate || !currency || !unit) {
+    if (!rate || !currency || !unit) {
         return translate('iou.routePending');
     }
 
@@ -188,7 +186,7 @@ function getDistanceMerchant(
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
-    const ratePerUnit = getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
+    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit);
 
     return `${distanceInUnits} @ ${ratePerUnit}`;
 }
