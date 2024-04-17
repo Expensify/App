@@ -11,8 +11,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
-import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import * as NetworkStore from './Network/NetworkStore';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 

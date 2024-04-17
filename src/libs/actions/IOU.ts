@@ -856,7 +856,7 @@ function buildOnyxDataForInvoice(
     optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
     isNewChatReport: boolean,
     transactionThreadReport: OptimisticChatReport,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction,
+    transactionThreadCreatedReportAction: OptimisticCreatedReportAction | EmptyObject,
     inviteReportAction?: OptimisticInviteReportAction,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
