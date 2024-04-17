@@ -1215,9 +1215,9 @@ const CONST = {
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
     },
-    QUICK_BOOKS_ONLINE: 'quickbooksOnline',
+    QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
-    QUICK_BOOKS_IMPORTS: {
+    QUICKBOOKS_IMPORTS: {
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
@@ -1614,25 +1614,23 @@ const CONST = {
             GENERAL_SETTINGS: 'generalSettings',
         },
         CONNECTIONS: {
-            SYNC_STATUS: {
-                STARTING: 'starting',
-                FINISHED: 'finished',
-                PROGRESS: 'progress',
-            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT: 'startingImport',
-                QBO_CUSTOMERS: 'quickbooksOnlineImportCustomers',
-                QBO_EMPLOYEES: 'quickbooksOnlineImportEmployees',
-                QBO_ACCOUNTS: 'quickbooksOnlineImportAccounts',
-                QBO_CLASSES: 'quickbooksOnlineImportClasses',
-                QBO_LOCATIONS: 'quickbooksOnlineImportLocations',
-                QBO_PROCESSING: 'quickbooksOnlineImportProcessing',
-                QBO_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
-                QBO_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
+                QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
+                QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
+                QBO_IMPORT_ACCOUNTS: 'quickbooksOnlineImportAccounts',
+                QBO_IMPORT_CLASSES: 'quickbooksOnlineImportClasses',
+                QBO_IMPORT_LOCATIONS: 'quickbooksOnlineImportLocations',
+                QBO_IMPORT_PROCESSING: 'quickbooksOnlineImportProcessing',
+                QBO_SYNC_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
+                QBO_IMPORT_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                QBO_CHECK_CONNECTION: 'quickbooksOnlineCheckConnection',
+                JOB_DONE: 'jobDone',
             },
         },
     },
