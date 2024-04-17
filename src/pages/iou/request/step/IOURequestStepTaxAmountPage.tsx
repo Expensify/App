@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -49,7 +49,7 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWit
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo},
+        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency = ''},
     },
     transaction,
     report,
@@ -63,27 +63,9 @@ function IOURequestStepTaxAmountPage({
 
     const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
-    const isSaveButtonPressed = useRef(false);
-    const originalCurrency = useRef<string>();
-
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
     const taxRates = policy?.taxRates;
-
-    useEffect(() => {
-        if (transaction?.originalCurrency) {
-            originalCurrency.current = transaction.originalCurrency;
-        } else if (transaction?.currency) {
-            originalCurrency.current = transaction.currency;
-            IOU.setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID, transaction?.currency);
-        }
-        return () => {
-            if (isSaveButtonPressed.current || !originalCurrency.current) {
-                return;
-            }
-            IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, originalCurrency.current, true);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     useFocusEffect(
         useCallback(() => {
@@ -106,12 +88,19 @@ function IOURequestStepTaxAmountPage({
         // Only USD is allowed for distance requests.
         // Remove query from the route and encode it.
         Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backTo ? 'confirm' : '', Navigation.getActiveRouteWithoutParams()),
+            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
+                CONST.IOU.ACTION.CREATE,
+                iouType,
+                transactionID,
+                reportID,
+                backTo ? 'confirm' : '',
+                currency,
+                Navigation.getActiveRouteWithoutParams(),
+            ),
         );
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
-        isSaveButtonPressed.current = true;
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditing) {
@@ -127,7 +116,7 @@ function IOURequestStepTaxAmountPage({
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, transaction?.currency || CONST.CURRENCY.USD, true);
+        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);
@@ -159,12 +148,13 @@ function IOURequestStepTaxAmountPage({
         >
             <MoneyRequestAmountForm
                 isEditing={Boolean(backTo || isEditing)}
-                currency={transaction?.currency}
+                currency={currency}
                 amount={transactionDetails?.taxAmount}
                 taxAmount={getTaxAmount(transaction, taxRates, Boolean(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
+                isCurrencyPressable={!isEditing}
             />
         </StepScreenWrapper>
     );

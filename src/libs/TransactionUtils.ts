@@ -275,9 +275,9 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false): number {
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
+    if (!isFromExpenseReport || isFromTrackedExpense) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
             return Math.abs(amount);
@@ -635,7 +635,8 @@ function getEnabledTaxRateCount(options: TaxRates) {
  */
 function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
     const defaultTaxKey = taxRates.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) • ${Localize.translateLocal('common.default')}`) || '';
+    const defaultTaxName =
+        (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
     return transaction?.taxRate?.text ?? defaultTaxName;
 }
 
