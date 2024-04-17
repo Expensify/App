@@ -1,4 +1,4 @@
-import { READ_COMMANDS } from '@libs/API/types';
+import {READ_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 
 function getQuickBooksOnlineSetupLink(policyID: string) {
