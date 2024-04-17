@@ -633,9 +633,10 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
-                ADDCOMMENT: 'ADDCOMMENT',
                 ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLETRACKEXPENSEWHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                ADDCOMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
                 CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
@@ -683,6 +684,7 @@ const CONST = {
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
+                UPDATEGROUPCHATMEMBERROLE: 'UPDATEGROUPCHATMEMBERROLE',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -749,6 +751,7 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
+                    LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                 },
                 ROOMCHANGELOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
@@ -764,6 +767,9 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            NOTHING: 'nothing',
+        },
+        ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
@@ -873,7 +879,7 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_RENDER: 'search_render',
+        CHAT_FINDER_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
         OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
@@ -1357,7 +1363,7 @@ const CONST = {
     },
 
     KYC_WALL_SOURCE: {
-        REPORT: 'REPORT', // The user attempted to pay a money request
+        REPORT: 'REPORT', // The user attempted to pay an expense
         ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
         TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
     },
@@ -1393,7 +1399,7 @@ const CONST = {
     },
 
     IOU: {
-        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
@@ -1405,6 +1411,9 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
+            MOVE: 'move',
+            CATEGORIZE: 'categorize',
+            SHARE: 'share',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
@@ -1427,6 +1436,7 @@ const CONST = {
             DELETE: 'delete',
             APPROVE: 'approve',
             TRACK: 'track',
+            MOVE: 'move',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -1445,6 +1455,11 @@ const CONST = {
         RECEIPT_ERROR: 'receiptError',
         CANCEL_REASON: {
             PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
+        },
+        SHARE: {
+            ROLE: {
+                ACCOUNTANT: 'accountant',
+            },
         },
     },
 
@@ -1862,17 +1877,17 @@ const CONST = {
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
 
+    // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
-
     TAG_NAME_LIMIT: 256,
-
+    REPORT_NAME_LIMIT: 256,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
-
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -3536,12 +3551,11 @@ const CONST = {
 
     ONBOARDING_CONCIERGE: {
         [onboardingChoices.TRACK]:
-            "# Welcome to Expensify, let's start tracking your expenses!\n" +
-            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            "# Let's start tracking your expenses!\n" +
             '\n' +
             "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
             '1. From the home screen, click the green + button > New Workspace\n' +
-            '2. Give your workspace a name (e.g. "My business expenses”).\n' +
+            '2. Give your workspace a name (e.g. "My business expenses").\n' +
             '\n' +
             'Then, add expenses to your workspace:\n' +
             '1. Find your workspace using the search field.\n' +
@@ -3550,8 +3564,7 @@ const CONST = {
             '\n' +
             "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
         [onboardingChoices.EMPLOYER]:
-            '# Welcome to Expensify, the fastest way to get paid back!\n' +
-            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '# Expensify is the fastest way to get paid back!\n' +
             '\n' +
             'To submit expenses for reimbursement:\n' +
             '1. From the home screen, click the green + button > Request money.\n' +
@@ -3559,21 +3572,19 @@ const CONST = {
             '\n' +
             "That'll send a request to get you paid back. Let me know if you have any questions!",
         [onboardingChoices.MANAGE_TEAM]:
-            "# Welcome to Expensify, let's start managing your team's expenses!\n" +
-            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            "# Let's start managing your team's expenses!\n" +
             '\n' +
             "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
             '1. From the home screen, click the green + button > New Workspace\n' +
-            '2. Give your workspace a name (e.g. “Sales team expenses”).\n' +
+            '2. Give your workspace a name (e.g. "Sales team expenses").\n' +
             '\n' +
-            'Then, invite your team to your workspace via the Members pane and connect a business bank account to reimburse them. Let me know if you have any questions!',
+            'Then, invite your team to your workspace via the Members pane and [connect a business bank account](https://help.expensify.com/articles/new-expensify/bank-accounts/Connect-a-Bank-Account) to reimburse them. Let me know if you have any questions!',
         [onboardingChoices.PERSONAL_SPEND]:
-            "# Welcome to Expensify, let's start tracking your expenses!\n" +
-            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            "# Let's start tracking your expenses! \n" +
             '\n' +
             "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
             '1. From the home screen, click the green + button > New Workspace\n' +
-            '2. Give your workspace a name (e.g. "My expenses”).\n' +
+            '2. Give your workspace a name (e.g. "My expenses").\n' +
             '\n' +
             'Then, add expenses to your workspace:\n' +
             '1. Find your workspace using the search field.\n' +
@@ -3582,19 +3593,13 @@ const CONST = {
             '\n' +
             "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
         [onboardingChoices.CHAT_SPLIT]:
-            '# Welcome to Expensify, where splitting the bill is an easy conversation!\n' +
-            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+            '# Splitting the bill is as easy as a conversation!\n' +
             '\n' +
             'To split an expense:\n' +
             '1. From the home screen, click the green + button > Request money.\n' +
             '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
             '\n' +
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
-        [onboardingChoices.LOOKING_AROUND]:
-            '# Welcome to Expensify!\n' +
-            "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
-            '\n' +
-            "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -4313,6 +4318,9 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    DOT_SEPARATOR: '•',
+
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
         defaultValue: '0%',

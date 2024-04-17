@@ -60,6 +60,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                     path: ROUTES.SETTINGS_ABOUT,
                     exact: true,
                 },
+                [SCREENS.SETTINGS.TROUBLESHOOT]: {
+                    path: ROUTES.SETTINGS_TROUBLESHOOT,
+                    exact: true,
+                },
                 [SCREENS.SETTINGS.WORKSPACES]: ROUTES.SETTINGS_WORKSPACES,
                 [SCREENS.SETTINGS.SAVE_THE_WORLD]: ROUTES.SETTINGS_SAVE_THE_WORLD,
             },
@@ -67,9 +71,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.LEFT_MODAL.SEARCH]: {
+                [SCREENS.LEFT_MODAL.CHAT_FINDER]: {
                     screens: {
-                        [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
+                        [SCREENS.CHAT_FINDER_ROOT]: ROUTES.CHAT_FINDER,
                     },
                 },
                 [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
@@ -201,10 +205,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: {
                             path: ROUTES.SETTINGS_APP_DOWNLOAD_LINKS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.TROUBLESHOOT]: {
-                            path: ROUTES.SETTINGS_TROUBLESHOOT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.CONSOLE]: {
@@ -443,6 +443,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.REPORT_SETTINGS.ROOM_NAME]: {
                             path: ROUTES.REPORT_SETTINGS_ROOM_NAME.route,
                         },
+                        [SCREENS.REPORT_SETTINGS.GROUP_NAME]: {
+                            path: ROUTES.REPORT_SETTINGS_GROUP_NAME.route,
+                        },
                         [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: {
                             path: ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.route,
                         },
@@ -477,6 +480,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM]: {
                             path: ROUTES.NEW_CHAT_CONFIRM,
+                            exact: true,
+                        },
+                        [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
+                            path: ROUTES.NEW_CHAT_EDIT_NAME,
                             exact: true,
                         },
                     },
@@ -517,7 +524,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {
                     screens: {
-                        [SCREENS.REPORT_PARTICIPANTS_ROOT]: ROUTES.REPORT_PARTICIPANTS.route,
+                        [SCREENS.REPORT_PARTICIPANTS.ROOT]: ROUTES.REPORT_PARTICIPANTS.route,
+                        [SCREENS.REPORT_PARTICIPANTS.INVITE]: ROUTES.REPORT_PARTICIPANTS_INVITE.route,
+                        [SCREENS.REPORT_PARTICIPANTS.DETAILS]: ROUTES.REPORT_PARTICIPANTS_DETAILS.route,
+                        [SCREENS.REPORT_PARTICIPANTS.ROLE]: ROUTES.REPORT_PARTICIPANTS_ROLE_SELECTION.route,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.ROOM_INVITE]: {

@@ -275,7 +275,7 @@ function MoneyRequestConfirmationList({
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
 
     const defaultTaxKey = taxRates?.defaultExternalID;
-    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) • ${translate('common.default')}`) ?? '';
+    const defaultTaxName = (defaultTaxKey && `${taxRates.taxes[defaultTaxKey].name} (${taxRates.taxes[defaultTaxKey].value}) ${CONST.DOT_SEPARATOR} ${translate('common.default')}`) ?? '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing is not working when a left hand side value is ''
     const taxRateTitle = transaction?.taxRate?.text || defaultTaxName;
 
@@ -342,12 +342,12 @@ function MoneyRequestConfirmationList({
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
         } else if ((!!receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
-            text = translate('iou.request');
+            text = translate('iou.expense');
             if (iouAmount !== 0) {
-                text = translate('iou.requestAmount', {amount: formattedAmount});
+                text = translate('iou.submitAmount', {amount: formattedAmount});
             }
         } else {
-            const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
+            const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.submitAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [
