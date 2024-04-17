@@ -104,16 +104,16 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
             return 'quickAction.splitScan';
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return 'quickAction.splitDistance';
-        case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return 'quickAction.sendMoney';
-        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-            return 'quickAction.assignTask';
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
             return 'quickAction.trackManual';
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return 'quickAction.trackScan';
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.trackDistance';
+        case CONST.QUICK_ACTIONS.SEND_MONEY:
+            return 'quickAction.sendMoney';
+        case CONST.QUICK_ACTIONS.ASSIGN_TASK:
+            return 'quickAction.assignTask';
         default:
             return '' as TranslationPaths;
     }
@@ -180,6 +180,15 @@ function FloatingActionButtonAndPopover(
                 break;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
                 Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID, quickActionReport, quickAction.targetAccountID ?? 0);
+                break;
+            case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
+                break;
+            case CONST.QUICK_ACTIONS.TRACK_SCAN:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
+                break;
+            case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
                 break;
             default:
         }
@@ -333,7 +342,7 @@ function FloatingActionButtonAndPopover(
                               {
                                   icon: getQuickActionIcon(quickAction?.action),
                                   text: quickActionTitle,
-                                  label: translate('quickAction.shortcut'),
+                                  label: translate('quickAction.header'),
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,

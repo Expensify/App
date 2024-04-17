@@ -1,11 +1,10 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type {ConnectionName, Connections} from '@src/types/onyx/Policy';
 
-type UpdatePolicyConnectionConfigParams = {
+type UpdatePolicyConnectionConfigParams<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']> = {
     policyID: string;
-    connectionName: string;
-    settingName: ValueOf<typeof CONST.QUICK_BOOKS_IMPORTS>;
-    settingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>;
+    connectionName: TConnectionName;
+    settingName: TSettingName;
+    settingValue: Connections[TConnectionName]['config'][TSettingName];
     idempotencyKey: string;
 };
 
