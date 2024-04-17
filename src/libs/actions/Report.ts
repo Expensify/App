@@ -21,6 +21,7 @@ import type {
     GetNewerActionsParams,
     GetOlderActionsParams,
     GetReportPrivateNoteParams,
+    InviteToGroupChatParams,
     InviteToRoomParams,
     LeaveRoomParams,
     MarkAsUnreadParams,
@@ -28,12 +29,16 @@ import type {
     OpenRoomMembersPageParams,
     ReadNewestActionParams,
     RemoveEmojiReactionParams,
+    RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
     SetNameValuePairParams,
     TogglePinnedChatParams,
     UpdateCommentParams,
+    UpdateGroupChatAvatarParams,
+    UpdateGroupChatMemberRolesParams,
+    UpdateGroupChatNameParams,
     UpdatePolicyRoomNameParams,
     UpdateReportNotificationPreferenceParams,
     UpdateReportPrivateNoteParams,
@@ -43,6 +48,7 @@ import type {
 import type UpdateRoomVisibilityParams from '@libs/API/parameters/UpdateRoomVisibilityParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import {prepareDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -53,7 +59,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -70,9 +76,19 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
-import type {PersonalDetails, PersonalDetailsList, PolicyReportField, RecentlyUsedReportFields, ReportActionReactions, ReportMetadata, ReportUserIsTyping} from '@src/types/onyx';
+import type {
+    InvitedEmailsToAccountIDs,
+    NewGroupChatDraft,
+    PersonalDetails,
+    PersonalDetailsList,
+    PolicyReportField,
+    RecentlyUsedReportFields,
+    ReportActionReactions,
+    ReportMetadata,
+    ReportUserIsTyping,
+} from '@src/types/onyx';
 import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import type {NotificationPreference, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
+import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -553,6 +569,31 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
+function updateGroupChatName(reportID: string, reportName: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {reportName},
+        },
+    ];
+    const parameters: UpdateGroupChatNameParams = {reportName, reportID};
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData});
+}
+
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
+    // If we have no file that means we are removing the avatar.
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {avatarUrl: file?.uri ?? ''},
+        },
+    ];
+    const parameters: UpdateGroupChatAvatarParams = {file, reportID};
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData});
+}
+
 /**
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
@@ -573,6 +614,7 @@ function openReport(
     parentReportActionID = '0',
     isFromDeepLink = false,
     participantAccountIDList: number[] = [],
+    avatar?: File | CustomRNImageManipulatorResult,
 ) {
     if (!reportID) {
         return;
@@ -644,6 +686,13 @@ function openReport(
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = participantAccountIDList.join(',');
         parameters.reportName = newReportObject.reportName ?? '';
+
+        // If we have an avatar then include it with the parameters
+        if (avatar) {
+            parameters.file = avatar;
+        }
+
+        clearGroupChat();
     }
 
     if (isFromDeepLink) {
@@ -763,19 +812,7 @@ function openReport(
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        API.write(
-            WRITE_COMMANDS.OPEN_REPORT,
-            parameters,
-            {optimisticData, successData, failureData},
-            {
-                getConflictingRequests: (persistedRequests) =>
-                    // requests conflict only if:
-                    // 1. they are OpenReport commands
-                    // 2. they have the same reportID
-                    // 3. they are not creating a report - all calls to OpenReport that create a report will be unique and have a unique createdReportActionID
-                    persistedRequests.filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === reportID && !request.data?.createdReportActionID),
-            },
-        );
+        API.write(WRITE_COMMANDS.OPEN_REPORT, parameters, {optimisticData, successData, failureData});
     }
 }
 
@@ -785,7 +822,14 @@ function openReport(
  * @param userLogins list of user logins to start a chat report with.
  * @param shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true, reportName?: string) {
+function navigateToAndOpenReport(
+    userLogins: string[],
+    shouldDismissModal = true,
+    reportName?: string,
+    avatarUri?: string,
+    avatarFile?: File | CustomRNImageManipulatorResult | undefined,
+    optimisticReportID?: string,
+) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
@@ -798,18 +842,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
 
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
-            newChat = ReportUtils.buildOptimisticChatReport(
-                participantAccountIDs,
-                reportName,
-                CONST.REPORT.CHAT_TYPE.GROUP,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
-            );
+            newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID);
         } else {
             newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
         }
@@ -817,7 +850,7 @@ function navigateToAndOpenReport(userLogins: string[], shouldDismissModal = true
     const report = isEmptyObject(chat) ? newChat : chat;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(report.reportID, '', userLogins, newChat);
+    openReport(report.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
     if (shouldDismissModal) {
         Navigation.dismissModalWithReport(report);
     } else {
@@ -1008,7 +1041,12 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
 
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
-        if (current.actorAccountID !== currentUserAccountID && (!latest || current.created > latest.created)) {
+        if (
+            current.actorAccountID !== currentUserAccountID &&
+            (!latest || current.created > latest.created) &&
+            // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER)
+        ) {
             return current;
         }
         return latest;
@@ -1238,23 +1276,7 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
 
     CachedPDFPaths.clearByKey(reportActionID);
 
-    API.write(
-        WRITE_COMMANDS.DELETE_COMMENT,
-        parameters,
-        {optimisticData, successData, failureData},
-        {
-            getConflictingRequests: (persistedRequests) => {
-                const conflictingCommands = (
-                    isDeletedParentAction
-                        ? [WRITE_COMMANDS.UPDATE_COMMENT]
-                        : [WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.UPDATE_COMMENT, WRITE_COMMANDS.DELETE_COMMENT]
-                ) as string[];
-                return persistedRequests.filter((request) => conflictingCommands.includes(request.command) && request.data?.reportActionID === reportActionID);
-            },
-            handleConflictingRequest: () => Onyx.update(successData),
-            shouldIncludeCurrentRequest: !isDeletedParentAction,
-        },
-    );
+    API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -2067,6 +2089,18 @@ function clearPolicyRoomNameErrors(reportID: string) {
     });
 }
 
+/**
+ * @param reportID The reportID of the report.
+ */
+// eslint-disable-next-line rulesdir/no-negated-variables
+function clearReportNotFoundErrors(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        errorFields: {
+            notFound: null,
+        },
+    });
+}
+
 function setIsComposerFullSize(reportID: string, isComposerFullSize: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, isComposerFullSize);
 }
@@ -2152,8 +2186,8 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         Modal.close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : false;
+            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
@@ -2354,6 +2388,65 @@ function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
 
+function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
+    const reportID = currentReport?.reportID;
+    const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(allReports ?? {}) as Report[], reportMetadata);
+
+    // We want to filter out the current report, hidden reports and empty chats
+    const filteredReportsByLastRead = sortedReportsByLastRead.filter(
+        (sortedReport) =>
+            sortedReport?.reportID !== reportID &&
+            sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
+            ReportUtils.shouldReportBeInOptionList({
+                report: sortedReport,
+                currentReportId: '',
+                isInGSDMode: false,
+                betas: [],
+                policies: {},
+                excludeEmptyChats: true,
+                doesReportHaveViolations: false,
+                includeSelfDM: true,
+            }),
+    );
+    const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
+    const isChatThread = ReportUtils.isChatThread(currentReport);
+    if (lastAccessedReportID) {
+        // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
+        if (!isChatThread) {
+            Navigation.goBack();
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''));
+    } else {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
+        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        if (chat?.reportID) {
+            // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
+            if (!isChatThread) {
+                Navigation.goBack();
+            }
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID));
+        }
+    }
+}
+
+function leaveGroupChat(reportID: string) {
+    const report = ReportUtils.getReport(reportID);
+    if (!report) {
+        Log.warn('Attempting to leave Group Chat that does not existing locally');
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: null,
+        },
+    ];
+    navigateToMostRecentReport(report);
+    API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData});
+}
+
 /** Leave a report by setting the state to submitted and closed */
 function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = currentReportData?.[reportID];
@@ -2434,50 +2527,12 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     };
 
     API.write(WRITE_COMMANDS.LEAVE_ROOM, parameters, {optimisticData, successData, failureData});
-
-    const sortedReportsByLastRead = ReportUtils.sortReportsByLastRead(Object.values(allReports ?? {}) as Report[], reportMetadata);
-
-    // We want to filter out the current report, hidden reports and empty chats
-    const filteredReportsByLastRead = sortedReportsByLastRead.filter(
-        (sortedReport) =>
-            sortedReport?.reportID !== reportID &&
-            sortedReport?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN &&
-            ReportUtils.shouldReportBeInOptionList({
-                report: sortedReport,
-                currentReportId: '',
-                isInGSDMode: false,
-                betas: [],
-                policies: {},
-                excludeEmptyChats: true,
-                doesReportHaveViolations: false,
-                includeSelfDM: true,
-            }),
-    );
-    const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
-
-    if (lastAccessedReportID) {
-        // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
-        if (!isChatThread) {
-            Navigation.goBack();
-        }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID));
-    } else {
-        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
-        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
-        if (chat?.reportID) {
-            // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
-            if (!isChatThread) {
-                Navigation.goBack();
-            }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat.reportID));
-        }
-    }
+    navigateToMostRecentReport(report);
 }
 
 /** Invites people to a room */
-function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string, number>) {
+function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
     const report = currentReportData?.[reportID];
-
     if (!report) {
         return;
     }
@@ -2491,8 +2546,22 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
         (accountID): accountID is number => typeof accountID === 'number',
     );
 
+    const participantsAfterInvitation = inviteeAccountIDs.reduce(
+        (reportParticipants: Participants, accountID: number) => {
+            const participant: ReportParticipant = {
+                hidden: false,
+                role: CONST.REPORT.ROLE.MEMBER,
+            };
+            // eslint-disable-next-line no-param-reassign
+            reportParticipants[accountID] = participant;
+            return reportParticipants;
+        },
+        {...report.participants},
+    );
+
     const logins = inviteeEmails.map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, inviteeAccountIDs);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, inviteeAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
     const pendingChatMembers = ReportUtils.getPendingChatMembers(inviteeAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticData: OnyxUpdate[] = [
@@ -2502,6 +2571,7 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: participantAccountIDsAfterInvitation,
                 visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
+                participants: participantsAfterInvitation,
                 pendingChatMembers,
             },
         },
@@ -2525,18 +2595,61 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
             value: {
                 participantAccountIDs: report.participantAccountIDs,
                 visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
+                    // eslint-disable-next-line no-param-reassign
+                    revertedParticipants[accountID] = null;
+                    return revertedParticipants;
+                }, {}),
                 pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
         ...newPersonalDetailsOnyxData.finallyData,
     ];
 
+    if (ReportUtils.isGroupChat(report)) {
+        const parameters: InviteToGroupChatParams = {
+            reportID,
+            inviteeEmails,
+            accountIDList: newAccountIDs.join(),
+        };
+
+        API.write(WRITE_COMMANDS.INVITE_TO_GROUP_CHAT, parameters, {optimisticData, successData, failureData});
+        return;
+    }
+
     const parameters: InviteToRoomParams = {
         reportID,
         inviteeEmails,
     };
 
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
+}
+
+function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
+    const participants: Participants = {};
+    const memberRoles: Record<number, string> = {};
+    accountIDList.forEach((accountID) => {
+        memberRoles[accountID] = role;
+        participants[accountID] = {role};
+    });
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants,
+            },
+        },
+    ];
+    const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData});
+}
+
+/** Invites people to a group chat */
+function inviteToGroupChat(reportID: string, inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
+    inviteToRoom(reportID, inviteeEmailsToAccountIDs);
 }
 
 /** Removes people from a room
@@ -2544,9 +2657,32 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: Record<string
  */
 function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     const report = currentReportData?.[reportID];
+    if (!report) {
+        return;
+    }
 
-    const participantAccountIDsAfterRemoval = report?.participantAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
-    const visibleChatMemberAccountIDsAfterRemoval = report?.visibleChatMemberAccountIDs?.filter((id: number) => !targetAccountIDs.includes(id));
+    const removeParticipantsData: Record<number, null> = {};
+    const currentParticipants = ReportUtils.getParticipants(reportID);
+    if (!currentParticipants) {
+        return;
+    }
+
+    const currentParticipantAccountIDs = ReportUtils.getParticipantAccountIDs(reportID);
+    const participantAccountIDsAfterRemoval: number[] = [];
+    const visibleChatMemberAccountIDsAfterRemoval: number[] = [];
+    currentParticipantAccountIDs.forEach((participantAccountID: number) => {
+        const participant = currentParticipants[participantAccountID];
+        if (!targetAccountIDs.includes(participantAccountID)) {
+            participantAccountIDsAfterRemoval.push(participantAccountID);
+            if (!participant.hidden) {
+                visibleChatMemberAccountIDsAfterRemoval.push(participantAccountID);
+            }
+        }
+    });
+
+    targetAccountIDs.forEach((accountID) => {
+        removeParticipantsData[accountID] = null;
+    });
     const pendingChatMembers = ReportUtils.getPendingChatMembers(targetAccountIDs, report?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const optimisticData: OnyxUpdate[] = [
@@ -2576,6 +2712,7 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                participants: removeParticipantsData,
                 participantAccountIDs: participantAccountIDsAfterRemoval,
                 visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                 pendingChatMembers: report?.pendingChatMembers ?? null,
@@ -2583,12 +2720,26 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
         },
     ];
 
+    if (ReportUtils.isGroupChat(report)) {
+        const parameters: RemoveFromGroupChatParams = {
+            reportID,
+            accountIDList: targetAccountIDs.join(),
+        };
+        API.write(WRITE_COMMANDS.REMOVE_FROM_GROUP_CHAT, parameters, {optimisticData, failureData, successData});
+        return;
+    }
+
     const parameters: RemoveFromRoomParams = {
         reportID,
         targetAccountIDs,
     };
 
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.REMOVE_FROM_ROOM, parameters, {optimisticData, failureData, successData});
+}
+
+function removeFromGroupChat(reportID: string, accountIDList: number[]) {
+    removeFromRoom(reportID, accountIDList);
 }
 
 function setLastOpenedPublicRoom(reportID: string) {
@@ -3026,8 +3177,56 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function setGroupDraft(participants: Array<{login: string; accountID: number}>, reportName = '') {
-    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {participants, reportName});
+function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
+    const message = reportAction?.message?.[0];
+    if (!message) {
+        return;
+    }
+
+    const updatedMessage: Message = {
+        ...message,
+        resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    message: [updatedMessage],
+                    originalMessage: {
+                        resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    message: [message],
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const params = {
+        reportActionID: reportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.DISMISS_TRACK_EXPENSE_ACTIONABLE_WHISPER, params, {optimisticData, failureData});
+}
+
+function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
+    Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
 export {
@@ -3068,6 +3267,7 @@ export {
     toggleSubscribeToChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
+    clearReportNotFoundErrors,
     clearIOUError,
     subscribeToNewActionEvent,
     notifyNewAction,
@@ -3076,6 +3276,7 @@ export {
     shouldShowReportActionNotification,
     leaveRoom,
     inviteToRoom,
+    inviteToGroupChat,
     removeFromRoom,
     getCurrentUserAccountID,
     setLastOpenedPublicRoom,
@@ -3100,7 +3301,13 @@ export {
     clearReportFieldErrors,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
+    dismissTrackExpenseActionableWhisper,
     setGroupDraft,
     clearGroupChat,
     startNewChat,
+    updateGroupChatName,
+    updateGroupChatAvatar,
+    leaveGroupChat,
+    removeFromGroupChat,
+    updateGroupChatMemberRoles,
 };

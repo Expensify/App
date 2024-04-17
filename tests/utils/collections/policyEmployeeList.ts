@@ -1,8 +1,8 @@
 import {rand} from '@ngneat/falso';
 import CONST from '@src/CONST';
-import type {PolicyMember} from '@src/types/onyx';
+import type {PolicyEmployee} from '@src/types/onyx';
 
-export default function createRandomPolicyMember(): PolicyMember {
+export default function createRandomPolicyEmployeeList(): PolicyEmployee {
     return {
         role: rand(Object.values(CONST.POLICY.ROLE)),
         errors: {},

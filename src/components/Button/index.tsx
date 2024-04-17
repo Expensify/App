@@ -289,6 +289,10 @@ function Button(
                         currentTarget?.blur();
                     }
 
+                    if (event?.type === 'keyup') {
+                        return;
+                    }
+
                     if (shouldEnableHapticFeedback) {
                         HapticFeedback.press();
                     }
