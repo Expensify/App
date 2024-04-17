@@ -61,7 +61,8 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
         // };
         // Attempt to set the personal details
         // Wallet.updatePersonalDetails(personalDetails);
-        Navigation.navigate(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        Wallet.resetWalletAdditionalDetailsDraft();
     };
 
     const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
@@ -82,7 +83,7 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
     const handleBackButtonPress = () => {
         // TODO: connect to the fist step of the wallet setup
         if (screenIndex === 0) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET);
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
             Wallet.resetWalletAdditionalDetailsDraft();
             return;
         }
