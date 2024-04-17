@@ -3000,6 +3000,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         return Localize.translateLocal('parentReportAction.deletedTask');
     }
 
+    if (isGroupChat(report)) {
+        return getGroupChatName(undefined, true, report?.reportID) ?? '';
+    }
+
     if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report?.reportName;
     }
