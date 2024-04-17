@@ -319,7 +319,7 @@ const ONYXKEYS = {
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
         /** Whether the connections data for the policy was attempted to be fetched in the current user session */
-        POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched',
+        POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
         OLD_POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
