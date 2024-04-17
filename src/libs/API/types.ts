@@ -193,6 +193,7 @@ const WRITE_COMMANDS = {
     DECLINE_JOIN_REQUEST: 'DeclineJoinRequest',
     CREATE_POLICY_TAX: 'CreatePolicyTax',
     UPDATE_POLICY_CONNECTION_CONFIG: 'UpdatePolicyConnectionConfig',
+    REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
     DELETE_POLICY_TAXES: 'DeletePolicyTaxes',
     UPDATE_POLICY_TAX_VALUE: 'UpdatePolicyTaxValue',
@@ -409,8 +410,10 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.RENAME_POLICY_TAX]: Parameters.RenamePolicyTaxParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT]: Parameters.SetPolicyDistanceRatesUnitParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams<any, any>;
+    [WRITE_COMMANDS.REMOVE_POLICY_CONNECTION]: Parameters.RemovePolicyConnectionParams;
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
     [WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES]: Parameters.DeletePolicyDistanceRatesParams;
@@ -422,6 +425,7 @@ type WriteCommandParameters = {
 };
 
 const READ_COMMANDS = {
+    CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
@@ -463,6 +467,7 @@ const READ_COMMANDS = {
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
 
 type ReadCommandParameters = {
+    [READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.ConnectPolicyToQuickbooksOnlineParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: EmptyObject;
