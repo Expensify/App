@@ -142,7 +142,7 @@ function getRateForDisplay(
 }
 
 /**
- * @param hasRoute Whether the route exists for the distance request
+ * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
@@ -163,7 +163,7 @@ function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit
 }
 
 /**
- * @param hasRoute Whether the route exists for the distance request
+ * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
@@ -232,12 +232,12 @@ function getRateForP2P(currency: string): RateAndUnit {
 }
 
 /**
- * Calculates the request amount based on distance, unit, and rate.
+ * Calculates the expense amount based on distance, unit, and rate.
  *
  * @param distance - The distance traveled in meters
  * @param unit - The unit of measurement for the distance
- * @param rate - Rate used for calculating the request amount
- * @returns The computed request amount (rounded) in "cents".
+ * @param rate - Rate used for calculating the expense amount
+ * @returns The computed expense amount (rounded) in "cents".
  */
 function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): number {
     const convertedDistance = convertDistanceUnit(distance, unit);
