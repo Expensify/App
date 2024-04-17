@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -58,6 +59,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedMembers([]);
+    }, [isFocused]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
