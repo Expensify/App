@@ -2941,8 +2941,29 @@ function getReportPrivateNote(reportID: string | undefined) {
  * - Sets the introSelected NVP to the choice the user made
  * - Creates an optimistic report comment from concierge
  */
-function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>) {
+function completeEngagementModal(choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>, text?: string) {
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
+
+    // We do not need to send any message for some choices
+    if (!text) {
+        const parameters: CompleteEngagementModalParams = {
+            reportID: conciergeChatReportID ?? '',
+            engagementChoice: choice,
+        };
+
+        const optimisticData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {choice},
+            },
+        ];
+        API.write(WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL, parameters, {
+            optimisticData,
+        });
+        return;
+    }
+
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
     const lastComment = reportCommentAction?.message?.[0];
@@ -3007,6 +3028,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBO
         },
     ];
 
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL, parameters, {
         optimisticData,
         successData,
