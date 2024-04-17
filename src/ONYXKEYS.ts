@@ -126,7 +126,7 @@ const ONYXKEYS = {
     /** The NVP with the last payment method used per policy */
     NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
-    /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
+    /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
     /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
@@ -345,7 +345,7 @@ const ONYXKEYS = {
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
 
-        // Manual request tab selector
+        // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
