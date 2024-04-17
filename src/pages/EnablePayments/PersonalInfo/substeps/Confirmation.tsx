@@ -68,6 +68,16 @@ function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, on
                         }}
                     />
                     <MenuItemWithTopDescription
+                        description={translate('personalInfoStep.address')}
+                        title={`${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${
+                            values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]
+                        }`}
+                        shouldShowRightIcon
+                        onPress={() => {
+                            onMove(PERSONAL_INFO_STEP_INDEXES.ADDRESS);
+                        }}
+                    />
+                    <MenuItemWithTopDescription
                         description={translate('common.phoneNumber')}
                         title={values[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER]}
                         shouldShowRightIcon
@@ -83,17 +93,6 @@ function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, on
                             onMove(PERSONAL_INFO_STEP_INDEXES.SSN);
                         }}
                     />
-                    <MenuItemWithTopDescription
-                        description={translate('personalInfoStep.address')}
-                        title={`${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${
-                            values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]
-                        }`}
-                        shouldShowRightIcon
-                        onPress={() => {
-                            onMove(PERSONAL_INFO_STEP_INDEXES.ADDRESS);
-                        }}
-                    />
-
                     <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>
                         {`${translate('personalInfoStep.byAddingThisBankAccount')} `}
                         <TextLink

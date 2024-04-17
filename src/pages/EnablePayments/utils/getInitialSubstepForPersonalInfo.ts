@@ -15,15 +15,15 @@ function getInitialSubstepForPersonalInfo(data: PersonalInfoStepProps): number {
         return 1;
     }
 
-    if (data[personalInfoKeys.PHONE_NUMBER] === '') {
+    if (data[personalInfoKeys.STREET] === '' || data[personalInfoKeys.CITY] === '' || data[personalInfoKeys.STATE] === '' || data[personalInfoKeys.ZIP_CODE] === '') {
         return 2;
     }
 
-    if (data[personalInfoKeys.SSN_LAST_4] === '') {
+    if (data[personalInfoKeys.PHONE_NUMBER] === '') {
         return 3;
     }
 
-    if (data[personalInfoKeys.STREET] === '' || data[personalInfoKeys.CITY] === '' || data[personalInfoKeys.STATE] === '' || data[personalInfoKeys.ZIP_CODE] === '') {
+    if (data[personalInfoKeys.SSN_LAST_4] === '') {
         return 4;
     }
 

@@ -1317,9 +1317,9 @@ const CONST = {
             PERSONAL_INFO: {
                 LEGAL_NAME: 0,
                 DATE_OF_BIRTH: 1,
-                PHONE_NUMBER: 2,
-                SSN: 3,
-                ADDRESS: 4,
+                ADDRESS: 2,
+                PHONE_NUMBER: 3,
+                SSN: 4,
             },
         },
         TIER_NAME: {
