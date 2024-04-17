@@ -4962,20 +4962,20 @@ function hasIOUWaitingOnCurrentUserBankAccount(chatReport: OnyxEntry<Report>): b
 }
 
 /**
- * Users can submit expense:
+ * Users can submit an expense:
  * - in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
  * - in an open or submitted expense report tied to a policy expense chat the user owns
- *     - employee can submit expense in submitted expense report only if the policy has Instant Submit settings turned on
+ *     - employee can submit expenses in a submitted expense report only if the policy has Instant Submit settings turned on
  * - in an IOU report, which is not settled yet
  * - in a 1:1 DM chat
  */
 function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, otherParticipants: number[]): boolean {
-    // User cannot submit expense in chat thread or in task report or in chat room
+    // User cannot submit expenses in a chat thread, task report or in a chat room
     if (isChatThread(report) || isTaskReport(report) || isChatRoom(report) || isSelfDM(report) || isGroupChat(report)) {
         return false;
     }
 
-    // Users can only submit expense in DMs if they are a 1:1 DM
+    // Users can only submit expenses in DMs if they are a 1:1 DM
     if (isDM(report)) {
         return otherParticipants.length === 1;
     }
@@ -4990,19 +4990,19 @@ function canRequestMoney(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, o
         isOwnPolicyExpenseChat = Boolean(getParentReport(report)?.isOwnPolicyExpenseChat);
     }
 
-    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expense from such report
+    // In case there are no other participants than the current user and it's not user's own policy expense chat, they can't submit expenses from such report
     if (otherParticipants.length === 0 && !isOwnPolicyExpenseChat) {
         return false;
     }
 
-    // User can submit expense in any IOU report, unless paid, but user can only submit expense in an expense report
+    // User can submit expenses in any IOU report, unless paid, but the user can only submit expenses in an expense report
     // which is tied to their workspace chat.
     if (isMoneyRequestReport(report)) {
         const canAddTransactions = canAddOrDeleteTransactions(report);
         return isGroupPolicy(report) ? isOwnPolicyExpenseChat && canAddTransactions : canAddTransactions;
     }
 
-    // In case of policy expense chat, users can only submit expense from their own policy expense chat
+    // In the case of policy expense chat, users can only submit expenses from their own policy expense chat
     return !isPolicyExpenseChat(report) || isOwnPolicyExpenseChat;
 }
 
@@ -5199,7 +5199,7 @@ function getAddWorkspaceRoomOrChatReportErrors(report: OnyxEntry<Report>): Error
 }
 
 /**
- * Return true if the Submit expense report is marked for deletion.
+ * Return true if the expense report is marked for deletion.
  */
 function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyObject): boolean {
     if (!isMoneyRequestReport(report)) {
@@ -5213,7 +5213,7 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
 
-    // If the Submit Expense report is marked for deletion, let us prevent any further write action.
+    // If the expense report is marked for deletion, let us prevent any further write action.
     if (isMoneyRequestReportPendingDeletion(report)) {
         return false;
     }
@@ -5241,7 +5241,7 @@ function getOriginalReportID(reportID: string, reportAction: OnyxEntry<ReportAct
  *
  * - creating a workspace room
  * - starting a chat
- * - paying expense
+ * - paying the expense
  *
  * while being offline
  */
@@ -5510,7 +5510,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
  * A report is a group chat if it meets the following conditions:
  * - Not a chat thread.
  * - Not a task report.
- * - Not a expense / IOU report.
+ * - Not an expense / IOU report.
  * - Not an archived room.
  * - Not a public / admin / announce chat room (chat type doesn't match any of the specified types).
  * - More than 2 participants.
@@ -5907,7 +5907,7 @@ function hasMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, iouReportID:
 }
 
 /**
- * Used from submit expense actions to decide if we need to build an optimistic submit expense report.
+ * Used from expense actions to decide if we need to build an optimistic expense report.
    Create a new report if:
    - we don't have an iouReport set in the chatReport
    - we have one, but it's waiting on the payee adding a bank account
