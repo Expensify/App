@@ -67,22 +67,7 @@ type KYCWallProps = {
     onSuccessfulKYC: (iouPaymentType?: PaymentMethodType, currentSource?: Source) => void;
 
     /** Children to build the KYC */
-    children?: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
-
-    paymentButtonOptions: Array<DropdownOption<PaymentType>>;
-
-    buttonConfig: {
-        size: ButtonSizeValue;
-        isDisabled?: boolean;
-        isLoading?: boolean;
-        style?: StyleProp<ViewStyle>;
-        paymentMethodDropdownAnchorAlignment?: AnchorAlignment;
-        enterKeyEventListenerPriority?: number;
-        pressOnEnter?: boolean;
-        confirmApproval?: () => void | undefined;
-    };
-    /** The policyID of the report we are paying */
-    policyID: string;
+    children: (continueAction: (event: GestureResponderEvent | KeyboardEvent | undefined, method?: PaymentMethodType) => void, anchorRef: RefObject<View>) => void;
 };
 
 export type {AnchorPosition, KYCWallProps, PaymentMethod, DomRect, PaymentMethodType, Source};
