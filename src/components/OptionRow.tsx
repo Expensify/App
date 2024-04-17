@@ -15,12 +15,14 @@ import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MultipleAvatars from './MultipleAvatars';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
+import TextInput from './TextInput';
 
 type OptionRowProps = {
     /** Style for hovered state */
@@ -251,6 +253,11 @@ function OptionRow({
                                         <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
                                     </View>
                                 ) : null}
+                                {option.amountProps ? (
+                                    <View style={[styles.flexWrap, styles.pl2]}>
+                                        <MoneyRequestAmountInput {...option.amountProps} />
+                                    </View>
+                                ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
@@ -343,7 +350,8 @@ export default React.memo(
         prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
         prevProps.option.subtitle === nextProps.option.subtitle &&
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon,
+        prevProps.option.customIcon === nextProps.option.customIcon &&
+        lodashIsEqual(prevProps.option.amountProps, nextProps.option.amountProps),
 );
 
 export type {OptionRowProps};

@@ -59,6 +59,7 @@ function BaseTextInput(
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
+        prefixStyle = [],
         inputID,
         isMarkdownEnabled = false,
         ...inputProps
@@ -241,7 +242,10 @@ function BaseTextInput(
     // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
     // this method will produce reliable results.
     const getCharacterPadding = (prefix: string): number => {
+        // TODO: figure out padding for single and 3 character currencies
+        return 10;
         switch (prefix) {
+            case CONST.CURRENCY.USD:
             case CONST.POLICY.ROOM_PREFIX:
                 return 10;
             default:
@@ -342,7 +346,7 @@ function BaseTextInput(
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {prefixCharacter}

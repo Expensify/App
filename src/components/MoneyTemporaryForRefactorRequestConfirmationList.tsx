@@ -190,6 +190,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     hasMultipleParticipants,
     selectedParticipants: pickedParticipants,
     payeePersonalDetails,
+    currencyList,
     session,
     isReadOnly = false,
     bankAccountRoute = '',
@@ -227,7 +228,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
-    console.log(transaction);
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -374,14 +374,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const sections = [];
         if (hasMultipleParticipants) {
             const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
-            console.log(transaction?.splitShares);
-            console.log(transaction?.splitShares?.[payeeOption.accountID]?.amount);
             const formattedParticipantsList = [payeeOption, ...selectedParticipants].map((participantOption) => ({
                 ...participantOption,
                 descriptiveText: null,
-                amountValue: transaction?.splitShares?.[participantOption.accountID]?.amount,
-                amountCurrency: iouCurrencyCode,
-                onAmountChange: (value) => {},
+                amountProps: {
+                    value: transaction?.splitShares?.[participantOption.accountID]?.amount,
+                    currency: iouCurrencyCode,
+                    prefixCharacter: currencyList?.[iouCurrencyCode]?.symbol ?? iouCurrencyCode,
+                    isCurrencyPressable: false,
+                    hideCurrencySymbol: true,
+                    style: [{minWidth: 100}],
+                    onAmountChange: (value) => {},
+                },
             }));
 
             sections.push({
@@ -401,7 +405,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             });
         }
         return sections;
-    }, [transaction?.splitShares, selectedParticipants, hasMultipleParticipants, iouCurrencyCode, personalDetailsOfPayee, translate]);
+    }, [transaction?.splitShares, currencyList, selectedParticipants, hasMultipleParticipants, iouCurrencyCode, personalDetailsOfPayee, translate]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
@@ -920,8 +924,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
-            disableArrowKeysActions
-            boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
@@ -1007,4 +1009,5 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
+    currencyList: {key: ONYXKEYS.CURRENCY_LIST},
 })(MoneyTemporaryForRefactorRequestConfirmationList);

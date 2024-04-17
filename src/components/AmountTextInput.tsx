@@ -34,7 +34,19 @@ type AmountTextInputProps = {
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 function AmountTextInput(
-    {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress, ...rest}: AmountTextInputProps,
+    {
+        formattedAmount,
+        onChangeAmount,
+        placeholder,
+        selection,
+        onSelectionChange,
+        style,
+        touchableInputWrapperStyle = null,
+        inputStyle = null,
+        textInputContainerStyles,
+        onKeyPress,
+        ...rest
+    }: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
     const styles = useThemeStyles();
@@ -44,8 +56,8 @@ function AmountTextInput(
             autoGrow
             hideFocusedState
             shouldInterceptSwipe
-            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, style]}
-            textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+            inputStyle={inputStyle ?? [styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, style]}
+            textInputContainerStyles={textInputContainerStyles ?? [styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
             onChangeText={onChangeAmount}
             ref={ref}
             value={formattedAmount}
