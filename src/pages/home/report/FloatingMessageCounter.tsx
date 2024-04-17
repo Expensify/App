@@ -9,7 +9,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
-import FloatingMessageCounterContainer from './FloatingMessageCounterContainer';
 
 type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
@@ -51,9 +50,9 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}}: Floating
     }, [isActive, show, hide]);
 
     return (
-        <FloatingMessageCounterContainer
+        <Animated.View
             accessibilityHint={translate('accessibilityHints.scrollToNewestMessages')}
-            containerStyles={styles.floatingMessageCounterTransformation(translateY)}
+            style={[styles.floatingMessageCounterWrapper, styles.floatingMessageCounterTransformation(translateY)]}
         >
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
@@ -79,7 +78,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}}: Floating
                     </Button>
                 </View>
             </View>
-        </FloatingMessageCounterContainer>
+        </Animated.View>
     );
 }
 
