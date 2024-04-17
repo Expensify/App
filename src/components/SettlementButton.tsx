@@ -177,7 +177,7 @@ function SettlementButton({
     const isExpenseReport = ReportUtils.isExpenseReport(iouReport ?? null);
     const paymentCardList = fundList ?? {};
     const hasBankAccount = isExpenseReport && reimbursementAccount?.achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && !isExpenseReport && bankAccountList !== null;
-    const hasPaymentMethod = bankAccountList !== null && PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, true);
+    const hasPaymentMethod = bankAccountList !== null && PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, bankAccountList, true) && shouldShowPaywithExpensifyOption;
 
     const paymentButtonOptions = useMemo(() => {
         const paymentMethods = {
