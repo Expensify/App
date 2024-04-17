@@ -141,7 +141,6 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childStatusNum'
     | 'childStateNum'
     | 'errors'
-    | 'whisperedToAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -192,6 +191,8 @@ type OptimisticIOUReportAction = Pick<
     | 'receipt'
     | 'whisperedToAccountIDs'
     | 'childReportID'
+    | 'childVisibleActionCount'
+    | 'childCommenterCount'
 >;
 
 type ReportRouteParams = {
