@@ -33,16 +33,6 @@ function getIconAndTitle(route: string, translate: LocaleContextProps['translate
             return {icon: Expensicons.Hashtag, title: translate('tabSelector.room')};
         case CONST.TAB_REQUEST.DISTANCE:
             return {icon: Expensicons.Car, title: translate('common.distance')};
-        case CONST.TAB_SEARCH.ALL:
-            return {icon: Expensicons.ExpensifyLogoNew, title: 'All'};
-        case CONST.TAB_SEARCH.SENT:
-            return {icon: Expensicons.ExpensifyLogoNew, title: 'Sent'};
-        case CONST.TAB_SEARCH.DRAFTS:
-            return {icon: Expensicons.ExpensifyLogoNew, title: 'Drafts'};
-        case CONST.TAB_SEARCH.WAITING_ON_YOU:
-            return {icon: Expensicons.ExpensifyLogoNew, title: 'Waiting on you'};
-        case CONST.TAB_SEARCH.FINISHED:
-            return {icon: Expensicons.ExpensifyLogoNew, title: 'Finished'};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
