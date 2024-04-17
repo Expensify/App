@@ -30,7 +30,7 @@ const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup(fallbackRoute: Route = ROUTES.HOME) {
+function continueSetup(fallbackRoute?: Route) {
     if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
