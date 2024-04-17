@@ -3333,23 +3333,19 @@ const styles = (theme: ThemeColors) =>
             height: variables.communicationsLinkHeight,
         },
 
-        floatingMessageCounterWrapper: {
+        floatingMessageCounterWrapper: (translateY: AnimatableNumericValue) => ({
             position: 'absolute',
             left: '50%',
             top: 0,
             zIndex: 100,
+            transform: [{translateY}],
             ...visibility.hidden,
-        },
+        }),
 
         floatingMessageCounter: {
             left: '-50%',
             ...visibility.visible,
         },
-
-        floatingMessageCounterTransformation: (translateY: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}],
-            } satisfies ViewStyle),
 
         confirmationAnimation: {
             height: 180,

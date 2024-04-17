@@ -52,7 +52,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}}: Floating
     return (
         <Animated.View
             accessibilityHint={translate('accessibilityHints.scrollToNewestMessages')}
-            style={[styles.floatingMessageCounterWrapper, styles.floatingMessageCounterTransformation(translateY)]}
+            style={styles.floatingMessageCounterWrapper(translateY)}
         >
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
