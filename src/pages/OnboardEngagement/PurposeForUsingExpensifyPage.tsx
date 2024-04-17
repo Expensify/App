@@ -57,7 +57,7 @@ const messageCopy = {
         "6. Tap *Add to split* when you're done.\n" +
         '7. Review and tap *Split* to split your expense(s).\n' +
         '\n' +
-        "We'll send an expense to each of your friends and make sure you get paid back. Let me know how it goes!",
+        "We'll submit an expense to each of your friends and make sure you get paid back. Let me know how it goes!",
 };
 
 const menuIcons = {

@@ -410,7 +410,7 @@ export default {
     },
     login: {
         hero: {
-            header: 'Gestiona o divide gastos y chatea con su equipo.',
+            header: 'Gestiona, divide gastos y chatea con tu equipo.',
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
         },
     },

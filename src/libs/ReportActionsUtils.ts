@@ -997,7 +997,7 @@ function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>):
 }
 
 /**
- * Helper method to determine if the provided accountID has made an expense on the specified report.
+ * Helper method to determine if the provided accountID has submitted an expense on the specified report.
  *
  * @param reportID
  * @param currentAccountID

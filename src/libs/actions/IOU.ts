@@ -1316,7 +1316,7 @@ function getDeleteTrackExpenseInformation(
 }
 
 /**
- * Gathers all the data needed to make an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
+ * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
 function getMoneyRequestInformation(
