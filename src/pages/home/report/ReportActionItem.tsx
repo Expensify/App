@@ -393,7 +393,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.request',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.MOVE, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.REQUEST, action.reportActionID);
                     },
                     isMediumSized: true,
                 },

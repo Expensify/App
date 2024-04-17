@@ -15,7 +15,7 @@ function navigateToStartMoneyRequestStep(
     reportID: string,
     iouAction?: ValueOf<typeof CONST.IOU.ACTION>,
 ): void {
-    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.MOVE) {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.REQUEST) {
         Navigation.goBack();
         return;
     }
@@ -135,7 +135,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
 }
 
 function isMovingTransactionFromTrackExpense(action?: ValueOf<typeof CONST.IOU.ACTION>) {
-    if (action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
+    if (action === CONST.IOU.ACTION.REQUEST || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
         return true;
     }
 

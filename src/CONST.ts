@@ -1411,7 +1411,7 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
-            MOVE: 'move',
+            REQUEST: 'request',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
