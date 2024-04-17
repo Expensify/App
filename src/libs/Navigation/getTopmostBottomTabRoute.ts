@@ -1,7 +1,7 @@
 import type {BottomTabName, NavigationPartialRoute, RootStackParamList, State} from './types';
 
 function getTopmostBottomTabRoute(state: State<RootStackParamList> | undefined): NavigationPartialRoute<BottomTabName> | undefined {
-    const bottomTabNavigatorRoute = state?.routes.findLast(route => route.name === 'BottomTabNavigator');;
+    const bottomTabNavigatorRoute = state?.routes.findLast((route) => route.name === 'BottomTabNavigator');
 
     // The bottomTabNavigatorRoute state may be empty if we just logged in.
     if (!bottomTabNavigatorRoute || bottomTabNavigatorRoute.name !== 'BottomTabNavigator' || bottomTabNavigatorRoute.state === undefined) {
