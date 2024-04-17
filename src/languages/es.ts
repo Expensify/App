@@ -629,6 +629,8 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        pendingMatchWithCreditCard: 'Recibo pendiente de conciliar con la tarjeta de crédito.',
+        pendingMatchWithCreditCardDescription: 'Recibo pendiente de conciliar con tarjeta de crédito. Marcar como efectivo para ignorar y solicitar pago.',
         routePending: 'Ruta pendiente...',
         receiptScanning: 'Escaneo en curso…',
         receiptScanInProgress: 'Escaneo en curso…',
