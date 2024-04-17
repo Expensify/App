@@ -1,9 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import type {FlashListProps} from '@shopify/flash-list';
-import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
+import type {FlatListProps} from 'react-native';
+import {FlatList, StyleSheet, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
@@ -45,7 +44,7 @@ function LHNOptionsList({
     onFirstItemRendered = () => {},
 }: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
-    const flashListRef = useRef<FlashList<string>>(null);
+    const flatListRef = useRef<FlatList>(null);
     const route = useRoute();
 
     const theme = useTheme();
@@ -172,19 +171,19 @@ function LHNOptionsList({
     const previousOptionMode = usePrevious(optionMode);
 
     useEffect(() => {
-        if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
+        if (previousOptionMode === null || previousOptionMode === optionMode || !flatListRef.current) {
             return;
         }
 
-        if (!flashListRef.current) {
+        if (!flatListRef.current) {
             return;
         }
 
         // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
-        flashListRef.current.scrollToOffset({offset: 0});
+        flatListRef.current.scrollToOffset({offset: 0});
     }, [previousOptionMode, optionMode]);
 
-    const onScroll = useCallback<NonNullable<FlashListProps<string>['onScroll']>>(
+    const onScroll = useCallback<NonNullable<FlatListProps<string>['onScroll']>>(
         (e) => {
             // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
             // We should ignore this case.
@@ -199,18 +198,18 @@ function LHNOptionsList({
     const onLayout = useCallback(() => {
         const offset = getScrollOffset(route);
 
-        if (!(offset && flashListRef.current)) {
+        if (!(offset && flatListRef.current)) {
             return;
         }
 
         // We need to use requestAnimationFrame to make sure it will scroll properly on iOS.
         requestAnimationFrame(() => {
-            if (!(offset && flashListRef.current)) {
+            if (!(offset && flatListRef.current)) {
                 return;
             }
-            flashListRef.current.scrollToOffset({offset});
+            flatListRef.current.scrollToOffset({offset});
         });
-    }, [route, flashListRef, getScrollOffset]);
+    }, [route, flatListRef, getScrollOffset]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
@@ -224,8 +223,8 @@ function LHNOptionsList({
                     CustomSubtitle={emptyLHNSubtitle}
                 />
             ) : (
-                <FlashList
-                    ref={flashListRef}
+                <FlatList
+                    ref={flatListRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
@@ -233,7 +232,6 @@ function LHNOptionsList({
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
-                    estimatedItemSize={optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
