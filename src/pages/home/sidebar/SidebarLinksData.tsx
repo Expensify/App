@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import * as Policy from '@userActions/Policy';
@@ -26,7 +26,7 @@ import type {Message} from '@src/types/onyx/ReportAction';
 import SidebarLinks from './SidebarLinks';
 
 type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar' | 'employeeList'>;
 type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
 type SidebarLinksDataOnyxProps = {
@@ -51,9 +51,6 @@ type SidebarLinksDataOnyxProps = {
     /** All of the transaction violations */
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
 
-    /** All policy members */
-    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
-
     /** Drafts of reports */
     reportsDrafts: OnyxCollection<string>;
 };
@@ -77,7 +74,6 @@ function SidebarLinksData({
     onLinkClick,
     policies,
     priorityMode = CONST.PRIORITY_MODE.DEFAULT,
-    policyMembers,
     transactionViolations,
     reportsDrafts,
 }: SidebarLinksDataProps) {
@@ -88,7 +84,8 @@ function SidebarLinksData({
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const prevPriorityMode = usePrevious(priorityMode);
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
+
+    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '', policyMemberAccountIDs), [activeWorkspaceID]);
@@ -246,6 +243,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         type: policy.type,
         name: policy.name,
         avatar: policy.avatar,
+        employeeList: policy.employeeList,
     }) as PolicySelector;
 
 const SidebarLinkDataWithCurrentReportID = withCurrentReportID(
@@ -265,7 +263,6 @@ const SidebarLinkDataWithCurrentReportID = withCurrentReportID(
             lodashIsEqual(prevProps.policies, nextProps.policies) &&
             lodashIsEqual(prevProps.insets, nextProps.insets) &&
             prevProps.onLinkClick === nextProps.onLinkClick &&
-            lodashIsEqual(prevProps.policyMembers, nextProps.policyMembers) &&
             lodashIsEqual(prevProps.transactionViolations, nextProps.transactionViolations) &&
             prevProps.currentReportID === nextProps.currentReportID &&
             lodashIsEqual(prevProps.reportsDrafts, nextProps.reportsDrafts),
@@ -298,9 +295,6 @@ export default withOnyx<Omit<SidebarLinksDataProps, 'currentReportID' | 'updateC
         key: ONYXKEYS.COLLECTION.POLICY,
         selector: policySelector,
         initialValue: {},
-    },
-    policyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
     },
     transactionViolations: {
         key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
