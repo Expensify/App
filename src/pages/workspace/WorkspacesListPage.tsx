@@ -37,7 +37,7 @@ import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PolicyMembers, Policy as PolicyType, ReimbursementAccount, Report, Session as SessionType} from '@src/types/onyx';
+import type {Policy as PolicyType, ReimbursementAccount, Report, Session as SessionType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
@@ -74,9 +74,6 @@ type WorkspaceListPageOnyxProps = {
 
     /** Bank account attached to free plan */
     reimbursementAccount: OnyxEntry<ReimbursementAccount>;
-
-    /** A collection of objects for all policies which key policy member objects by accountIDs */
-    allPolicyMembers: OnyxCollection<PolicyMembers>;
 
     /** All reports shared with the user (coming from Onyx) */
     reports: OnyxCollection<Report>;
@@ -118,7 +115,7 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, reports, session}: WorkspaceListPageProps) {
+function WorkspacesListPage({policies, reimbursementAccount, reports, session}: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -336,7 +333,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                     title: policy.name,
                     icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
-                    brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                    brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy),
                     pendingAction: policy.pendingAction,
                     errors: policy.errors,
                     dismissError: () => {
@@ -358,7 +355,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, r
                 };
             })
             .sort((a, b) => localeCompare(a.title, b.title));
-    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, allPolicyMembers, policyRooms]);
+    }, [reimbursementAccount?.errors, policies, isOffline, theme.textLight, policyRooms]);
 
     if (isEmptyObject(workspaces)) {
         return (
@@ -448,9 +445,6 @@ export default withPolicyAndFullscreenLoading(
     withOnyx<WorkspaceListPageProps, WorkspaceListPageOnyxProps>({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
         reimbursementAccount: {
