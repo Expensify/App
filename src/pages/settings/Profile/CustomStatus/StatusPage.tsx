@@ -111,9 +111,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
             if (!Navigation.isDisplayedInModal()) {
                 return; // Early return if not displayed in modal
             }
-            
+
             navigateBackToPreviousScreen();
-        });        
+        });
     };
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
