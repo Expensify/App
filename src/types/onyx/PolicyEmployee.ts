@@ -1,6 +1,6 @@
 import type * as OnyxCommon from './OnyxCommon';
 
-type PolicyMember = OnyxCommon.OnyxValueWithOfflineFeedback<{
+type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Role of the user in the policy */
     role?: string;
 
@@ -20,7 +20,7 @@ type PolicyMember = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
 }>;
 
-type PolicyMembers = Record<string, PolicyMember>;
+type PolicyEmployeeList = Record<string, PolicyEmployee>;
 
-export default PolicyMember;
-export type {PolicyMembers};
+export default PolicyEmployee;
+export type {PolicyEmployeeList};

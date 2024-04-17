@@ -23,18 +23,14 @@ import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
 
-const reportActionsByReport: OnyxCollection<ReportActions> = {};
 const visibleReportActionItems: ReportActions = {};
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
-        if (!key || !actions) {
+        if (!actions || !key) {
             return;
         }
-
         const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActionsByReport[reportID] = actions;
 
         const actionsArray: ReportAction[] = ReportActionsUtils.getSortedReportActions(Object.values(actions));
 
@@ -47,6 +43,7 @@ Onyx.connect({
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
+
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
@@ -87,7 +84,7 @@ function getOrderedReportIDs(
 
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const reportActions = reportActionsByReport?.[report.reportID] ?? {};
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
@@ -398,7 +395,7 @@ function getOptionData({
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
 
-    if (ReportActionsUtils.isActionableJoinRequestPending(report.reportID)) {
+    if (ReportUtils.isJoinRequestInAdminRoom(report)) {
         result.isPinned = true;
         result.isUnread = true;
         result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
