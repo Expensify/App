@@ -34,7 +34,7 @@ type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
 
-function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, onNext, onMove}: ConfirmationProps) {
+function ConfirmationStep({walletAdditionalDetails, walletAdditionalDetailsDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -140,7 +140,7 @@ function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, on
     );
 }
 
-Confirmation.displayName = 'Confirmation';
+ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
     // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
@@ -151,4 +151,4 @@ export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
     walletAdditionalDetailsDraft: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
     },
-})(Confirmation);
+})(ConfirmationStep);

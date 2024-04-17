@@ -40,7 +40,7 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL
     return errors;
 };
 
-function FullName({walletAdditionalDetails, onNext, isEditing}: FullNameProps) {
+function FullNameStep({walletAdditionalDetails, onNext, isEditing}: FullNameProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -94,11 +94,11 @@ function FullName({walletAdditionalDetails, onNext, isEditing}: FullNameProps) {
     );
 }
 
-FullName.displayName = 'FullName';
+FullNameStep.displayName = 'FullNameStep';
 
 export default withOnyx<FullNameProps, FullNameOnyxProps>({
     // @ts-expect-error: ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
     },
-})(FullName);
+})(FullNameStep);

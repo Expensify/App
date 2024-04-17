@@ -18,30 +18,29 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 
-type SocialSecurityNumberOnyxProps = {
+type PhoneNumberOnyxProps = {
     /** Reimbursement account from ONYX */
     walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
 };
 
-type SocialSecurityNumberProps = SocialSecurityNumberOnyxProps & SubStepProps;
+type PhoneNumberProps = PhoneNumberOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
-const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
+const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
 
 const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-    if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
-        errors.ssn = 'bankAccount.error.ssnLast4';
+    if (values.phoneNumber && !ValidationUtils.isValidUSPhone(values.phoneNumber, true)) {
+        errors.phoneNumber = 'bankAccount.error.phoneNumber';
     }
-
     return errors;
 };
-function SocialSecurityNumber({walletAdditionalDetails, onNext, isEditing}: SocialSecurityNumberProps) {
+function PhoneNumberStep({walletAdditionalDetails, onNext, isEditing}: PhoneNumberProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
+    const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -59,20 +58,20 @@ function SocialSecurityNumber({walletAdditionalDetails, onNext, isEditing}: Soci
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.whatsYourSSN')}</Text>
-                <Text style={[styles.textSupporting]}>{translate('personalInfoStep.noPersonalChecks')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.whatsYourPhoneNumber')}</Text>
+                <Text style={[styles.textSupporting]}>{translate('personalInfoStep.weNeedThisToVerify')}</Text>
                 <View style={[styles.flex1]}>
                     <InputWrapper
                         InputComponent={TextInput}
-                        inputID={PERSONAL_INFO_STEP_KEY.SSN_LAST_4}
-                        label={translate('personalInfoStep.last4SSN')}
-                        aria-label={translate('personalInfoStep.last4SSN')}
+                        inputID={PERSONAL_INFO_STEP_KEY.PHONE_NUMBER}
+                        label={translate('common.phoneNumber')}
+                        aria-label={translate('common.phoneNumber')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt6]}
-                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                        defaultValue={defaultSsnLast4}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                        inputMode={CONST.INPUT_MODE.TEL}
+                        placeholder={translate('common.phoneNumberPlaceholder')}
+                        defaultValue={defaultPhoneNumber}
                         shouldSaveDraft={!isEditing}
+                        containerStyles={[styles.mt6]}
                     />
                 </View>
                 <HelpLinks containerStyles={[styles.mt5]} />
@@ -81,11 +80,11 @@ function SocialSecurityNumber({walletAdditionalDetails, onNext, isEditing}: Soci
     );
 }
 
-SocialSecurityNumber.displayName = 'SocialSecurityNumber';
+PhoneNumberStep.displayName = 'PhoneNumberStep';
 
-export default withOnyx<SocialSecurityNumberProps, SocialSecurityNumberOnyxProps>({
+export default withOnyx<PhoneNumberProps, PhoneNumberOnyxProps>({
     // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },
-})(SocialSecurityNumber);
+})(PhoneNumberStep);

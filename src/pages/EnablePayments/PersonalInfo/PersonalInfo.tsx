@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 // TODO: uncomment in the next PR
 // import {parsePhoneNumber} from '@libs/PhoneNumber';
 import Navigation from '@navigation/Navigation';
-import PhoneNumber from '@pages/EnablePayments/PersonalInfo/substeps/PhoneNumber';
 import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,11 +21,12 @@ import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 import getInitialSubstepForPersonalInfo from '../utils/getInitialSubstepForPersonalInfo';
 import getSubstepValues from '../utils/getSubstepValues';
-import Address from './substeps/Address';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import FullName from './substeps/FullName';
-import SocialSecurityNumber from './substeps/SocialSecurityNumber';
+import Address from './substeps/AddressStep';
+import Confirmation from './substeps/ConfirmationStep';
+import DateOfBirth from './substeps/DateOfBirthStep';
+import FullName from './substeps/FullNameStep';
+import PhoneNumber from './substeps/PhoneNumberStep';
+import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
 type PersonalInfoPageOnyxProps = {
     /** Reimbursement account from ONYX */

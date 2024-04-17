@@ -45,7 +45,7 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL
 const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
 const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
-function DateOfBirth({walletAdditionalDetails, onNext, isEditing}: DateOfBirthProps) {
+function DateOfBirthStep({walletAdditionalDetails, onNext, isEditing}: DateOfBirthProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -82,11 +82,11 @@ function DateOfBirth({walletAdditionalDetails, onNext, isEditing}: DateOfBirthPr
     );
 }
 
-DateOfBirth.displayName = 'DateOfBirth';
+DateOfBirthStep.displayName = 'DateOfBirthStep';
 
 export default withOnyx<DateOfBirthProps, DateOfBirthOnyxProps>({
     // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },
-})(DateOfBirth);
+})(DateOfBirthStep);
