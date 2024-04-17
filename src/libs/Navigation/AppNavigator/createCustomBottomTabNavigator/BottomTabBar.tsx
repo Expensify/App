@@ -102,27 +102,6 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-            {/** @TODO: Uncomment this code and change order of the items according to the designs once the new search tab is ready */}
-            {/* <Tooltip text={translate('common.search')}>
-                <PressableWithFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
-                    }}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.search')}
-                    wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.ReceiptSearch}
-                            fill={currentTabName === SCREENS.SEARCH.CENTRAL_PANE ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip> */}
             <BottomTabBarFloatingActionButton />
             <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
         </View>

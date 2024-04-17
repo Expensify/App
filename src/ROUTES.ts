@@ -27,11 +27,6 @@ const ROUTES = {
         getRoute: (query: string) => `search/${query}` as const,
     },
 
-    SEARCH_REPORT: {
-        route: '/search/:query/view/:reportID',
-        getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
-    },
-
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
