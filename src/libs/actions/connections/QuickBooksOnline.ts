@@ -4,7 +4,7 @@ import {getCommandURL} from '@libs/ApiUtils';
 
 function getQuickBooksOnlineSetupLink(policyID: string) {
     const params: ConnectPolicyToQuickbooksOnlineParams = {policyID};
-    const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE, shouldSkipWebProxy: true});
+    const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE, requiresShortLivedAuthToken: true});
     return commandURL + new URLSearchParams(params).toString();
 }
 
