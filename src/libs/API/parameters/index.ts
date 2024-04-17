@@ -205,5 +205,9 @@ export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicy
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
+export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
+export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
+export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpenseParams';
+export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';
 export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
