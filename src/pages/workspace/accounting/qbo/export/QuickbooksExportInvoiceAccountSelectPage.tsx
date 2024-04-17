@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +14,10 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+type CardListItem = ListItem & {
+    value: string;
+};
 
 function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -31,7 +36,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const result = accountsReceivable?.length ? accountsReceivable : draft;
 
     const policyID = policy?.id ?? '';
-    const data = useMemo(
+    const data: CardListItem[] = useMemo(
         () =>
             result?.map((account) => ({
                 value: account.name,
@@ -43,12 +48,10 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     );
 
     const onSelectRow = useCallback(
-        (row: {value: string}) => {
-            if (exportInvoice && row.value === exportInvoice) {
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID));
-                return;
+        (row: CardListItem) => {
+            if (row.value !== exportInvoice) {
+                Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_INVOICE, row.value);
             }
-            Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_INVOICE, row.value);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID));
         },
         [exportInvoice, policyID],
@@ -57,13 +60,12 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
             testID={QuickbooksExportInvoiceAccountSelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
             <ScrollView contentContainerStyle={styles.pb2}>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>
                 <SelectionList
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={onSelectRow}

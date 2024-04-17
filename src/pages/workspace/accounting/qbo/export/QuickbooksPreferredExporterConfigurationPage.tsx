@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,11 @@ const draft = [
     {name: 'Alberto Gonzalez-Cela', currency: 'USD', id: '104', email: 'alberto@expensify.com'},
     {name: 'Aldo test QBO2 QBO2 Last name', currency: 'USD', id: '140', email: 'admin@qbo.com'},
 ];
+
+type CardListItem = ListItem & {
+    value: string;
+};
+
 function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -31,7 +37,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const result = exporters?.length ? exporters : draft;
 
     const policyID = policy?.id ?? '';
-    const sections = useMemo(
+    const data: CardListItem[] = useMemo(
         () =>
             result?.map((vendor) => ({
                 value: vendor.email,
@@ -43,15 +49,11 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     );
 
     const onSelectRow = useCallback(
-        (row: {value?: string}) => {
-            if (exporter && row.value === exporter) {
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
-                return;
-            }
-            if (row?.value) {
+        (row: CardListItem) => {
+            if (row.value !== exporter) {
                 Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
             }
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
         },
         [policyID, exporter],
     );
@@ -59,19 +61,22 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
             testID={QuickBooksExportPreferredExporterPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
             <ScrollView contentContainerStyle={styles.pb2}>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterSubNote')}</Text>
                 <SelectionList
+                    headerContent={
+                        <>
+                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>
+                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterSubNote')}</Text>
+                        </>
+                    }
                     shouldStopPropagation
-                    sections={[{data: sections}]}
+                    sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={onSelectRow}
-                    initiallyFocusedOptionKey={sections.find((mode) => mode.isSelected)?.keyForList}
+                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScrollView>
         </ScreenWrapper>

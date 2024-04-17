@@ -10,18 +10,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function QuickbooksCompanyCardExpenseConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {exportCompanyCard} = policy?.connections?.quickbooksOnline?.config ?? {};
-
+    const {exportCompanyCard, errors} = policy?.connections?.quickbooksOnline?.config ?? {};
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
             testID={QuickbooksCompanyCardExpenseConfigurationPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
@@ -32,7 +31,7 @@ function QuickbooksCompanyCardExpenseConfigurationPage({policy}: WithPolicyProps
                         title={exportCompanyCard}
                         description={translate('workspace.qbo.exportAs')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
-                        brickRoadIndicator={undefined}
+                        brickRoadIndicator={errors?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>

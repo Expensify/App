@@ -1,9 +1,12 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import type {SectionListData} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem, Section} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,6 +17,12 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+type CardListItem = ListItem & {
+    value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
+    isShown: boolean;
+};
+type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
+
 function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -21,37 +30,40 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
     const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     const policyID = policy?.id ?? '';
-    const data = [
-        {
-            value: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
-            text: translate(`workspace.qbo.check`),
-            keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
-            isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
-            isShown: true,
-        },
-        {
-            value: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
-            text: translate(`workspace.qbo.journalEntry`),
-            keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
-            isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
-            isShown: !isTaxesEnabled,
-        },
-        {
-            value: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
-            text: translate(`workspace.qbo.vendorBill`),
-            keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
-            isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
-            isShown: true,
-        },
-    ];
+    const data: CardListItem[] = useMemo(
+        () => [
+            {
+                value: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
+                text: translate(`workspace.qbo.check`),
+                keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
+                isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
+                isShown: true,
+            },
+            {
+                value: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
+                text: translate(`workspace.qbo.journalEntry`),
+                keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
+                isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
+                isShown: !isTaxesEnabled,
+            },
+            {
+                value: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
+                text: translate(`workspace.qbo.vendorBill`),
+                keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
+                isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
+                isShown: true,
+            },
+        ],
+        [exportEntity, isTaxesEnabled, translate],
+    );
+
+    const sections: CardsSection[] = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
 
     const onSelectRow = useCallback(
-        (row: {value: string}) => {
-            if (exportEntity && row.value === exportEntity) {
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
-                return;
+        (row: CardListItem) => {
+            if (row.value !== exportEntity) {
+                Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY, row.value);
             }
-            Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY, row.value);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },
         [exportEntity, policyID],
@@ -60,14 +72,13 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
             testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>
             <ScrollView contentContainerStyle={styles.pb2}>
                 <SelectionList
-                    sections={[{data: data.filter((item) => item.isShown)}]}
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
+                    sections={sections}
                     ListItem={RadioListItem}
                     onSelectRow={onSelectRow}
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

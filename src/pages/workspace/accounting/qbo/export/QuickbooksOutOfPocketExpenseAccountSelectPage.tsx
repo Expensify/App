@@ -4,6 +4,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,6 +25,10 @@ const draft = [
     },
 ];
 
+type CardListItem = ListItem & {
+    value: string;
+};
+
 function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -31,7 +36,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
 
     const {exportEntity, exportAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
-    const data = useMemo(() => {
+    const data: CardListItem[] = useMemo(() => {
         let result;
         switch (exportEntity) {
             case CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK:
@@ -58,12 +63,10 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
     const policyID = policy?.id ?? '';
 
     const onSelectRow = useCallback(
-        (row: {value: string}) => {
-            if (exportAccount && row.value === exportAccount) {
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
-                return;
+        (row: CardListItem) => {
+            if (row.value !== exportAccount) {
+                Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT, row.value);
             }
-            Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT, row.value);
             Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },
         [exportAccount, policyID],
@@ -72,13 +75,12 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
             testID={QuickbooksOutOfPocketExpenseAccountSelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.accountsPayable')} />
             <ScrollView contentContainerStyle={styles.pb2}>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>
                 <SelectionList
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={onSelectRow}

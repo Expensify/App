@@ -17,13 +17,12 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations, exportAccount, exportEntity} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncLocations, exportAccount, exportEntity, errors} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
             testID={QuickbooksOutOfPocketExpenseConfigurationPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportExpenses')} />
@@ -34,7 +33,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                         title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
                         description={translate('workspace.qbo.exportAs')}
                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
-                        brickRoadIndicator={undefined}
+                        brickRoadIndicator={errors?.exportEntity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
@@ -46,8 +45,9 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                     <OfflineWithFeedback>
                         <MenuItemWithTopDescription
                             title={exportAccount}
+                            description={translate('workspace.qbo.accountsPayable')}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
-                            brickRoadIndicator={undefined}
+                            brickRoadIndicator={errors?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
