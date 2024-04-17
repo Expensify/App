@@ -37,10 +37,6 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
         }, [hasConnectionsDataBeenFetched, policy]);
 
         if (!hasConnectionsDataBeenFetched) {
-            return <FullScreenLoadingIndicator />;
-        }
-
-        if (!policy?.connections) {
             if (isOffline) {
                 return (
                     <FullPageOfflineBlockingView>
@@ -55,6 +51,10 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
                 );
             }
 
+            return <FullScreenLoadingIndicator />;
+        }
+
+        if (!policy?.connections) {
             throw new Error('Policy connections data should be fetched before rendering the component');
         }
 
