@@ -6,27 +6,20 @@ import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function openPolicyAccountingPage(policyID: string) {
-    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const hasConnectionsDataBeenFetchedKey = `${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policyID}` as const;
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {},
+            key: hasConnectionsDataBeenFetchedKey,
+            value: false,
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {},
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: policyKey,
-            value: {},
+            key: hasConnectionsDataBeenFetchedKey,
+            value: true,
         },
     ];
 
@@ -36,8 +29,7 @@ function openPolicyAccountingPage(policyID: string) {
 
     API.read(READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE, parameters, {
         optimisticData,
-        successData,
-        failureData,
+        finallyData,
     });
 }
 
