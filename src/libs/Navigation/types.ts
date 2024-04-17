@@ -718,9 +718,6 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD_EXPENSE]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };

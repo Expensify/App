@@ -1920,6 +1920,9 @@ export default {
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
             journalEntry: 'Journal Entry',
             optionBelow: 'Choose an option below:',
+            vendorBillError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+            checkError: 'Check is not available when locations are enabled. Please select a different export option.',
+            journalEntryError: 'Journal entry is not available when taxes enabled. please select a different export option.',
             companyCardsLocationEnabledDescription:
                 'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
             outOfPocketTaxEnabledDescription:

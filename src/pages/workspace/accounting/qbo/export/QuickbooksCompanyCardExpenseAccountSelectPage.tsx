@@ -70,7 +70,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
             if (row.value !== exportCompanyCard) {
                 Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD, row.value);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE.getRoute(policyID));
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
         },
         [exportCompanyCard, policyID],
     );
@@ -81,14 +81,15 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
             shouldEnableMaxHeight
             testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
         >
-            <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
+            <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
             <ScrollView contentContainerStyle={styles.pb2}>
                 <SelectionList
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
                     sections={sections}
                     ListItem={RadioListItem}
                     onSelectRow={onSelectRow}
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    footerContent={isLocationEnabled && <Text style={[styles.mutedTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>}
+                    footerContent={isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>}
                 />
             </ScrollView>
         </ScreenWrapper>

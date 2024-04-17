@@ -264,7 +264,6 @@ const SCREENS = {
         QUICKBOOKS_ONLINE_EXPORT: 'Workspace_Accounting_Quickbooks_Online_Export',
         QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Date_Select',
         QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Invoice_Account_Select',
-        QUICKBOOKS_ONLINE_EXPORT_COMPANY_CARD_EXPENSE: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense',
         QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
         QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
         QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',

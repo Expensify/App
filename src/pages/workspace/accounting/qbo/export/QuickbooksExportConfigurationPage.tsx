@@ -49,7 +49,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbo.exportCompany'),
-            onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: errors?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportCompanyCard,
         },
@@ -80,11 +80,11 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
                         />
                     </OfflineWithFeedback>
                 ))}
-                <Text style={[styles.optionAlternateText, styles.ph5, styles.pb5, styles.mt2]}>
-                    <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
+                <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
+                    <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
                     <TextLink
                         onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
-                        style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                        style={[styles.mutedNormalTextLabel, styles.link]}
                     >
                         {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
                     </TextLink>
