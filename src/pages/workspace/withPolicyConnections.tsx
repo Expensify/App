@@ -25,7 +25,7 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (!policy || !policy.areConnectionsEnabled || !!policy.connections || !!policy.hasConnectionsDataBeenFetched || !!policy.isLoadingConnections || !policy.id) {
+            if (!policy || !policy.areConnectionsEnabled || !!policy.connections || !!policy.isLoadingConnections || !policy.id) {
                 return;
             }
 

@@ -14,7 +14,6 @@ function openPolicyAccountingPage(policyID: string) {
             key: policyKey,
             value: {
                 isLoadingConnections: true,
-                hasConnectionsDataBeenFetched: false,
             },
         },
     ];
@@ -24,7 +23,6 @@ function openPolicyAccountingPage(policyID: string) {
             key: policyKey,
             value: {
                 isLoadingConnections: false,
-                hasConnectionsDataBeenFetched: true,
             },
         },
     ];
@@ -34,7 +32,6 @@ function openPolicyAccountingPage(policyID: string) {
             key: policyKey,
             value: {
                 isLoadingConnections: false,
-                hasConnectionsDataBeenFetched: true,
             },
         },
     ];

@@ -407,9 +407,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the connections data is being fetched */
         isLoadingConnections?: boolean;
 
-        /** Whether or not the connections data has been fetched or not */
-        hasConnectionsDataBeenFetched?: boolean;
-
         /** Report fields attached to the policy */
         fieldList?: Record<string, PolicyReportField>;
 
