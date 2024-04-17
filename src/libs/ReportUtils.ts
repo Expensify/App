@@ -781,7 +781,7 @@ function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: numb
 }
 
 /**
- * Whether the Expense report is settled
+ * Whether the Money Request report is settled
  */
 function isSettled(reportID: string | undefined): boolean {
     if (!allReports || !reportID) {
