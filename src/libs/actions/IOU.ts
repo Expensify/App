@@ -1619,6 +1619,7 @@ function getDeleteTrackExpenseInformation(
 /** Gathers all the data needed to create an invoice. */
 function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
+    currentUserAccountID: number,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
     receipt?: Receipt,
     policy?: OnyxEntry<OnyxTypes.Policy>,
@@ -1641,7 +1642,7 @@ function getSendInvoiceInformation(
 
     if (!chatReport) {
         isNewChatReport = true;
-        chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID], CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.CHAT_TYPE.INVOICE, senderWorkspaceID);
+        chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID, currentUserAccountID], CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.CHAT_TYPE.INVOICE, senderWorkspaceID);
     }
 
     // STEP 3: Create a new optimistic invoice report.
@@ -3341,7 +3342,7 @@ function sendInvoice(
         optimisticTransactionID,
         optimisticTransactionThreadReportID,
         onyxData,
-    } = getSendInvoiceInformation(transaction, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
+    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
 
     let parameters: SendInvoiceParams = {
         senderWorkspaceID,
