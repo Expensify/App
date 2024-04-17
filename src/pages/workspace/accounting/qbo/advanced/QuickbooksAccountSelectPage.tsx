@@ -39,7 +39,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountOptions = useMemo(() => DRAFT || [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
 
-    const qboOnlineSelectorOptions = useMemo<SelectorType[] | undefined>(
+    const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
             accountOptions?.map(({id, name}) => ({
                 value: id,
