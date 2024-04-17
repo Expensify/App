@@ -34,8 +34,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: Boolean(autoSync),
-            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, !autoSync),
+            isActive: Boolean(autoSync?.enabled),
+            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, !autoSync?.enabled),
             pendingAction: pendingFields?.autoSync,
         },
         {
@@ -116,7 +116,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                             </View>
 
                             <ToggleSettingOptionRow
-                                title={translate('workspace.qbo.advancedConfig.collectionAccount')} // TODO: set to the current selected value
+                                title={translate('workspace.qbo.advancedConfig.collectionAccount')}
                                 subtitle={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
@@ -126,7 +126,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                             />
 
                             <MenuItemWithTopDescription
-                                title="Croissant Co Money in Clearing"
+                                title="Croissant Co Money in Clearing" // TODO: set to the current selected value
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                 onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
