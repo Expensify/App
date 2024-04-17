@@ -839,6 +839,10 @@ const CONST = {
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
+        INVOICE_RECEIVER_TYPE: {
+            INDIVIDUAL: 'individual',
+            BUSINESS: 'policy',
+        },
     },
     NEXT_STEP: {
         FINISHED: 'Finished!',
@@ -4353,6 +4357,11 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+
+    INVOICE_RECEIVER_TYPE: {
+        INDIVIDUAL: 'individual',
+        POLICY: 'policy',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

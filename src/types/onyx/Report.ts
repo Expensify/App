@@ -30,11 +30,11 @@ type Participant = {
 
 type InvoiceReceiver =
     | {
-          type: 'individual';
+          type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
           accountID: number;
       }
     | {
-          type: 'policy';
+          type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
           policyID: string;
       };
 
