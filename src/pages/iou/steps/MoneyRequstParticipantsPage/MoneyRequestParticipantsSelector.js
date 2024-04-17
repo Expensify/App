@@ -1,8 +1,7 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -26,9 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** Callback to request parent modal to go to next step, which should be request */
     navigateToRequest: PropTypes.func.isRequired,
 
@@ -61,14 +57,14 @@ const propTypes = {
 
 const defaultProps = {
     participants: [],
-    betas: [],
     isDistanceRequest: false,
     didScreenTransitionEnd: false,
 };
 
-function MoneyRequestParticipantsSelector({betas, participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest, didScreenTransitionEnd}) {
+function MoneyRequestParticipantsSelector({participants, navigateToRequest, navigateToSplit, onAddParticipants, iouType, isDistanceRequest, didScreenTransitionEnd}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
@@ -276,7 +272,7 @@ function MoneyRequestParticipantsSelector({betas, participants, navigateToReques
             return null;
         }
         return (
-            <View>
+            <>
                 {!isDismissed && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
@@ -302,7 +298,7 @@ function MoneyRequestParticipantsSelector({betas, participants, navigateToReques
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
-            </View>
+            </>
         );
     }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
@@ -360,8 +356,4 @@ MoneyRequestParticipantsSelector.propTypes = propTypes;
 MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 MoneyRequestParticipantsSelector.defaultProps = defaultProps;
 
-export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(MoneyRequestParticipantsSelector);
+export default MoneyRequestParticipantsSelector;
