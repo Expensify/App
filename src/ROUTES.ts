@@ -28,7 +28,7 @@ const ROUTES = {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
     },
-    SEARCH: 'search',
+    CHAT_FINDER: 'chat-finder',
     DETAILS: {
         route: 'details',
         getRoute: (login: string) => `details?login=${encodeURIComponent(login)}` as const,
@@ -301,8 +301,8 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
     },
     ROOM_INVITE: {
-        route: 'r/:reportID/invite',
-        getRoute: (reportID: string) => `r/${reportID}/invite` as const,
+        route: 'r/:reportID/invite/:role?',
+        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
@@ -352,8 +352,8 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID',
@@ -376,9 +376,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/merchant/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: 'create/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/participants/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
+            getUrlWithBackToParam(`${action}/${iouType}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
@@ -563,7 +563,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
     },
-    WORKSPACE_ACCOUNTING: {
+    POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
     },
@@ -707,27 +707,27 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/accounts',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/accounts` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },

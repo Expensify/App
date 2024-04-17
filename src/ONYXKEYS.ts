@@ -126,7 +126,7 @@ const ONYXKEYS = {
     /** The NVP with the last payment method used per policy */
     NVP_LAST_PAYMENT_METHOD: 'nvp_private_lastPaymentMethod',
 
-    /** This NVP holds to most recent waypoints that a person has used when creating a distance request */
+    /** This NVP holds to most recent waypoints that a person has used when creating a distance expense */
     NVP_RECENT_WAYPOINTS: 'expensify_recentWaypoints',
 
     /** This NVP will be `true` if the user has ever dismissed the engagement modal on either OldDot or NewDot. If it becomes true it should stay true forever. */
@@ -157,7 +157,7 @@ const ONYXKEYS = {
     FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** The NVP with the last distance rate used per policy */
-    NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
+    NVP_LAST_SELECTED_DISTANCE_RATES: 'nvp_expensify_lastSelectedDistanceRates',
 
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
@@ -312,15 +312,19 @@ const ONYXKEYS = {
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
-        POLICY_MEMBERS: 'policyMembers_',
         POLICY_DRAFTS: 'policyDrafts_',
-        POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
         POLICY_TAGS: 'policyTags_',
         POLICY_RECENTLY_USED_TAGS: 'nvp_recentlyUsedTags_',
+        // Whether the policy's connection data was attempted to be fetched in
+        // the current user session. As this state only exists client-side, it
+        // should not be included as part of the policy object. The policy
+        // object should mirror the data as it's stored in the database.
+        POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED: 'policyHasConnectionsDataBeenFetched_',
         OLD_POLICY_RECENTLY_USED_TAGS: 'policyRecentlyUsedTags_',
+        POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         WORKSPACE_INVITE_MESSAGE_DRAFT: 'workspaceInviteMessageDraft_',
         REPORT: 'report_',
@@ -347,13 +351,11 @@ const ONYXKEYS = {
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
         NEXT_STEP: 'reportNextStep_',
 
-        // Manual request tab selector
+        // Manual expense tab selector
         SELECTED_TAB: 'selectedTab_',
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
-
-        POLICY_CONNECTION_SYNC_PROGRESS: 'policyConnectionSyncProgress_',
     },
 
     /** List of Form ids */
@@ -526,10 +528,9 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagList;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
+    [ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED]: boolean;
+    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyEmployeeList;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;

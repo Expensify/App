@@ -244,22 +244,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
@@ -300,8 +300,8 @@ type NewChatNavigatorParamList = {
     };
 };
 
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH_ROOT]: undefined;
+type ChatFinderNavigatorParamList = {
+    [SCREENS.CHAT_FINDER_ROOT]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -361,6 +361,7 @@ type RoomMembersNavigatorParamList = {
 type RoomInviteNavigatorParamList = {
     [SCREENS.ROOM_INVITE_ROOT]: {
         reportID: string;
+        role?: 'accountant';
     };
 };
 
@@ -398,6 +399,7 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAG]: {
         action: ValueOf<typeof CONST.IOU.ACTION>;
@@ -459,6 +461,7 @@ type MoneyRequestNavigatorParamList = {
         // for IOURequestStepDistance and IOURequestStepAmount components
         backTo: never;
         action: never;
+        currency: never;
     };
     [SCREENS.MONEY_REQUEST.START]: {
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
@@ -472,8 +475,10 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         backTo: Routes;
         action: ValueOf<typeof CONST.IOU.ACTION>;
+        currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -501,6 +506,7 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         pageIndex?: string;
         backTo?: Routes;
+        currency?: string;
     };
 };
 
@@ -608,7 +614,7 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.CHAT_FINDER]: NavigatorScreenParams<ChatFinderNavigatorParamList>;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
 };
 
@@ -675,7 +681,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
@@ -694,7 +700,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
 };
@@ -784,7 +790,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & ChatFinderNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
@@ -828,7 +834,7 @@ export type {
     ParticipantsNavigatorParamList,
     RoomMembersNavigatorParamList,
     RoomInviteNavigatorParamList,
-    SearchNavigatorParamList,
+    ChatFinderNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     TeachersUniteNavigatorParamList,
