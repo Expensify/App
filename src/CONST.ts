@@ -3295,7 +3295,6 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
-        SEARCH: 'search',
     },
     TAB_REQUEST: {
         MANUAL: 'manual',
