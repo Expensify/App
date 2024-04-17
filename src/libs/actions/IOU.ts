@@ -511,7 +511,6 @@ function buildOnyxDataForMoneyRequest(
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
-
     if (chatReport) {
         optimisticData.push({
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
@@ -519,8 +518,8 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
                 ...chatReport,
-                // if iouReport exist, the last visible action created time does not change.
-                lastVisibleActionCreated: isNewChatReport ? undefined : iouReport.lastVisibleActionCreated,
+                // if it is a new money request then that becomes the most recent visible action
+                lastVisibleActionCreated: shouldCreateNewMoneyRequestReport ? iouReport.lastVisibleActionCreated : undefined,
                 lastReadTime: DateUtils.getDBTime(),
                 lastMessageTranslationKey: '',
                 iouReportID: iouReport.reportID,
@@ -1390,6 +1389,7 @@ function getMoneyRequestInformation(
     } else {
         iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
     }
+
     // STEP 3: Build optimistic receipt and transaction
     const receiptObject: Receipt = {};
     let filename;
