@@ -43,7 +43,22 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?: ValueOf<typeof SCREENS.WORKSPACE>;
+    routeName?:
+        | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
+        | typeof SCREENS.WORKSPACE.INITIAL
+        | typeof SCREENS.WORKSPACE.CARD
+        | typeof SCREENS.WORKSPACE.REIMBURSE
+        | typeof SCREENS.WORKSPACE.BILLS
+        | typeof SCREENS.WORKSPACE.INVOICES
+        | typeof SCREENS.WORKSPACE.TRAVEL
+        | typeof SCREENS.WORKSPACE.DISTANCE_RATES
+        | typeof SCREENS.WORKSPACE.WORKFLOWS
+        | typeof SCREENS.WORKSPACE.CATEGORIES
+        | typeof SCREENS.WORKSPACE.TAGS
+        | typeof SCREENS.WORKSPACE.TAXES
+        | typeof SCREENS.WORKSPACE.MORE_FEATURES
+        | typeof SCREENS.WORKSPACE.PROFILE
+        | typeof SCREENS.WORKSPACE.MEMBERS;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -204,10 +219,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 
