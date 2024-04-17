@@ -244,8 +244,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
     }, [defaultMileageRate, customUnitRateID, lastSelectedDistanceRates, policy?.id, canUseP2PDistanceRequests, transactionID]);
 
+    const policyCurrency = policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+
     const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction)
-        ? DistanceRequestUtils.getRateForP2P(policy?.outputCurrency ?? CONST.CURRENCY.USD)
+        ? DistanceRequestUtils.getRateForP2P(policyCurrency)
         : mileageRates?.[customUnitRateID] ?? DistanceRequestUtils.getDefaultMileageRate(policy);
 
     const {unit, rate} = mileageRate ?? {};
@@ -253,7 +255,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const prevRate = usePrevious(rate);
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
 
-    const currency = (mileageRate as MileageRate)?.currency ?? policy?.outputCurrency ?? PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+    const currency = (mileageRate as MileageRate).currency ?? policyCurrency;
 
     const distance = transaction?.routes?.route0?.distance ?? 0;
     const taxRates = policy?.taxRates ?? null;
