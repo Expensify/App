@@ -108,12 +108,12 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
         InteractionManager.runAfterInteractions(() => {
             // We only want to navigate back if the status RHP modal is still open
-            console.log('We went outside');
-            if (Navigation.isDisplayedInModal()) {
-                console.log('We went inside');
-                navigateBackToPreviousScreen();
+            if (!Navigation.isDisplayedInModal()) {
+                return; // Early return if not displayed in modal
             }
-        });
+            
+            navigateBackToPreviousScreen();
+        });        
     };
 
     useEffect(() => setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR), [isValidClearAfterDate]);
