@@ -49,7 +49,7 @@ function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbook
                                 Cookie: `authToken=${session?.authToken}`,
                             },
                         }}
-                        incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
+                        incognito
                         startInLoadingState
                         renderLoading={renderLoading}
                     />
