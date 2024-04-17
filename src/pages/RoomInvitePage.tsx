@@ -169,13 +169,13 @@ function RoomInvitePage({
 
     // Non policy members should not be able to view the participants of a room
     const reportID = report?.reportID;
-    const isPolicyMember = useMemo(() => (report?.policyID ? PolicyUtils.isPolicyMember(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => (report?.policyID ? PolicyUtils.isPolicyEmployee(report.policyID, policies as Record<string, Policy>) : false), [report?.policyID, policies]);
     const backRoute = useMemo(() => {
         if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
             return ROUTES.REPORT_WITH_ID.getRoute(reportID);
         }
-        return reportID && (isPolicyMember ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
-    }, [isPolicyMember, reportID, role]);
+        return reportID && (isPolicyEmployee ? ROUTES.ROOM_MEMBERS.getRoute(reportID) : ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID));
+    }, [isPolicyEmployee, reportID, role]);
     const reportName = useMemo(() => ReportUtils.getReportName(report), [report]);
     const inviteUsers = useCallback(() => {
         if (!validate()) {
