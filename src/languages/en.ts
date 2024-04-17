@@ -598,8 +598,8 @@ export default {
         sendMoney: 'Pay someone',
         assignTask: 'Assign task',
         header: 'Quick action',
-        trackManual: 'Track manual',
-        trackScan: 'Track scan',
+        trackManual: 'Track expense',
+        trackScan: 'Track receipt',
         trackDistance: 'Track distance',
     },
     iou: {
@@ -615,6 +615,8 @@ export default {
         splitExpense: 'Split expense',
         paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
         expense: 'Expense',
+        categorize: 'Categorize',
+        share: 'Share',
         participants: 'Participants',
         submitExpense: 'Submit expense',
         trackExpense: 'Track expense',
@@ -2554,6 +2556,12 @@ export default {
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accept',
         decline: 'Decline',
+    },
+    actionableMentionTrackExpense: {
+        request: 'Request someone to pay it',
+        categorize: 'Categorize it',
+        share: 'Share it with my accountant',
+        nothing: 'Nothing for now',
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',

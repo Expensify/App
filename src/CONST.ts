@@ -633,9 +633,10 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
-                ADDCOMMENT: 'ADDCOMMENT',
                 ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
+                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLETRACKEXPENSEWHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                ADDCOMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
                 CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
@@ -766,6 +767,9 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            NOTHING: 'nothing',
+        },
+        ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
@@ -1407,6 +1411,9 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
+            MOVE: 'move',
+            CATEGORIZE: 'categorize',
+            SHARE: 'share',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
@@ -1429,6 +1436,7 @@ const CONST = {
             DELETE: 'delete',
             APPROVE: 'approve',
             TRACK: 'track',
+            MOVE: 'move',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -1447,6 +1455,11 @@ const CONST = {
         RECEIPT_ERROR: 'receiptError',
         CANCEL_REASON: {
             PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
+        },
+        SHARE: {
+            ROLE: {
+                ACCOUNTANT: 'accountant',
+            },
         },
     },
 
