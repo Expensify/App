@@ -3149,7 +3149,7 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
  */
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     if (isInvoiceRoom(report)) {
-        return getInvoicesChatSubtitle(report);
+        return Localize.translateLocal('workspace.common.invoices');
     }
     if (isChatThread(report)) {
         return '';
