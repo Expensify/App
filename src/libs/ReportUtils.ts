@@ -3124,6 +3124,27 @@ function hasReportNameError(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Adds a domain to a short mention, converting it into a full mention with email or SMS domain.
+ * @param mention The user mention to be converted.
+ * @returns The converted mention as a full mention string or undefined if conversion is not applicable.
+ */
+function addDomainToShortMention(mention: string): string | undefined {
+    if (!Str.isValidEmail(mention) && currentUserPrivateDomain) {
+        const mentionWithEmailDomain = `${mention}@${currentUserPrivateDomain}`;
+        if (allPersonalDetailLogins.includes(mentionWithEmailDomain)) {
+            return mentionWithEmailDomain;
+        }
+    }
+    if (Str.isValidE164Phone(mention)) {
+        const mentionWithSmsDomain = PhoneNumber.addSMSDomainIfPhoneNumber(mention);
+        if (allPersonalDetailLogins.includes(mentionWithSmsDomain)) {
+            return mentionWithSmsDomain;
+        }
+    }
+    return undefined;
+}
+
+/**
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
@@ -3131,21 +3152,8 @@ function getParsedComment(text: string): string {
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
         const mention = match.substring(1);
-
-        if (!Str.isValidEmail(mention) && currentUserPrivateDomain) {
-            const mentionWithEmailDomain = `${mention}@${currentUserPrivateDomain}`;
-            if (allPersonalDetailLogins.includes(mentionWithEmailDomain)) {
-                return `@${mentionWithEmailDomain}`;
-            }
-        }
-        if (Str.isValidE164Phone(mention)) {
-            const mentionWithSmsDomain = PhoneNumber.addSMSDomainIfPhoneNumber(mention);
-            if (allPersonalDetailLogins.includes(mentionWithSmsDomain)) {
-                return `@${mentionWithSmsDomain}`;
-            }
-        }
-
-        return match;
+        const mentionWithDomain = addDomainToShortMention(mention);
+        return mentionWithDomain ? `@${mentionWithDomain}` : match;
     });
 
     return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText: !shouldAllowRawHTMLMessages()}) : lodashEscape(text);
@@ -6110,6 +6118,7 @@ export {
     getDefaultWorkspaceAvatarTestID,
     getCommentLength,
     getParsedComment,
+    addDomainToShortMention,
     getMoneyRequestOptions,
     canCreateRequest,
     hasIOUWaitingOnCurrentUserBankAccount,
