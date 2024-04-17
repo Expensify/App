@@ -150,7 +150,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWin
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdate}),
                     buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {

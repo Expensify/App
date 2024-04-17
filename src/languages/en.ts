@@ -2456,7 +2456,7 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Update Available',
-            message: "The new version will be available shortly. We'll notify you when we're ready to update.",
+            message: ({isSilentUpdate}: {isSilentUpdate: boolean}) => `The new version will be available shortly.${isSilentUpdate ? " We'll notify you when we're ready to update." : ''}`,
             soundsGood: 'Sounds good',
         },
         notAvailable: {
