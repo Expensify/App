@@ -171,8 +171,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 };
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) || '';
+    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
     return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
 };
 
