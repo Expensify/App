@@ -8,7 +8,7 @@ type ActionName = DeepValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
 type OriginalMessageActionName =
     | 'ADDCOMMENT'
     | 'APPROVED'
-    | 'CHRONOSOOLIST'
+    | 'CHRONOSOOOLIST'
     | 'CLOSED'
     | 'CREATED'
     | 'HOLD'
@@ -203,7 +203,7 @@ type ChronosOOOEvent = {
 };
 
 type OriginalMessageChronosOOOList = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OO_LIST;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     originalMessage: {
         edits: string[];
         events: ChronosOOOEvent[];

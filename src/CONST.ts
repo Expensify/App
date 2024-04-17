@@ -640,7 +640,7 @@ const CONST = {
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
                 CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
-                CHRONOS_OO_LIST: 'CHRONOSOOLIST',
+                CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
@@ -753,10 +753,10 @@ const CONST = {
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                 },
                 ROOM_CHANGE_LOG: {
-                    INVITE_TO_ROOM: 'INVITE_TO_ROOM',
-                    REMOVE_FROM_ROOM: 'REMOVE_FROM_ROOM',
-                    LEAVE_ROOM: 'LEAVE_ROOM',
-                    UPDATE_ROOM_DESCRIPTION: 'UPDATE_ROOM_DESCRIPTION',
+                    INVITE_TO_ROOM: 'INVITETOROOM',
+                    REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
+                    LEAVE_ROOM: 'LEAVEROOM',
+                    UPDATE_ROOM_DESCRIPTION: 'UPDATEROOMDESCRIPTION',
                 },
             },
             THREAD_DISABLED: ['CREATED'],
