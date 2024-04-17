@@ -86,7 +86,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
             return errors;
         },
-        [parentReportAction],
+        [parentReportAction, isWorkspaceRequest],
     );
 
     useEffect(() => {
