@@ -42,7 +42,7 @@ function SearchPageBottomTab() {
     ];
 
     return (
-        <ScreenWrapper testID="testPage">
+        <ScreenWrapper testID={SearchPageBottomTab.displayName}>
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                 {searchMenuItems.map((item) => (
                     <MenuItem
@@ -63,6 +63,6 @@ function SearchPageBottomTab() {
     );
 }
 
-SearchPageBottomTab.displayName = 'SearchPage';
+SearchPageBottomTab.displayName = 'SearchPageBottomTab';
 
 export default SearchPageBottomTab;

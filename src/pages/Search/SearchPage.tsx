@@ -12,7 +12,7 @@ function SearchPage({route}: SearchPageProps) {
     useCustomBackHandler();
 
     return (
-        <ScreenWrapper testID="testPage">
+        <ScreenWrapper testID={SearchPage.displayName}>
             <SearchResults query={route.params.query} />
         </ScreenWrapper>
     );
