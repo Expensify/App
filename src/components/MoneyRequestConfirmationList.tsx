@@ -342,12 +342,12 @@ function MoneyRequestConfirmationList({
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
         } else if ((!!receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
-            text = translate('iou.request');
+            text = translate('iou.expense');
             if (iouAmount !== 0) {
-                text = translate('iou.requestAmount', {amount: formattedAmount});
+                text = translate('iou.submitAmount', {amount: formattedAmount});
             }
         } else {
-            const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
+            const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.submitAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [
