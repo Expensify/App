@@ -141,12 +141,12 @@ type QBOConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
  */
-type QBOConnectionConfig = {
+type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     realmId: string;
     companyName: string;
     autoSync: {
@@ -166,14 +166,18 @@ type QBOConnectionConfig = {
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
+    syncAccounts: IntegrationEntityMap;
+    syncTaxes: IntegrationEntityMap;
     exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
-    enableNewCategories: boolean;
+    enableNewCategories: IntegrationEntityMap;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
     export: {
         exporter: string;
     };
-};
+}>;
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -183,6 +187,8 @@ type Connection<ConnectionData, ConnectionConfig> = {
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
+
+type ConnectionName = keyof Connections;
 
 type ACHAccount = {
     bankAccountID: number;
@@ -327,7 +333,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: OnyxTypes.PolicyMembers | [];
+        employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
@@ -407,6 +413,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Tags feature is enabled */
         areTagsEnabled?: boolean;
 
+        /** Whether the Accounting feature is enabled */
+        areAccountingEnabled?: boolean;
+
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
 
@@ -434,6 +443,31 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
 
+type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionSyncProgress = {
+    status: ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STATUS>;
+    stageInProgress: PolicyConnectionSyncStage;
+    connectionName: PolicyConnectionName;
+};
+
 export default Policy;
 
-export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
+export type {
+    PolicyReportField,
+    PolicyReportFieldType,
+    Unit,
+    CustomUnit,
+    Attributes,
+    Rate,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
+    IntegrationEntityMap,
+    PolicyFeatureName,
+    PendingJoinRequestPolicy,
+    PolicyConnectionSyncStage,
+    PolicyConnectionSyncProgress,
+    Connections,
+    ConnectionName,
+};

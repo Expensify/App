@@ -1,4 +1,5 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import * as Browser from '@libs/Browser';
 import addViewportResizeListener from '@libs/VisualViewport';
 
 /**
@@ -6,17 +7,18 @@ import addViewportResizeListener from '@libs/VisualViewport';
  */
 export default function useViewportOffsetTop(shouldAdjustScrollView = false): number {
     const [viewportOffsetTop, setViewportOffsetTop] = useState(0);
-    const initialHeight = useRef(window.visualViewport?.height ?? window.innerHeight).current;
     const cachedDefaultOffsetTop = useRef<number>(0);
-    useEffect(() => {
-        const updateOffsetTop = (event?: Event) => {
+
+    const updateOffsetTop = useCallback(
+        (event?: Event) => {
             let targetOffsetTop = window.visualViewport?.offsetTop ?? 0;
             if (event?.target instanceof VisualViewport) {
                 targetOffsetTop = event.target.offsetTop;
             }
 
-            if (shouldAdjustScrollView && window.visualViewport) {
-                const adjustScrollY = Math.round(initialHeight - window.visualViewport.height);
+            if (Browser.isMobileSafari() && shouldAdjustScrollView && window.visualViewport) {
+                const clientHeight = document.body.clientHeight;
+                const adjustScrollY = clientHeight - window.visualViewport.height;
                 if (cachedDefaultOffsetTop.current === 0) {
                     cachedDefaultOffsetTop.current = targetOffsetTop;
                 }
@@ -31,16 +33,17 @@ export default function useViewportOffsetTop(shouldAdjustScrollView = false): nu
             } else {
                 setViewportOffsetTop(targetOffsetTop);
             }
-        };
-        updateOffsetTop();
-        return addViewportResizeListener(updateOffsetTop);
-    }, [initialHeight, shouldAdjustScrollView]);
+        },
+        [shouldAdjustScrollView],
+    );
+
+    useEffect(() => addViewportResizeListener(updateOffsetTop), [updateOffsetTop]);
 
     useEffect(() => {
         if (!shouldAdjustScrollView) {
             return;
         }
-        window.scrollTo({top: viewportOffsetTop});
+        window.scrollTo({top: viewportOffsetTop, behavior: 'smooth'});
     }, [shouldAdjustScrollView, viewportOffsetTop]);
 
     return viewportOffsetTop;

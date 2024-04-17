@@ -10,9 +10,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {TableListItemProps} from './types';
+import type {ListItem, TableListItemProps} from './types';
 
-function TableListItem({
+function TableListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -23,7 +23,8 @@ function TableListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: TableListItemProps) {
+    onFocus,
+}: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -56,6 +57,8 @@ function TableListItem({
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (
                 <>
