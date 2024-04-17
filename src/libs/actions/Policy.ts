@@ -1081,7 +1081,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: {
-                    ...memberRoles.reduce((member: Record<string, {role: string; pendingAction: PendingAction}>, current) => {
+                    ...memberRoles.reduce((member: Record<string, {role: ValueOf<typeof CONST.POLICY.ROLE>; pendingAction: PendingAction}>, current) => {
                         // eslint-disable-next-line no-param-reassign
                         member[current.email] = {role: current?.role, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
                         return member;
@@ -1098,7 +1098,7 @@ function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newR
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 employeeList: {
-                    ...memberRoles.reduce((member: Record<string, {role: string; pendingAction: PendingAction}>, current) => {
+                    ...memberRoles.reduce((member: Record<string, {role: ValueOf<typeof CONST.POLICY.ROLE>; pendingAction: PendingAction}>, current) => {
                         // eslint-disable-next-line no-param-reassign
                         member[current.email] = {role: current?.role, pendingAction: null};
                         return member;
