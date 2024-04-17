@@ -4,10 +4,10 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {
     AddPersonalBankAccountNavigatorParamList,
+    ChatFinderNavigatorParamList,
     DetailsNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
-    FindNavigatorParamList,
     FlagCommentNavigatorParamList,
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
@@ -148,12 +148,12 @@ const RoomInviteModalStackNavigator = createModalStackNavigator<RoomInviteNaviga
     [SCREENS.ROOM_INVITE_ROOT]: () => require('../../../../pages/RoomInvitePage').default as React.ComponentType,
 });
 
-const SearchModalStackNavigator = createModalStackNavigator<FindNavigatorParamList>({
-    [SCREENS.FIND_ROOT]: () => require('../../../../pages/SearchPage').default as React.ComponentType,
-});
-
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
     [SCREENS.SEARCH.REPORT]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
+});
+
+const ChatFinderModalStackNavigator = createModalStackNavigator<ChatFinderNavigatorParamList>({
+    [SCREENS.CHAT_FINDER_ROOT]: () => require('../../../../pages/ChatFinderPage').default as React.ComponentType,
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({
@@ -347,7 +347,7 @@ export {
     ReportDescriptionModalStackNavigator,
     RoomInviteModalStackNavigator,
     RoomMembersModalStackNavigator,
-    SearchModalStackNavigator,
+    ChatFinderModalStackNavigator,
     SettingsModalStackNavigator,
     SignInModalStackNavigator,
     SplitDetailsModalStackNavigator,
