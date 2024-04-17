@@ -121,8 +121,8 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         }> = [];
 
         Object.keys(personalDetails).forEach((accoutID) => {
-            const prevPersonalDetail = prevPersonalDetails.current[accoutID];
-            const personalDetail = personalDetails[accoutID];
+            const prevPersonalDetail = prevPersonalDetails.current?.[accoutID];
+            const personalDetail = personalDetails?.[accoutID];
 
             if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
                 return;
