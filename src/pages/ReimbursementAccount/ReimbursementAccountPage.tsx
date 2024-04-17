@@ -243,10 +243,10 @@ function ReimbursementAccountPage({
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
     useEffect(() => {
-        if (typeof reimbursementAccount?.isLoading !== 'boolean' || reimbursementAccount?.isLoading === prevIsReimbursementAccountLoading) {
+        if (typeof reimbursementAccount?.isLoading !== 'boolean' || reimbursementAccount.isLoading === prevIsReimbursementAccountLoading) {
             return;
         }
-        setIsReimbursementAccountLoading(reimbursementAccount?.isLoading);
+        setIsReimbursementAccountLoading(reimbursementAccount.isLoading);
     }, [prevIsReimbursementAccountLoading, reimbursementAccount?.isLoading]);
 
     useEffect(
