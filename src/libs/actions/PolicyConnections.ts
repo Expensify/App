@@ -12,27 +12,21 @@ function openPolicyAccountingPage(policyID: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {
-                isLoadingConnections: true,
-            },
+            value: {},
         },
     ];
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {
-                isLoadingConnections: false,
-            },
+            value: {},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
-            value: {
-                isLoadingConnections: false,
-            },
+            value: {},
         },
     ];
 
