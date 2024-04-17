@@ -72,31 +72,44 @@ Using named functions is the preferred way to write a callback method.
 
 ```javascript
 // Bad
-people.map(function (item) {...});
-people.map((item) => {...});
-useEffect/useMemo/useCallback(() => {}, []);
-randomList.push({
-     onSelected: Utils.checkIfAllowed(() => Utils.canTeamUp(people)),
-});
+people.map(function (item) {/* Long and complex logic */});
+people.map((item) => {/* Long and complex logic with many inner loops*/});
+useEffect/useMemo/useCallback(() => {/* Long and complex logic */}, []);
 
 // Good
-function mappingPeople(person) {};
+function mappingPeople(person) {/* Long and complex logic */};
 people.map(mappingPeople);
-useEffect/useMemo/useCallback(function handlingConnection() {}, []);
+useEffect/useMemo/useCallback(function handlingConnection() {/* Long and complex logic */}, []);
+```
+
+You can still use arrow function for declarations or simple logics to keep them readable.
+
+```javascript
+// Bad
 randomList.push({
      onSelected: Utils.checkIfAllowed(function checkTask() { return Utils.canTeamUp(people); }),
 });
-```
+routeList.filter(function checkIsActive(route) { 
+    return route.isActive; 
+});
 
-You can still use arrow function for declarations.
-
-```javascript
 // Good
+randomList.push({
+     onSelected: Utils.checkIfAllowed(() => Utils.canTeamUp(people)),
+});
+routeList.filter((route) => route.isActive);
 const myFunction = () => {...};
 const person = { getName: () => {} };
 Utils.connect({
     callback: (val) => {},
 });
+useEffect(() => {
+    if (isFocused) {
+        return;
+    }
+    setError(null, {});
+}, [isFocused]);
+
 ```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
@@ -144,9 +157,9 @@ myArray.forEach(item => doSomething(item));
 _.each(myArray, item => doSomething(item));
 
 // Bad
-const myArray = Object.keys(someObject).map(function handleSomething(key) {return doSomething(someObject[key]);});
+const myArray = Object.keys(someObject).map((key) => doSomething(someObject[key]));
 // Good
-const myArray = _.map(someObject, function handleSomething(value, key) {return doSomething(value);});
+const myArray = _.map(someObject, (value, key) => doSomething(value));
 
 // Bad
 myCollection.includes('item');
@@ -607,7 +620,7 @@ There are pros and cons of each, but ultimately we have standardized on using th
 const focusTimeoutRef = useRef(null);
 
 useFocusEffect(useCallback(() => {
-    focusTimeoutRef.current = setTimeout(function runFocusTimeout() {textInputRef.current.focus();}, CONST.ANIMATED_TRANSITION);
+    focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
     return () => {
         if (!focusTimeoutRef.current) {
             return;
