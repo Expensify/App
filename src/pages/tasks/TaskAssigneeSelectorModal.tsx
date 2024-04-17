@@ -48,12 +48,12 @@ function useOptions() {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
-    const options = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
             optionsList.reports,
             optionsList.personalDetails,
             betas,
-            debouncedSearchValue.trim(),
+            '',
             [],
             CONST.EXPENSIFY_EMAILS,
             false,
@@ -67,11 +67,7 @@ function useOptions() {
             true,
         );
 
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            (recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || Boolean(currentUserOption),
-            Boolean(userToInvite),
-            debouncedSearchValue,
-        );
+        const headerMessage = OptionsListUtils.getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || Boolean(currentUserOption), Boolean(userToInvite), '');
 
         if (isLoading) {
             setIsLoading(false);
@@ -83,8 +79,28 @@ function useOptions() {
             personalDetails,
             currentUserOption,
             headerMessage,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
         };
-    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue, isLoading]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
+
+    const options = useMemo(() => {
+        if (debouncedSearchValue.trim() === '') {
+            return defaultOptions;
+        }
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchValue.trim(), {excludeLogins: CONST.EXPENSIFY_EMAILS});
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || Boolean(filteredOptions.currentUserOption),
+            Boolean(filteredOptions.userToInvite),
+            debouncedSearchValue,
+        );
+
+        return {
+            ...filteredOptions,
+            headerMessage,
+        };
+    }, [debouncedSearchValue, defaultOptions]);
 
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }

@@ -2313,7 +2313,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
             userToInvite: null,
-            currentUserOption: null,
+            currentUserOption: options.currentUserOption,
             categoryOptions: [],
             tagOptions: [],
             taxRatesOptions: [],
