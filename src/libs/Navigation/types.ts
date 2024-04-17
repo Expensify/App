@@ -300,8 +300,8 @@ type NewChatNavigatorParamList = {
     };
 };
 
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH_ROOT]: undefined;
+type ChatFinderNavigatorParamList = {
+    [SCREENS.CHAT_FINDER_ROOT]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -361,6 +361,7 @@ type RoomMembersNavigatorParamList = {
 type RoomInviteNavigatorParamList = {
     [SCREENS.ROOM_INVITE_ROOT]: {
         reportID: string;
+        role?: 'accountant';
     };
 };
 
@@ -477,6 +478,7 @@ type MoneyRequestNavigatorParamList = {
         currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
@@ -612,7 +614,7 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.CHAT_FINDER]: NavigatorScreenParams<ChatFinderNavigatorParamList>;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
 };
 
@@ -788,7 +790,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & ChatFinderNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
@@ -832,7 +834,7 @@ export type {
     ParticipantsNavigatorParamList,
     RoomMembersNavigatorParamList,
     RoomInviteNavigatorParamList,
-    SearchNavigatorParamList,
+    ChatFinderNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     TeachersUniteNavigatorParamList,

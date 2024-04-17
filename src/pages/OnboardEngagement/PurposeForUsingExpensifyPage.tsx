@@ -86,7 +86,7 @@ function PurposeForUsingExpensifyModal() {
             return Navigation.navigate(ROUTES.ONBOARD_MANAGE_EXPENSES);
         }
 
-        Report.completeEngagementModal(message, choice);
+        Report.completeEngagementModal(choice, message);
         Report.navigateToConciergeChat(true);
     }, []);
 
