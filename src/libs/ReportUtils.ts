@@ -5198,6 +5198,14 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+/**
+ *
+ * Checks if report is in read-only mode.
+ */
+function isReadOnly(report: OnyxEntry<Report>): boolean {
+    return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) ?? false;
+}
+
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getAddWorkspaceRoomOrChatReportErrors(report);
 
@@ -5206,7 +5214,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
-    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
+    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && !isReadOnly(report);
 }
 
 /**
@@ -5988,13 +5996,6 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
     }
 
     return isChatRoom(report) && !isThread(report);
-}
-/**
- *
- * Checks if report is in read-only mode.
- */
-function isReadOnly(report: OnyxEntry<Report>): boolean {
-    return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) ?? false;
 }
 
 export {

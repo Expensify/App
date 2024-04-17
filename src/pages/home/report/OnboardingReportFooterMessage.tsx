@@ -1,8 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -16,8 +15,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, Report} from '@src/types/onyx';
 
-type OnboardingReportFooterMessageOnyxProps = {reports: OnyxCollection<Report>; policies: OnyxCollection<PolicyType>};
-type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps & {choice: ValueOf<typeof CONST.INTRO_CHOICES>};
+// TODO: Use a proper choice type
+type OnboardingReportFooterMessageOnyxProps = {choice: OnyxEntry<string>; reports: OnyxCollection<Report>; policies: OnyxCollection<PolicyType>};
+type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps;
 
 function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingReportFooterMessageProps) {
     const {translate} = useLocalize();
@@ -83,6 +83,9 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
 }
 OnboardingReportFooterMessage.displayName = 'OnboardingReportFooterMessage';
 export default withOnyx<OnboardingReportFooterMessageProps, OnboardingReportFooterMessageOnyxProps>({
+    choice: {
+        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

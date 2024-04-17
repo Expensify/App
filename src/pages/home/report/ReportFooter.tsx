@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import OnboardingReportFooterMessage from './OnboardingReportFooterMessage';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 
 type ReportFooterOnyxProps = {
@@ -81,6 +82,7 @@ function ReportFooter({
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
+    const isReadOnlyReport = ReportUtils.isReadOnly(report);
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -124,6 +126,10 @@ function ReportFooter({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask],
     );
+
+    if (isReadOnlyReport) {
+        <OnboardingReportFooterMessage />;
+    }
 
     return (
         <>
