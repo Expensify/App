@@ -94,11 +94,11 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
-    const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
-    const canLeavePolicyExpenseChat = ReportUtils.canLeavePolicyExpenseChat(report, policy);
+    const isPolicyEmployee = useMemo(() => !isEmptyObject(policy), [policy]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyEmployee);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
+    const canLeavePolicyExpenseChat = ReportUtils.canLeavePolicyExpenseChat(report, policy);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report.reportID);
     const shouldShowSubtitle = () => {
@@ -153,7 +153,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyMember;
+        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),

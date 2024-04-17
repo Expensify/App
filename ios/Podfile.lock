@@ -1793,24 +1793,7 @@ PODS:
     - React-Core
     - RNFBApp
   - RNFlashList (1.6.3):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.14.1):
@@ -2560,7 +2543,7 @@ SPEC CHECKSUMS:
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
   RNFBCrashlytics: 2061ca863e8e2fa1aae9b12477d7dfa8e88ca0f9
   RNFBPerf: 389914cda4000fe0d996a752532a591132cbf3f9
-  RNFlashList: 5b0e8311e4cf1ad91e410fd7c8526a89fb5826d1
+  RNFlashList: 4b4b6b093afc0df60ae08f9cbf6ccd4c836c667a
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 1190c218cdaaf029ee1437076a3fbbc3297d89fb
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
