@@ -284,14 +284,14 @@ function MoneyRequestParticipantsSelector({participants, navigateToRequest, navi
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                        message="iou.error.splitExpenseMultipleParticipantsErrorMessage"
                     />
                 )}
 
                 {!!participants.length && (
                     <Button
                         success
-                        text={translate('iou.addToSplit')}
+                        text={translate('common.next')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
                         large

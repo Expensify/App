@@ -63,7 +63,7 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
-    /** The reportID of the request */
+    /** The reportID of the current report */
     reportID: string;
 };
 

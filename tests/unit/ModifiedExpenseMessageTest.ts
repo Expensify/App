@@ -347,7 +347,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the request';
+                const expectedResult = 'changed the expense';
 
                 const result = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
 
