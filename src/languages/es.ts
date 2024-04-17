@@ -615,6 +615,8 @@ export default {
         addToSplit: 'Añadir para dividir',
         splitBill: 'Dividir factura',
         request: 'Solicitar',
+        categorize: 'Categorizar',
+        share: 'Compartir',
         participants: 'Participantes',
         requestMoney: 'Pedir dinero',
         sendMoney: 'Enviar dinero',
@@ -3044,6 +3046,12 @@ export default {
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Aceptar',
         decline: 'Rechazar',
+    },
+    actionableMentionTrackExpense: {
+        request: 'Pedirle a alguien que lo pague',
+        categorize: 'Categorizarlo',
+        share: 'Compartirlo con mi contador',
+        nothing: 'Por ahora, nada',
     },
     moderation: {
         flagDescription: 'Todos los mensajes marcados se enviarán a un moderador para su revisión.',
