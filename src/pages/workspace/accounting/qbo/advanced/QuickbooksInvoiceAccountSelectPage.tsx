@@ -41,7 +41,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
-            accountOptions?.map(({id,name}) => ({
+            accountOptions?.map(({id, name}) => ({
                 value: id,
                 text: name,
                 keyForList: id,
