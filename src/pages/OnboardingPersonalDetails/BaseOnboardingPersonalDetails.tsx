@@ -49,7 +49,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     }, []);
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
-        if(!shouldValidateOnChange) {
+        if (!shouldValidateOnChange) {
             setShouldValidateOnChange(true);
         }
 
