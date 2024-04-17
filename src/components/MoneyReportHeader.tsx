@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -10,6 +11,8 @@ import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,8 +23,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
+import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
+import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
 
@@ -56,6 +61,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
 
 function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, transactionThreadReport, reportActions}: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
@@ -83,6 +89,9 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
+    const transactionIDs = TransactionUtils.getAllReportTransactions(chatReport?.reportID).map((transaction) => transaction.transactionID);
+    const haveAllPendingRTERViolation = TransactionUtils.haveAllPendingRTERViolation(transactionIDs);
+
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
             return;
@@ -97,9 +106,9 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !haveAllPendingRTERViolation;
 
-    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
+    const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0 && !haveAllPendingRTERViolation;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
     const shouldShowNextStep = !ReportUtils.isClosedExpenseReportWithNoExpenses(moneyRequestReport) && isFromPaidPolicy && !!nextStep?.message?.length;
@@ -188,7 +197,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth) && !haveAllPendingRTERViolation}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -226,6 +235,20 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     </View>
                 )}
             </HeaderWithBackButton>
+            {haveAllPendingRTERViolation && (
+                <MoneyRequestHeaderStatusBar
+                    title={
+                        <Icon
+                            src={Expensicons.Hourglass}
+                            height={variables.iconSizeExtraSmall}
+                            width={variables.iconSizeExtraSmall}
+                            fill={theme.textSupporting}
+                        />
+                    }
+                    description={translate('iou.pendingMatchWithCreditCardDescription')}
+                    shouldShowBorderBottom
+                />
+            )}
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
                 {shouldShowSettlementButton && isSmallScreenWidth && (
                     <View style={[styles.ph5, styles.pb2]}>

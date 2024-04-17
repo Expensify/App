@@ -16,7 +16,6 @@ import * as NumberUtils from './NumberUtils';
 import {getCleanedTagName} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
@@ -26,6 +25,13 @@ Onyx.connect({
         }
         allTransactions = Object.fromEntries(Object.entries(value).filter(([, transaction]) => !!transaction));
     },
+});
+
+let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => (allTransactionViolations = value),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -514,6 +520,10 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
     return Boolean(transaction && !isDistanceRequest(transaction) && !isReceiptBeingScanned(transaction) && areRequiredFieldsEmpty(transaction));
 }
 
+function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
+    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
+}
+
 /**
  * Check if there is pending rter violation in transactionViolations.
  */
@@ -521,6 +531,13 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
     return Boolean(
         transactionViolations?.some((transactionViolation: TransactionViolation) => transactionViolation.name === CONST.VIOLATIONS.RTER && transactionViolation.data?.pendingPattern),
     );
+}
+
+/**
+ * Check if there is pending rter violation in transactionViolations.
+ */
+function haveAllPendingRTERViolation(transactionIds: string[]): boolean {
+    return transactionIds.map((transactionId) => hasPendingRTERViolation(getTransactionViolations(transactionId, allTransactionViolations))).every((value) => value);
 }
 
 /**
@@ -627,10 +644,6 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
     );
 }
 
-function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolations> | null): TransactionViolations | null {
-    return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
-}
-
 /**
  * this is the formulae to calculate tax
  */
@@ -715,6 +728,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    haveAllPendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
