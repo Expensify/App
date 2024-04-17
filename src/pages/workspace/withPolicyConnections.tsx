@@ -22,7 +22,7 @@ type WithPolicyConnectionsProps = WithPolicyProps;
  * For other policies, the connections data needs to be fetched when it's needed.
  */
 function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps>) {
-    function WithPolicyConnections({policy, policyMembers, policyDraft, policyMembersDraft, route}: WithPolicyConnectionsProps) {
+    function WithPolicyConnections({policy, policyDraft, route}: WithPolicyConnectionsProps) {
         const {isOffline} = useNetwork();
         const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? ''}` as const, {
             initWithStoredValues: false,
@@ -44,9 +44,7 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
                     <FullPageOfflineBlockingView>
                         <WrappedComponent
                             policy={policy}
-                            policyMembers={policyMembers}
                             policyDraft={policyDraft}
-                            policyMembersDraft={policyMembersDraft}
                             route={route}
                         />
                     </FullPageOfflineBlockingView>
@@ -59,9 +57,7 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
         return (
             <WrappedComponent
                 policy={policy}
-                policyMembers={policyMembers}
                 policyDraft={policyDraft}
-                policyMembersDraft={policyMembersDraft}
                 route={route}
             />
         );
