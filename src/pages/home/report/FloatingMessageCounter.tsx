@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {Animated, View} from 'react-native';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -7,7 +8,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useNativeDriver from '@libs/useNativeDriver';
 import CONST from '@src/CONST';
 
 type FloatingMessageCounterProps = {
@@ -25,20 +25,18 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}}: Floating
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const translateY = useMemo(() => new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y), []);
+    const translateY = useSharedValue(MARKER_INACTIVE_TRANSLATE_Y);
 
     const show = useCallback(() => {
-        Animated.spring(translateY, {
-            toValue: MARKER_ACTIVE_TRANSLATE_Y,
-            useNativeDriver,
-        }).start();
+        'worklet';
+
+        translateY.value = withSpring(MARKER_ACTIVE_TRANSLATE_Y);
     }, [translateY]);
 
     const hide = useCallback(() => {
-        Animated.spring(translateY, {
-            toValue: MARKER_INACTIVE_TRANSLATE_Y,
-            useNativeDriver,
-        }).start();
+        'worklet';
+
+        translateY.value = withSpring(MARKER_INACTIVE_TRANSLATE_Y);
     }, [translateY]);
 
     useEffect(() => {
@@ -49,10 +47,15 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}}: Floating
         }
     }, [isActive, show, hide]);
 
+    const wrapperStyle = useAnimatedStyle(() => ({
+        ...styles.floatingMessageCounterWrapper,
+        transform: [{translateY: translateY.value}],
+    }));
+
     return (
         <Animated.View
             accessibilityHint={translate('accessibilityHints.scrollToNewestMessages')}
-            style={styles.floatingMessageCounterWrapper(translateY)}
+            style={wrapperStyle}
         >
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>

@@ -3333,14 +3333,13 @@ const styles = (theme: ThemeColors) =>
             height: variables.communicationsLinkHeight,
         },
 
-        floatingMessageCounterWrapper: (translateY: AnimatableNumericValue) => ({
+        floatingMessageCounterWrapper: {
             position: 'absolute',
             left: '50%',
             top: 0,
             zIndex: 100,
-            transform: [{translateY}],
             ...visibility.hidden,
-        }),
+        },
 
         floatingMessageCounter: {
             left: '-50%',
