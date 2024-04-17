@@ -2,6 +2,7 @@ import {useEffect} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,6 +36,10 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
             openPolicyAccountingPage(policy.id);
         }, [hasConnectionsDataBeenFetched, policy]);
 
+        if (!hasConnectionsDataBeenFetched) {
+            return <FullScreenLoadingIndicator />;
+        }
+
         if (!policy?.connections) {
             if (isOffline) {
                 return (
@@ -50,7 +55,7 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
                 );
             }
 
-            return null;
+            throw new Error('Policy connections data should be fetched before rendering the component');
         }
 
         return (
