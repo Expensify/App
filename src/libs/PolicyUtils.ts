@@ -6,7 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
-import type PolicyMember from '@src/types/onyx/PolicyMember';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
@@ -320,7 +319,17 @@ function getPolicyIDFromNavigationState() {
 }
 
 function getAdminEmailList(policy: Policy | null) {
-    return policy?.employeeList?.filter((employee: PolicyMember) => employee?.role === CONST.POLICY.ROLE.ADMIN).map((admin) => admin.email);
+    const adminEmailList: Array<{email: string}> = [];
+    if (!policy?.employeeList) {
+        return adminEmailList;
+    }
+    Object.keys(policy.employeeList).forEach((email: string) => {
+        if (policy?.employeeList?.[email].role !== CONST.POLICY.ROLE.ADMIN) {
+            return;
+        }
+        adminEmailList.push({email});
+    });
+    return adminEmailList;
 }
 
 export {
