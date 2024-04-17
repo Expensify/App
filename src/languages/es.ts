@@ -679,7 +679,7 @@ export default {
             `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
-        threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: 'Selecciona una etiqueta para organizar mejor tu dinero.',
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {

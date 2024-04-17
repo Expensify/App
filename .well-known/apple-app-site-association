@@ -33,10 +33,6 @@
                         "comment": "I Owe You reports"
                     },
                     {
-                        "/": "/request/*",
-                        "comment": "Submit Expense"
-                    },
-                    {
                         "/": "/enable-payments/*",
                         "comment": "Payments setup"
                     },

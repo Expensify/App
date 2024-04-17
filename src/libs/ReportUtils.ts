@@ -2645,7 +2645,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 
     const transactionDetails = getTransactionDetails(transaction);
 
-    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadExpenseReportName', {
+    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadPaySomeoneReportName' : 'iou.threadExpenseReportName', {
         formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
         comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
     });
@@ -5029,7 +5029,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * - Split options should show for:
  *     - DMs
  *     - chat/policy rooms with more than 1 participant
- *     - groups chats with 3 and more participants
+ *     - groups chats with 2 and more participants
  *     - corporate workspace chats
  * - Track expense option should show for:
  *    - Self DMs
