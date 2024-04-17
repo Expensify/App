@@ -10,7 +10,6 @@ import type {
     NavigationOptionsRouteProps,
     PlatformStackNavigationEventMap,
     PlatformStackNavigationOptions,
-    PlatformStackNavigator,
     PlatformStackNavigatorProps,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -63,7 +62,7 @@ function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
         );
     }
 
-    return createNavigatorFactory<StackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, PlatformStackNavigator<TStackParams>>(
+    return createNavigatorFactory<StackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
         PlatformStackNavigator,
     )();
 }

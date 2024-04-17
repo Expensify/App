@@ -2,15 +2,14 @@ import {createNavigatorFactory} from '@react-navigation/native';
 import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
-import {isRouteBasedScreenOptions} from '../types';
+import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {
     CommonStackNavigationOptions,
     NavigationOptionsRouteProps,
     PlatformStackNavigationEventMap,
     PlatformStackNavigationOptions,
-    PlatformStackNavigator,
     PlatformStackNavigatorProps,
-} from '../types';
+} from '@libs/Navigation/PlatformStackNavigation/types';
 
 const withPolyfills = (screenOptions?: PlatformStackNavigationOptions): StackNavigationOptions => {
     if (screenOptions === undefined) {
@@ -24,6 +23,7 @@ const withPolyfills = (screenOptions?: PlatformStackNavigationOptions): StackNav
 
 function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
     const Stack = createStackNavigator<TStackParams>();
+
     function PlatformStackNavigator({screenOptions, initialRouteName, children}: PlatformStackNavigatorProps<TStackParams>) {
         const webScreenOptions = isRouteBasedScreenOptions(screenOptions)
             ? (props: NavigationOptionsRouteProps<TStackParams>) => {
@@ -41,7 +41,7 @@ function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
         );
     }
 
-    return createNavigatorFactory<StackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, PlatformStackNavigator<TStackParams>>(
+    return createNavigatorFactory<StackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
         PlatformStackNavigator,
     )();
 }
