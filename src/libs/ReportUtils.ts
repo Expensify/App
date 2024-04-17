@@ -2977,6 +2977,11 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
     return roomName ? `${verb} ${users} ${preposition} ${roomName}` : `${verb} ${users}`;
 }
 
+/**
+ * Get the invoice payer name based on its type:
+ * - Individual - a receiver display name.
+ * - Policy - a receiver policy name.
+ */
 function getInvoicePayerName(report: OnyxEntry<Report>): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
