@@ -3,7 +3,6 @@ import {InteractionManager} from 'react-native';
 import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
-import {DELAY_FACTOR} from './config';
 
 type Props = {
     /** Border radius of the wrapper */
@@ -12,14 +11,26 @@ type Props = {
     /** Height of the item that is to be faded */
     height: number;
 
+    /** Delay before the highlighted item enters */
+    itemEnterDelay?: number;
+
+    /** Duration in which the item enters */
+    itemEnterDuration?: number;
+
+    /** Delay before the item starts to get highlighted */
+    highlightStartDelay?: number;
+
+    /** Duration in which the item gets fully highlighted */
+    highlightStartDuration?: number;
+
+    /** Delay before the item starts to get un-highlighted */
+    highlightEndDelay?: number;
+
+    /** Duration in which the item gets fully un-highlighted */
+    highlightEndDuration?: number;
+
     /** Whether the item should be highlighted */
     shouldHighlight: boolean;
-
-    /** Duration of the highlight animation */
-    highlightDuration?: number;
-
-    /** Delay before the highlight animation starts */
-    delay?: number;
 };
 
 /**
@@ -28,11 +39,14 @@ type Props = {
 export default function useAnimatedHighlightStyle({
     borderRadius,
     shouldHighlight,
-    highlightDuration = CONST.ANIMATED_HIGHLIGHT_DURATION,
-    delay = CONST.ANIMATED_HIGHLIGHT_DELAY,
+    itemEnterDelay = CONST.ANIMATED_HIGHLIGHT_ENTRY_DELAY,
+    itemEnterDuration = CONST.ANIMATED_HIGHLIGHT_ENTRY_DURATION,
+    highlightStartDelay = CONST.ANIMATED_HIGHLIGHT_START_DELAY,
+    highlightStartDuration = CONST.ANIMATED_HIGHLIGHT_START_DURATION,
+    highlightEndDelay = CONST.ANIMATED_HIGHLIGHT_END_DELAY,
+    highlightEndDuration = CONST.ANIMATED_HIGHLIGHT_END_DURATION,
     height,
 }: Props) {
-    const actualDelay = delay * DELAY_FACTOR;
     const repeatableProgress = useSharedValue(0);
     const nonRepeatableProgress = useSharedValue(shouldHighlight ? 0 : 1);
     const theme = useTheme();
@@ -51,14 +65,22 @@ export default function useAnimatedHighlightStyle({
 
         InteractionManager.runAfterInteractions(() => {
             runOnJS(() => {
-                nonRepeatableProgress.value = withDelay(actualDelay, withTiming(1, {duration: highlightDuration, easing: Easing.inOut(Easing.ease)}));
-                repeatableProgress.value = withSequence(
-                    withDelay(actualDelay, withTiming(1, {duration: highlightDuration, easing: Easing.inOut(Easing.ease)})),
-                    withDelay(actualDelay, withTiming(0, {duration: highlightDuration, easing: Easing.inOut(Easing.ease)})),
+                nonRepeatableProgress.value = withDelay(
+                    itemEnterDelay,
+                    withTiming(1, {duration: itemEnterDuration, easing: Easing.inOut(Easing.ease)}, (finished) => {
+                        if (!finished) {
+                            return;
+                        }
+
+                        repeatableProgress.value = withSequence(
+                            withDelay(highlightStartDelay, withTiming(1, {duration: highlightStartDuration, easing: Easing.inOut(Easing.ease)})),
+                            withDelay(highlightEndDelay, withTiming(0, {duration: highlightEndDuration, easing: Easing.inOut(Easing.ease)})),
+                        );
+                    }),
                 );
             })();
         });
-    }, [shouldHighlight, highlightDuration, actualDelay, repeatableProgress, nonRepeatableProgress]);
+    }, [shouldHighlight, itemEnterDelay, itemEnterDuration, highlightStartDelay, highlightStartDuration, highlightEndDelay, highlightEndDuration, repeatableProgress, nonRepeatableProgress]);
 
     return highlightBackgroundStyle;
 }
