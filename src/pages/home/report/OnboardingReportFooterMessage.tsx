@@ -81,7 +81,9 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
         </View>
     );
 }
+
 OnboardingReportFooterMessage.displayName = 'OnboardingReportFooterMessage';
+
 export default withOnyx<OnboardingReportFooterMessageProps, OnboardingReportFooterMessageOnyxProps>({
     choice: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
