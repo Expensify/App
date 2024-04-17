@@ -4357,11 +4357,6 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
-
-    INVOICE_RECEIVER_TYPE: {
-        INDIVIDUAL: 'individual',
-        POLICY: 'policy',
-    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

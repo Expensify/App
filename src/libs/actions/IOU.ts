@@ -863,24 +863,7 @@ function buildOnyxDataForInvoice(
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-    const optimisticData: OnyxUpdate[] = [];
-
-    if (chatReport) {
-        optimisticData.push({
-            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
-            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
-                iouReportID: iouReport.reportID,
-                ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
-            },
-        });
-    }
-
-    optimisticData.push(
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -950,7 +933,22 @@ function buildOnyxDataForInvoice(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
             value: null,
         },
-    );
+    ];
+
+    if (chatReport) {
+        optimisticData.push({
+            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
+            onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                ...chatReport,
+                lastReadTime: DateUtils.getDBTime(),
+                lastMessageTranslationKey: '',
+                iouReportID: iouReport.reportID,
+                ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
+            },
+        });
+    }
 
     if (optimisticPolicyRecentlyUsedCategories.length) {
         optimisticData.push({
@@ -968,21 +966,7 @@ function buildOnyxDataForInvoice(
         });
     }
 
-    const successData: OnyxUpdate[] = [];
-
-    if (isNewChatReport) {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: {
-                pendingFields: null,
-                errorFields: null,
-                isOptimisticReport: false,
-            },
-        });
-    }
-
-    successData.push(
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -1007,7 +991,6 @@ function buildOnyxDataForInvoice(
                 pendingFields: clearedPendingFields,
             },
         },
-
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
@@ -1049,7 +1032,19 @@ function buildOnyxDataForInvoice(
                 },
             },
         },
-    );
+    ];
+
+    if (isNewChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+                isOptimisticReport: false,
+            },
+        });
+    }
 
     const errorKey = DateUtils.getMicroseconds();
 
