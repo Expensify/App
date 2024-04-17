@@ -3033,7 +3033,6 @@ export default {
         reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminada]',
         hiddenMessage: '[Mensaje oculto]',
-        deletedInvoice: '[Factura eliminada]',
     },
     threads: {
         thread: 'Hilo',

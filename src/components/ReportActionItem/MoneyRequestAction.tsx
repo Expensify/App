@@ -116,8 +116,6 @@ function MoneyRequestAction({
             message = 'parentReportAction.reversedTransaction';
         } else if (isTrackExpenseAction) {
             message = 'parentReportAction.deletedExpense';
-        } else if (action.childType === CONST.REPORT.TYPE.INVOICE) {
-            message = 'parentReportAction.deletedInvoice';
         } else {
             message = 'parentReportAction.deletedRequest';
         }

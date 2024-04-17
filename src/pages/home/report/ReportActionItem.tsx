@@ -738,8 +738,6 @@ function ReportActionItem({
                     message = 'parentReportAction.reversedTransaction';
                 } else if (ReportActionsUtils.isTrackExpenseAction(parentReportAction)) {
                     message = 'parentReportAction.deletedExpense';
-                } else if (parentReportAction?.childType === CONST.REPORT.TYPE.INVOICE) {
-                    message = 'parentReportAction.deletedInvoice';
                 } else {
                     message = 'parentReportAction.deletedRequest';
                 }
