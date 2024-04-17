@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
@@ -35,6 +35,12 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Extra symbol to display */
     extraSymbol?: React.ReactNode;
+
+    /** Style for the input */
+    style?: StyleProp<TextStyle>;
+
+    /** Style for the container */
+    containerStyle?: StyleProp<ViewStyle>;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 export default TextInputWithCurrencySymbolProps;

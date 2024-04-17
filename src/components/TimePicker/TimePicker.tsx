@@ -458,7 +458,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                         onSelectionChange={(e) => {
                             setSelectionHour(e.nativeEvent.selection);
                         }}
-                        style={styles.timePickerInput}
+                        style={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, styles.timePickerInput]}
+                        containerStyle={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionHour}
                     />
@@ -484,7 +485,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
                         }}
-                        style={styles.timePickerInput}
+                        style={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, styles.timePickerInput]}
+                        containerStyle={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionMinute}
                     />
