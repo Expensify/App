@@ -108,7 +108,9 @@ function StatusPage({draftStatus, currentUserPersonalDetails}: StatusPageProps) 
 
         InteractionManager.runAfterInteractions(() => {
             // We only want to navigate back if the status RHP modal is still open
+            console.log('We went outside');
             if (Navigation.isDisplayedInModal()) {
+                console.log('We went inside');
                 navigateBackToPreviousScreen();
             }
         });
