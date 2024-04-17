@@ -26,9 +26,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {autoSync, syncPeople, autoCreateVendor, reimbursementAccountID, collectionAccountID, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {autoSync, syncPeople, autoCreateVendor, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])];
+    const invoiceAccountOptions = [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])];
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
@@ -96,8 +97,15 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 wrapperStyle={styles.mv3}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={pendingFields?.reimbursementAccountID || pendingFields?.collectionAccountID}
-                                isActive={Boolean(reimbursementAccountID && collectionAccountID)}
-                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, accountOptions[0].id)}
+                                isActive={Boolean(accountOptions[0]?.id)} // TODO
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                onToggle={() =>
+                                    Policy.updatePolicyConnectionConfig(
+                                        policyID,
+                                        CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID || CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+                                        accountOptions[0]?.id,
+                                    )
+                                }
                             />
 
                             <MenuItemWithTopDescription
@@ -121,8 +129,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
                                 pendingAction={pendingFields?.collectionAccountID}
-                                isActive={Boolean(collectionAccountID)}
-                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, !collectionAccountID)}
+                                isActive={Boolean(invoiceAccountOptions[0]?.id)} // TODO
+                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, invoiceAccountOptions[0]?.id)}
                             />
 
                             <MenuItemWithTopDescription
