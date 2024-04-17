@@ -15,12 +15,12 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {WalletAdditionalDetails} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 
 type SocialSecurityNumberOnyxProps = {
     /** Reimbursement account from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
 };
 
 type SocialSecurityNumberProps = SocialSecurityNumberOnyxProps & SubStepProps;
@@ -31,8 +31,8 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
 
-    if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
-        errors.ssnLast4 = 'bankAccount.error.ssnLast4';
+    if (values.ssn && !ValidationUtils.isValidSSNLastFour(values.ssn)) {
+        errors.ssn = 'bankAccount.error.ssnLast4';
     }
 
     return errors;
@@ -84,7 +84,7 @@ function SocialSecurityNumber({walletAdditionalDetails, onNext, isEditing}: Soci
 SocialSecurityNumber.displayName = 'SocialSecurityNumber';
 
 export default withOnyx<SocialSecurityNumberProps, SocialSecurityNumberOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },

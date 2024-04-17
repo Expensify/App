@@ -13,12 +13,12 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {WalletAdditionalDetails} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 
 type AddressOnyxProps = {
     /** wallet additional details from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
 };
 
 type AddressProps = AddressOnyxProps & SubStepProps;
@@ -92,7 +92,7 @@ function Address({walletAdditionalDetails, onNext, isEditing}: AddressProps) {
 Address.displayName = 'Address';
 
 export default withOnyx<AddressProps, AddressOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },

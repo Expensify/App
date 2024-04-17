@@ -19,7 +19,7 @@ type UseWalletAdditionalDetailsStepFormSubmitParams = Pick<SubStepProps, 'onNext
  */
 export default function useWalletAdditionalDetailsStepFormSubmit({onNext, fieldIds, shouldSaveDraft}: UseWalletAdditionalDetailsStepFormSubmitParams) {
     return useStepFormSubmit<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>({
-        formId: ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM,
+        formId: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
         onNext,
         fieldIds,
         shouldSaveDraft,

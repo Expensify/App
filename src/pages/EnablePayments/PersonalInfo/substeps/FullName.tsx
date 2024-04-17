@@ -15,12 +15,12 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {WalletAdditionalDetails} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 
 type FullNameOnyxProps = {
     /** Wallet Additional Details from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
 };
 
 type FullNameProps = FullNameOnyxProps & SubStepProps;
@@ -30,12 +30,12 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.L
 
 const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
     const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
-    if (values.firstName && !ValidationUtils.isValidLegalName(values.firstName)) {
-        errors.firstName = 'bankAccount.error.firstName';
+    if (values.legalFirstName && !ValidationUtils.isValidLegalName(values.legalFirstName)) {
+        errors.legalFirstName = 'bankAccount.error.firstName';
     }
 
-    if (values.lastName && !ValidationUtils.isValidLegalName(values.lastName)) {
-        errors.lastName = 'bankAccount.error.lastName';
+    if (values.legalLastName && !ValidationUtils.isValidLegalName(values.legalLastName)) {
+        errors.legalLastName = 'bankAccount.error.lastName';
     }
     return errors;
 };
@@ -97,7 +97,7 @@ function FullName({walletAdditionalDetails, onNext, isEditing}: FullNameProps) {
 FullName.displayName = 'FullName';
 
 export default withOnyx<FullNameProps, FullNameOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.REIMBURSEMENT_ACCOUNT is conflicting with ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM
+    // @ts-expect-error: ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
     },

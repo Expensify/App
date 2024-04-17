@@ -15,12 +15,12 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {WalletAdditionalDetails} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 
 type DateOfBirthOnyxProps = {
     /** Reimbursement account from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
 };
 
 type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
@@ -85,7 +85,7 @@ function DateOfBirth({walletAdditionalDetails, onNext, isEditing}: DateOfBirthPr
 DateOfBirth.displayName = 'DateOfBirth';
 
 export default withOnyx<DateOfBirthProps, DateOfBirthOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },

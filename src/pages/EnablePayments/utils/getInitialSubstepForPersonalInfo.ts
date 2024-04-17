@@ -1,5 +1,5 @@
-import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {PersonalInfoStepProps} from '@src/types/form/PersonalBankAccountForm';
+import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import type {PersonalInfoStepProps} from '@src/types/form/WalletAdditionalDetailsForm';
 
 const personalInfoKeys = INPUT_IDS.PERSONAL_INFO_STEP;
 

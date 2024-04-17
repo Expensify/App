@@ -16,16 +16,17 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
-import type {WalletAdditionalDetails} from '@src/types/onyx';
+import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import type {WalletAdditionalDetailsForm} from '@src/types/form/WalletAdditionalDetailsForm';
+import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 import getSubstepValues from '../../utils/getSubstepValues';
 
 type ConfirmationOnyxProps = {
     /** wallet additional details from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetails>;
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
 
     /** The draft values of the bank account being setup */
-    walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetails>;
+    walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetailsForm>;
 };
 
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
@@ -143,11 +144,11 @@ function Confirmation({walletAdditionalDetails, walletAdditionalDetailsDraft, on
 Confirmation.displayName = 'Confirmation';
 
 export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetails: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
     },
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
     walletAdditionalDetailsDraft: {
         key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
     },

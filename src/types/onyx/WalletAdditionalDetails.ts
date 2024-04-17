@@ -6,6 +6,18 @@ type WalletAdditionalQuestionDetails = {
     answer: string[];
 };
 
+type WalletPersonalDetails = {
+    legalFirstName: string;
+    legalLastName: string;
+    dob: string;
+    ssn: string;
+    addressStreet: string;
+    addressCity: string;
+    addressState: string;
+    addressZipCode: string;
+    phoneNumber: string;
+};
+
 type WalletAdditionalDetails = {
     /** Questions returned by Idology */
     questions?: WalletAdditionalQuestionDetails[];
@@ -21,16 +33,10 @@ type WalletAdditionalDetails = {
     additionalErrorMessage?: string;
     isLoading?: boolean;
     errors?: OnyxCommon.Errors;
-    firstName: string;
-    lastName: string;
-    dob: string;
-    ssnLast4: string;
-    addressStreet: string;
-    addressCity: string;
-    addressState: string;
-    addressZipCode: string;
-    phoneNumber: string;
 };
 
+// TODO: refactor into one type after removing old wallet flow
+type WalletAdditionalDetailsRefactor = WalletAdditionalDetails & WalletPersonalDetails;
+
 export default WalletAdditionalDetails;
-export type {WalletAdditionalQuestionDetails};
+export type {WalletAdditionalQuestionDetails, WalletPersonalDetails, WalletAdditionalDetailsRefactor};
