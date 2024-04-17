@@ -238,8 +238,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
             // Check if the file dimensions indicate corruption
-            // The width/height for corrupt file is -1 on android native and 0 on ios native
-            if (!fileData.width || !fileData.height || (fileData.width <= 0 && fileData.height <= 0)) {
+            if (fileData.width === -1 || fileData.height === -1) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }
@@ -287,6 +286,10 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             if (fileDataName && Str.isImage(fileDataName)) {
                 ImageSize.getSize(fileDataUri)
                     .then(({width, height}) => {
+                        // The width/height for corrupt file is -1 on android native and 0 on ios native
+                        if (width <= 0 || height <= 0) {
+                            throw new Error('Image dimensions are invalid.');
+                        }
                         fileDataObject.width = width;
                         fileDataObject.height = height;
                         validateAndCompleteAttachmentSelection(fileDataObject);
