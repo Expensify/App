@@ -5,11 +5,11 @@
 
 declare -r REDIRECTS_FILE="docs/redirects.csv"
 
-duplicates=$(awk -F, 'a[$1]++{print "duplicate redirects are not allowed: " $1}' $REDIRECTS_FILE)
+duplicates=$(awk -F, 'a[$1]++{print $1}' $REDIRECTS_FILE)
 
 if [[ -z "$duplicates" ]]; then
     exit 0
 fi
 
-echo $duplicates
+echo "duplicate redirects are not allowed: $duplicates"
 exit 1
