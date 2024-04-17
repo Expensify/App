@@ -4470,11 +4470,23 @@ function buildOptimisticMoneyRequestEntities(
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
+// Check if the report is empty report
+function isEmptyReport(report: OnyxEntry<Report>): boolean {
+    if (!report) {
+        return true;
+    }
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
+    return !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+}
+
 function isUnread(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
     }
 
+    if (isEmptyReport(report)) {
+        return false;
+    }
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = report.lastVisibleActionCreated ?? '';
     const lastReadTime = report.lastReadTime ?? '';
@@ -4678,8 +4690,8 @@ function shouldReportBeInOptionList({
     if (hasDraftComment || requiresAttentionFromCurrentUser(report)) {
         return true;
     }
-    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(report.reportID);
-    const isEmptyChat = !report.lastMessageText && !report.lastMessageTranslationKey && !lastVisibleMessage.lastMessageText && !lastVisibleMessage.lastMessageTranslationKey;
+
+    const isEmptyChat = isEmptyReport(report);
     const canHideReport = shouldHideReport(report, currentReportId);
 
     // Include reports if they are pinned
