@@ -3,7 +3,9 @@
 # HelpDot - Verifies that redirects.csv does not have any duplicates
 # Duplicate sourceURLs break redirection on cloudflare pages
 
-duplicates=$(awk -F, 'a[$1]++{print "duplicate redirects are not allowed: " $1}' docs/redirects.csv)
+declare -r REDIRECTS_FILE="docs/redirects.csv"
+
+duplicates=$(awk -F, 'a[$1]++{print "duplicate redirects are not allowed: " $1}' $REDIRECTS_FILE)
 
 if [[ -z "$duplicates" ]]; then
     exit 0
