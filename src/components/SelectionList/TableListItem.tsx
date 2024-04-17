@@ -60,6 +60,7 @@ function TableListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (
                 <>

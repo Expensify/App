@@ -30,6 +30,7 @@ function BaseListItem<TItem extends ListItem>({
     isFocused,
     shouldSyncFocus = true,
     onFocus = () => {},
+    hoverStyle,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -69,7 +70,7 @@ function BaseListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={!item.isDisabled && !item.isSelected && styles.hoveredComponentBG}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                 nativeID={keyForList ?? ''}

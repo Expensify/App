@@ -154,6 +154,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
     shouldSyncFocus?: boolean;
+    hoverStyle?: StyleProp<ViewStyle>;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
