@@ -26,9 +26,6 @@ type PendingChatMember = {
 type Participant = {
     hidden?: boolean;
     role?: 'admin' | 'member';
-    // TODO: Confirm
-    type?: 'policy' | 'individual';
-    policyID?: string;
 };
 
 type Participants = Record<number, Participant>;
