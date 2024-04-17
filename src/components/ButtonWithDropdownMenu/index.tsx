@@ -98,7 +98,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton, !isSplit && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        iconRight={getIconRightButton}
+                        customRightIcon={getIconRightButton()}
                         shouldShowRightIcon={!isSplit}
                     />
 

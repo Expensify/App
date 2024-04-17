@@ -115,6 +115,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
+
+    /** The custom icon to display to the right of the text */
+    customRightIcon?: React.ReactNode;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -198,6 +201,7 @@ function Button(
 
         id = '',
         accessibilityLabel = '',
+        customRightIcon,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View | HTMLDivElement>,
@@ -253,13 +257,15 @@ function Button(
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
-                            <Icon
-                                src={iconRight}
-                                fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
-                                small={small}
-                                medium={medium}
-                                large={large}
-                            />
+                            {customRightIcon ?? (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={small}
+                                    medium={medium}
+                                    large={large}
+                                />
+                            )}
                         </View>
                     )}
                 </View>
