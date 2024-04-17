@@ -390,8 +390,8 @@ function ReportActionItem({
             const transactionID = (action?.originalMessage as OriginalMessageActionableTrackedExpenseWhisper['originalMessage'])?.transactionID;
             return [
                 {
-                    text: 'actionableMentionTrackExpense.request',
-                    key: `${action.reportActionID}-actionableMentionTrackExpense-request`,
+                    text: 'actionableMentionTrackExpense.submit',
+                    key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
                         ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.MOVE, action.reportActionID);
                     },

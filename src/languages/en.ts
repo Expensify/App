@@ -2558,7 +2558,7 @@ export default {
         decline: 'Decline',
     },
     actionableMentionTrackExpense: {
-        request: 'Request someone to pay it',
+        submit: 'Submit it to someone',
         categorize: 'Categorize it',
         share: 'Share it with my accountant',
         nothing: 'Nothing for now',

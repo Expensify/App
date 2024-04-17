@@ -3025,7 +3025,7 @@ export default {
         decline: 'Rechazar',
     },
     actionableMentionTrackExpense: {
-        request: 'Pedirle a alguien que lo pague',
+        submit: 'Pedirle a alguien que lo pague',
         categorize: 'Categorizarlo',
         share: 'Compartirlo con mi contador',
         nothing: 'Por ahora, nada',
