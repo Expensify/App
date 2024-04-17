@@ -358,7 +358,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onSelectRow={(item) => isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item)}
+            onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
             footerContent={footerContent}
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
