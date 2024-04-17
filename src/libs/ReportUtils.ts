@@ -1172,6 +1172,9 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return false;
     }
+    // If this policy isn't owned by Expensify,
+    // Account manager/guide should not have the workspace join request pinned to their LHN, 
+    // since they are not a part of the company, and should not action it on their behalf.
     if (report.policyID) {
         const policy = getPolicy(report.policyID);
         if (!PolicyUtils.isExpensifyTeam(policy.owner) && PolicyUtils.isExpensifyTeam(currentUserPersonalDetails?.login)) {
