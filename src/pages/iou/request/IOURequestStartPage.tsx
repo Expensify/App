@@ -1,4 +1,4 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
