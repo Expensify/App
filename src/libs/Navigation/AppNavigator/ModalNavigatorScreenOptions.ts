@@ -1,5 +1,5 @@
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import {CardStyleInterpolators} from '@react-navigation/stack';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ThemeStyles} from '@styles/index';
 
 /**
@@ -7,7 +7,7 @@ import type {ThemeStyles} from '@styles/index';
  * @param themeStyles - The styles object
  * @returns The screen options object
  */
-const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles): StackNavigationOptions => ({
+const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles): PlatformStackNavigationOptions => ({
     headerShown: false,
     animationEnabled: true,
     gestureDirection: 'horizontal',

@@ -8,7 +8,6 @@ import createModalCardStyleInterpolator from './createModalCardStyleInterpolator
 import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import leftModalNavigatorOptions from './leftModalNavigatorOptions';
-import transition from './transition';
 
 type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => StackNavigationOptions;
 
@@ -41,7 +40,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...getRightModalNavigatorOptions(isSmallScreenWidth),
             ...hideKeyboardOnSwipe,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
-            animation: transition,
             ...hideKeyboardOnSwipe,
         },
         onboardingModalNavigator: (shouldUseNarrowLayout: boolean) => ({
