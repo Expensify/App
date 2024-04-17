@@ -48,7 +48,7 @@ export default {
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
-        SECURE_EXPENSIFY_URL: stagingExpensifyURL,
+        SECURE_EXPENSIFY_URL: secureExpensifyUrl,
         NEW_EXPENSIFY_URL: newExpensifyURL,
 
         // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (defined below)
