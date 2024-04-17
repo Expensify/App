@@ -82,7 +82,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                         <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboAccount')} />
 
                         <SelectionList
-                            sections={[{data: qboOnlineSelectorOptions ?? []}]}
+                            sections={[{data: qboOnlineSelectorOptions}]}
                             ListItem={RadioListItem}
                             headerContent={listHeaderComponent}
                             onSelectRow={saveSelection}
