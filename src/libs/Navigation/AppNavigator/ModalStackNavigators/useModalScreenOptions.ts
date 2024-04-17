@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/createPlatformStackNavigator/types';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ThemeStyles} from '@src/styles';
 import subRouteOptions from './modalStackNavigatorOptions';
 

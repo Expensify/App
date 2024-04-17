@@ -1,4 +1,4 @@
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/createPlatformStackNavigator/types';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 const defaultSubRouteOptions: PlatformStackNavigationOptions = {
     headerShown: false,
