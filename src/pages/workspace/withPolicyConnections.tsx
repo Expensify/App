@@ -1,8 +1,10 @@
 import {useEffect} from 'react';
 import type {ComponentType} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import ONYXKEYS from '@src/ONYXKEYS';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -21,16 +23,17 @@ type WithPolicyConnectionsProps = WithPolicyProps;
 function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps>) {
     function WithPolicyConnections({policy, policyMembers, policyDraft, policyMembersDraft, route}: WithPolicyConnectionsProps) {
         const {isOffline} = useNetwork();
+        const hasConnectionsDataBeenFetched = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? ''}` as const, {initWithStoredValues: false});
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (!policy || !policy.areConnectionsEnabled || !!policy.connections || !policy.id) {
+            if (!policy || !policy.areConnectionsEnabled || hasConnectionsDataBeenFetched || !!policy.connections) {
                 return;
             }
 
             openPolicyAccountingPage(policy.id);
-        }, [policy]);
+        }, [hasConnectionsDataBeenFetched, policy]);
 
         if (!policy?.connections) {
             if (isOffline) {
