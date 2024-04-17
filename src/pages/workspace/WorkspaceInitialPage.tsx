@@ -61,7 +61,7 @@ function dismissError(policyID: string) {
     Policy.removeWorkspace(policyID);
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -101,7 +101,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         ReimbursementAccount.navigateToBankAccountRoute(policyID);
     }, [policyID, policyName]);
 
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
+    const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);

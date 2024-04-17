@@ -157,7 +157,7 @@ const ONYXKEYS = {
     FREQUENTLY_USED_EMOJIS: 'nvp_expensify_frequentlyUsedEmojis',
 
     /** The NVP with the last distance rate used per policy */
-    NVP_LAST_SELECTED_DISTANCE_RATES: 'lastSelectedDistanceRates',
+    NVP_LAST_SELECTED_DISTANCE_RATES: 'nvp_expensify_lastSelectedDistanceRates',
 
     /** The NVP with the last action taken (for the Quick Action Button) */
     NVP_QUICK_ACTION_GLOBAL_CREATE: 'nvp_quickActionGlobalCreate',
@@ -312,9 +312,7 @@ const ONYXKEYS = {
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
-        POLICY_MEMBERS: 'policyMembers_',
         POLICY_DRAFTS: 'policyDrafts_',
-        POLICY_MEMBERS_DRAFTS: 'policyMembersDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
         POLICY_CATEGORIES: 'policyCategories_',
         POLICY_RECENTLY_USED_CATEGORIES: 'policyRecentlyUsedCategories_',
@@ -526,10 +524,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.POLICY_DRAFTS]: OnyxTypes.Policy;
     [ONYXKEYS.COLLECTION.POLICY_CATEGORIES]: OnyxTypes.PolicyCategories;
     [ONYXKEYS.COLLECTION.POLICY_TAGS]: OnyxTypes.PolicyTagList;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMembers;
-    [ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS]: OnyxTypes.PolicyMember;
     [ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES]: OnyxTypes.RecentlyUsedCategories;
-    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMembers;
+    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyEmployeeList;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: OnyxTypes.InvitedEmailsToAccountIDs;
     [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT]: string;
     [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;

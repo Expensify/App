@@ -94,10 +94,11 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
-    const isPolicyMember = useMemo(() => !isEmptyObject(policy), [policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyMember);
+    const isPolicyEmployee = useMemo(() => !isEmptyObject(policy), [policy]);
+    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyEmployee);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
+    const canLeavePolicyExpenseChat = ReportUtils.canLeavePolicyExpenseChat(report, policy);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report.reportID);
     const shouldShowSubtitle = () => {
@@ -142,9 +143,9 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom);
+    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
-    const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom);
+    const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     if (canJoin) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
@@ -152,7 +153,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED && isPolicyMember;
+        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
