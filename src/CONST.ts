@@ -1207,12 +1207,6 @@ const CONST = {
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
-    QBO_SELECTOR_OPTIONS: {
-        CROISSANT_CO_PAYROLL_ACCOUNT: 'CroissantCoPayrollAccount',
-        CROISSANT_CO_MONEY_IN_CLEARING: 'CroissantCoMoneyInClearing',
-        CROISSANT_CO_DEBTS_AND_LOANS: 'CroissantCoDebtsAndLoans',
-    },
-
     INTEGRATION_ENTITY_MAP_TYPES: {
         DEFAULT: 'DEFAULT',
         NONE: 'NONE',
