@@ -59,7 +59,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -1041,7 +1041,12 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
 
     // Find the latest report actions from other users
     const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
-        if (current.actorAccountID !== currentUserAccountID && (!latest || current.created > latest.created)) {
+        if (
+            current.actorAccountID !== currentUserAccountID &&
+            (!latest || current.created > latest.created) &&
+            // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER)
+        ) {
             return current;
         }
         return latest;
@@ -2181,8 +2186,8 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         Modal.close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : false;
+            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
@@ -3172,6 +3177,54 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
+    const message = reportAction?.message?.[0];
+    if (!message) {
+        return;
+    }
+
+    const updatedMessage: Message = {
+        ...message,
+        resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    message: [updatedMessage],
+                    originalMessage: {
+                        resolution: CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    message: [message],
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const params = {
+        reportActionID: reportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.DISMISS_TRACK_EXPENSE_ACTIONABLE_WHISPER, params, {optimisticData, failureData});
+}
+
 function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
@@ -3248,6 +3301,7 @@ export {
     clearReportFieldErrors,
     resolveActionableMentionWhisper,
     updateRoomVisibility,
+    dismissTrackExpenseActionableWhisper,
     setGroupDraft,
     clearGroupChat,
     startNewChat,
