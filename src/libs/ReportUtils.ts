@@ -5989,6 +5989,13 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
 
     return isChatRoom(report) && !isThread(report);
 }
+/**
+ *
+ * Checks if report is in read-only mode.
+ */
+function isReadOnly(report: OnyxEntry<Report>): boolean {
+    return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) ?? false;
+}
 
 export {
     getReportParticipantsTitle,
@@ -6228,6 +6235,7 @@ export {
     buildParticipantsFromAccountIDs,
     canReportBeMentionedWithinPolicy,
     getAllHeldTransactions,
+    isReadOnly,
 };
 
 export type {
