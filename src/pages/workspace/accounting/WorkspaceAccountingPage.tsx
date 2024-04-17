@@ -30,6 +30,7 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ConnectToQuickbooksOnlineButton from './qboConnectionButton';
 
@@ -45,7 +46,47 @@ type WorkspaceAccountingPageProps = WithPolicyAndFullscreenLoadingProps &
         policy: OnyxEntry<Policy>;
     };
 
-// const AccountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+
+function connectToAccountingIntegrationButton(connectionName: ConnectionName, policyID: string, environmentURL: string) {
+    // eslint-disable-next-line default-case
+    switch (connectionName) {
+        case 'quickbooksOnline':
+            return (
+                <ConnectToQuickbooksOnlineButton
+                    policyID={policyID}
+                    environmentURL={environmentURL}
+                />
+            );
+        case 'xero':
+            return (
+                <ConnectToXeroButton
+                    policyID={policyID}
+                    environmentURL={environmentURL}
+                />
+            );
+    }
+}
+
+function accountingIntegrationIcon(connectionName: ConnectionName) {
+    // eslint-disable-next-line default-case
+    switch (connectionName) {
+        case 'quickbooksOnline':
+            return Expensicons.QBOSquare;
+        case 'xero':
+            return Expensicons.XeroSquare;
+    }
+}
+
+function accountingIntegrationTitleKey(connectionName: ConnectionName) {
+    // eslint-disable-next-line default-case
+    switch (connectionName) {
+        case 'quickbooksOnline':
+            return 'workspace.accounting.qbo';
+        case 'xero':
+            return 'workspace.accounting.xero';
+    }
+}
 
 function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAccountingPageProps) {
     const theme = useTheme();
@@ -60,10 +101,7 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
-    const qboSyncInProgress = isSyncInProgress && connectionSyncProgress.connectionName === 'quickbooksOnline';
-    const xeroSyncInProgress = isSyncInProgress && connectionSyncProgress.connectionName === 'xero';
-    const policyConnectedToQbo = !!policy?.connections?.quickbooksOnline;
-    const policyConnectedToXero = !!policy?.connections?.xero;
+    const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
     const policyID = policy?.id ?? '';
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
@@ -84,47 +122,26 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
-            return [
-                {
-                    icon: Expensicons.QBOSquare,
-                    iconType: 'avatar',
-                    interactive: false,
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    shouldShowRightComponent: true,
-                    title: translate('workspace.accounting.qbo'),
-                    rightComponent: (
-                        <ConnectToQuickbooksOnlineButton
-                            policyID={policyID}
-                            environmentURL={environmentURL}
-                        />
-                    ),
-                },
-                {
-                    icon: Expensicons.XeroSquare,
-                    iconType: 'avatar',
-                    interactive: false,
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    shouldShowRightComponent: true,
-                    title: translate('workspace.accounting.xero'),
-                    rightComponent: (
-                        <ConnectToXeroButton
-                            policyID={policyID}
-                            environmentURL={environmentURL}
-                        />
-                    ),
-                },
-            ];
-        }
-
-        return [
-            {
-                icon: qboSyncInProgress || policyConnectedToQbo ? Expensicons.QBOSquare : Expensicons.XeroSquare,
+            return accountingIntegrations.map((integration) => ({
+                icon: accountingIntegrationIcon(integration),
                 iconType: 'avatar',
                 interactive: false,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
-                title: qboSyncInProgress || policyConnectedToQbo ? translate('workspace.accounting.qbo') : translate('workspace.accounting.xero'),
-                description: qboSyncInProgress
+                title: translate(accountingIntegrationTitleKey(integration)),
+                rightComponent: connectToAccountingIntegrationButton(integration, policyID, environmentURL),
+            }));
+        }
+
+        return [
+            {
+                icon: accountingIntegrationIcon(connectedIntegration ?? connectionSyncProgress?.connectionName),
+                iconType: 'avatar',
+                interactive: false,
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+                shouldShowRightComponent: true,
+                title: translate(accountingIntegrationTitleKey(connectedIntegration ?? connectionSyncProgress?.connectionName)),
+                description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
                     : translate('workspace.accounting.lastSync'),
                 rightComponent: isSyncInProgress ? (
@@ -150,7 +167,7 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
                     </View>
                 ),
             },
-            ...(policyConnectedToQbo || policyConnectedToXero
+            ...(connectedIntegration
                 ? [
                       {
                           icon: Expensicons.Pencil,
@@ -180,14 +197,14 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
                 : []),
         ];
     }, [
+        connectedIntegration,
+        connectionSyncProgress?.connectionName,
         connectionSyncProgress?.stageInProgress,
         environmentURL,
         isSyncInProgress,
         overflowMenu,
-        policyConnectedToQbo,
-        policyConnectedToXero,
+        policy?.connections,
         policyID,
-        qboSyncInProgress,
         styles.popoverMenuIcon,
         styles.sectionMenuItemTopDescription,
         theme.spinner,
@@ -195,32 +212,17 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
         translate,
     ]);
 
-    const otherIntegrationsItem = useMemo(() => {
-        if (qboSyncInProgress || policyConnectedToQbo) {
-            return {
-                icon: Expensicons.XeroSquare,
-                title: translate('workspace.accounting.xero'),
-                rightComponent: (
-                    <ConnectToXeroButton
-                        policyID={policyID}
-                        environmentURL={environmentURL}
-                    />
-                ),
-            };
+    const otherIntegrationsItems = useMemo(() => {
+        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
+            return;
         }
-        if (xeroSyncInProgress || policyConnectedToXero) {
-            return {
-                icon: Expensicons.QBOSquare,
-                title: translate('workspace.accounting.qbo'),
-                rightComponent: (
-                    <ConnectToQuickbooksOnlineButton
-                        policyID={policyID}
-                        environmentURL={environmentURL}
-                    />
-                ),
-            };
-        }
-    }, [environmentURL, policyConnectedToQbo, policyConnectedToXero, policyID, qboSyncInProgress, translate, xeroSyncInProgress]);
+        const otherIntegrations = accountingIntegrations.filter((integration) => integration !== connectionSyncProgress?.connectionName && integration !== connectedIntegration);
+        return otherIntegrations.map((integration) => ({
+            icon: Expensicons.XeroSquare,
+            title: translate(accountingIntegrationTitleKey(integration)),
+            rightComponent: connectToAccountingIntegrationButton(integration, policyID, environmentURL),
+        }));
+    }, [connectedIntegration, connectionSyncProgress?.connectionName, environmentURL, isSyncInProgress, policy?.connections, policyID, translate]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -271,21 +273,23 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
                                         menuItems={connectionsMenuItems}
                                         shouldUseSingleExecution
                                     />
-                                    {otherIntegrationsItem && (
+                                    {otherIntegrationsItems && (
                                         <CollapsibleSection
                                             title="Other integrations"
                                             wrapperStyle={styles.pr3}
                                             titleStyle={[styles.textNormal, styles.colorMuted]}
                                         >
-                                            <MenuItem
-                                                icon={otherIntegrationsItem.icon}
-                                                iconType="avatar"
-                                                interactive={false}
-                                                shouldShowRightComponent
-                                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                title={otherIntegrationsItem.title}
-                                                rightComponent={otherIntegrationsItem.rightComponent}
-                                            />
+                                            {otherIntegrationsItems.map((integration) => (
+                                                <MenuItem
+                                                    icon={integration.icon}
+                                                    iconType="avatar"
+                                                    interactive={false}
+                                                    shouldShowRightComponent
+                                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                    title={integration.title}
+                                                    rightComponent={integration.rightComponent}
+                                                />
+                                            ))}
                                         </CollapsibleSection>
                                     )}
                                 </Section>
