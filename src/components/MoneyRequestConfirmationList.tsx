@@ -730,7 +730,6 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm}
                     // todo: handle edit for transaction while moving from track expense
                     interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
