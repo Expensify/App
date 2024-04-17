@@ -2486,6 +2486,7 @@ const getConvertTrackedExpenseInformation = (
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
+    resolution: ValueOf<typeof CONST.IOU.ACTION>,
 ) => {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -2537,7 +2538,7 @@ const getConvertTrackedExpenseInformation = (
         value: {
             [actionableWhisperReportActionID]: {
                 originalMessage: {
-                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                    resolution,
                 },
             },
         },
@@ -2593,6 +2594,7 @@ function convertTrackedExpenseToRequest(
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
+        CONST.IOU.ACTION.MOVE,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -2659,6 +2661,7 @@ function categorizeTrackedExpense(
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
+        CONST.IOU.ACTION.CATEGORIZE,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -2728,6 +2731,7 @@ function shareTrackedExpense(
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
+        CONST.IOU.ACTION.SHARE,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
