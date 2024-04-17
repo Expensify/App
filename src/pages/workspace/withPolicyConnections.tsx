@@ -24,7 +24,7 @@ type WithPolicyConnectionsProps = WithPolicyProps;
 function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps>) {
     function WithPolicyConnections({policy, policyDraft, route}: WithPolicyConnectionsProps) {
         const {isOffline} = useNetwork();
-        const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? '0'}` as const, {
+        const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
 
