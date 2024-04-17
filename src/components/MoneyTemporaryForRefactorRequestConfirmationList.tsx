@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
-import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -190,7 +190,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     hasMultipleParticipants,
     selectedParticipants: pickedParticipants,
     payeePersonalDetails,
-    canModifyParticipants = false,
     session,
     isReadOnly = false,
     bankAccountRoute = '',
@@ -228,6 +227,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     // A flag for showing the categories field
     const shouldShowCategories = isPolicyExpenseChat && (!!iouCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    console.log(transaction);
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -339,17 +339,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.setMoneyRequestTaxAmount(transaction?.transactionID ?? '', amountInSmallestCurrencyUnits, true);
     }, [taxRates?.defaultValue, transaction, previousTransactionAmount]);
 
-    /**
-     * Returns the participants with amount
-     */
-    const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]) => {
-            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
-        },
-        [iouAmount, iouCurrencyCode],
-    );
-
     // If completing a split bill fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
@@ -380,45 +369,26 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const selectedParticipants = useMemo(() => pickedParticipants.filter((participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
-    const userCanModifyParticipants = useRef(!isReadOnly && canModifyParticipants && hasMultipleParticipants);
-    useEffect(() => {
-        userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
-    }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
-    const shouldDisablePaidBySection = userCanModifyParticipants.current;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = pickedParticipants.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
+            const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
+            console.log(transaction?.splitShares);
+            console.log(transaction?.splitShares?.[payeeOption.accountID]?.amount);
+            const formattedParticipantsList = [payeeOption, ...selectedParticipants].map((participantOption) => ({
+                ...participantOption,
+                descriptiveText: null,
+                amountValue: transaction?.splitShares?.[participantOption.accountID]?.amount,
+                amountCurrency: iouCurrencyCode,
+                onAmountChange: (value) => {},
+            }));
 
-            if (!canModifyParticipants) {
-                formattedParticipantsList = formattedParticipantsList.map((participant) => ({
-                    ...participant,
-                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
-                }));
-            }
-
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
-            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                personalDetailsOfPayee,
-                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
-            );
-
-            sections.push(
-                {
-                    title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [formattedPayeeOption],
-                    shouldShow: true,
-                    isDisabled: shouldDisablePaidBySection,
-                },
-                {
-                    title: translate('moneyRequestConfirmationList.splitWith'),
-                    data: formattedParticipantsList,
-                    shouldShow: true,
-                },
-            );
+            sections.push({
+                title: translate('moneyRequestConfirmationList.splitWith'),
+                data: formattedParticipantsList,
+                shouldShow: true,
+            });
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
@@ -431,18 +401,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             });
         }
         return sections;
-    }, [
-        selectedParticipants,
-        pickedParticipants,
-        hasMultipleParticipants,
-        iouAmount,
-        iouCurrencyCode,
-        getParticipantsWithAmount,
-        personalDetailsOfPayee,
-        translate,
-        shouldDisablePaidBySection,
-        canModifyParticipants,
-    ]);
+    }, [transaction?.splitShares, selectedParticipants, hasMultipleParticipants, iouCurrencyCode, personalDetailsOfPayee, translate]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
@@ -957,18 +916,16 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
             sections={optionSelectorSections}
-            onSelectRow={userCanModifyParticipants.current ? selectParticipant : navigateToReportOrUserDetail}
+            onSelectRow={navigateToReportOrUserDetail}
             onAddToSelection={selectParticipant}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
-            canSelectMultipleOptions={userCanModifyParticipants.current}
-            disableArrowKeysActions={!userCanModifyParticipants.current}
+            disableArrowKeysActions
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
-            optionHoveredStyle={userCanModifyParticipants.current ? styles.hoveredComponentBG : {}}
             footerContent={!isEditingSplitBill && footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
