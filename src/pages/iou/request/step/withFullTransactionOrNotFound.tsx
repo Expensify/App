@@ -6,6 +6,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import * as IOUUtils from '@libs/IOUUtils';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +69,7 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
                 const transactionID = route.params.transactionID ?? 0;
                 const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
-                if (userAction === CONST.IOU.ACTION.CREATE) {
+                if (userAction === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(userAction)) {
                     return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
                 }
                 return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;

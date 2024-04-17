@@ -31,9 +31,7 @@ function ThreadDivider({ancestor}: ThreadDividerProps) {
             <PressableWithoutFeedback
                 onPress={() => {
                     const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
-                    Navigation.navigate(
-                        ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', isVisibleAction && !isOffline ? ancestor.reportAction.reportActionID : undefined),
-                    );
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', isVisibleAction && !isOffline ? ancestor.reportAction.reportActionID : undefined));
                 }}
                 accessibilityLabel={translate('threads.thread')}
                 role={CONST.ROLE.BUTTON}

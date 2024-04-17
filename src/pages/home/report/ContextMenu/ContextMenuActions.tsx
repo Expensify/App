@@ -1,4 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 import {InteractionManager} from 'react-native';
@@ -170,7 +171,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
-            const messageHtml = reportAction?.message?.at(0)?.html;
+            const messageHtml = getActionHtml(reportAction);
             return (
                 isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction?.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
             );
@@ -383,12 +384,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
+                } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
+                    setClipboardMessage('What would you like to do with this expense?');
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldRequest'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
                 } else if (content) {
-                    setClipboardMessage(content);
+                    setClipboardMessage(
+                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag, innerContent, closeTag): string => {
+                            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
+                            return openTag + modifiedContent + closeTag || '';
+                        }),
+                    );
                 } else if (messageText) {
                     Clipboard.setString(messageText);
                 }
