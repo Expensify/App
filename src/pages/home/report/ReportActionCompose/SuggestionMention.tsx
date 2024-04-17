@@ -280,19 +280,8 @@ function SuggestionMention(
                 return;
             }
 
-            const valueAfterTheCursor = value.substring(selectionEnd);
-            const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
-
-            let suggestionEndIndex;
-            if (indexOfFirstSpecialCharOrEmojiAfterTheCursor === -1) {
-                // We didn't find a special char/whitespace/emoji after the cursor, so we will use the entire string
-                suggestionEndIndex = value.length;
-            } else {
-                suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
-            }
-
             const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
-            const leftString = value.substring(afterLastBreakLineIndex, suggestionEndIndex);
+            const leftString = value.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
@@ -314,6 +303,7 @@ function SuggestionMention(
                 suggestionWord = `${secondToLastWord} ${lastWord}`;
 
                 prefix = suggestionWord.substring(1);
+                prefixType = suggestionWord.substring(0, 1);
             } else {
                 prefix = lastWord.substring(1);
             }
@@ -325,16 +315,14 @@ function SuggestionMention(
                 prefixType,
             };
 
-            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(suggestionWord);
-
-            if (!isCursorBeforeTheMention && isMentionCode(suggestionWord) && prefixType === '@') {
+            if (isMentionCode(suggestionWord) && prefixType === '@') {
                 const suggestions = getUserMentionOptions(personalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
             }
 
             const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
-            if (!isCursorBeforeTheMention && prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
+            if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
                 // filter reports by room name and current policy
                 const filteredRoomMentions = getRoomMentionOptions(prefix, reports);
                 nextState.suggestedMentions = filteredRoomMentions;
