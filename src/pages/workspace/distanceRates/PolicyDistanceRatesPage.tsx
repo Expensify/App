@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -56,6 +56,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
     const policyID = route.params.policyID;
+    const isFocused = useIsFocused();
 
     const customUnit: CustomUnit | undefined = useMemo(
         () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
@@ -93,6 +94,13 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         }, [fetchDistanceRates]),
     );
 
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedDistanceRates([]);
+    }, [isFocused]);
+
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
             Object.values(customUnitRates).map((value) => ({
@@ -119,7 +127,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const openRateDetails = (rate: RateForList) => {
-        setSelectedDistanceRates([]);
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 

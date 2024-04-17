@@ -803,7 +803,7 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[]): string | null {
+function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | null {
     // If the report is not an IOU or Expense report, it shouldn't be treated as one-transaction report.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE) {
@@ -811,7 +811,6 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
     }
 
     const reportActionsArray = Object.values(reportActions ?? {});
-
     if (!reportActionsArray.length) {
         return null;
     }
@@ -823,15 +822,19 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
         CONST.IOU.REPORT_ACTION_TYPE.PAY,
         CONST.IOU.REPORT_ACTION_TYPE.TRACK,
     ];
+
     const iouRequestActions = reportActionsArray.filter(
         (action) =>
             action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
             (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
             action.childReportID &&
-            // Include deleted IOU reportActions if they have visibile childActions (like comments) because we'll want to display
-            // those reports using the standard report view
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            ((isMessageDeleted(action) && action.childVisibleActionCount) || action.originalMessage.IOUTransactionID),
+            // Include deleted IOU reportActions if:
+            // - they have an assocaited IOU transaction ID or
+            // - they have visibile childActions (like comments) that we'd want to display
+            // - the action is pending deletion and the user is offline
+            (Boolean(action.originalMessage.IOUTransactionID)
+            || (isMessageDeleted(action) && action.childVisibleActionCount)
+            || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline)))
     );
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
@@ -1111,6 +1114,10 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
 }
 
+function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
+}
+
 /**
  * Checks if any report actions correspond to a join request action that is still pending.
  * @param reportID
@@ -1195,6 +1202,7 @@ export {
     isCurrentActionUnread,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
+    isActionableTrackExpense,
 };
 
 export type {LastVisibleMessage};
