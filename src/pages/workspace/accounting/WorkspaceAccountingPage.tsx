@@ -30,6 +30,7 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ConnectToQuickbooksOnlineButton from './qboConnectionButton';
 
 type WorkspaceAccountingPageOnyxProps = {
@@ -43,6 +44,8 @@ type WorkspaceAccountingPageProps = WithPolicyAndFullscreenLoadingProps &
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
     };
+
+// const AccountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
 
 function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAccountingPageProps) {
     const theme = useTheme();
@@ -80,7 +83,7 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
     );
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
-        if (!policyConnectedToQbo && !policyConnectedToXero && !isSyncInProgress) {
+        if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return [
                 {
                     icon: Expensicons.QBOSquare,
