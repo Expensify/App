@@ -3029,33 +3029,6 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
 }
 
 /**
- * Get the subtitle for an invoice room.
- */
-function getInvoicesChatSubtitle(report: OnyxEntry<Report>): string {
-    const invoiceReceiver = report?.invoiceReceiver;
-    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
-    const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
-    const invoiceReceiverPolicyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
-    const isCurrentUserReceiver =
-        (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && PolicyUtils.isPolicyEmployee(invoiceReceiverPolicyID, allPolicies));
-
-    if (isCurrentUserReceiver) {
-        let receiver = '';
-
-        if (isIndividual) {
-            receiver = PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiverAccountID]);
-        } else {
-            receiver = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]);
-        }
-
-        return Localize.translateLocal('workspace.invoices.invoicesTo', {receiver});
-    }
-
-    // TODO: Check this flow in a scope of the Invoice V0.3
-    return Localize.translateLocal('workspace.invoices.invoicesFrom', {sender: getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`])});
-}
-
-/**
  * Get the title for a report.
  */
 function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): string {
@@ -3166,6 +3139,9 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     }
     if (isArchivedRoom(report)) {
         return report?.oldPolicyName ?? '';
+    }
+    if (isInvoiceRoom(report)) {
+        return Localize.translateLocal('workspace.common.invoices');
     }
     return getPolicyName(report);
 }
@@ -6208,7 +6184,6 @@ export {
     getDisplayNamesWithTooltips,
     getInvoicePayerName,
     getInvoicesChatName,
-    getInvoicesChatSubtitle,
     getReportName,
     getReport,
     getReportNotificationPreference,

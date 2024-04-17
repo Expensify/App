@@ -30,8 +30,6 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
-    InvoicesFromParams,
-    InvoicesToParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -2148,8 +2146,6 @@ export default {
             unlockVBACopy: "You're all set to accept payments by ACH or credit card!",
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
-            invoicesFrom: ({sender}: InvoicesFromParams) => `Invoices from ${sender}`,
-            invoicesTo: ({receiver}: InvoicesToParams) => `Invoices to ${receiver}`,
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',

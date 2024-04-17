@@ -29,8 +29,6 @@ import type {
     GoBackMessageParams,
     GoToRoomParams,
     InstantSummaryParams,
-    InvoicesFromParams,
-    InvoicesToParams,
     LocalTimeParams,
     LoggedInAsParams,
     LogSizeParams,
@@ -2176,8 +2174,6 @@ export default {
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
-            invoicesFrom: ({sender}: InvoicesFromParams) => `Facturas de ${sender}`,
-            invoicesTo: ({receiver}: InvoicesToParams) => `Facturas a ${receiver}`,
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
