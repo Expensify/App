@@ -51,7 +51,7 @@ type AvatarProps = {
     name?: string;
 
     /** ID of the Icon */
-    iconID?: number | string;
+    accountID?: number | string;
 };
 
 function Avatar({
@@ -65,7 +65,7 @@ function Avatar({
     fallbackIconTestID = '',
     type = CONST.ICON_TYPE_AVATAR,
     name = '',
-    iconID,
+    accountID,
 }: AvatarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -92,7 +92,7 @@ function Avatar({
 
     let iconColors;
     if (isWorkspace) {
-        iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(iconID?.toString() ?? '');
+        iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(accountID?.toString() ?? '');
     } else if (useFallBackAvatar) {
         iconColors = StyleUtils.getBackgroundColorAndFill(theme.border, theme.icon);
     } else {

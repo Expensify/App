@@ -151,7 +151,7 @@ function WorkspacesListRow({
                         source={workspaceIcon}
                         fallbackIcon={fallbackWorkspaceIcon}
                         name={title}
-                        iconID={policyID}
+                        accountID={policyID}
                         type={CONST.ICON_TYPE_WORKSPACE}
                     />
                     <Text

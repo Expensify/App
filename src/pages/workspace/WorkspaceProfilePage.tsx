@@ -83,7 +83,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
-                iconID={policy?.id ?? ''}
+                accountID={policy?.id ?? ''}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
