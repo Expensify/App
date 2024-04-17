@@ -79,7 +79,7 @@ function IOURequestStepParticipants({
             return;
         }
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
-    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
+    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
 
     const addParticipant = useCallback(
         (val: Participant[], selectedIouType: IOUValueType) => {
@@ -110,22 +110,12 @@ function IOURequestStepParticipants({
         [reportID, transactionID, iouType, participants],
     );
 
-    const goToNextStep = useCallback(
-        (selectedIouType: IOUValueType) => {
-            const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            let nextStepIOUType: IOUValueType = CONST.IOU.TYPE.REQUEST;
-
-            if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
-                nextStepIOUType = CONST.IOU.TYPE.SPLIT;
-            } else if (iouType === CONST.IOU.TYPE.SEND) {
-                nextStepIOUType = CONST.IOU.TYPE.SEND;
-            }
-
+    const goToNextStep = useCallback(() => {
             const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
 
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
-            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, nextStepIOUType, transactionID, selectedReportID.current || reportID);
+            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, selectedReportID.current || reportID);
             if (isCategorizing) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
             } else {
