@@ -135,7 +135,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
-                boldStyle: hasUnreadData(policy?.id),
+                isBold: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
                 isSelected: policy?.id === activeWorkspaceID,
@@ -170,7 +170,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                 },
             ],
             brickRoadIndicator: getIndicatorTypeForPolicy(undefined),
-            boldStyle: hasUnreadData(undefined),
+            isBold: hasUnreadData(undefined),
         };
 
         return (
