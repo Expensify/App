@@ -66,7 +66,7 @@ function FullName({walletAdditionalDetails, onNext, isEditing}: FullNameProps) {
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
             <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('personalInfoStep.enterYourLegalFirstAndLast')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('personalInfoStep.whatsYourLegalName')}</Text>
                 <View style={[styles.flex2, styles.mb6]}>
                     <InputWrapper
                         InputComponent={TextInput}

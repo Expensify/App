@@ -67,7 +67,7 @@ function DateOfBirth({walletAdditionalDetails, onNext, isEditing}: DateOfBirthPr
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.pb5, styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('personalInfoStep.enterYourDateOfBirth')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('personalInfoStep.whatsYourDOB')}</Text>
             <InputWrapper
                 InputComponent={DatePicker}
                 inputID={PERSONAL_INFO_DOB_KEY}

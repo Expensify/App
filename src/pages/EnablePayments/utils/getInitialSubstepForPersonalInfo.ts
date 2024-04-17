@@ -15,11 +15,11 @@ function getInitialSubstepForPersonalInfo(data: PersonalInfoStepProps): number {
         return 1;
     }
 
-    if (data[personalInfoKeys.SSN_LAST_4] === '') {
+    if (data[personalInfoKeys.PHONE_NUMBER] === '') {
         return 2;
     }
 
-    if (data[personalInfoKeys.PHONE_NUMBER] === '') {
+    if (data[personalInfoKeys.SSN_LAST_4] === '') {
         return 3;
     }
 
