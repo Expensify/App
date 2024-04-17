@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
@@ -67,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
 
-    const iconRight = useMemo(
+    const getIconRightButton = useCallback(
         () => (
             <Icon
                 medium={isButtonSizeLarge}
@@ -99,7 +98,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton, !isSplit && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        iconRight={iconRight as IconAsset}
+                        iconRight={getIconRightButton}
                         shouldShowRightIcon={!isSplit}
                     />
 
