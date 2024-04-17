@@ -76,7 +76,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             return [
                 {
                     icon: Expensicons.QBOSquare,
-                    iconType: CONST.ICON_TYPE_AVATAR
+                    iconType: CONST.ICON_TYPE_AVATAR,
                     interactive: false,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     shouldShowRightComponent: true,
