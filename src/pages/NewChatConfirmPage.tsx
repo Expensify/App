@@ -1,19 +1,21 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Avatar from '@components/Avatar';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import TableListItem from '@components/SelectionList/TableListItem';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -35,11 +37,13 @@ type NewChatConfirmPageOnyxProps = {
 type NewChatConfirmPageProps = NewChatConfirmPageOnyxProps;
 
 function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmPageProps) {
+    const optimisticReportID = useRef<string>(ReportUtils.generateReportID());
+    const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
-    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const personalData = useCurrentUserPersonalDetails();
-    const participantAccountIDs = newGroupDraft?.participants.map((participant) => participant.accountID);
+    const participantAccountIDs = (newGroupDraft?.participants ?? []).map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
             return [];
@@ -50,39 +54,34 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         return options;
     }, [allPersonalDetails, newGroupDraft?.participants]);
 
-    const groupName = ReportUtils.getGroupChatName(participantAccountIDs ?? []);
-
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : ReportUtils.getGroupChatName(participantAccountIDs ?? []);
     const sections: ListItem[] = useMemo(
         () =>
             selectedOptions
                 .map((selectedOption: Participant) => {
                     const accountID = selectedOption.accountID;
                     const isAdmin = personalData.accountID === accountID;
-                    let roleBadge = null;
-                    if (isAdmin) {
-                        roleBadge = (
-                            <Badge
-                                text={translate('common.admin')}
-                                textStyles={styles.textStrong}
-                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, styles.activeItemBadge]}
-                            />
-                        );
-                    }
-
                     const section: ListItem = {
                         login: selectedOption?.login ?? '',
                         text: selectedOption?.text ?? '',
                         keyForList: selectedOption?.keyForList ?? '',
                         isSelected: !isAdmin,
                         isDisabled: isAdmin,
-                        rightElement: roleBadge,
                         accountID,
                         icons: selectedOption?.icons,
+                        alternateText: selectedOption?.login ?? '',
+                        rightElement: isAdmin ? (
+                            <Badge
+                                text={translate('common.admin')}
+                                textStyles={styles.textStrong}
+                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
+                            />
+                        ) : undefined,
                     };
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate, styles.textStrong, styles.justifyContentCenter, styles.badgeBordered, styles.activeItemBadge, StyleUtils],
+        [selectedOptions, personalData.accountID, translate, StyleUtils, styles],
     );
 
     /**
@@ -92,22 +91,28 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         if (!newGroupDraft) {
             return;
         }
-        const newSelectedParticipants = newGroupDraft.participants.filter((participant) => participant.login !== option.login);
-        Report.setGroupDraft(newSelectedParticipants);
+        const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant.login !== option.login);
+        Report.setGroupDraft({participants: newSelectedParticipants});
     };
 
     const createGroup = () => {
         if (!newGroupDraft) {
             return;
         }
-        const logins: string[] = newGroupDraft.participants.map((participant) => participant.login);
-        Report.navigateToAndOpenReport(logins, true, groupName);
+
+        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
+        Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current);
     };
 
     const navigateBack = () => {
         Navigation.goBack(ROUTES.NEW_CHAT);
     };
 
+    const navigateToEditChatName = () => {
+        Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
+    };
+
+    const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
     return (
         <ScreenWrapper testID={NewChatConfirmPage.displayName}>
             <HeaderWithBackButton
@@ -115,28 +120,44 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 onBackButtonPress={navigateBack}
             />
             <View style={styles.avatarSectionWrapper}>
-                <Avatar
-                    containerStyles={[styles.avatarXLarge, styles.mb3]}
-                    imageStyles={[styles.avatarXLarge]}
-                    source={ReportUtils.getDefaultGroupAvatar()}
+                <AvatarWithImagePicker
+                    isUsingDefaultAvatar={!stashedLocalAvatarImage}
+                    source={stashedLocalAvatarImage ?? ReportUtils.getDefaultGroupAvatar(optimisticReportID.current)}
+                    onImageSelected={(image) => {
+                        fileRef.current = image;
+                        Report.setGroupDraft({avatarUri: image?.uri ?? ''});
+                    }}
+                    onImageRemoved={() => {
+                        fileRef.current = undefined;
+                        Report.setGroupDraft({avatarUri: null});
+                    }}
                     size={CONST.AVATAR_SIZE.XLARGE}
+                    avatarStyle={styles.avatarXLarge}
+                    shouldDisableViewPhoto
+                    editIcon={Expensicons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
                 />
             </View>
             <MenuItemWithTopDescription
                 title={groupName}
-                interactive={false}
+                onPress={navigateToEditChatName}
+                shouldShowRightIcon
                 shouldCheckActionAllowedOnPress={false}
                 description={translate('groupConfirmPage.groupName')}
+                wrapperStyle={[styles.ph4]}
             />
-            <SelectionList
-                sections={[{data: sections}]}
-                ListItem={TableListItem}
-                onSelectRow={unselectOption}
-                showConfirmButton={selectedOptions.length > 1}
-                confirmButtonText={translate('newChatPage.startGroup')}
-                onConfirm={selectedOptions.length > 1 ? createGroup : undefined}
-                shouldHideListOnInitialRender={false}
-            />
+            <View style={[styles.flex1, styles.mt3]}>
+                <SelectionList
+                    canSelectMultiple
+                    sections={[{title: translate('common.members'), data: sections}]}
+                    ListItem={InviteMemberListItem}
+                    onSelectRow={unselectOption}
+                    showConfirmButton={selectedOptions.length > 1}
+                    confirmButtonText={translate('newChatPage.startGroup')}
+                    onConfirm={selectedOptions.length > 1 ? createGroup : undefined}
+                    shouldHideListOnInitialRender={false}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
