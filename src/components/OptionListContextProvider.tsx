@@ -51,7 +51,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
     });
 
     const personalDetails = usePersonalDetails();
-    const prevPersonalDetails = useRef(personalDetails);
+    const prevPersonalDetails = usePrevious(personalDetails);
     const prevReports = usePrevious(reports);
 
     /**
@@ -121,7 +121,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         }> = [];
 
         Object.keys(personalDetails).forEach((accoutID) => {
-            const prevPersonalDetail = prevPersonalDetails.current?.[accoutID];
+            const prevPersonalDetail = prevPersonalDetails?.[accoutID];
             const personalDetail = personalDetails?.[accoutID];
 
             if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
@@ -153,7 +153,6 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             return newOptions;
         });
 
-        prevPersonalDetails.current = personalDetails;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails]);
 
