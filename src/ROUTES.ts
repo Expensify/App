@@ -28,7 +28,7 @@ const ROUTES = {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
     },
-    SEARCH: 'search',
+    CHAT_FINDER: 'chat-finder',
     DETAILS: {
         route: 'details',
         getRoute: (login: string) => `details?login=${encodeURIComponent(login)}` as const,

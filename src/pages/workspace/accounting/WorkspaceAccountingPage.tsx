@@ -22,8 +22,8 @@ import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -237,4 +237,4 @@ function WorkspaceAccountingPage({policy}: WithPolicyProps) {
 
 WorkspaceAccountingPage.displayName = 'WorkspaceAccountingPage';
 
-export default withPolicy(WorkspaceAccountingPage);
+export default withPolicyConnections(WorkspaceAccountingPage);
