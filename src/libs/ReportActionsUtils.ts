@@ -1081,7 +1081,7 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean
 }
 
 function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
 }
 
 /**
