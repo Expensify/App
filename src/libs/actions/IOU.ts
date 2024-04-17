@@ -5328,7 +5328,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
     }
 
     if (ReportUtils.isInvoiceReport(iouReport)) {
-        if (chatReport?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
             return chatReport?.invoiceReceiver?.accountID === userAccountID;
         }
 

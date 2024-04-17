@@ -1971,7 +1971,7 @@ function getIcons(
         const invoiceRoomReport = getReport(report.chatReportID);
         const icons = [getWorkspaceIcon(invoiceRoomReport, policy)];
 
-        if (invoiceRoomReport?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        if (invoiceRoomReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
             icons.push(...getIconsForParticipants([invoiceRoomReport?.invoiceReceiver.accountID], personalDetails));
 
             return icons;
@@ -2979,7 +2979,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
  */
 function getInvoicePayerName(report: OnyxEntry<Report>): string {
     const invoiceReceiver = report?.invoiceReceiver;
-    const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 
     if (isIndividual) {
         return PersonalDetailsUtils.getDisplayNameOrDefault(allPersonalDetails?.[invoiceReceiver.accountID]);
@@ -3009,7 +3009,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
  */
 function getInvoicesChatName(report: OnyxEntry<Report>): string {
     const invoiceReceiver = report?.invoiceReceiver;
-    const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
     const invoiceReceiverPolicyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
     const isCurrentUserReceiver =
@@ -3032,7 +3032,7 @@ function getInvoicesChatName(report: OnyxEntry<Report>): string {
  */
 function getInvoicesChatSubtitle(report: OnyxEntry<Report>): string {
     const invoiceReceiver = report?.invoiceReceiver;
-    const isIndividual = invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
     const policyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
     let isReceiver = false;
@@ -5236,7 +5236,7 @@ function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boo
         }
 
         const isReceiverPolicyAdmin =
-            report?.invoiceReceiver?.type === CONST.INVOICE_RECEIVER_TYPE.POLICY ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
+            report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
 
         if (isReceiverPolicyAdmin) {
             return false;
