@@ -59,7 +59,6 @@ function IOURequestStartPage({
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
