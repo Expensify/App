@@ -584,10 +584,7 @@ type FlagCommentNavigatorParamList = {
 };
 
 type EditRequestNavigatorParamList = {
-    [SCREENS.EDIT_REQUEST.ROOT]: {
-        field: string;
-        threadReportID: string;
-    };
+    [SCREENS.EDIT_REQUEST.REPORT_FIELD]: undefined;
 };
 
 type SignInNavigatorParamList = {
