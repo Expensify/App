@@ -62,10 +62,6 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
-type WorkspaceSwitcherNavigatorParamList = {
-    [SCREENS.WORKSPACE_SWITCHER.ROOT]: undefined;
-};
-
 type BackToParams = {
     backTo?: Routes;
 };
@@ -292,10 +288,6 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
-};
-
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH_ROOT]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -568,8 +560,8 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
-    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.SEARCH]: undefined;
+    [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: undefined;
 };
 
 type RightModalNavigatorParamList = {
@@ -798,7 +790,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
@@ -842,7 +834,6 @@ export type {
     ParticipantsNavigatorParamList,
     RoomMembersNavigatorParamList,
     RoomInviteNavigatorParamList,
-    SearchNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     TeachersUniteNavigatorParamList,
@@ -857,7 +848,6 @@ export type {
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     State,
-    WorkspaceSwitcherNavigatorParamList,
     OnboardEngagementNavigatorParamList,
     SwitchPolicyIDParams,
     FullScreenNavigatorParamList,

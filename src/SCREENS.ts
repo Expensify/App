@@ -98,9 +98,6 @@ const SCREENS = {
         SEARCH: 'Search',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
-    WORKSPACE_SWITCHER: {
-        ROOT: 'WorkspaceSwitcher_Root',
-    },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',
         NEW_CHAT: 'NewChat',
