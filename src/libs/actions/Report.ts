@@ -2944,6 +2944,7 @@ function getReportPrivateNote(reportID: string | undefined) {
 function completeEngagementModal(choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>, text?: string) {
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
 
+    // We do not need to send any message for some choices
     if (!text) {
         const parameters: CompleteEngagementModalParams = {
             reportID: conciergeChatReportID ?? '',
