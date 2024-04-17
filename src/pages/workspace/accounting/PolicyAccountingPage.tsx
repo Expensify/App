@@ -33,8 +33,6 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 
 type PolicyAccountingPageOnyxProps = {
-    /** From Onyx */
-    /** Bank account attached to free plan */
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
