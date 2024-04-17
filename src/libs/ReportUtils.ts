@@ -3034,18 +3034,11 @@ function getInvoicesChatSubtitle(report: OnyxEntry<Report>): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : -1;
-    const policyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
-    let isReceiver = false;
+    const invoiceReceiverPolicyID = isIndividual ? '' : invoiceReceiver?.policyID ?? '';
+    const isCurrentUserReceiver =
+        (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && PolicyUtils.isPolicyEmployee(invoiceReceiverPolicyID, allPolicies));
 
-    if (isIndividual && invoiceReceiverAccountID === currentUserAccountID) {
-        isReceiver = true;
-    }
-
-    if (!isIndividual && PolicyUtils.isPolicyEmployee(policyID, allPolicies)) {
-        isReceiver = true;
-    }
-
-    if (isReceiver) {
+    if (isCurrentUserReceiver) {
         let receiver = '';
 
         if (isIndividual) {
@@ -3057,7 +3050,8 @@ function getInvoicesChatSubtitle(report: OnyxEntry<Report>): string {
         return Localize.translateLocal('workspace.invoices.invoicesTo', {receiver});
     }
 
-    return Localize.translateLocal('workspace.invoices.invoicesFrom', {sender: getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`])});
+    // TODO: Check this flow in a scope of the Invoice V0.3
+    return Localize.translateLocal('workspace.invoices.invoicesFrom', {sender: getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`])});
 }
 
 /**
