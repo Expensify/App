@@ -4,6 +4,7 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -36,6 +37,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
 
 function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const styles = useThemeStyles();
 
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
         StackNavigationState<ParamListBase>,
@@ -64,6 +66,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
 
         const firstRoute = routes[0];
 
+        // On narrow layout, if we are on /search route we want to hide all central pane routes and show only the bottom tab navigator.
         if (isSmallScreenWidth && isLastRouteSearchRoute) {
             return {
                 stateToRender: {
@@ -94,7 +97,7 @@ function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
                 descriptors={descriptors}
                 navigation={navigation}
             />
-            {searchRoute && <View style={{display: 'none'}}>{descriptors[searchRoute.key].render()}</View>}
+            {searchRoute && <View style={styles.dNone}>{descriptors[searchRoute.key].render()}</View>}
         </NavigationContent>
     );
 }
