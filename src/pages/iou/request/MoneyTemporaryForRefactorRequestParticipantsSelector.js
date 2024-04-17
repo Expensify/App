@@ -194,7 +194,19 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         );
 
         return [newSections, headerMessage];
-    }, [debouncedSearchTerm, filteredOptions, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, action, maxParticipantsReached, personalDetails, translate, options.recentReports]);
+    }, [
+        debouncedSearchTerm,
+        filteredOptions,
+        chatOptions,
+        areOptionsInitialized,
+        didScreenTransitionEnd,
+        participants,
+        action,
+        maxParticipantsReached,
+        personalDetails,
+        translate,
+        options.recentReports,
+    ]);
 
     /**
      * Adds a single participant to the request
