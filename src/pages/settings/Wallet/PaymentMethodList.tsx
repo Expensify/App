@@ -192,7 +192,7 @@ function PaymentMethodList({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashList<string>>(null);
+    const flashListRef = useRef<FlashList<PaymentMethodItem>>(null);
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
