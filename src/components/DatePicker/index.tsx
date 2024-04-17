@@ -112,7 +112,10 @@ function DatePicker(
                     readOnly
                 />
             </View>
-            <View style={[styles.datePickerPopover, styles.border]}>
+            <View
+                style={[styles.datePickerPopover, styles.border]}
+                collapsable={false}
+            >
                 <CalendarPicker
                     minDate={minDate}
                     maxDate={maxDate}

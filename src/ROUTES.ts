@@ -1,5 +1,7 @@
-import type {IsEqual, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
+import type {IOURequestType} from './libs/actions/IOU';
+import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -181,11 +183,14 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
     },
 
+    SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
+
     KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
     NEW_CHAT_CONFIRM: 'new/chat/confirm',
+    NEW_CHAT_EDIT_NAME: 'new/chat/confirm/name/edit',
     NEW_ROOM: 'new/room',
 
     REPORT: 'r',
@@ -222,6 +227,18 @@ const ROUTES = {
         route: 'r/:reportID/participants',
         getRoute: (reportID: string) => `r/${reportID}/participants` as const,
     },
+    REPORT_PARTICIPANTS_INVITE: {
+        route: 'r/:reportID/participants/invite',
+        getRoute: (reportID: string) => `r/${reportID}/participants/invite` as const,
+    },
+    REPORT_PARTICIPANTS_DETAILS: {
+        route: 'r/:reportID/participants/:accountID',
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}` as const,
+    },
+    REPORT_PARTICIPANTS_ROLE_SELECTION: {
+        route: 'r/:reportID/participants/:accountID/role',
+        getRoute: (reportID: string, accountID: number) => `r/${reportID}/participants/${accountID}/role` as const,
+    },
     REPORT_WITH_ID_DETAILS: {
         route: 'r/:reportID/details',
         getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
@@ -233,6 +250,10 @@ const ROUTES = {
     REPORT_SETTINGS_ROOM_NAME: {
         route: 'r/:reportID/settings/room-name',
         getRoute: (reportID: string) => `r/${reportID}/settings/room-name` as const,
+    },
+    REPORT_SETTINGS_GROUP_NAME: {
+        route: 'r/:reportID/settings/group-name',
+        getRoute: (reportID: string) => `r/${reportID}/settings/group-name` as const,
     },
     REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
         route: 'r/:reportID/settings/notification-preferences',
@@ -254,11 +275,6 @@ const ROUTES = {
         route: `r/:reportID/split/:reportActionID/edit/:field/:tagIndex?`,
         getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
             `r/${reportID}/split/${reportActionID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
-    },
-    EDIT_SPLIT_BILL_CURRENCY: {
-        route: 'r/:reportID/split/:reportActionID/edit/currency',
-        getRoute: (reportID: string, reportActionID: string, currency: string, backTo: string) =>
-            `r/${reportID}/split/${reportActionID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -285,16 +301,12 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
     },
     ROOM_INVITE: {
-        route: 'r/:reportID/invite',
-        getRoute: (reportID: string) => `r/${reportID}/invite` as const,
+        route: 'r/:reportID/invite/:role?',
+        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
     MONEY_REQUEST_PARTICIPANTS: {
         route: ':iouType/new/participants/:reportID?',
         getRoute: (iouType: string, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
-    MONEY_REQUEST_CURRENCY: {
-        route: ':iouType/new/currency/:reportID?',
-        getRoute: (iouType: string, reportID: string, currency: string, backTo: string) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}` as const,
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':iouType/edit/reason/:transactionID?',
@@ -324,14 +336,14 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/amount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
-        route: 'create/:iouType/taxRate/:transactionID/:reportID?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
-            getUrlWithBackToParam(`create/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/taxRate/:transactionID/:reportID?',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_AMOUNT: {
-        route: 'create/:iouType/taxAmount/:transactionID/:reportID?',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo: string) =>
-            getUrlWithBackToParam(`create/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/taxAmount/:transactionID/:reportID?',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
@@ -340,8 +352,8 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID',
@@ -364,9 +376,9 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/merchant/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: 'create/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/participants/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
+            getUrlWithBackToParam(`${action}/${iouType}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
@@ -374,27 +386,27 @@ const ROUTES = {
             getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:tagIndex/:transactionID/:reportID/:reportActionID?',
+        route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
         getRoute: (
             action: ValueOf<typeof CONST.IOU.ACTION>,
             iouType: ValueOf<typeof CONST.IOU.TYPE>,
-            tagIndex: number,
+            orderWeight: number,
             transactionID: string,
             reportID: string,
             backTo = '',
             reportActionID?: string,
-        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${tagIndex}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID?: string, pageIndex = '', backTo = '') =>
             getUrlWithBackToParam(`${action}/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
     // straight to those flows without needing to have optimistic transaction and report IDs.
     MONEY_REQUEST_START: {
         route: 'start/:iouType/:iouRequestType',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) => `start/${iouType}/${iouRequestType}` as const,
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: IOURequestType) => `start/${iouType}/${iouRequestType}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance',
@@ -439,10 +451,10 @@ const ROUTES = {
     ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
     ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
 
-    TEACHERS_UNITE: 'teachersunite',
-    I_KNOW_A_TEACHER: 'teachersunite/i-know-a-teacher',
-    I_AM_A_TEACHER: 'teachersunite/i-am-a-teacher',
-    INTRO_SCHOOL_PRINCIPAL: 'teachersunite/intro-school-principal',
+    TEACHERS_UNITE: 'settings/teachersunite',
+    I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
+    I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
+    INTRO_SCHOOL_PRINCIPAL: 'settings/teachersunite/intro-school-principal',
 
     ERECEIPT: {
         route: 'eReceipt/:transactionID',
@@ -551,6 +563,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
     },
+    WORKSPACE_ACCOUNTING: {
+        route: 'settings/workspaces/:policyID/accounting',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+    },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
@@ -621,11 +637,11 @@ const ROUTES = {
     },
     WORKSPACE_MEMBER_DETAILS: {
         route: 'settings/workspaces/:policyID/members/:accountID',
-        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}`, backTo),
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
     },
     WORKSPACE_MEMBER_ROLE_SELECTION: {
         route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
-        getRoute: (policyID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/members/${accountID}/role-selection`, backTo),
+        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/role-selection` as const,
     },
     WORKSPACE_OWNER_CHANGE_SUCCESS: {
         route: 'settings/workspaces/:policyID/change-owner/:accountID/success',
@@ -646,15 +662,15 @@ const ROUTES = {
     },
     WORKSPACE_TAX_EDIT: {
         route: 'settings/workspaces/:policyID/tax/:taxID',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}` as const,
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}` as const,
     },
     WORKSPACE_TAX_NAME: {
         route: 'settings/workspaces/:policyID/tax/:taxID/name',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}/name` as const,
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/name` as const,
     },
     WORKSPACE_TAX_VALUE: {
         route: 'settings/workspaces/:policyID/tax/:taxID/value',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURI(taxID)}/value` as const,
+        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
     WORKSPACE_DISTANCE_RATES: {
         route: 'settings/workspaces/:policyID/distance-rates',
@@ -691,6 +707,30 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/accounts',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/accounts` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
+    },
 } as const;
 
 /**
@@ -708,20 +748,18 @@ export default ROUTES;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
 
-type AllRoutes = {
+/**
+ * Represents all routes in the app as a union of literal strings.
+ */
+type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type RouteIsPlainString = IsEqual<AllRoutes, string>;
+type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
 
-/**
- * Represents all routes in the app as a union of literal strings.
- *
- * If this type resolves to `never`, it implies that one or more routes defined within `ROUTES` have not correctly used
- * `as const` in their `getRoute` function return value.
- */
-type Route = RouteIsPlainString extends true ? never : AllRoutes;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute, AllRoutes};
+export type {Route, HybridAppRoute};
