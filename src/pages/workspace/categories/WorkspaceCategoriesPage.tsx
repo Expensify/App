@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -62,6 +63,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
+    const isFocused = useIsFocused();
 
     const fetchCategories = useCallback(() => {
         Policy.openPolicyCategoriesPage(route.params.policyID);
@@ -74,6 +76,13 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
             fetchCategories();
         }, [fetchCategories]),
     );
+
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedCategories({});
+    }, [isFocused]);
 
     const categoryList = useMemo<PolicyOption[]>(
         () =>
@@ -118,7 +127,6 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        setSelectedCategories({});
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.keyForList));
     };
 
@@ -294,6 +302,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 sections={[{data: categoryList, isDisabled: false}]}
                                 onCheckboxPress={toggleCategory}
                                 onSelectRow={navigateToCategorySettings}
+                                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                                 onSelectAll={toggleAllCategories}
                                 showScrollIndicator
                                 ListItem={TableListItem}

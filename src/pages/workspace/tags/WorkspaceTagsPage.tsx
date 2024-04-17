@@ -1,7 +1,7 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -69,6 +70,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
     const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
+    const isFocused = useIsFocused();
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(route.params.policyID);
@@ -81,6 +83,14 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
             fetchTags();
         }, [fetchTags]),
     );
+
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedTags({});
+    }, [isFocused]);
+
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
@@ -139,7 +149,6 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: PolicyOption) => {
-        setSelectedTags({});
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, tag.keyForList));
     };
 
@@ -305,6 +314,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                                 showScrollIndicator
                                 ListItem={TableListItem}
                                 customListHeader={getCustomListHeader()}
+                                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                                 listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                                 onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
                             />

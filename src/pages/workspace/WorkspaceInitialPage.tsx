@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,7 +61,7 @@ function dismissError(policyID: string) {
     Policy.removeWorkspace(policyID);
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -69,6 +70,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -99,7 +101,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         ReimbursementAccount.navigateToBankAccountRoute(policyID);
     }, [policyID, policyName]);
 
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
+    const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
@@ -198,6 +200,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
+    if (policy?.areConnectionsEnabled && canUseAccountingIntegrations) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.accounting',
+            icon: Expensicons.Sync,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
+            // brickRoadIndicator should be set when API will be ready
+            brickRoadIndicator: undefined,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING,
+        });
+    }
+
     protectedCollectPolicyMenuItems.push({
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,
@@ -233,6 +246,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         isEmptyObject(policy) ||
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
+
+    // We are checking if the user can access the route.
+    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
+    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
+
+    useEffect(() => {
+        if (!shouldShowNotFoundPage && canAccessRoute) {
+            return;
+        }
+        // We are dismissing any modals that are open when the NotFound view is shown
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissRHP();
+        });
+    }, [canAccessRoute, policy, shouldShowNotFoundPage]);
 
     const policyAvatar = useMemo(() => {
         if (!policy) {

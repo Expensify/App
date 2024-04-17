@@ -1,6 +1,7 @@
 import {
     addDays,
     addHours,
+    addMilliseconds,
     addMinutes,
     eachDayOfInterval,
     eachMonthOfInterval,
@@ -267,7 +268,7 @@ function formatToLongDateWithWeekday(datetime: string | Date): string {
  * @returns Sunday
  */
 function formatToDayOfWeek(datetime: Date): string {
-    return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
+    return format(datetime, CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
 /**
@@ -388,6 +389,13 @@ function getDBTimeWithSkew(): string {
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
     const date = zonedTimeToUtc(dateTime, 'UTC');
     const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
+
+    return getDBTime(newTimestamp);
+}
+
+function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
+    const date = zonedTimeToUtc(dateTime, 'UTC');
+    const newTimestamp = addMilliseconds(date, milliseconds).valueOf();
 
     return getDBTime(newTimestamp);
 }
@@ -784,6 +792,7 @@ const DateUtils = {
     getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
+    addMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getThirtyMinutesFromNow,
     getEndOfToday,
