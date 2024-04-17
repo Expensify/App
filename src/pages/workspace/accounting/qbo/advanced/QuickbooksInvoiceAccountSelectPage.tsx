@@ -32,7 +32,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const selectedAccount = DRAFT[1].name; // selected
+    const selectedAccount = DRAFT[1].id; // selected
 
     const policyID = policy?.id ?? '';
     const {bankAccounts, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -41,11 +41,11 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
-            accountOptions?.map(({name}) => ({
-                value: name,
+            accountOptions?.map(({id,name}) => ({
+                value: id,
                 text: name,
-                keyForList: name,
-                isSelected: selectedAccount === name,
+                keyForList: id,
+                isSelected: selectedAccount === id,
             })),
         [selectedAccount, accountOptions],
     );
@@ -83,7 +83,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
                         <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.collectionAccount')} />
 
                         <SelectionList
-                            sections={[{data: qboOnlineSelectorOptions ?? []}]}
+                            sections={[{data: qboOnlineSelectorOptions}]}
                             ListItem={RadioListItem}
                             headerContent={listHeaderComponent}
                             onSelectRow={updateMode}

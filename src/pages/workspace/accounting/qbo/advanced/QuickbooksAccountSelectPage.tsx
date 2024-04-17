@@ -32,7 +32,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const selectedAccount = DRAFT[0].name; // selected
+    const selectedAccount = DRAFT[0].id; // selected
 
     const policyID = policy?.id ?? '';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
