@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import React, {useEffect} from 'react';
 import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -24,19 +24,21 @@ type WithPolicyConnectionsProps = WithPolicyProps;
 function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps>) {
     function WithPolicyConnections({policy, policyMembers, policyDraft, policyMembersDraft, route}: WithPolicyConnectionsProps) {
         const {isOffline} = useNetwork();
-        const hasConnectionsDataBeenFetched = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? ''}` as const, {initWithStoredValues: false});
+        const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? ''}` as const, {
+            initWithStoredValues: false,
+        });
 
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
-            if (!policy || !policy.areConnectionsEnabled || hasConnectionsDataBeenFetched || !!policy.connections) {
+            if (!policy || !policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!policy.connections) {
                 return;
             }
 
             openPolicyAccountingPage(policy.id);
         }, [hasConnectionsDataBeenFetched, policy]);
 
-        if (!hasConnectionsDataBeenFetched) {
+        if (status === 'loading' || !hasConnectionsDataBeenFetched) {
             if (isOffline) {
                 return (
                     <FullPageOfflineBlockingView>
@@ -52,10 +54,6 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
             }
 
             return <FullScreenLoadingIndicator />;
-        }
-
-        if (!policy?.connections) {
-            throw new Error('Policy connections data should be fetched before rendering the component');
         }
 
         return (
