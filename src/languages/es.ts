@@ -1383,7 +1383,6 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
-        createChat: 'Crear chat',
         startGroup: 'Grupo de inicio',
         addToGroup: 'Añadir al grupo',
     },
