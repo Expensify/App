@@ -604,8 +604,8 @@ export default {
         sendMoney: 'Send money',
         assignTask: 'Assign task',
         header: 'Quick action',
-        trackManual: 'Track manual',
-        trackScan: 'Track scan',
+        trackManual: 'Track expense',
+        trackScan: 'Track receipt',
         trackDistance: 'Track distance',
     },
     iou: {

@@ -5089,7 +5089,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
  * `dm` - Nobody can leave (it's auto-shared with users)
  * `private` - Anybody can leave (though you can only be invited to join)
  */
-function canLeaveRoom(report: OnyxEntry<Report>, isPolicyMember: boolean): boolean {
+function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boolean {
     if (!report?.visibility) {
         if (
             report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS ||
@@ -5102,7 +5102,7 @@ function canLeaveRoom(report: OnyxEntry<Report>, isPolicyMember: boolean): boole
             // DM chats don't have a chatType
             return false;
         }
-    } else if (isPublicAnnounceRoom(report) && isPolicyMember) {
+    } else if (isPublicAnnounceRoom(report) && isPolicyEmployee) {
         return false;
     }
     return true;
