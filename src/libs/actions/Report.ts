@@ -2973,7 +2973,7 @@ function getReportPrivateNote(reportID: string | undefined) {
 }
 
 function completeOnboarding(
-    engagementChoice: string,
+    engagementChoice: OnboardingPurposeType,
     data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
     {
         login,
