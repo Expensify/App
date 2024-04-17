@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -38,6 +38,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
     const {inputCallbackRef} = useAutoFocusInput();
+    const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
 
     useDisableModalDismissOnEscape();
 
@@ -48,6 +49,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     }, []);
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+        if(!shouldValidateOnChange) {
+            setShouldValidateOnChange(true);
+        }
+
         const errors = {};
 
         // First we validate the first name field
@@ -102,7 +107,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     enabledWhenOffline
                     submitFlexEnabled
                     shouldValidateOnBlur={false}
-                    shouldValidateOnChange={false}
+                    shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
