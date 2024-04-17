@@ -289,13 +289,7 @@ function Composer(
                 opacity: 0,
             }}
         >
-            <Text
-                style={[
-                    StyleSheet.flatten([style, styles.noSelect]),
-                    (textInput.current?.clientHeight ?? 0) < 330 ? styles.overflowHidden : {},
-                    {maxWidth: textInputWidth as DimensionValue},
-                ]}
-            >
+            <Text style={[StyleSheet.flatten([style, styles.noSelect]), StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), {maxWidth: textInputWidth as DimensionValue}]}>
                 {`${valueBeforeCaret} `}
                 <Text
                     numberOfLines={1}
