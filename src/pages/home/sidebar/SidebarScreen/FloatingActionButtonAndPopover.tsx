@@ -307,7 +307,7 @@ function FloatingActionButtonAndPopover(
                     },
                     {
                         icon: Expensicons.Transfer,
-                        text: translate('iou.splitBill'),
+                        text: translate('iou.splitExpense'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 IOU.startMoneyRequest(
