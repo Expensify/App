@@ -116,6 +116,8 @@ type Video = {
     height: number;
 };
 
+type TaskMessage = Required<Pick<AddCommentOrAttachementParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
+
 type TaskForParameters =
     | {
           type: 'task';
@@ -127,25 +129,16 @@ type TaskForParameters =
           createdTaskReportActionID: string;
           title: string;
           description: string;
-          video?: Video;
       }
-    | {
+    | ({
           type: 'message';
-          reportID: string;
-          reportActionID: string;
-          reportComment: string;
-      };
-
-type TaskMessage = Required<Pick<AddCommentOrAttachementParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
-
-type GuidedSetupData = Array<
-    | AddCommentOrAttachementParams
-    | TaskForParameters
+      } & TaskMessage)
     | ({
           type: 'video';
-      } & Video &
-          AddCommentOrAttachementParams)
->;
+      } & TaskMessage &
+          Video);
+
+type GuidedSetupData = Array<AddCommentOrAttachementParams | TaskForParameters>;
 
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
@@ -3095,7 +3088,6 @@ function completeOnboarding(
                     createdTaskReportActionID: taskCreatedAction.reportActionID,
                     title: currentTask.reportName ?? '',
                     description: currentTask.description ?? '',
-                    video: task.video ?? undefined,
                 },
                 {
                     type: 'message',
@@ -3118,9 +3110,9 @@ function completeOnboarding(
                 });
             }
 
-            if (taskVideoComment) {
+            if (taskVideoComment && task.video) {
                 const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
-                const taskVideoCommentText = instructionComment.commentText;
+                const taskVideoCommentText = taskVideoComment.commentText;
                 const taskVideoMessage: TaskMessage = {
                     reportID: currentTask.reportID,
                     reportActionID: taskVideoCommentAction.reportActionID,
@@ -3128,7 +3120,8 @@ function completeOnboarding(
                 };
 
                 tasksForParametersAcc.push({
-                    type: 'message',
+                    type: 'video',
+                    ...task.video,
                     ...taskVideoMessage,
                 });
             }
