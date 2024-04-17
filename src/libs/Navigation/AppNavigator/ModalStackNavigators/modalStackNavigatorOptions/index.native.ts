@@ -1,9 +1,7 @@
-import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import transition from '@libs/Navigation/AppNavigator/transition';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/createPlatformStackNavigator/types';
 
-const defaultSubRouteOptions: NativeStackNavigationOptions = {
+const defaultSubRouteOptions: PlatformStackNavigationOptions = {
     headerShown: false,
-    animation: transition,
 };
 
 export default defaultSubRouteOptions;

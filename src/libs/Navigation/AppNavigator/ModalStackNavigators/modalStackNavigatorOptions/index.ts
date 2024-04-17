@@ -1,7 +1,7 @@
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import {CardStyleInterpolators} from '@react-navigation/stack';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/createPlatformStackNavigator/types';
 
-const defaultSubRouteOptions: StackNavigationOptions = {
+const defaultSubRouteOptions: PlatformStackNavigationOptions = {
     headerShown: false,
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 };
