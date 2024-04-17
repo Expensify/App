@@ -1215,9 +1215,9 @@ const CONST = {
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
     },
-    QUICK_BOOKS_ONLINE: 'quickbooksOnline',
+    QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
-    QUICK_BOOKS_IMPORTS: {
+    QUICKBOOKS_IMPORTS: {
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',

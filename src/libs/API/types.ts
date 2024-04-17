@@ -425,6 +425,7 @@ type WriteCommandParameters = {
 };
 
 const READ_COMMANDS = {
+    CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',

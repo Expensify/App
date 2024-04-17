@@ -52,7 +52,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                                             Connections.updatePolicyConnectionConfig(
                                                 policyID,
                                                 CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICK_BOOKS_IMPORTS.SYNC_CLASSES,
+                                                CONST.QUICKBOOKS_IMPORTS.SYNC_CLASSES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }

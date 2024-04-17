@@ -50,7 +50,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                                             Connections.updatePolicyConnectionConfig(
                                                 policyID,
                                                 CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICK_BOOKS_IMPORTS.ENABLE_NEW_CATEGORIES,
+                                                CONST.QUICKBOOKS_IMPORTS.ENABLE_NEW_CATEGORIES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
