@@ -21,7 +21,7 @@ const withPolyfills = (screenOptions?: PlatformStackNavigationOptions): NativeSt
     const commonScreenOptions = (({animation, ...rest}) => rest)(screenOptions) satisfies CommonStackNavigationOptions;
 
     let animation: NativeStackNavigationOptions['animation'];
-    switch (screenOptions.animation) {
+    switch (screenOptions.animation ?? 'slide_from_right') {
         case 'slide_from_right':
             animation = slideFromRightAnimation;
             break;
