@@ -1,0 +1,46 @@
+diff --git a/node_modules/@shopify/flash-list/dist/FlashList.d.ts b/node_modules/@shopify/flash-list/dist/FlashList.d.ts
+index ed81d7d..1e24103 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashList.d.ts
++++ b/node_modules/@shopify/flash-list/dist/FlashList.d.ts
+@@ -103,6 +103,7 @@ declare class FlashList<T> extends React.PureComponent<FlashListProps<T>, FlashL
+         offset: number;
+     }): void;
+     getScrollableNode(): number | null;
++    getNativeScrollRef(): number | null;
+     /**
+      * Allows access to internal recyclerlistview. This is useful for enabling access to its public APIs.
+      * Warning: We may swap recyclerlistview for something else in the future. Use with caution.
+diff --git a/node_modules/@shopify/flash-list/dist/FlashList.js b/node_modules/@shopify/flash-list/dist/FlashList.js
+index 1a5d026..37852b8 100644
+--- a/node_modules/@shopify/flash-list/dist/FlashList.js
++++ b/node_modules/@shopify/flash-list/dist/FlashList.js
+@@ -478,6 +478,12 @@ var FlashList = /** @class */ (function (_super) {
+         var _a, _b;
+         return ((_b = (_a = this.rlvRef) === null || _a === void 0 ? void 0 : _a.getScrollableNode) === null || _b === void 0 ? void 0 : _b.call(_a)) || null;
+     };
++    FlashList.prototype.getNativeScrollRef = function () {
++        var _a, _b;
++        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
++        // @ts-ignore
++        return ((_b = (_a = this.rlvRef) === null || _a === void 0 ? void 0 : _a.getNativeScrollRef) === null || _b === void 0 ? void 0 : _b.call(_a)) || null;
++    };
+     Object.defineProperty(FlashList.prototype, "recyclerlistview_unsafe", {
+         /**
+          * Allows access to internal recyclerlistview. This is useful for enabling access to its public APIs.
+diff --git a/node_modules/@shopify/flash-list/src/FlashList.tsx b/node_modules/@shopify/flash-list/src/FlashList.tsx
+index 64748fe..87dea16 100644
+--- a/node_modules/@shopify/flash-list/src/FlashList.tsx
++++ b/node_modules/@shopify/flash-list/src/FlashList.tsx
+@@ -827,6 +827,12 @@ class FlashList<T> extends React.PureComponent<
+     return this.rlvRef?.getScrollableNode?.() || null;
+   }
+ 
++  public getNativeScrollRef(): number | null {
++    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
++    // @ts-ignore
++    return this.rlvRef?.getNativeScrollRef?.() || null;
++  }
++
+   /**
+    * Allows access to internal recyclerlistview. This is useful for enabling access to its public APIs.
+    * Warning: We may swap recyclerlistview for something else in the future. Use with caution.

@@ -1,9 +1,8 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
@@ -21,7 +20,6 @@ function OptionRowLHNData({
     reportActions,
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
-    comment,
     policy,
     receiptTransactions,
     parentReportAction,
@@ -73,14 +71,6 @@ function OptionRowLHNData({
         canUseViolations,
         receiptTransactions,
     ]);
-
-    useEffect(() => {
-        if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
-            return;
-        }
-        Report.setReportWithDraft(reportID, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <OptionRowLHN

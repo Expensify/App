@@ -1,10 +1,12 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
+import type ReportAction from './ReportAction';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
@@ -102,6 +104,12 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
+        /** The transaction tax amount */
+        taxAmount?: number;
+
+        /** The transaction tax code */
+        taxCode?: string;
+
         /** Whether the request is billable */
         billable?: boolean;
 
@@ -127,7 +135,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         filename?: string;
 
         /** Used during the creation flow before the transaction is saved to the server */
-        iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+        iouRequestType?: IOURequestType;
 
         /** The original merchant name */
         merchant: string;
@@ -177,9 +185,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax rate */
         taxRate?: TaxRate;
 
-        /** Tax amount */
-        taxAmount?: number;
-
         /** Card Transactions */
 
         /** The parent transaction id */
@@ -211,6 +216,15 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
+
+        /** The actionable report action ID associated with the transaction */
+        actionableWhisperReportActionID?: string;
+
+        /** The linked reportAction id for the tracked expense */
+        linkedTrackedExpenseReportAction?: ReportAction;
+
+        /** The linked report id for the tracked expense */
+        linkedTrackedExpenseReportID?: string;
     },
     keyof Comment
 >;

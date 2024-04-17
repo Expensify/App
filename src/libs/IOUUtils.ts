@@ -3,11 +3,22 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
-function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+function navigateToStartMoneyRequestStep(
+    requestType: IOURequestType,
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    transactionID: string,
+    reportID: string,
+    iouAction?: ValueOf<typeof CONST.IOU.ACTION>,
+): void {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.MOVE) {
+        Navigation.goBack();
+        return;
+    }
     // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.DISTANCE:
@@ -123,4 +134,20 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     return tagArray.join(CONST.COLON).replace(/:*$/, '');
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoTransactionTagsString};
+function isMovingTransactionFromTrackExpense(action?: ValueOf<typeof CONST.IOU.ACTION>) {
+    if (action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
+        return true;
+    }
+
+    return false;
+}
+
+export {
+    calculateAmount,
+    updateIOUOwnerAndTotal,
+    isIOUReportPendingCurrencyConversion,
+    isValidMoneyRequestType,
+    navigateToStartMoneyRequestStep,
+    insertTagIntoTransactionTagsString,
+    isMovingTransactionFromTrackExpense,
+};

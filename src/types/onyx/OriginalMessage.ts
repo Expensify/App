@@ -25,6 +25,7 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'ACTIONABLETRACKEXPENSEWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -268,6 +269,10 @@ type OriginalMessageModifiedExpense = {
         category?: string;
         oldTag?: string;
         tag?: string;
+        oldTaxAmount?: number;
+        taxAmount?: number;
+        oldTaxRate?: string;
+        taxRate?: string;
         oldBillable?: string;
         billable?: string;
     };
@@ -277,6 +282,15 @@ type OriginalMessageReimbursementQueued = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
     originalMessage: {
         paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
+    };
+};
+
+type OriginalMessageActionableTrackedExpenseWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
+    originalMessage: {
+        transactionID: string;
+        lastModified: string;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION>;
     };
 };
 
@@ -319,7 +333,8 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed;
+    | OriginalMessageMarkedReimbursed
+    | OriginalMessageActionableTrackedExpenseWhisper;
 
 export default OriginalMessage;
 export type {
@@ -343,4 +358,5 @@ export type {
     OriginalMessageReimbursementDequeued,
     DecisionName,
     PaymentMethodType,
+    OriginalMessageActionableTrackedExpenseWhisper,
 };
