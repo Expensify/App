@@ -291,7 +291,7 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
     // Find the report preview action from the chat report
     return (
         Object.values(reportActions).find(
-            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
+            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
         ) ?? null
     );
 }
