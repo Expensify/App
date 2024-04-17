@@ -505,6 +505,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
+        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 Use this room to view, discuss, and pay invoices.',
         beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
@@ -522,7 +523,6 @@ export default {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'track-expense': 'track an expense',
         },
-        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 \nUse this room to view, discuss, and pay invoices.',
     },
     reportAction: {
         asCopilot: 'as copilot for',

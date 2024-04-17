@@ -52,7 +52,7 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
-    INVOICE: 'invoiceRoom',
+    INVOICE: 'invoice',
 } as const;
 
 // Explicit type annotation is required
@@ -1423,6 +1423,7 @@ const CONST = {
             SPLIT: 'split',
             REQUEST: 'request',
             TRACK_EXPENSE: 'track-expense',
+            INVOICE: 'invoice',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',

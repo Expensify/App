@@ -141,6 +141,7 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childStatusNum'
     | 'childStateNum'
     | 'errors'
+    | 'whisperedToAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -283,6 +284,7 @@ type OptimisticChatReport = Pick<
     | 'description'
     | 'writeCapability'
     | 'avatarUrl'
+    | 'invoiceReceiver'
 > & {
     isOptimisticReport: true;
 };
@@ -676,6 +678,13 @@ function isChatReport(report: OnyxEntry<Report> | EmptyObject): boolean {
 }
 
 /**
+ * Checks if a report is an invoice report.
+ */
+function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
+    return report?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+/**
  * Checks if a report is an Expense report.
  */
 function isExpenseReport(report: OnyxEntry<Report> | EmptyObject): boolean {
@@ -863,6 +872,13 @@ function isPolicyExpenseChat(report: OnyxEntry<Report> | Participant | EmptyObje
 }
 
 /**
+ * Whether the provided report is an invoice room chat.
+ */
+function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
+}
+
+/**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
 function isControlPolicyExpenseChat(report: OnyxEntry<Report>): boolean {
@@ -904,20 +920,6 @@ function isControlPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
  */
 function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
     return isExpenseReport(report) && isPaidGroupPolicy(report);
-}
-
-/**
- * Check if Report is an invoice room
- */
-function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
-}
-
-/**
- * Check if Report is an invoice report
- */
-function isInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
 /**
@@ -2218,7 +2220,7 @@ function hasNonReimbursableTransactions(iouReportID: string | undefined): boolea
 function getMoneyRequestSpendBreakdown(report: OnyxEntry<Report>, allReportsDict: OnyxCollection<Report> = null): SpendBreakdown {
     const allAvailableReports = allReportsDict ?? allReports;
     let moneyRequestReport;
-    if (isMoneyRequestReport(report)) {
+    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         moneyRequestReport = report;
     }
     if (allAvailableReports && report?.iouReportID) {
