@@ -78,7 +78,8 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         return () => {
             Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
-    }, [setSearchTerm, route.params.policyID]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route.params.policyID]);
 
     useEffect(() => {
         Policy.clearErrors(route.params.policyID);
@@ -96,7 +97,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], debouncedSearchTerm, excludedUsers, true);
-        // Update selectedOptions with the latest personalDetails and policyMembers information
+        // Update selectedOptions with the latest personalDetails and policyEmployeeList information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
@@ -146,7 +147,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [options.personalDetails, policy?.employeeList, betas, searchTerm, excludedUsers]);
+    }, [options.personalDetails, policy?.employeeList, betas, debouncedSearchTerm, excludedUsers]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];

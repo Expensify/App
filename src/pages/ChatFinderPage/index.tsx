@@ -185,7 +185,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 onSelectRow={selectReport}
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
                 footerContent={!isDismissed && ChatFinderPageFooterInstance}
-                isLoadingNewOptions={isSearchingForReports ?? undefined}
+                isLoadingNewOptions={!!isSearchingForReports}
             />
         </ScreenWrapper>
     );

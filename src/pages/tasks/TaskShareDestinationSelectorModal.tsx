@@ -116,7 +116,7 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
                         headerMessage={options.headerMessage}
                         textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
-                        isLoadingNewOptions={isSearchingForReports ?? undefined}
+                        isLoadingNewOptions={!!isSearchingForReports}
                         textInputHint={textInputHint}
                     />
                 </View>
