@@ -130,7 +130,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         }
 
         // Task is not closed
-        if (report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
+        if (!ReportUtils.isReadOnly(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
