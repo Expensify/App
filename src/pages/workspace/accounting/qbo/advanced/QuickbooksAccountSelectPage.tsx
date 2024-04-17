@@ -44,8 +44,8 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
             accountOptions?.map(({id, name}) => ({
                 value: id,
                 text: name,
-                keyForList: name,
-                isSelected: selectedAccount === name,
+                keyForList: id,
+                isSelected: selectedAccount === id,
             })),
         [selectedAccount, accountOptions],
     );
