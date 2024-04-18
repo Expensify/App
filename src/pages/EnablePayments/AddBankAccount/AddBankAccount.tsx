@@ -54,7 +54,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
     const exitFlow = (shouldContinue = false) => {
         const exitReportID = personalBankAccount?.exitReportID;
-        // TODO: This should be updated to the correct route once the refactor is complete
+        // TODO: https://github.com/Expensify/App/issues/36648 This should be updated to the correct route once the refactor is complete
         const onSuccessFallbackRoute = ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR;
 
         if (exitReportID) {
