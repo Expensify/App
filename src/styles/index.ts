@@ -2957,23 +2957,14 @@ const styles = (theme: ThemeColors) =>
                 color: theme.heading,
                 padding: 0,
                 lineHeight: undefined,
-                paddingHorizontal: 0,
-                paddingVertical: 0,
-                borderTopLeftRadius: 0,
-                borderBottomLeftRadius: 0,
-                borderTopRightRadius: 0,
-                borderBottomRightRadius: 0,
+                borderRadius: 0,
             },
             0,
         ),
 
         iouAmountTextInputContainer: {
             borderWidth: 0,
-            borderBottomWidth: 0,
-            borderTopLeftRadius: 0,
-            borderBottomLeftRadius: 0,
-            borderTopRightRadius: 0,
-            borderBottomRightRadius: 0,
+            borderRadius: 0,
         },
 
         moneyRequestConfirmationAmount: {
