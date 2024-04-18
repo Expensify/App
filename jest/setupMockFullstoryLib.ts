@@ -1,6 +1,6 @@
 type FSPageInterface = {
     start: jest.Mock<void, []>;
-}
+};
 
 export default function mockFSLibrary() {
     jest.mock('@fullstory/react-native', () => {
