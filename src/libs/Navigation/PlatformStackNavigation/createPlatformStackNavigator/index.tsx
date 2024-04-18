@@ -43,7 +43,7 @@ function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
 
     return createNavigatorFactory<StackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
         PlatformStackNavigator,
-    )();
+    )<TStackParams>();
 }
 
 export default createPlatformStackNavigator;
