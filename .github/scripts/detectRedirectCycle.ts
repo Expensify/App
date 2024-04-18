@@ -2,7 +2,7 @@ import {parse} from 'csv-parse';
 import fs from 'fs';
 
 const parser = parse({skip_empty_lines: true});
-const adjacencyList: any = {};
+const adjacencyList: Record<string, Array<string>> = {};
 
 function addEdge(source: string, target: string) {
     if (!adjacencyList[source]) {
