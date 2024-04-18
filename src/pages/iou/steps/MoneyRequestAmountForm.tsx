@@ -21,7 +21,6 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import type {MaybePhraseKey} from '@libs/Localize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -321,9 +320,8 @@ function MoneyRequestAmountForm(
                 const currencyAmount = CurrencyUtils.convertToDisplayString(CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount)), currency) ?? '';
                 const text = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitAmount', {amount: currencyAmount}) : translate('iou.submitAmount', {amount: currencyAmount});
                 return text[0].toUpperCase() + text.slice(1);
-            } else {
-                return iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitExpense') : translate('iou.submitExpense');
             }
+            return iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitExpense') : translate('iou.submitExpense');
         }
         return isEditing ? translate('common.save') : translate('common.next');
     }, [skipConfirmation, iouType, currentAmount, currency]);
