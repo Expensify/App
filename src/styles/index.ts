@@ -1087,9 +1087,12 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             height: '100%',
             backgroundColor: 'transparent',
+            overflow: 'hidden',
+        },
+
+        textInputContainerBorder: {
             borderBottomWidth: 2,
             borderColor: theme.border,
-            overflow: 'hidden',
         },
 
         textInputLabel: {

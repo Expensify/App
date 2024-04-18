@@ -236,14 +236,6 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
-    // When adding a new prefix character, adjust this method to add expected character width.
-    // This is because character width isn't known before it's rendered to the screen, and once it's rendered,
-    // it's too late to calculate it's width because the change in padding would cause a visible jump.
-    // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
-    // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
-    // this method will produce reliable results.
-    const getCharacterPadding = (prefix: string): number => prefix.length * 10;
-
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
@@ -291,16 +283,17 @@ function BaseTextInput(
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
+                    onLayout={onLayout}
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
+                        styles.textInputContainerBorder,
                         touchableInputWrapperStyle,
                     ]}
                 >
                     <View
                         // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
                         // or if multiline is not supplied we calculate the textinput height, using onLayout.
-                        onLayout={onLayout}
                         style={[
                             newTextInputContainerStyles,
 
@@ -367,7 +360,7 @@ function BaseTextInput(
                                     styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    !!prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
+                                    !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear

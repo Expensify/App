@@ -50,6 +50,9 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Style for the container prefix */
     prefixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Customizes the touchable wrapper of the TextInput component */
+    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 export default TextInputWithCurrencySymbolProps;

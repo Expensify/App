@@ -59,6 +59,9 @@ type MoneyRequestAmountInputProps = {
 
     /** Style for the container prefix */
     prefixContainerStyle?: StyleProp<ViewStyle>;
+
+				/** Style for the touchable input wrapper */
+    touchableInputWrapperStyle: StyleProp<ViewStyle>;
 };
 
 type Selection = {
@@ -223,6 +226,7 @@ function MoneyRequestAmountInput(
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
+            touchableInputWrapperStyle={props.touchableInputWrapperStyle}
         />
     );
 }
