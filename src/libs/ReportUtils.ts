@@ -2946,7 +2946,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
         return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
-    return reportAction?.message?.[0]?.text ?? '';
+    return Str.removeSMSDomain(reportAction?.message?.[0]?.text ?? '');
 }
 
 /**
