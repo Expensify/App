@@ -39,13 +39,12 @@ function detectCycle() {
     const backEdges: Map<string, boolean> = new Map<string, boolean>();
 
     for (let node in adjacencyList) {
-        if (visited.has(node)) {
-            continue;
-        }
-        if (isCyclic(node, visited, backEdges)) {
-            const cycle = Array.from(backEdges.keys());
-            console.log(`Infinite redirect found in the cycle: ${cycle.join(' -> ')} -> ${node}`);
-            return true;
+        if (!visited.has(node)) {
+            if (isCyclic(node, visited, backEdges)) {
+                const cycle = Array.from(backEdges.keys());
+                console.log(`Infinite redirect found in the cycle: ${cycle.join(' -> ')} -> ${node}`);
+                return true;
+            }
         }
     }
 }
