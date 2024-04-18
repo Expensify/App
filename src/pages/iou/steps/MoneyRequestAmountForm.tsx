@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -18,7 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type {SelectedTabRequest} from '@src/types/onyx';
-import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 
 type CurrentMoney = {amount: string; currency: string};
 
