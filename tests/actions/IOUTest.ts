@@ -2121,7 +2121,7 @@ describe('actions/IOU', () => {
         let IOU_REPORT_ID: string;
         let reportActionID;
         const REPORT_ACTION: OnyxEntry<OnyxTypes.ReportAction> = {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -2370,7 +2370,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then verify that the comment is correctly added
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
@@ -2519,7 +2519,7 @@ describe('actions/IOU', () => {
             expect(report).toBeFalsy();
         });
 
-        it('delete the transaction thread if there are only changelogs (i.e. MODIFIEDEXPENSE actions) in the thread', async () => {
+        it('delete the transaction thread if there are only changelogs (i.e. MODIFIED_EXPENSE actions) in the thread', async () => {
             // Given all promises are resolved
             await waitForBatchedUpdates();
             jest.advanceTimersByTime(10);
@@ -2656,7 +2656,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2766,7 +2766,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            let resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            let resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
@@ -2798,7 +2798,7 @@ describe('actions/IOU', () => {
             Report.addComment(IOU_REPORT_ID, 'Testing a comment');
             await waitForBatchedUpdates();
 
-            resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
@@ -2931,7 +2931,7 @@ describe('actions/IOU', () => {
             Report.addComment(IOU_REPORT_ID, 'Testing a comment');
             await waitForBatchedUpdates();
 
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
