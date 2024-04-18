@@ -65,7 +65,10 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const currentReport = getReport(currentReportID?.currentReportID);
 
     // When we invite someone to a room they don't have the policy type, but we still want them to be able see and click on report mentions, so we also check the reportType in case the policyType was empty.
-    const isGroupPolicyReport = useMemo(() => (currentReport && !isEmptyObject(currentReport) ? (ReportUtils.isGroupPolicy(currentReport) || ReportUtils.isChatRoom(currentReport)) : false), [currentReport]);
+    const isGroupPolicyReport = useMemo(
+        () => (currentReport && !isEmptyObject(currentReport) ? ReportUtils.isGroupPolicy(currentReport) || ReportUtils.isChatRoom(currentReport) : false),
+        [currentReport],
+    );
 
     const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReport, reports, tnode);
     if (!mentionDetails) {
