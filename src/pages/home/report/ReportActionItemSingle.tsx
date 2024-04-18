@@ -93,6 +93,7 @@ function ReportActionItemSingle({
         displayName = ReportUtils.getPolicyName(report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(report);
+        avatarAccountId = undefined;
     } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.

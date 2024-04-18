@@ -87,7 +87,7 @@ function Avatar({
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
     const source = isWorkspace ? originalSource : UserUtils.getAvatar(originalSource, accountID);
-    const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
+    const useFallBackAvatar = imageError || !originalSource || !source || source === Expensicons.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
