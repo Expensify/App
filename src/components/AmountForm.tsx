@@ -225,6 +225,8 @@ function AmountForm(
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}
+                    style={[styles.iouAmountTextInput]}
+                    containerStyle={[styles.iouAmountTextInputContainer]}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />
