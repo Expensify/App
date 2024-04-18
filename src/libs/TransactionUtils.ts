@@ -535,7 +535,8 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is pending rter violation in transactionViolations.
  */
 function haveAllPendingRTERViolation(transactionIds: string[]): boolean {
-    return transactionIds.map((transactionId) => hasPendingRTERViolation(getTransactionViolations(transactionId, allTransactionViolations))).every((value) => value);
+    const transactionsWithRTERViolations = transactionIds.map((transactionId) => hasPendingRTERViolation(getTransactionViolations(transactionId, allTransactionViolations)));
+    return transactionsWithRTERViolations.length !== 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
 
 /**
