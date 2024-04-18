@@ -643,18 +643,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             item: (
                 <MenuItem
                     label={translate('moneyRequestConfirmationList.paidBy')}
-                    interactive={!transaction?.isFromGlobalCreate}
+                    interactive={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate}
                     description={personalDetailsOfPayee.login}
                     title={personalDetailsOfPayee.displayName}
                     icon={payeeIcons}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(iouType, transaction?.transactionID ?? '', reportID));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate}
                     titleWithTooltips={payeeTooltipDetails}
                 />
             ),
-            shouldShow: isTypeSplit,
+            shouldShow: isTypeSplit && action === CONST.IOU.ACTION.CREATE,
             isSupplementary: false,
         },
         {

@@ -388,8 +388,8 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_SPLIT_PAYER: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID/payer',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
-            `${action}/${iouType}/confirmation/${transactionID}/${reportID}/payer` as const,
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
+            getUrlWithBackToParam(`${action}/${iouType}/confirmation/${transactionID}/${reportID}/payer`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',

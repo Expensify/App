@@ -9,7 +9,9 @@ import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
+import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -25,9 +27,10 @@ type IOURequestStepSplitPayerProps = WithWritableReportOrNotFoundProps<typeof SC
 
 function IOURequestStepSplitPayer({
     route: {
-        params: {iouType, transactionID},
+        params: {iouType, transactionID, action, backTo},
     },
     transaction,
+    report,
 }: IOURequestStepSplitPayerProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
@@ -52,7 +55,7 @@ function IOURequestStepSplitPayer({
     }, [transaction?.participants, personalDetails, transaction?.splitPayerAccountIDs]);
 
     const navigateBack = () => {
-        Navigation.goBack();
+        Navigation.goBack(backTo);
     };
 
     const setSplitPayer = (item: Participant | OptionData) => {
@@ -64,7 +67,9 @@ function IOURequestStepSplitPayer({
         <StepScreenWrapper
             headerTitle={translate('moneyRequestConfirmationList.paidBy')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFoundPage={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowNotFoundPage={
+                !IOUUtils.isValidMoneyRequestType(iouType) || ReportUtils.isPolicyExpenseChat(report) || action !== CONST.IOU.ACTION.CREATE || iouType !== CONST.IOU.TYPE.SPLIT
+            }
             shouldShowWrapper
             testID={IOURequestStepSplitPayer.displayName}
         >
