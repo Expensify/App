@@ -2,8 +2,8 @@ import type {ParamListBase, StackNavigationState} from '@react-navigation/native
 import {format} from 'date-fns';
 import fastMerge from 'expensify-common/lib/fastMerge';
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import * as API from '@libs/API';
@@ -41,12 +41,13 @@ import Permissions from '@libs/Permissions';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticInviteReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {NavigationPartialRoute} from '@navigation/types';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -390,7 +391,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType) {
+function startMoneyRequest(iouType: IOUType, reportID: string, requestType?: IOURequestType) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.MANUAL:
@@ -3236,7 +3237,7 @@ function requestMoney(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints?: GPSPoint,
-    action?: ValueOf<typeof CONST.IOU.ACTION>,
+    action?: IOUAction,
     actionableWhisperReportActionID?: string,
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID?: string,
@@ -3425,7 +3426,7 @@ function trackExpense(
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     gpsPoints?: GPSPoint,
     validWaypoints?: WaypointCollection,
-    action?: ValueOf<typeof CONST.IOU.ACTION>,
+    action?: IOUAction,
     actionableWhisperReportActionID?: string,
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID?: string,
@@ -6485,7 +6486,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     receiptPath: ReceiptSource | undefined,
     onSuccess: (file: File) => void,
     requestType: IOURequestType,
-    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    iouType: IOUType,
     transactionID: string,
     reportID: string,
     receiptType: string | undefined,
@@ -6517,69 +6518,69 @@ function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, re
     return workspaceSender?.policyID ?? report?.policyID ?? '0';
 }
 
-export type {GPSPoint as GpsPoint, IOURequestType};
 export {
-    setMoneyRequestParticipants,
+    approveMoneyRequest,
+    canApproveIOU,
+    canIOUBePaid,
+    cancelPayment,
+    clearMoneyRequest,
+    completeSplitBill,
     createDistanceRequest,
+    createDraftTransaction,
     deleteMoneyRequest,
     deleteTrackExpense,
-    splitBill,
-    splitBillAndOpenReport,
-    setDraftSplitTransaction,
-    startSplitBill,
-    completeSplitBill,
-    requestMoney,
-    sendMoneyElsewhere,
-    approveMoneyRequest,
-    submitReport,
-    payMoneyRequest,
-    sendMoneyWithWallet,
+    detachReceipt,
+    editMoneyRequest,
     initMoneyRequest,
-    startMoneyRequest,
+    navigateToStartStepIfScanFileCannotBeRead,
+    payMoneyRequest,
+    putOnHold,
+    replaceReceipt,
+    requestMoney,
     resetMoneyRequestInfo,
-    clearMoneyRequest,
-    updateMoneyRequestTypeParams,
+    savePreferredPaymentMethod,
+    sendMoneyElsewhere,
+    sendMoneyWithWallet,
+    setDraftSplitTransaction,
+    setMoneyRequestAmount,
     setMoneyRequestAmount_temporaryForRefactor,
+    setMoneyRequestBillable,
     setMoneyRequestBillable_temporaryForRefactor,
+    setMoneyRequestCategory,
     setMoneyRequestCreated,
+    setMoneyRequestCurrency,
     setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestDescription,
+    setMoneyRequestId,
+    setMoneyRequestMerchant,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
     setMoneyRequestParticipants_temporaryForRefactor,
     setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
-    setMoneyRequestAmount,
-    setMoneyRequestBillable,
-    setMoneyRequestCategory,
-    setMoneyRequestCurrency,
-    setMoneyRequestId,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
-    updateMoneyRequestDate,
+    splitBill,
+    splitBillAndOpenReport,
+    startMoneyRequest,
+    startSplitBill,
+    submitReport,
+    trackExpense,
+    unholdRequest,
+    updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
+    updateMoneyRequestCategory,
+    updateMoneyRequestDate,
+    updateMoneyRequestDescription,
+    updateMoneyRequestDistance,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
-    updateMoneyRequestDistance,
-    updateMoneyRequestCategory,
-    updateMoneyRequestAmountAndCurrency,
-    updateMoneyRequestDescription,
-    replaceReceipt,
-    detachReceipt,
-    editMoneyRequest,
-    putOnHold,
-    unholdRequest,
-    cancelPayment,
-    navigateToStartStepIfScanFileCannotBeRead,
-    savePreferredPaymentMethod,
-    trackExpense,
-    canIOUBePaid,
-    canApproveIOU,
-    createDraftTransaction,
+    updateMoneyRequestTypeParams,
     sendInvoice,
     getIOURequestPolicyID,
 };
+export type {GPSPoint as GpsPoint, IOURequestType};

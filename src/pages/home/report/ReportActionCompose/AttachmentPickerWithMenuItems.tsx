@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
@@ -23,11 +22,12 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestOptions = Record<ValueOf<typeof CONST.IOU.TYPE>, PopoverMenuItem>;
+type MoneyRequestOptions = Record<IOUType, PopoverMenuItem>;
 
 type AttachmentPickerWithMenuItemsOnyxProps = {
     /** The policy tied to the report */

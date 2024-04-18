@@ -1,5 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
@@ -8,13 +8,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
-function navigateToStartMoneyRequestStep(
-    requestType: IOURequestType,
-    iouType: ValueOf<typeof CONST.IOU.TYPE>,
-    transactionID: string,
-    reportID: string,
-    iouAction?: ValueOf<typeof CONST.IOU.ACTION>,
-): void {
+function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.MOVE) {
         Navigation.goBack();
         return;
@@ -134,7 +128,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
     return tagArray.join(CONST.COLON).replace(/:*$/, '');
 }
 
-function isMovingTransactionFromTrackExpense(action?: ValueOf<typeof CONST.IOU.ACTION>) {
+function isMovingTransactionFromTrackExpense(action?: IOUAction) {
     if (action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
         return true;
     }
@@ -144,10 +138,10 @@ function isMovingTransactionFromTrackExpense(action?: ValueOf<typeof CONST.IOU.A
 
 export {
     calculateAmount,
-    updateIOUOwnerAndTotal,
+    insertTagIntoTransactionTagsString,
     isIOUReportPendingCurrencyConversion,
+    isMovingTransactionFromTrackExpense,
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
-    insertTagIntoTransactionTagsString,
-    isMovingTransactionFromTrackExpense,
+    updateIOUOwnerAndTotal,
 };
