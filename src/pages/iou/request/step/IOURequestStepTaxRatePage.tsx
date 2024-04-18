@@ -74,7 +74,14 @@ function IOURequestStepTaxRatePage({
                 navigateBack();
                 return;
             }
-            IOU.updateMoneyRequestTaxRate(transaction?.transactionID ?? '', report?.reportID ?? '', newTaxCode, policy, policyTags, policyCategories);
+            IOU.updateMoneyRequestTaxRate({
+                transactionID: transaction?.transactionID ?? '',
+                optimisticReportActionID: report?.reportID ?? '',
+                taxCode: newTaxCode,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+            });
             navigateBack();
             return;
         }
