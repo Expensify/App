@@ -581,43 +581,7 @@ function MoneyRequestConfirmationList({
         thumbnail: receiptThumbnail,
         isThumbnail,
         fileExtension,
-<<<<<<< HEAD
     } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
-=======
-        isLocalFile,
-    } = receiptPath && receiptFilename ? ReceiptUtils.getThumbnailAndImageURIs(transaction ?? null, receiptPath, receiptFilename) : ({} as ReceiptUtils.ThumbnailAndImageURI);
-
-    const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
-    const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
-
-    const receiptThumbnailContent = useMemo(
-        () =>
-            isLocalFile && Str.isPDF(receiptFilename) ? (
-                <PDFThumbnail
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    previewSourceURL={resolvedReceiptImage as string}
-                    style={styles.moneyRequestImage}
-                    // We don't support scaning password protected PDF receipt
-                    enabled={!isAttachmentInvalid}
-                    onPassword={() => setIsAttachmentInvalid(true)}
-                />
-            ) : (
-                <ReceiptImage
-                    style={styles.moneyRequestImage}
-                    isThumbnail={isThumbnail}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={resolvedThumbnail || resolvedReceiptImage || ''}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!!receiptThumbnail}
-                    fileExtension={fileExtension}
-                />
-            ),
-        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
-    );
-
->>>>>>> 1db90879 (Merge pull request #40385 from ishpaul777/fix/pdf-not-showing-for-money-request)
     return (
         // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
         <OptionsSelector
