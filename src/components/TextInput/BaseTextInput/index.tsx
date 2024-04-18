@@ -234,20 +234,7 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
-    // When adding a new prefix character, adjust this method to add expected character width.
-    // This is because character width isn't known before it's rendered to the screen, and once it's rendered,
-    // it's too late to calculate it's width because the change in padding would cause a visible jump.
-    // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
-    // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
-    // this method will produce reliable results.
-    const getCharacterPadding = (prefix: string): number => {
-        switch (prefix) {
-            case CONST.POLICY.ROOM_PREFIX:
-                return 10;
-            default:
-                throw new Error(`Prefix ${prefix} has no padding assigned.`);
-        }
-    };
+    const getCharacterPadding = (prefix: string): number => prefix.length * 10;
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;

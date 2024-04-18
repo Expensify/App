@@ -11,6 +11,7 @@ import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -211,6 +212,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 }: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseViolations} = usePermissions();
@@ -430,15 +432,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const sections = [];
         if (hasMultipleParticipants) {
             const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
+            const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
+
             const formattedParticipantsList = [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
                 ...participantOption,
                 descriptiveText: null,
                 amountProps: {
                     amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
                     currency: iouCurrencyCode,
-                    prefixCharacter: currencyList?.[iouCurrencyCode]?.symbol ?? iouCurrencyCode,
+                    prefixCharacter: currencySymbol,
                     isCurrencyPressable: false,
                     hideCurrencySymbol: true,
+                    textInputContainerStyles: [{minWidth: 50}],
                     onAmountChange: (value) => onSplitShareChange(participantOption.accountID, value),
                 },
             }));
