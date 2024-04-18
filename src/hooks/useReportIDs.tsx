@@ -117,7 +117,6 @@ function ReportIDsContextProvider({
     const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector, initialValue: {}});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector, initialValue: {}});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsSelector, initialValue: {}});
-    const [policyMembers] = useOnyx(ONYXKEYS.COLLECTION.POLICY_MEMBERS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {initialValue: {}});
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {initialValue: []});
@@ -127,7 +126,7 @@ function ReportIDsContextProvider({
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID), [activeWorkspaceID, policyMembers, accountID]);
+    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID), [activeWorkspaceID, policies, accountID]);
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
