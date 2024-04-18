@@ -78,7 +78,7 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
-type ReceiptErrors = any;
+type ReceiptErrors = object;
 
 function MoneyRequestView({
     report,
@@ -282,7 +282,7 @@ function MoneyRequestView({
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
-                        {(showMapAsImage || hasReceipt) && (
+                        {showMapAsImage || hasReceipt && (
                             <View style={styles.moneyRequestViewImage}>
                                 {showMapAsImage ? (
                                     <ConfirmedRoute transaction={transaction} />
