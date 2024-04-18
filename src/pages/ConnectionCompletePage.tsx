@@ -8,7 +8,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
-
 function ConnectionCompletePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -23,9 +22,7 @@ function ConnectionCompletePage() {
                         src={Expensicons.ConnectionComplete}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>
-                    {translate('connectionComplete.title')}
-                </Text>
+                <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('connectionComplete.title')}</Text>
                 <View style={[styles.mt2, styles.mb2, {maxWidth: 280}]}>
                     <Text style={styles.textAlignCenter}>{translate('connectionComplete.supportingText')}</Text>
                 </View>

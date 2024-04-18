@@ -1,6 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {PublicScreensParamList} from '@navigation/types';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -8,7 +9,6 @@ import SAMLSignInPage from '@pages/signin/SAMLSignInPage';
 import SignInPage from '@pages/signin/SignInPage';
 import UnlinkLoginPage from '@pages/UnlinkLoginPage';
 import ValidateLoginPage from '@pages/ValidateLoginPage';
-import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
