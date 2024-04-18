@@ -419,11 +419,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     ...participant,
                     isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
                 }));
-            } else {
-                formattedParticipantsList = formattedParticipantsList.map((participant) => ({
-                    ...participant,
-                    isDisabled: participant.accountID === personalDetailsOfPayee.accountID,
-                }));
             }
 
             sections.push({
@@ -449,8 +444,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee)];
-    }, [selectedParticipants, hasMultipleParticipants, personalDetailsOfPayee]);
+        return [...selectedParticipants];
+    }, [selectedParticipants, hasMultipleParticipants]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
@@ -500,12 +495,12 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const selectParticipant = useCallback(
         (option: Participant) => {
             // Return early if selected option is currently logged in user.
-            if (option.accountID === session?.accountID) {
+            if (option.accountID === session?.accountID || option.accountID === personalDetailsOfPayee.accountID) {
                 return;
             }
             onSelectParticipant?.(option);
         },
-        [session?.accountID, onSelectParticipant],
+        [session?.accountID, onSelectParticipant, personalDetailsOfPayee.accountID],
     );
 
     /**
