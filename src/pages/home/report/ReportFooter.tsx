@@ -131,7 +131,7 @@ function ReportFooter({
     );
 
     if (isReadOnlyReport) {
-        <OnboardingReportFooterMessage />;
+        return <OnboardingReportFooterMessage />;
     }
 
     return (

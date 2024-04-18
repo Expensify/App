@@ -10,13 +10,14 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import * as ReportInstance from '@userActions/Report';
+import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, Report} from '@src/types/onyx';
 
 // TODO: Use a proper choice type
-type OnboardingReportFooterMessageOnyxProps = {choice: OnyxEntry<string>; reports: OnyxCollection<Report>; policies: OnyxCollection<PolicyType>};
+type OnboardingReportFooterMessageOnyxProps = {choice: OnyxEntry<OnboardingPurposeType>; reports: OnyxCollection<Report>; policies: OnyxCollection<PolicyType>};
 type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps;
 
 function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingReportFooterMessageProps) {
@@ -33,7 +34,7 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
 
     const content = useMemo(() => {
         switch (choice) {
-            case CONST.INTRO_CHOICES.MANAGE_TEAM:
+            case CONST.ONBOARDING_CHOICES.MANAGE_TEAM:
                 return (
                     <>
                         {`${translate('onboardingBottomMessage.newDotManageTeam.phrase1')}`}
@@ -68,6 +69,7 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
                 styles.chatFooter,
                 isSmallScreenWidth ? styles.mb5 : styles.mb4,
                 styles.mh5,
+                styles.mt4,
                 styles.flexRow,
                 styles.alignItemsCenter,
                 styles.p4,
