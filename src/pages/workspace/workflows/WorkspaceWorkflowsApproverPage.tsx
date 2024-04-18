@@ -11,8 +11,6 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -106,7 +104,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, translate, policy?.approver, StyleUtils, isDeletedPolicyEmployee, policy?.owner, styles, policy?.employeeList]);
+    }, [personalDetails, translate, policy?.approver, isDeletedPolicyEmployee, policy?.owner, policy?.employeeList]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
