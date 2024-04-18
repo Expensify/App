@@ -5,7 +5,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -24,6 +23,7 @@ import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -44,8 +44,6 @@ import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import Text from './Text';
-
-type IouType = ValueOf<typeof CONST.IOU.TYPE>;
 
 type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
@@ -71,7 +69,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     onConfirm?: (selectedParticipants: Array<Participant | ReportUtils.OptionData>) => void;
 
     /** Callback to parent modal to send money */
-    onSendMoney?: (paymentMethod: IouType | PaymentMethodType | undefined) => void;
+    onSendMoney?: (paymentMethod: IOUType | PaymentMethodType | undefined) => void;
 
     /** Callback to inform a participant is selected */
     onSelectParticipant?: (option: Participant) => void;
@@ -89,7 +87,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: IouType;
+    iouType?: IOUType;
 
     /** IOU date */
     iouCreated?: string;
@@ -337,17 +335,17 @@ function MoneyRequestConfirmationList({
         setDidConfirm(false);
     }
 
-    const splitOrRequestOptions: Array<DropdownOption<IouType>> = useMemo(() => {
+    const splitOrRequestOptions: Array<DropdownOption<IOUType>> = useMemo(() => {
         let text;
         if (isSplitBill && iouAmount === 0) {
             text = translate('iou.split');
         } else if ((!!receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
-            text = translate('iou.request');
+            text = translate('iou.expense');
             if (iouAmount !== 0) {
-                text = translate('iou.requestAmount', {amount: formattedAmount});
+                text = translate('iou.submitAmount', {amount: formattedAmount});
             }
         } else {
-            const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.requestAmount';
+            const translationKey = isSplitBill ? 'iou.splitAmount' : 'iou.submitAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [
@@ -472,7 +470,7 @@ function MoneyRequestConfirmationList({
     };
 
     const confirm = useCallback(
-        (paymentMethod: IouType | PaymentMethodType | undefined) => {
+        (paymentMethod: IOUType | PaymentMethodType | undefined) => {
             if (!selectedParticipants.length) {
                 return;
             }
