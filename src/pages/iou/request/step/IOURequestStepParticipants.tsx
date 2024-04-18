@@ -2,36 +2,34 @@ import {useNavigation} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepParticipantsOnyxProps = {
     /** The transaction object being modified in Onyx */
     transaction: OnyxEntry<Transaction>;
 };
 
-type IOUValueType = ValueOf<typeof CONST.IOU.TYPE>;
-
 type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
-type IOURef = IOUValueType | null;
+type IOURef = IOUType | null;
 
 function IOURequestStepParticipants({
     route: {
@@ -50,17 +48,17 @@ function IOURequestStepParticipants({
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (action === CONST.IOU.ACTION.MOVE) {
-            return translate('iou.request');
+        if (action === CONST.IOU.ACTION.REQUEST) {
+            return translate('iou.submitExpense');
         }
         if (action === CONST.IOU.ACTION.SHARE) {
             return translate('iou.share');
         }
         if (isSplitRequest) {
-            return translate('iou.split');
+            return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('common.send');
+            return translate('iou.paySomeone', {});
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate, isSplitRequest, action]);
@@ -71,8 +69,8 @@ function IOURequestStepParticipants({
     const newIouType = useRef<IOURef>();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
-    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
-    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
+    // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
         if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
@@ -94,13 +92,13 @@ function IOURequestStepParticipants({
             return;
         }
         // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-        // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
+        // updating the expense type route params reducing the overhead of the thread and preventing possible jitters in UI.
         updateRouteParams();
         newIouType.current = null;
     }, [participants, updateRouteParams]);
 
     const addParticipant = useCallback(
-        (val: Participant[], selectedIouType: IOUValueType) => {
+        (val: Participant[], selectedIouType: IOUType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
             // It's only possible to switch between REQUEST and SPLIT.
             // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
@@ -136,9 +134,9 @@ function IOURequestStepParticipants({
     );
 
     const goToNextStep = useCallback(
-        (selectedIouType: IOUValueType) => {
+        (selectedIouType: IOUType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            let nextStepIOUType: IOUValueType = CONST.IOU.TYPE.REQUEST;
+            let nextStepIOUType: IOUType = CONST.IOU.TYPE.REQUEST;
 
             if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
                 nextStepIOUType = CONST.IOU.TYPE.SPLIT;

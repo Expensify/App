@@ -59,7 +59,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import processReportIDDeeplink from '@libs/processReportIDDeeplink';
 import * as Pusher from '@libs/Pusher/pusher';
@@ -1045,7 +1045,7 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
             current.actorAccountID !== currentUserAccountID &&
             (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
-            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER)
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
         ) {
             return current;
         }
@@ -1277,6 +1277,12 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     CachedPDFPaths.clearByKey(reportActionID);
 
     API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+
+    // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
+    // we should navigate to its report in order to not show not found page
+    if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID), true);
+    }
 }
 
 /**
@@ -2186,15 +2192,15 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
     const onClick = () =>
         Modal.close(() => {
             const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-            const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
-            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID) : false;
+            const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
+            const reportBelongsToWorkspace = policyID ? doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID) : false;
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         });
 
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);
@@ -2941,8 +2947,29 @@ function getReportPrivateNote(reportID: string | undefined) {
  * - Sets the introSelected NVP to the choice the user made
  * - Creates an optimistic report comment from concierge
  */
-function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>) {
+function completeEngagementModal(choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>, text?: string) {
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
+
+    // We do not need to send any message for some choices
+    if (!text) {
+        const parameters: CompleteEngagementModalParams = {
+            reportID: conciergeChatReportID ?? '',
+            engagementChoice: choice,
+        };
+
+        const optimisticData: OnyxUpdate[] = [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                value: {choice},
+            },
+        ];
+        API.write(WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL, parameters, {
+            optimisticData,
+        });
+        return;
+    }
+
     const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, conciergeAccountID);
     const reportCommentAction: OptimisticAddCommentReportAction = reportComment.reportAction;
     const lastComment = reportCommentAction?.message?.[0];
@@ -3007,6 +3034,7 @@ function completeEngagementModal(text: string, choice: ValueOf<typeof CONST.ONBO
         },
     ];
 
+    // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL, parameters, {
         optimisticData,
         successData,
