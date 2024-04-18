@@ -2,7 +2,7 @@ import {parse} from 'csv-parse';
 import fs from 'fs';
 
 const parser = parse({skip_empty_lines: true});
-const adjacencyList: Record<string, Array<string>> = {};
+const adjacencyList: Record<string, string[]> = {};
 
 function addEdge(source: string, target: string) {
     if (!adjacencyList[source]) {
@@ -38,7 +38,7 @@ function detectCycle(): boolean {
     const visited: Map<string, boolean> = new Map<string, boolean>();
     const backEdges: Map<string, boolean> = new Map<string, boolean>();
 
-    for (const node in adjacencyList) {
+    for (const [node, _] of Object.entries(adjacencyList)) {
         if (!visited.has(node)) {
             if (isCyclic(node, visited, backEdges)) {
                 const cycle = Array.from(backEdges.keys());
@@ -53,6 +53,7 @@ function detectCycle(): boolean {
 fs.createReadStream(`${process.cwd()}/docs/redirects.csv`)
     .pipe(parser)
     .on('data', (row) => {
+        // Create a directed graph of sourceURL -> targetURL
         addEdge(row[0], row[1]);
     })
     .on('end', () => {
