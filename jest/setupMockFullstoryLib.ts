@@ -1,4 +1,4 @@
-interface FSPageInterface {
+type FSPageInterface = {
     start: jest.Mock<void, []>;
 }
 
