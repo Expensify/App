@@ -1363,8 +1363,7 @@ export default {
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: ({user}) =>
-            `Our email provider has temporarily suspended emails to ${user.login} due to delivery issues. To unblock your login, please follow these steps:`,
+        ourEmailProvider: ({user}) => `Our email provider has temporarily suspended emails to ${user.login} due to delivery issues. To unblock your login, please follow these steps:`,
         confirmThat: ({login}: ConfirmThatParams) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
         emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
         ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
