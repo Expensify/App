@@ -1,3 +1,7 @@
+interface FSPageInterface {
+    start: jest.Mock<void, []>;
+}
+
 export default function mockFSLibrary() {
     jest.mock('@fullstory/react-native', () => {
         class Fullstory {
@@ -9,8 +13,10 @@ export default function mockFSLibrary() {
         }
 
         return {
-            FSPage() {
-                this.start = jest.fn();
+            FSPage(): FSPageInterface {
+                return {
+                    start: jest.fn(),
+                };
             },
             default: Fullstory,
         };
