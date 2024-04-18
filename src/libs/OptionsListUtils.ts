@@ -1978,12 +1978,11 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 function getIOUConfirmationOptionsFromParticipants(
     participants: Array<Participant | ReportUtils.OptionData>,
     amountText: string,
-    payerAmountText = '',
-    payerAccountID = -1,
+    myAmountText = '',
 ): Array<Participant | ReportUtils.OptionData> {
     return participants.map((participant) => ({
         ...participant,
-        descriptiveText: participant.accountID === payerAccountID ? payerAmountText : amountText,
+        descriptiveText: participant.accountID === currentUserAccountID ? myAmountText : amountText,
     }));
 }
 

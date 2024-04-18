@@ -351,14 +351,13 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[], payerAccountID: number) => {
+        (participantsList: Participant[]) => {
             const amount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '');
-            const payerAmount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '', true);
+            const myAmount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '', true);
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
                 amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '',
-                payerAmount > 0 ? CurrencyUtils.convertToDisplayString(payerAmount, iouCurrencyCode) : '',
-                payerAccountID,
+                myAmount > 0 ? CurrencyUtils.convertToDisplayString(myAmount, iouCurrencyCode) : '',
             );
         },
         [iouAmount, iouCurrencyCode],
@@ -412,7 +411,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         const sections = [];
         const unselectedParticipants = pickedParticipants.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants, personalDetailsOfPayee.accountID);
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
 
             if (!canModifyParticipants) {
@@ -573,7 +572,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
-                onConfirm?.(selectedParticipants);
+                onConfirm?.(selectedParticipants.filter((participant) => participant.accountID !== currentUserPersonalDetails.accountID));
             }
         },
         [
