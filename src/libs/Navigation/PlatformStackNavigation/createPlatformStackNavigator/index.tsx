@@ -1,25 +1,9 @@
 import {createNavigatorFactory} from '@react-navigation/native';
 import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import {createStackNavigator} from '@react-navigation/stack';
+import withWebOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebOptions';
 import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {
-    CommonStackNavigationOptions,
-    NavigationOptionsRouteProps,
-    PlatformStackNavigationEventMap,
-    PlatformStackNavigationOptions,
-    PlatformStackNavigatorProps,
-} from '@libs/Navigation/PlatformStackNavigation/types';
-
-const withPolyfills = (screenOptions?: PlatformStackNavigationOptions): StackNavigationOptions => {
-    if (screenOptions === undefined) {
-        return {};
-    }
-
-    const commonScreenOptions = (({animation, ...rest}) => rest)(screenOptions) satisfies CommonStackNavigationOptions;
-
-    return commonScreenOptions;
-};
+import type {NavigationOptionsRouteProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigatorProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
     const Stack = createStackNavigator<TStackParams>();
@@ -28,9 +12,9 @@ function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
         const webScreenOptions = isRouteBasedScreenOptions(screenOptions)
             ? (props: NavigationOptionsRouteProps<TStackParams>) => {
                   const routeBasedScreenOptions = screenOptions(props);
-                  return withPolyfills(routeBasedScreenOptions);
+                  return withWebOptions(routeBasedScreenOptions);
               }
-            : withPolyfills(screenOptions);
+            : withWebOptions(screenOptions);
         return (
             <Stack.Navigator
                 screenOptions={webScreenOptions}

@@ -1,5 +1,6 @@
-import type {StackCardInterpolationProps, StackNavigationOptions} from '@react-navigation/stack';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import type {ViewStyle} from 'react-native';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ThemeStyles} from '@styles/index';
 import type {StyleUtilsType} from '@styles/utils';
 import variables from '@styles/variables';
@@ -9,24 +10,21 @@ import getRightModalNavigatorOptions from './getRightModalNavigatorOptions';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import leftModalNavigatorOptions from './leftModalNavigatorOptions';
 
-type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => StackNavigationOptions;
+type GetOnboardingModalNavigatorOptions = (shouldUseNarrowLayout: boolean) => PlatformStackNavigationOptions;
 
 type ScreenOptions = {
-    rightModalNavigator: StackNavigationOptions;
+    rightModalNavigator: PlatformStackNavigationOptions;
     onboardingModalNavigator: GetOnboardingModalNavigatorOptions;
-    leftModalNavigator: StackNavigationOptions;
-    homeScreen: StackNavigationOptions;
-    fullScreen: StackNavigationOptions;
-    centralPaneNavigator: StackNavigationOptions;
-    bottomTab: StackNavigationOptions;
+    leftModalNavigator: PlatformStackNavigationOptions;
+    homeScreen: PlatformStackNavigationOptions;
+    fullScreen: PlatformStackNavigationOptions;
+    centralPaneNavigator: PlatformStackNavigationOptions;
+    bottomTab: PlatformStackNavigationOptions;
 };
 
-const commonScreenOptions: StackNavigationOptions = {
+const commonScreenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
-    gestureDirection: 'horizontal',
-    animationEnabled: true,
     cardOverlayEnabled: true,
-    animationTypeForReplace: 'push',
 };
 
 type GetRootNavigatorScreenOptions = (isSmallScreenWidth: boolean, styles: ThemeStyles, StyleUtils: StyleUtilsType) => ScreenOptions;
@@ -40,7 +38,6 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...getRightModalNavigatorOptions(isSmallScreenWidth),
             ...hideKeyboardOnSwipe,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
-            ...hideKeyboardOnSwipe,
         },
         onboardingModalNavigator: (shouldUseNarrowLayout: boolean) => ({
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, shouldUseNarrowLayout, props),
@@ -76,8 +73,8 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             },
         },
         homeScreen: {
-            title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
+            title: CONFIG.SITE_TITLE,
             // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, false, false, props),
             cardStyle: {
@@ -103,11 +100,11 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
         },
 
         centralPaneNavigator: {
-            title: CONFIG.SITE_TITLE,
             ...commonScreenOptions,
+            ...hideKeyboardOnSwipe,
+            title: CONFIG.SITE_TITLE,
             animationEnabled: isSmallScreenWidth,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
-            ...hideKeyboardOnSwipe,
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
                 paddingRight: isSmallScreenWidth ? 0 : variables.sideBarWidth,

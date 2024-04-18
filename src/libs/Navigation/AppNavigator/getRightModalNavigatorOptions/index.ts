@@ -1,8 +1,8 @@
-import type {StackNavigationOptions} from '@react-navigation/stack';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 // eslint-disable-next-line no-restricted-imports
 import getNavigationModalCardStyle from '@styles/utils/getNavigationModalCardStyles';
 
-const rightModalNavigatorOptions = (isSmallScreenWidth: boolean): StackNavigationOptions => ({
+const rightModalNavigatorOptions = (isSmallScreenWidth: boolean): PlatformStackNavigationOptions => ({
     presentation: 'transparentModal',
 
     // We want pop in RHP since there are some flows that would work weird otherwise
