@@ -586,7 +586,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = isTypeSplit ? selectedParticipants.length === 1 : selectParticipants.length === 0;
+        const shouldDisableButton = isTypeSplit ? selectedParticipants.length === 1 : selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
