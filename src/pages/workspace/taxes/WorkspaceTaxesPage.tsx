@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
@@ -25,6 +24,7 @@ import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -37,7 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TaxRate} from '@src/types/onyx';
 
-type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
+type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
 function WorkspaceTaxesPage({
     policy,

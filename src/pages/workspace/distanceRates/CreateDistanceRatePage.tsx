@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -29,7 +29,7 @@ type CreateDistanceRatePageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type CreateDistanceRatePageProps = CreateDistanceRatePageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
+type CreateDistanceRatePageProps = CreateDistanceRatePageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
 
 function CreateDistanceRatePage({policy, route}: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();

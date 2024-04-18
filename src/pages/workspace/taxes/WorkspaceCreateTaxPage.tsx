@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import AmountPicker from '@components/AmountPicker';
@@ -13,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {TaxRate} from '@src/types/onyx';
 
-type WorkspaceCreateTaxPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE>;
+type WorkspaceCreateTaxPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE>;
 
 function WorkspaceCreateTaxPage({
     policy,

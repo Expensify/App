@@ -1,5 +1,4 @@
 import type * as NativeNavigation from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type {TextMatch} from '@testing-library/react-native/build/matches';
 import React, {useMemo} from 'react';
@@ -11,6 +10,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {createOptionList} from '@libs/OptionsListUtils';
 import SearchPage from '@pages/SearchPage';
@@ -126,7 +126,7 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT> & {
+type SearchPageProps = PlatformStackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT> & {
     betas: OnyxEntry<Beta[]>;
     reports: OnyxCollection<Report>;
     isSearchingForReports: OnyxEntry<boolean>;

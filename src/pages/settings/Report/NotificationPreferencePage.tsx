@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -6,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -14,7 +14,7 @@ import * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type NotificationPreferencePageProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
+type NotificationPreferencePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES>;
 
 function NotificationPreferencePage({report}: NotificationPreferencePageProps) {
     const {translate} = useLocalize();

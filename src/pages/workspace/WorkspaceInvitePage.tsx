@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -50,7 +50,7 @@ type WorkspaceInvitePageOnyxProps = {
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WithNavigationTransitionEndProps &
     WorkspaceInvitePageOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
 function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy, isLoadingReportData = true}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();

@@ -1,5 +1,4 @@
 import type {RouteProp} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
@@ -19,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
@@ -68,7 +68,7 @@ type ReimbursementAccountOnyxProps = {
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps &
     ReimbursementAccountOnyxProps &
-    StackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
+    PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
 const ROUTE_NAMES = {
     COMPANY: 'company',

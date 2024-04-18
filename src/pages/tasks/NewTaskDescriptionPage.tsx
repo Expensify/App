@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React from 'react';
 import {View} from 'react-native';
@@ -15,6 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import * as TaskActions from '@userActions/Task';
@@ -30,7 +30,7 @@ type NewTaskDescriptionPageOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type NewTaskDescriptionPageProps = NewTaskDescriptionPageOnyxProps & StackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DESCRIPTION>;
+type NewTaskDescriptionPageProps = NewTaskDescriptionPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DESCRIPTION>;
 
 const parser = new ExpensiMark();
 

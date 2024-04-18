@@ -1,5 +1,4 @@
 import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
 import type {TranslationPaths} from '@src/languages/types';
@@ -24,7 +24,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
-type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
+type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
 
 type Item = {
     icon: IconAsset;

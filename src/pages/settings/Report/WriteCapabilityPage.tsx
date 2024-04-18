@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,6 +8,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -27,7 +27,7 @@ type WriteCapabilityPageOnyxProps = {
 
 type WriteCapabilityPageProps = WriteCapabilityPageOnyxProps &
     WithReportOrNotFoundProps &
-    StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY>;
+    PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY>;
 
 function WriteCapabilityPage({report, policy}: WriteCapabilityPageProps) {
     const {translate} = useLocalize();

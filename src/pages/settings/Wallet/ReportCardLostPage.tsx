@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -14,6 +13,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -61,7 +61,7 @@ type ReportCardLostPageOnyxProps = {
     cardList: OnyxEntry<Record<string, Card>>;
 };
 
-type ReportCardLostPageProps = ReportCardLostPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type ReportCardLostPageProps = ReportCardLostPageOnyxProps & PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function ReportCardLostPage({
     privatePersonalDetails = {

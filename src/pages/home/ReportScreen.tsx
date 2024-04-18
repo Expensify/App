@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
@@ -29,6 +28,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -88,7 +88,7 @@ type OnyxHOCProps = {
     markReadyForHydration?: () => void;
 };
 
-type ReportScreenNavigationProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenNavigationProps = PlatformStackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
 type ReportScreenPropsWithoutParentReportAction = OnyxHOCProps & CurrentReportIDContextValue & ReportScreenOnyxPropsWithoutParentReportAction & ReportScreenNavigationProps;
 

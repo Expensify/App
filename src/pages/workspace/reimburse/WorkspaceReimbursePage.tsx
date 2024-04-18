@@ -1,6 +1,6 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import WorkspaceReimburseView from './WorkspaceReimburseView';
 
-type WorkspaceReimbursePageProps = WithPolicyProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.REIMBURSE>;
+type WorkspaceReimbursePageProps = WithPolicyProps & PlatformStackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.REIMBURSE>;
 
 function WorkspaceReimbursePage({route, policy}: WorkspaceReimbursePageProps) {
     const {translate} = useLocalize();

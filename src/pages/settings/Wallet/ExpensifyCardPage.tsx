@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -20,6 +19,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as GetPhysicalCardUtils from '@libs/GetPhysicalCardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Card from '@userActions/Card';
@@ -49,7 +49,7 @@ type ExpensifyCardPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
 };
 
-type ExpensifyCardPageProps = ExpensifyCardPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type ExpensifyCardPageProps = ExpensifyCardPageOnyxProps & PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function ExpensifyCardPage({
     cardList,

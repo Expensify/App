@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -27,6 +26,7 @@ import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/acti
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -53,7 +53,7 @@ type WorkspaceCategoriesOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & PlatformStackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
 
 function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();

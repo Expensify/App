@@ -1,4 +1,4 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -41,7 +42,7 @@ const policiesSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'id' | 'owner
     owner: policy?.owner ?? '',
 });
 
-type ContactMethodDetailsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
+type ContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS>;
 
 function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGIN_LIST);

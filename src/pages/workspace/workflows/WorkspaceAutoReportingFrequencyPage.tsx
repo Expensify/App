@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {FlatList} from 'react-native-gesture-handler';
 import type {ValueOf} from 'type-fest';
@@ -13,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -27,7 +27,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 type AutoReportingFrequencyKey = Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, 'instant'>;
 type Locale = ValueOf<typeof CONST.LOCALES>;
 
-type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
+type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps &
+    PlatformStackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
 
 type WorkspaceAutoReportingFrequencyPageItem = {
     text: string;

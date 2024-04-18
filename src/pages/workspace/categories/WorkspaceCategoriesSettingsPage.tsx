@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceRequiresCategory} from '@libs/actions/Policy';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -26,7 +26,7 @@ type WorkspaceCategoriesSettingsPageOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesSettingsPageProps = WorkspaceCategoriesSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>;
+type WorkspaceCategoriesSettingsPageProps = WorkspaceCategoriesSettingsPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>;
 
 function WorkspaceCategoriesSettingsPage({route, policyCategories}: WorkspaceCategoriesSettingsPageProps) {
     const styles = useThemeStyles();

@@ -1,5 +1,4 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -21,6 +20,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -45,7 +45,7 @@ type RoomMembersPageOnyxProps = {
 type RoomMembersPageProps = WithReportOrNotFoundProps &
     WithCurrentUserPersonalDetailsProps &
     RoomMembersPageOnyxProps &
-    StackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
+    PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
 
 function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();

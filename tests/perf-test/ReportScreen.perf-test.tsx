@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import React from 'react';
@@ -7,6 +6,7 @@ import type Animated from 'react-native-reanimated';
 import {measurePerformance} from 'reassure';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import ComposeProviders from '@src/components/ComposeProviders';
 import DragAndDropProvider from '@src/components/DragAndDrop/Provider';
@@ -34,7 +34,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-type ReportScreenWrapperProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenWrapperProps = PlatformStackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
 jest.mock('react-native-reanimated', () => {
     const actualNav = jest.requireActual('react-native-reanimated/mock');

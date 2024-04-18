@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
@@ -18,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -34,7 +34,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
 
-type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & StackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
 

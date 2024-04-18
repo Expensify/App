@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -10,6 +9,7 @@ import useGeographicalStateFromRoute from '@hooks/useGeographicalStateFromRoute'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import type {FormOnyxValues} from '@src/components/Form/types';
@@ -27,7 +27,7 @@ type AddressPageOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
 };
 
-type AddressPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & AddressPageOnyxProps;
+type AddressPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ADDRESS> & AddressPageOnyxProps;
 
 /**
  * Submit form to update user's first and last legal name

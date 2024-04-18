@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
@@ -7,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportSettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {RoomVisibility} from '@src/types/onyx/Report';
 
-type VisibilityProps = WithReportOrNotFoundProps & StackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>;
+type VisibilityProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.VISIBILITY>;
 
 function VisibilityPage({report}: VisibilityProps) {
     const [showConfirmModal, setShowConfirmModal] = useState(false);

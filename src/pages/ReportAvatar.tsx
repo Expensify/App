@@ -1,9 +1,9 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -18,7 +18,7 @@ type ReportAvatarOnyxProps = {
     policies: OnyxCollection<Policy>;
 };
 
-type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
+type ReportAvatarProps = ReportAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_AVATAR>;
 
 function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];

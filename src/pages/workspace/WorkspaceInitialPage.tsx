@@ -1,5 +1,4 @@
 import {useNavigationState} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -21,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getTopmostWorkspacesCentralPaneName from '@libs/Navigation/getTopmostWorkspacesCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
@@ -54,7 +54,9 @@ type WorkspaceInitialPageOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps &
+    WorkspaceInitialPageOnyxProps &
+    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 function dismissError(policyID: string) {
     PolicyUtils.goBackFromInvalidPolicy();

@@ -1,4 +1,3 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -16,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -38,7 +38,7 @@ type WorkspaceWorkflowsPayerPageOnyxProps = {
 
 type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
     WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER>;
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
