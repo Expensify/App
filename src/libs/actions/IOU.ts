@@ -6038,6 +6038,5 @@ export {
     updateMoneyRequestTag,
     updateMoneyRequestTaxAmount,
     updateMoneyRequestTaxRate,
-    updateMoneyRequestTypeParams,
 };
 export type {GPSPoint as GpsPoint, IOURequestType};
