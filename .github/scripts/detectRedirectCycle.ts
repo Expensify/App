@@ -1,8 +1,10 @@
 import {parse} from 'csv-parse';
 import fs from 'fs';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-const parser = parse({skip_empty_lines: true});
+const parser = parse({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    skip_empty_lines: true,
+});
 const adjacencyList: Record<string, string[]> = {};
 
 function addEdge(source: string, target: string) {
@@ -39,7 +41,7 @@ function detectCycle(): boolean {
     const visited: Map<string, boolean> = new Map<string, boolean>();
     const backEdges: Map<string, boolean> = new Map<string, boolean>();
 
-    for (const [node, _] of Object.entries(adjacencyList)) {
+    for (const [node] of Object.entries(adjacencyList)) {
         if (!visited.has(node)) {
             if (isCyclic(node, visited, backEdges)) {
                 const cycle = Array.from(backEdges.keys());
