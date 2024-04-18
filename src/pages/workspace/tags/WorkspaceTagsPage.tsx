@@ -91,7 +91,8 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    // We currently don't support multi level tags, so let's only get the first level tags.
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).slice(0, 1), [policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
@@ -101,7 +102,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                         const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                         return {
                             value: tag.name,
-                            text: tag.name,
+                            text: PolicyUtils.getCleanedTagName(tag.name),
                             keyForList: tag.name,
                             isSelected: !!selectedTags[tag.name],
                             pendingAction: tag.pendingAction,
