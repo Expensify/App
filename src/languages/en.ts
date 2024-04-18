@@ -1801,7 +1801,7 @@ export default {
         offlineMessageRetry: "Looks like you're offline. Please check your connection and try again.",
     },
     travel: {
-        header: 'My trips',
+        header: 'Book travel',
         title: 'Book and manage your trips',
         subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
         features: {

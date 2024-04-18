@@ -24,7 +24,6 @@ function MyTripsPage() {
                 shouldShow={!canUseSpotnanaTravel}
             >
                 <HeaderWithBackButton
-                    icon={Illustrations.Luggage}
                     title={translate('travel.header')}
                     shouldShowBackButton
                 />

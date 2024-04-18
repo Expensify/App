@@ -38,6 +38,8 @@ function ManageTrips() {
                     illustration={LottieAnimations.Plane}
                     illustrationStyle={styles.travelIllustrationStyle}
                     illustrationBackgroundColor={colors.blue600}
+                    containerStyles={styles.p5}
+                    titleStyles={styles.textHeadlineH1}
                 />
             </View>
         </ScrollView>

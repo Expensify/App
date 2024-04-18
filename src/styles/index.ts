@@ -1818,8 +1818,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         travelIllustrationStyle: {
-            marginTop: 20,
-            marginBottom: -20,
+            marginTop: 16,
+            marginBottom: -16,
         },
 
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
