@@ -88,7 +88,8 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
                             description={menuItem.description}
                             shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                             onPress={menuItem?.onPress}
-                            brickRoadIndicator={menuItem.brickRoadIndicator}
+                            brickRoadIndicator={menuItem?.brickRoadIndicator}
+                            error={menuItem?.brickRoadIndicator ? translate('common.genericErrorMessage') : undefined}
                         />
                     </OfflineWithFeedback>
                 ))}
