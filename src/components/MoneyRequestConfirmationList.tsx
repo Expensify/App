@@ -890,7 +890,7 @@ function MoneyRequestConfirmationList({
             isLocalFile && Str.isPDF(receiptFilename) ? (
                 <PDFThumbnail
                     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    previewSourceURL={resolvedThumbnail as string}
+                    previewSourceURL={resolvedReceiptImage as string}
                     style={styles.moneyRequestImage}
                     // We don't support scaning password protected PDF receipt
                     enabled={!isAttachmentInvalid}
