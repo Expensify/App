@@ -50,7 +50,7 @@ type IOURequestStepDescriptionOnyxProps = {
 
 type IOURequestStepDescriptionProps = IOURequestStepDescriptionOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        /** Holds data related to Expense view state, rather than the underlying Expense data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
