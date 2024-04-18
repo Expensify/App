@@ -2489,7 +2489,7 @@ const getConvertTrackedExpenseInformation = (
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
-    resolution: Omit<ValueOf<typeof CONST.IOU.ACTION>, 'edit' | 'create'>,
+    resolution: IOUAction,
 ) => {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
