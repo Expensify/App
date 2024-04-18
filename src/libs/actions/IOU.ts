@@ -3143,6 +3143,7 @@ function createSplitsAndOnyxData(
     created: string,
     category: string,
     tag: string,
+    splitShares: SplitShares = {},
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
@@ -3311,13 +3312,15 @@ function createSplitsAndOnyxData(
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const currentUserAmount = isOwnPolicyExpenseChat ? IOUUtils.calculateAmount(participants.length, amount, currency, true) : splitShares[currentUserAccountID].amount;
+
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount}];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
+        const splitAmount = isPolicyExpenseChat ? IOUUtils.calculateAmount(participants.length, amount, currency, false) : splitShares[participant.accountID ?? 0].amount;
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
@@ -3507,6 +3510,7 @@ type SplitBillActionsParams = {
     billable?: boolean;
     iouRequestType?: IOURequestType;
     existingSplitChatReportID?: string;
+    splitShares?: SplitShares;
 };
 
 /**
@@ -3527,6 +3531,7 @@ function splitBill({
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     existingSplitChatReportID = '',
+    splitShares = {},
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -3540,6 +3545,7 @@ function splitBill({
         currentCreated,
         category,
         tag,
+        splitShares,
         existingSplitChatReportID,
         billable,
         iouRequestType,
@@ -3586,6 +3592,7 @@ function splitBillAndOpenReport({
     tag = '',
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    splitShares = {},
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -3599,6 +3606,7 @@ function splitBillAndOpenReport({
         currentCreated,
         category,
         tag,
+        splitShares,
         '',
         billable,
         iouRequestType,

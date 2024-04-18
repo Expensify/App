@@ -170,6 +170,7 @@ function IOURequestStepAmount({
                         created: transaction?.created ?? '',
                         billable: false,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        splitShares: transaction?.splitShares,
                     });
                     return;
                 }

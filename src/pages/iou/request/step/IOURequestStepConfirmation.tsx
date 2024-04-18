@@ -326,6 +326,7 @@ function IOURequestStepConfirmation({
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitShares: transaction.splitShares,
                     });
                 }
                 return;
@@ -347,6 +348,7 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         billable: !!transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitShares: transaction.splitShares,
                     });
                 }
                 return;
