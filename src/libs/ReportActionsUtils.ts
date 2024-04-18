@@ -517,7 +517,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    // Ignore markedAsReimbursed action here since we're already display message that explains the request was paid
+    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
     // elsewhere in the IOU reportAction
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
         return false;
@@ -793,7 +793,7 @@ function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
- * Returns the number of money requests associated with a report preview
+ * Returns the number of expenses associated with a report preview
  */
 function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>): number {
     return reportPreviewAction?.childMoneyRequestCount ?? 0;
@@ -996,7 +996,7 @@ function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>):
 }
 
 /**
- * Helper method to determine if the provided accountID has made a request on the specified report.
+ * Helper method to determine if the provided accountID has submitted an expense on the specified report.
  *
  * @param reportID
  * @param currentAccountID
