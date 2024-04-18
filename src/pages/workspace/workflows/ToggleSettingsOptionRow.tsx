@@ -10,8 +10,6 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type ToggleSettingOptionRowProps = {
-    // Key used internally by React
-    key?: string;
     /** Icon to be shown for the option */
     icon?: IconAsset;
     /** Title of the option */
@@ -40,7 +38,6 @@ type ToggleSettingOptionRowProps = {
 const ICON_SIZE = 48;
 
 function ToggleSettingOptionRow({
-    key,
     icon,
     title,
     subtitle,
@@ -63,7 +60,6 @@ function ToggleSettingOptionRow({
 
     return (
         <OfflineWithFeedback
-            key={key}
             pendingAction={pendingAction}
             errors={errors}
             errorRowStyles={[styles.mt2]}
