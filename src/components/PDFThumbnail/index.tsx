@@ -4,6 +4,8 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import type PDFThumbnailProps from './types';
@@ -12,8 +14,9 @@ if (!pdfjs.GlobalWorkerOptions.workerSrc) {
     pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
 }
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword}: PDFThumbnailProps) {
+function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, errorLabelStyles}: PDFThumbnailProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const thumbnail = useMemo(
         () => (
@@ -26,13 +29,14 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                 }}
                 externalLinkTarget="_blank"
                 onPassword={onPassword}
+                error={<Text style={[styles.textLabel, errorLabelStyles]}>{translate('attachmentView.failedToLoadPDF')}</Text>}
             >
                 <View pointerEvents="none">
                     <Thumbnail pageIndex={0} />
                 </View>
             </Document>
         ),
-        [isAuthTokenRequired, previewSourceURL, onPassword],
+        [isAuthTokenRequired, previewSourceURL, onPassword, errorLabelStyles, translate, styles.textLabel],
     );
 
     return (
