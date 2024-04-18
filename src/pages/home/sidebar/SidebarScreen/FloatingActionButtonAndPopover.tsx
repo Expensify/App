@@ -260,7 +260,10 @@ function FloatingActionButtonAndPopover(
         }
     };
 
-    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
+    const selfDMReportID = useMemo(() => {
+        return ReportUtils.findSelfDMReportID();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoading]);
 
     return (
         <View style={styles.flexGrow1}>
