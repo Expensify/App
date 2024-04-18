@@ -86,22 +86,22 @@ function IOURequestStepConfirmation({
             return translate('iou.categorize');
         }
         if (isRequestingFromTrackExpense) {
-            return translate('iou.request');
+            return translate('iou.submitExpense');
         }
         if (isCategorizingTrackExpense) {
             return translate('iou.share');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
-            return translate('iou.split');
+            return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
             return translate('iou.trackExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('common.send');
+            return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
+    }, [iouType, report, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
 
     const participants = useMemo(
         () =>
@@ -289,7 +289,7 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
-            // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
+            // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.startSplitBill({
@@ -331,7 +331,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            // If the request is created from the global create menu, we also navigate the user to the group report
+            // If the split expense is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBillAndOpenReport({

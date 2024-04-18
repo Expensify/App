@@ -244,22 +244,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
@@ -300,8 +300,8 @@ type NewChatNavigatorParamList = {
     };
 };
 
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH_ROOT]: undefined;
+type ChatFinderNavigatorParamList = {
+    [SCREENS.CHAT_FINDER_ROOT]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -614,7 +614,7 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.CHAT_FINDER]: NavigatorScreenParams<ChatFinderNavigatorParamList>;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
 };
 
@@ -681,7 +681,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
@@ -700,6 +700,10 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
+   
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_ADVANCED]: {
         policyID: string;
     };
@@ -707,9 +711,6 @@ type WorkspacesCentralPaneNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: {
-        policyID: string;
-    };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
         policyID: string;
     };
 };
@@ -799,7 +800,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & ChatFinderNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
@@ -843,7 +844,7 @@ export type {
     ParticipantsNavigatorParamList,
     RoomMembersNavigatorParamList,
     RoomInviteNavigatorParamList,
-    SearchNavigatorParamList,
+    ChatFinderNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
     TeachersUniteNavigatorParamList,

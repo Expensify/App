@@ -879,7 +879,7 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_RENDER: 'search_render',
+        CHAT_FINDER_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
         OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
@@ -1215,19 +1215,19 @@ const CONST = {
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
     },
-    QUICK_BOOKS_ONLINE: 'quickbooksOnline',
+    QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
     QUICK_BOOKS_CONFIG: {
-        AUTO_SYNC: 'autoSync',
-        SYNCE_PEOPLE: 'syncPeople',
-        AUTO_CREATE_VENDOR: 'autoCreateVendor',
-        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
-        COLLECTION_ACCOUNT_ID: 'collectionAccountID',
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_TAXES: 'syncTaxes',
+        AUTO_SYNC: 'autoSync',
+        SYNCE_PEOPLE: 'syncPeople',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT_ID: 'collectionAccountID',
     },
 
     ACCOUNT_ID: {
@@ -1368,7 +1368,7 @@ const CONST = {
     },
 
     KYC_WALL_SOURCE: {
-        REPORT: 'REPORT', // The user attempted to pay a money request
+        REPORT: 'REPORT', // The user attempted to pay an expense
         ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
         TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
     },
@@ -1404,7 +1404,7 @@ const CONST = {
     },
 
     IOU: {
-        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
@@ -1619,25 +1619,23 @@ const CONST = {
             GENERAL_SETTINGS: 'generalSettings',
         },
         CONNECTIONS: {
-            SYNC_STATUS: {
-                STARTING: 'starting',
-                FINISHED: 'finished',
-                PROGRESS: 'progress',
-            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT: 'startingImport',
-                QBO_CUSTOMERS: 'quickbooksOnlineImportCustomers',
-                QBO_EMPLOYEES: 'quickbooksOnlineImportEmployees',
-                QBO_ACCOUNTS: 'quickbooksOnlineImportAccounts',
-                QBO_CLASSES: 'quickbooksOnlineImportClasses',
-                QBO_LOCATIONS: 'quickbooksOnlineImportLocations',
-                QBO_PROCESSING: 'quickbooksOnlineImportProcessing',
-                QBO_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
-                QBO_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
+                QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
+                QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
+                QBO_IMPORT_ACCOUNTS: 'quickbooksOnlineImportAccounts',
+                QBO_IMPORT_CLASSES: 'quickbooksOnlineImportClasses',
+                QBO_IMPORT_LOCATIONS: 'quickbooksOnlineImportLocations',
+                QBO_IMPORT_PROCESSING: 'quickbooksOnlineImportProcessing',
+                QBO_SYNC_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
+                QBO_IMPORT_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                QBO_CHECK_CONNECTION: 'quickbooksOnlineCheckConnection',
+                JOB_DONE: 'jobDone',
             },
         },
     },
