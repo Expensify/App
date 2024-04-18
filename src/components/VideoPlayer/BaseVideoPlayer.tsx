@@ -174,14 +174,15 @@ function BaseVideoPlayer({
 
     // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
     // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
-    useLayoutEffect(() => 
-        () => {
-            if(shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+    useLayoutEffect(
+        () => () => {
+            if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
                 return;
             }
             currentVideoPlayerRef.current = null;
-        }
-    , [currentVideoPlayerRef, shouldUseSharedVideoElement]);
+        },
+        [currentVideoPlayerRef, shouldUseSharedVideoElement],
+    );
 
     useEffect(() => {
         if (!isUploading || !videoPlayerRef.current) {
@@ -214,7 +215,7 @@ function BaseVideoPlayer({
             }
             return;
         }
-        
+
         videoPlayerRef.current = currentVideoPlayerRef.current;
         if (currentlyPlayingURL === url && newParentRef && 'appendChild' in newParentRef) {
             newParentRef.appendChild(sharedElement as HTMLDivElement);
