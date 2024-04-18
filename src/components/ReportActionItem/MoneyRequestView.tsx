@@ -78,6 +78,8 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
+type ReceiptErrors = any;
+
 function MoneyRequestView({
     report,
     parentReport,
@@ -255,7 +257,7 @@ function MoneyRequestView({
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
-    let errors = transaction?.errors;
+    let errors: ReceiptErrors = transaction?.errors ?? {};
     if (parentReportAction?.errors) {
         errors = {
             ...errors,
