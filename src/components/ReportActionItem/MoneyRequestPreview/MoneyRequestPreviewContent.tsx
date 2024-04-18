@@ -4,6 +4,7 @@ import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -134,7 +135,11 @@ function MoneyRequestPreviewContent({
         showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 
-    const getPreviewHeaderText = (): string => {
+    const getPreviewHeaderTextAndIcon: () => {headerMessage: string; headerIcon?: React.FC<SvgProps>} = () => {
+        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
+            return {headerMessage: translate('iou.pendingMatchWithCreditCard'), headerIcon: Expensicons.Hourglass};
+        }
+
         let message = translate('iou.cash');
 
         if (isDistanceRequest) {
@@ -149,13 +154,13 @@ function MoneyRequestPreviewContent({
             message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-                return message;
+                return {headerMessage: message};
             }
         }
 
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
-            return message;
+            return {headerMessage: message};
         }
 
         if (shouldShowRBR && transaction) {
@@ -166,7 +171,8 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                message = `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
+                return {headerMessage: message, headerIcon: undefined};
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
@@ -189,8 +195,10 @@ function MoneyRequestPreviewContent({
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
         }
-        return message;
+        return {headerMessage: message};
     };
+
+    const {headerMessage, headerIcon} = getPreviewHeaderTextAndIcon();
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
@@ -249,7 +257,15 @@ function MoneyRequestPreviewContent({
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                                        {headerIcon && (
+                                            <Icon
+                                                src={headerIcon}
+                                                height={variables.iconSizeExtraSmall}
+                                                width={variables.iconSizeExtraSmall}
+                                                fill={theme.textSupporting}
+                                            />
+                                        )}
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{headerMessage}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
