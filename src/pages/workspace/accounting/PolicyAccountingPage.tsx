@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CollapsibleSection from '@components/CollapsibleSection';
 import ConfirmModal from '@components/ConfirmModal';
+import ConnectToQuickbooksOnlineButton from '@components/ConnectToQuickbooksOnlineButton';
 import ConnectToXeroButton from '@components/ConnectToXeroButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -32,16 +33,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ConnectToQuickbooksOnlineButton from './qboConnectionButton';
 
-type WorkspaceAccountingPageOnyxProps = {
+type PolicyAccountingPageOnyxProps = {
     /** From Onyx */
     /** Bank account attached to free plan */
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
-type WorkspaceAccountingPageProps = WithPolicyAndFullscreenLoadingProps &
-    WorkspaceAccountingPageOnyxProps & {
+type PolicyAccountingPageProps = WithPolicyAndFullscreenLoadingProps &
+    PolicyAccountingPageOnyxProps & {
         /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
     };
@@ -92,7 +92,7 @@ function accountingIntegrationTitleKey(connectionName: ConnectionName) {
     }
 }
 
-function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -220,13 +220,15 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return;
         }
-        const otherIntegrations = accountingIntegrations.filter((integration) => integration !== connectionSyncProgress?.connectionName && integration !== connectedIntegration);
+        const otherIntegrations = accountingIntegrations.filter(
+            (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
+        );
         return otherIntegrations.map((integration) => ({
             icon: accountingIntegrationIcon(integration),
             title: translate(accountingIntegrationTitleKey(integration)),
             rightComponent: connectToAccountingIntegrationButton(integration, policyID, environmentURL, true),
         }));
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, environmentURL, isSyncInProgress, policy?.connections, policyID, translate]);
+    }, [connectedIntegration, connectionSyncProgress, environmentURL, isSyncInProgress, policy?.connections, policyID, translate]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -251,7 +253,7 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
                 >
                     <ScreenWrapper
-                        testID={WorkspaceAccountingPage.displayName}
+                        testID={PolicyAccountingPage.displayName}
                         includeSafeAreaPaddingBottom={false}
                         shouldShowOfflineIndicatorInWideScreen
                     >
@@ -277,7 +279,7 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
                                         menuItems={connectionsMenuItems}
                                         shouldUseSingleExecution
                                     />
-                                    {otherIntegrationsItems && (
+                                    {!!otherIntegrationsItems?.length && otherIntegrationsItems?.length > 0 && (
                                         <CollapsibleSection
                                             title="Other integrations"
                                             wrapperStyle={styles.pr3}
@@ -316,12 +318,12 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
     );
 }
 
-WorkspaceAccountingPage.displayName = 'WorkspaceAccountingPage';
+PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
 export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceAccountingPageProps, WorkspaceAccountingPageOnyxProps>({
+    withOnyx<PolicyAccountingPageProps, PolicyAccountingPageOnyxProps>({
         connectionSyncProgress: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
         },
-    })(WorkspaceAccountingPage),
+    })(PolicyAccountingPage),
 );
