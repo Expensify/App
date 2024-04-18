@@ -1,6 +1,7 @@
 import {parse} from 'csv-parse';
 import fs from 'fs';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 const parser = parse({skip_empty_lines: true});
 const adjacencyList: Record<string, string[]> = {};
 
