@@ -3,8 +3,10 @@ import 'react-native-gesture-handler/jestSetup';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import 'setimmediate';
 import setupMockImages from './setupMockImages';
+import mockFSLibrary from './setupMockFullstoryLib';
 
 setupMockImages();
+mockFSLibrary();
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
