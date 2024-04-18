@@ -342,7 +342,8 @@ function ReportActionCompose({
         [],
     );
 
-    const isGroupPolicyReport = useMemo(() => ReportUtils.isGroupPolicy(report), [report]);
+    // When we invite someone to a room they don't have the policy type, but we still want them to be able to mention other reports they are members of, so we also check the reportType in case the policyType was empty.
+    const isGroupPolicyReport = useMemo(() => (ReportUtils.isGroupPolicy(report) || ReportUtils.isChatRoom(report)), [report]);
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
