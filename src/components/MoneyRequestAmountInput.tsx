@@ -53,6 +53,7 @@ function MoneyRequestAmountTextInput(
         isCurrencyPressable = true,
         onCurrencyButtonPress,
         prefixCharacter,
+        onAmountChange,
         hideCurrencySymbol,
         inputStyle = null,
         textInputContainerStyles = null,
@@ -123,10 +124,11 @@ function MoneyRequestAmountTextInput(
                     hasSelectionBeenSet = true;
                     setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : prevAmount.length, strippedAmount.length));
                 }
+                onAmountChange?.(strippedAmount);
                 return strippedAmount;
             });
         },
-        [decimals, formError],
+        [decimals, formError, onAmountChange],
     );
 
     useEffect(() => {});

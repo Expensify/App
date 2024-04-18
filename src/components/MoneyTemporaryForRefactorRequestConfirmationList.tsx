@@ -115,9 +115,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Payee of the expense with login */
     payeePersonalDetails?: OnyxTypes.PersonalDetails;
 
-    /** Can the participants be modified or not */
-    canModifyParticipants?: boolean;
-
     /** Should the list be read only, and not editable? */
     isReadOnly?: boolean;
 
@@ -374,11 +371,19 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const selectedParticipants = useMemo(() => pickedParticipants.filter((participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
 
+    const onSplitShareChange = useCallback(
+        (accountID: number, value) => {
+            const amountInCents = CurrencyUtils.convertToBackendAmount(value);
+            IOU.setSplitShare(transaction?.transactionID, accountID, amountInCents, iouCurrencyCode, true);
+        },
+        [transaction, iouCurrencyCode],
+    );
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         if (hasMultipleParticipants) {
             const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
-            const formattedParticipantsList = [payeeOption, ...selectedParticipants].map((participantOption) => ({
+            const formattedParticipantsList = [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
                 ...participantOption,
                 descriptiveText: null,
                 amountProps: {
@@ -387,7 +392,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     prefixCharacter: currencyList?.[iouCurrencyCode]?.symbol ?? iouCurrencyCode,
                     isCurrencyPressable: false,
                     hideCurrencySymbol: true,
-                    onAmountChange: (value) => {},
+                    onAmountChange: (value) => onSplitShareChange(participantOption.accountID, value),
                 },
             }));
 
@@ -408,7 +413,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             });
         }
         return sections;
-    }, [transaction?.splitShares, currencyList, selectedParticipants, hasMultipleParticipants, iouCurrencyCode, personalDetailsOfPayee, translate]);
+    }, [transaction?.splitShares, onSplitShareChange, currencyList, selectedParticipants, hasMultipleParticipants, iouCurrencyCode, personalDetailsOfPayee, translate]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
