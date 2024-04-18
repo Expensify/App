@@ -8,6 +8,7 @@ import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -16,7 +17,6 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -35,22 +35,26 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: Boolean(autoSync),
-            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, !autoSync),
+            isActive: Boolean(autoSync?.enabled),
+            onToggle: () =>
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
+                    jobID: autoSync?.jobID ?? '',
+                    enabled: !autoSync?.enabled,
+                }),
             pendingAction: pendingFields?.autoSync,
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: Boolean(syncPeople),
-            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
+            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
             subtitle: translate('workspace.qbo.advancedConfig.createEntitiesDescription'),
             isActive: Boolean(autoCreateVendor),
-            onToggle: () => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
+            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
         },
     ];
@@ -100,8 +104,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 isActive={Boolean(accountOptions[0]?.id)} // TODO
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 onToggle={() =>
-                                    Policy.updatePolicyConnectionConfig(
+                                    Connections.updatePolicyConnectionConfig(
                                         policyID,
+                                        CONST.POLICY.CONNECTIONS.NAME.QBO,
                                         CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID || CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
                                         accountOptions[0]?.id,
                                     )
@@ -130,7 +135,14 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 wrapperStyle={styles.mv3}
                                 pendingAction={pendingFields?.collectionAccountID}
                                 isActive={Boolean(invoiceAccountOptions[0]?.id)} // TODO
-                                onToggle={() => Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, invoiceAccountOptions[0]?.id)}
+                                onToggle={() =>
+                                    Connections.updatePolicyConnectionConfig(
+                                        policyID,
+                                        CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                        CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+                                        invoiceAccountOptions[0]?.id,
+                                    )
+                                }
                             />
 
                             <MenuItemWithTopDescription
