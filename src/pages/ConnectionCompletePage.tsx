@@ -18,8 +18,8 @@ function ConnectionCompletePage() {
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
                     <Icon
-                        width={variables.modalTopIconWidth}
-                        height={variables.modalTopBigIconHeight}
+                        width={272}
+                        height={188}
                         src={Expensicons.ConnectionComplete}
                     />
                 </View>
