@@ -78,7 +78,8 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const actorAccountID = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport ? iouReport.managerID : action?.actorAccountID;
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -105,7 +106,7 @@ function ReportActionItemSingle({
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        // The ownerAccountID and actorAccountID can be the same if the a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID ? iouReport?.managerID : iouReport?.ownerAccountID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);

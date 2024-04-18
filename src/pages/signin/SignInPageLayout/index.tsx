@@ -144,8 +144,8 @@ function SignInPageLayout(
                     keyboardShouldPersistTaps="handled"
                     ref={scrollViewRef}
                 >
-                    <View style={[styles.flex1, styles.flexColumn, styles.overflowHidden, StyleUtils.getMinimumHeight(backgroundImageHeight), StyleUtils.getSignInBgStyles(theme)]}>
-                        <View style={[styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
+                    <View style={[styles.dBlock, styles.flexColumn, styles.overflowHidden, StyleUtils.getSignInBgStyles(theme)]}>
+                        <View style={[styles.dBlock, styles.pAbsolute, styles.w100, StyleUtils.getHeight(backgroundImageHeight), StyleUtils.getBackgroundColorStyle(theme.highlightBG)]}>
                             <BackgroundImage
                                 isSmallScreen
                                 pointerEvents="none"

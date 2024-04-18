@@ -132,7 +132,7 @@ function MoneyRequestView({
             ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
-    // Flags for allowing or disallowing editing a money request
+    // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
@@ -185,26 +185,26 @@ function MoneyRequestView({
 
     if (isCardTransaction) {
         if (formattedOriginalAmount) {
-            amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
         if (TransactionUtils.isPending(transaction)) {
-            amountDescription += ` • ${translate('iou.pending')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
         if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
     } else {
         if (!isDistanceRequest) {
-            amountDescription += ` • ${translate('iou.cash')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
         if (isApproved) {
-            amountDescription += ` • ${translate('iou.approved')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isSettled) {
-            amountDescription += ` • ${translate('iou.settledExpensify')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         } else if (report.isWaitingOnBankAccount) {
-            amountDescription += ` • ${translate('iou.pending')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
     }
 
@@ -220,7 +220,7 @@ function MoneyRequestView({
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
-            // Checks applied when creating a new money request
+            // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
@@ -408,7 +408,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag &&
-                    policyTagLists.map(({name}, index) => (
+                    policyTagLists.map(({name, orderWeight}, index) => (
                         <OfflineWithFeedback
                             key={name}
                             pendingAction={getPendingFieldAction('tag')}
@@ -421,7 +421,7 @@ function MoneyRequestView({
                                 titleStyle={styles.flex1}
                                 onPress={() =>
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, orderWeight, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
                                 brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -488,6 +488,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={!!transactionBillable}
                             onToggle={saveBillable}
+                            disabled={!canEdit}
                         />
                     </View>
                 )}

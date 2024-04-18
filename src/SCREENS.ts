@@ -98,7 +98,7 @@ const SCREENS = {
         ROOT: 'SaveTheWorld_Root',
     },
     LEFT_MODAL: {
-        SEARCH: 'Search',
+        CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     WORKSPACE_SWITCHER: {
@@ -176,6 +176,7 @@ const SCREENS = {
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
         ROOM_NAME: 'Report_Settings_Room_Name',
+        GROUP_NAME: 'Report_Settings_Group_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
@@ -206,6 +207,15 @@ const SCREENS = {
     },
 
     WORKSPACE: {
+        ACCOUNTING: {
+            ROOT: 'Policy_Accounting',
+            QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
+            QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
+            QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
+            QUICKBOOKS_ONLINE_CUSTOMERS: 'Policy_Accounting_Quickbooks_Online_Import_Customers',
+            QUICKBOOKS_ONLINE_LOCATIONS: 'Policy_Accounting_Quickbooks_Online_Import_Locations',
+            QUICKBOOKS_ONLINE_TAXES: 'Policy_Accounting_Quickbooks_Online_Import_Taxes',
+        },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
@@ -270,6 +280,7 @@ const SCREENS = {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
         NEW_CHAT_CONFIRM: 'NewChat_Confirm',
+        NEW_CHAT_EDIT_NAME: 'NewChat_Edit_Name',
         NEW_ROOM: 'room',
     },
 
@@ -306,10 +317,15 @@ const SCREENS = {
     PROFILE_ROOT: 'Profile_Root',
     PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
     REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
-    REPORT_PARTICIPANTS_ROOT: 'ReportParticipants_Root',
+    REPORT_PARTICIPANTS: {
+        ROOT: 'ReportParticipants_Root',
+        INVITE: 'ReportParticipants_Invite',
+        DETAILS: 'ReportParticipants_Details',
+        ROLE: 'ReportParticipants_Role',
+    },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
-    SEARCH_ROOT: 'Search_Root',
+    CHAT_FINDER_ROOT: 'ChatFinder_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
