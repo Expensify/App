@@ -59,7 +59,6 @@ function BaseTextInput(
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
-        prefixStyle = [],
         inputID,
         isMarkdownEnabled = false,
         ...inputProps
@@ -242,10 +241,7 @@ function BaseTextInput(
     // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
     // this method will produce reliable results.
     const getCharacterPadding = (prefix: string): number => {
-        // TODO: figure out padding for single and 3 character currencies
-        return 10;
         switch (prefix) {
-            case CONST.CURRENCY.USD:
             case CONST.POLICY.ROOM_PREFIX:
                 return 10;
             default:
@@ -260,13 +256,11 @@ function BaseTextInput(
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
-    const autoGrowWidth = textInputWidth + getCharacterPadding(prefixCharacter) + 15;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
+        autoGrow && StyleUtils.getWidthStyle(textInputWidth),
         !hideFocusedState && isFocused && styles.borderColorFocus,
-        autoGrow && StyleUtils.getWidthStyle(autoGrowWidth),
-        {minWidth: autoGrowWidth},
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
