@@ -38,7 +38,7 @@ function detectCycle() {
     const visited: Map<string, boolean> = new Map<string, boolean>();
     const backEdges: Map<string, boolean> = new Map<string, boolean>();
 
-    for (let node in adjacencyList) {
+    for (const node in adjacencyList) {
         if (!visited.has(node)) {
             if (isCyclic(node, visited, backEdges)) {
                 const cycle = Array.from(backEdges.keys());
