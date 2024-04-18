@@ -1,6 +1,10 @@
 import lodashDebounce from 'lodash/debounce';
 import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
+import lodashValues from 'lodash/values';
+import lodashFind from 'lodash/find';
+import lodashMap from 'lodash/map';
+import lodashFindIndex from 'lodash/findIndex';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {View} from 'react-native';
@@ -80,7 +84,7 @@ class BaseOptionsSelector extends Component {
         this.handleFocusOut = this.handleFocusOut.bind(this);
         this.debouncedUpdateSearchValue = lodashDebounce(this.updateSearchValue, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         this.relatedTarget = null;
-        this.accessibilityRoles = Object.values(CONST.ROLE);
+        this.accessibilityRoles = lodashValues(CONST.ROLE);
         this.isWebOrDesktop = [CONST.PLATFORM.DESKTOP, CONST.PLATFORM.WEB].includes(getPlatform());
 
         const allOptions = this.flattenSections();
@@ -172,8 +176,8 @@ class BaseOptionsSelector extends Component {
         }
         const newFocusedIndex = this.props.selectedOptions.length;
         const isNewFocusedIndex = newFocusedIndex !== this.state.focusedIndex;
-        const prevFocusedOption = newOptions.find((option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
-        const prevFocusedOptionIndex = prevFocusedOption ? newOptions.findIndex((option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
+        const prevFocusedOption = lodashFind(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList);
+        const prevFocusedOptionIndex = prevFocusedOption ? lodashFindIndex(newOptions, (option) => this.focusedOption && option.keyForList === this.focusedOption.keyForList) : undefined;
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
@@ -235,7 +239,7 @@ class BaseOptionsSelector extends Component {
             return defaultIndex;
         }
 
-        const indexOfInitiallyFocusedOption = allOptions.findIndex((option) => option.keyForList === this.props.initiallyFocusedOptionKey);
+        const indexOfInitiallyFocusedOption = lodashFindIndex(allOptions, (option) => option.keyForList === this.props.initiallyFocusedOptionKey);
 
         return indexOfInitiallyFocusedOption;
     }
@@ -246,7 +250,7 @@ class BaseOptionsSelector extends Component {
      * @returns {Objects[]}
      */
     sliceSections() {
-        return this.props.sections.map((section) => {
+        return lodashMap(this.props.sections, (section) => {
             if (section.data.length === 0) {
                 return section;
             }
@@ -348,7 +352,7 @@ class BaseOptionsSelector extends Component {
 
     selectFocusedOption(e) {
         const focusedItemKey = lodashGet(e, ['target', 'attributes', 'id', 'value']);
-        const focusedOption = focusedItemKey ? this.state.allOptions.find((option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
+        const focusedOption = focusedItemKey ? lodashFind(this.state.allOptions, (option) => option.keyForList === focusedItemKey) : this.state.allOptions[this.state.focusedIndex];
 
         if (!focusedOption || !this.props.isFocused) {
             return;

@@ -2,6 +2,8 @@ import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
+import lodashValues from 'lodash/values';
+import lodashMap from 'lodash/map';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -53,13 +55,13 @@ const propTypes = {
     ),
 
     /** The type of IOU report, i.e. split, request, send, track */
-    iouType: PropTypes.oneOf(Object.values(CONST.IOU.TYPE)).isRequired,
+    iouType: PropTypes.oneOf(lodashValues(CONST.IOU.TYPE)).isRequired,
 
     /** The expense type, ie. manual, scan, distance */
-    iouRequestType: PropTypes.oneOf(Object.values(CONST.IOU.REQUEST_TYPE)).isRequired,
+    iouRequestType: PropTypes.oneOf(lodashValues(CONST.IOU.REQUEST_TYPE)).isRequired,
 
     /** The action of the IOU, i.e. create, split, move */
-    action: PropTypes.oneOf(Object.values(CONST.IOU.ACTION)),
+    action: PropTypes.oneOf(lodashValues(CONST.IOU.ACTION)),
 };
 
 const defaultProps = {
@@ -157,7 +159,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
                 title: undefined,
-                data: [chatOptions.userToInvite].map((participant) => {
+                data: lodashMap([chatOptions.userToInvite], (participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
