@@ -2,6 +2,7 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ChatReportSelector, PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
@@ -65,11 +66,11 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: OnyxCollection<Report>,
+    allReports: OnyxCollection<ChatReportSelector>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<Policy>,
+    policies: OnyxCollection<PolicySelector>,
     priorityMode: OnyxEntry<PriorityMode>,
-    allReportActions: OnyxCollection<ReportAction[]>,
+    allReportActions: OnyxCollection<ReportActionsSelector>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
@@ -136,10 +137,11 @@ function getOrderedReportIDs(
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
         if (report) {
+            // eslint-disable-next-line no-param-reassign
             report = {
                 ...report,
                 displayName: ReportUtils.getReportName(report),
-            }
+            };
         }
 
         const isPinned = report?.isPinned ?? false;

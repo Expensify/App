@@ -9,13 +9,13 @@ import type {ValueOf} from 'type-fest';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {PolicySelector, policySelector, useReportIDs} from '@hooks/useReportIDs';
+import type {PolicySelector} from '@hooks/useReportIDs';
+import {policySelector, useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import SidebarLinks from './SidebarLinks';
 
 type SidebarLinksDataOnyxProps = {

@@ -1,6 +1,6 @@
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -13,7 +13,7 @@ import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
-export type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar' | 'employeeList'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar' | 'employeeList'>;
 type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
 type ReportIDsContextProviderProps = {
@@ -114,12 +114,12 @@ function ReportIDsContextProvider({
     currentReportIDForTests,
 }: ReportIDsContextProviderProps) {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
-    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector, initialValue: {}});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector, initialValue: {}});
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsSelector, initialValue: {}});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {initialValue: {}});
-    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {initialValue: []});
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector, initialValue: {} as ChatReportSelector});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector, initialValue: {} as PolicySelector});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsSelector, initialValue: {} as ReportActionsSelector});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {initialValue: {} as OnyxCollection<OnyxTypes.TransactionViolations>});
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {} as OnyxCollection<string>});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {initialValue: [] as OnyxEntry<OnyxTypes.Beta[]>});
 
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
@@ -134,9 +134,9 @@ function ReportIDsContextProvider({
                 currentReportID ?? null,
                 chatReports,
                 betas,
-                policies as OnyxCollection<OnyxTypes.Policy>,
+                policies,
                 priorityMode,
-                allReportActions as OnyxCollection<OnyxTypes.ReportAction[]>,
+                allReportActions,
                 transactionViolations,
                 activeWorkspaceID,
                 policyMemberAccountIDs,
@@ -170,4 +170,5 @@ function useReportIDs() {
     return useContext(ReportIDsContext);
 }
 
-export {ReportIDsContextProvider, ReportIDsContext, useReportIDs, policySelector};
+export {ReportIDsContext, ReportIDsContextProvider, policySelector, useReportIDs};
+export type {ChatReportSelector, PolicySelector, ReportActionsSelector};
