@@ -3552,7 +3552,7 @@ const CONST = {
             "# Let's start tracking your expenses!\n" +
             '\n' +
             "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > New Workspace\n' +
+            '1. From the home screen, click the green + button > *New Workspace*\n' +
             '2. Give your workspace a name (e.g. "My business expenses").\n' +
             '\n' +
             'Then, add expenses to your workspace:\n' +
@@ -3565,7 +3565,7 @@ const CONST = {
             '# Expensify is the fastest way to get paid back!\n' +
             '\n' +
             'To submit expenses for reimbursement:\n' +
-            '1. From the home screen, click the green + button > Request money.\n' +
+            '1. From the home screen, click the green + button > *Request money*.\n' +
             "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
             '\n' +
             "That'll send a request to get you paid back. Let me know if you have any questions!",
@@ -3573,7 +3573,7 @@ const CONST = {
             "# Let's start managing your team's expenses!\n" +
             '\n' +
             "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > New Workspace\n' +
+            '1. From the home screen, click the green + button > *New Workspace*\n' +
             '2. Give your workspace a name (e.g. "Sales team expenses").\n' +
             '\n' +
             'Then, invite your team to your workspace via the Members pane and [connect a business bank account](https://help.expensify.com/articles/new-expensify/bank-accounts/Connect-a-Bank-Account) to reimburse them. Let me know if you have any questions!',
@@ -3581,7 +3581,7 @@ const CONST = {
             "# Let's start tracking your expenses! \n" +
             '\n' +
             "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > New Workspace\n' +
+            '1. From the home screen, click the green + button > *New Workspace*\n' +
             '2. Give your workspace a name (e.g. "My expenses").\n' +
             '\n' +
             'Then, add expenses to your workspace:\n' +
@@ -3594,7 +3594,7 @@ const CONST = {
             '# Splitting the bill is as easy as a conversation!\n' +
             '\n' +
             'To split an expense:\n' +
-            '1. From the home screen, click the green + button > Request money.\n' +
+            '1. From the home screen, click the green + button > *Request money*.\n' +
             '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
             '\n' +
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
