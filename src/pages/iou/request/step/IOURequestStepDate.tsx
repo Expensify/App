@@ -38,7 +38,7 @@ type IOURequestStepDateOnyxProps = {
 
 type IOURequestStepDateProps = IOURequestStepDateOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        /** Holds data related to Expense view state, rather than the underlying Expense data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 

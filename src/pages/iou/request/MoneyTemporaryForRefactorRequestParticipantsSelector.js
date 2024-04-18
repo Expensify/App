@@ -50,10 +50,10 @@ const propTypes = {
         }),
     ),
 
-    /** The type of IOU report, i.e. bill, request, send */
+    /** The type of IOU report, i.e. split, request, send, track */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
-    /** The request type, ie. manual, scan, distance */
+    /** The expense type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
     /** The action of the IOU, i.e. create, split, move */
@@ -102,8 +102,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             participants,
             CONST.EXPENSIFY_EMAILS,
 
-            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat.
+            // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to submit an expense from their admin on their own Workspace Chat.
             iouType === CONST.IOU.TYPE.REQUEST && action !== CONST.IOU.ACTION.MOVE,
 
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
@@ -209,7 +209,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     ]);
 
     /**
-     * Adds a single participant to the request
+     * Adds a single participant to the expense
      *
      * @param {Object} option
      */
@@ -319,14 +319,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                        message="iou.error.splitExpenseMultipleParticipantsErrorMessage"
                     />
                 )}
 
                 {!!participants.length && (
                     <Button
                         success
-                        text={translate('iou.addToSplit')}
+                        text={translate('common.next')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
                         large

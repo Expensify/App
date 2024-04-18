@@ -25,7 +25,6 @@ import type {
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -259,16 +258,15 @@ Onyx.connect({
     callback: (value) => (allPolicies = value),
 });
 
-const reportActionsByReport: OnyxCollection<OnyxTypes.ReportActions> = {};
+let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        reportActionsByReport[reportID] = actions;
+        allReportActions = actions;
     },
 });
 
@@ -286,7 +284,7 @@ function getPolicy(policyID: string | undefined): OnyxTypes.Policy | EmptyObject
  * Find the report preview action from given chat report and iou report
  */
 function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
-    const reportActions = reportActionsByReport?.[chatReportID] ?? {};
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
 
     // Find the report preview action from the chat report
     return (
@@ -297,7 +295,7 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
 }
 
 /**
- * Initialize money request info
+ * Initialize expense info
  * @param reportID to attach the transaction to
  * @param policy
  * @param isFromGlobalCreate
@@ -311,7 +309,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
     const comment: Comment = {};
 
-    // Add initial empty waypoints when starting a distance request
+    // Add initial empty waypoints when starting a distance expense
     if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         comment.waypoints = {
             waypoint0: {},
@@ -357,7 +355,7 @@ function clearMoneyRequest(transactionID: string) {
 }
 
 /**
- * Update money request-related pages IOU type params
+ * Update money expense-related pages IOU type params
  */
 function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab?: string) {
     routes.forEach((route) => {
@@ -373,7 +371,7 @@ function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase
         }
         Navigation.setParams(newParams, route.key ?? '');
 
-        // Recursively update nested money request tab params
+        // Recursively update nested expense tab params
         updateMoneyRequestTypeParams(route.state?.routes ?? [], newIouType, tab);
     });
 }
@@ -449,7 +447,7 @@ function setMoneyRequestReceipt(transactionID: string, source: string, filename:
     });
 }
 
-/** Reset money request info from the store with its initial value */
+/** Reset expense info from the store with its initial value */
 function resetMoneyRequestInfo(id = '') {
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -472,14 +470,14 @@ function resetMoneyRequestInfo(id = '') {
     });
 }
 
-/** Helper function to get the receipt error for money requests, or the generic error if there's no receipt */
+/** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
 function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = true, errorKey?: number): Errors | ErrorFields {
     return isEmptyObject(receipt) || !isScanRequest
         ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage', false, errorKey)
         : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''}, errorKey);
 }
 
-/** Builds the Onyx data for a money request */
+/** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxTypes.Report,
@@ -1170,7 +1168,7 @@ function getDeleteTrackExpenseInformation(
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread and we're not moving the transaction
-    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted and we're not moving the transaction
+    // 2. Update the moneyRequestPreview to show [Deleted expense] - update if the transactionThread exists AND it isn't being deleted and we're not moving the transaction
     const shouldDeleteTransactionThread = !isMovingTransactionFromTrackExpense && (transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false);
 
     const shouldShowDeletedRequestMessage = !isMovingTransactionFromTrackExpense && !!transactionThreadID && !shouldDeleteTransactionThread;
@@ -1316,7 +1314,7 @@ function getDeleteTrackExpenseInformation(
 }
 
 /**
- * Gathers all the data needed to make a money request. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
+ * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
 function getMoneyRequestInformation(
@@ -1364,8 +1362,8 @@ function getMoneyRequestInformation(
         chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID]);
     }
 
-    // STEP 2: Get the money request report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
-    // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic money request report.
+    // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
     let iouReport: OnyxEntry<OnyxTypes.Report> = null;
     if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
@@ -1568,8 +1566,8 @@ function getTrackExpenseInformation(
         return {};
     }
 
-    // STEP 2: If not in the self-DM flow, we need to use the money request report.
-    // For this, first use the chatReport.iouReportID property. Build a new optimistic money request report if needed.
+    // STEP 2: If not in the self-DM flow, we need to use the expense report.
+    // For this, first use the chatReport.iouReportID property. Build a new optimistic expense report if needed.
     const shouldUseMoneyReport = !!isPolicyExpenseChat;
 
     let iouReport: OnyxEntry<OnyxTypes.Report> = null;
@@ -2287,7 +2285,7 @@ function getUpdateTrackExpenseParams(
     };
 }
 
-/** Updates the created date of a money request */
+/** Updates the created date of an expense */
 function updateMoneyRequestDate(
     transactionID: string,
     transactionThreadReportID: string,
@@ -2310,7 +2308,7 @@ function updateMoneyRequestDate(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
 }
 
-/** Updates the billable field of a money request */
+/** Updates the billable field of an expense */
 function updateMoneyRequestBillable(
     transactionID: string,
     transactionThreadReportID: string,
@@ -2326,7 +2324,7 @@ function updateMoneyRequestBillable(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
 
-/** Updates the merchant field of a money request */
+/** Updates the merchant field of an expense */
 function updateMoneyRequestMerchant(
     transactionID: string,
     transactionThreadReportID: string,
@@ -2349,7 +2347,7 @@ function updateMoneyRequestMerchant(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
-/** Updates the tag of a money request */
+/** Updates the tag of an expense */
 function updateMoneyRequestTag(
     transactionID: string,
     transactionThreadReportID: string,
@@ -2365,7 +2363,7 @@ function updateMoneyRequestTag(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
-/** Updates the created tax amount of a money request */
+/** Updates the created tax amount of an expense */
 function updateMoneyRequestTaxAmount(
     transactionID: string,
     optimisticReportActionID: string,
@@ -2381,7 +2379,7 @@ function updateMoneyRequestTaxAmount(
     API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
 }
 
-/** Updates the created tax rate of a money request */
+/** Updates the created tax rate of an expense */
 function updateMoneyRequestTaxRate(
     transactionID: string,
     optimisticReportActionID: string,
@@ -2406,7 +2404,7 @@ type UpdateMoneyRequestDistanceParams = {
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-/** Updates the waypoints of a distance money request */
+/** Updates the waypoints of a distance expense */
 function updateMoneyRequestDistance({
     transactionID,
     transactionThreadReportID,
@@ -2429,7 +2427,7 @@ function updateMoneyRequestDistance({
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
 
-/** Updates the category of a money request */
+/** Updates the category of an expense */
 function updateMoneyRequestCategory(
     transactionID: string,
     transactionThreadReportID: string,
@@ -2445,7 +2443,7 @@ function updateMoneyRequestCategory(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 
-/** Updates the description of a money request */
+/** Updates the description of an expense */
 function updateMoneyRequestDescription(
     transactionID: string,
     transactionThreadReportID: string,
@@ -2468,7 +2466,7 @@ function updateMoneyRequestDescription(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
-/** Edits an existing distance request */
+/** Edits an existing distance expense */
 function updateDistanceRequest(
     transactionID: string,
     transactionThreadReportID: string,
@@ -2762,7 +2760,7 @@ function shareTrackedExpense(
 }
 
 /**
- * Request money from another user
+ * Submit expense to another user
  */
 function requestMoney(
     report: OnyxEntry<OnyxTypes.Report>,
@@ -3129,7 +3127,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
  *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230'}
  *  ]
  * @param amount - always in the smallest unit of the currency
- * @param existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a workspace chat
  */
 function createSplitsAndOnyxData(
     participants: Participant[],
@@ -3160,7 +3158,7 @@ function createSplitsAndOnyxData(
         created,
         '',
         '',
-        merchant || Localize.translateLocal('iou.request'),
+        merchant || Localize.translateLocal('iou.expense'),
         undefined,
         undefined,
         undefined,
@@ -3374,7 +3372,7 @@ function createSplitsAndOnyxData(
             created,
             CONST.IOU.TYPE.SPLIT,
             splitTransaction.transactionID,
-            merchant || Localize.translateLocal('iou.request'),
+            merchant || Localize.translateLocal('iou.expense'),
             undefined,
             undefined,
             undefined,
@@ -3641,7 +3639,7 @@ type StartSplitBilActionParams = {
     currency: string;
 };
 
-/** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned
+/** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
  *
  * @param existingSplitChatReportID - Either a group DM or a workspace chat
@@ -3929,7 +3927,7 @@ function startSplitBill({
     Report.notifyNewAction(splitChatReport.chatReportID ?? '', currentUserAccountID);
 }
 
-/** Used for editing a split bill while it's still scanning or when SmartScan fails, it completes a split bill started by startSplitBill above.
+/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
  *
  * @param chatReportID - The group chat or workspace reportID
  * @param reportAction - The split action that lives in the chatReport above
@@ -4031,7 +4029,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         let oneOnOneChatReport: OnyxTypes.Report | null;
         let isNewOneOnOneChatReport = false;
         if (isPolicyExpenseChat) {
-            // The workspace chat reportID is saved in the splits array when starting a split bill with a workspace
+            // The workspace chat reportID is saved in the splits array when starting a split expense with a workspace
             oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`] ?? null;
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants(participant.accountID ? [participant.accountID] : []);
@@ -4456,7 +4454,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-/** Updates the amount and currency fields of a money request */
+/** Updates the amount and currency fields of an expense */
 function updateMoneyRequestAmountAndCurrency({
     transactionID,
     transactionThreadReportID,
@@ -4498,7 +4496,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
-    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
+    // 2. Update the moneyRequestPreview to show [Deleted expense] - update if the transactionThread exists AND it isn't being deleted
     const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
     const shouldShowDeletedRequestMessage = !!transactionThreadID && !shouldDeleteTransactionThread;
 
@@ -5346,7 +5344,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
 }
 
 function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, excludedIOUReportID: string): boolean {
-    const chatReportActions = reportActionsByReport?.[chatReport?.reportID ?? ''] ?? {};
+    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).some((action) => {
         const iouReport = ReportUtils.getReport(action.childReportID ?? '');
@@ -5801,7 +5799,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param report attached to the transaction
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
-    // If the report is iou or expense report, we should get the chat report to set participant for request money
+    // If the report is iou or expense report, we should get the chat report to set participant for expense
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
@@ -5846,7 +5844,7 @@ function setShownHoldUseExplanation() {
 }
 
 /**
- * Put money request on HOLD
+ * Put expense on HOLD
  */
 function putOnHold(transactionID: string, comment: string, reportID: string) {
     const currentTime = DateUtils.getDBTime();
@@ -5910,7 +5908,7 @@ function putOnHold(transactionID: string, comment: string, reportID: string) {
 }
 
 /**
- * Remove money request from HOLD
+ * Remove expense from HOLD
  */
 function unholdRequest(transactionID: string, reportID: string) {
     const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
