@@ -247,6 +247,8 @@ type ViolationsTagOutOfPolicyParams = {tagName?: string};
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string};
 
+type PaySomeoneParams = {name?: string};
+
 type TaskCreatedActionParams = {title: string};
 
 /* Translation Object types */
@@ -400,4 +402,5 @@ export type {
     ZipCodeExampleFormatParams,
     LogSizeParams,
     HeldRequestParams,
+    PaySomeoneParams,
 };

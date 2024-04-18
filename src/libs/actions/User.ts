@@ -525,7 +525,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
             const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
 
             for (const message of types) {
-                // someone sent money
+                // Pay someone flow
                 if ('IOUDetails' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
@@ -545,12 +545,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // request money
+                // Submit expense flow
                 if ('IOUTransactionID' in message) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // Someone completes a money request
+                // Someone reimburses an expense
                 if ('IOUReportID' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }

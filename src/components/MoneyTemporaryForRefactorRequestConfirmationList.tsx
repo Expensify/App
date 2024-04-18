@@ -2,11 +2,10 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import {withOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -14,8 +13,8 @@ import usePrevious from '@hooks/usePrevious';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {DefaultMileageRate} from '@libs/DistanceRequestUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
@@ -29,10 +28,11 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as IOU from '@userActions/IOU';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -65,7 +65,7 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** The session of the logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
 
-    /** Unit and rate used for if the money request is a distance request */
+    /** Unit and rate used for if the expense is a distance expense */
     mileageRate: OnyxEntry<DefaultMileageRate>;
 };
 
@@ -73,7 +73,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Callback to inform parent modal of success */
     onConfirm?: (selectedParticipants: Participant[]) => void;
 
-    /** Callback to parent modal to send money */
+    /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
     /** Callback to inform a participant is selected */
@@ -92,7 +92,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    iouType?: IOUType;
 
     /** IOU date */
     iouCreated?: string;
@@ -112,7 +112,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: Participant[];
 
-    /** Payee of the money request with login */
+    /** Payee of the expense with login */
     payeePersonalDetails?: OnyxTypes.PersonalDetails;
 
     /** Can the participants be modified or not */
@@ -139,16 +139,16 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** List styles for OptionsSelector */
     listStyles?: StyleProp<ViewStyle>;
 
-    /** Transaction that represents the money request */
+    /** Transaction that represents the expense */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
-    /** Whether the money request is a distance request */
+    /** Whether the expense is a distance expense */
     isDistanceRequest?: boolean;
 
-    /** Whether the money request is a scan request */
+    /** Whether the expense is a scan expense */
     isScanRequest?: boolean;
 
-    /** Whether we're editing a split bill */
+    /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
     /** Whether we should show the amount, date, and merchant fields. */
@@ -162,7 +162,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     reportActionID?: string;
 
-    action?: ValueOf<typeof CONST.IOU.ACTION>;
+    action?: IOUAction;
 };
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
@@ -236,7 +236,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
 
-    // Do not hide fields in case of send money request
+    // Do not hide fields in case of paying someone
     const shouldShowAllFields = isDistanceRequest || shouldExpandFields || !shouldShowSmartScanFields || isTypeSend || isEditingSplitBill;
 
     const shouldShowDate = (shouldShowSmartScanFields || isDistanceRequest) && !isTypeSend;
@@ -354,7 +354,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         [iouAmount, iouCurrencyCode],
     );
 
-    // If completing a split bill fails, set didConfirm to false to allow the user to edit the fields again
+    // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
     }
@@ -364,14 +364,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (isTypeTrackExpense) {
             text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
-            text = translate('iou.split');
+            text = translate('iou.splitExpense');
         } else if ((receiptPath && isTypeRequest) || isDistanceRequestWithPendingRoute) {
-            text = translate('iou.request');
+            text = translate('iou.submitExpense');
             if (iouAmount !== 0) {
-                text = translate('iou.requestAmount', {amount: formattedAmount});
+                text = translate('iou.submitAmount', {amount: formattedAmount});
             }
         } else {
-            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.requestAmount';
+            const translationKey = isTypeSplit ? 'iou.splitAmount' : 'iou.submitAmount';
             text = translate(translationKey, {amount: formattedAmount});
         }
         return [
@@ -478,7 +478,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transaction?.transactionID ?? '', enabledCategories[0].name);
-    }, [iouCategory, shouldShowCategories, policyCategories, transaction, isCategoryRequired]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldShowCategories, policyCategories, isCategoryRequired]);
 
     // Auto select the tag if there is only one enabled tag and it is required
     useEffect(() => {
@@ -494,7 +495,8 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transaction?.transactionID ?? '', updatedTagsString);
         }
-    }, [policyTagLists, transaction, policyTags, canUseViolations]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyTagLists, policyTags, canUseViolations]);
 
     /**
      */
@@ -550,7 +552,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney?.(paymentMethod);
             } else {
-                // validate the amount for distance requests
+                // validate the amount for distance expenses
                 const decimals = CurrencyUtils.getCurrencyDecimals(iouCurrencyCode);
                 if (isDistanceRequest && !isDistanceRequestWithPendingRoute && !MoneyRequestUtils.validateAmount(String(iouAmount), decimals)) {
                     setFormError('common.error.invalidAmount');
@@ -905,7 +907,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     source={resolvedThumbnail || resolvedReceiptImage || ''}
                     // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting a money request / split bill
+                    // but we don't need it to load the blob:// or file:// image when starting an expense/split
                     // So if we have a thumbnail, it means we're retrieving the image from the server
                     isAuthTokenRequired={!!receiptThumbnail}
                     fileExtension={fileExtension}
