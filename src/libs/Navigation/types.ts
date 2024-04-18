@@ -700,7 +700,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
-   
+
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
