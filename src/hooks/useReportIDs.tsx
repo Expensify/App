@@ -101,20 +101,6 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         employeeList: policy.employeeList,
     }) as PolicySelector;
 
-const priorityModeOptions = {
-    initialValue: CONST.PRIORITY_MODE.DEFAULT,
-};
-
-const chatReportsOptions = {
-    selector: chatReportSelector,
-};
-
-const policiesOptions = {selector: policySelector};
-
-const allReportActionsOptions = {selector: reportActionsSelector};
-
-const betasOptions = {initialValue: []};
-
 function ReportIDsContextProvider({
     children,
     /**
@@ -127,14 +113,14 @@ function ReportIDsContextProvider({
      */
     currentReportIDForTests,
 }: ReportIDsContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, priorityModeOptions);
-    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, chatReportsOptions);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, policiesOptions);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, allReportActionsOptions);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
+    const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector, initialValue: {}});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector, initialValue: {}});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsSelector, initialValue: {}});
     const [policyMembers] = useOnyx(ONYXKEYS.COLLECTION.POLICY_MEMBERS);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [betas] = useOnyx(ONYXKEYS.BETAS, betasOptions);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {initialValue: {}});
+    const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {initialValue: {}});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {initialValue: []});
 
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
