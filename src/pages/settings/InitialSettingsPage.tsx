@@ -71,9 +71,6 @@ type InitialSettingsPageOnyxProps = {
 
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
-
-    /** Members of all the workspaces the user is member of */
-    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
 };
 
 type InitialSettingsPageProps = InitialSettingsPageOnyxProps & WithCurrentUserPersonalDetailsProps;
@@ -98,7 +95,7 @@ type MenuData = {
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies, policyMembers}: InitialSettingsPageProps) {
+function InitialSettingsPage({session, userWallet, bankAccountList, fundList, walletTerms, loginList, currentUserPersonalDetails, policies}: InitialSettingsPageProps) {
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -189,7 +186,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 translationKey: 'common.workspaces',
                 icon: Expensicons.Building,
                 routeName: ROUTES.SETTINGS_WORKSPACES,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, policyMembers) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             },
             {
                 translationKey: 'allSettingsScreen.cardsAndDomains',
@@ -221,7 +218,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [policies, policyMembers, styles.workspaceSettingsSectionContainer]);
+    }, [policies, styles.workspaceSettingsSectionContainer]);
 
     /**
      * Retuns a list of menu items data for general section
@@ -530,9 +527,6 @@ export default withCurrentUserPersonalDetails(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     })(InitialSettingsPage),
 );

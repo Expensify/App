@@ -862,12 +862,14 @@ describe('OptionsListUtils', () => {
                         isSelected: false,
                     },
                 ],
+                indexOffset: 3,
             },
         ];
         const smallSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 2,
                 data: [
                     {
                         text: 'Food',
@@ -892,6 +894,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -1027,6 +1030,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',
@@ -1041,6 +1045,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'Recent',
                 shouldShow: true,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Restaurant',
@@ -1055,6 +1060,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
+                indexOffset: 11,
                 data: [
                     {
                         text: 'Cars',
@@ -1151,6 +1157,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 3,
                 data: [
                     {
                         text: 'Food',
@@ -1183,6 +1190,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -1191,6 +1199,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',
