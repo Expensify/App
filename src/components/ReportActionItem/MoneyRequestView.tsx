@@ -269,7 +269,7 @@ function MoneyRequestView({
             ...parentReportAction?.errors
         };
     }
- 
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -286,26 +286,26 @@ function MoneyRequestView({
                             }
                             Transaction.clearError(transaction.transactionID);
                         }}
-                    >   
+                    >
                         {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                         {(showMapAsImage || hasReceipt) && (
-                            <View style={styles.moneyRequestViewImage}>
-                                {showMapAsImage ? (
-                                    <ConfirmedRoute transaction={transaction} />
-                                ) : (
-                                    <ReportActionItemImage
-                                        thumbnail={receiptURIs?.thumbnail}
-                                        fileExtension={receiptURIs?.fileExtension}
-                                        isThumbnail={receiptURIs?.isThumbnail}
-                                        image={receiptURIs?.image}
-                                        isLocalFile={receiptURIs?.isLocalFile}
-                                        filename={receiptURIs?.filename}
-                                        transaction={transaction}
-                                        enablePreviewModal
-                                    />
-                                )}
-                            </View>
-                    )}
+                        <View style={styles.moneyRequestViewImage}>
+                            {showMapAsImage ? (
+                                <ConfirmedRoute transaction={transaction} />
+                            ) : (
+                                <ReportActionItemImage
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={transaction}
+                                    enablePreviewModal
+                                />
+                            )}
+                        </View>
+                        )}
                     </OfflineWithFeedback>
                 )}
                 {!hasReceipt && canEditReceipt && (
