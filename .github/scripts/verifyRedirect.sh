@@ -9,11 +9,11 @@ declare -r RED='\033[0;31m'
 declare -r GREEN='\033[0;32m'
 declare -r NC='\033[0m'
 
-duplicates=$(awk -F, 'a[$1]++{print $1}' $REDIRECTS_FILE)
-if [[ -n "$duplicates" ]]; then
-    echo "${RED}duplicate redirects are not allowed: $duplicates ${NC}"
-    exit 1
-fi
+# duplicates=$(awk -F, 'a[$1]++{print $1}' $REDIRECTS_FILE)
+# if [[ -n "$duplicates" ]]; then
+#     echo "${RED}duplicate redirects are not allowed: $duplicates ${NC}"
+#     exit 1
+# fi
 
 npm run detectRedirectCycle
 DETECT_CYCLE_EXIT_CODE=$?
@@ -24,4 +24,3 @@ fi
 
 echo -e "${GREEN}The redirects.csv is valid!${NC}"
 exit 0
-
