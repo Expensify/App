@@ -109,7 +109,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
             // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST && action !== CONST.IOU.ACTION.MOVE,
+            (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.MOVE,
 
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
