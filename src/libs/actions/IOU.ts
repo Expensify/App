@@ -4449,6 +4449,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     transactionThreadReportID: string;
     currency: string;
     amount: number;
+    taxAmount?: number;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
@@ -4460,6 +4461,7 @@ function updateMoneyRequestAmountAndCurrency({
     transactionThreadReportID,
     currency,
     amount,
+    taxAmount,
     policy,
     policyTagList,
     policyCategories,
@@ -4467,6 +4469,7 @@ function updateMoneyRequestAmountAndCurrency({
     const transactionChanges = {
         amount,
         currency,
+        ...(taxAmount && {taxAmount}),
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(
         transactionID,
