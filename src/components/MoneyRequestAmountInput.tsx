@@ -60,8 +60,8 @@ type MoneyRequestAmountInputProps = {
     /** Style for the container prefix */
     prefixContainerStyle?: StyleProp<ViewStyle>;
 
-				/** Style for the touchable input wrapper */
-    touchableInputWrapperStyle: StyleProp<ViewStyle>;
+    /** Style for the touchable input wrapper */
+    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type Selection = {
