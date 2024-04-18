@@ -383,6 +383,7 @@ export default {
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
         splitWith: 'Dividir con',
+        splitAmounts: 'Dividir importes',
         whatsItFor: '¿Para qué es?',
     },
     optionsSelector: {

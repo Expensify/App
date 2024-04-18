@@ -78,6 +78,7 @@ function IOURequestStepConfirmation({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
+    const payeePersonalDetails = personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
@@ -103,14 +104,12 @@ function IOURequestStepConfirmation({
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
 
-    const participants = useMemo(
-        () =>
+    const participants = useMemo(() => (
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-            }) ?? [],
-        [transaction?.participants, personalDetails],
-    );
+            }) ?? []
+        ), [transaction?.participants, personalDetails]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     const formHasBeenSubmitted = useRef(false);
 
@@ -326,6 +325,7 @@ function IOURequestStepConfirmation({
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitPayerAccoutIDs: transaction.splitPayerAccountIDs ?? [],
                     });
                 }
                 return;
@@ -535,6 +535,7 @@ function IOURequestStepConfirmation({
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                         shouldShowSmartScanFields={IOUUtils.isMovingTransactionFromTrackExpense(action) ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
+                        payeePersonalDetails={payeePersonalDetails}
                     />
                 </View>
             )}

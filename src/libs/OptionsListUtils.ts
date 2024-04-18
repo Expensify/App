@@ -1962,10 +1962,15 @@ function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: Person
 /**
  * Build the IOUConfirmationOptions for showing participants
  */
-function getIOUConfirmationOptionsFromParticipants(participants: Array<Participant | ReportUtils.OptionData>, amountText: string): Array<Participant | ReportUtils.OptionData> {
+function getIOUConfirmationOptionsFromParticipants(
+    participants: Array<Participant | ReportUtils.OptionData>,
+    amountText: string,
+    payerAmountText = '',
+    payerAccountID = -1,
+): Array<Participant | ReportUtils.OptionData> {
     return participants.map((participant) => ({
         ...participant,
-        descriptiveText: amountText,
+        descriptiveText: participant.accountID === payerAccountID ? payerAmountText : amountText,
     }));
 }
 

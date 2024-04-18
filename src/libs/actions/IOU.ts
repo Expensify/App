@@ -442,6 +442,10 @@ function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string,
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
+function setSplitPayer(transactionID: string, payerAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
+}
+
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         receipt: {source, type: type ?? ''},
@@ -3506,6 +3510,7 @@ type SplitBillActionsParams = {
     billable?: boolean;
     iouRequestType?: IOURequestType;
     existingSplitChatReportID?: string;
+    splitPayerAccoutIDs?: number[];
 };
 
 /**
@@ -3526,6 +3531,7 @@ function splitBill({
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     existingSplitChatReportID = '',
+    splitPayerAccoutIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -3560,6 +3566,7 @@ function splitBill({
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
         chatType: splitData.chatType,
+        splitPayerAccoutIDs,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
@@ -3619,6 +3626,7 @@ function splitBillAndOpenReport({
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
         chatType: splitData.chatType,
+        splitPayerAccoutIDs: [],
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
@@ -5800,7 +5808,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>, iouType: ValueOf<typeof CONST.IOU.TYPE>) {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -5809,6 +5817,10 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
         ReportUtils.isPolicyExpenseChat(chatReport) || shouldAddAsReport
             ? [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: ReportUtils.isPolicyExpenseChat(chatReport), selected: true}]
             : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
+
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        participants.push({accountID: currentUserAccountID, selected: true});
+    }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
 }
@@ -6029,6 +6041,7 @@ export {
     setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
     setMoneyRequestAmount,
+    setSplitPayer,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCurrency,

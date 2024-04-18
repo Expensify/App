@@ -28,6 +28,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import * as UserUtils from '@libs/UserUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,7 +44,9 @@ import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import * as Expensicons from './Icon/Expensicons';
+import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import {usePersonalDetails} from './OnyxProvider';
 import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
@@ -113,7 +116,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     selectedParticipants: Participant[];
 
     /** Payee of the money request with login */
-    payeePersonalDetails?: OnyxTypes.PersonalDetails;
+    payeePersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
 
     /** Can the participants be modified or not */
     canModifyParticipants?: boolean;
@@ -214,6 +217,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
@@ -347,9 +351,15 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]) => {
-            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
+        (participantsList: Participant[], payerAccountID: number) => {
+            const amount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '');
+            const payerAmount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '', true);
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
+                participantsList,
+                amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '',
+                payerAmount > 0 ? CurrencyUtils.convertToDisplayString(payerAmount, iouCurrencyCode) : '',
+                payerAccountID,
+            );
         },
         [iouAmount, iouCurrencyCode],
     );
@@ -384,17 +394,25 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 
     const selectedParticipants = useMemo(() => pickedParticipants.filter((participant) => participant.selected), [pickedParticipants]);
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
+    const payeeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([personalDetailsOfPayee.accountID], personalDetails), false);
+    const payeeIcons = [
+        {
+            source: UserUtils.getAvatar(personalDetailsOfPayee.avatar, personalDetailsOfPayee.accountID),
+            name: personalDetailsOfPayee.login ?? '',
+            type: CONST.ICON_TYPE_AVATAR,
+            id: personalDetailsOfPayee.accountID,
+        },
+    ];
     const userCanModifyParticipants = useRef(!isReadOnly && canModifyParticipants && hasMultipleParticipants);
     useEffect(() => {
         userCanModifyParticipants.current = !isReadOnly && canModifyParticipants && hasMultipleParticipants;
     }, [isReadOnly, canModifyParticipants, hasMultipleParticipants]);
-    const shouldDisablePaidBySection = userCanModifyParticipants.current;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         const unselectedParticipants = pickedParticipants.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants, personalDetailsOfPayee.accountID);
             let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
 
             if (!canModifyParticipants) {
@@ -402,27 +420,18 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     ...participant,
                     isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
                 }));
+            } else {
+                formattedParticipantsList = formattedParticipantsList.map((participant) => ({
+                    ...participant,
+                    isDisabled: participant.accountID === personalDetailsOfPayee.accountID,
+                }));
             }
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
-            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                personalDetailsOfPayee,
-                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
-            );
-
-            sections.push(
-                {
-                    title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [formattedPayeeOption],
-                    shouldShow: true,
-                    isDisabled: shouldDisablePaidBySection,
-                },
-                {
-                    title: translate('moneyRequestConfirmationList.splitWith'),
-                    data: formattedParticipantsList,
-                    shouldShow: true,
-                },
-            );
+            sections.push({
+                title: translate('moneyRequestConfirmationList.splitAmounts'),
+                data: formattedParticipantsList,
+                shouldShow: true,
+            });
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
@@ -439,12 +448,9 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         selectedParticipants,
         pickedParticipants,
         hasMultipleParticipants,
-        iouAmount,
-        iouCurrencyCode,
         getParticipantsWithAmount,
         personalDetailsOfPayee,
         translate,
-        shouldDisablePaidBySection,
         canModifyParticipants,
     ]);
 
@@ -646,6 +652,24 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
+        {
+            item: (
+                <MenuItem
+                    label={translate('moneyRequestConfirmationList.paidBy')}
+                    interactive={!transaction?.isFromGlobalCreate}
+                    description={personalDetailsOfPayee.login}
+                    title={personalDetailsOfPayee.displayName}
+                    icon={payeeIcons}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(iouType, transaction?.transactionID ?? '', reportID));
+                    }}
+                    shouldShowRightIcon
+                    titleWithTooltips={payeeTooltipDetails}
+                />
+            ),
+            shouldShow: isTypeSplit,
+            isSupplementary: false,
+        },
         {
             item: (
                 <MenuItemWithTopDescription

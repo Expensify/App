@@ -380,6 +380,11 @@ const ROUTES = {
         getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
             getUrlWithBackToParam(`${action}/${iouType}/participants/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_SPLIT_PAYER: {
+        route: ':action/:iouType/confirmation/:transactionID/:reportID/payer',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, action: ValueOf<typeof CONST.IOU.ACTION> = 'create') =>
+            `${action}/${iouType}/confirmation/${transactionID}/${reportID}/payer`,
+    },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
         getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
