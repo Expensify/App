@@ -2946,7 +2946,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
         return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
-    return reportAction?.message?.[0]?.text ?? '';
+    return Str.removeSMSDomain(reportAction?.message?.[0]?.text ?? '');
 }
 
 /**
@@ -2998,6 +2998,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
         return Localize.translateLocal('parentReportAction.deletedTask');
+    }
+
+    if (isGroupChat(report)) {
+        return getGroupChatName(undefined, true, report?.reportID) ?? '';
     }
 
     if (isChatRoom(report) || isTaskReport(report)) {
