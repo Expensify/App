@@ -2,36 +2,34 @@ import {useNavigation} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
-import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
-import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepParticipantsOnyxProps = {
     /** The transaction object being modified in Onyx */
     transaction: OnyxEntry<Transaction>;
 };
 
-type IOUValueType = ValueOf<typeof CONST.IOU.TYPE>;
-
 type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
-type IOURef = IOUValueType | null;
+type IOURef = IOUType | null;
 
 function IOURequestStepParticipants({
     route: {
@@ -100,7 +98,7 @@ function IOURequestStepParticipants({
     }, [participants, updateRouteParams]);
 
     const addParticipant = useCallback(
-        (val: Participant[], selectedIouType: IOUValueType) => {
+        (val: Participant[], selectedIouType: IOUType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
             // It's only possible to switch between REQUEST and SPLIT.
             // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
@@ -136,9 +134,9 @@ function IOURequestStepParticipants({
     );
 
     const goToNextStep = useCallback(
-        (selectedIouType: IOUValueType) => {
+        (selectedIouType: IOUType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            let nextStepIOUType: IOUValueType = CONST.IOU.TYPE.REQUEST;
+            let nextStepIOUType: IOUType = CONST.IOU.TYPE.REQUEST;
 
             if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
                 nextStepIOUType = CONST.IOU.TYPE.SPLIT;

@@ -89,8 +89,12 @@ Onyx.connect({
 /**
  * Clears out the task info from the store
  */
-function clearOutTaskInfo() {
-    Onyx.set(ONYXKEYS.TASK, null);
+function clearOutTaskInfo(skipConfirmation = false) {
+    if (skipConfirmation) {
+        Onyx.set(ONYXKEYS.TASK, {skipConfirmation: true});
+    } else {
+        Onyx.set(ONYXKEYS.TASK, null);
+    }
 }
 
 /**
@@ -724,8 +728,8 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
-    clearOutTaskInfo();
+function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<OnyxTypes.Report>, accountID = 0, skipConfirmation = false) {
+    clearOutTaskInfo(skipConfirmation);
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
     }

@@ -1382,7 +1382,6 @@ export default {
         localTime: 'Local time',
     },
     newChatPage: {
-        createChat: 'Create chat',
         startGroup: 'Start group',
         addToGroup: 'Add to group',
     },
@@ -2096,7 +2095,18 @@ export default {
                             return 'Importing accounts';
                         case 'quickbooksOnlineImportClasses':
                             return 'Importing classes';
-
+                        case 'quickbooksOnlineImportLocations':
+                            return 'Importing locations';
+                        case 'quickbooksOnlineImportProcessing':
+                            return 'Processing imported data';
+                        case 'quickbooksOnlineSyncBillPayments':
+                            return 'Synchronizing reimbursed reports and bill Payments';
+                        case 'quickbooksOnlineSyncTaxCodes':
+                            return 'Importing tax codes';
+                        case 'quickbooksOnlineCheckConnection':
+                            return 'Checking QuickBooks Online connection';
+                        case 'quickbooksOnlineImportMain':
+                            return 'Importing your QuickBooks Online data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
