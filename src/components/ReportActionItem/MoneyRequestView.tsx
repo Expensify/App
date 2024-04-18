@@ -255,7 +255,7 @@ function MoneyRequestView({
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
-    let errors = transaction?.errors ?? {};
+    let errors: Errors | ReceiptErrors = transaction?.errors ?? {};
     if (parentReportAction?.errors) {
         errors = {
             ...errors,
