@@ -75,6 +75,7 @@ minio server ~/data/
 ```
 
 4. Verify that the Min.IO local server is up-and-running by going to `localhost:9000` in your browser, and logging in with the `RootUser` and `RootPass`. You should then see an interface like this:
+
 ![electron-updater](https://user-images.githubusercontent.com/3981102/120375994-38641000-c2d0-11eb-8636-b7d59cb82af3.png)
 
 5. Create a testing bucket with `mc` (minio client)
@@ -144,7 +145,8 @@ The other half is about bundling the `main.ts` script which initializes Electron
 
 ## See what is getting packaged in
 If you suspect unnecessary items might be getting packaged, you can inspect the package content in `desktop-build/`.
-The app content (`dist/www`) is archived under `/New\ Expensify.app/Contents/Resources/app.asar` 
+The app content (`dist/www`) is archived under `/New\ Expensify.app/Contents/Resources/app.asar`.
+ 
 To see the actual `app.asar` content, run the following script:
 
 ```shell
