@@ -57,6 +57,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
             description: translate('workspace.qbo.exportExpensifyCard'),
             title: translate('workspace.qbo.creditCard'),
             shouldShowRightIcon: false,
+            interactive: false,
         },
     ];
 

@@ -1,9 +1,8 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import type {SectionListData} from 'react-native';
+import {SectionListData, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem, Section} from '@components/SelectionList/types';
@@ -85,7 +84,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
             testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
-            <ScrollView contentContainerStyle={styles.pb2}>
+            <View style={styles.pb2}>
                 <SelectionList
                     headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
                     sections={sections}
@@ -94,7 +93,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2, styles.ph5]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
                 />
-            </ScrollView>
+            </View>
         </ScreenWrapper>
     );
 }

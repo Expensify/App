@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -78,15 +77,14 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
             testID={QuickbooksOutOfPocketExpenseAccountSelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.accountsPayable')} />
-            <ScrollView contentContainerStyle={styles.pb2}>
-                <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
-                    sections={[{data}]}
-                    ListItem={RadioListItem}
-                    onSelectRow={onSelectRow}
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                />
-            </ScrollView>
+            <SelectionList
+                containerStyle={styles.pb2}
+                headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
+                sections={[{data}]}
+                ListItem={RadioListItem}
+                onSelectRow={onSelectRow}
+                initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+            />
         </ScreenWrapper>
     );
 }

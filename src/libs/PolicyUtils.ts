@@ -319,17 +319,11 @@ function getPolicyIDFromNavigationState() {
 }
 
 function getAdminEmailList(policy: Policy | null) {
-    const adminEmailList: Array<{email: string}> = [];
-    if (!policy?.employeeList) {
-        return adminEmailList;
-    }
-    Object.keys(policy.employeeList).forEach((email: string) => {
-        if (policy?.employeeList?.[email].role !== CONST.POLICY.ROLE.ADMIN) {
-            return;
-        }
-        adminEmailList.push({email});
-    });
-    return adminEmailList;
+    return Object.values(policy?.employeeList ?? {})
+        .filter((employee) => employee.email && employee.role === CONST.POLICY.ROLE.ADMIN)
+        .map((employee) => ({
+            email: employee.email as string,
+        }));
 }
 
 export {

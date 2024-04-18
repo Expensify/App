@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import type {SectionListData} from 'react-native';
+import {SectionListData, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -81,7 +81,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
             testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
         >
             <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
-            <ScrollView contentContainerStyle={styles.pb2}>
+            <View style={styles.pb2}>
                 <SelectionList
                     headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
                     sections={sections}
@@ -90,7 +90,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
                     initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     footerContent={isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>}
                 />
-            </ScrollView>
+            </View>
         </ScreenWrapper>
     );
 }

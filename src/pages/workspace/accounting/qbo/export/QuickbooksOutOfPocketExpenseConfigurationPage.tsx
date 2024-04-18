@@ -20,9 +20,9 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
     const {syncLocations, exportAccount, exportEntity, errors, syncTaxes} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const showTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
-    const showLocationError = isLocationEnabled && exportEntity !== CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
-    const brickEntityRoadIndicator = Boolean(errors?.exportEntity) || showTaxError || showLocationError;
+    const shouldShowTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
+    const shouldShowLocationError = isLocationEnabled && exportEntity !== CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
+    const hasErrors = Boolean(errors?.exportEntity) || shouldShowTaxError || shouldShowLocationError;
 
     return (
         <ScreenWrapper
@@ -36,9 +36,9 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                     <MenuItemWithTopDescription
                         title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
                         description={translate('workspace.qbo.exportAs')}
-                        error={exportEntity && (showTaxError || showLocationError) ? translate(`workspace.qbo.${exportEntity}Error`) : undefined}
+                        error={exportEntity && (shouldShowTaxError || shouldShowLocationError) ? translate(`workspace.qbo.${exportEntity}Error`) : undefined}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
-                        brickRoadIndicator={brickEntityRoadIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         shouldShowRightIcon
                     />
                 </OfflineWithFeedback>
@@ -54,6 +54,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
                             brickRoadIndicator={errors?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
+                            error={errors?.exportAccount ? translate('common.genericErrorMessage') : undefined}
                         />
                     </OfflineWithFeedback>
                 )}
