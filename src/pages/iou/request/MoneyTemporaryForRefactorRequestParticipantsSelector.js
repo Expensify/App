@@ -1,11 +1,13 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
+import * as Illustrations from '@components/Icon/Illustrations';
+import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -14,23 +16,23 @@ import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    /** An object that holds data about which referral banners have been dismissed */
-    dismissedReferralBanners: PropTypes.objectOf(PropTypes.bool),
-
     /** Callback to request parent modal to go to next step, which should be split */
     onFinish: PropTypes.func.isRequired,
 
@@ -48,45 +50,32 @@ const propTypes = {
         }),
     ),
 
-    /** Padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
-    /** The type of IOU report, i.e. bill, request, send */
+    /** The type of IOU report, i.e. split, request, send, track */
     iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
-    /** The request type, ie. manual, scan, distance */
+    /** The expense type, ie. manual, scan, distance */
     iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
 
-    /** Whether the parent screen transition has ended */
-    didScreenTransitionEnd: PropTypes.bool,
+    /** The action of the IOU, i.e. create, split, move */
+    action: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
 };
 
 const defaultProps = {
     participants: [],
-    safeAreaPaddingBottomStyle: {},
-    betas: [],
-    dismissedReferralBanners: {},
-    didScreenTransitionEnd: false,
+    action: CONST.IOU.ACTION.CREATE,
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({
-    betas,
-    participants,
-    onFinish,
-    onParticipantsAdded,
-    safeAreaPaddingBottomStyle,
-    iouType,
-    iouRequestType,
-    dismissedReferralBanners,
-    didScreenTransitionEnd,
-}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onFinish, onParticipantsAdded, iouType, iouRequestType, action}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {canUseP2PDistanceRequests} = usePermissions(iouType);
+    const {isDismissed} = useDismissedReferralBanners({referralContentType});
+    const {canUseP2PDistanceRequests} = usePermissions();
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -94,6 +83,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -106,7 +96,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
      */
     const [sections, newChatOptions] = useMemo(() => {
         const newSections = [];
-        if (!areOptionsInitialized) {
+        if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, {}];
         }
         const chatOptions = OptionsListUtils.getFilteredOptions(
@@ -117,11 +107,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             participants,
             CONST.EXPENSIFY_EMAILS,
 
-            // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST,
+            // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
+            // sees the option to submit an expense from their admin on their own Workspace Chat.
+            iouType === CONST.IOU.TYPE.REQUEST && action !== CONST.IOU.ACTION.MOVE,
 
-            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
             {},
             [],
@@ -154,11 +144,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
             shouldShow: !_.isEmpty(chatOptions.recentReports),
         });
 
-        newSections.push({
-            title: translate('common.contacts'),
-            data: chatOptions.personalDetails,
-            shouldShow: !_.isEmpty(chatOptions.personalDetails),
-        });
+        if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action)) {
+            newSections.push({
+                title: translate('common.contacts'),
+                data: chatOptions.personalDetails,
+                shouldShow: !_.isEmpty(chatOptions.personalDetails),
+            });
+        }
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
@@ -180,15 +172,17 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         debouncedSearchTerm,
         participants,
         iouType,
+        action,
         canUseP2PDistanceRequests,
         iouRequestType,
         maxParticipantsReached,
         personalDetails,
         translate,
+        didScreenTransitionEnd,
     ]);
 
     /**
-     * Adds a single participant to the request
+     * Adds a single participant to the expense
      *
      * @param {Object} option
      */
@@ -262,7 +256,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
 
-    // Right now you can't split a request with a workspace and other additional participants
+    // Right now you can't split an expense with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
     const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
@@ -270,7 +264,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && (iouType !== CONST.IOU.TYPE.SEND || iouType !== CONST.IOU.TYPE.TRACK_EXPENSE);
+        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
+        iouType !== CONST.IOU.TYPE.SEND &&
+        iouType !== CONST.IOU.TYPE.TRACK_EXPENSE &&
+        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(action);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -289,37 +286,41 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, participants],
     );
 
-    const footerContent = useMemo(
-        () => (
-            <View>
-                {!dismissedReferralBanners[referralContentType] && (
-                    <View style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.pb5]}>
-                        <ReferralProgramCTA referralContentType={referralContentType} />
-                    </View>
+    const footerContent = useMemo(() => {
+        if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {
+            return;
+        }
+
+        return (
+            <>
+                {!isDismissed && (
+                    <ReferralProgramCTA
+                        referralContentType={referralContentType}
+                        style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    />
                 )}
 
                 {shouldShowSplitBillErrorMessage && (
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message="iou.error.splitBillMultipleParticipantsErrorMessage"
+                        message="iou.error.splitExpenseMultipleParticipantsErrorMessage"
                     />
                 )}
 
                 {!!participants.length && (
                     <Button
                         success
-                        text={translate('iou.addToSplit')}
+                        text={translate('common.next')}
                         onPress={handleConfirmSelection}
                         pressOnEnter
                         large
                         isDisabled={shouldShowSplitBillErrorMessage}
                     />
                 )}
-            </View>
-        ),
-        [handleConfirmSelection, participants.length, dismissedReferralBanners, referralContentType, shouldShowSplitBillErrorMessage, styles, translate],
-    );
+            </>
+        );
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
     const itemRightSideComponent = useCallback(
         (item) => {
@@ -355,24 +356,48 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({
         [addParticipantToSelection, isAllowedToSplit, styles, translate],
     );
 
-    return (
-        <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
-            <SelectionList
-                onConfirm={handleConfirmSelection}
-                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                ListItem={UserListItem}
-                textInputValue={searchTerm}
-                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setSearchTerm}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                onSelectRow={addSingleParticipant}
-                footerContent={footerContent}
-                headerMessage={headerMessage}
-                showLoadingPlaceholder={!areOptionsInitialized}
-                rightHandSideComponent={itemRightSideComponent}
+    const renderEmptyWorkspaceView = () => (
+        <>
+            <BlockingView
+                icon={Illustrations.TeleScope}
+                iconWidth={variables.emptyWorkspaceIconWidth}
+                iconHeight={variables.emptyWorkspaceIconHeight}
+                title={translate('workspace.emptyWorkspace.notFound')}
+                subtitle={translate('workspace.emptyWorkspace.description')}
+                shouldShowLink={false}
             />
-        </View>
+            <Button
+                success
+                large
+                text={translate('footer.learnMore')}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                style={[styles.mh5, styles.mb5]}
+            />
+            {isSmallScreenWidth && <OfflineIndicator />}
+        </>
+    );
+
+    const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
+    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+        return renderEmptyWorkspaceView();
+    }
+
+    return (
+        <SelectionList
+            onConfirm={handleConfirmSelection}
+            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+            ListItem={UserListItem}
+            textInputValue={searchTerm}
+            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setSearchTerm}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            onSelectRow={addSingleParticipant}
+            footerContent={footerContent}
+            headerMessage={headerMessage}
+            showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
+            rightHandSideComponent={itemRightSideComponent}
+        />
     );
 }
 
@@ -380,25 +405,11 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.propTypes = propTypes;
 MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default withOnyx({
-    dismissedReferralBanners: {
-        key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
-    },
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(
-    memo(
-        MoneyTemporaryForRefactorRequestParticipantsSelector,
-        (prevProps, nextProps) =>
-            _.isEqual(prevProps.participants, nextProps.participants) &&
-            prevProps.didScreenTransitionEnd === nextProps.didScreenTransitionEnd &&
-            _.isEqual(prevProps.dismissedReferralBanners, nextProps.dismissedReferralBanners) &&
-            prevProps.iouRequestType === nextProps.iouRequestType &&
-            prevProps.iouType === nextProps.iouType &&
-            _.isEqual(prevProps.betas, nextProps.betas),
-    ),
+export default memo(
+    MoneyTemporaryForRefactorRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        _.isEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouRequestType === nextProps.iouRequestType &&
+        prevProps.iouType === nextProps.iouType &&
+        _.isEqual(prevProps.betas, nextProps.betas),
 );

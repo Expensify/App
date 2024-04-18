@@ -2,7 +2,6 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -12,7 +11,8 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import compose from '@libs/compose';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,9 +27,8 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMember} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyEmployee} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceWorkflowsPayerPageOnyxProps = {
@@ -43,15 +42,15 @@ type WorkspaceWorkflowsPayerPageProps = WorkspaceWorkflowsPayerPageOnyxProps &
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type MembersSection = SectionListData<MemberOption, Section<MemberOption>>;
 
-function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
+function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingReportData = true}: WorkspaceWorkflowsPayerPageProps) {
     const {translate} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
 
     const [searchTerm, setSearchTerm] = useState('');
 
-    const isDeletedPolicyMember = useCallback(
-        (policyMember: PolicyMember) => !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors),
+    const isDeletedPolicyEmployee = useCallback(
+        (policyEmployee: PolicyEmployee) => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
         [isOffline],
     );
 
@@ -59,8 +58,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
         const policyAdminDetails: MemberOption[] = [];
         const authorizedPayerDetails: MemberOption[] = [];
 
-        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            const accountID = Number(accountIDKey);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
+
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+            const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
@@ -68,8 +69,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             }
 
             const isOwner = policy?.owner === details?.login;
-            const isAdmin = policyMember.role === CONST.POLICY.ROLE.ADMIN;
-            const shouldSkipMember = isDeletedPolicyMember(policyMember) || PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || PolicyUtils.isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
 
             if (shouldSkipMember) {
                 return;
@@ -80,10 +81,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             const isAuthorizedPayer = policy?.achAccount?.reimburser === details?.login;
 
             const formattedMember = {
-                keyForList: accountIDKey,
+                keyForList: String(accountID),
                 accountID,
                 isSelected: isAuthorizedPayer,
-                isDisabled: policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyMember.errors),
+                isDisabled: policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors),
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -95,8 +96,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
                         id: accountID,
                     },
                 ],
-                errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
+                errors: policyEmployee.errors,
+                pendingAction: policyEmployee.pendingAction ?? isAuthorizedPayer ? policy?.pendingFields?.reimburser : null,
             };
 
             if (isAuthorizedPayer) {
@@ -106,7 +107,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
             }
         });
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policyMembers, translate, policy?.achAccount?.reimburser, isDeletedPolicyMember, policy?.owner, policy?.pendingFields?.reimburser]);
+    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, styles, StyleUtils, policy?.pendingFields?.reimburser]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
@@ -203,11 +204,4 @@ function WorkspaceWorkflowsPayerPage({route, policy, policyMembers, personalDeta
 
 WorkspaceWorkflowsPayerPage.displayName = 'WorkspaceWorkflowsPayerPage';
 
-export default compose(
-    withOnyx<WorkspaceWorkflowsPayerPageProps, WorkspaceWorkflowsPayerPageOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-    withPolicyAndFullscreenLoading,
-)(WorkspaceWorkflowsPayerPage);
+export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsPayerPage);

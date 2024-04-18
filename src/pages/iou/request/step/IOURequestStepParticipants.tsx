@@ -35,7 +35,7 @@ type IOURef = IOUValueType | null;
 
 function IOURequestStepParticipants({
     route: {
-        params: {iouType, reportID, transactionID},
+        params: {iouType, reportID, transactionID, action},
     },
     transaction,
 }: IOURequestStepParticipantsProps) {
@@ -47,14 +47,23 @@ function IOURequestStepParticipants({
     const iouRequestType = TransactionUtils.getRequestType(transaction);
     const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
     const headerTitle = useMemo(() => {
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            return translate('iou.categorize');
+        }
+        if (action === CONST.IOU.ACTION.MOVE) {
+            return translate('iou.submitExpense');
+        }
+        if (action === CONST.IOU.ACTION.SHARE) {
+            return translate('iou.share');
+        }
         if (isSplitRequest) {
-            return translate('iou.split');
+            return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('common.send');
+            return translate('iou.paySomeone', {});
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSplitRequest]);
+    }, [iouType, transaction, translate, isSplitRequest, action]);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
@@ -62,11 +71,15 @@ function IOURequestStepParticipants({
     const newIouType = useRef<IOURef>();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
-    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
-    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
+    // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
+    // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
+        if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
+            return;
+        }
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
-    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID]);
+    }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
 
     const updateRouteParams = useCallback(() => {
         const navigationState = navigation.getState();
@@ -81,7 +94,7 @@ function IOURequestStepParticipants({
             return;
         }
         // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-        // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
+        // updating the expense type route params reducing the overhead of the thread and preventing possible jitters in UI.
         updateRouteParams();
         newIouType.current = null;
     }, [participants, updateRouteParams]);
@@ -133,16 +146,23 @@ function IOURequestStepParticipants({
                 nextStepIOUType = CONST.IOU.TYPE.SEND;
             }
 
+            const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
+
             IOU.setMoneyRequestTag(transactionID, '');
             IOU.setMoneyRequestCategory(transactionID, '');
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, nextStepIOUType, transactionID, selectedReportID.current || reportID));
+            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, nextStepIOUType, transactionID, selectedReportID.current || reportID);
+            if (isCategorizing) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, nextStepIOUType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
+            } else {
+                Navigation.navigate(iouConfirmationPageRoute);
+            }
         },
-        [iouType, transactionID, reportID],
+        [iouType, transactionID, reportID, action],
     );
 
     const navigateBack = useCallback(() => {
-        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID);
-    }, [iouRequestType, iouType, transactionID, reportID]);
+        IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
+    }, [iouRequestType, iouType, transactionID, reportID, action]);
 
     return (
         <StepScreenWrapper
@@ -150,18 +170,16 @@ function IOURequestStepParticipants({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepParticipants.displayName}
-            includeSafeAreaPaddingBottom
+            includeSafeAreaPaddingBottom={false}
         >
-            {({didScreenTransitionEnd}) => (
-                <MoneyRequestParticipantsSelector
-                    participants={isSplitRequest ? participants : []}
-                    onParticipantsAdded={addParticipant}
-                    onFinish={goToNextStep}
-                    iouType={iouType}
-                    iouRequestType={iouRequestType}
-                    didScreenTransitionEnd={didScreenTransitionEnd}
-                />
-            )}
+            <MoneyRequestParticipantsSelector
+                participants={isSplitRequest ? participants : []}
+                onParticipantsAdded={addParticipant}
+                onFinish={goToNextStep}
+                iouType={iouType}
+                iouRequestType={iouRequestType}
+                action={action}
+            />
         </StepScreenWrapper>
     );
 }
