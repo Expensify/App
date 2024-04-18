@@ -132,13 +132,16 @@ type TaskForParameters =
       }
     | ({
           type: 'message';
-      } & TaskMessage)
+      } & TaskMessage);
+
+type GuidedSetupData = Array<
+    | ({type: 'message'} & AddCommentOrAttachementParams)
+    | TaskForParameters
     | ({
           type: 'video';
-      } & TaskMessage &
-          Video);
-
-type GuidedSetupData = Array<AddCommentOrAttachementParams | TaskForParameters>;
+      } & Video &
+          AddCommentOrAttachementParams)
+>;
 
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
@@ -3051,7 +3054,6 @@ function completeOnboarding(
             },
         );
         const subtitleComment = task.subtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID) : null;
-        const taskVideoComment = task.video ? ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 1) : null;
         const taskMessage =
             typeof task.message === 'function'
                 ? task.message({
@@ -3059,85 +3061,64 @@ function completeOnboarding(
                       guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
                   })
                 : task.message;
-        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 2, false);
+        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 1, false);
 
         return {
-            task,
             currentTask,
             taskCreatedAction,
             taskReportAction,
             subtitleComment,
-            taskVideoComment,
             instructionComment,
         };
     });
 
-    const tasksForParameters = tasksData.reduce<TaskForParameters[]>(
-        (acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, taskVideoComment, instructionComment}) => {
-            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
-            const instructionCommentText = instructionComment.commentText;
-            const instructionMessage: TaskMessage = {
+    const tasksForParameters = tasksData.reduce<TaskForParameters[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
+        const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
+        const instructionCommentText = instructionComment.commentText;
+        const instructionMessage: TaskMessage = {
+            reportID: currentTask.reportID,
+            reportActionID: instructionCommentAction.reportActionID,
+            reportComment: instructionCommentText,
+        };
+
+        const tasksForParametersAcc: TaskForParameters[] = [
+            ...acc,
+            {
+                type: 'task',
+                task: engagementChoice,
+                taskReportID: currentTask.reportID,
+                parentReportID: currentTask.parentReportID ?? '',
+                parentReportActionID: taskReportAction.reportAction.reportActionID,
+                assigneeChatReportID: '',
+                createdTaskReportActionID: taskCreatedAction.reportActionID,
+                title: currentTask.reportName ?? '',
+                description: currentTask.description ?? '',
+            },
+            {
+                type: 'message',
+                ...instructionMessage,
+            },
+        ];
+
+        if (subtitleComment) {
+            const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+            const subtitleCommentText = subtitleComment.commentText;
+            const subtitleMessage: TaskMessage = {
                 reportID: currentTask.reportID,
-                reportActionID: instructionCommentAction.reportActionID,
-                reportComment: instructionCommentText,
+                reportActionID: subtitleCommentAction.reportActionID,
+                reportComment: subtitleCommentText,
             };
 
-            const tasksForParametersAcc: TaskForParameters[] = [
-                ...acc,
-                {
-                    type: 'task',
-                    task: engagementChoice,
-                    taskReportID: currentTask.reportID,
-                    parentReportID: currentTask.parentReportID ?? '',
-                    parentReportActionID: taskReportAction.reportAction.reportActionID,
-                    assigneeChatReportID: '',
-                    createdTaskReportActionID: taskCreatedAction.reportActionID,
-                    title: currentTask.reportName ?? '',
-                    description: currentTask.description ?? '',
-                },
-                {
-                    type: 'message',
-                    ...instructionMessage,
-                },
-            ];
+            tasksForParametersAcc.push({
+                type: 'message',
+                ...subtitleMessage,
+            });
+        }
 
-            if (subtitleComment) {
-                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-                const subtitleCommentText = subtitleComment.commentText;
-                const subtitleMessage: TaskMessage = {
-                    reportID: currentTask.reportID,
-                    reportActionID: subtitleCommentAction.reportActionID,
-                    reportComment: subtitleCommentText,
-                };
+        return tasksForParametersAcc;
+    }, []);
 
-                tasksForParametersAcc.push({
-                    type: 'message',
-                    ...subtitleMessage,
-                });
-            }
-
-            if (taskVideoComment && task.video) {
-                const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
-                const taskVideoCommentText = taskVideoComment.commentText;
-                const taskVideoMessage: TaskMessage = {
-                    reportID: currentTask.reportID,
-                    reportActionID: taskVideoCommentAction.reportActionID,
-                    reportComment: taskVideoCommentText,
-                };
-
-                tasksForParametersAcc.push({
-                    type: 'video',
-                    ...task.video,
-                    ...taskVideoMessage,
-                });
-            }
-
-            return tasksForParametersAcc;
-        },
-        [],
-    );
-
-    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, taskVideoComment, instructionComment}) => {
+    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
         const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
 
         const tasksForOptimisticDataAcc: OnyxUpdate[] = [
@@ -3181,18 +3162,6 @@ function completeOnboarding(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                 value: {
                     [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
-                },
-            });
-        }
-
-        if (taskVideoComment) {
-            const taskVideoCommentAction: OptimisticAddCommentReportAction = taskVideoComment.reportAction;
-
-            tasksForOptimisticDataAcc.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
-                value: {
-                    [taskVideoCommentAction.reportActionID]: taskVideoCommentAction as ReportAction,
                 },
             });
         }
