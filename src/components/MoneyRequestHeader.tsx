@@ -38,7 +38,7 @@ type MoneyRequestHeaderOnyxProps = {
     parentReportActions: OnyxEntry<ReportActions>;
 
     /** Whether we should show the Hold Interstitial explaining the feature */
-    shownHoldUseExplanation: OnyxEntry<boolean>;
+    dismissedholdUseExplanation: OnyxEntry<boolean>;
 };
 
 type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
@@ -52,7 +52,7 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     parentReportAction: OnyxEntry<ReportAction>;
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, dismissedholdUseExplanation = false, policy}: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -132,8 +132,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }
 
     useEffect(() => {
-        setShouldShowHoldMenu(isOnHold && !shownHoldUseExplanation);
-    }, [isOnHold, shownHoldUseExplanation]);
+        setShouldShowHoldMenu(isOnHold && !dismissedholdUseExplanation);
+    }, [isOnHold, dismissedholdUseExplanation]);
 
     useEffect(() => {
         if (!shouldShowHoldMenu) {
@@ -150,7 +150,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.setShownHoldUseExplanation();
+        IOU.SetDismissedHoldUseExplanation();
     };
 
     if (canDeleteRequest) {
@@ -218,20 +218,20 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 
-const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
+const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick<MoneyRequestHeaderOnyxProps, 'transaction' | 'dismissedholdUseExplanation'>>({
     transaction: {
         key: ({report, parentReportActions}) => {
             const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction?.originalMessage?.IOUTransactionID ?? 0}`;
         },
     },
-    shownHoldUseExplanation: {
-        key: ONYXKEYS.NVP_HOLD_USE_EXPLAINED,
+    dismissedholdUseExplanation: {
+        key: ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION,
         initWithStoredValues: true,
     },
 })(MoneyRequestHeader);
 
-export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction' | 'shownHoldUseExplanation'>, Omit<MoneyRequestHeaderOnyxProps, 'transaction' | 'shownHoldUseExplanation'>>({
+export default withOnyx<Omit<MoneyRequestHeaderProps, 'transaction' | 'dismissedholdUseExplanation'>, Omit<MoneyRequestHeaderOnyxProps, 'transaction' | 'dismissedholdUseExplanation'>>({
     session: {
         key: ONYXKEYS.SESSION,
     },

@@ -5839,8 +5839,8 @@ function setMoneyRequestParticipants(participants: Participant[], isSplitRequest
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
-function setShownHoldUseExplanation() {
-    Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
+function SetDismissedHoldUseExplanation() {
+    Onyx.set(ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION, true);
 }
 
 /**
@@ -6036,7 +6036,7 @@ export {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setShownHoldUseExplanation,
+    SetDismissedHoldUseExplanation,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
