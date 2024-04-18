@@ -68,6 +68,12 @@ function IOURequestStepTaxRatePage({
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
+        if (!transaction || !taxes.text || !taxRates) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        const taxAmount = getTaxAmount(taxRates, taxes.text, TransactionUtils.getAmount(transaction, false, true));
+        
         if (isEditing) {
             const newTaxCode = taxes.data.code;
             if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
@@ -78,6 +84,7 @@ function IOURequestStepTaxRatePage({
                 transactionID: transaction?.transactionID ?? '',
                 optimisticReportActionID: report?.reportID ?? '',
                 taxCode: newTaxCode,
+                taxAmount: CurrencyUtils.convertToBackendAmount(taxAmount ?? 0),
                 policy,
                 policyTagList: policyTags,
                 policyCategories,
@@ -85,11 +92,7 @@ function IOURequestStepTaxRatePage({
             navigateBack();
             return;
         }
-        if (!transaction || !taxes.text || !taxRates) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        const taxAmount = getTaxAmount(taxRates, taxes.text, transaction?.amount);
+
         if (taxAmount === undefined) {
             Navigation.goBack(backTo);
             return;
