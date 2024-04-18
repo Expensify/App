@@ -458,7 +458,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
 
         const accountIDsToUpdate = selectedEmployees.filter((accountID) => {
-            const email = Object.keys(policyMemberEmailsToAccountIDs).find(email => policyMemberEmailsToAccountIDs[email] === accountID) ?? '';
+            const email = personalDetails?.[accountID]?.login ?? '';
             return policy?.employeeList?.[email]?.role !== role;
         });
 
@@ -481,7 +481,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         }
 
         const selectedEmployeesRoles = selectedEmployees.map(accountID => {
-            const email = Object.keys(policyMemberEmailsToAccountIDs).find(email => policyMemberEmailsToAccountIDs[email] === accountID) ?? '';
+            const email = personalDetails?.[accountID]?.login ?? '';
             return policy?.employeeList?.[email]?.role;
         });
         if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.ADMIN)) {
