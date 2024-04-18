@@ -260,11 +260,13 @@ function BaseTextInput(
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
     const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
+    const autoGrowWidth = textInputWidth + getCharacterPadding(prefixCharacter) + 15;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
-        autoGrow && StyleUtils.getWidthStyle(textInputWidth),
         !hideFocusedState && isFocused && styles.borderColorFocus,
+        autoGrow && StyleUtils.getWidthStyle(autoGrowWidth),
+        {minWidth: autoGrowWidth},
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
@@ -346,7 +348,7 @@ function BaseTextInput(
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {prefixCharacter}

@@ -253,11 +253,7 @@ function OptionRow({
                                         <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {option.amountProps ? (
-                                    <View style={[styles.flexWrap, styles.pl2]}>
-                                        <MoneyRequestAmountInput {...option.amountProps} />
-                                    </View>
-                                ) : null}
+                                {option.amountProps ? <MoneyRequestAmountInput {...option.amountProps} /> : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon

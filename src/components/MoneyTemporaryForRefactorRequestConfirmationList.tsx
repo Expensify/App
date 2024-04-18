@@ -383,9 +383,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     prefixCharacter: currencyList?.[iouCurrencyCode]?.symbol ?? iouCurrencyCode,
                     isCurrencyPressable: false,
                     hideCurrencySymbol: true,
-                    inputStyle: [{width: 100}],
-                    textInputContainerStyles: [],
-                    prefixStyle: [{paddingTop: 0, paddingBottom: 0}],
                     onAmountChange: (value) => {},
                 },
             }));
