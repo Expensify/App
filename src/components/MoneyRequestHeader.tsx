@@ -150,7 +150,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     }, [isSmallScreenWidth, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
-        IOU.SetDismissedHoldUseExplanation();
+        IOU.dismissHoldUseExplanation();
     };
 
     if (canDeleteRequest) {

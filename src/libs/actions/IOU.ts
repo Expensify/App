@@ -18,6 +18,7 @@ import type {
     ReplaceReceiptParams,
     RequestMoneyParams,
     SendMoneyParams,
+    SetNameValuePairParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
@@ -5839,8 +5840,23 @@ function setMoneyRequestParticipants(participants: Participant[], isSplitRequest
     Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
-function SetDismissedHoldUseExplanation() {
-    Onyx.set(ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION, true);
+function dismissHoldUseExplanation() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.DISMISSED_HOLD_USE_EXPLANATION,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData
+    });
 }
 
 /**
@@ -6036,7 +6052,7 @@ export {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    SetDismissedHoldUseExplanation,
+    dismissHoldUseExplanation,
     updateMoneyRequestDate,
     updateMoneyRequestBillable,
     updateMoneyRequestMerchant,
