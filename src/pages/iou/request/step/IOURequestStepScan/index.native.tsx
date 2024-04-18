@@ -295,14 +295,15 @@ function IOURequestStepScan({
                 const source = `file://${photo.path}`;
                 IOU.setMoneyRequestReceipt(transactionID, source, photo.path, action !== CONST.IOU.ACTION.EDIT);
 
-                FileUtils.readFileAsync(source, photo.path, (file) => {
                     if (action === CONST.IOU.ACTION.EDIT) {
+                        FileUtils.readFileAsync(source, photo.path, (file) => {
                         updateScanAndNavigate(file, source);
+                        });
                         return;
                     }
+
                     setDidCapturePhoto(true);
                     navigateToConfirmationStep(file, source);
-                });
             })
             .catch((error: string) => {
                 setDidCapturePhoto(false);
