@@ -41,6 +41,12 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Style for the container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Character to be shown before the amount */
+    prefixCharacter?: string;
+
+    /** Style for the prefix */
+    prefixStyle?: StyleProp<TextStyle>;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 export default TextInputWithCurrencySymbolProps;

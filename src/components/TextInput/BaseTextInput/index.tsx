@@ -59,6 +59,7 @@ function BaseTextInput(
         shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
+        prefixStyle = [],
         inputID,
         isMarkdownEnabled = false,
         ...inputProps
@@ -240,14 +241,7 @@ function BaseTextInput(
     // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
     // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
     // this method will produce reliable results.
-    const getCharacterPadding = (prefix: string): number => {
-        switch (prefix) {
-            case CONST.POLICY.ROOM_PREFIX:
-                return 10;
-            default:
-                throw new Error(`Prefix ${prefix} has no padding assigned.`);
-        }
-    };
+    const getCharacterPadding = (prefix: string): number => prefix.length * 10;
 
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
@@ -342,7 +336,7 @@ function BaseTextInput(
                                 <View style={styles.textInputPrefixWrapper}>
                                     <Text
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {prefixCharacter}

@@ -40,13 +40,22 @@ type MoneyRequestAmountInputProps = {
     shouldUpdateSelection?: boolean;
 
     /** Style for the input */
-    style?: StyleProp<TextStyle>;
+    inputStyle?: StyleProp<TextStyle>;
 
     /** Style for the container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Reference to moneyRequestAmountInputRef */
     moneyRequestAmountInputRef?: ForwardedRef<MoneyRequestAmountInputRef>;
+
+    /** Character to be shown before the amount */
+    prefixCharacter?: string;
+
+    /** Whether to hide the currency symbol */
+    hideCurrencySymbol?: boolean;
+
+    /** Style for the prefix */
+    prefixStyle?: StyleProp<TextStyle>;
 };
 
 type Selection = {
@@ -69,6 +78,8 @@ function MoneyRequestAmountInput(
         isCurrencyPressable = true,
         onCurrencyButtonPress,
         onAmountChange,
+        prefixCharacter = '',
+        hideCurrencySymbol = false,
         shouldUpdateSelection = true,
         moneyRequestAmountInputRef,
         ...props
@@ -202,9 +213,12 @@ function MoneyRequestAmountInput(
                 setSelection({start, end});
             }}
             onKeyPress={textInputKeyPress}
+            hideCurrencySymbol={hideCurrencySymbol}
+            prefixCharacter={prefixCharacter}
             isCurrencyPressable={isCurrencyPressable}
-            style={props.style}
+            style={props.inputStyle}
             containerStyle={props.containerStyle}
+            prefixStyle={props.prefixStyle}
         />
     );
 }
