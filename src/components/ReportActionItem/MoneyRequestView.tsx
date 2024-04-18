@@ -286,8 +286,9 @@ function MoneyRequestView({
                             }
                             Transaction.clearError(transaction.transactionID);
                         }}
-                    >
-                        {(showMapAsImage || hasReceipt) ? (
+                    >   
+                        {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                        {(showMapAsImage || hasReceipt) && (
                             <View style={styles.moneyRequestViewImage}>
                                 {showMapAsImage ? (
                                     <ConfirmedRoute transaction={transaction} />
@@ -304,7 +305,7 @@ function MoneyRequestView({
                                     />
                                 )}
                             </View>
-                    ) : null}
+                    )}
                     </OfflineWithFeedback>
                 )}
                 {!hasReceipt && canEditReceipt && (
