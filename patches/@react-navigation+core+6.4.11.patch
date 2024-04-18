@@ -1,0 +1,40 @@
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+index fcd456b..13e005e 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/types.d.ts
+@@ -307,10 +307,11 @@ export type Descriptor<ScreenOptions extends {}, Navigation extends NavigationPr
+ export type ScreenListeners<State extends NavigationState, EventMap extends EventMapBase> = Partial<{
+     [EventName in keyof (EventMap & EventMapCore<State>)]: EventListenerCallback<EventMap, EventName>;
+ }>;
+-type ScreenComponentType<ParamList extends ParamListBase, RouteName extends keyof ParamList> = React.ComponentType<{
++type ScreenComponentType<ParamList extends ParamListBase, RouteName extends keyof ParamList,
++CustomProps extends Record<string, unknown> = Record<string, unknown>> = React.ComponentType<{
+     route: RouteProp<ParamList, RouteName>;
+     navigation: any;
+-}> | React.ComponentType<{}>;
++} & CustomProps> | React.ComponentType<CustomProps>;
+ export type RouteConfigComponent<ParamList extends ParamListBase, RouteName extends keyof ParamList> = {
+     /**
+      * React component to render for this screen.
+diff --git a/node_modules/@react-navigation/core/src/types.tsx b/node_modules/@react-navigation/core/src/types.tsx
+index b691d75..8435eed 100644
+--- a/node_modules/@react-navigation/core/src/types.tsx
++++ b/node_modules/@react-navigation/core/src/types.tsx
+@@ -442,13 +442,14 @@ export type ScreenListeners<
+ 
+ type ScreenComponentType<
+   ParamList extends ParamListBase,
+-  RouteName extends keyof ParamList
++  RouteName extends keyof ParamList,
++  CustomProps extends Record<string, unknown> = Record<string, unknown>
+ > =
+   | React.ComponentType<{
+       route: RouteProp<ParamList, RouteName>;
+       navigation: any;
+-    }>
+-  | React.ComponentType<{}>;
++    } & CustomProps>
++  | React.ComponentType<CustomProps>;
+ 
+ export type RouteConfigComponent<
+   ParamList extends ParamListBase,
