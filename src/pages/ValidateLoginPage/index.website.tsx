@@ -24,9 +24,11 @@ function ValidateLoginPage({
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
+    const isUserClickedSignIn = !login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
+    const shouldStartSignInWithValidateCode = !isUserClickedSignIn && !isSignedIn && (!!login || !!exitTo);
 
     useEffect(() => {
-        if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
+        if (isUserClickedSignIn) {
             // The user clicked the option to sign in the current tab
             Navigation.isNavigationReady().then(() => {
                 Navigation.goBack();
@@ -35,7 +37,7 @@ function ValidateLoginPage({
         }
         Session.initAutoAuthState(autoAuthState);
 
-        if (isSignedIn || (!login && !exitTo)) {
+        if (!shouldStartSignInWithValidateCode) {
             if (exitTo) {
                 Session.handleExitToNavigation(exitTo);
             }
@@ -71,13 +73,13 @@ function ValidateLoginPage({
             {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && <JustSignedInModal is2FARequired={false} />}
-            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !exitTo && (
+            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !exitTo && !shouldStartSignInWithValidateCode && (
                 <ValidateCodeModal
                     accountID={Number(accountID)}
                     code={validateCode}
                 />
             )}
-            {autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+            {(autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || shouldStartSignInWithValidateCode) && <FullScreenLoadingIndicator />}
         </>
     );
 }
