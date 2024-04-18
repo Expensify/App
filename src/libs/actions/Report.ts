@@ -2457,7 +2457,7 @@ function leaveGroupChat(reportID: string) {
         },
     ];
     // Clean up any quick actions for the report we're leaving from
-    if (quickAction?.chatReportID == reportID) {
+    if (quickAction?.chatReportID?.toString() === reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
