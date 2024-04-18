@@ -324,7 +324,7 @@ function MoneyRequestAmountForm(
             return iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitExpense') : translate('iou.submitExpense');
         }
         return isEditing ? translate('common.save') : translate('common.next');
-    }, [skipConfirmation, iouType, currentAmount, currency]);
+    }, [skipConfirmation, iouType, currentAmount, currency, isEditing, translate]);
 
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
