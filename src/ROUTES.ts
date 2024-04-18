@@ -311,7 +311,8 @@ const ROUTES = {
     },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) => `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
     },
     MONEY_REQUEST_MERCHANT: {
         route: ':iouType/new/merchant/:reportID?',
