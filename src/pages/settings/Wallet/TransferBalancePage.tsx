@@ -207,7 +207,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                         <Text style={[styles.justifyContentStart]}>{CurrencyUtils.convertToDisplayString(calculatedFee)}</Text>
                     </View>
                 </ScrollView>
-                <View style={[styles.pb4, styles.mh5]}>
+                <View>
                     <FormAlertWithSubmitButton
                         buttonText={translate('transferAmountPage.transfer', {
                             amount: isTransferable ? CurrencyUtils.convertToDisplayString(transferAmount) : '',

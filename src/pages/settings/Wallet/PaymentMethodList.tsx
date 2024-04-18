@@ -214,7 +214,6 @@ function PaymentMethodList({
                     title: isExpensifyCard ? expensifyCardDescription : cartTitle,
                     description: card.domainName,
                     onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '')) : () => {},
-                    shouldShowRightIcon: isExpensifyCard,
                     interactive: isExpensifyCard,
                     canDismissError: isExpensifyCard,
                     errors: card.errors,
@@ -265,7 +264,6 @@ function PaymentMethodList({
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: Expensicons.ThreeDots,
-                shouldShowRightIcon: true,
             };
         });
 
