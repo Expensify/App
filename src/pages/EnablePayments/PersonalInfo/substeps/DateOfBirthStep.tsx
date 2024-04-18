@@ -1,7 +1,6 @@
 import {subYears} from 'date-fns';
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -16,14 +15,6 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-
-type DateOfBirthOnyxProps = {
-    /** Reimbursement account from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-};
-
-type DateOfBirthProps = DateOfBirthOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
 const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
@@ -45,9 +36,11 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL
 const minDate = subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE);
 const maxDate = subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
 
-function DateOfBirthStep({walletAdditionalDetails, onNext, isEditing}: DateOfBirthProps) {
+function DateOfBirthStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const dobDefaultValue = walletAdditionalDetails?.[PERSONAL_INFO_DOB_KEY] ?? walletAdditionalDetails?.[PERSONAL_INFO_DOB_KEY] ?? '';
 
@@ -84,9 +77,4 @@ function DateOfBirthStep({walletAdditionalDetails, onNext, isEditing}: DateOfBir
 
 DateOfBirthStep.displayName = 'DateOfBirthStep';
 
-export default withOnyx<DateOfBirthProps, DateOfBirthOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-    walletAdditionalDetails: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
-    },
-})(DateOfBirthStep);
+export default DateOfBirthStep;

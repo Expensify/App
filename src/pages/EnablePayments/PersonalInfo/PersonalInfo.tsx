@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
@@ -28,26 +28,19 @@ import FullName from './substeps/FullNameStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
-type PersonalInfoPageOnyxProps = {
-    /** Reimbursement account from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-
-    /** The draft values of the bank account being setup */
-    walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetailsForm>;
-};
-
-type PersonalInfoPageProps = PersonalInfoPageOnyxProps;
-
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, Address, PhoneNumber, SocialSecurityNumber, Confirmation];
 
-function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
+function PersonalInfoPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
-        // TODO: uncomment in the next PR
+        // TODO: uncomment in one of the next PR https://github.com/Expensify/App/issues/36648
         // const personalDetails = {
         //     phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
         //     legalFirstName: values?.[PERSONAL_INFO_STEP_KEYS.FIRST_NAME] ?? '',
@@ -117,13 +110,4 @@ function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft
 
 PersonalInfoPage.displayName = 'PersonalInfoPage';
 
-export default withOnyx<PersonalInfoPageProps, PersonalInfoPageOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
-    walletAdditionalDetails: {
-        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-    },
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
-    walletAdditionalDetailsDraft: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
-    },
-})(PersonalInfoPage);
+export default PersonalInfoPage;

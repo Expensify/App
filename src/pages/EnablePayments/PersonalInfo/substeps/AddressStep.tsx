@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
@@ -14,14 +13,6 @@ import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-
-type AddressOnyxProps = {
-    /** wallet additional details from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-};
-
-type AddressProps = AddressOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 
@@ -48,9 +39,11 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL
     return errors;
 };
 
-function AddressStep({walletAdditionalDetails, onNext, isEditing}: AddressProps) {
+function AddressStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const defaultValues = {
         street: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.STREET] ?? '',
@@ -91,9 +84,4 @@ function AddressStep({walletAdditionalDetails, onNext, isEditing}: AddressProps)
 
 AddressStep.displayName = 'AddressStep';
 
-export default withOnyx<AddressProps, AddressOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-    walletAdditionalDetails: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
-    },
-})(AddressStep);
+export default AddressStep;

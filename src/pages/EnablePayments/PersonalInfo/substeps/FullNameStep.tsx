@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -16,14 +15,6 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-
-type FullNameOnyxProps = {
-    /** Wallet Additional Details from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-};
-
-type FullNameProps = FullNameOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.FIRST_NAME, PERSONAL_INFO_STEP_KEY.LAST_NAME];
@@ -40,9 +31,11 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL
     return errors;
 };
 
-function FullNameStep({walletAdditionalDetails, onNext, isEditing}: FullNameProps) {
+function FullNameStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const defaultValues = {
         firstName: walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.FIRST_NAME] ?? '',
@@ -96,9 +89,4 @@ function FullNameStep({walletAdditionalDetails, onNext, isEditing}: FullNameProp
 
 FullNameStep.displayName = 'FullNameStep';
 
-export default withOnyx<FullNameProps, FullNameOnyxProps>({
-    // @ts-expect-error: ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-    walletAdditionalDetails: {
-        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
-    },
-})(FullNameStep);
+export default FullNameStep;

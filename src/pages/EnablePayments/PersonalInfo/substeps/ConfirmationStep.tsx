@@ -1,7 +1,6 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -18,26 +17,17 @@ import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsForm} from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-
-type ConfirmationOnyxProps = {
-    /** wallet additional details from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-
-    /** The draft values of the bank account being setup */
-    walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetailsForm>;
-};
-
-type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
 
-function ConfirmationStep({walletAdditionalDetails, walletAdditionalDetailsDraft, onNext, onMove}: ConfirmationProps) {
+function ConfirmationStep({onNext, onMove}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
 
     const isLoading = walletAdditionalDetailsDraft?.isLoading ?? false;
     const error = ErrorUtils.getLatestErrorMessage(walletAdditionalDetails ?? {});
@@ -142,13 +132,4 @@ function ConfirmationStep({walletAdditionalDetails, walletAdditionalDetailsDraft
 
 ConfirmationStep.displayName = 'ConfirmationStep';
 
-export default withOnyx<ConfirmationProps, ConfirmationOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-    walletAdditionalDetails: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
-    },
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-    walletAdditionalDetailsDraft: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
-    },
-})(ConfirmationStep);
+export default ConfirmationStep;

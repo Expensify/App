@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -16,14 +15,6 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-
-type SocialSecurityNumberOnyxProps = {
-    /** Reimbursement account from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-};
-
-type SocialSecurityNumberProps = SocialSecurityNumberOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
@@ -37,9 +28,11 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL
 
     return errors;
 };
-function SocialSecurityNumberStep({walletAdditionalDetails, onNext, isEditing}: SocialSecurityNumberProps) {
+function SocialSecurityNumberStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const defaultSsnLast4 = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
@@ -83,9 +76,4 @@ function SocialSecurityNumberStep({walletAdditionalDetails, onNext, isEditing}: 
 
 SocialSecurityNumberStep.displayName = 'SocialSecurityNumberStep';
 
-export default withOnyx<SocialSecurityNumberProps, SocialSecurityNumberOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-    walletAdditionalDetails: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
-    },
-})(SocialSecurityNumberStep);
+export default SocialSecurityNumberStep;

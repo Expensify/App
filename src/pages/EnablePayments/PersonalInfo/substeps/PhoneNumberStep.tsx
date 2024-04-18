@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -16,14 +15,6 @@ import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
-import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
-
-type PhoneNumberOnyxProps = {
-    /** Reimbursement account from ONYX */
-    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
-};
-
-type PhoneNumberProps = PhoneNumberOnyxProps & SubStepProps;
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
@@ -36,9 +27,11 @@ const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL
     }
     return errors;
 };
-function PhoneNumberStep({walletAdditionalDetails, onNext, isEditing}: PhoneNumberProps) {
+function PhoneNumberStep({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
 
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
@@ -82,9 +75,4 @@ function PhoneNumberStep({walletAdditionalDetails, onNext, isEditing}: PhoneNumb
 
 PhoneNumberStep.displayName = 'PhoneNumberStep';
 
-export default withOnyx<PhoneNumberProps, PhoneNumberOnyxProps>({
-    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS
-    walletAdditionalDetails: {
-        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS,
-    },
-})(PhoneNumberStep);
+export default PhoneNumberStep;
