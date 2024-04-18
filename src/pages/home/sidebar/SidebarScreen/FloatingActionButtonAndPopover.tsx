@@ -259,11 +259,8 @@ function FloatingActionButtonAndPopover(
             showCreateMenu();
         }
     };
-
-    const selfDMReportID = useMemo(() => {
-        return ReportUtils.findSelfDMReportID();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
     return (
         <View style={styles.flexGrow1}>
