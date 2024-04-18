@@ -44,11 +44,11 @@ type FeatureListProps = {
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
 
-    /** The style passed to the list container */
-    containerStyles?: StyleProp<ViewStyle>;
-
     /** The style used for the title */
     titleStyles?: StyleProp<TextStyle>;
+
+    /** Padding for content on large screens */
+    contentPaddingOnLargeScreens?: {padding: number};
 };
 
 function FeatureList({
@@ -61,8 +61,8 @@ function FeatureList({
     illustration,
     illustrationStyle,
     illustrationBackgroundColor,
-    containerStyles,
     titleStyles,
+    contentPaddingOnLargeScreens,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -76,8 +76,8 @@ function FeatureList({
             illustration={illustration}
             illustrationBackgroundColor={illustrationBackgroundColor}
             illustrationStyle={illustrationStyle}
-            containerStyles={containerStyles}
             titleStyles={titleStyles}
+            contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
