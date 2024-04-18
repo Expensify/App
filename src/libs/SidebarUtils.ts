@@ -106,7 +106,7 @@ function getOrderedReportIDs(
             report,
             currentReportId: currentReportId ?? '',
             isInGSDMode,
-            betas: betas ?? [],
+            betas,
             policies,
             excludeEmptyChats: true,
             doesReportHaveViolations,
@@ -135,15 +135,11 @@ function getOrderedReportIDs(
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
     reportsToDisplay.forEach((report) => {
-        if (!report) {
-            return;
-        }
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
         if (report) {
-            // eslint-disable-next-line no-param-reassign
-            report.displayName = ReportUtils.getReportName(report);
+            report = {
+                ...report,
+                displayName: ReportUtils.getReportName(report),
+            }
         }
 
         const isPinned = report?.isPinned ?? false;
