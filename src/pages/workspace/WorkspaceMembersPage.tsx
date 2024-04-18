@@ -39,7 +39,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList, Session} from '@src/types/onyx';
+import type {
+    InvitedEmailsToAccountIDs,
+    PersonalDetailsList,
+    PolicyEmployee,
+    PolicyEmployeeList,
+    Session
+} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -467,24 +473,30 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             },
         ];
 
-        if (PolicyUtils.isPaidGroupPolicy(policy)) {
-            if (selectedEmployees.find((employeeEmail) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employeeEmail]]?.role === CONST.POLICY.ROLE.ADMIN)) {
-                options.push({
-                    text: translate('workspace.people.makeMember'),
-                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                    icon: Expensicons.User,
-                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-                });
-            }
+        if (!PolicyUtils.isPaidGroupPolicy(policy)) {
+            return options;
+        }
 
-            if (selectedEmployees.find((employeeEmail) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employeeEmail]]?.role === CONST.POLICY.ROLE.USER)) {
-                options.push({
-                    text: translate('workspace.people.makeAdmin'),
-                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                    icon: Expensicons.MakeAdmin,
-                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-                });
-            }
+        const selectedEmployeesRoles = selectedEmployees.map(accountID => {
+            const email = Object.keys(policyMemberEmailsToAccountIDs).find(email => policyMemberEmailsToAccountIDs[email] === accountID) ?? '';
+            return policy?.employeeList?.[email]?.role;
+        });
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.ADMIN)) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.User,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+            });
+        }
+
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.USER)) {
+            options.push({
+                text: translate('workspace.people.makeAdmin'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                icon: Expensicons.MakeAdmin,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+            });
         }
         return options;
     };
