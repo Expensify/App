@@ -71,9 +71,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         [SCREENS.NOT_FOUND]: '*',
         [NAVIGATORS.LEFT_MODAL_NAVIGATOR]: {
             screens: {
-                [SCREENS.LEFT_MODAL.SEARCH]: {
+                [SCREENS.LEFT_MODAL.CHAT_FINDER]: {
                     screens: {
-                        [SCREENS.SEARCH_ROOT]: ROUTES.SEARCH,
+                        [SCREENS.CHAT_FINDER_ROOT]: ROUTES.CHAT_FINDER,
                     },
                 },
                 [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: {
@@ -95,14 +95,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             path: ROUTES.ONBOARDING_ROOT,
-            initialRouteName: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+            initialRouteName: SCREENS.ONBOARDING.PURPOSE,
             screens: {
+                [SCREENS.ONBOARDING.PURPOSE]: {
+                    path: ROUTES.ONBOARDING_PURPOSE,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.PURPOSE]: {
-                    path: ROUTES.ONBOARDING_PURPOSE,
+                [SCREENS.ONBOARDING.WORK]: {
+                    path: ROUTES.ONBOARDING_WORK,
                     exact: true,
                 },
             },
@@ -263,12 +267,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_PROFILE_CURRENCY.route,
                         },
-                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
-                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
-                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
-                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.route},
-                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.route},
-                        [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_PROFILE_DESCRIPTION.route,
                         },
@@ -669,8 +673,8 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS]: {
                             path: ROUTES.WORKSPACE_MEMBERS.route,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING]: {
-                            path: ROUTES.WORKSPACE_ACCOUNTING.route,
+                        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
+                            path: ROUTES.POLICY_ACCOUNTING.route,
                         },
                         [SCREENS.WORKSPACE.CATEGORIES]: {
                             path: ROUTES.WORKSPACE_CATEGORIES.route,

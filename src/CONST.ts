@@ -66,6 +66,8 @@ const onboardingChoices = {
     LOOKING_AROUND: 'newDotLookingAround',
 };
 
+type OnboardingPurposeType = ValueOf<typeof onboardingChoices>;
+
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
@@ -885,7 +887,7 @@ const CONST = {
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_RENDER: 'search_render',
+        CHAT_FINDER_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
         OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
@@ -1221,9 +1223,9 @@ const CONST = {
         NOT_IMPORTED: 'NOT_IMPORTED',
         IMPORTED: 'IMPORTED',
     },
-    QUICK_BOOKS_ONLINE: 'quickbooksOnline',
+    QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
-    QUICK_BOOKS_IMPORTS: {
+    QUICKBOOKS_IMPORTS: {
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
@@ -1369,7 +1371,7 @@ const CONST = {
     },
 
     KYC_WALL_SOURCE: {
-        REPORT: 'REPORT', // The user attempted to pay a money request
+        REPORT: 'REPORT', // The user attempted to pay an expense
         ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
         TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
     },
@@ -1405,7 +1407,7 @@ const CONST = {
     },
 
     IOU: {
-        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
@@ -1620,25 +1622,23 @@ const CONST = {
             GENERAL_SETTINGS: 'generalSettings',
         },
         CONNECTIONS: {
-            SYNC_STATUS: {
-                STARTING: 'starting',
-                FINISHED: 'finished',
-                PROGRESS: 'progress',
-            },
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT: 'startingImport',
-                QBO_CUSTOMERS: 'quickbooksOnlineImportCustomers',
-                QBO_EMPLOYEES: 'quickbooksOnlineImportEmployees',
-                QBO_ACCOUNTS: 'quickbooksOnlineImportAccounts',
-                QBO_CLASSES: 'quickbooksOnlineImportClasses',
-                QBO_LOCATIONS: 'quickbooksOnlineImportLocations',
-                QBO_PROCESSING: 'quickbooksOnlineImportProcessing',
-                QBO_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
-                QBO_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
+                QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
+                QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
+                QBO_IMPORT_ACCOUNTS: 'quickbooksOnlineImportAccounts',
+                QBO_IMPORT_CLASSES: 'quickbooksOnlineImportClasses',
+                QBO_IMPORT_LOCATIONS: 'quickbooksOnlineImportLocations',
+                QBO_IMPORT_PROCESSING: 'quickbooksOnlineImportProcessing',
+                QBO_SYNC_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
+                QBO_IMPORT_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                QBO_CHECK_CONNECTION: 'quickbooksOnlineCheckConnection',
+                JOB_DONE: 'jobDone',
             },
         },
     },
@@ -3608,6 +3608,331 @@ const CONST = {
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
     },
 
+    ONBOARDING_MESSAGES: {
+        [onboardingChoices.TRACK]: {
+            message: 'Here are some essential tasks to keep your business spend in shape for tax season.',
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    title: 'Create a workspace',
+                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
+                    message:
+                        'Here’s how to create a workspace:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Click <strong>Workspaces</strong> > <strong>New workspace</strong>.\n' +
+                        '\n' +
+                        'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+                {
+                    title: 'Track an expense',
+                    subtitle: 'Track an expense in any currency, in just a few clicks.',
+                    message:
+                        'Here’s how to track an expense:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose <strong>Track expense</strong>.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Click <strong>Track</strong>.\n' +
+                        '\n' +
+                        'And you’re done! Yep, it’s that easy.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+            ],
+        },
+        [onboardingChoices.EMPLOYER]: {
+            message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    title: 'Submit an expense',
+                    subtitle: 'Submit an expense by entering an amount or scanning a receipt.',
+                    message:
+                        'Here’s how to submit an expense:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose <strong>Submit expense</strong>.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Add your reimburser to the request.\n' +
+                        '\n' +
+                        'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+                {
+                    title: 'Enable your wallet',
+                    subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
+                    message:
+                        'Here’s how to set up your wallet:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Click <strong>Wallet</strong> > <strong>Enable wallet</strong>.\n' +
+                        '3. Connect your bank account.\n' +
+                        '\n' +
+                        'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+            ],
+        },
+        [onboardingChoices.MANAGE_TEAM]: {
+            message: 'Here are some important tasks to help get your team’s expenses under control.',
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    title: 'Create a workspace',
+                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
+                    message:
+                        'Here’s how to create a workspace:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Click <strong>Workspaces<strong> > <strong>New workspace<strong>.\n' +
+                        '\n' +
+                        'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+                {
+                    title: 'Meet your setup specialist',
+                    subtitle: '',
+                    message: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
+                        `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
+                        '\n' +
+                        `Chat with the specialist in your [#admins room](${adminsRoomLink}) or [schedule a call](${guideCalendarLink}) today.`,
+                    video: null,
+                },
+                {
+                    title: 'Set up categories',
+                    subtitle: 'Set up categories so your team can code expenses for easy reporting.',
+                    message:
+                        'Here’s how to set up categories:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to <strong>Workspaces</strong> > [your workspace].\n' +
+                        '3. Click <strong>Categories</strong>.\n' +
+                        '4. Enable and disable default categories.\n' +
+                        '5. Click <strong>Add categories</strong> to make your own.\n' +
+                        '\n' +
+                        'For more controls like requiring a category for every expense, click Settings.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+                {
+                    title: 'Add expense approvals',
+                    subtitle: 'Add expense approvals to review your team’s spend and keep it under control.',
+                    message:
+                        'Here’s how to add expense approvals:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to Workspaces > [your workspace].\n' +
+                        '3. Click <strong>More features</strong>.\n' +
+                        '4. Enable <strong>Workflows</strong>.\n' +
+                        '5. In Workflows, enable <strong>Add approvals</strong>.\n' +
+                        '\n' +
+                        'You’ll be set as the expense approver. You can change this to any admin once you invite your team.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+                {
+                    title: 'Invite your team',
+                    subtitle: 'Invite your team to Expensify so they can start tracking expenses today.',
+                    message:
+                        'Here’s how to invite your team:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. Go to <strong>Workspaces</strong> > [your workspace].\n' +
+                        '3. Click <strong>Members</strong> > <strong>Invite member</strong>.\n' +
+                        '4. Enter emails or phone numbers. \n' +
+                        '5. Add an invite message if you want.\n' +
+                        '\n' +
+                        'That’s it! Happy expensing :)',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+            ],
+        },
+        [onboardingChoices.PERSONAL_SPEND]: {
+            message: 'Here’s how to track your spend in a few clicks.',
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    title: 'Track an expense',
+                    subtitle: 'Track an expense in any currency, whether you have a receipt or not.',
+                    message:
+                        'Here’s how to track an expense:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose <strong>Track expense</strong>.\n' +
+                        '3. Enter an amount or scan a receipt.\n' +
+                        '4. Click Track.\n' +
+                        '\n' +
+                        'And you’re done! Yep, it’s that easy.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+            ],
+        },
+        [onboardingChoices.CHAT_SPLIT]: {
+            message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [
+                {
+                    title: 'Start a chat',
+                    subtitle: 'Start a chat with a friend or group using their email or phone number.',
+                    message:
+                        'Here’s how to start a chat:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose <strong>Start chat</strong>.\n' +
+                        '3. Enter emails or phone numbers.\n' +
+                        '\n' +
+                        'If any of your friends aren’t using Expensify already, they’ll be invited automatically. \n' +
+                        '\n' +
+                        'Every chat will also turn into an email or text that they can respond to directly.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+                {
+                    title: 'Split an expense',
+                    subtitle: 'Split an expense right in your chat with one or more friends.',
+                    message:
+                        'Here’s how to request money:\n' +
+                        '\n' +
+                        '1. Click the green + button.\n' +
+                        '2. Choose <strong>Split expense</strong>.\n' +
+                        '3. Scan a receipt or enter an amount.\n' +
+                        '4. Add your friend(s) to the request.\n' +
+                        '\n' +
+                        'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+                {
+                    title: 'Enable your wallet',
+                    subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
+                    message:
+                        'Here’s how to enable your wallet:\n' +
+                        '\n' +
+                        '1. Click your profile picture.\n' +
+                        '2. <strong>Click Wallet</strong> > <strong>Enable wallet</strong>.\n' +
+                        '3. Add your bank account.\n' +
+                        '\n' +
+                        'Once that’s done, you can request money from anyone and get paid right into your personal bank account.',
+                    video: {
+                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                        duration: 55,
+                        width: 1280,
+                        height: 960,
+                    },
+                },
+            ],
+        },
+        [onboardingChoices.LOOKING_AROUND]: {
+            message:
+                '# Welcome to Expensify!\n' +
+                "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
+                '\n' +
+                "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
+            video: {
+                url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                duration: 55,
+                width: 1280,
+                height: 960,
+            },
+            tasks: [],
+        },
+    },
+
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
     MOBILE_PAGINATION_SIZE: 15,
@@ -4351,6 +4676,6 @@ const CONST = {
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 
-export type {Country, IOUType};
+export type {Country, IOUType, OnboardingPurposeType};
 
 export default CONST;
