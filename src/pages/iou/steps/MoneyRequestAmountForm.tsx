@@ -6,6 +6,7 @@ import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import type {MoneyRequestAmountInputRef} from '@components/MoneyRequestAmountInput';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -74,22 +75,14 @@ function MoneyRequestAmountForm(
     const {translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
-    const moneyRequestAmountInput = useRef<{changeAmount: (amount: string) => void} | null>(null);
+    const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
     const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
-
-    const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [formError, setFormError] = useState<MaybePhraseKey>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
 
     const isFocused = useIsFocused();
     const wasFocused = usePrevious(isFocused);
-
-    const [selection, setSelection] = useState({
-        start: selectedAmountAsString.length,
-        end: selectedAmountAsString.length,
-    });
 
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(Math.abs(taxAmount), currency);
 
@@ -102,8 +95,10 @@ function MoneyRequestAmountForm(
             return;
         }
 
+        const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
+
         event.preventDefault();
-        setSelection({
+        moneyRequestAmountInput.current?.changeSelection({
             start: selection.end,
             end: selection.end,
         });
@@ -116,10 +111,22 @@ function MoneyRequestAmountForm(
         }
     };
 
+    useEffect(() => {
+        if (!isFocused || wasFocused) {
+            return;
+        }
+        const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
+
+        moneyRequestAmountInput.current?.changeSelection({
+            start: selection.end,
+            end: selection.end,
+        });
+    }, [isFocused, wasFocused]);
+
     const initializeAmount = useCallback((newAmount: number) => {
         const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
-        setCurrentAmount(frontendAmount);
-        setSelection({
+        moneyRequestAmountInput.current?.changeAmount(frontendAmount);
+        moneyRequestAmountInput.current?.changeSelection({
             start: frontendAmount.length,
             end: frontendAmount.length,
         });
@@ -134,18 +141,6 @@ function MoneyRequestAmountForm(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTab, amount]);
 
-    // Removes text selection if user visits currency selector with selection and comes back
-    useEffect(() => {
-        if (!isFocused || wasFocused) {
-            return;
-        }
-
-        setSelection({
-            start: selection.end,
-            end: selection.end,
-        });
-    }, [selection.end, isFocused, selection, wasFocused]);
-
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
@@ -155,19 +150,21 @@ function MoneyRequestAmountForm(
             if (shouldUpdateSelection && !textInput.current?.isFocused()) {
                 textInput.current?.focus();
             }
+            const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
+            const selection = moneyRequestAmountInput.current?.getSelection() ?? {start: 0, end: 0};
             // Backspace button is pressed
             if (key === '<' || key === 'Backspace') {
                 if (currentAmount.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                     const newAmount = `${currentAmount.substring(0, selectionStart)}${currentAmount.substring(selection.end)}`;
-                    moneyRequestAmountInput.current?.changeAmount(MoneyRequestUtils.addLeadingZero(newAmount));
+                    moneyRequestAmountInput.current?.setNewAmount(MoneyRequestUtils.addLeadingZero(newAmount));
                 }
                 return;
             }
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
-            moneyRequestAmountInput.current?.changeAmount(newAmount);
+            moneyRequestAmountInput.current?.setNewAmount(newAmount);
         },
-        [currentAmount, selection, shouldUpdateSelection],
+        [shouldUpdateSelection],
     );
 
     /**
@@ -187,6 +184,7 @@ function MoneyRequestAmountForm(
      */
     const submitAndNavigateToNextPage = useCallback(() => {
         // Skip the check for tax amount form as 0 is a valid input
+        const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
         if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
             setFormError('iou.error.invalidAmount');
             return;
@@ -203,7 +201,7 @@ function MoneyRequestAmountForm(
         initializeAmount(backendAmount);
 
         onSubmitButtonPress({amount: currentAmount, currency});
-    }, [currentAmount, taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount]);
+    }, [taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount]);
 
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
@@ -224,7 +222,6 @@ function MoneyRequestAmountForm(
                     currency={currency}
                     isCurrencyPressable={isCurrencyPressable}
                     onCurrencyButtonPress={onCurrencyButtonPress}
-                    selectedTab={selectedTab}
                     onAmountChange={() => {
                         if (!formError) {
                             return;

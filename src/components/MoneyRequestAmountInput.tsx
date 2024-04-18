@@ -1,19 +1,24 @@
-import {useIsFocused} from '@react-navigation/core';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
-import type {SelectedTabRequest} from '@src/types/onyx';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
 type CurrentMoney = {amount: string; currency: string};
+
+type MoneyRequestAmountInputRef = {
+    setNewAmount: (amountValue: string) => void;
+    changeSelection: (newSelection: Selection) => void;
+    changeAmount: (newAmount: string) => void;
+    getAmount: () => string;
+    getSelection: () => Selection;
+};
 
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
@@ -31,9 +36,6 @@ type MoneyRequestAmountInputProps = {
     /** Function to call when the amount changes */
     onAmountChange?: (amount: string) => void;
 
-    /** The current tab we have navigated to in the expense modal. String that corresponds to the expense type. */
-    selectedTab?: SelectedTabRequest;
-
     /** Whether to update the selection */
     shouldUpdateSelection?: boolean;
 
@@ -44,7 +46,7 @@ type MoneyRequestAmountInputProps = {
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Reference to moneyRequestAmountInputRef */
-    moneyRequestAmountInputRef?: ForwardedRef<{changeAmount: (amount: string) => void}>;
+    moneyRequestAmountInputRef?: ForwardedRef<MoneyRequestAmountInputRef>;
 };
 
 type Selection = {
@@ -66,7 +68,6 @@ function MoneyRequestAmountInput(
         currency = CONST.CURRENCY.USD,
         isCurrencyPressable = true,
         onCurrencyButtonPress,
-        selectedTab = CONST.TAB_REQUEST.MANUAL,
         onAmountChange,
         shouldUpdateSelection = true,
         moneyRequestAmountInputRef,
@@ -83,33 +84,12 @@ function MoneyRequestAmountInput(
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
 
-    const isFocused = useIsFocused();
-    const wasFocused = usePrevious(isFocused);
-
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
         end: selectedAmountAsString.length,
     });
 
     const forwardDeletePressedRef = useRef(false);
-
-    const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
-        setCurrentAmount(frontendAmount);
-        setSelection({
-            start: frontendAmount.length,
-            end: frontendAmount.length,
-        });
-    }, []);
-
-    useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
-            return;
-        }
-        initializeAmount(amount);
-        // we want to re-initialize the state only when the selected tab or amount changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab, amount]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -144,15 +124,23 @@ function MoneyRequestAmountInput(
         [decimals, onAmountChange],
     );
 
-    useImperativeHandle(
-        moneyRequestAmountInputRef,
-        () =>
-            ({
-                changeAmount(changeAmountValue: string) {
-                    setNewAmount(changeAmountValue);
-                },
-            } as {changeAmount: (amount: string) => void}),
-    );
+    useImperativeHandle(moneyRequestAmountInputRef, () => ({
+        setNewAmount(amountValue: string) {
+            setNewAmount(amountValue);
+        },
+        changeSelection(newSelection: Selection) {
+            setSelection(newSelection);
+        },
+        changeAmount(newAmount: string) {
+            setCurrentAmount(newAmount);
+        },
+        getAmount() {
+            return currentAmount;
+        },
+        getSelection() {
+            return selection;
+        },
+    }));
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
@@ -167,18 +155,6 @@ function MoneyRequestAmountInput(
         // we want to update only when decimals change (setNewAmount also changes when decimals change).
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [setNewAmount]);
-
-    // Removes text selection if user visits currency selector with selection and comes back
-    useEffect(() => {
-        if (!isFocused || wasFocused) {
-            return;
-        }
-
-        setSelection({
-            start: selection.end,
-            end: selection.end,
-        });
-    }, [selection.end, isFocused, selection, wasFocused]);
 
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
@@ -236,4 +212,4 @@ function MoneyRequestAmountInput(
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default React.forwardRef(MoneyRequestAmountInput);
-export type {CurrentMoney};
+export type {CurrentMoney, MoneyRequestAmountInputRef};
