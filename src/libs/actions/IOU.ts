@@ -2383,15 +2383,17 @@ type UpdateMoneyRequestTaxRateParams = {
     transactionID: string;
     optimisticReportActionID: string;
     taxCode: string;
+    taxAmount?: number;
     policy: OnyxEntry<OnyxTypes.Policy>;
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>;
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
 /** Updates the created tax rate of an expense */
-function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
+function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, taxAmount, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
     const transactionChanges = {
         taxCode,
+        ...(taxAmount && {taxAmount}),
     };
     const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories, true);
     API.write('UpdateMoneyRequestTaxRate', params, onyxData);
