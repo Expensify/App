@@ -260,6 +260,8 @@ function FloatingActionButtonAndPopover(
         }
     };
 
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
+
     return (
         <View style={styles.flexGrow1}>
             <PopoverMenu
@@ -274,7 +276,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense
+                    ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
                                   icon: Expensicons.DocumentPlus,
