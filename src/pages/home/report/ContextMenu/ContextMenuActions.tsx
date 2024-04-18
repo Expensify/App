@@ -387,9 +387,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage('What would you like to do with this expense?');
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-                    Clipboard.setString(Localize.translateLocal('iou.heldRequest'));
+                    Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
-                    Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
+                    Clipboard.setString(Localize.translateLocal('iou.unheldExpense'));
                 } else if (content) {
                     setClipboardMessage(
                         content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag, innerContent, closeTag): string => {

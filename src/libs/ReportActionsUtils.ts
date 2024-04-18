@@ -20,7 +20,6 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as CollectionUtils from './CollectionUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
@@ -59,16 +58,16 @@ Onyx.connect({
     },
 });
 
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
 
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+        allReportActions = actions;
     },
 });
 
@@ -195,7 +194,7 @@ function getParentReportAction(report: OnyxEntry<Report> | EmptyObject): ReportA
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return allReportActions?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? {};
 }
 
 /**
@@ -518,7 +517,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
         return false;
     }
 
-    // Ignore markedAsReimbursed action here since we're already display message that explains the request was paid
+    // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
     // elsewhere in the IOU reportAction
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
         return false;
@@ -593,7 +592,7 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
 }
 
 function getLastVisibleAction(reportID: string, actionsToMerge: OnyxCollection<ReportAction> = {}): OnyxEntry<ReportAction> {
-    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge ?? {}, true));
+    const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge ?? {}, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action));
     const sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
@@ -714,7 +713,7 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): OnyxE
  * Find the transaction associated with this reportAction, if one exists.
  */
 function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportAction>, reportID?: string): string | null {
-    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[reportID ?? '']?.[reportActionOrID] : reportActionOrID;
+    const reportAction = typeof reportActionOrID === 'string' ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionOrID] : reportActionOrID;
     if (!reportAction || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return null;
     }
@@ -722,7 +721,7 @@ function getLinkedTransactionID(reportActionOrID: string | OnyxEntry<ReportActio
 }
 
 function getReportAction(reportID: string, reportActionID: string): OnyxEntry<ReportAction> {
-    return allReportActions?.[reportID]?.[reportActionID] ?? null;
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]?.[reportActionID] ?? null;
 }
 
 function getMostRecentReportActionLastModified(): string {
@@ -769,7 +768,7 @@ function getMostRecentReportActionLastModified(): string {
  */
 function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
     return (
-        Object.values(allReportActions?.[chatReportID] ?? {}).find(
+        Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
             (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
         ) ?? null
     );
@@ -794,7 +793,7 @@ function isMessageDeleted(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
- * Returns the number of money requests associated with a report preview
+ * Returns the number of expenses associated with a report preview
  */
 function getNumberOfMoneyRequests(reportPreviewAction: OnyxEntry<ReportAction>): number {
     return reportPreviewAction?.childMoneyRequestCount ?? 0;
@@ -823,7 +822,7 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
 function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportActions = {}): boolean {
-    const reportActions = Object.values(fastMerge(allReportActions?.[reportID] ?? {}, actionsToMerge, true));
+    const reportActions = Object.values(fastMerge(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}, actionsToMerge, true));
     const visibleReportActions = Object.values(reportActions ?? {}).filter((action) => shouldReportActionBeVisibleAsLastAction(action));
 
     // Exclude the task system message and the created message
@@ -832,7 +831,7 @@ function doesReportHaveVisibleActions(reportID: string, actionsToMerge: ReportAc
 }
 
 function getAllReportActions(reportID: string): ReportActions {
-    return allReportActions?.[reportID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {};
 }
 
 /**
@@ -997,7 +996,7 @@ function getMemberChangeMessagePlainText(reportAction: OnyxEntry<ReportAction>):
 }
 
 /**
- * Helper method to determine if the provided accountID has made a request on the specified report.
+ * Helper method to determine if the provided accountID has submitted an expense on the specified report.
  *
  * @param reportID
  * @param currentAccountID

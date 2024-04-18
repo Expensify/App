@@ -5,7 +5,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -67,16 +66,16 @@ Onyx.connect({
     },
 });
 
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
 
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+        allReportActions = actions;
     },
 });
 
@@ -795,7 +794,7 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): ReportActio
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return allReportActions?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? {};
 }
 
 /**

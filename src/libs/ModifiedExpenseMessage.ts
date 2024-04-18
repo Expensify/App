@@ -253,7 +253,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         buildMessageFragmentForValue(
             reportActionOriginalMessage?.billable ?? '',
             reportActionOriginalMessage?.oldBillable ?? '',
-            Localize.translateLocal('iou.request'),
+            Localize.translateLocal('iou.expense'),
             true,
             setFragments,
             removalFragments,
@@ -266,7 +266,7 @@ function getForReportAction(reportID: string | undefined, reportAction: OnyxEntr
         getMessageLine(`\n${Localize.translateLocal('iou.set')}`, setFragments) +
         getMessageLine(`\n${Localize.translateLocal('iou.removed')}`, removalFragments);
     if (message === '') {
-        return Localize.translateLocal('iou.changedTheRequest');
+        return Localize.translateLocal('iou.changedTheExpense');
     }
     return `${message.substring(1, message.length)}`;
 }

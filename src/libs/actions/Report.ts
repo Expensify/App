@@ -1277,6 +1277,12 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     CachedPDFPaths.clearByKey(reportActionID);
 
     API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+
+    // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
+    // we should navigate to its report in order to not show not found page
+    if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID), true);
+    }
 }
 
 /**

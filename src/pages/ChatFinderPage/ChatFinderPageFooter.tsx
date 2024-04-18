@@ -2,10 +2,10 @@ import React from 'react';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import CONST from '@src/CONST';
 
-function SearchPageFooter() {
+function ChatFinderPageFooter() {
     return <ReferralProgramCTA referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND} />;
 }
 
-SearchPageFooter.displayName = 'SearchPageFooter';
+ChatFinderPageFooter.displayName = 'ChatFinderPageFooter';
 
-export default SearchPageFooter;
+export default ChatFinderPageFooter;
