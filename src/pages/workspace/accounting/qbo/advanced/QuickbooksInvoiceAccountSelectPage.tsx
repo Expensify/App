@@ -16,6 +16,7 @@ import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccess
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 type SelectorType = ListItem & {
     value: string;
@@ -64,7 +65,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const updateMode = useCallback(
         ({value}: SelectorType) => {
             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID, value);
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
         },
         [policyID],
     );
