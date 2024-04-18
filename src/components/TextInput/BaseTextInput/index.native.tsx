@@ -58,6 +58,7 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         prefixStyle = [],
+        prefixContainerStyle = [],
         inputID,
         isMarkdownEnabled = false,
         ...props
@@ -313,7 +314,7 @@ function BaseTextInput(
                                 </View>
                             )}
                             {!!prefixCharacter && (
-                                <View style={styles.textInputPrefixWrapper}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}

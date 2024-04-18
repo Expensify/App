@@ -110,6 +110,9 @@ type CustomBaseTextInputProps = {
 
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the container prefix */
+    prefixContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;
