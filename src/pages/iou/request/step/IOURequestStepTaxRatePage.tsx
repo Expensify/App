@@ -73,7 +73,7 @@ function IOURequestStepTaxRatePage({
             return;
         }
         const taxAmount = getTaxAmount(taxRates, taxes.text, TransactionUtils.getAmount(transaction, false, true));
-        
+
         if (isEditing) {
             const newTaxCode = taxes.data.code;
             if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
