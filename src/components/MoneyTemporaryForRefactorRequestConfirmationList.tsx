@@ -212,7 +212,6 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
 }: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseViolations} = usePermissions();
@@ -428,26 +427,38 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         IOU.adjustRemainingSplitShares(transaction.transactionID, unModifiedSharesAccountIDs, remainingTotal, iouCurrencyCode ?? CONST.CURRENCY.USD);
     }, [transaction, iouAmount, iouCurrencyCode, isTypeSplit]);
 
+    const getParticipantOptions = useCallback(() => {
+        const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
+        if (isPolicyExpenseChat) {
+            return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
+                const isPayer = participantOption.accountID === payeeOption.accountID;
+                const amount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
+                return {
+                    ...participantOption,
+                    descriptiveText: CurrencyUtils.convertToDisplayString(amount),
+                };
+            });
+        }
+
+        const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
+        return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
+            ...participantOption,
+            amountProps: {
+                amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
+                currency: iouCurrencyCode,
+                prefixCharacter: currencySymbol,
+                isCurrencyPressable: false,
+                hideCurrencySymbol: true,
+                textInputContainerStyles: [{minWidth: 50}],
+                onAmountChange: (value) => onSplitShareChange(participantOption.accountID, value),
+            },
+        }));
+    }, [iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, personalDetailsOfPayee, selectedParticipants, transaction?.splitShares, currencyList, iouAmount]);
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         if (hasMultipleParticipants) {
-            const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetailsOfPayee);
-            const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
-
-            const formattedParticipantsList = [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
-                ...participantOption,
-                descriptiveText: null,
-                amountProps: {
-                    amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
-                    currency: iouCurrencyCode,
-                    prefixCharacter: currencySymbol,
-                    isCurrencyPressable: false,
-                    hideCurrencySymbol: true,
-                    textInputContainerStyles: [{minWidth: 50}],
-                    onAmountChange: (value) => onSplitShareChange(participantOption.accountID, value),
-                },
-            }));
-
+            const formattedParticipantsList = getParticipantOptions();
             sections.push({
                 title: translate('moneyRequestConfirmationList.splitWith'),
                 data: formattedParticipantsList,
@@ -465,7 +476,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             });
         }
         return sections;
-    }, [transaction?.splitShares, onSplitShareChange, currencyList, selectedParticipants, hasMultipleParticipants, iouCurrencyCode, personalDetailsOfPayee, translate]);
+    }, [selectedParticipants, hasMultipleParticipants, translate, getParticipantOptions]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
