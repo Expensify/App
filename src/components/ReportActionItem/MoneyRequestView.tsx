@@ -6,6 +6,7 @@ import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useSession} from '@components/OnyxProvider';
 import {ReceiptAuditHeader, ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
@@ -93,6 +94,7 @@ function MoneyRequestView({
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const session = useSession();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -147,6 +149,8 @@ function MoneyRequestView({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
 
+    const isAdmin = policy?.role === 'admin';
+    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
@@ -298,9 +302,10 @@ function MoneyRequestView({
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEditReceipt && (
+                {!hasReceipt && (canEditReceipt || isAdmin || isApprover) && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
+                        disabled={!canEditReceipt}
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
