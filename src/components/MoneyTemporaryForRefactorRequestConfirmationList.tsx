@@ -255,7 +255,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const prevRate = usePrevious(rate);
     const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
 
-    const currency = (mileageRate as MileageRate).currency ?? policyCurrency;
+    const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
     const distance = transaction?.routes?.route0?.distance ?? 0;
     const taxRates = policy?.taxRates ?? null;
