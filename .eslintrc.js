@@ -238,7 +238,6 @@ module.exports = {
                 'jsdoc/no-types': 'error',
                 'rulesdir/no-default-props': 'error',
                 'import/no-extraneous-dependencies': 'off',
-                'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',
                 'react/require-default-props': 'off',
                 'react/prop-types': 'off',
@@ -260,13 +259,7 @@ module.exports = {
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: [
-                            ...restrictedImportPaths,
-                            {
-                                name: 'underscore',
-                                message: 'Please use the corresponding method from lodash instead',
-                            },
-                        ],
+                        paths: restrictedImportPaths,
                         patterns: restrictedImportPatterns,
                     },
                 ],
