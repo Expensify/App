@@ -6039,6 +6039,7 @@ export {
     submitReport,
     trackExpense,
     unholdRequest,
+    updateDistanceRequestRate,
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
