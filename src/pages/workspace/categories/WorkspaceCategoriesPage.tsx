@@ -17,7 +17,9 @@ import RightElementEnabledStatus from '@components/SelectionList/RightElementEna
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -64,6 +66,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const dropdownButtonRef = useRef(null);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
+    const {environmentURL} = useEnvironment();
 
     const fetchCategories = useCallback(() => {
         Policy.openPolicyCategoriesPage(route.params.policyID);
@@ -281,6 +284,15 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                         {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                            <Text>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                                <TextLink
+                                    style={[styles.textNormal, styles.link]}
+                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(route.params.policyID)}`}
+                                >
+                                    {`${translate('workspace.accounting.qbo')} settings`}
+                                </TextLink>
+                            </Text>
                         </View>
                         {isLoading && (
                             <ActivityIndicator
