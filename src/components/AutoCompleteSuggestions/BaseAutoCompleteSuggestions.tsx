@@ -81,7 +81,10 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         [isLargeScreenWidth, suggestions.length, windowWidth],
     );
     useEffect(() => {
-        rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length + (isSearchingForMentions ? 1 : 0), isSuggestionPickerLarge), {
+        // add 1 to the expected row number if we are searching for mentions - this will add place for loading spinner at the bottom of the list
+        const expectedRowNumber = suggestions.length + (isSearchingForMentions ? 1 : 0);
+
+        rowHeight.value = withTiming(measureHeightOfSuggestionRows(expectedRowNumber, isSuggestionPickerLarge), {
             duration: 100,
             easing: Easing.inOut(Easing.ease),
         });

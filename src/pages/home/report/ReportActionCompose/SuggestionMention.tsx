@@ -54,10 +54,10 @@ function SuggestionMention(
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initialValue: false});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isMentionSuggestionsMenuVisible = (!!suggestionValues.suggestedMentions.length || (isSearchingForReports ?? false)) && suggestionValues.shouldShowSuggestionMenu;
+    const isMentionSuggestionsMenuVisible = (!!suggestionValues.suggestedMentions.length || isSearchingForReports) && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -326,6 +326,8 @@ function SuggestionMention(
             if (!isCursorBeforeTheMention && prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
                 // filter reports by room name and current policy
                 nextState.suggestedMentions = getRoomMentionOptions(prefix, reports);
+
+                // even if there are no reports, we should show the suggestion menu - to perform live search
                 nextState.shouldShowSuggestionMenu = true;
             }
 
@@ -391,7 +393,7 @@ function SuggestionMention(
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainer={measureParentContainer}
-            isSearchingForMentions={isSearchingForReports ?? false}
+            isSearchingForMentions={isSearchingForReports}
         />
     );
 }
