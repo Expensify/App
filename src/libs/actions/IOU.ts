@@ -3477,6 +3477,16 @@ function createSplitsAndOnyxData(
         failureData.push(...oneOnOneFailureData);
     });
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
+        value: {
+            comment: {
+                splits: splits.map((split) => ({accountID: split.accountID, amount: split.amount})),
+            },
+        },
+    });
+
     const splitData: SplitData = {
         chatReportID: splitChatReport.reportID,
         transactionID: splitTransaction.transactionID,
