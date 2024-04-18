@@ -255,7 +255,7 @@ function MoneyRequestView({
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
-    let errors: Errors | ReceiptErrors = transaction?.errors ?? {};
+    let errors = transaction?.errors ?? {};
     if (parentReportAction?.errors) {
         errors = {
             ...errors,
@@ -297,7 +297,7 @@ function MoneyRequestView({
                                     />
                                 )}
                             </View>
-                        }
+                    }
                     </OfflineWithFeedback>
                 )}
                 {!hasReceipt && canEditReceipt && (
