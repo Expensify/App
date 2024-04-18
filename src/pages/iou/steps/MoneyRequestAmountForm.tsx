@@ -316,7 +316,7 @@ function MoneyRequestAmountForm(
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
     let buttonText = isEditing ? translate('common.save') : translate('common.next');
     if (skipConfirmation) {
-        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.request');
+        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.submitExpense');
     }
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
