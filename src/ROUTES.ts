@@ -23,6 +23,11 @@ const ROUTES = {
 
     ALL_SETTINGS: 'all-settings',
 
+    SEARCH: {
+        route: '/search/:query',
+        getRoute: (query: string) => `search/${query}` as const,
+    },
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {

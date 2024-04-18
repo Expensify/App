@@ -3299,6 +3299,13 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
+    TAB_SEARCH: {
+        ALL: 'all',
+        SENT: 'sent',
+        DRAFTS: 'drafts',
+        WAITING_ON_YOU: 'waitingOnYou',
+        FINISHED: 'finished',
+    },
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
