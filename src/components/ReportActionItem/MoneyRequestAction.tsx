@@ -37,7 +37,7 @@ type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
     /** The ID of the associated chatReport */
     chatReportID: string;
 
-    /** The ID of the associated request report */
+    /** The ID of the associated expense report */
     requestReportID: string;
 
     /** The ID of the current report */
@@ -114,10 +114,8 @@ function MoneyRequestAction({
         let message: TranslationPaths;
         if (isReversedTransaction) {
             message = 'parentReportAction.reversedTransaction';
-        } else if (isTrackExpenseAction) {
-            message = 'parentReportAction.deletedExpense';
         } else {
-            message = 'parentReportAction.deletedRequest';
+            message = 'parentReportAction.deletedExpense';
         }
         return <RenderHTML html={`<comment>${translate(message)}</comment>`} />;
     }
