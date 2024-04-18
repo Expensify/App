@@ -64,13 +64,9 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
                 policyID={policyID}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    testID={QuickbooksExportInvoiceAccountSelectPage.displayName}
-                >
+                <ScreenWrapper testID={QuickbooksExportInvoiceAccountSelectPage.displayName}>
                     <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
                     <SelectionList
-                        containerStyle={styles.pb2}
                         headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
                         sections={[{data}]}
                         ListItem={RadioListItem}

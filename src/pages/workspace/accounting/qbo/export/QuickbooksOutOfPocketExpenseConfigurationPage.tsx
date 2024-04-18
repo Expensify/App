@@ -61,7 +61,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
                                     brickRoadIndicator={errors?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     shouldShowRightIcon
-                                    error={errors?.exportAccount ? translate('common.genericErrorMessage') : undefined}
+                                    errorText={errors?.exportAccount}
                                 />
                             </OfflineWithFeedback>
                         )}

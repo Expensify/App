@@ -39,7 +39,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
         if (!isTaxError && !isLocationError) {
             return;
         }
-        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY, null);
+        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY);
     }, [policyID, isTaxError, isLocationError]);
 
     const data: CardListItem[] = useMemo(
@@ -92,8 +92,9 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
                     testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
                 >
                     <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
-                    <View style={styles.pb2}>
+                    <View style={styles.flex1}>
                         <SelectionList
+                            containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
                             sections={sections}
                             ListItem={RadioListItem}

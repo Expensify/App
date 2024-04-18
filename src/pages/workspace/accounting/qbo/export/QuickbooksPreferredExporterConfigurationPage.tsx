@@ -65,13 +65,9 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
                 policyID={policyID}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    testID={QuickBooksExportPreferredExporterPage.displayName}
-                >
+                <ScreenWrapper testID={QuickBooksExportPreferredExporterPage.displayName}>
                     <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
                     <SelectionList
-                        containerStyle={styles.pb2}
                         headerContent={
                             <>
                                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>

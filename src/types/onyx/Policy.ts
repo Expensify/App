@@ -157,7 +157,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncItems: boolean;
     markChecksToBePrinted: boolean;
     reimbursableExpensesExportDestination: IntegrationEntityMap;
-    nonReimbursableExpensesExportDestination: string;
+    nonReimbursableExpensesExportDestination: IntegrationEntityMap;
 
     reimbursableExpensesAccount?: string;
     nonReimbursableExpensesAccount?: string;
