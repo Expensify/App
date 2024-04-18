@@ -17,6 +17,7 @@ function RadioListItem<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported = false,
     onFocus,
+    shouldSyncFocus,
 }: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
@@ -36,6 +37,7 @@ function RadioListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
         >
             <>
                 <View style={[styles.flex1, styles.alignItemsStart]}>
