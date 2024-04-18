@@ -48,21 +48,25 @@ type WorkspaceAccountingPageProps = WithPolicyAndFullscreenLoadingProps &
 
 const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
 
-function connectToAccountingIntegrationButton(connectionName: ConnectionName, policyID: string, environmentURL: string) {
+function connectToAccountingIntegrationButton(integrationToConnect: ConnectionName, policyID: string, environmentURL: string, isConnectedToIntegration: boolean) {
     // eslint-disable-next-line default-case
-    switch (connectionName) {
-        case 'quickbooksOnline':
+    switch (integrationToConnect) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return (
                 <ConnectToQuickbooksOnlineButton
                     policyID={policyID}
                     environmentURL={environmentURL}
+                    disconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                    integrationToConnect={integrationToConnect}
                 />
             );
-        case 'xero':
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return (
                 <ConnectToXeroButton
                     policyID={policyID}
                     environmentURL={environmentURL}
+                    disconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                    integrationToConnect={integrationToConnect}
                 />
             );
     }
@@ -71,9 +75,9 @@ function connectToAccountingIntegrationButton(connectionName: ConnectionName, po
 function accountingIntegrationIcon(connectionName: ConnectionName) {
     // eslint-disable-next-line default-case
     switch (connectionName) {
-        case 'quickbooksOnline':
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return Expensicons.QBOSquare;
-        case 'xero':
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return Expensicons.XeroSquare;
     }
 }
@@ -81,9 +85,9 @@ function accountingIntegrationIcon(connectionName: ConnectionName) {
 function accountingIntegrationTitleKey(connectionName: ConnectionName) {
     // eslint-disable-next-line default-case
     switch (connectionName) {
-        case 'quickbooksOnline':
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return 'workspace.accounting.qbo';
-        case 'xero':
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return 'workspace.accounting.xero';
     }
 }
@@ -129,7 +133,7 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: translate(accountingIntegrationTitleKey(integration)),
-                rightComponent: connectToAccountingIntegrationButton(integration, policyID, environmentURL),
+                rightComponent: connectToAccountingIntegrationButton(integration, policyID, environmentURL, false),
             }));
         }
 
@@ -218,9 +222,9 @@ function WorkspaceAccountingPage({policy, connectionSyncProgress}: WorkspaceAcco
         }
         const otherIntegrations = accountingIntegrations.filter((integration) => integration !== connectionSyncProgress?.connectionName && integration !== connectedIntegration);
         return otherIntegrations.map((integration) => ({
-            icon: Expensicons.XeroSquare,
+            icon: accountingIntegrationIcon(integration),
             title: translate(accountingIntegrationTitleKey(integration)),
-            rightComponent: connectToAccountingIntegrationButton(integration, policyID, environmentURL),
+            rightComponent: connectToAccountingIntegrationButton(integration, policyID, environmentURL, true),
         }));
     }, [connectedIntegration, connectionSyncProgress?.connectionName, environmentURL, isSyncInProgress, policy?.connections, policyID, translate]);
 

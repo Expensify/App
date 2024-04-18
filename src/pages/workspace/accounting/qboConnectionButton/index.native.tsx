@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
 import type {WebViewNavigation} from 'react-native-webview';
 import Button from '@components/Button';
+import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +14,7 @@ import type {ConnectToQuickbooksOnlineButtonOnyxProps, ConnectToQuickbooksOnline
 
 type WebViewNavigationEvent = WebViewNavigation;
 
-function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbooksOnlineButtonProps) {
+function ConnectToQuickbooksOnlineButton({policyID, session, disconnectIntegrationBeforeConnecting, integrationToConnect}: ConnectToQuickbooksOnlineButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -28,14 +29,34 @@ function ConnectToQuickbooksOnlineButton({policyID, session}: ConnectToQuickbook
      */
     const handleNavigationStateChange = useCallback(({url}: WebViewNavigationEvent) => !!url, []);
 
+    const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+
     return (
         <>
             <Button
-                onPress={() => setWebViewOpen(true)}
+                onPress={() => {
+                    if (disconnectIntegrationBeforeConnecting && integrationToConnect) {
+                        setIsDisconnectModalOpen(true);
+                        return;
+                    }
+                    setWebViewOpen(true);
+                }}
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small
             />
+            {disconnectIntegrationBeforeConnecting && integrationToConnect && isDisconnectModalOpen && (
+                <ConfirmModal
+                    title={translate('workspace.accounting.disconnectTitle')}
+                    onConfirm={() => setWebViewOpen(true)}
+                    isVisible
+                    onCancel={() => setIsDisconnectModalOpen(false)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', integrationToConnect)}
+                    confirmText={translate('workspace.accounting.disconnect')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            )}
             {isWebViewOpen && (
                 <Modal
                     onClose={() => setWebViewOpen(false)}

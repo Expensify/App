@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -2100,7 +2100,17 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: 'Disconnect integration',
-            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            disconnectPrompt: (integrationToConnect?: ConnectionName) => {
+                switch (integrationToConnect) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'To set up QuickBooks Online you must disconnect. Are you sure you want to disconnect this integration?';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'To set up Xero you must disconnect. Are you sure you want to disconnect this integration?';
+                    default: {
+                        return 'Are you sure you want to disconnect this integration?';
+                    }
+                }
+            },
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
