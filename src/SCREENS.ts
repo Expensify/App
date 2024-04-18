@@ -23,6 +23,10 @@ const SCREENS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
+    SEARCH: {
+        CENTRAL_PANE: 'Search_Central_Pane',
+        BOTTOM_TAB: 'Search_Bottom_Tab',
+    },
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
