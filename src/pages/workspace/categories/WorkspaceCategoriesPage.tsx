@@ -284,16 +284,19 @@ function WorkspaceCategoriesPage({policy}: WorkspaceCategoriesPageProps) {
                         />
                         {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                            <Text>
-                                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                                <TextLink
-                                    style={[styles.textNormal, styles.link]}
-                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                                >
-                                    {`${translate('workspace.accounting.qbo')} settings`}
-                                </TextLink>
-                            </Text>
+                            {policy?.connections ? (
+                                <Text>
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                                    <TextLink
+                                        style={[styles.textNormal, styles.link]}
+                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                                    >
+                                        {`${translate('workspace.accounting.qbo')} settings`}
+                                    </TextLink>
+                                </Text>
+                            ) : (
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                            )}
                         </View>
                         {isLoading && (
                             <ActivityIndicator
