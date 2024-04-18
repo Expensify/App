@@ -48,10 +48,10 @@ function detectCycle() {
 
 fs.createReadStream(`${process.cwd()}/docs/redirects.csv`)
     .pipe(parser)
-    .on('data', async (row) => {
+    .on('data', (row) => {
         addEdge(row[0], row[1]);
     })
-    .on('end', async () => {
+    .on('end', () => {
         if (detectCycle()) {
             process.exit(1);
         }
