@@ -242,7 +242,7 @@ function MoneyRequestAmountForm(
                         textInput.current = ref;
                     }}
                     moneyRequestAmountInputRef={moneyRequestAmountInput}
-                    style={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, styles.timePickerInput]}
+                    style={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                     containerStyle={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
                 />
                 {!!formError && (
