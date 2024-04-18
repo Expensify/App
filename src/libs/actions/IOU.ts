@@ -851,6 +851,7 @@ function buildOnyxDataForInvoice(
     chatCreatedAction: OptimisticCreatedReportAction,
     iouCreatedAction: OptimisticCreatedReportAction,
     iouAction: OptimisticIOUReportAction,
+    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList,
     reportPreviewAction: ReportAction,
     optimisticPolicyRecentlyUsedCategories: string[],
     optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
@@ -963,6 +964,14 @@ function buildOnyxDataForInvoice(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
             value: optimisticPolicyRecentlyUsedTags,
+        });
+    }
+
+    if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailListAction,
         });
     }
 
@@ -1624,8 +1633,10 @@ function getSendInvoiceInformation(
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.policyID)?.policyID ?? '';
-    const receiverAccountID = participants?.find((participant) => participant?.accountID)?.accountID ?? -1;
-    const receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
+    const receiverParticipant = participants?.find((participant) => participant?.accountID);
+    const receiverAccountID = receiverParticipant?.accountID ?? -1;
+    let receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
+    let optimisticPersonalDetailListAction = {};
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
@@ -1640,10 +1651,10 @@ function getSendInvoiceInformation(
         chatReport = ReportUtils.buildOptimisticChatReport([receiverAccountID, currentUserAccountID], CONST.REPORT.DEFAULT_REPORT_NAME, CONST.REPORT.CHAT_TYPE.INVOICE, senderWorkspaceID);
     }
 
-    // STEP 3: Create a new optimistic invoice report.
+    // STEP 2: Create a new optimistic invoice report.
     const optimisticInvoiceReport = ReportUtils.buildOptimisticInvoiceReport(chatReport.reportID, senderWorkspaceID, receiverAccountID, receiver.displayName ?? '', amount, currency);
 
-    // STEP 2: Build optimistic receipt and transaction
+    // STEP 3: Build optimistic receipt and transaction
     const receiptObject: Receipt = {};
     let filename;
     if (receipt?.source) {
@@ -1671,7 +1682,21 @@ function getSendInvoiceInformation(
     const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
     const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
 
-    // STEP 4: Build optimistic reportActions.
+    // STEP 4: Add optimistic personal details for participant
+    const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
+    if (shouldCreateOptimisticPersonalDetails) {
+        receiver = {
+            accountID: receiverAccountID,
+            avatar: UserUtils.getDefaultAvatarURL(receiverAccountID),
+            displayName: LocalePhoneNumber.formatPhoneNumber(receiverParticipant?.login ?? ''),
+            login: receiverParticipant?.login,
+            isOptimisticPersonalDetail: true,
+        };
+
+        optimisticPersonalDetailListAction = {[receiverAccountID]: receiver};
+    }
+
+    // STEP 5: Build optimistic reportActions.
     let inviteReportAction: OptimisticInviteReportAction | undefined;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         ReportUtils.buildOptimisticMoneyRequestEntities(
@@ -1694,7 +1719,7 @@ function getSendInvoiceInformation(
     }
     const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
 
-    // STEP 4: Build Onyx Data
+    // STEP 6: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForInvoice(
         chatReport,
         optimisticInvoiceReport,
@@ -1702,6 +1727,7 @@ function getSendInvoiceInformation(
         optimisticCreatedActionForChat,
         optimisticCreatedActionForIOUReport,
         iouAction,
+        optimisticPersonalDetailListAction,
         reportPreviewAction,
         optimisticPolicyRecentlyUsedCategories,
         optimisticPolicyRecentlyUsedTags,
@@ -1717,12 +1743,12 @@ function getSendInvoiceInformation(
     return {
         senderWorkspaceID,
         receiver,
-        optimisticInvoiceRoomID: chatReport.reportID,
-        optimisticCreatedChatReportActionID: optimisticCreatedActionForChat.reportActionID,
-        optimisticInvoiceReportID: optimisticInvoiceReport.reportID,
-        optimisticReportPreviewReportActionID: reportPreviewAction.reportActionID,
-        optimisticTransactionID: optimisticTransaction.transactionID,
-        optimisticTransactionThreadReportID: optimisticTransactionThread.reportID,
+        invoiceRoomID: chatReport.reportID,
+        createdChatReportActionID: optimisticCreatedActionForChat.reportActionID,
+        invoiceReportID: optimisticInvoiceReport.reportID,
+        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+        transactionID: optimisticTransaction.transactionID,
+        transactionThreadReportID: optimisticTransactionThread.reportID,
         onyxData: {
             optimisticData,
             successData,
@@ -3327,17 +3353,8 @@ function sendInvoice(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const {
-        senderWorkspaceID,
-        receiver,
-        optimisticInvoiceRoomID,
-        optimisticCreatedChatReportActionID,
-        optimisticInvoiceReportID,
-        optimisticReportPreviewReportActionID,
-        optimisticTransactionID,
-        optimisticTransactionThreadReportID,
-        onyxData,
-    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
+    const {senderWorkspaceID, receiver, invoiceRoomID, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
+        getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
 
     let parameters: SendInvoiceParams = {
         senderWorkspaceID,
@@ -3347,33 +3364,31 @@ function sendInvoice(
         merchant: transaction?.merchant ?? '',
         category: transaction?.category,
         date: transaction?.created ?? '',
-        optimisticInvoiceRoomID,
-        optimisticCreatedChatReportActionID,
-        optimisticInvoiceReportID,
-        optimisticReportPreviewReportActionID,
-        optimisticTransactionID,
-        optimisticTransactionThreadReportID,
+        invoiceRoomID,
+        createdChatReportActionID,
+        invoiceReportID,
+        reportPreviewReportActionID,
+        transactionID,
+        transactionThreadReportID,
     };
 
-    if (!invoiceChatReport) {
+    if (invoiceChatReport) {
+        parameters = {
+            ...parameters,
+            receiverInvoiceRoomID: invoiceChatReport.reportID,
+        };
+    } else {
         parameters = {
             ...parameters,
             receiverEmail: receiver.login,
         };
     }
 
-    if (!transaction?.isFromGlobalCreate && invoiceChatReport) {
-        parameters = {
-            ...parameters,
-            receiverInvoiceRoomID: invoiceChatReport.reportID,
-        };
-    }
-
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(optimisticInvoiceRoomID);
-    Report.notifyNewAction(optimisticInvoiceRoomID, receiver.accountID);
+    Navigation.dismissModal(invoiceRoomID);
+    Report.notifyNewAction(invoiceRoomID, receiver.accountID);
 }
 
 /**

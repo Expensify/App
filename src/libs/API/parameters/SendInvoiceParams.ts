@@ -8,12 +8,12 @@ type SendInvoiceParams = {
     merchant: string;
     date: string;
     category?: string;
-    optimisticInvoiceRoomID?: string;
-    optimisticCreatedChatReportActionID: string;
-    optimisticInvoiceReportID: string;
-    optimisticReportPreviewReportActionID: string;
-    optimisticTransactionID: string;
-    optimisticTransactionThreadReportID: string;
+    invoiceRoomID?: string;
+    createdChatReportActionID: string;
+    invoiceReportID: string;
+    reportPreviewReportActionID: string;
+    transactionID: string;
+    transactionThreadReportID: string;
 };
 
 export default SendInvoiceParams;
