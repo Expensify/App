@@ -371,7 +371,7 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string) {
+function setMoneyRequestAmount(transactionID: string, amount: number, currency: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
@@ -5806,10 +5806,6 @@ function setMoneyRequestId(id: string) {
     Onyx.merge(ONYXKEYS.IOU, {id});
 }
 
-function setMoneyRequestAmount(amount: number) {
-    Onyx.merge(ONYXKEYS.IOU, {amount});
-}
-
 function setMoneyRequestCurrency(currency: string) {
     Onyx.merge(ONYXKEYS.IOU, {currency});
 }
@@ -6013,7 +6009,6 @@ export {
     setCustomUnitRateID,
     setDraftSplitTransaction,
     setMoneyRequestAmount,
-    setMoneyRequestAmount_temporaryForRefactor,
     setMoneyRequestBillable,
     setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory,
