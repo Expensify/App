@@ -1,12 +1,12 @@
-import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import OnboardingWelcomeVideo from '@components/OnboardingWelcomeVideo';
+import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WelcomeVideoModalNavigatorParamList} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 
-const Stack = createStackNavigator<WelcomeVideoModalNavigatorParamList>();
+const Stack = createPlatformStackNavigator<WelcomeVideoModalNavigatorParamList>();
 
 function WelcomeVideoModalNavigator() {
     return (

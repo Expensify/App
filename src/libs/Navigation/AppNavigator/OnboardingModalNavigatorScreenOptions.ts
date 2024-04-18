@@ -1,11 +1,11 @@
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import {CardStyleInterpolators} from '@react-navigation/stack';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
 /**
  * Modal stack navigator screen options generator function
  * @returns The screen options object
  */
-const OnboardingModalNavigatorScreenOptions = (): StackNavigationOptions => ({
+const OnboardingModalNavigatorScreenOptions = (): PlatformStackNavigationOptions => ({
     headerShown: false,
     animationEnabled: true,
     gestureDirection: 'horizontal',
