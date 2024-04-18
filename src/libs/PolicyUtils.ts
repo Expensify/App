@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
@@ -318,12 +319,8 @@ function getPolicyIDFromNavigationState() {
     return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
-function getAdminEmailList(policy: Policy | null): Array<{email: string}> {
-    return Object.values(policy?.employeeList ?? {})
-        .filter((employee) => employee.email && employee.role === CONST.POLICY.ROLE.ADMIN)
-        .map((employee) => ({
-            email: employee.email ?? '',
-        }));
+function getAdminEmailList(policy: Policy | null): PolicyEmployee[] {
+    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.email && employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 export {

@@ -43,7 +43,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                             <MenuItemWithTopDescription
                                 title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
                                 description={translate('workspace.qbo.exportAs')}
-                                error={exportEntity && (shouldShowTaxError || shouldShowLocationError) ? translate(`workspace.qbo.${exportEntity}Error`) : undefined}
+                                error={hasErrors && exportEntity ? translate(`workspace.qbo.${exportEntity}Error`) : undefined}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                                 brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 shouldShowRightIcon

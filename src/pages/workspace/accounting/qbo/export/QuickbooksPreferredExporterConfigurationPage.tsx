@@ -27,7 +27,7 @@ const draft = [
 ];
 
 type CardListItem = ListItem & {
-    value: string;
+    value?: string;
 };
 
 function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
@@ -51,7 +51,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
 
     const onSelectRow = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exporter) {
+            if (row.value && row.value !== exporter) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
