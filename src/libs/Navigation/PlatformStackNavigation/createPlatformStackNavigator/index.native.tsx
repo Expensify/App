@@ -1,32 +1,32 @@
 import {createNavigatorFactory} from '@react-navigation/native';
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import withNativeOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeOptions';
-import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {NavigationOptionsRouteProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigatorProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
+import type {
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackNavigatorProps,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 
 function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
-    const NativeStack = createNativeStackNavigator<TStackParams>();
+    const Stack = createNativeStackNavigator<TStackParams>();
 
-    function PlatformStackNavigator({screenOptions, initialRouteName, children}: PlatformStackNavigatorProps<TStackParams>) {
-        const nativeScreenOptions = isRouteBasedScreenOptions(screenOptions)
-            ? (props: NavigationOptionsRouteProps<TStackParams>) => {
-                  const routeBasedScreenOptions = screenOptions(props);
-                  return withNativeOptions(routeBasedScreenOptions);
-              }
-            : withNativeOptions(screenOptions);
+    function PlatformStackNavigator({screenOptions, children, ...props}: PlatformStackNavigatorProps<TStackParams>) {
+        const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
 
         return (
-            <NativeStack.Navigator
+            <Stack.Navigator
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
                 screenOptions={nativeScreenOptions}
-                initialRouteName={initialRouteName}
             >
                 {children}
-            </NativeStack.Navigator>
+            </Stack.Navigator>
         );
     }
 
-    return createNavigatorFactory<StackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
         PlatformStackNavigator,
     )<TStackParams>();
 }

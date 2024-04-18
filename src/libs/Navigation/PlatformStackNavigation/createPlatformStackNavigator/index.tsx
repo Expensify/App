@@ -1,31 +1,32 @@
 import {createNavigatorFactory} from '@react-navigation/native';
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import withWebOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebOptions';
-import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {NavigationOptionsRouteProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigatorProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
+import type {
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackNavigatorProps,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 
 function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
     const Stack = createStackNavigator<TStackParams>();
 
-    function PlatformStackNavigator({screenOptions, initialRouteName, children}: PlatformStackNavigatorProps<TStackParams>) {
-        const webScreenOptions = isRouteBasedScreenOptions(screenOptions)
-            ? (props: NavigationOptionsRouteProps<TStackParams>) => {
-                  const routeBasedScreenOptions = screenOptions(props);
-                  return withWebOptions(routeBasedScreenOptions);
-              }
-            : withWebOptions(screenOptions);
+    function PlatformStackNavigator({screenOptions, children, ...props}: PlatformStackNavigatorProps<TStackParams>) {
+        const webScreenOptions = withWebNavigationOptions(screenOptions);
+
         return (
             <Stack.Navigator
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
                 screenOptions={webScreenOptions}
-                initialRouteName={initialRouteName}
             >
                 {children}
             </Stack.Navigator>
         );
     }
 
-    return createNavigatorFactory<StackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
         PlatformStackNavigator,
     )<TStackParams>();
 }

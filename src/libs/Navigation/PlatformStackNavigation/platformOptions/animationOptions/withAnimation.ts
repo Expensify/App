@@ -4,23 +4,23 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 
 function withAnimation<PlatformOptions extends StackNavigationOptions | NativeStackNavigationOptions>(
     screenOptions: PlatformStackNavigationOptions,
-    slideInFromLeft: PlatformOptions,
-    slideInFromRight: PlatformOptions,
-    slideInFromBottom: PlatformOptions,
+    slideFromLeft: PlatformOptions,
+    slideFromRight: PlatformOptions,
+    slideFromBottom: PlatformOptions,
 ) {
-    let animationOptions: PlatformOptions | undefined;
-    switch (screenOptions.animation ?? 'slide_from_right') {
+    let animationOptions: PlatformOptions;
+    switch (screenOptions.animation) {
         case 'slide_from_left':
-            animationOptions = slideInFromLeft;
+            animationOptions = slideFromLeft;
             break;
         case 'slide_from_right':
-            animationOptions = slideInFromRight;
+            animationOptions = slideFromRight;
             break;
         case 'modal':
-            animationOptions = slideInFromBottom;
+            animationOptions = slideFromBottom;
             break;
         default:
-            animationOptions = undefined;
+            animationOptions = slideFromRight;
     }
 
     return animationOptions;
