@@ -6,7 +6,6 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import ShowMoreButton from '@components/ShowMoreButton';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,6 +48,7 @@ import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import SettlementButton from './SettlementButton';
+import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
 import Text from './Text';
 
