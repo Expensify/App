@@ -4341,8 +4341,10 @@ const CONST = {
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
-type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 
-export type {Country, IOUType};
+type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
+type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
+
+export type {Country, IOUAction, IOUType};
 
 export default CONST;
