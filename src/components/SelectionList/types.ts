@@ -12,6 +12,11 @@ import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
+type TRightHandSideComponent<TItem extends ListItem> = {
+    /** Component to display on the right side */
+    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+};
+
 type CommonListItemProps<TItem extends ListItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
@@ -34,9 +39,6 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
-    /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | null) | ReactElement | null;
-
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
 
@@ -54,7 +56,7 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
-};
+} & TRightHandSideComponent<TItem>;
 
 type ListItem = {
     /** Text to display */
@@ -137,6 +139,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Key used internally by React */
     keyForList?: string;
+
+    /**
+     * Whether the focus on the element should be synchronized. For example it should be set to false when the text input above list items is currently focused.
+     * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
+     */
+    shouldSyncFocus?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -147,6 +155,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+    shouldSyncFocus?: boolean;
+    hoverStyle?: StyleProp<ViewStyle>;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -184,12 +194,12 @@ type Section<TItem extends ListItem> = {
 
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset: number;
+    indexOffset?: number;
 };
 
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListData<TItem, Section<TItem>>> | typeof CONST.EMPTY_ARRAY;
+    sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
     ListItem: ValidListItem;
@@ -281,6 +291,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
+    /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
+    listFooterContent?: React.JSX.Element | null;
+
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
 
@@ -292,9 +305,6 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
-
-    /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem> | null) | ReactElement | null;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -322,7 +332,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
      * When false, the list will render immediately and scroll to the bottom which works great for small lists.
      */
     shouldHideListOnInitialRender?: boolean;
-};
+} & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
     scrollAndHighlightItem?: (items: string[], timeout: number) => void;
@@ -343,7 +353,11 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, SectionWithIndexOffset<TItem>>;
+type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
+    CustomSectionHeader?: ({section}: {section: TSection}) => ReactElement;
+};
+
+type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
     BaseSelectionListProps,
