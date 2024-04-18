@@ -78,8 +78,6 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
 
 type MoneyRequestViewProps = MoneyRequestViewTransactionOnyxProps & MoneyRequestViewPropsWithoutTransaction;
 
-type ReceiptErrors = object;
-
 function MoneyRequestView({
     report,
     parentReport,
@@ -257,14 +255,21 @@ function MoneyRequestView({
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
     );
 
-    let errors: ReceiptErrors = transaction?.errors ?? {};
-    if (parentReportAction?.errors) {
+    let errors = {};
+    if(transaction?.errors) {
+        errors = {
+            ...errors,
+            ...transaction?.errors
+        };
+    }
+
+    if(parentReportAction?.errors) {
         errors = {
             ...errors,
             ...parentReportAction?.errors
-        }
+        };
     }
-
+ 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -282,7 +287,7 @@ function MoneyRequestView({
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
-                        {showMapAsImage || hasReceipt && (
+                        {(showMapAsImage || hasReceipt) ? (
                             <View style={styles.moneyRequestViewImage}>
                                 {showMapAsImage ? (
                                     <ConfirmedRoute transaction={transaction} />
@@ -299,7 +304,7 @@ function MoneyRequestView({
                                     />
                                 )}
                             </View>
-                    )}
+                    ) : null}
                     </OfflineWithFeedback>
                 )}
                 {!hasReceipt && canEditReceipt && (
