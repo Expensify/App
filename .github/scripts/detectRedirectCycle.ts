@@ -1,10 +1,7 @@
 import {parse} from 'csv-parse';
 import fs from 'fs';
 
-const parser = parse({
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    skip_empty_lines: true,
-});
+const parser = parse();
 const adjacencyList: Record<string, string[]> = {};
 
 function addEdge(source: string, target: string) {
