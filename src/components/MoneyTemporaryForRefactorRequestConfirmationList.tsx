@@ -438,7 +438,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, pickedParticipants, hasMultipleParticipants, getParticipantsWithAmount, personalDetailsOfPayee, translate, canModifyParticipants]);
+    }, [selectedParticipants, pickedParticipants, hasMultipleParticipants, getParticipantsWithAmount, translate, canModifyParticipants]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
@@ -586,7 +586,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
+        const shouldDisableButton = isTypeSplit ? selectedParticipants.length === 1 : selectParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -634,7 +634,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
+    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, isTypeSplit]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
