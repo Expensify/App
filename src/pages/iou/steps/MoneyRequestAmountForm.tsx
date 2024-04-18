@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -21,6 +21,7 @@ import getOperatingSystem from '@libs/getOperatingSystem';
 import type {MaybePhraseKey} from '@libs/Localize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -314,10 +315,19 @@ function MoneyRequestAmountForm(
     };
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
-    let buttonText = isEditing ? translate('common.save') : translate('common.next');
-    if (skipConfirmation) {
-        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.submitExpense');
-    }
+    const buttonText: string = useMemo(() => {
+        if (skipConfirmation) {
+            if (currentAmount !== '') {
+                const currencyAmount = CurrencyUtils.convertToDisplayString(CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount)), currency) ?? '';
+                const text = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitAmount', {amount: currencyAmount}) : translate('iou.submitAmount', {amount: currencyAmount});
+                return text[0].toUpperCase() + text.slice(1);
+            } else {
+                return iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitExpense') : translate('iou.submitExpense');
+            }
+        }
+        return isEditing ? translate('common.save') : translate('common.next');
+    }, [skipConfirmation, iouType, currentAmount, currency]);
+
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     useEffect(() => {
