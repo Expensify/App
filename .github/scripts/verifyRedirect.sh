@@ -24,3 +24,4 @@ fi
 
 echo -e "${GREEN}The redirects.csv is valid!${NC}"
 exit 0
+
