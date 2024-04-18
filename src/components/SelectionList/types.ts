@@ -139,6 +139,12 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Key used internally by React */
     keyForList?: string;
+
+    /**
+     * Whether the focus on the element should be synchronized. For example it should be set to false when the text input above list items is currently focused.
+     * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
+     */
+    shouldSyncFocus?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -149,6 +155,7 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+    shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
 };
 

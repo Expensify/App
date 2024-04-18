@@ -1045,7 +1045,7 @@ function markCommentAsUnread(reportID: string, reportActionCreated: string) {
             current.actorAccountID !== currentUserAccountID &&
             (!latest || current.created > latest.created) &&
             // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
-            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER)
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
         ) {
             return current;
         }
@@ -1277,6 +1277,12 @@ function deleteReportComment(reportID: string, reportAction: ReportAction) {
     CachedPDFPaths.clearByKey(reportActionID);
 
     API.write(WRITE_COMMANDS.DELETE_COMMENT, parameters, {optimisticData, successData, failureData});
+
+    // if we are linking to the report action, and we are deleting it, and it's not a deleted parent action,
+    // we should navigate to its report in order to not show not found page
+    if (Navigation.isActiveRoute(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID)) && !isDeletedParentAction) {
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID), true);
+    }
 }
 
 /**
@@ -2194,7 +2200,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
         });
 
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE) {
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
         LocalNotification.showModifiedExpenseNotification(report, reportAction, onClick);
     } else {
         LocalNotification.showCommentNotification(report, reportAction, onClick);

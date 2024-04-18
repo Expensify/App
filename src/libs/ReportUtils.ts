@@ -13,6 +13,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,7 +64,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
-import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
@@ -503,12 +503,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
-});
-
-let doesDomainHaveApprovedAccountant = false;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => (doesDomainHaveApprovedAccountant = value?.doesDomainHaveApprovedAccountant ?? false),
 });
 
 let allPolicies: OnyxCollection<Policy>;
@@ -1074,14 +1068,6 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
- * by cross-referencing the accountIDs with personalDetails.
- */
-function hasExpensifyEmails(accountIDs: number[]): boolean {
-    return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EXPENSIFY_PARTNER_NAME);
-}
-
-/**
  * Returns true if there are any guides accounts (team.expensify.com) in a list of accountIDs
  * by cross-referencing the accountIDs with personalDetails since guides that are participants
  * of the user's chats should have their personal details in Onyx.
@@ -1432,7 +1418,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
 }
 
 /**
- * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
+ * Can only delete if the author is this user and the action is an ADD_COMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  */
 function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -1459,7 +1445,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
     }
 
     if (
-        reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
         reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
@@ -2019,7 +2005,7 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENTQUEUED` action
+ * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
 function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>, shouldUseShortDisplayName = true): string {
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, shouldUseShortDisplayName) ?? '';
@@ -2035,7 +2021,7 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
+ * Returns the preview message for `REIMBURSEMENT_DEQUEUED` action
  */
 function getReimbursementDeQueuedActionMessage(
     reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>,
@@ -2055,12 +2041,12 @@ function getReimbursementDeQueuedActionMessage(
 }
 
 /**
- * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
+ * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
  *
  */
 function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amount: number, currency: string): OptimisticCancelPaymentReportAction {
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
         actorAccountID: currentUserAccountID,
         message: [
             {
@@ -2543,12 +2529,12 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
  * Can only edit if:
  *
  * - It was written by the current user
- * - It's an ADDCOMMENT that is not an attachment
+ * - It's an ADD_COMMENT that is not an attachment
  * - It's an expense where conditions for editability are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
     return Boolean(
         reportAction?.actorAccountID === currentUserAccountID &&
@@ -2920,7 +2906,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
         return parentReportActionMessage;
     }
     const actionType = parentReportAction.actionName;
-    const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+    const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
 
     const verbKey = isInviteAction ? 'workspace.invite.invited' : 'workspace.invite.removed';
     const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
@@ -2946,7 +2932,7 @@ function getReportActionMessage(reportAction: ReportAction | EmptyObject, parent
     if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
         return getReimbursementQueuedActionMessage(reportAction, getReport(parentReportID), false);
     }
-    return reportAction?.message?.[0]?.text ?? '';
+    return Str.removeSMSDomain(reportAction?.message?.[0]?.text ?? '');
 }
 
 /**
@@ -2998,6 +2984,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isTaskReport(report) && isCanceledTaskReport(report, parentReportAction)) {
         return Localize.translateLocal('parentReportAction.deletedTask');
+    }
+
+    if (isGroupChat(report)) {
+        return getGroupChatName(undefined, true, report?.reportID) ?? '';
     }
 
     if (isChatRoom(report) || isTaskReport(report)) {
@@ -3225,7 +3215,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
         commentText,
         reportAction: {
             reportActionID: NumberUtils.rand64(),
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: accountID,
             person: [
                 {
@@ -3739,7 +3729,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
     return {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport?.reportID,
-        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
             linkedReportID: iouReport?.reportID,
@@ -3776,7 +3766,7 @@ function buildOptimisticModifiedExpenseReportAction(
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
@@ -3812,7 +3802,7 @@ function buildOptimisticModifiedExpenseReportAction(
  */
 function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
@@ -4126,7 +4116,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
 function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
@@ -4202,7 +4192,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
 
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
@@ -4229,7 +4219,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
 function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
@@ -4545,11 +4535,6 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
         return true;
     }
 
-    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
-    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(report?.participantAccountIDs ?? [])) {
-        return true;
-    }
-
     // If the room has an assigned guide, it can be seen.
     if (hasExpensifyGuidesEmails(report?.participantAccountIDs ?? [])) {
         return true;
@@ -4817,7 +4802,7 @@ function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
  *
  * - It was written by someone else and isn't a whisper
  * - It's a welcome message whisper
- * - It's an ADDCOMMENT that is not an attachment
+ * - It's an ADD_COMMENT that is not an attachment
  */
 function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
     let report = getReport(reportID);
@@ -4829,9 +4814,9 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
     }
     const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
     const isOriginalMessageHaveHtml =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST;
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
         // Allow flagging welcome message whispers as they can be set by any room creator
         if (report?.description && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.description) {
@@ -4844,7 +4829,7 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
 
     return Boolean(
         !isCurrentUserAction &&
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
             !isEmptyObject(report) &&
@@ -5055,7 +5040,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true): Array<ValueOf<typeof CONST.IOU.TYPE>> {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
     if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report))) {
         return [];
@@ -5070,7 +5055,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
 
     const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
     const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
-    let options: Array<ValueOf<typeof CONST.IOU.TYPE>> = [];
+    let options: IOUType[] = [];
 
     if (isSelfDM(report)) {
         options = [CONST.IOU.TYPE.TRACK_EXPENSE];
@@ -5454,7 +5439,7 @@ function getTaskAssigneeChatOnyxData(
 /**
  * Return iou report action display message
  */
-function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>, shouldLog = false): string {
+function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>, transaction?: OnyxEntry<Transaction>): string {
     if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
         return '';
     }
@@ -5482,15 +5467,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 break;
         }
         return Localize.translateLocal(translationKey, {amount: formattedAmount, payer: ''});
-    }
-
-    // This log to server is temporary and needed to determine if there is a case we need the transaction param
-    // when we call getIOUReportActionDisplayMessage from ReportActionItemMessage
-    if (shouldLog) {
-        Log.alert('Transaction Param Used when getIOUReportActionDisplayMessage was called from ReportActionItemMessage', {
-            reportActionID: reportAction.reportActionID,
-            originalMessageType: originalMessage.type,
-        });
     }
 
     const transactionDetails = getTransactionDetails(!isEmptyObject(transaction) ? transaction : null);
@@ -5904,7 +5880,7 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
  */
 function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string, reportAction: ReportAction): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(reportId) && !isSettled(reportId);
-    if (!isSubmitterOfUnsettledReport || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+    if (!isSubmitterOfUnsettledReport || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED) {
         return undefined;
     }
     const paymentType = reportAction.originalMessage?.paymentType;
@@ -5948,7 +5924,7 @@ function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<
 
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
     switch (reportAction?.actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW:
+        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
             return iouReport ? iouReport.managerID : reportAction?.actorAccountID;
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
@@ -5959,7 +5935,7 @@ function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, io
     }
 }
 
-function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: ValueOf<typeof CONST.IOU.ACTION>, reportActionID: string): void {
+function createDraftTransactionAndNavigateToParticipantSelector(transactionID: string, reportID: string, actionName: IOUAction, reportActionID: string): void {
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? ({} as Transaction);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
 
@@ -6020,257 +5996,257 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
 }
 
 export {
-    getReportParticipantsTitle,
-    isReportMessageAttachment,
-    findLastAccessedReport,
-    canBeAutoReimbursed,
-    canEditReportAction,
-    canFlagReportAction,
-    shouldShowFlagComment,
-    isActionCreator,
-    canDeleteReportAction,
-    canLeaveRoom,
-    sortReportsByLastRead,
-    isDefaultRoom,
-    isAdminRoom,
-    isAdminsOnlyPostingRoom,
-    isAnnounceRoom,
-    isUserCreatedPolicyRoom,
-    isChatRoom,
-    getChatRoomSubtitle,
-    getParentNavigationSubtitle,
-    getPolicyName,
-    getPolicyType,
-    isArchivedRoom,
-    isClosedExpenseReportWithNoExpenses,
-    isExpensifyOnlyParticipantInReport,
-    canCreateTaskInReport,
-    isPolicyExpenseChatAdmin,
-    isPolicyAdmin,
-    isPublicRoom,
-    isPublicAnnounceRoom,
-    isConciergeChatReport,
-    isProcessingReport,
-    isCurrentUserTheOnlyParticipant,
-    hasAutomatedExpensifyAccountIDs,
-    hasExpensifyGuidesEmails,
-    requiresAttentionFromCurrentUser,
-    isIOUOwnedByCurrentUser,
-    getMoneyRequestSpendBreakdown,
-    canShowReportRecipientLocalTime,
-    formatReportLastMessageText,
-    chatIncludesConcierge,
-    isPolicyExpenseChat,
-    isGroupPolicy,
-    isPaidGroupPolicy,
-    isControlPolicyExpenseChat,
-    isControlPolicyExpenseReport,
-    isPaidGroupPolicyExpenseChat,
-    isPaidGroupPolicyExpenseReport,
-    getIconsForParticipants,
-    getIcons,
-    getRoomWelcomeMessage,
-    getDisplayNamesWithTooltips,
-    getReportName,
-    getReport,
-    getReportNotificationPreference,
-    getReportIDFromLink,
-    getReportPolicyID,
-    getRouteFromLink,
-    getDeletedParentActionMessageForChatReport,
-    getLastVisibleMessage,
-    navigateToDetailsPage,
-    generateReportID,
-    hasReportNameError,
-    isUnread,
-    isUnreadWithMention,
-    buildOptimisticWorkspaceChats,
-    buildOptimisticTaskReport,
+    addDomainToShortMention,
+    areAllRequestsBeingSmartScanned,
+    buildOptimisticAddCommentReportAction,
+    buildOptimisticApprovedReportAction,
+    buildOptimisticCancelPaymentReportAction,
+    buildOptimisticChangedTaskAssigneeReportAction,
     buildOptimisticChatReport,
-    buildOptimisticGroupChatReport,
     buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
-    buildOptimisticRenamedRoomReportAction,
     buildOptimisticEditedTaskFieldReportAction,
-    buildOptimisticChangedTaskAssigneeReportAction,
-    buildOptimisticIOUReport,
-    buildOptimisticApprovedReportAction,
-    buildOptimisticMovedReportAction,
-    buildOptimisticSubmittedReportAction,
     buildOptimisticExpenseReport,
-    buildOptimisticIOUReportAction,
-    buildOptimisticMoneyRequestEntities,
-    buildOptimisticReportPreview,
-    buildOptimisticModifiedExpenseReportAction,
-    buildOptimisticMovedTrackedExpenseModifiedReportAction,
-    buildOptimisticCancelPaymentReportAction,
-    updateReportPreview,
-    buildOptimisticTaskReportAction,
-    buildOptimisticAddCommentReportAction,
-    buildOptimisticTaskCommentReportAction,
-    updateOptimisticParentReportAction,
-    getOptimisticDataForParentReportAction,
-    shouldReportBeInOptionList,
-    getChatByParticipants,
-    getChatByParticipantsAndPolicy,
-    getAllPolicyReports,
-    getIOUReportActionMessage,
-    getDisplayNameForParticipant,
-    getWorkspaceIcon,
-    isOptimisticPersonalDetail,
-    shouldDisableDetailPage,
-    isChatReport,
-    isCurrentUserSubmitter,
-    isExpenseReport,
-    isExpenseRequest,
-    isIOUReport,
-    isTaskReport,
-    isOpenTaskReport,
-    isCanceledTaskReport,
-    isCompletedTaskReport,
-    isReportManager,
-    isReportApproved,
-    isMoneyRequestReport,
-    isMoneyRequest,
-    chatIncludesChronos,
-    getNewMarkerReportActionID,
-    canSeeDefaultRoom,
-    getDefaultWorkspaceAvatar,
-    getDefaultWorkspaceAvatarTestID,
-    getCommentLength,
-    getParsedComment,
-    addDomainToShortMention,
-    getMoneyRequestOptions,
-    canCreateRequest,
-    hasIOUWaitingOnCurrentUserBankAccount,
-    canRequestMoney,
-    getWhisperDisplayNames,
-    getWorkspaceAvatar,
-    isThread,
-    isChatThread,
-    isThreadFirstChat,
-    isChildReport,
-    shouldReportShowSubscript,
-    isReportDataReady,
-    isValidReportIDFromPath,
-    isSettled,
-    isAllowedToComment,
-    getBankAccountRoute,
-    getRootParentReport,
-    getReportPreviewMessage,
-    isMoneyRequestReportPendingDeletion,
-    canUserPerformWriteAction,
-    getOriginalReportID,
-    canAccessReport,
-    getAddWorkspaceRoomOrChatReportErrors,
-    getReportOfflinePendingActionAndErrors,
-    isDM,
-    isSelfDM,
-    getWorkspaceChats,
-    getAllWorkspaceReports,
-    shouldDisableRename,
-    hasSingleParticipant,
-    getReportRecipientAccountIDs,
-    isOneOnOneChat,
-    isOneTransactionThread,
-    isPayer,
-    goBackToDetailsPage,
-    getTransactionReportName,
-    getTransactionDetails,
-    getTaskAssigneeChatOnyxData,
-    canEditMoneyRequest,
-    canEditFieldOfMoneyRequest,
-    buildTransactionThread,
-    areAllRequestsBeingSmartScanned,
-    getTransactionsWithReceipts,
-    hasOnlyTransactionsWithPendingRoutes,
-    hasNonReimbursableTransactions,
-    hasMissingSmartscanFields,
-    getIOUReportActionDisplayMessage,
-    isWaitingForAssigneeToCompleteTask,
-    isDeprecatedGroupDM,
-    isOpenExpenseReport,
-    shouldUseFullTitleToDisplay,
-    parseReportRouteParams,
-    getReimbursementQueuedActionMessage,
-    getReimbursementDeQueuedActionMessage,
-    getPersonalDetailsForAccountID,
-    getRoom,
-    canEditReportDescription,
-    doesTransactionThreadHaveViolations,
-    shouldDisplayTransactionThreadViolations,
-    hasViolations,
-    navigateToPrivateNotes,
-    canEditWriteCapability,
-    isHoldCreator,
-    hasHeldExpenses,
-    hasOnlyHeldExpenses,
-    getNonHeldAndFullAmount,
-    hasSmartscanError,
-    shouldAutoFocusOnKeyPress,
+    buildOptimisticGroupChatReport,
     buildOptimisticHoldReportAction,
     buildOptimisticHoldReportActionComment,
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticMoneyRequestEntities,
+    buildOptimisticMovedReportAction,
+    buildOptimisticMovedTrackedExpenseModifiedReportAction,
+    buildOptimisticRenamedRoomReportAction,
+    buildOptimisticReportPreview,
+    buildOptimisticSubmittedReportAction,
+    buildOptimisticTaskCommentReportAction,
+    buildOptimisticTaskReport,
+    buildOptimisticTaskReportAction,
     buildOptimisticUnHoldReportAction,
-    shouldDisplayThreadReplies,
-    shouldDisableThread,
-    getUserDetailTooltipText,
-    doesReportBelongToWorkspace,
-    getChildReportNotificationPreference,
-    getAllAncestorReportActions,
-    isReportParticipant,
-    isValidReport,
-    getReportDescriptionText,
-    isReportFieldOfTypeTitle,
-    hasMissingPaymentMethod,
-    isIOUReportUsingReport,
-    hasUpdatedTotal,
-    isReportFieldDisabled,
-    getAvailableReportFields,
-    isReportOwner,
-    getReportFieldKey,
-    reportFieldsEnabled,
-    getAllAncestorReportActionIDs,
-    getPendingChatMembers,
-    canEditRoomVisibility,
-    canEditPolicyDescription,
-    getPolicyDescriptionText,
-    getDefaultGroupAvatar,
-    isAllowedToSubmitDraftExpenseReport,
-    isAllowedToApproveExpenseReport,
-    findSelfDMReportID,
-    getIndicatedMissingPaymentMethod,
-    isJoinRequestInAdminRoom,
+    buildOptimisticWorkspaceChats,
+    buildParticipantsFromAccountIDs,
+    buildTransactionThread,
+    canAccessReport,
     canAddOrDeleteTransactions,
-    shouldCreateNewMoneyRequestReport,
-    getLastUpdatedReport,
-    isGroupChat,
-    isTrackExpenseReport,
-    hasActionsWithErrors,
-    createDraftTransactionAndNavigateToParticipantSelector,
-    getReportActionActorAccountID,
-    getGroupChatName,
+    canBeAutoReimbursed,
+    canCreateRequest,
+    canCreateTaskInReport,
+    canDeleteReportAction,
+    canEditFieldOfMoneyRequest,
+    canEditMoneyRequest,
+    canEditPolicyDescription,
+    canEditReportAction,
+    canEditReportDescription,
+    canEditRoomVisibility,
+    canEditWriteCapability,
+    canFlagReportAction,
     canLeavePolicyExpenseChat,
+    canLeaveRoom,
+    canReportBeMentionedWithinPolicy,
+    canRequestMoney,
+    canSeeDefaultRoom,
+    canShowReportRecipientLocalTime,
+    canUserPerformWriteAction,
+    chatIncludesChronos,
+    chatIncludesConcierge,
+    createDraftTransactionAndNavigateToParticipantSelector,
+    doesReportBelongToWorkspace,
+    doesTransactionThreadHaveViolations,
+    findLastAccessedReport,
+    findSelfDMReportID,
+    formatReportLastMessageText,
+    generateReportID,
+    getAddWorkspaceRoomOrChatReportErrors,
+    getAllAncestorReportActionIDs,
+    getAllAncestorReportActions,
+    getAllHeldTransactions,
+    getAllPolicyReports,
+    getAllWorkspaceReports,
+    getAvailableReportFields,
+    getBankAccountRoute,
+    getChatByParticipants,
+    getChatByParticipantsAndPolicy,
+    getChatRoomSubtitle,
+    getChildReportNotificationPreference,
+    getCommentLength,
+    getDefaultGroupAvatar,
+    getDefaultWorkspaceAvatar,
+    getDefaultWorkspaceAvatarTestID,
+    getDeletedParentActionMessageForChatReport,
+    getDisplayNameForParticipant,
+    getDisplayNamesWithTooltips,
+    getGroupChatName,
+    getIOUReportActionDisplayMessage,
+    getIOUReportActionMessage,
+    getIcons,
+    getIconsForParticipants,
+    getIndicatedMissingPaymentMethod,
+    getLastUpdatedReport,
+    getLastVisibleMessage,
+    getMoneyRequestOptions,
+    getMoneyRequestSpendBreakdown,
+    getNewMarkerReportActionID,
+    getNonHeldAndFullAmount,
+    getOptimisticDataForParentReportAction,
+    getOriginalReportID,
     getOutstandingChildRequest,
-    getVisibleChatMemberAccountIDs,
+    getParentNavigationSubtitle,
+    getParsedComment,
     getParticipantAccountIDs,
     getParticipants,
-    isGroupChatAdmin,
-    buildParticipantsFromAccountIDs,
-    canReportBeMentionedWithinPolicy,
-    getAllHeldTransactions,
     getPayeeName,
+    getPendingChatMembers,
+    getPersonalDetailsForAccountID,
+    getPolicyDescriptionText,
+    getPolicyName,
+    getPolicyType,
+    getReimbursementDeQueuedActionMessage,
+    getReimbursementQueuedActionMessage,
+    getReport,
+    getReportActionActorAccountID,
+    getReportDescriptionText,
+    getReportFieldKey,
+    getReportIDFromLink,
+    getReportName,
+    getReportNotificationPreference,
+    getReportOfflinePendingActionAndErrors,
+    getReportParticipantsTitle,
+    getReportPolicyID,
+    getReportPreviewMessage,
+    getReportRecipientAccountIDs,
+    getRoom,
+    getRoomWelcomeMessage,
+    getRootParentReport,
+    getRouteFromLink,
+    getTaskAssigneeChatOnyxData,
+    getTransactionDetails,
+    getTransactionReportName,
+    getTransactionsWithReceipts,
+    getUserDetailTooltipText,
+    getVisibleChatMemberAccountIDs,
+    getWhisperDisplayNames,
+    getWorkspaceAvatar,
+    getWorkspaceChats,
+    getWorkspaceIcon,
+    goBackToDetailsPage,
+    hasActionsWithErrors,
+    hasAutomatedExpensifyAccountIDs,
+    hasExpensifyGuidesEmails,
+    hasHeldExpenses,
+    hasIOUWaitingOnCurrentUserBankAccount,
+    hasMissingPaymentMethod,
+    hasMissingSmartscanFields,
+    hasNonReimbursableTransactions,
+    hasOnlyHeldExpenses,
+    hasOnlyTransactionsWithPendingRoutes,
+    hasReportNameError,
+    hasSingleParticipant,
+    hasSmartscanError,
+    hasUpdatedTotal,
+    hasViolations,
+    isActionCreator,
+    isAdminRoom,
+    isAdminsOnlyPostingRoom,
+    isAllowedToApproveExpenseReport,
+    isAllowedToComment,
+    isAllowedToSubmitDraftExpenseReport,
+    isAnnounceRoom,
+    isArchivedRoom,
+    isCanceledTaskReport,
+    isChatReport,
+    isChatRoom,
+    isChatThread,
+    isChildReport,
+    isClosedExpenseReportWithNoExpenses,
+    isCompletedTaskReport,
+    isConciergeChatReport,
+    isControlPolicyExpenseChat,
+    isControlPolicyExpenseReport,
+    isCurrentUserSubmitter,
+    isCurrentUserTheOnlyParticipant,
+    isDM,
+    isDefaultRoom,
+    isDeprecatedGroupDM,
+    isExpenseReport,
+    isExpenseRequest,
+    isExpensifyOnlyParticipantInReport,
+    isGroupChat,
+    isGroupChatAdmin,
+    isGroupPolicy,
+    isHoldCreator,
+    isIOUOwnedByCurrentUser,
+    isIOUReport,
+    isIOUReportUsingReport,
+    isJoinRequestInAdminRoom,
+    isMoneyRequest,
+    isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
+    isOneOnOneChat,
+    isOneTransactionThread,
+    isOpenExpenseReport,
+    isOpenTaskReport,
+    isOptimisticPersonalDetail,
+    isPaidGroupPolicy,
+    isPaidGroupPolicyExpenseChat,
+    isPaidGroupPolicyExpenseReport,
+    isPayer,
+    isPolicyAdmin,
+    isPolicyExpenseChat,
+    isPolicyExpenseChatAdmin,
+    isProcessingReport,
+    isPublicAnnounceRoom,
+    isPublicRoom,
+    isReportApproved,
+    isReportDataReady,
+    isReportFieldDisabled,
+    isReportFieldOfTypeTitle,
+    isReportManager,
+    isReportMessageAttachment,
+    isReportOwner,
+    isReportParticipant,
+    isSelfDM,
+    isSettled,
+    isTaskReport,
+    isThread,
+    isThreadFirstChat,
+    isTrackExpenseReport,
+    isUnread,
+    isUnreadWithMention,
+    isUserCreatedPolicyRoom,
+    isValidReport,
+    isValidReportIDFromPath,
+    isWaitingForAssigneeToCompleteTask,
+    navigateToDetailsPage,
+    navigateToPrivateNotes,
+    parseReportRouteParams,
+    reportFieldsEnabled,
+    requiresAttentionFromCurrentUser,
+    shouldAutoFocusOnKeyPress,
+    shouldCreateNewMoneyRequestReport,
+    shouldDisableDetailPage,
+    shouldDisableRename,
+    shouldDisableThread,
+    shouldDisplayThreadReplies,
+    shouldDisplayTransactionThreadViolations,
+    shouldReportBeInOptionList,
+    shouldReportShowSubscript,
+    shouldShowFlagComment,
+    shouldUseFullTitleToDisplay,
+    sortReportsByLastRead,
+    updateOptimisticParentReportAction,
+    updateReportPreview,
 };
 
 export type {
-    ExpenseOriginalMessage,
-    OptionData,
-    OptimisticChatReport,
-    DisplayNameWithTooltips,
-    OptimisticTaskReportAction,
-    OptimisticAddCommentReportAction,
-    OptimisticCreatedReportAction,
-    OptimisticClosedReportAction,
     Ancestor,
+    DisplayNameWithTooltips,
+    ExpenseOriginalMessage,
+    OptimisticAddCommentReportAction,
+    OptimisticChatReport,
+    OptimisticClosedReportAction,
+    OptimisticCreatedReportAction,
     OptimisticIOUReportAction,
+    OptimisticTaskReportAction,
+    OptionData,
     TransactionDetails,
 };
