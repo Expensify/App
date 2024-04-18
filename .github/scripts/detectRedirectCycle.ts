@@ -40,7 +40,7 @@ function detectCycle() {
         }
         if (isCyclic(node, visited, backEdges)) {
             const cycle = Array.from(backEdges.keys());
-            console.log(`Infinite redirect found in cycle: ${cycle.join(' -> ')} -> ${node}`);
+            console.log(`Infinite redirect found in the cycle: ${cycle.join(' -> ')} -> ${node}`);
             return true;
         }
     }
