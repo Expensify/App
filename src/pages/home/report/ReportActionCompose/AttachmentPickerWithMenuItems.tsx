@@ -125,17 +125,17 @@ function AttachmentPickerWithMenuItems({
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
-                text: translate('iou.splitBill'),
+                text: translate('iou.splitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
-                text: translate('iou.requestMoney'),
+                text: translate('iou.submitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.SEND]: {
                 icon: Expensicons.Send,
-                text: translate('iou.sendMoney'),
+                text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.TRACK_EXPENSE]: {

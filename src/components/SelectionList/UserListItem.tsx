@@ -27,6 +27,8 @@ function UserListItem<TItem extends ListItem>({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    onFocus,
+    shouldSyncFocus,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -67,6 +69,8 @@ function UserListItem<TItem extends ListItem>({
                 ) : undefined
             }
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
         >
             {(hovered?: boolean) => (
                 <>
