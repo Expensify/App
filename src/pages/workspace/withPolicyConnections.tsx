@@ -3,9 +3,9 @@ import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -21,9 +21,8 @@ type WithPolicyConnectionsProps = WithPolicyProps;
  * Only the active policy gets the complete policy data upon app start that includes the connections data.
  * For other policies, the connections data needs to be fetched when it's needed.
  */
-function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps>) {
+function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps & {policy: Policy}>) {
     function WithPolicyConnections({policy, policyDraft, route}: WithPolicyConnectionsProps) {
-        const {isOffline} = useNetwork();
         const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
@@ -38,20 +37,12 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
             openPolicyAccountingPage(policy.id);
         }, [hasConnectionsDataBeenFetched, policy]);
 
-        if (status === 'loading' || !hasConnectionsDataBeenFetched) {
-            if (isOffline) {
-                return (
-                    <FullPageOfflineBlockingView>
-                        <WrappedComponent
-                            policy={policy}
-                            policyDraft={policyDraft}
-                            route={route}
-                        />
-                    </FullPageOfflineBlockingView>
-                );
-            }
-
-            return <FullScreenLoadingIndicator />;
+        if (!policy || status === 'loading' || !hasConnectionsDataBeenFetched) {
+            return (
+                <FullPageOfflineBlockingView>
+                    <FullScreenLoadingIndicator />
+                </FullPageOfflineBlockingView>
+            );
         }
 
         return (

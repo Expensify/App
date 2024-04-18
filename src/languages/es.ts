@@ -2086,12 +2086,23 @@ export default {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importando clientes';
                         case 'quickbooksOnlineImportEmployees':
-                            return 'Importing employees';
+                            return 'Importando empleados';
                         case 'quickbooksOnlineImportAccounts':
-                            return 'Importing accounts';
+                            return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
-                            return 'Importing classes';
-
+                            return 'Importando clases';
+                        case 'quickbooksOnlineImportLocations':
+                            return 'Importando localidades';
+                        case 'quickbooksOnlineImportProcessing':
+                            return 'Procesando datos importados';
+                        case 'quickbooksOnlineSyncBillPayments':
+                            return 'Sincronizando reportes reembolsados y facturas pagadas';
+                        case 'quickbooksOnlineSyncTaxCodes':
+                            return 'Importando tipos de impuestos';
+                        case 'quickbooksOnlineCheckConnection':
+                            return 'Revisando conexión a QuickBooks Online';
+                        case 'quickbooksOnlineImportMain':
+                            return 'Importando datos desde QuickBooks Online';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
