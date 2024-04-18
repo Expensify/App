@@ -443,15 +443,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             });
         }
         return sections;
-    }, [
-        selectedParticipants,
-        pickedParticipants,
-        hasMultipleParticipants,
-        getParticipantsWithAmount,
-        personalDetailsOfPayee,
-        translate,
-        canModifyParticipants,
-    ]);
+    }, [selectedParticipants, pickedParticipants, hasMultipleParticipants, getParticipantsWithAmount, personalDetailsOfPayee, translate, canModifyParticipants]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
@@ -589,6 +581,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             iouAmount,
             isEditingSplitBill,
             onConfirm,
+            currentUserPersonalDetails.accountID,
         ],
     );
 

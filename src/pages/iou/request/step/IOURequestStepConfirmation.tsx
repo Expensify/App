@@ -104,12 +104,14 @@ function IOURequestStepConfirmation({
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, report, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
 
-    const participants = useMemo(() => (
+    const participants = useMemo(
+        () =>
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-            }) ?? []
-        ), [transaction?.participants, personalDetails]);
+            }) ?? [],
+        [transaction?.participants, personalDetails],
+    );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     const formHasBeenSubmitted = useRef(false);
 

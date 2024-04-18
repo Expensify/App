@@ -19,9 +19,9 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
 type IOURequestStepSplitPayerProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
-        transaction: OnyxEntry<OnyxTypes.Transaction>;
-    };
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+};
 
 function IOURequestStepSplitPayer({
     route: {
@@ -44,9 +44,9 @@ function IOURequestStepSplitPayer({
             {
                 title: '',
                 data: participantOptions.map((participantOption) => ({
-                        ...participantOption,
-                        isSelected: !!transaction?.splitPayerAccountIDs && transaction?.splitPayerAccountIDs?.includes(participantOption.accountID ?? 0),
-                    })),
+                    ...participantOption,
+                    isSelected: !!transaction?.splitPayerAccountIDs && transaction?.splitPayerAccountIDs?.includes(participantOption.accountID ?? 0),
+                })),
             },
         ];
     }, [transaction?.participants, personalDetails, transaction?.splitPayerAccountIDs]);
