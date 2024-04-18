@@ -106,6 +106,6 @@ More details - https://github.com/Expensify/App/issues/35234#issuecomment-192691
             prevProps.priorityMode === nextProps.priorityMode &&
             lodashIsEqual(prevProps.insets, nextProps.insets) &&
             prevProps.onLinkClick === nextProps.onLinkClick &&
-            lodashIsEqual(prevProps.policyMembers, nextProps.policyMembers),
+            lodashIsEqual(prevProps.policies, nextProps.policies),
     ),
 );
