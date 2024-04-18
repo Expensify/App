@@ -63,8 +63,8 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
- * @param isDeleting - whether the user is deleting the request
- * @param isUpdating - whether the user is updating the request
+ * @param isDeleting - whether the user is deleting the expense
+ * @param isUpdating - whether the user is updating the expense
  */
 function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
     iouReport: TReport,
@@ -102,7 +102,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
 }
 
 /**
- * Returns whether or not an IOU report contains money requests in a different currency
+ * Returns whether or not an IOU report contains expenses in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
 function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {

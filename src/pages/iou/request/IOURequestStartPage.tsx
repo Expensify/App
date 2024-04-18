@@ -68,9 +68,9 @@ function IOURequestStartPage({
     const navigation = useNavigation();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
-        [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
-        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
+        [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
+        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK_EXPENSE]: translate('iou.trackExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
     };
@@ -94,7 +94,7 @@ function IOURequestStartPage({
         }, []),
     );
 
-    // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
         if (transaction?.reportID === reportID) {
             return;
@@ -107,7 +107,7 @@ function IOURequestStartPage({
     const shouldDisplayDistanceRequest = iouType !== CONST.IOU.TYPE.INVOICE && (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate);
     const shouldDisplayScanRequest = iouType !== CONST.IOU.TYPE.INVOICE;
 
-    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
+    // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the exoense
     const isAllowedToCreateRequest = isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType) || PolicyUtils.canSendInvoice(allPolicies);
 
     const navigateBack = () => {
