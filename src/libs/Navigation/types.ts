@@ -789,6 +789,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         reportID: string;
         transactionID: string;
     };
+    [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & ChatFinderNavigatorParamList;

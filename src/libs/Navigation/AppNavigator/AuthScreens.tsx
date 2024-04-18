@@ -18,6 +18,7 @@ import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as SessionUtils from '@libs/SessionUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import DesktopSignInRedirectPage from '@pages/signin/DesktopSignInRedirectPage';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import SearchInputManager from '@pages/workspace/SearchInputManager';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
@@ -389,6 +390,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         }}
                         getComponent={loadReceiptView}
                         listeners={modalScreenListeners}
+                    />
+                    <RootStack.Screen
+                        name={SCREENS.CONNECTION_COMPLETE}
+                        options={defaultScreenOptions}
+                        component={ConnectionCompletePage}
                     />
                 </RootStack.Navigator>
             </View>
