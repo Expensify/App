@@ -3623,13 +3623,6 @@ const CONST = {
                         '2. Click <strong>Workspaces</strong> > <strong>New workspace</strong>.\n' +
                         '\n' +
                         'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
                 {
                     title: 'Track an expense',
@@ -3643,13 +3636,6 @@ const CONST = {
                         '4. Click <strong>Track</strong>.\n' +
                         '\n' +
                         'And you’re done! Yep, it’s that easy.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
             ],
         },
@@ -3675,13 +3661,6 @@ const CONST = {
                         '4. Add your reimburser to the request.\n' +
                         '\n' +
                         'Then, send your request and wait for that sweet “Cha-ching!” when it’s complete.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
                 {
                     title: 'Enable your wallet',
@@ -3694,13 +3673,6 @@ const CONST = {
                         '3. Connect your bank account.\n' +
                         '\n' +
                         'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
             ],
         },
@@ -3724,13 +3696,6 @@ const CONST = {
                         '2. Click <strong>Workspaces<strong> > <strong>New workspace<strong>.\n' +
                         '\n' +
                         'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
                 {
                     title: 'Meet your setup specialist',
@@ -3739,7 +3704,6 @@ const CONST = {
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}) or [schedule a call](${guideCalendarLink}) today.`,
-                    video: null,
                 },
                 {
                     title: 'Set up categories',
@@ -3754,13 +3718,6 @@ const CONST = {
                         '5. Click <strong>Add categories</strong> to make your own.\n' +
                         '\n' +
                         'For more controls like requiring a category for every expense, click Settings.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
                 {
                     title: 'Add expense approvals',
@@ -3775,13 +3732,6 @@ const CONST = {
                         '5. In Workflows, enable <strong>Add approvals</strong>.\n' +
                         '\n' +
                         'You’ll be set as the expense approver. You can change this to any admin once you invite your team.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
                 {
                     title: 'Invite your team',
@@ -3796,13 +3746,6 @@ const CONST = {
                         '5. Add an invite message if you want.\n' +
                         '\n' +
                         'That’s it! Happy expensing :)',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
             ],
         },
@@ -3828,13 +3771,6 @@ const CONST = {
                         '4. Click Track.\n' +
                         '\n' +
                         'And you’re done! Yep, it’s that easy.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
             ],
         },
@@ -3861,13 +3797,6 @@ const CONST = {
                         'If any of your friends aren’t using Expensify already, they’ll be invited automatically. \n' +
                         '\n' +
                         'Every chat will also turn into an email or text that they can respond to directly.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
                 {
                     title: 'Split an expense',
@@ -3881,13 +3810,6 @@ const CONST = {
                         '4. Add your friend(s) to the request.\n' +
                         '\n' +
                         'Feel free to add more details if you want, or just send it off. Let’s get you paid back!',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
                 {
                     title: 'Enable your wallet',
@@ -3900,13 +3822,6 @@ const CONST = {
                         '3. Add your bank account.\n' +
                         '\n' +
                         'Once that’s done, you can request money from anyone and get paid right into your personal bank account.',
-                    video: {
-                        url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                        thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                        duration: 55,
-                        width: 1280,
-                        height: 960,
-                    },
                 },
             ],
         },
