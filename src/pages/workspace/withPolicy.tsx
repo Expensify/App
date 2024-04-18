@@ -15,7 +15,6 @@ import type {
     SettingsNavigatorParamList,
     WorkspacesCentralPaneNavigatorParamList,
 } from '@navigation/types';
-import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -117,16 +116,11 @@ const policyPropTypes = {
         /** Collection of tax rates attached to a policy */
         taxRates: taxPropTypes,
     }),
-
-    /** The employee list of this policy */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
 };
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyMembers: OnyxEntry<OnyxTypes.PolicyMembers>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
-    policyMembersDraft: OnyxEntry<OnyxTypes.PolicyMember>;
 };
 
 type WithPolicyProps = WithPolicyOnyxProps & {
@@ -135,9 +129,7 @@ type WithPolicyProps = WithPolicyOnyxProps & {
 
 const policyDefaultProps: WithPolicyOnyxProps = {
     policy: {} as OnyxTypes.Policy,
-    policyMembers: {},
     policyDraft: {} as OnyxTypes.Policy,
-    policyMembersDraft: {},
 };
 
 /*
@@ -168,14 +160,8 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
-        policyMembers: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
-        },
         policyDraft: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
-        },
-        policyMembersDraft: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
         },
     })(forwardRef(WithPolicy));
 }

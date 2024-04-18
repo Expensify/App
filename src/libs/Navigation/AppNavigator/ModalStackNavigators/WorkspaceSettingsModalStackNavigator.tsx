@@ -52,8 +52,8 @@ function WorkspaceSettingsModalStackNavigator() {
             />
 
             <StackNavigator.Screen
-                key={SCREENS.WORKSPACE.ACCOUNTING}
-                name={SCREENS.WORKSPACE.ACCOUNTING}
+                key={SCREENS.WORKSPACE.ACCOUNTING.ROOT}
+                name={SCREENS.WORKSPACE.ACCOUNTING.ROOT}
                 getComponent={() => require('@pages/workspace/accounting/PolicyAccountingPage').default as React.ComponentType}
             />
 

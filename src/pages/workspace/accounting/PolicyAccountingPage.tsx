@@ -22,28 +22,29 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {removePolicyConnection} from '@libs/actions/connections';
+import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyAccountingPageOnyxProps = {
-    /** From Onyx */
-    /** Bank account attached to free plan */
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
 };
 
-type PolicyAccountingPageProps = WithPolicyAndFullscreenLoadingProps &
+type PolicyAccountingPageProps = WithPolicyProps &
     PolicyAccountingPageOnyxProps & {
-        /** Policy values needed in the component */
-        policy: OnyxEntry<Policy>;
+        // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
+        policy: Policy;
     };
 
 const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
@@ -98,9 +99,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
@@ -179,7 +178,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: () => {},
+                          onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
                       },
                       {
                           icon: Expensicons.Send,
@@ -304,7 +303,10 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                         <ConfirmModal
                             title={translate('workspace.accounting.disconnectTitle')}
                             isVisible={isDisconnectModalOpen}
-                            onConfirm={() => {}}
+                            onConfirm={() => {
+                                removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
+                                setIsDisconnectModalOpen(false);
+                            }}
                             onCancel={() => setIsDisconnectModalOpen(false)}
                             prompt={translate('workspace.accounting.disconnectPrompt')}
                             confirmText={translate('workspace.accounting.disconnect')}
@@ -320,7 +322,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
 
 PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
-export default withPolicyAndFullscreenLoading(
+export default withPolicyConnections(
     withOnyx<PolicyAccountingPageProps, PolicyAccountingPageOnyxProps>({
         connectionSyncProgress: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
