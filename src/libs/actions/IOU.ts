@@ -95,6 +95,18 @@ type TrackExpenseInformation = {
     onyxData: OnyxData;
 };
 
+type SendInvoiceInformation = {
+    senderWorkspaceID: string;
+    receiver: Partial<OnyxTypes.PersonalDetails>;
+    invoiceRoomID: string;
+    createdChatReportActionID: string;
+    invoiceReportID: string;
+    reportPreviewReportActionID: string;
+    transactionID: string;
+    transactionThreadReportID: string;
+    onyxData: OnyxData;
+};
+
 type SplitData = {
     chatReportID: string;
     transactionID: string;
@@ -1627,7 +1639,7 @@ function getSendInvoiceInformation(
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.policyID)?.policyID ?? '';
