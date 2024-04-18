@@ -56,6 +56,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -3001,7 +3002,8 @@ function completeOnboarding(
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message
-    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${login.split('@')[0]} 👋`, undefined, actorAccountID);
+    const mentionHandle = LoginUtils.isEmailPublicDomain(login) ? login : login.split('@')[0];
+    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${mentionHandle} 👋`, undefined, actorAccountID);
     const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
     const mentionMessage: AddCommentOrAttachementParams = {
         reportID: targetChatReportID,
