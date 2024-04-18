@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {SectionListData, View} from 'react-native';
+import {View} from 'react-native';
+import type {SectionListData} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';

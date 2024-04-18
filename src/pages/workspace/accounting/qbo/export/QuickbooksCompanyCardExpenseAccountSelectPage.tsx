@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {SectionListData, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem, Section} from '@components/SelectionList/types';

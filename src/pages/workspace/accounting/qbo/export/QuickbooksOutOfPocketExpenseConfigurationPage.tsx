@@ -17,7 +17,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations, exportAccount, exportEntity, errors, syncTaxes} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncLocations, exportAccount, exportEntity, errors, syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const shouldShowTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
@@ -32,7 +32,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
             <HeaderWithBackButton title={translate('workspace.qbo.exportExpenses')} />
             <ScrollView contentContainerStyle={styles.pb2}>
                 {!isLocationEnabled && <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>}
-                <OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={pendingFields?.exportEntity}>
                     <MenuItemWithTopDescription
                         title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
                         description={translate('workspace.qbo.exportAs')}
@@ -47,7 +47,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                 )}
                 {isLocationEnabled && <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
                 {!isLocationEnabled && (
-                    <OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={pendingFields?.exportAccount}>
                         <MenuItemWithTopDescription
                             title={exportAccount}
                             description={translate('workspace.qbo.accountsPayable')}
