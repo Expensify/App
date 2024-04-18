@@ -34,7 +34,7 @@ function isCyclic(currentNode: string, visited: Map<string, boolean>, backEdges:
     return false;
 }
 
-function detectCycle() {
+function detectCycle(): boolean {
     const visited: Map<string, boolean> = new Map<string, boolean>();
     const backEdges: Map<string, boolean> = new Map<string, boolean>();
 
@@ -47,6 +47,7 @@ function detectCycle() {
             }
         }
     }
+    return false;
 }
 
 fs.createReadStream(`${process.cwd()}/docs/redirects.csv`)
