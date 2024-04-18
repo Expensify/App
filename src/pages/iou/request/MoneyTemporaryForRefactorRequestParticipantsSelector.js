@@ -4,6 +4,8 @@ import lodashMap from 'lodash/map';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
 import lodashValues from 'lodash/values';
+import lodashSome from 'lodash/some';
+import lodashEvery from 'lodash/every';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
@@ -222,7 +224,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
                 return false;
             };
-            const isOptionInList = participants.some(isOptionSelected);
+            const isOptionInList = lodashSome(participants, isOptionSelected);
             let newSelectedOptions;
 
             if (isOptionInList) {
@@ -255,7 +257,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                participants.some((participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+                lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
         [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
@@ -263,7 +265,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     // Right now you can't split an expense with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
-    const hasPolicyExpenseChatParticipant = participants.some((participant) => participant.isPolicyExpenseChat);
+    const hasPolicyExpenseChatParticipant = lodashSome(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
@@ -381,7 +383,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         </>
     );
 
-    const isAllSectionsEmpty = sections.every((section) => section.data.length === 0);
+    const isAllSectionsEmpty = lodashEvery(sections, (section) => section.data.length === 0);
     if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
         return renderEmptyWorkspaceView();
     }
