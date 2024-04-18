@@ -282,7 +282,7 @@ function MoneyRequestView({
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
-                        {(showMapAsImage || hasReceipt) &&
+                        {(showMapAsImage || hasReceipt) && (
                             <View style={styles.moneyRequestViewImage}>
                                 {showMapAsImage ? (
                                     <ConfirmedRoute transaction={transaction} />
@@ -299,7 +299,7 @@ function MoneyRequestView({
                                     />
                                 )}
                             </View>
-                    }
+                    )}
                     </OfflineWithFeedback>
                 )}
                 {!hasReceipt && canEditReceipt && (
