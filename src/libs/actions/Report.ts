@@ -2462,7 +2462,7 @@ function leaveGroupChat(reportID: string) {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
             value: null,
-        }) 
+        });
     }
 
     navigateToMostRecentReport(report);
