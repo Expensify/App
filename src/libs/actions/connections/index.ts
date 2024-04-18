@@ -46,7 +46,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
     policyID: string,
     connectionName: TConnectionName,
     settingName: TSettingName,
-    settingValue: Connections[TConnectionName]['config'][TSettingName],
+    settingValue: Connections[TConnectionName]['config'][TSettingName] | null,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {

@@ -8,11 +8,11 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Connections from '@libs/actions/connections';
 import {getAdminEmailList} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -51,9 +51,9 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const onSelectRow = useCallback(
         (row: CardListItem) => {
             if (row.value !== exporter) {
-                Policy.updatePolicyConnectionConfig(policyID, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
             }
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
         },
         [policyID, exporter],
     );

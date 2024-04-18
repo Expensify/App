@@ -133,7 +133,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                          onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
                       },
                       {
                           icon: Expensicons.Gear,

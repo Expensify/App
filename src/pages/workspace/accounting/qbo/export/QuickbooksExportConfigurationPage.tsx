@@ -25,31 +25,31 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
     const menuItems: MenuItemProps[] = [
         {
             description: translate('workspace.qbo.preferredExporter'),
-            onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
             brickRoadIndicator: errors?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exporter ?? policyOwner,
         },
         {
             description: translate('workspace.qbo.date'),
-            onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: errors?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportDate ? translate(`workspace.qbo.${exportDate}.label`) : undefined,
         },
         {
             description: translate('workspace.qbo.exportExpenses'),
-            onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
             brickRoadIndicator: errors?.exportExpenses ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined,
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
-            onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: errors?.exportInvoice ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportInvoice,
         },
         {
             description: translate('workspace.qbo.exportCompany'),
-            onPress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             brickRoadIndicator: errors?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportCompanyCard,
         },

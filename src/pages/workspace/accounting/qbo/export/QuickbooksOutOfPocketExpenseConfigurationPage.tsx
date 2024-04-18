@@ -37,7 +37,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                         title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
                         description={translate('workspace.qbo.exportAs')}
                         error={exportEntity && (showTaxError || showLocationError) ? translate(`workspace.qbo.${exportEntity}Error`) : undefined}
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                         brickRoadIndicator={brickEntityRoadIndicator ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         shouldShowRightIcon
                     />
@@ -51,7 +51,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                         <MenuItemWithTopDescription
                             title={exportAccount}
                             description={translate('workspace.qbo.accountsPayable')}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
                             brickRoadIndicator={errors?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
                         />
