@@ -7,6 +7,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -36,7 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type {SplitShare, SplitShares} from '@src/types/onyx/Transaction';
+import type {SplitShares} from '@src/types/onyx/Transaction';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -373,11 +374,14 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
     const personalDetailsOfPayee = useMemo(() => payeePersonalDetails ?? currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
 
     const onSplitShareChange = useCallback(
-        (accountID: number, value) => {
+        (accountID: number, value: number) => {
+            if (!transaction?.transactionID) {
+                return;
+            }
             const amountInCents = CurrencyUtils.convertToBackendAmount(value);
-            IOU.setSplitShare(transaction?.transactionID, accountID, amountInCents, iouCurrencyCode, true);
+            IOU.setSplitShare(transaction?.transactionID, accountID, amountInCents);
         },
-        [transaction, iouCurrencyCode],
+        [transaction?.transactionID],
     );
 
     useEffect(() => {
@@ -397,6 +401,31 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         }
     }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode]);
 
+    useEffect(() => {
+        if (!isTypeSplit || !transaction?.splitShares) {
+            return;
+        }
+
+        const sumOfManualShares = Object.keys(transaction.splitShares)
+            .filter((key: string) => transaction?.splitShares?.[Number(key)]?.isModified)
+            .map((key: string): number => transaction?.splitShares?.[Number(key)]?.amount ?? 0)
+            .reduce((prev: number, current: number): number => prev + current, 0);
+
+        if (!sumOfManualShares) {
+            return;
+        }
+
+        const unModifiedSharesAccountIDs = Object.keys(transaction.splitShares)
+            .filter((key: string) => !transaction?.splitShares?.[Number(key)]?.isModified)
+            .map((key: string) => Number(key));
+
+        const remainingTotal = iouAmount - sumOfManualShares;
+        if (remainingTotal <= 0) {
+            return;
+        }
+        IOU.adjustRemainingSplitShares(transaction.transactionID, unModifiedSharesAccountIDs, remainingTotal, iouCurrencyCode ?? CONST.CURRENCY.USD);
+    }, [transaction, iouAmount, iouCurrencyCode, isTypeSplit]);
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         if (hasMultipleParticipants) {
@@ -405,7 +434,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                 ...participantOption,
                 descriptiveText: null,
                 amountProps: {
-                    amount: transaction?.splitShares?.[participantOption.accountID]?.amount,
+                    amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
                     currency: iouCurrencyCode,
                     prefixCharacter: currencyList?.[iouCurrencyCode]?.symbol ?? iouCurrencyCode,
                     isCurrencyPressable: false,
