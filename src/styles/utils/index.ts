@@ -1566,6 +1566,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isDisabled && styles.cursorDisabled),
         ...(isDisabled && styles.buttonOpacityDisabled),
     }),
+
     /**
      * When adding a new prefix character, adjust this method to add expected character width.
      * This is because character width isn't known before it's rendered to the screen, and once it's rendered,
