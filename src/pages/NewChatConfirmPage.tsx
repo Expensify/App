@@ -40,7 +40,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const personalData = useCurrentUserPersonalDetails();
     const participantAccountIDs = (newGroupDraft?.participants ?? []).map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
@@ -60,11 +59,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                 .map((selectedOption: Participant) => {
                     const accountID = selectedOption.accountID;
                     const isAdmin = personalData.accountID === accountID;
-                    let roleBadge = null;
-                    if (isAdmin) {
-                        roleBadge = <Badge text={translate('common.admin')} />;
-                    }
-
                     const section: ListItem = {
                         login: selectedOption?.login ?? '',
                         text: selectedOption?.text ?? '',
@@ -74,18 +68,12 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         accountID,
                         icons: selectedOption?.icons,
                         alternateText: selectedOption?.login ?? '',
-                        rightElement: isAdmin ? (
-                            <Badge
-                                text={translate('common.admin')}
-                                textStyles={styles.textStrong}
-                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                            />
-                        ) : undefined,
+                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate, StyleUtils, styles],
+        [selectedOptions, personalData.accountID, translate],
     );
 
     /**
