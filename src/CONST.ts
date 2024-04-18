@@ -1411,7 +1411,7 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
-            MOVE: 'move',
+            REQUEST: 'request',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
@@ -1436,7 +1436,6 @@ const CONST = {
             DELETE: 'delete',
             APPROVE: 'approve',
             TRACK: 'track',
-            MOVE: 'move',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
