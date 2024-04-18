@@ -2,8 +2,8 @@ import '@shopify/flash-list/jestSetup';
 import 'react-native-gesture-handler/jestSetup';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import 'setimmediate';
-import setupMockImages from './setupMockImages';
 import mockFSLibrary from './setupMockFullstoryLib';
+import setupMockImages from './setupMockImages';
 
 setupMockImages();
 mockFSLibrary();

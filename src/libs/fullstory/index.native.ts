@@ -57,4 +57,4 @@ const FS = {
 };
 
 export default FS;
-export {FSPage}
+export {FSPage};

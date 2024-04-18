@@ -9,8 +9,8 @@ export default function mockFSLibrary() {
         }
 
         return {
-            FSPage(){
-                this.start = jest.fn()
+            FSPage() {
+                this.start = jest.fn();
             },
             default: Fullstory,
         };

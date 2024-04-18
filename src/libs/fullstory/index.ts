@@ -25,14 +25,15 @@ const FS = {
     /**
      * Executes a function when the FullStory library is ready, either by initialization or by observing the start event.
      */
-    onReady: () => new Promise((resolve) => {
-                               // Initialised via HEAD snippet
-                               if (isInitialized()) {
-                                   init({orgId: ''}, resolve);
-                               } else {
-                                   FullStory('observe', {type: 'start', callback: resolve});
-                               }
-                           }),
+    onReady: () =>
+        new Promise((resolve) => {
+            // Initialised via HEAD snippet
+            if (isInitialized()) {
+                init({orgId: ''}, resolve);
+            } else {
+                FullStory('observe', {type: 'start', callback: resolve});
+            }
+        }),
 
     /**
      * Sets the identity as anonymous using the FullStory library.
