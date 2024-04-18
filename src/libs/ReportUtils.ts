@@ -5275,7 +5275,11 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
  * Checks if report is in read-only mode.
  */
 function isReadOnly(report: OnyxEntry<Report>): boolean {
-    return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE) ?? false;
+    if (Array.isArray(report?.permissions)) {
+        return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
+    }
+
+    return false;
 }
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
