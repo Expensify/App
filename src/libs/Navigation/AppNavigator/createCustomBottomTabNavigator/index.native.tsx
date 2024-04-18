@@ -1,12 +1,13 @@
 import type {DefaultNavigatorOptions, ParamListBase, StackActionHelpers, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
 import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
-import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import {StackView} from '@react-navigation/stack';
+import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
+import {NativeStackView} from '@react-navigation/native-stack';
+import type {StackNavigationEventMap} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
-import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
+import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
 import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
@@ -33,17 +34,17 @@ function getStateToRender(state: StackNavigationState<ParamListBase>): StackNavi
 
 function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
     function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ...props}: CustomNavigatorProps) {
-        const webScreenOptions = withWebNavigationOptions(screenOptions);
+        const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
 
         const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
             StackRouterOptions,
             StackActionHelpers<ParamListBase>,
-            StackNavigationOptions,
-            StackNavigationEventMap
+            NativeStackNavigationOptions,
+            NativeStackNavigationEventMap
         >(StackRouter, {
             children,
-            screenOptions: webScreenOptions,
+            screenOptions: nativeScreenOptions,
             initialRouteName,
         });
 
@@ -57,7 +58,7 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
             >
                 <View style={styles.flex1}>
                     <NavigationContent>
-                        <StackView
+                        <NativeStackView
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...props}
                             state={stateToRender}

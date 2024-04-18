@@ -1,14 +1,15 @@
-import type {ParamListBase, PartialState, RouterConfigOptions, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
 
-type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;
+type StackState<TStackParams extends ParamListBase> = PlatformStackNavigationState<TStackParams> | PartialState<PlatformStackNavigationState<TStackParams>>;
 
-const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
+const isAtLeastOneInState = <TStackParams extends ParamListBase>(state: StackState<TStackParams>, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
 
-function adaptStateIfNecessary(state: StackState) {
+function adaptStateIfNecessary<TStackParams extends ParamListBase>(state: StackState<TStackParams>) {
     const isNarrowLayout = getIsNarrowLayout();
     const workspaceCentralPane = state.routes.at(-1);
     const topmostWorkspaceCentralPaneRoute = workspaceCentralPane?.state?.routes[0];
@@ -61,8 +62,9 @@ function adaptStateIfNecessary(state: StackState) {
     }
 }
 
-function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
-    const stackRouter = StackRouter(options);
+function CustomFullScreenRouter<TStackParams extends ParamListBase>(options: FullScreenNavigatorRouterOptions) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const stackRouter = StackRouter(options) as Router<PlatformStackNavigationState<TStackParams>, any>;
 
     return {
         ...stackRouter,
@@ -77,7 +79,7 @@ function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
 
             return initialState;
         },
-        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): StackNavigationState<ParamListBase> {
+        getRehydratedState(partialState: StackState<TStackParams>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): PlatformStackNavigationState<TStackParams> {
             adaptStateIfNecessary(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;

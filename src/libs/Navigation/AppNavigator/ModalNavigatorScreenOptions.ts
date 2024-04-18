@@ -9,8 +9,6 @@ import type {ThemeStyles} from '@styles/index';
  */
 const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles): PlatformStackNavigationOptions => ({
     headerShown: false,
-    animationEnabled: true,
-    gestureDirection: 'horizontal',
     cardStyle: themeStyles.navigationScreenCardStyle,
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 });
