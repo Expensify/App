@@ -71,7 +71,7 @@ function PersonalInfoPage() {
     });
 
     const handleBackButtonPress = () => {
-        // TODO: connect to the fist step of the wallet setup
+        // TODO: connect to the fist step of the wallet setup https://github.com/Expensify/App/issues/36648
         if (screenIndex === 0) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             Wallet.resetWalletAdditionalDetailsDraft();
