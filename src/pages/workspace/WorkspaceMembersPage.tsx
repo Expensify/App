@@ -457,7 +457,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             return;
         }
 
-        const accountIDsToUpdate = selectedEmployees.filter((id) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[id]]?.role !== role);
+        const accountIDsToUpdate = selectedEmployees.filter((accountID) => {
+            const email = Object.keys(policyMemberEmailsToAccountIDs).find(email => policyMemberEmailsToAccountIDs[email] === accountID) ?? '';
+            return policy?.employeeList?.[email]?.role !== role;
+        });
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
