@@ -1,4 +1,3 @@
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
