@@ -2955,9 +2955,13 @@ const styles = (theme: ThemeColors) =>
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
                 color: theme.heading,
-                padding: 0,
                 lineHeight: undefined,
-                borderRadius: 0,
+                paddingHorizontal: 0,
+                paddingVertical: 0,
+                borderTopLeftRadius: 0,
+                borderBottomLeftRadius: 0,
+                borderTopRightRadius: 0,
+                borderBottomRightRadius: 0,
             },
             0,
         ),
@@ -2965,7 +2969,10 @@ const styles = (theme: ThemeColors) =>
         iouAmountTextInputContainer: {
             borderWidth: 0,
             borderBottomWidth: 0,
-            borderRadius: 0,
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
         },
 
         moneyRequestConfirmationAmount: {
