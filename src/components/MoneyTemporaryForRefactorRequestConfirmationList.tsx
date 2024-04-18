@@ -2,11 +2,10 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useReducer, useRef, useState} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import {withOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,10 +29,11 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import * as IOU from '@userActions/IOU';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -99,7 +99,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    iouType?: IOUType;
 
     /** IOU date */
     iouCreated?: string;
@@ -169,7 +169,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     reportActionID?: string;
 
-    action?: ValueOf<typeof CONST.IOU.ACTION>;
+    action?: IOUAction;
 };
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {

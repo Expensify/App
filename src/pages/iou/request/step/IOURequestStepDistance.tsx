@@ -11,12 +11,16 @@ import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFo
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import * as MapboxToken from '@userActions/MapboxToken';
@@ -37,9 +41,19 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type IOURequestStepDistanceOnyxProps = {
     /** backup version of the original transaction  */
     transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Personal details of all users */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** Whether the confirmation step should be skipped */
+    skipConfirmation: OnyxEntry<boolean>;
 };
 
 type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
+    WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -47,11 +61,15 @@ type IOURequestStepDistanceProps = IOURequestStepDistanceOnyxProps &
 
 function IOURequestStepDistance({
     report,
+    policy,
     route: {
         params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
     transactionBackup,
+    personalDetails,
+    currentUserPersonalDetails,
+    skipConfirmation,
 }: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -83,6 +101,20 @@ function IOURequestStepDistance({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
+
+    // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
+    // request and the workspace requires a category or a tag
+    const shouldSkipConfirmation: boolean = useMemo(() => {
+        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            return false;
+        }
+
+        return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
+    }, [report, skipConfirmation, policy, iouType]);
+    let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
+    if (shouldSkipConfirmation) {
+        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.submitExpense');
+    }
 
     useEffect(() => {
         MapboxToken.init();
@@ -159,7 +191,47 @@ function IOURequestStepDistance({
         // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
         // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
         // to the confirm step.
-        if (report?.reportID) {
+        if (report?.reportID && !ReportUtils.isArchivedRoom(report)) {
+            const selectedParticipants = IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
+            const participants = selectedParticipants.map((participant) => {
+                const participantAccountID = participant?.accountID ?? 0;
+                return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
+            });
+            if (shouldSkipConfirmation) {
+                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    IOU.splitBillAndOpenReport({
+                        participants,
+                        currentUserLogin: currentUserPersonalDetails.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
+                        amount: 0,
+                        comment: '',
+                        currency: transaction?.currency ?? 'USD',
+                        merchant: translate('iou.routePending'),
+                        created: transaction?.created ?? '',
+                        category: '',
+                        tag: '',
+                        billable: false,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    });
+                    return;
+                }
+                IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+                IOU.setMoneyRequestMerchant(transactionID, translate('iou.routePending'), false);
+                IOU.createDistanceRequest(
+                    report,
+                    participants[0],
+                    '',
+                    transaction?.created ?? '',
+                    '',
+                    '',
+                    0,
+                    transaction?.currency ?? 'USD',
+                    translate('iou.routePending'),
+                    false,
+                    TransactionUtils.getValidWaypoints(waypoints, true),
+                );
+                return;
+            }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
@@ -168,7 +240,7 @@ function IOURequestStepDistance({
         // If there was no reportID, then that means the user started this flow from the global menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [report, iouType, reportID, transactionID, backTo]);
+    }, [report, iouType, reportID, transactionID, backTo, waypoints, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction, translate]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
@@ -311,7 +383,7 @@ function IOURequestStepDistance({
                         large
                         style={[styles.w100, styles.mb4, styles.ph4, styles.flexShrink0]}
                         onPress={submitWaypoints}
-                        text={translate(!isCreatingNewRequest ? 'common.save' : 'common.next')}
+                        text={buttonText}
                         isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
                     />
                 </View>
@@ -322,15 +394,31 @@ function IOURequestStepDistance({
 
 IOURequestStepDistance.displayName = 'IOURequestStepDistance';
 
-export default withWritableReportOrNotFound(
-    withFullTransactionOrNotFound(
-        withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
-            transactionBackup: {
-                key: ({route}) => {
-                    const transactionID = route.params.transactionID ?? 0;
-                    return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
-                },
-            },
-        })(IOURequestStepDistance),
-    ),
-);
+const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOURequestStepDistanceOnyxProps>({
+    transactionBackup: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+        },
+    },
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report?.policyID : '0'}`,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    skipConfirmation: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
+        },
+    },
+})(IOURequestStepDistance);
+
+const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepDistanceWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceWithWritableReportOrNotFound);
+
+export default IOURequestStepDistanceWithFullTransactionOrNotFound;

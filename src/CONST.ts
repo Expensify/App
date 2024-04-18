@@ -3300,6 +3300,13 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
+    TAB_SEARCH: {
+        ALL: 'all',
+        SENT: 'sent',
+        DRAFTS: 'drafts',
+        WAITING_ON_YOU: 'waitingOnYou',
+        FINISHED: 'finished',
+    },
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
@@ -4342,8 +4349,10 @@ const CONST = {
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
-type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 
-export type {Country, RateAndUnit, IOUType};
+type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
+type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
+
+export type {Country, IOUAction, IOUType, RateAndUnit};
 
 export default CONST;
