@@ -1,7 +1,7 @@
 import React, {createContext, useCallback, useContext, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
@@ -13,7 +13,7 @@ import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 type ChatReportSelector = OnyxTypes.Report & {isUnreadWithMention: boolean};
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar'>;
+export type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatar' | 'employeeList'>;
 type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
 
 type ReportIDsContextProviderProps = {
@@ -98,6 +98,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         type: policy.type,
         name: policy.name,
         avatar: policy.avatar,
+        employeeList: policy.employeeList,
     }) as PolicySelector;
 
 const priorityModeOptions = {
@@ -140,7 +141,7 @@ function ReportIDsContextProvider({
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID), [activeWorkspaceID, policyMembers, accountID]);
+    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID), [activeWorkspaceID, policyMembers, accountID]);
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
@@ -184,4 +185,4 @@ function useReportIDs() {
     return useContext(ReportIDsContext);
 }
 
-export {ReportIDsContextProvider, ReportIDsContext, useReportIDs};
+export {ReportIDsContextProvider, ReportIDsContext, useReportIDs, policySelector};

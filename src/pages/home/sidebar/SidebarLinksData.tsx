@@ -9,9 +9,9 @@ import type {ValueOf} from 'type-fest';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {useReportIDs} from '@hooks/useReportIDs';
+import {PolicySelector, policySelector, useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPolicyMembersByIdWithoutCurrentUser} from '@libs/PolicyUtils';
+import {getPolicyEmployeeListByIdWithoutCurrentUser} from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,8 +25,8 @@ type SidebarLinksDataOnyxProps = {
     /** The chat priority mode */
     priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 
-    /** All policy members */
-    policyMembers: OnyxCollection<OnyxTypes.PolicyMembers>;
+    /** The policies which the user has access to */
+    policies: OnyxCollection<PolicySelector>;
 };
 
 type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
@@ -37,13 +37,14 @@ type SidebarLinksDataProps = SidebarLinksDataOnyxProps & {
     insets: EdgeInsets;
 };
 
-function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMode = CONST.PRIORITY_MODE.DEFAULT, policyMembers}: SidebarLinksDataProps) {
+function SidebarLinksData({insets, isLoadingApp = true, onLinkClick, priorityMode = CONST.PRIORITY_MODE.DEFAULT, policies}: SidebarLinksDataProps) {
     const {accountID} = useCurrentUserPersonalDetails();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
-    const policyMemberAccountIDs = getPolicyMembersByIdWithoutCurrentUser(policyMembers, activeWorkspaceID, accountID);
+
+    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => Policy.openWorkspace(activeWorkspaceID ?? '', policyMemberAccountIDs), [activeWorkspaceID]);
@@ -87,8 +88,10 @@ export default withOnyx<SidebarLinksDataProps, SidebarLinksDataOnyxProps>({
         key: ONYXKEYS.NVP_PRIORITY_MODE,
         initialValue: CONST.PRIORITY_MODE.DEFAULT,
     },
-    policyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+        selector: policySelector,
+        initialValue: {},
     },
 })(
     /* 
