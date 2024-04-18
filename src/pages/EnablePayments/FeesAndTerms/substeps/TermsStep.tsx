@@ -66,20 +66,22 @@ function TermsStep() {
     }, [hasAcceptedDisclosure, hasAcceptedPrivacyPolicyAndWalletAgreement]);
 
     return (
-        <ScrollView style={[styles.flexGrow1]}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('termsStep.checkPlease')}</Text>
-            <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('termsStep.agreeToTerms')}</Text>
-            <CheckboxWithLabel
-                accessibilityLabel={translate('termsStep.haveReadAndAgree')}
-                style={[styles.mb4, styles.mt4]}
-                onInputChange={toggleDisclosure}
-                LabelComponent={HaveReadAndAgreeLabel}
-            />
-            <CheckboxWithLabel
-                accessibilityLabel={translate('termsStep.agreeToThe')}
-                onInputChange={togglePrivacyPolicy}
-                LabelComponent={AgreeToTheLabel}
-            />
+        <View style={[styles.flexGrow1, styles.ph5]}>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('termsStep.checkPlease')}</Text>
+            <Text style={[styles.mt3, styles.mb3, styles.textSupporting]}>{translate('termsStep.agreeToTerms')}</Text>
+            <View style={styles.flex1}>
+                <CheckboxWithLabel
+                    accessibilityLabel={translate('termsStep.haveReadAndAgree')}
+                    style={[styles.mb4, styles.mt4]}
+                    onInputChange={toggleDisclosure}
+                    LabelComponent={HaveReadAndAgreeLabel}
+                />
+                <CheckboxWithLabel
+                    accessibilityLabel={translate('termsStep.agreeToThe')}
+                    onInputChange={togglePrivacyPolicy}
+                    LabelComponent={AgreeToTheLabel}
+                />
+            </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('termsStep.enablePayments')}
                 onSubmit={() => {
@@ -99,7 +101,7 @@ function TermsStep() {
                 isLoading={!!walletTerms?.isLoading}
                 containerStyles={[styles.mh0, styles.mv4]}
             />
-        </ScrollView>
+        </View>
     );
 }
 

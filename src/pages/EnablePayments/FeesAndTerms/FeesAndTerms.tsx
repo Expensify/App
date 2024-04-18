@@ -13,7 +13,7 @@ import TermsStep from './substeps/TermsStep';
 
 const termsAndFeesSubsteps: Array<React.ComponentType<SubStepProps>> = [FeesStep, TermsStep];
 
-function TermsAndFees() {
+function FeesAndTerms() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -29,7 +29,7 @@ function TermsAndFees() {
 
     return (
         <ScreenWrapper
-            testID={TermsAndFees.displayName}
+            testID={FeesAndTerms.displayName}
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -53,6 +53,6 @@ function TermsAndFees() {
     );
 }
 
-TermsAndFees.displayName = 'TermsAndFees';
+FeesAndTerms.displayName = 'TermsAndFees';
 
-export default TermsAndFees;
+export default FeesAndTerms;
