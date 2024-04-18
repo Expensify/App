@@ -20,8 +20,12 @@ function isCyclic(currentNode: string, visited: Map<string, boolean>, backEdges:
     if (neighbours) {
         for (const node of neighbours) {
             if (!visited.has(node)) {
-                if (isCyclic(node, visited, backEdges)) return true;
-            } else if (backEdges.has(node)) return true;
+                if (isCyclic(node, visited, backEdges)) {
+                    return true;
+                }
+            } else if (backEdges.has(node)) {
+                return true;
+            }
         }
     }
 
