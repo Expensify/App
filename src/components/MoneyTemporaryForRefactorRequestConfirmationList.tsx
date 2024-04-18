@@ -36,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {SplitShare, SplitShares} from '@src/types/onyx/Transaction';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -378,6 +379,23 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
         },
         [transaction, iouCurrencyCode],
     );
+
+    useEffect(() => {
+        if (!isTypeSplit || !transaction?.splitShares) {
+            return;
+        }
+
+        const splitSharesMap: SplitShares = transaction.splitShares;
+        const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare.amount);
+        const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
+        if (sumOfShares !== iouAmount) {
+            setFormError(
+                `You entered ${CurrencyUtils.convertToDisplayString(sumOfShares, iouCurrencyCode)} but the total is ${CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode)}`,
+            );
+        } else {
+            setFormError('');
+        }
+    }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode]);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
