@@ -550,6 +550,10 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
                     return;
                 }
 
+                if (formError) {
+                    return;
+                }
+
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
                 onConfirm?.(selectedParticipants);
@@ -568,6 +572,7 @@ function MoneyTemporaryForRefactorRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             isEditingSplitBill,
+            formError,
             onConfirm,
         ],
     );
