@@ -56,7 +56,7 @@ function ManageTeamsExpensesModal() {
     );
 
     const completeEngagement = () => {
-        Report.completeEngagementModal(messageCopy, CONST.INTRO_CHOICES.MANAGE_TEAM);
+        Report.completeEngagementModal(CONST.INTRO_CHOICES.MANAGE_TEAM, messageCopy);
         Report.navigateToConciergeChat();
     };
 

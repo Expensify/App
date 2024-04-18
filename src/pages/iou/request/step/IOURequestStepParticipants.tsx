@@ -51,16 +51,16 @@ function IOURequestStepParticipants({
             return translate('iou.categorize');
         }
         if (action === CONST.IOU.ACTION.MOVE) {
-            return translate('iou.request');
+            return translate('iou.submitExpense');
         }
         if (action === CONST.IOU.ACTION.SHARE) {
             return translate('iou.share');
         }
         if (isSplitRequest) {
-            return translate('iou.split');
+            return translate('iou.splitExpense');
         }
         if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('common.send');
+            return translate('iou.paySomeone', {});
         }
         return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
     }, [iouType, transaction, translate, isSplitRequest, action]);
@@ -71,8 +71,8 @@ function IOURequestStepParticipants({
     const newIouType = useRef<IOURef>();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
-    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
-    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
+    // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
+    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the expense process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
         if (IOUUtils.isMovingTransactionFromTrackExpense(action)) {
@@ -94,7 +94,7 @@ function IOURequestStepParticipants({
             return;
         }
         // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-        // updating the money request type route params reducing the overhead of the thread and preventing possible jitters in UI.
+        // updating the expense type route params reducing the overhead of the thread and preventing possible jitters in UI.
         updateRouteParams();
         newIouType.current = null;
     }, [participants, updateRouteParams]);
