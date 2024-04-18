@@ -146,7 +146,7 @@ function checkIfWorkspaceSettingsTabHasRBR(policyID?: string) {
 /**
  * @returns a map where the keys are policyIDs and the values are BrickRoads for each policy
  */
-function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>, reportActions?: OnyxCollection<ReportActions>): Record<string, BrickRoad> {
+function getWorkspacesBrickRoads(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>, reportActions: OnyxCollection<ReportActions>): Record<string, BrickRoad> {
     if (!reports) {
         return {};
     }
