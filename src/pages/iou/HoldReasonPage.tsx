@@ -113,6 +113,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
                         label={translate('iou.reason')}
                         accessibilityLabel={translate('iou.reason')}
                         ref={inputCallbackRef}
+                        isMarkdownEnabled
                     />
                 </View>
             </FormProvider>
