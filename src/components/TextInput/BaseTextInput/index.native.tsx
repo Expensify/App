@@ -250,8 +250,6 @@ function BaseTextInput(
         styles.textInputContainer,
         textInputContainerStyles,
         autoGrow && StyleUtils.getWidthStyle(textInputWidth),
-        !hideFocusedState && isFocused && styles.borderColorFocus,
-        (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
 
@@ -269,13 +267,18 @@ function BaseTextInput(
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
-                        styles.textInputContainerBorder,
+                        {borderColor: newTextInputContainerStyles.borderColor},
+                        {borderWidth: newTextInputContainerStyles.borderWidth},
+                        {borderBottomWidth: newTextInputContainerStyles.borderTopWidth},
                         touchableInputWrapperStyle,
+                        !hideFocusedState && isFocused && styles.borderColorFocus,
+                        (!!hasError || !!errorText) && styles.borderColorDanger,
                     ]}
                 >
                     <View
                         style={[
                             newTextInputContainerStyles,
+                            styles.borderNone,
 
                             // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
                             autoGrow && !newTextInputContainerStyles?.minWidth && styles.mnw2,

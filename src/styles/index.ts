@@ -2964,6 +2964,7 @@ const styles = (theme: ThemeColors) =>
 
         iouAmountTextInputContainer: {
             borderWidth: 0,
+            borderBottomWidth: 0,
             borderRadius: 0,
         },
 
