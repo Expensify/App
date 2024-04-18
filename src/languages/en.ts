@@ -350,6 +350,11 @@ export default {
         notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+        connectionComplete: 'Connection Complete',
+    },
+    connectionComplete: {
+        title: 'Connection Complete',
+        supportingText: 'You can close this window and head back to the Expensify app.',
     },
     avatarCropModal: {
         title: 'Edit photo',
