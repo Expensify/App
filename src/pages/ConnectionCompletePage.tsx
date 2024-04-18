@@ -2,8 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import Lottie from '@components/Lottie';
-import LottieAnimations from '@components/LottieAnimations';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -19,12 +17,10 @@ function ConnectionCompletePage() {
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
                 <View style={styles.mb2}>
-                    <Lottie
-                        source={LottieAnimations.Desk}
-                        style={{width:variables.modalTopIconWidth, height:variables.modalTopBigIconHeight}}
-                        webStyle={{width:variables.modalTopIconWidth, height:variables.modalTopBigIconHeight}}
-                        autoPlay
-                        loop
+                    <Icon
+                        width={variables.modalTopIconWidth}
+                        height={variables.modalTopBigIconHeight}
+                        src={Expensicons.ConnectionComplete}
                     />
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>

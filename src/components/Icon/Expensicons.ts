@@ -40,6 +40,7 @@ import ClosedSign from '@assets/images/closed-sign.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
+import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
@@ -197,6 +198,7 @@ export {
     Concierge,
     ConciergeAvatar,
     Connect,
+    ConnectionComplete,
     Copy,
     CreditCard,
     DeletedRoomAvatar,
