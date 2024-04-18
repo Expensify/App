@@ -514,7 +514,7 @@ function ReportScreen({
                 Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
-                // Prevent navigation to the Money Request Report if it is pending deletion.
+                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
                 const parentReport = ReportUtils.getReport(prevReport.parentReportID);
                 if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
                     return;

@@ -1720,7 +1720,7 @@ function getOptions(
             return;
         }
 
-        // In case user needs to add credit bank account, don't allow them to request more money from the workspace.
+        // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
         if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
             return;
         }
