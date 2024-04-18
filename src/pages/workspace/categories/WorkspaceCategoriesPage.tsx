@@ -1,8 +1,8 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
+import type {RouteProp} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -34,6 +34,7 @@ import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,17 +48,14 @@ type PolicyOption = ListItem & {
     keyForList: string;
 };
 
-type WorkspaceCategoriesOnyxProps = {
+type WorkspaceCategoriesPageProps = {
     /** The policy the user is accessing. */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Collection of categories attached to a policy */
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+// type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps &;
 
-function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCategoriesPageProps) {
+function WorkspaceCategoriesPage({policy}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -67,10 +65,13 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
+    const route = useRoute<RouteProp<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>>();
+    const policyId = route.params.policyID;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}` as const);
 
     const fetchCategories = useCallback(() => {
-        Policy.openPolicyCategoriesPage(route.params.policyID);
-    }, [route.params.policyID]);
+        Policy.openPolicyCategoriesPage(policyId);
+    }, [policyId]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
 
@@ -130,26 +131,26 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, category.keyForList));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList));
     };
 
     const navigateToCategoriesSettings = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
     };
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
     };
 
     const dismissError = (item: PolicyOption) => {
-        Policy.clearCategoryErrors(route.params.policyID, item.keyForList);
+        Policy.clearCategoryErrors(policyId, item.keyForList);
     };
 
     const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
 
     const handleDeleteCategories = () => {
         setSelectedCategories({});
-        deleteWorkspaceCategories(route.params.policyID, selectedCategoriesArray);
+        deleteWorkspaceCategories(policyId, selectedCategoriesArray);
         setDeleteCategoriesConfirmModalVisible(false);
     };
 
@@ -182,7 +183,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedCategories({});
-                        setWorkspaceCategoryEnabled(route.params.policyID, categoriesToDisable);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
                     },
                 });
             }
@@ -204,7 +205,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories({});
-                        setWorkspaceCategoryEnabled(route.params.policyID, categoriesToEnable);
+                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
                     },
                 });
             }
@@ -251,10 +252,10 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyId}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyId}>
                 <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
+                    policyID={policyId}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
                     <ScreenWrapper
@@ -288,7 +289,7 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
                                 <TextLink
                                     style={[styles.textNormal, styles.link]}
-                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(route.params.policyID)}`}
+                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
                                 >
                                     {`${translate('workspace.accounting.qbo')} settings`}
                                 </TextLink>
@@ -332,11 +333,4 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
 
 WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
-export default withOnyx<WorkspaceCategoriesPageProps, WorkspaceCategoriesOnyxProps>({
-    policy: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-    },
-    policyCategories: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`,
-    },
-})(WorkspaceCategoriesPage);
+export default withPolicyConnections(WorkspaceCategoriesPage);
