@@ -1,8 +1,10 @@
 import lodashGet from 'lodash/get';
+import lodashMap from 'lodash/map';
+import lodashSome from 'lodash/some';
+import lodashReject from 'lodash/reject';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -135,19 +137,19 @@ function MoneyRequestParticipantsSelector({participants, navigateToRequest, navi
         newSections.push({
             title: translate('common.recents'),
             data: newChatOptions.recentReports,
-            shouldShow: !_.isEmpty(newChatOptions.recentReports),
+            shouldShow: newChatOptions.recentReports.length > 0,
         });
 
         newSections.push({
             title: translate('common.contacts'),
             data: newChatOptions.personalDetails,
-            shouldShow: !_.isEmpty(newChatOptions.personalDetails),
+            shouldShow: newChatOptions.personalDetails.length > 0,
         });
 
         if (newChatOptions.userToInvite && !OptionsListUtils.isCurrentUser(newChatOptions.userToInvite)) {
             newSections.push({
                 title: undefined,
-                data: _.map([newChatOptions.userToInvite], (participant) => {
+                data: lodashMap([newChatOptions.userToInvite], (participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
@@ -203,11 +205,11 @@ function MoneyRequestParticipantsSelector({participants, navigateToRequest, navi
 
                 return false;
             };
-            const isOptionInList = _.some(participants, isOptionSelected);
+            const isOptionInList = lodashSome(participants, isOptionSelected);
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(participants, isOptionSelected);
+                newSelectedOptions = lodashReject(participants, isOptionSelected);
             } else {
                 newSelectedOptions = [
                     ...participants,
@@ -229,11 +231,11 @@ function MoneyRequestParticipantsSelector({participants, navigateToRequest, navi
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
+                lodashGet(newChatOptions, 'personalDetails', []).length + lodashGet(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+                lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
         [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
@@ -241,7 +243,7 @@ function MoneyRequestParticipantsSelector({participants, navigateToRequest, navi
     // Right now you can't split a request with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to show error message if you have a workspace and other participants
-    const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
+    const hasPolicyExpenseChatParticipant = lodashSome(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet

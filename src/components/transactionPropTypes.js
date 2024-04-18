@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import lodashValues from 'lodash/values'
 import {translatableTextPropTypes} from '@libs/Localize';
 import CONST from '@src/CONST';
 import sourcePropTypes from './Image/sourcePropTypes';
@@ -57,7 +57,7 @@ export default PropTypes.shape({
     ]),
 
     /** The type of transaction */
-    type: PropTypes.oneOf(_.values(CONST.TRANSACTION.TYPE)),
+    type: PropTypes.oneOf(lodashValues(CONST.TRANSACTION.TYPE)),
 
     /** Custom units attached to the transaction */
     customUnits: PropTypes.arrayOf(
