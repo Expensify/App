@@ -605,6 +605,7 @@ export default {
         card: 'Tarjeta',
         original: 'Original',
         split: 'Dividir',
+        request: 'Solicitar',
         splitExpense: 'Dividir gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',
