@@ -8,12 +8,12 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as Connections from '@libs/actions/connections';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 
 function QuickbooksTaxesPage({policy}: WithPolicyProps) {
@@ -46,9 +46,10 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                         accessibilityLabel={translate('workspace.qbo.taxes')}
                                         isOn={isSwitchOn}
                                         onToggle={() =>
-                                            Policy.updatePolicyConnectionConfig(
+                                            Connections.updatePolicyConnectionConfig(
                                                 policyID,
-                                                CONST.QUICK_BOOKS_IMPORTS.SYNC_TAXES,
+                                                CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                                CONST.QUICKBOOKS_IMPORTS.SYNC_TAXES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
