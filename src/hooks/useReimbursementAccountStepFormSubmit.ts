@@ -1,7 +1,7 @@
 import type {FormOnyxKeys} from '@components/Form/types';
-import useStepFormSubmit from '@hooks/useStepFormSubmit';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useStepFormSubmit from './useStepFormSubmit';
 import type {SubStepProps} from './useSubStep/types';
 
 type UseReimbursementAccountStepFormSubmitParams = Pick<SubStepProps, 'onNext'> & {
