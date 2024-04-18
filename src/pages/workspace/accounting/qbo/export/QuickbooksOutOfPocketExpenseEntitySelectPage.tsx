@@ -12,6 +12,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
@@ -80,22 +82,31 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
-        >
-            <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
-            <View style={styles.pb2}>
-                <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
-                    sections={sections}
-                    ListItem={RadioListItem}
-                    onSelectRow={onSelectRow}
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2, styles.ph5]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
-                />
-            </View>
-        </ScreenWrapper>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            >
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
+                >
+                    <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
+                    <View style={styles.pb2}>
+                        <SelectionList
+                            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
+                            sections={sections}
+                            ListItem={RadioListItem}
+                            onSelectRow={onSelectRow}
+                            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                            footerContent={
+                                isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2, styles.ph5]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>
+                            }
+                        />
+                    </View>
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

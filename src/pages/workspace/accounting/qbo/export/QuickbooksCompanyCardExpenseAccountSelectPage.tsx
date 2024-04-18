@@ -11,6 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
@@ -76,22 +78,31 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
-        >
-            <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
-            <View style={styles.pb2}>
-                <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
-                    sections={sections}
-                    ListItem={RadioListItem}
-                    onSelectRow={onSelectRow}
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    footerContent={isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>}
-                />
-            </View>
-        </ScreenWrapper>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            >
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
+                >
+                    <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
+                    <View style={styles.pb2}>
+                        <SelectionList
+                            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
+                            sections={sections}
+                            ListItem={RadioListItem}
+                            onSelectRow={onSelectRow}
+                            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                            footerContent={
+                                isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>
+                            }
+                        />
+                    </View>
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

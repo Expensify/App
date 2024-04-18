@@ -9,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
+import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
@@ -72,20 +74,27 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={QuickbooksOutOfPocketExpenseAccountSelectPage.displayName}
-        >
-            <HeaderWithBackButton title={translate('workspace.qbo.accountsPayable')} />
-            <SelectionList
-                containerStyle={styles.pb2}
-                headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
-                sections={[{data}]}
-                ListItem={RadioListItem}
-                onSelectRow={onSelectRow}
-                initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-            />
-        </ScreenWrapper>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            >
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    testID={QuickbooksOutOfPocketExpenseAccountSelectPage.displayName}
+                >
+                    <HeaderWithBackButton title={translate('workspace.qbo.accountsPayable')} />
+                    <SelectionList
+                        containerStyle={styles.pb2}
+                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
+                        sections={[{data}]}
+                        ListItem={RadioListItem}
+                        onSelectRow={onSelectRow}
+                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                    />
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
