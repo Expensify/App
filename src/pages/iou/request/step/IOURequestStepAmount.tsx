@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -33,6 +33,9 @@ type IOURequestStepAmountOnyxProps = {
 
     /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<Policy>;
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
@@ -40,7 +43,15 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
-
+function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWithDefault | undefined, newAmount: number) {
+    if (!transaction?.amount) {
+        return;
+    }
+    const transactionTaxCode = transaction?.taxCode ?? '';
+    const defaultTaxValue = taxRates?.defaultValue;
+    const taxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : defaultTaxValue) ?? '';
+    return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
+}
 function IOURequestStepAmount({
     report,
     route: {
@@ -49,6 +60,7 @@ function IOURequestStepAmount({
     transaction,
     splitDraftTransaction,
     draftTransaction,
+    policy,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -148,7 +160,9 @@ function IOURequestStepAmount({
             return;
         }
 
-        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount});
+        const taxAmount = getTaxAmount(transaction, policy?.taxRates, newAmount);
+
+        IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount});
         Navigation.dismissModal();
     };
 
@@ -189,6 +203,9 @@ export default withWritableReportOrNotFound(
                     const transactionID = route.params.transactionID ?? 0;
                     return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
                 },
+            },
+            policy: {
+                key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
             },
         })(IOURequestStepAmount),
     ),
