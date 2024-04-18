@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -26,10 +27,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])];
-    const invoiceAccountOptions = [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])];
+    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isSyncReimbursedSwitchOn = Boolean(collectionAccountID !== '');
+    const selectedAccount = '92345'; // TODO: use fake selected account temporarily.
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
@@ -101,56 +101,51 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 wrapperStyle={styles.mv3}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 pendingAction={pendingFields?.reimbursementAccountID || pendingFields?.collectionAccountID}
-                                isActive={Boolean(accountOptions[0]?.id)} // TODO
+                                isActive={isSyncReimbursedSwitchOn} // TODO
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 onToggle={() =>
                                     Connections.updatePolicyConnectionConfig(
                                         policyID,
                                         CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                        CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID || CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-                                        accountOptions[0]?.id,
-                                    )
-                                }
-                            />
-
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title="Croissant Co Payroll Account" // TODO: set to the current selected value
-                                description={translate('workspace.qbo.advancedConfig.qboAccount')}
-                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                            />
-
-                            <View style={styles.mv3}>
-                                <SpacerView
-                                    shouldShow
-                                    style={[styles.chatItemComposeBoxColor]}
-                                />
-                            </View>
-
-                            <ToggleSettingOptionRow
-                                title={translate('workspace.qbo.advancedConfig.collectionAccount')}
-                                subtitle={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
-                                shouldPlaceSubtitleBelowSwitch
-                                wrapperStyle={styles.mv3}
-                                pendingAction={pendingFields?.collectionAccountID}
-                                isActive={Boolean(invoiceAccountOptions[0]?.id)} // TODO
-                                onToggle={() =>
-                                    Connections.updatePolicyConnectionConfig(
-                                        policyID,
-                                        CONST.POLICY.CONNECTIONS.NAME.QBO,
                                         CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-                                        invoiceAccountOptions[0]?.id,
+                                        isSyncReimbursedSwitchOn ? '' : selectedAccount,
                                     )
                                 }
                             />
 
-                            <MenuItemWithTopDescription
-                                title="Croissant Co Money in Clearing" // TODO: set to the current selected value
-                                shouldShowRightIcon
-                                wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                            />
+                            {collectionAccountID && (
+                                <>
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title="Croissant Co Payroll Account" // TODO: set to the current selected value
+                                        description={translate('workspace.qbo.advancedConfig.qboAccount')}
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                        onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                                    />
+
+                                    <View style={styles.mv3}>
+                                        <SpacerView
+                                            shouldShow
+                                            style={[styles.chatItemComposeBoxColor]}
+                                        />
+                                    </View>
+
+                                    <MenuItem
+                                        title={translate('workspace.qbo.advancedConfig.collectionAccount')}
+                                        description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
+                                        shouldShowBasicTitle
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                        interactive={false}
+                                    />
+
+                                    <MenuItemWithTopDescription
+                                        title="Croissant Co Money in Clearing" // TODO: set to the current selected value
+                                        shouldShowRightIcon
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                        onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                                    />
+                                </>
+                            )}
                         </ScrollView>
                     </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>
