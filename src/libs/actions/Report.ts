@@ -3142,6 +3142,7 @@ function completeOnboarding(
                         managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                     isOptimisticReport: true,
+                    permissions: [CONST.REPORT.PERMISSIONS.READ],
                 },
             },
             {
@@ -3176,6 +3177,7 @@ function completeOnboarding(
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 lastMentionedTime: DateUtils.getDBTime(),
+                permissions: [CONST.REPORT.PERMISSIONS.READ],
             },
         },
         {
