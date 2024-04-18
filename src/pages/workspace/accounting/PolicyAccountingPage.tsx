@@ -92,7 +92,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 shouldShowRightComponent: true,
                 title: translate('workspace.accounting.qbo'),
                 description: isSyncInProgress
-                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
+                    ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress})
                     : translate('workspace.accounting.lastSync'),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
