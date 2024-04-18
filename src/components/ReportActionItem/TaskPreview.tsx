@@ -76,7 +76,6 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
     const htmlForTaskPreview =
         taskAssigneeAccountID !== 0 ? `<comment><mention-user accountid="${taskAssigneeAccountID}"></mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportUtils.isCanceledTaskReport(taskReport, action);
-    const isReadOnly = ReportUtils.isReadOnly(taskReport);
 
     if (isDeletedParentAction) {
         return <RenderHTML html={`<comment>${translate('parentReportAction.deletedTask')}</comment>`} />;
@@ -99,12 +98,8 @@ function TaskPreview({taskReport, taskReportID, action, contextMenuAnchor, chatR
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID) && !isReadOnly}
+                        disabled={!Task.canModifyTask(taskReport, currentUserPersonalDetails.accountID)}
                         onPress={Session.checkIfActionIsAllowed(() => {
-                            if (isReadOnly) {
-                                return;
-                            }
-
                             if (isTaskCompleted) {
                                 Task.reopenTask(taskReport);
                             } else {

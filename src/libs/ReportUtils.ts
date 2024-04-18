@@ -1187,9 +1187,25 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ *
+ * Checks if report is in read-only mode.
+ */
+function isReadOnly(report: OnyxEntry<Report>): boolean {
+    if (Array.isArray(report?.permissions)) {
+        return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
+    }
+
+    return false;
+}
+
+/**
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
+    if (isReadOnly(report)) {
+        return false;
+    }
+
     // Default to allowing all users to post
     const capability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -5268,18 +5284,6 @@ function isMoneyRequestReportPendingDeletion(report: OnyxEntry<Report> | EmptyOb
 
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-}
-
-/**
- *
- * Checks if report is in read-only mode.
- */
-function isReadOnly(report: OnyxEntry<Report>): boolean {
-    if (Array.isArray(report?.permissions)) {
-        return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
-    }
-
-    return false;
 }
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {

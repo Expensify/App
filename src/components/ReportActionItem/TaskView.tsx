@@ -60,7 +60,7 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
     const isOpen = ReportUtils.isOpenTaskReport(report);
     const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
     const disableState = !canModifyTask;
-    const isDisableInteractive = !canModifyTask || !isOpen || ReportUtils.isReadOnly(report);
+    const isDisableInteractive = !canModifyTask || !isOpen;
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const {translate} = useLocalize();
 
