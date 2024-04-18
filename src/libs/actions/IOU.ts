@@ -5855,7 +5855,7 @@ function dismissHoldUseExplanation() {
     ];
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
-        optimisticData
+        optimisticData,
     });
 }
 
