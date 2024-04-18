@@ -1,10 +1,10 @@
 import lodashDebounce from 'lodash/debounce';
+import lodashFind from 'lodash/find';
+import lodashFindIndex from 'lodash/findIndex';
 import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
-import lodashValues from 'lodash/values';
-import lodashFind from 'lodash/find';
 import lodashMap from 'lodash/map';
-import lodashFindIndex from 'lodash/findIndex';
+import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import {View} from 'react-native';

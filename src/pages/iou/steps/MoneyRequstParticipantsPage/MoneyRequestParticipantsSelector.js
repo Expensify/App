@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashMap from 'lodash/map';
-import lodashSome from 'lodash/some';
 import lodashReject from 'lodash/reject';
+import lodashSome from 'lodash/some';
 import PropTypes from 'prop-types';
 import React, {useCallback, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';

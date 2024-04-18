@@ -1,5 +1,5 @@
+import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
-import lodashValues from 'lodash/values'
 import {translatableTextPropTypes} from '@libs/Localize';
 import CONST from '@src/CONST';
 import sourcePropTypes from './Image/sourcePropTypes';
