@@ -25,9 +25,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import SearchPageFooter from './SearchPageFooter';
+import ChatFinderPageFooter from './ChatFinderPageFooter';
 
-type SearchPageOnyxProps = {
+type ChatFinderPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
 
@@ -35,23 +35,23 @@ type SearchPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type SearchPageProps = SearchPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT>;
+type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
 
-type SearchPageSectionItem = {
+type ChatFinderPageSectionItem = {
     data: OptionData[];
     shouldShow: boolean;
 };
 
-type SearchPageSectionList = SearchPageSectionItem[];
+type ChatFinderPageSectionList = ChatFinderPageSectionItem[];
 
 const setPerformanceTimersEnd = () => {
-    Timing.end(CONST.TIMING.SEARCH_RENDER);
-    Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
+    Timing.end(CONST.TIMING.CHAT_FINDER_RENDER);
+    Performance.markEnd(CONST.TIMING.CHAT_FINDER_RENDER);
 };
 
-const SerachPageFooterInstance = <SearchPageFooter />;
+const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
-function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps) {
+function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
@@ -65,8 +65,8 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
     useEffect(() => {
-        Timing.start(CONST.TIMING.SEARCH_RENDER);
-        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
+        Timing.start(CONST.TIMING.CHAT_FINDER_RENDER);
+        Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
     }, []);
 
     useEffect(() => {
@@ -113,8 +113,8 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
 
     const {recentReports, personalDetails: localPersonalDetails, userToInvite, headerMessage} = debouncedSearchValue.trim() !== '' ? filteredOptions : searchOptions;
 
-    const sections = useMemo((): SearchPageSectionList => {
-        const newSections: SearchPageSectionList = [];
+    const sections = useMemo((): ChatFinderPageSectionList => {
+        const newSections: ChatFinderPageSectionList = [];
 
         if (recentReports?.length > 0) {
             newSections.push({
@@ -162,12 +162,13 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={SearchPage.displayName}
+            testID={ChatFinderPage.displayName}
             onEntryTransitionEnd={handleScreenTransitionEnd}
             shouldEnableMaxHeight
             navigation={navigation}
         >
             <HeaderWithBackButton
+                // ASK: What text do we want to use for the title?
                 title={translate('common.search')}
                 onBackButtonPress={Navigation.goBack}
             />
@@ -183,16 +184,16 @@ function SearchPage({betas, isSearchingForReports, navigation}: SearchPageProps)
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
-                footerContent={!isDismissed && SerachPageFooterInstance}
+                footerContent={!isDismissed && ChatFinderPageFooterInstance}
                 isLoadingNewOptions={isSearchingForReports ?? undefined}
             />
         </ScreenWrapper>
     );
 }
 
-SearchPage.displayName = 'SearchPage';
+ChatFinderPage.displayName = 'ChatFinderPage';
 
-export default withOnyx<SearchPageProps, SearchPageOnyxProps>({
+export default withOnyx<ChatFinderPageProps, ChatFinderPageOnyxProps>({
     betas: {
         key: ONYXKEYS.BETAS,
     },
@@ -200,4 +201,4 @@ export default withOnyx<SearchPageProps, SearchPageOnyxProps>({
         key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
         initWithStoredValues: false,
     },
-})(SearchPage);
+})(ChatFinderPage);

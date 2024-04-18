@@ -84,8 +84,8 @@ function IOURequestStepTaxAmountPage({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // If the money request being created is a distance request, don't allow the user to choose the currency.
-        // Only USD is allowed for distance requests.
+        // If the expense being created is a distance expense, don't allow the user to choose the currency.
+        // Only USD is allowed for distance expenses.
         // Remove query from the route and encode it.
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
