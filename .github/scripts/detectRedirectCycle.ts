@@ -2,7 +2,7 @@ import {parse} from 'csv-parse';
 import fs from 'fs';
 
 const parser = parse({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+    // eslint-disable-next-line @typescript-eslint/camelcase
     skip_empty_lines: true,
 });
 const adjacencyList: Record<string, string[]> = {};
