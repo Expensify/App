@@ -317,6 +317,19 @@ function FloatingActionButtonAndPopover(
                             ),
                     },
                     {
+                        icon: Expensicons.Transfer,
+                        text: translate('iou.splitExpense'),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                IOU.startMoneyRequest(
+                                    CONST.IOU.TYPE.SPLIT,
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ReportUtils.generateReportID(),
+                                ),
+                            ),
+                    },
+                    {
                         icon: Expensicons.Send,
                         text: translate('iou.paySomeone', {}),
                         onSelected: () =>
