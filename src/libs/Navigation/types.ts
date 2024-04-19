@@ -11,8 +11,9 @@ import type {
     Route,
 } from '@react-navigation/native';
 import type {ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
-import type {Country} from '@src/CONST';
+import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {HybridAppRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -58,7 +59,11 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SEARCH.CENTRAL_PANE]: {
+        query: string;
+    };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
@@ -103,6 +108,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.CLOSE]: undefined;
     [SCREENS.SETTINGS.SECURITY]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
+    [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.CONSOLE]: undefined;
@@ -241,22 +247,22 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_IMPORT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_LOCATIONS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CLASSES]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_CUSTOMERS]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.QUICKBOOKS_ONLINE_TAXES]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: {
         policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
@@ -292,10 +298,13 @@ type SettingsNavigatorParamList = {
 
 type NewChatNavigatorParamList = {
     [SCREENS.NEW_CHAT.ROOT]: undefined;
+    [SCREENS.NEW_CHAT.NEW_CHAT_EDIT_NAME]: {
+        reportID?: string;
+    };
 };
 
-type SearchNavigatorParamList = {
-    [SCREENS.SEARCH_ROOT]: undefined;
+type ChatFinderNavigatorParamList = {
+    [SCREENS.CHAT_FINDER_ROOT]: undefined;
 };
 
 type DetailsNavigatorParamList = {
@@ -323,6 +332,7 @@ type ReportDetailsNavigatorParamList = {
 type ReportSettingsNavigatorParamList = {
     [SCREENS.REPORT_SETTINGS.ROOT]: undefined;
     [SCREENS.REPORT_SETTINGS.ROOM_NAME]: undefined;
+    [SCREENS.REPORT_SETTINGS.GROUP_NAME]: undefined;
     [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: undefined;
     [SCREENS.REPORT_SETTINGS.WRITE_CAPABILITY]: undefined;
     [SCREENS.REPORT_SETTINGS.VISIBILITY]: {
@@ -335,7 +345,16 @@ type ReportDescriptionNavigatorParamList = {
 };
 
 type ParticipantsNavigatorParamList = {
-    [SCREENS.REPORT_PARTICIPANTS_ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.ROOT]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.INVITE]: {reportID: string};
+    [SCREENS.REPORT_PARTICIPANTS.DETAILS]: {
+        reportID: string;
+        accountID: string;
+    };
+    [SCREENS.REPORT_PARTICIPANTS.ROLE]: {
+        reportID: string;
+        accountID: string;
+    };
 };
 
 type RoomMembersNavigatorParamList = {
@@ -345,78 +364,73 @@ type RoomMembersNavigatorParamList = {
 type RoomInviteNavigatorParamList = {
     [SCREENS.ROOM_INVITE_ROOT]: {
         reportID: string;
+        role?: 'accountant';
     };
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
-        transactionID: string;
-        reportID: string;
-        backTo: string;
-    };
     [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
         iouType: string;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
         reportActionID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportActionID: string;
         reportID: string;
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
+        currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAG]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
         reportActionID: string;
-        tagIndex: string;
+        orderWeight: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: {
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        iouType: IOUType;
         reportID: string;
         backTo: Routes | undefined;
-        action: ValueOf<typeof CONST.IOU.ACTION>;
+        action: IOUAction;
         pageIndex: string;
         transactionID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
@@ -431,8 +445,8 @@ type MoneyRequestNavigatorParamList = {
         threadReportID: number;
     };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
-        action: string;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
@@ -441,18 +455,61 @@ type MoneyRequestNavigatorParamList = {
         iouType: string;
         reportID: string;
     };
+    [SCREENS.MONEY_REQUEST.CREATE]: {
+        iouType: IOUType;
+        reportID: string;
+        transactionID: string;
+
+        // These are not used in the screen, but are needed for the navigation
+        // for IOURequestStepDistance and IOURequestStepAmount components
+        backTo: never;
+        action: never;
+        currency: never;
+    };
+    [SCREENS.MONEY_REQUEST.START]: {
+        iouType: IOUType;
+        reportID: string;
+        transactionID: string;
+        iouRequestType: IOURequestType;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: {
+        iouType: IOUType;
+        reportID: string;
+        transactionID: string;
+        backTo: Routes;
+        action: IOUAction;
+        currency?: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
-        action: ValueOf<typeof CONST.IOU.ACTION>;
-        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        action: IOUAction;
+        iouType: IOUType;
         transactionID: string;
         reportID: string;
         pageIndex?: string;
         backTo?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SCAN]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        pageIndex: number;
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        pageIndex?: string;
+        backTo?: Routes;
+        currency?: string;
     };
 };
 
@@ -560,7 +617,7 @@ type PrivateNotesNavigatorParamList = {
 };
 
 type LeftModalNavigatorParamList = {
-    [SCREENS.LEFT_MODAL.SEARCH]: NavigatorScreenParams<SearchNavigatorParamList>;
+    [SCREENS.LEFT_MODAL.CHAT_FINDER]: NavigatorScreenParams<ChatFinderNavigatorParamList>;
     [SCREENS.LEFT_MODAL.WORKSPACE_SWITCHER]: NavigatorScreenParams<WorkspaceSwitcherNavigatorParamList>;
 };
 
@@ -627,7 +684,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.CATEGORIES]: {
@@ -646,7 +703,7 @@ type WorkspacesCentralPaneNavigatorParamList = {
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
         policyID: string;
     };
 };
@@ -670,6 +727,7 @@ type WelcomeVideoModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
     [SCREENS.SETTINGS.ROOT]: undefined;
 };
 
@@ -736,7 +794,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
-type RootStackParamList = PublicScreensParamList & AuthScreensParamList & SearchNavigatorParamList;
+type RootStackParamList = PublicScreensParamList & AuthScreensParamList & ChatFinderNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
 
@@ -751,54 +809,54 @@ type SwitchPolicyIDParams = {
 };
 
 export type {
-    NavigationRef,
-    StackNavigationAction,
-    CentralPaneNavigatorParamList,
-    BottomTabName,
-    CentralPaneName,
-    FullScreenName,
-    RootStackParamList,
-    StateOrRoute,
-    NavigationStateRoute,
-    NavigationPartialRoute,
-    NavigationRoot,
+    AddPersonalBankAccountNavigatorParamList,
     AuthScreensParamList,
+    BackToParams,
+    BottomTabName,
     BottomTabNavigatorParamList,
-    LeftModalNavigatorParamList,
-    RightModalNavigatorParamList,
-    OnboardingModalNavigatorParamList,
-    WelcomeVideoModalNavigatorParamList,
-    PublicScreensParamList,
-    MoneyRequestNavigatorParamList,
-    SplitDetailsNavigatorParamList,
+    CentralPaneName,
+    CentralPaneNavigatorParamList,
+    ChatFinderNavigatorParamList,
     DetailsNavigatorParamList,
-    ProfileNavigatorParamList,
-    ReportDetailsNavigatorParamList,
-    ReportSettingsNavigatorParamList,
-    TaskDetailsNavigatorParamList,
-    ReportDescriptionNavigatorParamList,
-    ParticipantsNavigatorParamList,
-    RoomMembersNavigatorParamList,
-    RoomInviteNavigatorParamList,
-    SearchNavigatorParamList,
+    EditRequestNavigatorParamList,
+    EnablePaymentsNavigatorParamList,
+    FlagCommentNavigatorParamList,
+    FullScreenName,
+    FullScreenNavigatorParamList,
+    LeftModalNavigatorParamList,
+    MoneyRequestNavigatorParamList,
+    NavigationPartialRoute,
+    NavigationRef,
+    NavigationRoot,
+    NavigationStateRoute,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
-    TeachersUniteNavigatorParamList,
-    SettingsNavigatorParamList,
-    EnablePaymentsNavigatorParamList,
-    AddPersonalBankAccountNavigatorParamList,
-    WalletStatementNavigatorParamList,
-    FlagCommentNavigatorParamList,
-    EditRequestNavigatorParamList,
+    OnboardEngagementNavigatorParamList,
+    OnboardingModalNavigatorParamList,
+    ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
-    SignInNavigatorParamList,
+    ProfileNavigatorParamList,
+    PublicScreensParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
+    ReportDetailsNavigatorParamList,
+    ReportSettingsNavigatorParamList,
+    RightModalNavigatorParamList,
+    RoomInviteNavigatorParamList,
+    RoomMembersNavigatorParamList,
+    RootStackParamList,
+    SettingsNavigatorParamList,
+    SignInNavigatorParamList,
+    SplitDetailsNavigatorParamList,
+    StackNavigationAction,
     State,
-    WorkspaceSwitcherNavigatorParamList,
-    OnboardEngagementNavigatorParamList,
+    StateOrRoute,
     SwitchPolicyIDParams,
-    FullScreenNavigatorParamList,
+    TaskDetailsNavigatorParamList,
+    TeachersUniteNavigatorParamList,
+    WalletStatementNavigatorParamList,
+    WelcomeVideoModalNavigatorParamList,
+    WorkspaceSwitcherNavigatorParamList,
     WorkspacesCentralPaneNavigatorParamList,
-    BackToParams,
 };
