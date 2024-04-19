@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,7 +18,6 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import WorkspaceCardCreateAWorkspace from '@pages/workspace/card/WorkspaceCardCreateAWorkspace';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import WorkspacesSectionHeader from './WorkspacesSectionHeader';
 
@@ -40,23 +38,20 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceListItem, workspace2: Wor
     return workspace1.text?.toLowerCase().localeCompare(workspace2.text?.toLowerCase() ?? '') ?? 0;
 };
 
-type WorkspaceSwitcherPageOnyxProps = {
-    /** The list of this user's policies */
-    policies: OnyxCollection<Policy>;
-};
-
-type WorkspaceSwitcherPageProps = WorkspaceSwitcherPageOnyxProps;
-
 const WorkspaceCardCreateAWorkspaceInstance = <WorkspaceCardCreateAWorkspace />;
 
-function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
+function WorkspaceSwitcherPage() {
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
-    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(), []);
-    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(), []);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    const brickRoadsForPolicies = useMemo(() => getWorkspacesBrickRoads(reports, policies, reportActions), [reports, policies, reportActions]);
+    const unreadStatusesForPolicies = useMemo(() => getWorkspacesUnreadStatuses(reports), [reports]);
 
     const getIndicatorTypeForPolicy = useCallback(
         (policyId?: string) => {
@@ -125,7 +120,7 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
-                boldStyle: hasUnreadData(policy?.id),
+                isBold: hasUnreadData(policy?.id),
                 keyForList: policy?.id,
                 isPolicyAdmin: PolicyUtils.isPolicyAdmin(policy),
                 isSelected: activeWorkspaceID === policy?.id,
@@ -201,8 +196,4 @@ function WorkspaceSwitcherPage({policies}: WorkspaceSwitcherPageProps) {
 
 WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
 
-export default withOnyx<WorkspaceSwitcherPageProps, WorkspaceSwitcherPageOnyxProps>({
-    policies: {
-        key: ONYXKEYS.COLLECTION.POLICY,
-    },
-})(WorkspaceSwitcherPage);
+export default WorkspaceSwitcherPage;

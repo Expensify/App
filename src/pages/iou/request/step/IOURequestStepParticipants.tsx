@@ -45,7 +45,7 @@ function IOURequestStepParticipants({
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (action === CONST.IOU.ACTION.MOVE) {
+        if (action === CONST.IOU.ACTION.REQUEST) {
             return translate('iou.submitExpense');
         }
         if (action === CONST.IOU.ACTION.SHARE) {
