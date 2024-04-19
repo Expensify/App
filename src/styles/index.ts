@@ -3207,6 +3207,20 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 3,
         },
 
+        WorkspaceRightColumn: {
+            marginLeft: 99,
+        },
+
+        workspaceThreeDotMenu: {
+            marginLeft: 59,
+        },
+
+        workspaceListBadge: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 6,
+        },
+
         autoGrowHeightMultilineInput: {
             maxHeight: 115,
         },
