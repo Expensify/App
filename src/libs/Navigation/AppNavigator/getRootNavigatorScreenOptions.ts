@@ -103,7 +103,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             ...hideKeyboardOnSwipe,
             title: CONFIG.SITE_TITLE,
-            animationEnabled: isSmallScreenWidth,
+            animation: isSmallScreenWidth ? 'none' : undefined,
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
@@ -124,7 +124,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
                 ...(isSmallScreenWidth ? {} : themeStyles.borderRight),
             },
         },
-    };
+    } satisfies ScreenOptions;
 };
 
 export default getRootNavigatorScreenOptions;

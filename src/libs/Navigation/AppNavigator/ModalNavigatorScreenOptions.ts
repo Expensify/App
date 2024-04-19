@@ -10,6 +10,7 @@ import type {ThemeStyles} from '@styles/index';
 const ModalNavigatorScreenOptions = (themeStyles: ThemeStyles): PlatformStackNavigationOptions => ({
     headerShown: false,
     cardStyle: themeStyles.navigationScreenCardStyle,
+    animation: 'slide_from_left',
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 });
 

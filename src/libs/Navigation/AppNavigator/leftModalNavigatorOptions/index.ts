@@ -3,7 +3,7 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 const leftModalNavigatorOptions: PlatformStackNavigationOptions = {
     presentation: 'transparentModal',
     animation: 'slide_from_left',
-    customAnimationOnGesture: true,
+    // customAnimationOnGesture: true,
 };
 
 export default leftModalNavigatorOptions;
