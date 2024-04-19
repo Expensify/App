@@ -186,7 +186,6 @@ function IOURequestStepScan({
     };
 
     function validateReceipt(file: FileObject) {
-        console.debug('hello');
         return FileUtils.validateImageForCorruption(file)
             .then(() => {
                 const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
@@ -593,10 +592,3 @@ const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFo
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 
 export default IOURequestStepScanWithFullTransactionOrNotFound;
-
-// function validateReceipt(file: FileObject): Promise<boolean> {
-//     return new Promise((resolve) => {
-//         checkPDFDocument.isValidPDF(file.uri ?? '').then((isValid) => {
-//             const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
-//             if (
-//                 !isValid ||
