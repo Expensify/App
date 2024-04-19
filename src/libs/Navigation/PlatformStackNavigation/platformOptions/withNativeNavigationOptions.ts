@@ -2,9 +2,9 @@ import type {ParamListBase} from '@react-navigation/native';
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationOptionsRouteProps, PlatformStackNavigationOptions, PlatformStackNavigatorProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import slideFromLeftAnimation from './animationOptions/native/slideFromLeft';
-import slideFromRightAnimation from './animationOptions/native/slideFromRight';
-import withAnimation from './animationOptions/withAnimation';
+import slideFromLeftAnimation from './animation/native/slideFromLeft';
+import slideFromRightAnimation from './animation/native/slideFromRight';
+import withAnimation from './animation/withAnimation';
 import getCommonNavigationOptions from './utils';
 
 const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigationOptions | undefined): NativeStackNavigationOptions => ({

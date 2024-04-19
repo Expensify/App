@@ -2,9 +2,9 @@ import type {ParamListBase} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
 import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationOptionsRouteProps, PlatformStackNavigationOptions, PlatformStackNavigatorProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import slideFromLeftAnimation from './animationOptions/web/slideFromLeft';
-import slideFromRightAnimation from './animationOptions/web/slideFromRight';
-import withAnimation from './animationOptions/withAnimation';
+import slideFromLeftAnimation from './animation/web/slideFromLeft';
+import slideFromRightAnimation from './animation/web/slideFromRight';
+import withAnimation from './animation/withAnimation';
 import getCommonNavigationOptions from './utils';
 
 const transformPlatformOptionsToWeb = (screenOptions: PlatformStackNavigationOptions | undefined): StackNavigationOptions => ({
