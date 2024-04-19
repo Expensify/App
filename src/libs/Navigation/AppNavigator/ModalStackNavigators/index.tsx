@@ -85,7 +85,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_SCAN]: () => require('../../../../pages/iou/request/step/IOURequestStepScan').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_TAG]: () => require('../../../../pages/iou/request/step/IOURequestStepTag').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STEP_WAYPOINT]: () => require('../../../../pages/iou/request/step/IOURequestStepWaypoint').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.PARTICIPANTS]: () => require('../../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.HOLD]: () => require('../../../../pages/iou/HoldReasonPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
