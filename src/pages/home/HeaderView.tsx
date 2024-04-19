@@ -202,7 +202,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
-    const shouldUseGroupTitle = report?.reportName !== ''
+    const shouldUseGroupTitle = report?.reportName !== '';
     const isLoading = !report.reportID || !title;
 
     return (
