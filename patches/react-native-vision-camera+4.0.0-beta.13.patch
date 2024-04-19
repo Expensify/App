@@ -8,7 +8,7 @@ index 3a0e313..e983153 100644
  
 -nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('react-native/package.json')"`), '..')
 +pkgJsonPath = ENV['REACT_NATIVE_DIR'] ? '../react-native/package.json' : 'react-native/package.json'
-+nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('../react-native/package.json')"`), '..')
++nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('#{pkgJsonPath}')"`), '..')
 +
 +frameworks_flags = {
 +  "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
