@@ -30,10 +30,16 @@ type NavigationOptionsRouteProps<TStackParams extends ParamListBase> = {
     navigation: any;
 };
 
+type PlatformStackNavigationProp<
+    TStackParams extends ParamListBase,
+    RouteName extends keyof TStackParams = keyof TStackParams,
+    NavigatorID extends string | undefined = undefined,
+> = NavigationProp<TStackParams, RouteName, NavigatorID, PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap>;
+type PlatformStackRouteProp<TStackParams extends ParamListBase, RouteName extends keyof TStackParams> = RouteProp<TStackParams, RouteName>;
+
 type PlatformStackScreenProps<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams, NavigatorID extends string | undefined = undefined> = {
-    navigation: NavigationProp<TStackParams, RouteName, NavigatorID, PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap> &
-        StackActionHelpers<TStackParams>;
-    route: RouteProp<TStackParams, RouteName>;
+    navigation: PlatformStackNavigationProp<TStackParams, RouteName, NavigatorID> & StackActionHelpers<TStackParams>;
+    route: PlatformStackRouteProp<TStackParams, RouteName>;
 };
 
 function isRouteBasedScreenOptions<TStackParams extends ParamListBase>(
@@ -50,6 +56,8 @@ export type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationEventMap,
     PlatformStackNavigationRouterOptions,
+    PlatformStackNavigationProp,
+    PlatformStackRouteProp,
     PlatformStackScreenProps,
     PlatformStackNavigatorProps,
     NavigationOptionsRouteProps,

@@ -1,6 +1,6 @@
-import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
-const rightModalNavigatorOptions = (): NativeStackNavigationOptions => ({
+const rightModalNavigatorOptions = (): PlatformStackNavigationOptions => ({
     presentation: 'card',
     animation: 'slide_from_right',
 });

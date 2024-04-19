@@ -1,8 +1,8 @@
 import {useNavigationState} from '@react-navigation/native';
-import type {StackNavigationOptions} from '@react-navigation/stack';
 import React from 'react';
 import createCustomBottomTabNavigator from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {BottomTabNavigatorParamList} from '@libs/Navigation/types';
 import SidebarScreen from '@pages/home/sidebar/SidebarScreen';
 import SearchPageBottomTab from '@pages/Search/SearchPageBottomTab';
@@ -13,7 +13,7 @@ const loadInitialSettingsPage = () => require('../../../../pages/settings/Initia
 
 const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
-const screenOptions: StackNavigationOptions = {
+const screenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
     animationEnabled: false,
 };
