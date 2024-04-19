@@ -4,7 +4,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -56,13 +55,11 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
 
         if (isPolicyNotAccessible) {
             return (
-                <ScreenWrapper testID={AdminPolicyAccessOrNotFoundComponent.displayName}>
-                    <FullPageNotFoundView
-                        shouldShow
-                        shouldForceFullScreen
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    />
-                </ScreenWrapper>
+                <FullPageNotFoundView
+                    shouldShow
+                    shouldForceFullScreen
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                />
             );
         }
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))} />;
@@ -70,7 +67,6 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
 
     return typeof props.children === 'function' ? props.children(props) : props.children;
 }
-AdminPolicyAccessOrNotFoundComponent.displayName = 'AdminPolicyAccessOrNotFoundComponent';
 
 export default withOnyx<AdminPolicyAccessOrNotFoundComponentProps, AdminAccessOrNotFoundOnyxProps>({
     policy: {
