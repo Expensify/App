@@ -1,0 +1,587 @@
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js b/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js
+index e73a338..d34ed47 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js
++++ b/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js
+@@ -4,9 +4,13 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.default = createNavigatorFactory;
++var React = _interopRequireWildcard(require("react"));
+ var _Group = _interopRequireDefault(require("./Group"));
+ var _Screen = _interopRequireDefault(require("./Screen"));
+ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
++function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
++function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
++function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+ /**
+  * Higher order component to create a `Navigator` and `Screen` pair.
+  * Custom navigators should wrap the navigator component in `createNavigator` before exporting.
+@@ -14,15 +18,24 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
+  * @param Navigator The navigtor component to wrap.
+  * @returns Factory method to create a `Navigator` and `Screen` pair.
+  */
+-function createNavigatorFactory(Navigator) {
++function createNavigatorFactory(Navigator, transformScreenOptions) {
+   return function () {
+     if (arguments[0] !== undefined) {
+       throw new Error("Creating a navigator doesn't take an argument. Maybe you are trying to use React Navigation 4 API? See https://reactnavigation.org/docs/hello-react-navigation for the latest API and guides.");
+     }
++    const TransformedScreen = transformScreenOptions === undefined ? _Screen.default : _ref => {
++      let {
++        options,
++        ...props
++      } = _ref;
++      return /*#__PURE__*/React.createElement(_Screen.default, _extends({
++        options: transformScreenOptions(options)
++      }, props));
++    };
+     return {
+       Navigator,
+       Group: _Group.default,
+-      Screen: _Screen.default
++      Screen: TransformedScreen
+     };
+   };
+ }
+diff --git a/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js.map b/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js.map
+index e5c26f6..d7156c8 100644
+--- a/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js.map
++++ b/node_modules/@react-navigation/core/lib/commonjs/createNavigatorFactory.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["createNavigatorFactory","Navigator","arguments","undefined","Error","Group","Screen"],"sourceRoot":"../../src","sources":["createNavigatorFactory.tsx"],"mappings":";;;;;;AAGA;AACA;AAA8B;AAG9B;AACA;AACA;AACA;AACA;AACA;AACA;AACe,SAASA,sBAAsB,CAK5CC,SAA6B,EAAE;EAC/B,OAAO,YAML;IACA,IAAIC,SAAS,CAAC,CAAC,CAAC,KAAKC,SAAS,EAAE;MAC9B,MAAM,IAAIC,KAAK,CACb,+LAA+L,CAChM;IACH;IAEA,OAAO;MACLH,SAAS;MACTI,KAAK,EAALA,cAAK;MACLC,MAAM,EAANA;IACF,CAAC;EACH,CAAC;AACH"}
+\ No newline at end of file
++{"version":3,"names":["createNavigatorFactory","Navigator","transformScreenOptions","arguments","undefined","Error","TransformedScreen","Screen","options","props","Group"],"sourceRoot":"../../src","sources":["createNavigatorFactory.tsx"],"mappings":";;;;;;AACA;AAEA;AACA;AAA8B;AAAA;AAAA;AAAA;AAG9B;AACA;AACA;AACA;AACA;AACA;AACA;AACe,SAASA,sBAAsB,CAO5CC,SAA6B,EAC7BC,sBAA6E,EAC7E;EACA,OAAO,YAML;IACA,IAAIC,SAAS,CAAC,CAAC,CAAC,KAAKC,SAAS,EAAE;MAC9B,MAAM,IAAIC,KAAK,CACb,+LAA+L,CAChM;IACH;IAEA,MAAMC,iBAAiB,GACrBJ,sBAAsB,KAAKE,SAAS,GAChCG,eAAM,GACN,QASM;MAAA,IAT8B;QAClCC,OAAO;QACP,GAAGC;MAOL,CAAC;MACC,oBACE,oBAAC,eAAM;QACL,OAAO,EAAEP,sBAAsB,CAC7BM,OAAO;MACP,GACEC,KAAK,EACT;IAEN,CAAC;IAEP,OAAO;MACLR,SAAS;MACTS,KAAK,EAALA,cAAK;MACLH,MAAM,EAAED;IACV,CAAC;EACH,CAAC;AACH"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js b/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js
+index f6f02ca..0836dfb 100644
+--- a/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js
++++ b/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js
+@@ -1,3 +1,5 @@
++function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
++import * as React from 'react';
+ import Group from './Group';
+ import Screen from './Screen';
+ /**
+@@ -7,15 +9,24 @@ import Screen from './Screen';
+  * @param Navigator The navigtor component to wrap.
+  * @returns Factory method to create a `Navigator` and `Screen` pair.
+  */
+-export default function createNavigatorFactory(Navigator) {
++export default function createNavigatorFactory(Navigator, transformScreenOptions) {
+   return function () {
+     if (arguments[0] !== undefined) {
+       throw new Error("Creating a navigator doesn't take an argument. Maybe you are trying to use React Navigation 4 API? See https://reactnavigation.org/docs/hello-react-navigation for the latest API and guides.");
+     }
++    const TransformedScreen = transformScreenOptions === undefined ? Screen : _ref => {
++      let {
++        options,
++        ...props
++      } = _ref;
++      return /*#__PURE__*/React.createElement(Screen, _extends({
++        options: transformScreenOptions(options)
++      }, props));
++    };
+     return {
+       Navigator,
+       Group,
+-      Screen
++      Screen: TransformedScreen
+     };
+   };
+ }
+diff --git a/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js.map b/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js.map
+index 0054bc4..954b923 100644
+--- a/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js.map
++++ b/node_modules/@react-navigation/core/lib/module/createNavigatorFactory.js.map
+@@ -1 +1 @@
+-{"version":3,"names":["Group","Screen","createNavigatorFactory","Navigator","arguments","undefined","Error"],"sourceRoot":"../../src","sources":["createNavigatorFactory.tsx"],"mappings":"AAGA,OAAOA,KAAK,MAAM,SAAS;AAC3B,OAAOC,MAAM,MAAM,UAAU;AAG7B;AACA;AACA;AACA;AACA;AACA;AACA;AACA,eAAe,SAASC,sBAAsB,CAK5CC,SAA6B,EAAE;EAC/B,OAAO,YAML;IACA,IAAIC,SAAS,CAAC,CAAC,CAAC,KAAKC,SAAS,EAAE;MAC9B,MAAM,IAAIC,KAAK,CACb,+LAA+L,CAChM;IACH;IAEA,OAAO;MACLH,SAAS;MACTH,KAAK;MACLC;IACF,CAAC;EACH,CAAC;AACH"}
+\ No newline at end of file
++{"version":3,"names":["React","Group","Screen","createNavigatorFactory","Navigator","transformScreenOptions","arguments","undefined","Error","TransformedScreen","options","props"],"sourceRoot":"../../src","sources":["createNavigatorFactory.tsx"],"mappings":";AACA,OAAO,KAAKA,KAAK,MAAM,OAAO;AAE9B,OAAOC,KAAK,MAAM,SAAS;AAC3B,OAAOC,MAAM,MAAM,UAAU;AAG7B;AACA;AACA;AACA;AACA;AACA;AACA;AACA,eAAe,SAASC,sBAAsB,CAO5CC,SAA6B,EAC7BC,sBAA6E,EAC7E;EACA,OAAO,YAML;IACA,IAAIC,SAAS,CAAC,CAAC,CAAC,KAAKC,SAAS,EAAE;MAC9B,MAAM,IAAIC,KAAK,CACb,+LAA+L,CAChM;IACH;IAEA,MAAMC,iBAAiB,GACrBJ,sBAAsB,KAAKE,SAAS,GAChCL,MAAM,GACN,QASM;MAAA,IAT8B;QAClCQ,OAAO;QACP,GAAGC;MAOL,CAAC;MACC,oBACE,oBAAC,MAAM;QACL,OAAO,EAAEN,sBAAsB,CAC7BK,OAAO;MACP,GACEC,KAAK,EACT;IAEN,CAAC;IAEP,OAAO;MACLP,SAAS;MACTH,KAAK;MACLC,MAAM,EAAEO;IACV,CAAC;EACH,CAAC;AACH"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts
+new file mode 100644
+index 0000000..d22cbd4
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=BaseNavigationContainer.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts.map
+new file mode 100644
+index 0000000..6334965
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/BaseNavigationContainer.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"BaseNavigationContainer.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/BaseNavigationContainer.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts
+new file mode 100644
+index 0000000..433d407
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=StaticContainer.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts.map
+new file mode 100644
+index 0000000..34bb501
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/StaticContainer.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"StaticContainer.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/StaticContainer.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts
+new file mode 100644
+index 0000000..7e2c7c6
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts
+@@ -0,0 +1,25 @@
++import { CommonNavigationAction, DefaultRouterOptions, Router } from '@react-navigation/routers';
++export type MockActions = CommonNavigationAction | {
++    type: 'NOOP' | 'UPDATE';
++};
++export declare const MockRouterKey: {
++    current: number;
++};
++export default function MockRouter(options: DefaultRouterOptions): Router<Readonly<{
++    key: string;
++    index: number;
++    routeNames: string[];
++    history?: unknown[] | undefined;
++    routes: (Readonly<{
++        key: string;
++        name: string;
++        path?: string | undefined;
++    }> & Readonly<{
++        params?: Readonly<object | undefined>;
++    }> & {
++        state?: Readonly<any> | import("@react-navigation/routers").PartialState<Readonly<any>> | undefined;
++    })[];
++    type: string;
++    stale: false;
++}>, MockActions>;
++//# sourceMappingURL=MockRouter.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts.map
+new file mode 100644
+index 0000000..4ff520f
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/__fixtures__/MockRouter.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"MockRouter.d.ts","sourceRoot":"","sources":["../../../../../src/__tests__/__fixtures__/MockRouter.tsx"],"names":[],"mappings":"AAAA,OAAO,EAEL,sBAAsB,EACtB,oBAAoB,EAGpB,MAAM,EACP,MAAM,2BAA2B,CAAC;AAEnC,MAAM,MAAM,WAAW,GAAG,sBAAsB,GAAG;IAAE,IAAI,EAAE,MAAM,GAAG,QAAQ,CAAA;CAAE,CAAC;AAE/E,eAAO,MAAM,aAAa;;CAAiB,CAAC;AAE5C,MAAM,CAAC,OAAO,UAAU,UAAU,CAAC,OAAO,EAAE,oBAAoB;;;;;;;;;;;;;;;;iBA+I/D"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts
+new file mode 100644
+index 0000000..1fa4c05
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=checkSerializable.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts.map
+new file mode 100644
+index 0000000..7134153
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/checkSerializable.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"checkSerializable.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/checkSerializable.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts
+new file mode 100644
+index 0000000..600781b
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=createNavigationContainerRef.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts.map
+new file mode 100644
+index 0000000..c92c69c
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigationContainerRef.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"createNavigationContainerRef.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/createNavigationContainerRef.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts
+new file mode 100644
+index 0000000..3dcc160
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=createNavigatorFactory.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts.map
+new file mode 100644
+index 0000000..8f35188
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/createNavigatorFactory.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"createNavigatorFactory.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/createNavigatorFactory.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts
+new file mode 100644
+index 0000000..df51c94
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getActionFromState.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts.map
+new file mode 100644
+index 0000000..e3191ac
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getActionFromState.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getActionFromState.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getActionFromState.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts
+new file mode 100644
+index 0000000..ae3812b
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getFocusedRouteNameFromRoute.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts.map
+new file mode 100644
+index 0000000..be64b01
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getFocusedRouteNameFromRoute.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getFocusedRouteNameFromRoute.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getFocusedRouteNameFromRoute.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts
+new file mode 100644
+index 0000000..7625849
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getPathFromState.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts.map
+new file mode 100644
+index 0000000..b119f20
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getPathFromState.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getPathFromState.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getPathFromState.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts
+new file mode 100644
+index 0000000..2ebde5a
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=getStateFromPath.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts.map
+new file mode 100644
+index 0000000..cd928df
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/getStateFromPath.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"getStateFromPath.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/getStateFromPath.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts
+new file mode 100644
+index 0000000..121d59b
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=index.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts.map
+new file mode 100644
+index 0000000..7b9421a
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/index.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"index.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/index.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts
+new file mode 100644
+index 0000000..98b6561
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useDescriptors.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts.map
+new file mode 100644
+index 0000000..666ac88
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useDescriptors.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useDescriptors.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useDescriptors.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts
+new file mode 100644
+index 0000000..86ccf20
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useEventEmitter.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts.map
+new file mode 100644
+index 0000000..0c223bb
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useEventEmitter.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useEventEmitter.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useEventEmitter.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts
+new file mode 100644
+index 0000000..88a0334
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useFocusEffect.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts.map
+new file mode 100644
+index 0000000..14fd128
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useFocusEffect.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useFocusEffect.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useFocusEffect.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts
+new file mode 100644
+index 0000000..5ace84d
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useIsFocused.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts.map
+new file mode 100644
+index 0000000..eb4a60a
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useIsFocused.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useIsFocused.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useIsFocused.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts
+new file mode 100644
+index 0000000..49943be
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useNavigation.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts.map
+new file mode 100644
+index 0000000..0d5f05d
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigation.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useNavigation.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useNavigation.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts
+new file mode 100644
+index 0000000..c4bdd73
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useNavigationCache.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts.map
+new file mode 100644
+index 0000000..45d5eec
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationCache.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useNavigationCache.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useNavigationCache.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts
+new file mode 100644
+index 0000000..3f3e1e8
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useNavigationState.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts.map
+new file mode 100644
+index 0000000..7f87ce2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useNavigationState.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useNavigationState.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useNavigationState.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts
+new file mode 100644
+index 0000000..a2d09c2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useOnAction.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts.map
+new file mode 100644
+index 0000000..f1b8ce2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useOnAction.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useOnAction.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useOnAction.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts
+new file mode 100644
+index 0000000..8f19ec2
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=usePreventRemove.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts.map
+new file mode 100644
+index 0000000..6c812fd
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/usePreventRemove.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"usePreventRemove.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/usePreventRemove.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts
+new file mode 100644
+index 0000000..2fc7bc3
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts
+@@ -0,0 +1,2 @@
++export {};
++//# sourceMappingURL=useRoute.test.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts.map
+new file mode 100644
+index 0000000..0f1e440
+--- /dev/null
++++ b/node_modules/@react-navigation/core/lib/typescript/src/__tests__/useRoute.test.d.ts.map
+@@ -0,0 +1 @@
++{"version":3,"file":"useRoute.test.d.ts","sourceRoot":"","sources":["../../../../src/__tests__/useRoute.test.tsx"],"names":[],"mappings":""}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts b/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts
+index 55a87da..89ab338 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts
++++ b/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts
+@@ -1,5 +1,5 @@
+ import type { NavigationState, ParamListBase } from '@react-navigation/routers';
+-import type * as React from 'react';
++import * as React from 'react';
+ import type { EventMapBase, TypedNavigator } from './types';
+ /**
+  * Higher order component to create a `Navigator` and `Screen` pair.
+@@ -8,5 +8,5 @@ import type { EventMapBase, TypedNavigator } from './types';
+  * @param Navigator The navigtor component to wrap.
+  * @returns Factory method to create a `Navigator` and `Screen` pair.
+  */
+-export default function createNavigatorFactory<State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, NavigatorComponent extends React.ComponentType<any>>(Navigator: NavigatorComponent): <ParamList extends ParamListBase>() => TypedNavigator<ParamList, State, ScreenOptions, EventMap, NavigatorComponent>;
++export default function createNavigatorFactory<State extends NavigationState, ScreenOptions extends {}, EventMap extends EventMapBase, NavigatorComponent extends React.ComponentType<any>, TransformedScreenOptions extends {} = ScreenOptions>(Navigator: NavigatorComponent, transformScreenOptions?: (options: ScreenOptions) => TransformedScreenOptions): <ParamList extends ParamListBase>() => TypedNavigator<ParamList, State, ScreenOptions, EventMap, NavigatorComponent>;
+ //# sourceMappingURL=createNavigatorFactory.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts.map b/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts.map
+index 27faf3e..a0f9a20 100644
+--- a/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts.map
++++ b/node_modules/@react-navigation/core/lib/typescript/src/createNavigatorFactory.d.ts.map
+@@ -1 +1 @@
+-{"version":3,"file":"createNavigatorFactory.d.ts","sourceRoot":"","sources":["../../../src/createNavigatorFactory.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,aAAa,EAAE,MAAM,2BAA2B,CAAC;AAChF,OAAO,KAAK,KAAK,KAAK,MAAM,OAAO,CAAC;AAIpC,OAAO,KAAK,EAAE,YAAY,EAAE,cAAc,EAAE,MAAM,SAAS,CAAC;AAE5D;;;;;;GAMG;AACH,MAAM,CAAC,OAAO,UAAU,sBAAsB,CAC5C,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,kBAAkB,SAAS,KAAK,CAAC,aAAa,CAAC,GAAG,CAAC,EACnD,SAAS,EAAE,kBAAkB,wHAoB9B"}
+\ No newline at end of file
++{"version":3,"file":"createNavigatorFactory.d.ts","sourceRoot":"","sources":["../../../src/createNavigatorFactory.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,eAAe,EAAE,aAAa,EAAE,MAAM,2BAA2B,CAAC;AAChF,OAAO,KAAK,KAAK,MAAM,OAAO,CAAC;AAI/B,OAAO,KAAK,EAAE,YAAY,EAAe,cAAc,EAAE,MAAM,SAAS,CAAC;AAEzE;;;;;;GAMG;AACH,MAAM,CAAC,OAAO,UAAU,sBAAsB,CAC5C,KAAK,SAAS,eAAe,EAC7B,aAAa,SAAS,EAAE,EACxB,QAAQ,SAAS,YAAY,EAC7B,kBAAkB,SAAS,KAAK,CAAC,aAAa,CAAC,GAAG,CAAC,EACnD,wBAAwB,SAAS,EAAE,GAAG,aAAa,EAEnD,SAAS,EAAE,kBAAkB,EAC7B,sBAAsB,CAAC,EAAE,CAAC,OAAO,EAAE,aAAa,KAAK,wBAAwB,wHA4C9E"}
+\ No newline at end of file
+diff --git a/node_modules/@react-navigation/core/src/createNavigatorFactory.tsx b/node_modules/@react-navigation/core/src/createNavigatorFactory.tsx
+index e367956..50ce1c9 100644
+--- a/node_modules/@react-navigation/core/src/createNavigatorFactory.tsx
++++ b/node_modules/@react-navigation/core/src/createNavigatorFactory.tsx
+@@ -1,9 +1,9 @@
+ import type { NavigationState, ParamListBase } from '@react-navigation/routers';
+-import type * as React from 'react';
++import * as React from 'react';
+ 
+ import Group from './Group';
+ import Screen from './Screen';
+-import type { EventMapBase, TypedNavigator } from './types';
++import type { EventMapBase, RouteConfig, TypedNavigator } from './types';
+ 
+ /**
+  * Higher order component to create a `Navigator` and `Screen` pair.
+@@ -16,8 +16,12 @@ export default function createNavigatorFactory<
+   State extends NavigationState,
+   ScreenOptions extends {},
+   EventMap extends EventMapBase,
+-  NavigatorComponent extends React.ComponentType<any>
+->(Navigator: NavigatorComponent) {
++  NavigatorComponent extends React.ComponentType<any>,
++  TransformedScreenOptions extends {} = ScreenOptions,
++>(
++  Navigator: NavigatorComponent,
++  transformScreenOptions?: (options: ScreenOptions) => TransformedScreenOptions
++) {
+   return function <ParamList extends ParamListBase>(): TypedNavigator<
+     ParamList,
+     State,
+@@ -31,10 +35,33 @@ export default function createNavigatorFactory<
+       );
+     }
+ 
++    const TransformedScreen =
++      transformScreenOptions === undefined
++        ? Screen
++        : <RouteName extends keyof ParamList>({
++            options,
++            ...props
++          }: RouteConfig<
++            ParamList,
++            RouteName,
++            State,
++            ScreenOptions,
++            EventMap
++          >) => {
++            return (
++              <Screen
++                options={transformScreenOptions(
++                  options as unknown as ScreenOptions
++                )}
++                {...props}
++              />
++            ) as unknown as null;
++          };
++
+     return {
+       Navigator,
+       Group,
+-      Screen,
++      Screen: TransformedScreen,
+     };
+   };
+ }
+diff --git a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
+index b1971ba..8e688db 100644
+--- a/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
++++ b/node_modules/@react-navigation/core/src/useNavigationBuilder.tsx
+@@ -49,7 +49,7 @@ import useScheduleUpdate from './useScheduleUpdate';
+ // eslint-disable-next-line babel/no-unused-expressions
+ PrivateValueStore;
+ 
+-type NavigationBuilderOptions<ScreenOptions extends {}> = {
++export type NavigationBuilderOptions<ScreenOptions extends {}> = {
+   /**
+    * Default options specified by the navigator.
+    * It receives the custom options in the arguments if a function is specified.
