@@ -262,9 +262,23 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_CHAT_ROOM = {
+        ...REPORTS,
+        15: {
+            lastReadTime: '2021-01-14 11:25:39.301',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.000',
+            isPinned: false,
+            reportID: '15',
+            participantAccountIDs: [3, 4],
+            visibleChatMemberAccountIDs: [3, 4],
+            reportName: 'Spider-Man, Black Panther',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
+        },
+    };
+
     const PERSONAL_DETAILS_WITH_CONCIERGE: PersonalDetailsList = {
         ...PERSONAL_DETAILS,
-
         '999': {
             accountID: 999,
             displayName: 'Concierge',
@@ -798,12 +812,14 @@ describe('OptionsListUtils', () => {
                         isSelected: false,
                     },
                 ],
+                indexOffset: 3,
             },
         ];
         const smallSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 2,
                 data: [
                     {
                         text: 'Food',
@@ -828,6 +844,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -963,6 +980,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',
@@ -977,6 +995,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'Recent',
                 shouldShow: true,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Restaurant',
@@ -991,6 +1010,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
+                indexOffset: 11,
                 data: [
                     {
                         text: 'Cars',
@@ -1087,6 +1107,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 3,
                 data: [
                     {
                         text: 'Food',
@@ -1119,6 +1140,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -1127,6 +1149,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',
@@ -1213,22 +1236,22 @@ describe('OptionsListUtils', () => {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
-                accountID: null,
+                accountID: undefined,
             },
             Medical: {
                 enabled: true,
                 name: 'Medical',
-                accountID: null,
+                accountID: undefined,
             },
             Accounting: {
                 enabled: true,
                 name: 'Accounting',
-                accountID: null,
+                accountID: undefined,
             },
             HR: {
                 enabled: true,
                 name: 'HR',
-                accountID: null,
+                accountID: undefined,
             },
         };
         const smallResultList: OptionsListUtils.CategorySection[] = [
@@ -1243,6 +1266,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'HR',
@@ -1250,6 +1274,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'HR',
                         tooltipText: 'HR',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Medical',
@@ -1257,6 +1282,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Medical',
                         tooltipText: 'Medical',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1272,6 +1298,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1287,57 +1314,57 @@ describe('OptionsListUtils', () => {
             Engineering: {
                 enabled: false,
                 name: 'Engineering',
-                accountID: null,
+                accountID: undefined,
             },
             Medical: {
                 enabled: true,
                 name: 'Medical',
-                accountID: null,
+                accountID: undefined,
             },
             Accounting: {
                 enabled: true,
                 name: 'Accounting',
-                accountID: null,
+                accountID: undefined,
             },
             HR: {
                 enabled: true,
                 name: 'HR',
-                accountID: null,
+                accountID: undefined,
             },
             Food: {
                 enabled: true,
                 name: 'Food',
-                accountID: null,
+                accountID: undefined,
             },
             Traveling: {
                 enabled: false,
                 name: 'Traveling',
-                accountID: null,
+                accountID: undefined,
             },
             Cleaning: {
                 enabled: true,
                 name: 'Cleaning',
-                accountID: null,
+                accountID: undefined,
             },
             Software: {
                 enabled: true,
                 name: 'Software',
-                accountID: null,
+                accountID: undefined,
             },
             OfficeSupplies: {
                 enabled: false,
                 name: 'Office Supplies',
-                accountID: null,
+                accountID: undefined,
             },
             Taxes: {
                 enabled: true,
                 name: 'Taxes',
-                accountID: null,
+                accountID: undefined,
             },
             Benefits: {
                 enabled: true,
                 name: 'Benefits',
-                accountID: null,
+                accountID: undefined,
             },
         };
         const largeResultList: OptionsListUtils.CategorySection[] = [
@@ -1351,6 +1378,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Medical',
                         tooltipText: 'Medical',
                         isDisabled: false,
+                        isSelected: true,
                     },
                 ],
             },
@@ -1364,6 +1392,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'HR',
                         tooltipText: 'HR',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1378,6 +1407,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Benefits',
@@ -1385,6 +1415,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Benefits',
                         tooltipText: 'Benefits',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Cleaning',
@@ -1392,6 +1423,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Cleaning',
                         tooltipText: 'Cleaning',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Food',
@@ -1399,6 +1431,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Food',
                         tooltipText: 'Food',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'HR',
@@ -1406,6 +1439,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'HR',
                         tooltipText: 'HR',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Software',
@@ -1413,6 +1447,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Software',
                         tooltipText: 'Software',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Taxes',
@@ -1420,6 +1455,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Taxes',
                         tooltipText: 'Taxes',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -1435,6 +1471,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Accounting',
                         tooltipText: 'Accounting',
                         isDisabled: false,
+                        isSelected: false,
                     },
                     {
                         text: 'Cleaning',
@@ -1442,6 +1479,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Cleaning',
                         tooltipText: 'Cleaning',
                         isDisabled: false,
+                        isSelected: false,
                     },
                 ],
             },
@@ -2565,5 +2603,99 @@ describe('OptionsListUtils', () => {
 
         // `isDisabled` is always false
         expect(formattedMembers.every((personalDetail) => !personalDetail.isDisabled)).toBe(true);
+    });
+
+    describe('filterOptions', () => {
+        it('should return all options when search is empty', () => {
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+            const filteredOptions = OptionsListUtils.filterOptions(options, '');
+
+            expect(options.recentReports.length + options.personalDetails.length).toBe(filteredOptions.recentReports.length);
+        });
+
+        it('should return filtered options in correct order', () => {
+            const searchText = 'man';
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+            expect(filteredOptions.recentReports.length).toBe(5);
+            expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
+            expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
+            expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
+            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
+        });
+
+        it('should filter users by email', () => {
+            const searchText = 'mistersinister@marauders.com';
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].text).toBe('Mr Sinister');
+        });
+
+        it('should find archived chats', () => {
+            const searchText = 'Archived';
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].isArchivedRoom).toBe(true);
+        });
+
+        it('should filter options by email if dot is skipped in the email', () => {
+            const searchText = 'barryallen';
+            const OPTIONS_WITH_PERIODS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_PERIODS, '', [CONST.BETAS.ALL]);
+
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].login).toBe('barry.allen@expensify.com');
+        });
+
+        it('should include workspaces in the search results', () => {
+            const searchText = 'avengers';
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACES, '', [CONST.BETAS.ALL]);
+
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.recentReports.length).toBe(1);
+            expect(filteredOptions.recentReports[0].subtitle).toBe('Avengers Room');
+        });
+
+        it('should put exact match by login on the top of the list', () => {
+            const searchText = 'reedrichards@expensify.com';
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
+
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports[0].login).toBe(searchText);
+        });
+
+        it('should prioritize options with matching display name over chatrooms', () => {
+            const searchText = 'spider';
+            const OPTIONS_WITH_CHATROOMS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_CHATROOMS, '', [CONST.BETAS.ALL]);
+
+            const filterOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filterOptions.recentReports.length).toBe(2);
+            expect(filterOptions.recentReports[1].isChatRoom).toBe(true);
+        });
+
+        it('should put the item with latest lastVisibleActionCreated on top when search value match multiple items', () => {
+            const searchText = 'fantastic';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.recentReports.length).toBe(2);
+            expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic');
+        });
     });
 });

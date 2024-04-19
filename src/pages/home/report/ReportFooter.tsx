@@ -89,10 +89,10 @@ function ReportFooter({
             /**
              * Matching task rule by group
              * Group 1: Start task rule with []
-             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
              * Group 3: Title is remaining characters
              */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+(?:@\w+\.\w+)?))?\s*([\s\S]*)/;
 
             const match = text.match(taskRegex);
             if (!match) {
@@ -102,10 +102,13 @@ function ReportFooter({
             if (!title) {
                 return false;
             }
-            const email = match[1] ? match[1].trim() : undefined;
+
+            const mention = match[1] ? match[1].trim() : undefined;
+            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
+
             let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
-            if (email) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === email) ?? {};
+            if (mentionWithDomain) {
+                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
             }
             Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
             return true;

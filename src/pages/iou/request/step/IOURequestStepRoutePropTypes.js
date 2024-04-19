@@ -8,7 +8,7 @@ export default PropTypes.shape({
         /** What action is being performed, ie. create, edit */
         action: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
 
-        /** The type of IOU report, i.e. bill, request, send */
+        /** The type of IOU report, i.e. split, request, send, track */
         iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
 
         /** The ID of the transaction being configured */

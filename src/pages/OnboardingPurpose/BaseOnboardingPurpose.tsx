@@ -12,6 +12,7 @@ import MenuItemList from '@components/MenuItemList';
 import OfflineIndicator from '@components/OfflineIndicator';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
+import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useTheme from '@hooks/useTheme';
@@ -47,6 +48,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const [error, setError] = useState(false);
     const theme = useTheme();
 
+    useDisableModalDismissOnEscape();
+
     const PurposeFooterInstance = <OfflineIndicator />;
 
     useEffect(() => {
@@ -80,7 +83,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             return;
         }
 
-        Report.completeEngagementModal(CONST.ONBOARDING_CONCIERGE[selectedPurpose], selectedPurpose);
+        Report.completeEngagementModal(selectedPurpose, CONST.ONBOARDING_CONCIERGE[selectedPurpose]);
 
         Navigation.dismissModal();
         // Only navigate to concierge chat when central pane is visible
