@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp
+index a8ecce5..d42a518 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/scrollview/ScrollViewShadowNode.cpp
+@@ -66,6 +66,16 @@ void ScrollViewShadowNode::layout(LayoutContext layoutContext) {
+ Point ScrollViewShadowNode::getContentOriginOffset() const {
+   auto stateData = getStateData();
+   auto contentOffset = stateData.contentOffset;
++  auto props = getConcreteProps();
++
++  if (props.transform.operations.size() > 0) {
++    if (props.transform.operations[0].y == -1) {
++      return {-contentOffset.x, contentOffset.y - stateData.scrollAwayPaddingTop};
++    } else if (props.transform.operations[0].x == -1) {
++      return {contentOffset.x, -contentOffset.y + stateData.scrollAwayPaddingTop};
++    }
++  }
++
+   return {-contentOffset.x, -contentOffset.y + stateData.scrollAwayPaddingTop};
+ }
+ 
