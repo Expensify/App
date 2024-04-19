@@ -3298,6 +3298,12 @@ function createSplitsAndOnyxData(
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
         const splitAmount = isPolicyExpenseChat ? IOUUtils.calculateAmount(participants.length, amount, currency, false) : splitShares[participant.accountID ?? 0].amount;
 
+        // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
+        // We can input '0' next to someone we want to exclude.
+        if (splitAmount === 0) {
+            return;
+        }
+
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
         const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
