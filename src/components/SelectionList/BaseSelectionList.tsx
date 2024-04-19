@@ -93,6 +93,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const isTextInputFocusedRef = useRef<boolean>(false);
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -227,7 +228,7 @@ function BaseSelectionList<TItem extends ListItem>(
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
-        maxIndex: flattenedSections.allOptions.length - 1,
+        maxIndex: Math.min(flattenedSections.allOptions.length, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage - 1),
         isActive: true,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
@@ -354,7 +355,8 @@ function BaseSelectionList<TItem extends ListItem>(
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
-                onFocus={() => setFocusedIndex(index)}
+                onFocus={() => setFocusedIndex(normalizedIndex)}
+                shouldSyncFocus={!isTextInputFocusedRef.current}
             />
         );
     };
@@ -527,6 +529,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                         textInputRef.current = element as RNTextInput;
                                     }
                                 }}
+                                onFocus={() => (isTextInputFocusedRef.current = true)}
+                                onBlur={() => (isTextInputFocusedRef.current = false)}
                                 label={textInputLabel}
                                 accessibilityLabel={textInputLabel}
                                 hint={textInputHint}
