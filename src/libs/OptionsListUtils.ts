@@ -1350,7 +1350,7 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate & {isSelected?: boolean}>>): TaxRatesOption[] {
     return taxRates.map((taxRate) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.modifiedName,
@@ -1358,6 +1358,7 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[]
         tooltipText: taxRate.modifiedName,
         isDisabled: taxRate.isDisabled,
         data: taxRate,
+        isSelected: !!taxRate.isSelected,
     }));
 }
 
@@ -1370,7 +1371,9 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
-    const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
+    const enabledTaxRates = sortedTaxRates
+        .filter((taxRate) => !taxRate.isDisabled)
+        .map((taxRate) => ({...taxRate, isSelected: selectedOptions.some((option) => option.name === taxRate.modifiedName)}));
     const numberOfTaxRates = enabledTaxRates.length;
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
@@ -1379,6 +1382,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             modifiedName: option.name,
             // Should be marked as enabled to be able to be de-selected
             isDisabled: false,
+            isSelected: true,
         }));
         policyRatesSections.push({
             // "Selected" sectiong
@@ -1423,6 +1427,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
 
             return {
                 modifiedName: option.name,
+                isSelected: true,
                 isDisabled: !!taxRateObject?.isDisabled,
             };
         });
