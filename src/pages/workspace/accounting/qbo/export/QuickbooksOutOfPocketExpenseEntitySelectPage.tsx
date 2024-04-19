@@ -100,9 +100,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
                             ListItem={RadioListItem}
                             onSelectRow={onSelectRow}
                             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                            footerContent={
-                                isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2, styles.ph5]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>
-                            }
+                            footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
                         />
                     </View>
                 </ScreenWrapper>
