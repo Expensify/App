@@ -2,7 +2,6 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -273,20 +272,16 @@ function MoneyRequestView({
                         }}
                     >
                         <View style={styles.moneyRequestViewImage}>
-                            {showMapAsImage ? (
-                                <ConfirmedRoute transaction={transaction} />
-                            ) : (
-                                <ReportActionItemImage
-                                    thumbnail={receiptURIs?.thumbnail}
-                                    fileExtension={receiptURIs?.fileExtension}
-                                    isThumbnail={receiptURIs?.isThumbnail}
-                                    image={receiptURIs?.image}
-                                    isLocalFile={receiptURIs?.isLocalFile}
-                                    filename={receiptURIs?.filename}
-                                    transaction={transaction}
-                                    enablePreviewModal
-                                />
-                            )}
+                            <ReportActionItemImage
+                                thumbnail={receiptURIs?.thumbnail}
+                                fileExtension={receiptURIs?.fileExtension}
+                                isThumbnail={receiptURIs?.isThumbnail}
+                                image={receiptURIs?.image}
+                                isLocalFile={receiptURIs?.isLocalFile}
+                                filename={receiptURIs?.filename}
+                                transaction={transaction}
+                                enablePreviewModal
+                            />
                         </View>
                     </OfflineWithFeedback>
                 )}

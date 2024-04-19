@@ -2,13 +2,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
-import ConfirmedRoute from '@components/ConfirmedRoute';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -71,34 +69,23 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
-                    const isDistanceRequest = transaction && TransactionUtils.isDistanceRequest(transaction);
-                    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
-                    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+
                     return (
                         <View
                             key={`${index}-${image}`}
                             style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
                         >
-                            {showMapAsImage ? (
-                                <View style={[styles.w100, styles.h100]}>
-                                    <ConfirmedRoute
-                                        transaction={transaction}
-                                        isSmallIcon={numberOfShownImages !== 1}
-                                        shouldHaveNoBorderRadius
-                                    />
-                                </View>
-                            ) : (
-                                <ReportActionItemImage
-                                    thumbnail={thumbnail}
-                                    fileExtension={fileExtension}
-                                    image={image}
-                                    isLocalFile={isLocalFile}
-                                    filename={filename}
-                                    transaction={transaction}
-                                    isThumbnail={isThumbnail}
-                                    isSingleImage={numberOfShownImages === 1}
-                                />
-                            )}
+                            <ReportActionItemImage
+                                thumbnail={thumbnail}
+                                fileExtension={fileExtension}
+                                image={image}
+                                isLocalFile={isLocalFile}
+                                filename={filename}
+                                transaction={transaction}
+                                isThumbnail={isThumbnail}
+                                isSingleImage={numberOfShownImages === 1}
+                                shouldMapHaveNoBorderRadius
+                            />
                         </View>
                     );
                 })}

@@ -2,7 +2,9 @@
 import Str from 'expensify-common/lib/str';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -46,6 +48,9 @@ type ReportActionItemImageProps = {
 
     /** Whether there are other images displayed in the same parent container */
     isSingleImage?: boolean;
+
+    /** Whether the map view should not have border radius  */
+    shouldMapHaveNoBorderRadius?: boolean;
 };
 
 /**
@@ -64,9 +69,26 @@ function ReportActionItemImage({
     fileExtension,
     filename,
     isSingleImage = true,
+    shouldMapHaveNoBorderRadius: shouldHaveNoBorderRadius = false,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isDistanceRequest = transaction && TransactionUtils.isDistanceRequest(transaction);
+    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
+    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
+
+    if (showMapAsImage) {
+        return (
+            <View style={[styles.w100, styles.h100]}>
+                <ConfirmedRoute
+                    transaction={transaction}
+                    isSmallIcon={!isSingleImage}
+                    shouldHaveNoBorderRadius={shouldHaveNoBorderRadius}
+                />
+            </View>
+        );
+    }
+
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
