@@ -620,7 +620,6 @@ export default {
         participants: 'Participants',
         submitExpense: 'Submit expense',
         trackExpense: 'Track expense',
-        trackDistance: 'Track distance',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
         cancelPaymentConfirmation: 'Are you sure that you want to cancel this payment?',
