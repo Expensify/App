@@ -10,6 +10,7 @@ import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -77,6 +78,18 @@ function SuggestionMention(
 
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
+
+    /**
+     * Search for reports suggestions in server.
+     *
+     * The function is debounced to not perform requests on every keystroke.
+     */
+    const debouncedSearchInServer = useDebounce(() => {
+        const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
+        if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
+            ReportUserActions.searchInServer(value, policyID);
+        }
+    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
     const formatLoginPrivateDomain = useCallback(
         (displayText = '', userLogin = '') => {
@@ -312,10 +325,10 @@ function SuggestionMention(
 
             const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
             if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
-                // filter reports by room name and current policy
+                // Filter reports by room name and current policy
                 nextState.suggestedMentions = getRoomMentionOptions(prefix, reports);
 
-                // even if there are no reports, we should show the suggestion menu - to perform live search
+                // Even if there are no reports, we should show the suggestion menu - to perform live search
                 nextState.shouldShowSuggestionMenu = true;
             }
 
@@ -333,11 +346,8 @@ function SuggestionMention(
     }, [selection, calculateMentionSuggestion]);
 
     useEffect(() => {
-        const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
-        if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
-            ReportUserActions.searchInServer(value, policyID);
-        }
-    }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value]);
+        debouncedSearchInServer();
+    }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, debouncedSearchInServer]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
