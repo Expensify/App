@@ -128,7 +128,6 @@ type TaskForParameters =
           parentReportActionID: string;
           assigneeChatReportID: string;
           createdTaskReportActionID: string;
-          completedTaskReportActionID: string;
           title: string;
           description: string;
       }
@@ -3065,7 +3064,6 @@ function completeOnboarding(
               })
             : task.message;
         const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 1, isTaskMessageFunction ? undefined : false);
-        const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete');
 
         return {
             task,
@@ -3074,116 +3072,105 @@ function completeOnboarding(
             taskReportAction,
             subtitleComment,
             instructionComment,
-            completedTaskReportAction,
         };
     });
 
-    const tasksForParameters = tasksData.reduce<TaskForParameters[]>(
-        (acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment, completedTaskReportAction}) => {
-            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
-            const instructionCommentText = instructionComment.commentText;
-            const instructionMessage: TaskMessage = {
+    const tasksForParameters = tasksData.reduce<TaskForParameters[]>((acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
+        const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
+        const instructionCommentText = instructionComment.commentText;
+        const instructionMessage: TaskMessage = {
+            reportID: currentTask.reportID,
+            reportActionID: instructionCommentAction.reportActionID,
+            reportComment: instructionCommentText,
+        };
+
+        const tasksForParametersAcc: TaskForParameters[] = [
+            ...acc,
+            {
+                type: 'task',
+                task: task.type,
+                taskReportID: currentTask.reportID,
+                parentReportID: currentTask.parentReportID ?? '',
+                parentReportActionID: taskReportAction.reportAction.reportActionID,
+                assigneeChatReportID: '',
+                createdTaskReportActionID: taskCreatedAction.reportActionID,
+                title: currentTask.reportName ?? '',
+                description: currentTask.description ?? '',
+            },
+            {
+                type: 'message',
+                ...instructionMessage,
+            },
+        ];
+
+        if (subtitleComment) {
+            const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+            const subtitleCommentText = subtitleComment.commentText;
+            const subtitleMessage: TaskMessage = {
                 reportID: currentTask.reportID,
-                reportActionID: instructionCommentAction.reportActionID,
-                reportComment: instructionCommentText,
+                reportActionID: subtitleCommentAction.reportActionID,
+                reportComment: subtitleCommentText,
             };
 
-            const tasksForParametersAcc: TaskForParameters[] = [
-                ...acc,
-                {
-                    type: 'task',
-                    task: task.type,
-                    taskReportID: currentTask.reportID,
-                    parentReportID: currentTask.parentReportID ?? '',
-                    parentReportActionID: taskReportAction.reportAction.reportActionID,
-                    assigneeChatReportID: '',
-                    createdTaskReportActionID: taskCreatedAction.reportActionID,
-                    completedTaskReportActionID: completedTaskReportAction.reportActionID,
-                    title: currentTask.reportName ?? '',
-                    description: currentTask.description ?? '',
+            tasksForParametersAcc.push({
+                type: 'message',
+                ...subtitleMessage,
+            });
+        }
+
+        return tasksForParametersAcc;
+    }, []);
+
+    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
+        const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
+
+        const tasksForOptimisticDataAcc: OnyxUpdate[] = [
+            ...acc,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [taskReportAction.reportAction.reportActionID]: taskReportAction.reportAction as ReportAction,
                 },
-                {
-                    type: 'message',
-                    ...instructionMessage,
-                },
-            ];
-
-            if (subtitleComment) {
-                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-                const subtitleCommentText = subtitleComment.commentText;
-                const subtitleMessage: TaskMessage = {
-                    reportID: currentTask.reportID,
-                    reportActionID: subtitleCommentAction.reportActionID,
-                    reportComment: subtitleCommentText,
-                };
-
-                tasksForParametersAcc.push({
-                    type: 'message',
-                    ...subtitleMessage,
-                });
-            }
-
-            return tasksForParametersAcc;
-        },
-        [],
-    );
-
-    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>(
-        (acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment, completedTaskReportAction}) => {
-            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
-
-            const tasksForOptimisticDataAcc: OnyxUpdate[] = [
-                ...acc,
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
-                    value: {
-                        [taskReportAction.reportAction.reportActionID]: taskReportAction.reportAction as ReportAction,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                value: {
+                    ...currentTask,
+                    pendingFields: {
+                        createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
+                    isOptimisticReport: true,
                 },
-                {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
-                    value: {
-                        ...currentTask,
-                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                        pendingFields: {
-                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                            managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                        isOptimisticReport: true,
-                    },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
+                    [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
-                    value: {
-                        [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
-                        [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
-                        [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
-                    },
+            },
+        ];
+
+        if (subtitleComment) {
+            const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+
+            tasksForOptimisticDataAcc.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: {
+                    [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
                 },
-            ];
+            });
+        }
 
-            if (subtitleComment) {
-                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
-
-                tasksForOptimisticDataAcc.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
-                    value: {
-                        [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
-                    },
-                });
-            }
-
-            return tasksForOptimisticDataAcc;
-        },
-        [],
-    );
+        return tasksForOptimisticDataAcc;
+    }, []);
 
     const optimisticData: OnyxUpdate[] = [
         ...tasksForOptimisticData,
