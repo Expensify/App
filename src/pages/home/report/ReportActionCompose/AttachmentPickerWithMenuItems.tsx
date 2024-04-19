@@ -18,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import getIconForAction from '@libs/focusComposerWithDelay/getIconForAction';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
@@ -129,17 +130,17 @@ function AttachmentPickerWithMenuItems({
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.REQUEST]: {
-                icon: Expensicons.MoneyCircle,
+                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.SEND]: {
-                icon: Expensicons.Send,
+                icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.TRACK_EXPENSE]: {
-                icon: Expensicons.DocumentPlus,
+                icon: getIconForAction(CONST.IOU.TYPE.TRACK_EXPENSE),
                 text: translate('iou.trackExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
             },
