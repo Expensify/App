@@ -65,9 +65,23 @@ type HeaderViewProps = HeaderViewOnyxProps & {
 
     /** The reportID of the current report */
     reportID: string;
+
+    /** Whether we should show the back button on the header */
+    shouldShowBackButton?: boolean;
 };
 
-function HeaderView({report, personalDetails, parentReport, parentReportAction, policy, session, reportID, guideCalendarLink, onNavigationMenuButtonClicked}: HeaderViewProps) {
+function HeaderView({
+    report,
+    personalDetails,
+    parentReport,
+    parentReportAction,
+    policy,
+    session,
+    reportID,
+    guideCalendarLink,
+    onNavigationMenuButtonClicked,
+    shouldShowBackButton = false,
+}: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -211,12 +225,12 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
             dataSet={{dragArea: true}}
         >
             <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !isSmallScreenWidth && !isLoading && styles.pl5]}>
+                <View style={[styles.appContentHeaderTitle, !(isSmallScreenWidth || shouldShowBackButton) && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <>
-                            {isSmallScreenWidth && (
+                            {(isSmallScreenWidth || shouldShowBackButton) && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
                                     style={styles.LHNToggle}

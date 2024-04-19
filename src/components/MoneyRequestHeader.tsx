@@ -50,9 +50,21 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<ReportAction>;
+
+    /** Whether we should show the back button on the header */
+    shouldShowBackButton?: boolean;
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({
+    session,
+    parentReport,
+    report,
+    parentReportAction,
+    transaction,
+    shownHoldUseExplanation = false,
+    policy,
+    shouldShowBackButton = false,
+}: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -180,7 +192,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldShowBackButton || isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
                 {isPending && (

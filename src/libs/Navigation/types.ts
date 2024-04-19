@@ -648,6 +648,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type WorkspacesCentralPaneNavigatorParamList = {
@@ -794,6 +795,13 @@ type AuthScreensParamList = SharedScreensParamList & {
     };
 };
 
+type SearchReportParamList = {
+    [SCREENS.SEARCH.REPORT]: {
+        query: string;
+        reportID: string;
+    };
+};
+
 type RootStackParamList = PublicScreensParamList & AuthScreensParamList & ChatFinderNavigatorParamList;
 
 type BottomTabName = keyof BottomTabNavigatorParamList;
@@ -859,4 +867,5 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     WorkspaceSwitcherNavigatorParamList,
     WorkspacesCentralPaneNavigatorParamList,
+    SearchReportParamList,
 };

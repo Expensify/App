@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useNavigationState} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
@@ -29,6 +29,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
@@ -43,7 +44,7 @@ import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
@@ -160,6 +161,9 @@ function ReportScreen({
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
+    const activeRoute = useNavigationState(getTopmostRouteName);
+    const isReportOpenedInRHP = activeRoute === SCREENS.SEARCH.REPORT;
+
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -324,6 +328,7 @@ function ReportScreen({
             onNavigationMenuButtonClicked={goBack}
             report={report}
             parentReportAction={parentReportAction}
+            shouldShowBackButton={isReportOpenedInRHP}
         />
     );
 
@@ -333,6 +338,7 @@ function ReportScreen({
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
+                shouldShowBackButton={isReportOpenedInRHP}
             />
         );
     }
@@ -356,6 +362,7 @@ function ReportScreen({
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
+                shouldShowBackButton={isReportOpenedInRHP}
             />
         );
     }
@@ -369,7 +376,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !reportIDFromRoute || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenedInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||

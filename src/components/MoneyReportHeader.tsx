@@ -52,9 +52,21 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
+
+    /** Whether we should show the back button on the header */
+    shouldShowBackButton?: boolean;
 };
 
-function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, transactionThreadReport, reportActions}: MoneyReportHeaderProps) {
+function MoneyReportHeader({
+    session,
+    policy,
+    chatReport,
+    nextStep,
+    report: moneyRequestReport,
+    transactionThreadReport,
+    reportActions,
+    shouldShowBackButton = false,
+}: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -185,7 +197,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                shouldShowBackButton={isSmallScreenWidth}
+                shouldShowBackButton={shouldShowBackButton || isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}

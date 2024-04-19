@@ -23,6 +23,7 @@ import type {
     ReportSettingsNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
+    SearchReportParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     SplitDetailsNavigatorParamList,
@@ -312,13 +313,16 @@ const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNa
 const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParamList>({
     [SCREENS.SIGN_IN_ROOT]: () => require('../../../../pages/signin/SignInModal').default as React.ComponentType,
 });
-
 const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../../pages/ReferralDetailsPage').default as React.ComponentType,
 });
 
 const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
+});
+
+const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
+    [SCREENS.SEARCH.REPORT]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
 });
 
 export {
@@ -351,4 +355,5 @@ export {
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
     WorkspaceSettingsModalStackNavigator,
+    SearchReportModalStackNavigator,
 };

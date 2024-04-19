@@ -638,6 +638,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
+                    screens: {
+                        [SCREENS.SEARCH.REPORT]: ROUTES.SEARCH_REPORT.route,
+                    },
+                },
             },
         },
 
