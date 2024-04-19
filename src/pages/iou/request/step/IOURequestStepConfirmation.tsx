@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -77,7 +77,7 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
+    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.REQUEST;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
@@ -254,7 +254,7 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
             if (!transaction) {
                 return;
             }
@@ -273,6 +273,7 @@ function IOURequestStepConfirmation({
                 policy,
                 policyTags,
                 policyCategories,
+                customUnitRateID,
             );
         },
         [policy, policyCategories, policyTags, report, transaction],
@@ -421,7 +422,8 @@ function IOURequestStepConfirmation({
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
+                const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
                 return;
             }
 

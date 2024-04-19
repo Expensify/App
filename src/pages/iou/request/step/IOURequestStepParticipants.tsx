@@ -1,8 +1,7 @@
-import {useNavigation} from '@react-navigation/native';
-import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -39,7 +38,6 @@ function IOURequestStepParticipants({
 }: IOURequestStepParticipantsProps) {
     const participants = transaction?.participants;
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const selectedReportID = useRef<string>(reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
@@ -48,7 +46,7 @@ function IOURequestStepParticipants({
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (action === CONST.IOU.ACTION.MOVE) {
+        if (action === CONST.IOU.ACTION.REQUEST) {
             return translate('iou.submitExpense');
         }
         if (action === CONST.IOU.ACTION.SHARE) {
@@ -79,24 +77,6 @@ function IOURequestStepParticipants({
         IOU.navigateToStartStepIfScanFileCannotBeRead(receiptFilename ?? '', receiptPath ?? '', () => {}, iouRequestType, iouType, transactionID, reportID, receiptType ?? '');
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
 
-    const updateRouteParams = useCallback(() => {
-        const navigationState = navigation.getState();
-        if (!navigationState || !newIouType.current) {
-            return;
-        }
-        IOU.updateMoneyRequestTypeParams(navigationState.routes, newIouType.current);
-    }, [navigation]);
-
-    useEffect(() => {
-        if (!newIouType.current) {
-            return;
-        }
-        // Participants can be added as normal or split participants. We want to wait for the participants' data to be updated before
-        // updating the expense type route params reducing the overhead of the thread and preventing possible jitters in UI.
-        updateRouteParams();
-        newIouType.current = null;
-    }, [participants, updateRouteParams]);
-
     const addParticipant = useCallback(
         (val: Participant[], selectedIouType: IOUType) => {
             const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
@@ -110,14 +90,10 @@ function IOURequestStepParticipants({
                 newIouType.current = CONST.IOU.TYPE.REQUEST;
             }
 
-            // If the Onyx participants has the same items as the selected participants (val), Onyx won't update it
-            // thus this component won't rerender, so we can immediately update the route params.
-            if (newIouType.current && lodashIsEqual(participants, val)) {
-                updateRouteParams();
-                newIouType.current = null;
-            }
-
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
+            IOU.setCustomUnitRateID(transactionID, rateID);
+
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -130,39 +106,27 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = val[0]?.reportID ?? reportID;
         },
-        [reportID, transactionID, iouType, participants, updateRouteParams],
+        [reportID, transactionID, iouType],
     );
 
-    const goToNextStep = useCallback(
-        (selectedIouType: IOUType) => {
-            const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            let nextStepIOUType: IOUType = CONST.IOU.TYPE.REQUEST;
+    const goToNextStep = useCallback(() => {
+        const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
 
-            if (isSplit && iouType !== CONST.IOU.TYPE.REQUEST) {
-                nextStepIOUType = CONST.IOU.TYPE.SPLIT;
-            } else if (iouType === CONST.IOU.TYPE.SEND) {
-                nextStepIOUType = CONST.IOU.TYPE.SEND;
-            }
+        const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
+        if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat) {
+            const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
+            IOU.resetSplitShares(transactionID, participantAccountIDs, transaction?.amount ?? 0, transaction?.currency ?? CONST.CURRENCY.USD);
+        }
 
-            const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-            if (nextStepIOUType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat) {
-                const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
-                IOU.resetSplitShares(transactionID, participantAccountIDs, transaction?.amount ?? 0, transaction?.currency ?? CONST.CURRENCY.USD);
-            }
-
-            const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
-
-            IOU.setMoneyRequestTag(transactionID, '');
-            IOU.setMoneyRequestCategory(transactionID, '');
-            const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, nextStepIOUType, transactionID, selectedReportID.current || reportID);
-            if (isCategorizing) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, nextStepIOUType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
-            } else {
-                Navigation.navigate(iouConfirmationPageRoute);
-            }
-        },
-        [iouType, transactionID, reportID, action, participants, transaction?.amount, transaction?.currency],
-    );
+        IOU.setMoneyRequestTag(transactionID, '');
+        IOU.setMoneyRequestCategory(transactionID, '');
+        const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, selectedReportID.current || reportID);
+        if (isCategorizing) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
+        } else {
+            Navigation.navigate(iouConfirmationPageRoute);
+        }
+    }, [iouType, transactionID, reportID, action, participants, transaction?.amount, transaction?.currency]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);
