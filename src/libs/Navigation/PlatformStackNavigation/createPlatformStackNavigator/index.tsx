@@ -1,6 +1,7 @@
 import {createNavigatorFactory} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
+import React from 'react';
 import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
 import type {
     PlatformStackNavigationEventMap,
