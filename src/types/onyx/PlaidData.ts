@@ -15,6 +15,7 @@ type PlaidData = {
     bankAccounts?: PlaidBankAccount[];
 
     isLoading?: boolean;
+    error?: string;
     errors: OnyxCommon.Errors;
 };
 
