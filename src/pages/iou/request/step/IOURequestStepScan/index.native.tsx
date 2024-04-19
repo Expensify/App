@@ -219,14 +219,29 @@ function IOURequestStepScan({
                     });
                     return;
                 }
+                if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                    IOU.trackExpense(
+                        report,
+                        0,
+                        transaction?.currency ?? 'USD',
+                        transaction?.created ?? '',
+                        '',
+                        currentUserPersonalDetails.login ?? '',
+                        currentUserPersonalDetails.accountID ?? 0,
+                        participants[0],
+                        '',
+                        receipt,
+                    );
+                    return;
+                }
                 IOU.requestMoney(
                     report,
                     0,
                     transaction?.currency ?? 'USD',
                     transaction?.created ?? '',
                     '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
+                    currentUserPersonalDetails.login ?? '',
+                    currentUserPersonalDetails.accountID ?? 0,
                     participants[0],
                     '',
                     receipt,

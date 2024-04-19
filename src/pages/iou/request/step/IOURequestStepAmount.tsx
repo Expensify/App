@@ -209,6 +209,7 @@ function IOURequestStepAmount({
                         participants[0],
                         '',
                     );
+                    return;
                 }
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
