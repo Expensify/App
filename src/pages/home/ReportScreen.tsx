@@ -626,7 +626,7 @@ function ReportScreen({
         );
     }
 
-    Log.info(
+    Log.client(
         `[ReportScreen] Debug render state - ${JSON.stringify({
             reportMetadata,
             shouldShowReportActionList,
