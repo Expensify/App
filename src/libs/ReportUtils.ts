@@ -3430,8 +3430,8 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 
+    // Get the approver/manager for this report to properly display the optimistic data
     const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, payeeAccountID);
-    // The account defined in the policy submitsTo field is the approver/ manager for this report
     if (submitToAccountID) {
         expenseReport.managerID = submitToAccountID;
     }
