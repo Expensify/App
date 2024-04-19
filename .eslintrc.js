@@ -238,6 +238,7 @@ module.exports = {
                 'jsdoc/no-types': 'error',
                 'rulesdir/no-default-props': 'error',
                 'import/no-extraneous-dependencies': 'off',
+                'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',
                 'react/require-default-props': 'off',
                 'react/prop-types': 'off',
