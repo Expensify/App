@@ -49,7 +49,7 @@ function IOURequestStepCurrency({
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     const navigateBack = (selectedCurrencyValue = '') => {
-        // If the currency selection was done from the confirmation step (eg. + > request money > manual > confirm > amount > currency)
+        // If the currency selection was done from the confirmation step (eg. + > submit expense > manual > confirm > amount > currency)
         // then the user needs taken back to the confirmation page instead of the initial amount page. This is because the route params
         // are only able to handle one backTo param at a time and the user needs to go back to the amount page before going back
         // to the confirmation page
