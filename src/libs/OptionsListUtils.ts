@@ -722,7 +722,7 @@ function createOption(
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = visibleReportActionItems[report.reportID];
-        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
+        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
 
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
