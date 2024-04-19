@@ -27,8 +27,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSyncReimbursedSwitchOn = Boolean(collectionAccountID !== '');
+    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, errors} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isSyncReimbursedSwitchOn = !!collectionAccountID;
     const selectedAccount = '92345'; // TODO: use fake selected account temporarily.
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
@@ -99,10 +99,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                pendingAction={pendingFields?.reimbursementAccountID || pendingFields?.collectionAccountID}
-                                isActive={isSyncReimbursedSwitchOn} // TODO
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                pendingAction={pendingFields?.collectionAccountID}
+                                isActive={isSyncReimbursedSwitchOn}
                                 onToggle={() =>
                                     Connections.updatePolicyConnectionConfig(
                                         policyID,
