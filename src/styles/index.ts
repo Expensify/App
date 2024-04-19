@@ -3696,7 +3696,7 @@ const styles = (theme: ThemeColors) =>
 
         quickActionTooltipSubtitle: {
             fontSize: variables.fontSizeLabel,
-            color: theme.tooltipPrimaryText,
+            color: theme.textDark,
         },
 
         quickReactionsContainer: {

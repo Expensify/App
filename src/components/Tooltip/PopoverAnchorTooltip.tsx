@@ -26,6 +26,7 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
         <HoverableTooltip
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            shouldRenderWithoutHover={false}
             ref={tooltipRef}
         >
             {children}

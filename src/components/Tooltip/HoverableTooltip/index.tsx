@@ -3,8 +3,8 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useCallback, useRef} from 'react';
 import Hoverable from '@components/Hoverable';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import BaseTooltip from './BaseTooltip';
-import type {HoverableTooltipProps, TooltipRect} from './types';
+import BaseTooltip from '@components/Tooltip/BaseTooltip';
+import type {HoverableTooltipProps, TooltipRect} from '@components/Tooltip/types';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 

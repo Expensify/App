@@ -1,13 +1,11 @@
 import React, {memo, useEffect, useRef} from 'react';
 import type {LayoutChangeEvent, LayoutEvent} from 'react-native';
-import type TooltipProps from './types';
 import BaseTooltip from './BaseTooltip';
+import type TooltipProps from './types';
 
 /**
- * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
- * wrapped element, which, upon hover, triggers the tooltip to be shown.
- * @param props
- * @returns
+ * A component used to wrap an element intended for displaying a tooltip.
+ * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
 function EducationalTooltip({children, ...props}: TooltipProps) {
     const hideTooltipRef = useRef<() => void>();
@@ -30,7 +28,7 @@ function EducationalTooltip({children, ...props}: TooltipProps) {
                 hideTooltipRef.current = hideTooltip;
                 return React.cloneElement(children as React.ReactElement, {
                     onLayout: ({nativeEvent}: LayoutEvent | LayoutChangeEvent) => {
-                        updateBounds('target' in nativeEvent ? nativeEvent.target?.getBoundingClientRect() : nativeEvent.layout);
+                        updateBounds('target' in nativeEvent && typeof nativeEvent.target !== 'number' ? nativeEvent.target?.getBoundingClientRect() : nativeEvent.layout);
                         showTooltip();
                     },
                 });

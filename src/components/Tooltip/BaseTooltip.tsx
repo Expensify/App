@@ -7,9 +7,9 @@ import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
-import type {BaseTooltipProps, TooltipRect} from './types';
-import TooltipSense from './TooltipSense';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
+import TooltipSense from './TooltipSense';
+import type {BaseTooltipProps, TooltipRect} from './types';
 
 /**
  * The base tooltip implementation, exposing the tooltip's state
