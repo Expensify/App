@@ -47,8 +47,8 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const report = ReportUtils.getReport(reportID);
 
-    // We check if the report is part of a policy, if not then it's a personal request (1:1 request)
-    // We need to allow both users in the 1:1 request to put the request on hold
+    // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
+    // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = ReportUtils.isGroupPolicy(report);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
@@ -57,9 +57,9 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
     };
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
-        // We have extra isWorkspaceRequest condition as in case of 1:1 request, canEditMoneyRequest will rightly return false
-        // as we do not allow requestee to edit fields like description and amount,
-        // but we still want the requestee to be able to put the request on hold
+        // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+        // as we do not allow requestee to edit fields like description and amount.
+        // But, we still want the requestee to be able to put the request on hold
         if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
             return;
         }
@@ -75,9 +75,9 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             if (!values.comment) {
                 errors.comment = 'common.error.fieldRequired';
             }
-            // We have extra isWorkspaceRequest condition as in case of 1:1 request, canEditMoneyRequest will rightly return false
-            // as we do not allow requestee to edit fields like description and amount,
-            // but we still want the requestee to be able to put the request on hold
+            // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
+            // as we do not allow requestee to edit fields like description and amount.
+            // But, we still want the requestee to be able to put the request on hold
             if (!ReportUtils.canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
                 const formErrors = {};
                 ErrorUtils.addErrorMessage(formErrors, 'reportModified', 'common.error.requestModified');
