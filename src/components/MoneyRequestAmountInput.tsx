@@ -159,6 +159,20 @@ function MoneyRequestAmountInput(
         },
     }));
 
+    useEffect(() => {
+        if (typeof amount !== 'number') {
+            return;
+        }
+        const frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+        setNewAmount(frontendAmount);
+        setSelection({
+            start: frontendAmount.length,
+            end: frontendAmount.length,
+        });
+        // we want to re-initialize the state only when the selected tab or amount changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [amount]);
+
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
         // If the changed currency supports decimals, we can return

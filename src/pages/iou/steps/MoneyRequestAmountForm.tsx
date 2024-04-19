@@ -158,9 +158,9 @@ function MoneyRequestAmountForm(
             return;
         }
         initializeAmount(amount);
-        // we want to re-initialize the state only when the selected tab or amount changes
+        // we want to re-initialize the state only when the selected tab
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedTab, amount]);
+    }, [selectedTab]);
 
     /**
      * Update amount with number or Backspace pressed for BigNumberPad.
