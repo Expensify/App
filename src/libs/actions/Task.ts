@@ -301,7 +301,7 @@ function createTaskAndNavigate(
 function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     const taskReportID = taskReport?.reportID ?? '';
     const message = `marked as complete`;
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -368,7 +368,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     const taskReportID = taskReport?.reportID ?? '';
     const message = `marked as incomplete`;
-    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
+    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -819,7 +819,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         return;
     }
     const message = `deleted task: ${report.reportName}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
     const parentReport = getParentReport(report);

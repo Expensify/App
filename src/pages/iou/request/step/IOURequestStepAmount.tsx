@@ -137,7 +137,7 @@ function IOURequestStepAmount({
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestAmount_temporaryForRefactor(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestAmount(transactionID, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);

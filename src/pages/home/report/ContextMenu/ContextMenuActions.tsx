@@ -210,6 +210,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return !ReportUtils.shouldDisableThread(reportAction, reportID);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     InteractionManager.runAfterInteractions(() => {
@@ -217,12 +218,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                         // is false, so we need to pass true here to override this condition.
                         ReportActionComposeFocusManager.focus(true);
                     });
-                    Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
+                    Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, originalReportID);
                 });
                 return;
             }
-
-            Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
+            Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, originalReportID);
         },
         getDescription: () => {},
     },
@@ -300,7 +300,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
             const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
-            const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
             return !subscribed && !isWhisperAction && isCommentAction && (!isDeletedAction || shouldDisplayThreadReplies);
         },
