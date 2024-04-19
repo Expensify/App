@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useNavigationState} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -18,6 +18,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
@@ -25,6 +26,7 @@ import * as Task from '@userActions/Task';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestOptions = Record<IOUType, PopoverMenuItem>;
@@ -115,8 +117,11 @@ function AttachmentPickerWithMenuItems({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
+    const {isSmallScreenWidth, windowHeight, windowWidth} = useWindowDimensions();
     const {canUseTrackExpense} = usePermissions();
+    const activeRoute = useNavigationState(getTopmostRouteName);
+    const isReportOpenedInRHP = activeRoute === SCREENS.SEARCH.REPORT;
+    const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenedInRHP;
 
     /**
      * Returns the list of IOU Options
@@ -302,7 +307,7 @@ function AttachmentPickerWithMenuItems({
                                     triggerAttachmentPicker();
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
+                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay

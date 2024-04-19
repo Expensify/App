@@ -1622,9 +1622,9 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionReportActionCompose: (windowHeight: number) =>
+        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
-                horizontal: 18 + variables.sideBarWidth,
+                horizontal: shouldUseNarrowLayout ? windowWidth - (variables.sideBarWidth - 18) : 18 + variables.sideBarWidth,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
