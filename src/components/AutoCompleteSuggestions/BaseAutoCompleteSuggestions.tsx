@@ -81,7 +81,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         [isLargeScreenWidth, suggestions.length, windowWidth],
     );
     useEffect(() => {
-        // add 1 to the expected row number if we are searching for mentions - this will add place for loading spinner at the bottom of the list
+        // Add 1 to the expected row number if we are searching for mentions - this will add place for loading spinner at the bottom of the list
         const expectedRowNumber = suggestions.length + (isSearchingForMentions ? 1 : 0);
 
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(expectedRowNumber, isSuggestionPickerLarge), {
@@ -125,6 +125,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                             />
                         ) : undefined
                     }
+                    ListFooterComponentStyle={[styles.ml4, styles.alignSelfStart]}
                 />
             </ColorSchemeWrapper>
         </Animated.View>
