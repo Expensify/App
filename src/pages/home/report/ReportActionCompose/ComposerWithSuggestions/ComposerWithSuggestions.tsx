@@ -1,4 +1,5 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -28,8 +29,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+import {getDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
@@ -170,6 +171,12 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** The parent report ID */
         // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
         parentReportID: string | undefined;
+
+        /** Whether report is from group policy */
+        isGroupPolicyReport: boolean;
+
+        /** policy ID of the report */
+        policyID: string;
     };
 
 const {RNTextInputReset} = NativeModules;
@@ -179,9 +186,16 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
-const debouncedBroadcastUserIsTyping = lodashDebounce((reportID: string) => {
-    Report.broadcastUserIsTyping(reportID);
-}, 100);
+const debouncedBroadcastUserIsTyping = lodashDebounce(
+    (reportID: string) => {
+        Report.broadcastUserIsTyping(reportID);
+    },
+    1000,
+    {
+        maxWait: 1000,
+        leading: true,
+    },
+);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
@@ -209,6 +223,8 @@ function ComposerWithSuggestions(
         isEmptyChat,
         lastReportAction,
         parentReportActionID,
+        isGroupPolicyReport,
+        policyID,
 
         // Focus
         onFocus,
@@ -288,6 +304,9 @@ function ComposerWithSuggestions(
 
     const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
+
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
@@ -322,7 +341,8 @@ function ComposerWithSuggestions(
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID, newComment) => {
-                Report.saveReportComment(selectedReportID, newComment || '');
+                Report.saveReportDraftComment(selectedReportID, newComment);
+                isCommentPendingSaved.current = false;
             }, 1000),
         [],
     );
@@ -414,28 +434,12 @@ function ComposerWithSuggestions(
                 });
             }
 
-            // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
-                Report.setReportWithDraft(reportID, true);
-            }
-
-            const hasDraftStatus = Report.getReportDraftStatus(reportID);
-
-            /**
-             * The extra `!hasDraftStatus` check is to prevent the draft being set
-             * when the user navigates to the ReportScreen. This doesn't alter anything
-             * in terms of functionality.
-             */
-            // The draft has been deleted.
-            if (newCommentConverted.length === 0 && hasDraftStatus) {
-                Report.setReportWithDraft(reportID, false);
-            }
-
             commentRef.current = newCommentConverted;
             if (shouldDebounceSaveComment) {
+                isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportComment(reportID, newCommentConverted || '');
+                Report.saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
@@ -481,6 +485,7 @@ function ComposerWithSuggestions(
         // We don't really care about saving the draft the user was typing
         // We need to make sure an empty draft gets saved instead
         debouncedSaveReportComment.cancel();
+        isCommentPendingSaved.current = false;
 
         updateComment('');
         setTextInputShouldClear(true);
@@ -531,7 +536,8 @@ function ComposerWithSuggestions(
             ) {
                 event.preventDefault();
                 if (lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction, lastReportAction.message?.at(-1)?.html ?? '');
+                    const parser = new ExpensiMark();
+                    Report.saveReportActionDraft(reportID, lastReportAction, parser.htmlToMarkdown(lastReportAction.message?.at(-1)?.html ?? ''));
                 }
             }
         },
@@ -593,8 +599,8 @@ function ComposerWithSuggestions(
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocused) {
+        ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+            if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
                 return;
             }
 
@@ -644,6 +650,9 @@ function ComposerWithSuggestions(
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+            // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
+            // @ts-expect-error need to reassign this ref
+            ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
         KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
@@ -768,6 +777,8 @@ function ComposerWithSuggestions(
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                isGroupPolicyReport={isGroupPolicyReport}
+                policyID={policyID}
                 // Input
                 value={value}
                 setValue={setValue}
@@ -782,6 +793,7 @@ function ComposerWithSuggestions(
                     value={value}
                     updateComment={updateComment}
                     commentRef={commentRef}
+                    isCommentPendingSaved={isCommentPendingSaved}
                 />
             )}
 

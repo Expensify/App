@@ -44,6 +44,11 @@ import variables from './variables';
 type ColorScheme = (typeof CONST.COLOR_SCHEME)[keyof typeof CONST.COLOR_SCHEME];
 type StatusBarStyle = (typeof CONST.STATUS_BAR_STYLE)[keyof typeof CONST.STATUS_BAR_STYLE];
 
+type AnchorDimensions = {
+    width: number;
+    height: number;
+};
+
 type AnchorPosition = {
     horizontal: number;
     vertical: number;
@@ -864,6 +869,14 @@ const styles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeSmall: {
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+            paddingHorizontal: 6,
+            minHeight: 20,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -1087,6 +1100,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
+            zIndex: 1,
         },
 
         textInputLabelBackground: {
@@ -1552,7 +1566,6 @@ const styles = (theme: ThemeColors) =>
 
         breadcrumbLogo: {
             top: 1.66, // Pixel-perfect alignment due to a small difference between logo height and breadcrumb text height
-            height: variables.lineHeightSizeh1,
         },
 
         LHPNavigatorContainer: (isSmallScreenWidth: boolean) =>
@@ -1566,6 +1579,25 @@ const styles = (theme: ThemeColors) =>
                 ...modalNavigatorContainer(isSmallScreenWidth),
                 right: 0,
             } satisfies ViewStyle),
+
+        onboardingNavigatorOuterView: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
+                height: shouldUseNarrowLayout ? 732 : '100%',
+                maxHeight: '100%',
+                borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
+
+        welcomeVideoNarrowLayout: {
+            width: variables.onboardingModalWidth,
+        },
 
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
@@ -1801,6 +1833,19 @@ const styles = (theme: ThemeColors) =>
                 }),
             } satisfies ViewStyle),
 
+        nativeOverlayStyles: (current: OverlayStylesParams) =>
+            ({
+                position: 'absolute',
+                backgroundColor: theme.overlay,
+                width: '100%',
+                height: '100%',
+                opacity: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, variables.overlayOpacity],
+                    extrapolate: 'clamp',
+                }),
+            } satisfies ViewStyle),
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',
@@ -1894,7 +1939,6 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
             maxWidth: '100%',
-            ...cursor.cursorAuto,
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
         },
@@ -2234,7 +2278,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         avatarInnerText: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeSmall,
             lineHeight: undefined,
             marginLeft: -3,
@@ -2374,29 +2418,12 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.modalBackground,
         },
 
-        PDFView: {
-            // `display: grid` is not supported in native platforms!
-            // It's being used on Web/Desktop only to vertically center short PDFs,
-            // while preventing the overflow of the top of long PDF files.
-            ...display.dGrid,
-            width: '100%',
-            height: '100%',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            alignItems: 'center',
-        },
-
-        PDFViewList: {
-            overflowX: 'hidden',
-            // There properties disable "focus" effect on list
-            boxShadow: 'none',
-            outline: 'none',
-        },
-
         getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
             ({
                 width: isSmallScreenWidth ? '100%' : 350,
-                ...(isSmallScreenWidth && flex.flex1),
+                flexBasis: isSmallScreenWidth ? '100%' : 350,
+                flexGrow: 0,
+                alignSelf: 'flex-start',
             } satisfies ViewStyle),
 
         centeredModalStyles: (isSmallScreenWidth: boolean, isFullScreenWhenSmall: boolean) =>
@@ -2756,7 +2783,8 @@ const styles = (theme: ThemeColors) =>
             height: 1,
             backgroundColor: theme.border,
             flexGrow: 1,
-            marginHorizontal: 20,
+            marginLeft: 8,
+            marginRight: 20,
         },
 
         unreadIndicatorText: {
@@ -2764,6 +2792,12 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
             fontWeight: FontUtils.fontWeight.bold,
+            textTransform: 'capitalize',
+        },
+
+        threadDividerText: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
             textTransform: 'capitalize',
         },
 
@@ -2836,7 +2870,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         switchInactive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.icon,
         },
 
         switchThumb: {
@@ -2845,6 +2879,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 11,
             position: 'absolute',
             left: 4,
+            justifyContent: 'center',
+            alignItems: 'center',
             backgroundColor: theme.appBG,
         },
 
@@ -2862,6 +2898,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        toggleSwitchLockIcon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
         },
 
         checkedContainer: {
@@ -3217,6 +3258,15 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        emptyLHNWrapper: {
+            marginBottom: variables.bottomTabHeight,
+        },
+
+        emptyLHNAnimation: {
+            width: 180,
+            height: 180,
         },
 
         locationErrorLinkText: {
@@ -4027,6 +4077,18 @@ const styles = (theme: ThemeColors) =>
             zIndex: -1,
         },
 
+        purposeMenuItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            alignItems: 'center',
+            marginBottom: 8,
+        },
+
+        purposeMenuItemSelected: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -4036,9 +4098,14 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
-        dropDownButtonArrowContain: {
+        dropDownMediumButtonArrowContain: {
             marginLeft: 12,
-            marginRight: 14,
+            marginRight: 16,
+        },
+
+        dropDownLargeButtonArrowContain: {
+            marginLeft: 16,
+            marginRight: 20,
         },
 
         dropDownButtonCartIconView: {
@@ -4201,6 +4268,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: 9,
         },
 
+        onboardingVideoPlayer: {
+            borderRadius: 12,
+            backgroundColor: theme.highlightBG,
+        },
+
         sidebarStatusAvatarContainer: {
             height: 40,
             width: 40,
@@ -4327,7 +4399,6 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 16,
             paddingVertical: 16,
             marginHorizontal: 20,
-            marginBottom: 12,
             backgroundColor: theme.highlightBG,
             borderRadius: 8,
         },
@@ -4476,6 +4547,26 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.icon,
         },
 
+        headerProgressBarContainer: {
+            position: 'absolute',
+            width: '100%',
+            zIndex: -1,
+        },
+
+        headerProgressBar: {
+            width: variables.componentSizeMedium,
+            height: variables.iconSizeXXXSmall,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.border,
+            alignSelf: 'center',
+        },
+
+        headerProgressBarFill: {
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: '100%',
+            backgroundColor: theme.success,
+        },
+
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
@@ -4606,6 +4697,8 @@ const styles = (theme: ThemeColors) =>
             fontWeight: '700',
             lineHeight: 16,
             color: theme.white,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
         },
 
         volumeSliderContainer: {
@@ -4708,6 +4801,10 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
         },
+
+        textLineThrough: {
+            textDecorationLine: 'line-through',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
@@ -4716,4 +4813,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition};
+export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};

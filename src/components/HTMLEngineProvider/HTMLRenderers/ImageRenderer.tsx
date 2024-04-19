@@ -81,8 +81,14 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                 <PressableWithoutFocus
                     style={[styles.noOutline]}
                     onPress={() => {
+                       if(report?.reportID){
                         const route = ROUTES.REPORT_ATTACHMENTS.getRoute(report?.reportID ?? '', source);
                         Navigation.navigate(route);
+                       }
+                       else {
+                        const route = ROUTES.ATTACHMENTS.getRoute(source)
+                        Navigation.navigate(route)
+                       }
                     }}
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     shouldUseHapticsOnLongPress

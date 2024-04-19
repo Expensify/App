@@ -57,6 +57,10 @@ function AmountTextInput(
             role={CONST.ROLE.PRESENTATION}
             onKeyPress={onKeyPress as (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => void}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
+            // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
+            // Setting both autoCorrect and spellCheck to false will hide the suggestion.
+            autoCorrect={false}
+            spellCheck={false}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />

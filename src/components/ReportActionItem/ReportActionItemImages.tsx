@@ -30,7 +30,7 @@ type ReportActionItemImagesProps = {
 
 /**
  * This component displays a row of images in a report action item like a card, such
- * as report previews or money request previews which contain receipt images. The maximum of images
+ * as report previews or expense previews which contain receipt images. The maximum of images
  * shown in this row is dictated by the size prop, which, if not passed, is just the number of images.
  * Otherwise, if size is passed and the number of images is over size, we show a small overlay on the
  * last image of how many additional images there are. If passed, total prop can be used to change how this
@@ -65,21 +65,23 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
     return (
         <View style={styles.reportActionItemImagesContainer}>
             <View style={[styles.reportActionItemImages, hoverStyle, heightStyle]}>
-                {shownImages.map(({thumbnail, image, transaction, isLocalFile, filename}, index) => {
+                {shownImages.map(({thumbnail, isThumbnail, image, transaction, isLocalFile, fileExtension, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
                     const borderStyle = shouldShowBorder ? styles.reportActionItemImageBorder : {};
                     return (
                         <View
-                            key={`${index}-${image as string}`}
+                            key={`${index}-${image}`}
                             style={[styles.reportActionItemImage, borderStyle, hoverStyle]}
                         >
                             <ReportActionItemImage
                                 thumbnail={thumbnail}
+                                fileExtension={fileExtension}
                                 image={image}
                                 isLocalFile={isLocalFile}
                                 filename={filename}
                                 transaction={transaction}
+                                isThumbnail={isThumbnail}
                                 isSingleImage={numberOfShownImages === 1}
                             />
                         </View>

@@ -3,6 +3,7 @@ import dateAdd from 'date-fns/add';
 import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
+import type {ValueOf} from 'type-fest';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
 
@@ -46,6 +47,7 @@ const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 const chatTypes = {
     POLICY_ANNOUNCE: 'policyAnnounce',
     POLICY_ADMINS: 'policyAdmins',
+    GROUP: 'group',
     DOMAIN_ALL: 'domainAll',
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
@@ -55,10 +57,24 @@ const chatTypes = {
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
+const onboardingChoices = {
+    TRACK: 'newDotTrack',
+    EMPLOYER: 'newDotEmployer',
+    MANAGE_TEAM: 'newDotManageTeam',
+    PERSONAL_SPEND: 'newDotPersonalSpend',
+    CHAT_SPLIT: 'newDotSplitChat',
+    LOOKING_AROUND: 'newDotLookingAround',
+};
+
 const CONST = {
     MERGED_ACCOUNT_PREFIX: 'MERGED_',
     DEFAULT_POLICY_ROOM_CHAT_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL],
+
+    // Note: Group and Self-DM excluded as these are not tied to a Workspace
+    WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
     ANDROID_PACKAGE_NAME,
+    ANIMATED_HIGHLIGHT_DELAY: 500,
+    ANIMATED_HIGHLIGHT_DURATION: 500,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
@@ -117,6 +133,7 @@ const CONST = {
         NORMAL: 'normal',
     },
 
+    DEFAULT_GROUP_AVATAR_COUNT: 18,
     DEFAULT_AVATAR_COUNT: 24,
     OLD_DEFAULT_AVATAR_COUNT: 8,
 
@@ -329,12 +346,12 @@ const CONST = {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
         DEFAULT_ROOMS: 'defaultRooms',
-        BETA_COMMENT_LINKING: 'commentLinking',
         VIOLATIONS: 'violations',
         REPORT_FIELDS: 'reportFields',
         TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -605,6 +622,10 @@ const CONST = {
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
     },
     REPORT: {
+        ROLE: {
+            ADMIN: 'admin',
+            MEMBER: 'member',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
@@ -612,57 +633,59 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
-                ADDCOMMENT: 'ADDCOMMENT',
-                ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
+                ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
+                ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
-                CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
-                CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
-                CHANGETYPE: 'CHANGETYPE', // OldDot Action
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
+                CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
+                CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
-                DELETEDACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
+                DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
                 DONATION: 'DONATION', // OldDot Action
-                EXPORTEDTOCSV: 'EXPORTEDTOCSV', // OldDot Action
-                EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
-                EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
+                EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
-                HOLDCOMMENT: 'HOLDCOMMENT',
+                HOLD_COMMENT: 'HOLDCOMMENT',
                 IOU: 'IOU',
-                INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
-                MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
-                MANAGERDETACHRECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
-                MARKEDREIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
-                MARKREIMBURSEDFROMINTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
-                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
+                MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
+                MANAGER_DETACH_RECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
+                MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
+                MARK_REIMBURSED_FROM_INTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
+                MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
-                OUTDATEDBANKACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
-                REIMBURSEMENTACHBOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
-                REIMBURSEMENTACHCANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
-                REIMBURSEMENTACCOUNTCHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
-                REIMBURSEMENTDELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
-                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
-                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
-                REIMBURSEMENTREQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
-                REIMBURSEMENTSETUP: 'REIMBURSEMENTSETUP', // OldDot Action
+                OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
+                REIMBURSEMENT_ACH_CANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
+                REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
+                REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
+                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
+                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
                 RENAMED: 'RENAMED',
-                REPORTPREVIEW: 'REPORTPREVIEW',
-                SELECTEDFORRANDOMAUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                REPORT_PREVIEW: 'REPORTPREVIEW',
+                SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
-                STRIPEPAID: 'STRIPEPAID', // OldDot Action
+                STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
-                TAKECONTROL: 'TAKECONTROL', // OldDot Action
-                TASKCANCELLED: 'TASKCANCELLED',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKEDITED: 'TASKEDITED',
-                TASKREOPENED: 'TASKREOPENED',
+                TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
+                TASK_CANCELLED: 'TASKCANCELLED',
+                TASK_COMPLETED: 'TASKCOMPLETED',
+                TASK_EDITED: 'TASKEDITED',
+                TASK_REOPENED: 'TASKREOPENED',
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
-                POLICYCHANGELOG: {
+                UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
+                POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -690,16 +713,16 @@ const CONST = {
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
                     LEAVE_ROOM: 'POLICYCHANGELOG_LEAVEROOM',
                     REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
-                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    SET_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
                     SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
                     UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
-                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
-                    UPDATE_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
-                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_AUTO_HARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
+                    UPDATE_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
+                    UPDATE_AUTO_REPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
                     UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
@@ -728,8 +751,9 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
+                    LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                 },
-                ROOMCHANGELOG: {
+                ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     LEAVE_ROOM: 'LEAVEROOM',
@@ -743,6 +767,9 @@ const CONST = {
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
+            NOTHING: 'nothing',
+        },
+        ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
@@ -831,6 +858,7 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+            ONBOARDING: 'onboarding',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -843,11 +871,17 @@ const CONST = {
             RIGHT: 'right',
         },
         POPOVER_MENU_PADDING: 8,
+        RESTORE_FOCUS_TYPE: {
+            DEFAULT: 'default',
+            DELETE: 'delete',
+            PRESERVE: 'preserve',
+        },
     },
     TIMING: {
         CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
-        SEARCH_RENDER: 'search_render',
+        CHAT_FINDER_RENDER: 'search_render',
         CHAT_RENDER: 'chat_render',
+        OPEN_REPORT: 'open_report',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
         SWITCH_REPORT: 'switch_report',
@@ -1173,6 +1207,24 @@ const CONST = {
         EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     },
 
+    INTEGRATION_ENTITY_MAP_TYPES: {
+        DEFAULT: 'DEFAULT',
+        NONE: 'NONE',
+        TAG: 'TAG',
+        REPORT_FIELD: 'REPORT_FIELD',
+        NOT_IMPORTED: 'NOT_IMPORTED',
+        IMPORTED: 'IMPORTED',
+    },
+    QUICKBOOKS_ONLINE: 'quickbooksOnline',
+
+    QUICKBOOKS_IMPORTS: {
+        SYNC_CLASSES: 'syncClasses',
+        ENABLE_NEW_CATEGORIES: 'enableNewCategories',
+        SYNC_CUSTOMERS: 'syncCustomers',
+        SYNC_LOCATIONS: 'syncLocations',
+        SYNC_TAXES: 'syncTaxes',
+    },
+
     ACCOUNT_ID: {
         ACCOUNTING: Number(Config?.EXPENSIFY_ACCOUNT_ID_ACCOUNTING ?? 9645353),
         ADMIN: Number(Config?.EXPENSIFY_ACCOUNT_ID_ADMIN ?? -1),
@@ -1251,6 +1303,24 @@ const CONST = {
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
+        STEP_REFACTOR: {
+            ADD_BANK_ACCOUNT: 'AddBankAccountStep',
+            ADDITIONAL_DETAILS: 'AdditionalDetailsStep',
+            VERIFY_IDENTITY: 'VerifyIdentityStep',
+            TERMS_AND_FEES: 'TermsAndFeesStep',
+        },
+        STEP_NAMES: ['1', '2', '3', '4'],
+        SUBSTEP_INDEXES: {
+            BANK_ACCOUNT: {
+                ACCOUNT_NUMBERS: 0,
+            },
+            PERSONAL_INFO: {
+                LEGAL_NAME: 0,
+                DATE_OF_BIRTH: 1,
+                SSN: 2,
+                ADDRESS: 3,
+            },
+        },
         TIER_NAME: {
             PLATINUM: 'PLATINUM',
             GOLD: 'GOLD',
@@ -1293,7 +1363,7 @@ const CONST = {
     },
 
     KYC_WALL_SOURCE: {
-        REPORT: 'REPORT', // The user attempted to pay a money request
+        REPORT: 'REPORT', // The user attempted to pay an expense
         ENABLE_WALLET: 'ENABLE_WALLET', // The user clicked on the `Enable wallet` button on the Wallet page
         TRANSFER_BALANCE: 'TRANSFER_BALANCE', // The user attempted to transfer their wallet balance to their bank account or debit card
     },
@@ -1329,7 +1399,7 @@ const CONST = {
     },
 
     IOU: {
-        // This is the transactionID used when going through the create money request flow so that it mimics a real transaction (like the edit flow)
+        // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
@@ -1341,6 +1411,9 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
+            REQUEST: 'request',
+            CATEGORIZE: 'categorize',
+            SHARE: 'share',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
@@ -1381,6 +1454,11 @@ const CONST = {
         RECEIPT_ERROR: 'receiptError',
         CANCEL_REASON: {
             PAYMENT_EXPIRED: 'CANCEL_REASON_PAYMENT_EXPIRED',
+        },
+        SHARE: {
+            ROLE: {
+                ACCOUNTANT: 'accountant',
+            },
         },
     },
 
@@ -1423,6 +1501,15 @@ const CONST = {
         'zeHirHirs',
         'callMeByMyName',
     ],
+
+    // Map updated pronouns key to deprecated pronouns
+    DEPRECATED_PRONOUNS_LIST: {
+        heHimHis: 'He/him',
+        sheHerHers: 'She/her',
+        theyThemTheirs: 'They/them',
+        zeHirHirs: 'Ze/hir',
+        callMeByMyName: 'Call me by my name',
+    },
 
     POLICY: {
         TYPE: {
@@ -1501,6 +1588,15 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        OWNERSHIP_ERRORS: {
+            NO_BILLING_CARD: 'noBillingCard',
+            AMOUNT_OWED: 'amountOwed',
+            HAS_FAILED_SETTLEMENTS: 'hasFailedSettlements',
+            OWNER_OWES_AMOUNT: 'ownerOwesAmount',
+            SUBSCRIPTION: 'subscription',
+            DUPLICATE_SUBSCRIPTION: 'duplicateSubscription',
+            FAILED_TO_CLEAR_BALANCE: 'failedToClearBalance',
+        },
         TAX_RATES_BULK_ACTION_TYPES: {
             DELETE: 'delete',
             DISABLE: 'disable',
@@ -1508,13 +1604,33 @@ const CONST = {
         },
         COLLECTION_KEYS: {
             DESCRIPTION: 'description',
-            REIMBURSER_EMAIL: 'reimburserEmail',
+            REIMBURSER: 'reimburser',
             REIMBURSEMENT_CHOICE: 'reimbursementChoice',
             APPROVAL_MODE: 'approvalMode',
             AUTOREPORTING: 'autoReporting',
             AUTOREPORTING_FREQUENCY: 'autoReportingFrequency',
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GENERAL_SETTINGS: 'generalSettings',
+        },
+        CONNECTIONS: {
+            NAME: {
+                // Here we will add other connections names when we add support for them
+                QBO: 'quickbooksOnline',
+            },
+            SYNC_STAGE_NAME: {
+                STARTING_IMPORT: 'startingImport',
+                QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
+                QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
+                QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
+                QBO_IMPORT_ACCOUNTS: 'quickbooksOnlineImportAccounts',
+                QBO_IMPORT_CLASSES: 'quickbooksOnlineImportClasses',
+                QBO_IMPORT_LOCATIONS: 'quickbooksOnlineImportLocations',
+                QBO_IMPORT_PROCESSING: 'quickbooksOnlineImportProcessing',
+                QBO_SYNC_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
+                QBO_IMPORT_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
+                QBO_CHECK_CONNECTION: 'quickbooksOnlineCheckConnection',
+                JOB_DONE: 'jobDone',
+            },
         },
     },
 
@@ -1630,7 +1746,7 @@ const CONST = {
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
-        LINE_BREAK: /\n/g,
+        LINE_BREAK: /\r|\n/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
@@ -1679,7 +1795,7 @@ const CONST = {
 
         POLICY_ID_FROM_PATH: /\/w\/([a-zA-Z0-9]+)(\/|$)/,
 
-        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
+        SHORT_MENTION: new RegExp(`@[\\w\\-\\+\\'#@]+(?:\\.[\\w\\-\\'\\+]+)*`, 'gim'),
     },
 
     PRONOUNS: {
@@ -1758,17 +1874,17 @@ const CONST = {
 
     MAX_THREAD_REPLIES_PREVIEW: 99,
 
+    // Character Limits
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
-
     TAG_NAME_LIMIT: 256,
-
+    REPORT_NAME_LIMIT: 256,
     TITLE_CHARACTER_LIMIT: 100,
     DESCRIPTION_LIMIT: 500,
-
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
+
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
         // Values define in how many times the image can be bigger than its container.
@@ -1808,6 +1924,8 @@ const CONST = {
         RECEIPT: 'receipt',
         DISTANCE: 'distance',
         TAG: 'tag',
+        TAX_RATE: 'taxRate',
+        TAX_AMOUNT: 'taxAmount',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -1850,13 +1968,6 @@ const CONST = {
     MAX_INT_FOR_RANDOM_7_DIGIT_VALUE: 10000000,
     IOS_KEYBOARD_SPACE_OFFSET: -30,
 
-    PDF_PASSWORD_FORM: {
-        // Constants for password-related error responses received from react-pdf.
-        REACT_PDF_PASSWORD_RESPONSES: {
-            NEED_PASSWORD: 1,
-            INCORRECT_PASSWORD: 2,
-        },
-    },
     API_REQUEST_TYPE: {
         READ: 'read',
         WRITE: 'write',
@@ -2980,7 +3091,7 @@ const CONST = {
         CURRENCY: 'XAF',
         FORMAT: 'symbol',
         SAMPLE_INPUT: '123456.789',
-        EXPECTED_OUTPUT: 'FCFA 123,457',
+        EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
     PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg', 'docs/index.html'],
@@ -3187,6 +3298,13 @@ const CONST = {
         SCAN: 'scan',
         DISTANCE: 'distance',
     },
+    TAB_SEARCH: {
+        ALL: 'all',
+        SENT: 'sent',
+        DRAFTS: 'drafts',
+        WAITING_ON_YOU: 'waitingOnYou',
+        FINISHED: 'finished',
+    },
     STATUS_TEXT_MAX_LENGTH: 100,
 
     DROPDOWN_BUTTON_SIZE: {
@@ -3323,7 +3441,16 @@ const CONST = {
     },
 
     /**
-     * Constants for types of violations.
+     * Constants for types of violation.
+     */
+    VIOLATION_TYPES: {
+        VIOLATION: 'violation',
+        NOTICE: 'notice',
+        WARNING: 'warning',
+    },
+
+    /**
+     * Constants for types of violation names.
      * Defined here because they need to be referenced by the type system to generate the
      * ViolationNames type.
      */
@@ -3387,6 +3514,11 @@ const CONST = {
         HIDE_TIME_TEXT_WIDTH: 250,
         MIN_WIDTH: 170,
         MIN_HEIGHT: 120,
+        CONTROLS_STATUS: {
+            SHOW: 'show',
+            HIDE: 'hide',
+            VOLUME_ONLY: 'volumeOnly',
+        },
         CONTROLS_POSITION: {
             NATIVE: 32,
             NORMAL: 8,
@@ -3415,6 +3547,63 @@ const CONST = {
         NAME: 'Expensify',
         SUBSCRIPT_ICON_SIZE: 8,
         MINIMUM_WORKSPACES_TO_SHOW_SEARCH: 8,
+    },
+
+    WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
+
+    ONBOARDING_CHOICES: {...onboardingChoices},
+
+    ONBOARDING_CONCIERGE: {
+        [onboardingChoices.TRACK]:
+            "# Let's start tracking your expenses!\n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My business expenses").\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.EMPLOYER]:
+            '# Expensify is the fastest way to get paid back!\n' +
+            '\n' +
+            'To submit expenses for reimbursement:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
+            '\n' +
+            "That'll send a request to get you paid back. Let me know if you have any questions!",
+        [onboardingChoices.MANAGE_TEAM]:
+            "# Let's start managing your team's expenses!\n" +
+            '\n' +
+            "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "Sales team expenses").\n' +
+            '\n' +
+            'Then, invite your team to your workspace via the Members pane and [connect a business bank account](https://help.expensify.com/articles/new-expensify/bank-accounts/Connect-a-Bank-Account) to reimburse them. Let me know if you have any questions!',
+        [onboardingChoices.PERSONAL_SPEND]:
+            "# Let's start tracking your expenses! \n" +
+            '\n' +
+            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
+            '1. From the home screen, click the green + button > New Workspace\n' +
+            '2. Give your workspace a name (e.g. "My expenses").\n' +
+            '\n' +
+            'Then, add expenses to your workspace:\n' +
+            '1. Find your workspace using the search field.\n' +
+            '2. Click the gray + button next to the message field.\n' +
+            '3. Click Request money, then add your expense type.\n' +
+            '\n' +
+            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
+        [onboardingChoices.CHAT_SPLIT]:
+            '# Splitting the bill is as easy as a conversation!\n' +
+            '\n' +
+            'To split an expense:\n' +
+            '1. From the home screen, click the green + button > Request money.\n' +
+            '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
+            '\n' +
+            "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
     },
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
@@ -4133,6 +4322,9 @@ const CONST = {
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
+
+    DOT_SEPARATOR: '•',
+
     DEFAULT_TAX: {
         defaultExternalID: 'id_TAX_EXEMPT',
         defaultValue: '0%',
@@ -4149,10 +4341,16 @@ const CONST = {
             },
         },
     },
+
+    MAX_TAX_RATE_INTEGER_PLACES: 4,
+    MAX_TAX_RATE_DECIMAL_PLACES: 4,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
 
-export type {Country};
+type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
+type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
+
+export type {Country, IOUAction, IOUType};
 
 export default CONST;

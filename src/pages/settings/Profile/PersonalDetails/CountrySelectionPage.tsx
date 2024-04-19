@@ -68,7 +68,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 shouldShowBackButton
                 onBackButtonPress={() => {
                     const backTo = route.params.backTo ?? '';
-                    const backToRoute = backTo ? (`${backTo}?country=${currentCountry}` as const) : '';
+                    const backToRoute = backTo ? `${backTo}?country=${currentCountry}` : '';
                     Navigation.goBack(backToRoute as Route);
                 }}
             />
@@ -77,7 +77,7 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 headerMessage={headerMessage}
                 textInputLabel={translate('common.country')}
                 textInputValue={searchValue}
-                sections={[{data: searchResults, indexOffset: 0}]}
+                sections={[{data: searchResults}]}
                 ListItem={RadioListItem}
                 onSelectRow={selectCountry}
                 onChangeText={setSearchValue}

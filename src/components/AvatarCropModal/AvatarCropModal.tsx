@@ -1,8 +1,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, Image, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
+import ImageSize from 'react-native-image-size';
 import {interpolate, runOnUI, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
@@ -118,7 +119,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         if (!imageUri) {
             return;
         }
-        Image.getSize(imageUri, (width, height) => {
+        ImageSize.getSize(imageUri).then(({width, height}) => {
             // We need to have image sizes in shared values to properly calculate position/size/animation
             originalImageHeight.value = height;
             originalImageWidth.value = width;

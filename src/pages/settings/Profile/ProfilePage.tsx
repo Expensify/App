@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
-import MenuItemGroup from '@components/MenuItemGroup';
+import MenuItemGroup, {MenuItemGroupContext} from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -13,7 +13,6 @@ import Section from '@components/Section';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +32,8 @@ type ProfilePageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** Whether app is loading */
+    isLoadingApp: OnyxEntry<boolean>;
 };
 
 type ProfilePageProps = ProfilePageOnyxProps & WithCurrentUserPersonalDetailsProps;
@@ -53,12 +54,14 @@ function ProfilePage({
         },
     },
     currentUserPersonalDetails,
+    isLoadingApp,
 }: ProfilePageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
@@ -67,10 +70,8 @@ function ProfilePage({
 
     const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    usePrivatePersonalDetails();
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
-    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
     const publicOptions = [
         {
@@ -167,7 +168,7 @@ function ProfilePage({
                             childrenStyles={styles.pt3}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            {isLoadingPersonalDetails ? (
+                            {isLoadingApp ? (
                                 <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
                             ) : (
                                 <>
@@ -179,7 +180,7 @@ function ProfilePage({
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={() => Navigation.navigate(detail.pageRoute)}
+                                            onPress={waitForNavigate ? waitForNavigate(() => Navigation.navigate(detail.pageRoute)) : () => Navigation.navigate(detail.pageRoute)}
                                         />
                                     ))}
                                 </>
@@ -201,6 +202,9 @@ export default withCurrentUserPersonalDetails(
         },
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+        isLoadingApp: {
+            key: ONYXKEYS.IS_LOADING_APP,
         },
     })(ProfilePage),
 );

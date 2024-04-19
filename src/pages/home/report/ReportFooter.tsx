@@ -51,6 +51,12 @@ type ReportFooterProps = ReportFooterOnyxProps & {
 
     /** Whether the composer is in full size */
     isComposerFullSize?: boolean;
+
+    /** A method to call when the input is focus */
+    onComposerFocus: () => void;
+
+    /** A method to call when the input is blur */
+    onComposerBlur: () => void;
 };
 
 function ReportFooter({
@@ -63,6 +69,8 @@ function ReportFooter({
     isReportReadyForDisplay = true,
     listHeight = 0,
     isComposerFullSize = false,
+    onComposerBlur,
+    onComposerFocus,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -81,10 +89,10 @@ function ReportFooter({
             /**
              * Matching task rule by group
              * Group 1: Start task rule with []
-             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
              * Group 3: Title is remaining characters
              */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+(?:@\w+\.\w+)?))?\s*([\s\S]*)/;
 
             const match = text.match(taskRegex);
             if (!match) {
@@ -94,10 +102,13 @@ function ReportFooter({
             if (!title) {
                 return false;
             }
-            const email = match[1] ? match[1].trim() : undefined;
+
+            const mention = match[1] ? match[1].trim() : undefined;
+            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
+
             let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
-            if (email) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === email) ?? {};
+            if (mentionWithDomain) {
+                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
             }
             Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
             return true;
@@ -137,6 +148,8 @@ function ReportFooter({
                         <ReportActionCompose
                             // @ts-expect-error TODO: Remove this once ReportActionCompose (https://github.com/Expensify/App/issues/31984) is migrated to TypeScript.
                             onSubmit={onSubmitComment}
+                            onComposerFocus={onComposerFocus}
+                            onComposerBlur={onComposerBlur}
                             reportID={report.reportID}
                             report={report}
                             isEmptyChat={isEmptyChat}

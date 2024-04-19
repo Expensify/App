@@ -1,8 +1,9 @@
 import Onyx from 'react-native-onyx';
 import * as OnyxUpdates from '@libs/actions/OnyxUpdates';
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import getPolicyMemberAccountIDs from '@libs/PolicyMembersUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
 import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -12,7 +13,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import backgroundRefresh from './backgroundRefresh';
 import PushNotification from './index';
 
 let lastVisitedPath: string | undefined;
@@ -31,6 +31,10 @@ Onyx.connect({
  */
 export default function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportActionID, onyxData, lastUpdateID, previousUpdateID}) => {
+        if (!ActiveClientManager.isClientTheLeader()) {
+            Log.info('[PushNotification] received report comment notification, but ignoring it since this is not the active client');
+            return;
+        }
         Log.info(`[PushNotification] received report comment notification in the ${Visibility.isVisible() ? 'foreground' : 'background'}`, false, {reportID, reportActionID});
 
         if (onyxData && lastUpdateID && previousUpdateID) {
@@ -51,8 +55,6 @@ export default function subscribeToReportCommentPushNotifications() {
         } else {
             Log.hmmm("[PushNotification] Didn't apply onyx updates because some data is missing", {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
         }
-
-        backgroundRefresh();
     });
 
     // Open correct report when push notification is clicked
@@ -63,9 +65,9 @@ export default function subscribeToReportCommentPushNotifications() {
 
         const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
         const report = getReport(reportID.toString());
-        const policyMembersAccountIDs = policyID ? getPolicyMemberAccountIDs(policyID) : [];
+        const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
 
-        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyMembersAccountIDs, policyID);
+        const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);
 
         Log.info('[PushNotification] onSelected() - called', false, {reportID, reportActionID});
         Navigation.isNavigationReady()

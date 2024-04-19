@@ -91,7 +91,7 @@ There are three ways you can change the report layout under the Details section 
 
 # How to retract your report (Undo Submit)
 
-As long as the report is still in a Processing state, you can retract this submission to put the report back to Draft status to make corrections and re-submit. 
+You can edit expenses on a report in a **Processing** state so long as it hasn't been approved yet. If a report has been through a level of approval and is still in the **Processing** state, you can retract this submission to put the report back to Draft status to make corrections and re-submit. 
 
 To retract a **Processing** report on the web app, click the Undo Submit button at the upper left-hand corner of the report. 
 

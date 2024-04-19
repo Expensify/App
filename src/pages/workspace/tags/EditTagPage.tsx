@@ -37,7 +37,7 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const currentTagName = route.params.tagName;
+    const currentTagName = PolicyUtils.getCleanedTagName(route.params.tagName);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
@@ -57,7 +57,11 @@ function EditTagPage({route, policyTags}: EditTagPageProps) {
 
     const editTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
+            const tagName = values.tagName.trim();
+            // Do not call the API if the edited tag name is the same as the current tag name
+            if (currentTagName !== tagName) {
+                Policy.renamePolicyTag(route.params.policyID, {oldName: currentTagName, newName: values.tagName.trim()});
+            }
             Keyboard.dismiss();
             Navigation.dismissModal();
         },
