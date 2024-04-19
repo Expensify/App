@@ -259,7 +259,7 @@ function IOURequestStepScan({
                     });
                     return;
                 }
-                if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE && report) {
                     IOU.trackExpense(
                         report,
                         0,
