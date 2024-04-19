@@ -101,7 +101,9 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
                                     shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                                     onPress={menuItem?.onPress}
                                     brickRoadIndicator={menuItem?.brickRoadIndicator}
-                                    errorText={menuItem?.errorText}
+                                    // TODO uncomment when errorText will be fixed
+                                    // errorText={menuItem?.errorText}
+                                    error={menuItem?.brickRoadIndicator ? translate('common.genericErrorMessage') : undefined}
                                 />
                             </OfflineWithFeedback>
                         ))}
