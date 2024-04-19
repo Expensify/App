@@ -31,8 +31,19 @@ type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
 
+<<<<<<< HEAD
     /** The draft transaction object being modified in Onyx */
     draftTransaction: OnyxEntry<Transaction>;
+=======
+    /** The backup transaction object being modified in Onyx */
+    backupTransaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Personal details of all users */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+>>>>>>> c1827d8b (Merge pull request #40605 from Expensify/beaman-fixIOURequestCurrency)
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
@@ -48,7 +59,12 @@ function IOURequestStepAmount({
     },
     transaction,
     splitDraftTransaction,
+<<<<<<< HEAD
     draftTransaction,
+=======
+    backupTransaction,
+    skipConfirmation,
+>>>>>>> c1827d8b (Merge pull request #40605 from Expensify/beaman-fixIOURequestCurrency)
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -59,7 +75,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? backupTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     useFocusEffect(
@@ -175,6 +191,7 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
+<<<<<<< HEAD
 export default withWritableReportOrNotFound(
     withFullTransactionOrNotFound(
         withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
@@ -193,3 +210,39 @@ export default withWritableReportOrNotFound(
         })(IOURequestStepAmount),
     ),
 );
+=======
+const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
+    splitDraftTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+        },
+    },
+    backupTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
+        },
+    },
+    skipConfirmation: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
+        },
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+    },
+})(IOURequestStepAmount);
+
+const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
+
+export default IOURequestStepAmountWithFullTransactionOrNotFound;
+>>>>>>> c1827d8b (Merge pull request #40605 from Expensify/beaman-fixIOURequestCurrency)
