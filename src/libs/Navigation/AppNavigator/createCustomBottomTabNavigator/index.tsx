@@ -14,7 +14,7 @@ import getStateToRender from './utils';
 
 function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
     function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ...props}: CustomBottomTabNavigatorProps) {
-        const webScreenOptions = withWebNavigationOptions(screenOptions);
+        const webScreenOptions = withWebNavigationOptions({...screenOptions, animation: undefined});
 
         const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,

@@ -15,7 +15,6 @@ const Tab = createCustomBottomTabNavigator<BottomTabNavigatorParamList>();
 
 const screenOptions: PlatformStackNavigationOptions = {
     headerShown: false,
-    animationEnabled: false,
 };
 
 function BottomTabNavigator() {
