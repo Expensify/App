@@ -2653,9 +2653,9 @@ export default {
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
-            buttonText1: 'Pay Someone, ',
+            buttonText1: 'Pay someone, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Pay Someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Pay someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `You gotta spend money to make money! Pay someone with Expensify and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
