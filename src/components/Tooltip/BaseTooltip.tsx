@@ -156,6 +156,6 @@ function BaseTooltip({
     );
 }
 
-BaseTooltip.displayName = 'Tooltip';
+BaseTooltip.displayName = 'BaseTooltip';
 
 export default memo(BaseTooltip);

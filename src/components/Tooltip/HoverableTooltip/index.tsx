@@ -2,9 +2,9 @@ import {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useCallback, useRef} from 'react';
 import Hoverable from '@components/Hoverable';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import BaseTooltip from '@components/Tooltip/BaseTooltip';
 import type {HoverableTooltipProps, TooltipRect} from '@components/Tooltip/types';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
@@ -120,6 +120,6 @@ function HoverableTooltip({children, shouldHandleScroll = false, ...props}: Hove
     );
 }
 
-HoverableTooltip.displayName = 'Tooltip';
+HoverableTooltip.displayName = 'HoverableTooltip';
 
 export default memo(forwardRef(HoverableTooltip));

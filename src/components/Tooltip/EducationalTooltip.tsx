@@ -37,6 +37,6 @@ function EducationalTooltip({children, ...props}: TooltipProps) {
     );
 }
 
-EducationalTooltip.displayName = 'Tooltip';
+EducationalTooltip.displayName = 'EducationalTooltip';
 
 export default memo(EducationalTooltip);

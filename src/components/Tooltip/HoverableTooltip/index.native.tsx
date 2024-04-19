@@ -1,12 +1,12 @@
 import {forwardRef} from 'react';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {HoverableTooltipProps} from '@components/Tooltip/types';
 
 // We can't use the common component for the Hoverable Tooltip as Web implementation uses DOM specific method
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function Tooltip({children}: ChildrenProps, ref: unknown) {
+function HoverableTooltip({children}: HoverableTooltipProps, ref: unknown) {
     return children;
 }
 
-Tooltip.displayName = 'Tooltip';
+HoverableTooltip.displayName = 'HoverableTooltip';
 
-export default forwardRef(Tooltip);
+export default forwardRef(HoverableTooltip);
