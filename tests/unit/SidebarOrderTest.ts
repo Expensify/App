@@ -785,10 +785,12 @@ describe('Sidebar', () => {
 
                     // When a new report is added
                     .then(() =>
-                        Promise.all([
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4),
-                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`, 'report4 draft'),
-                        ]),
+                        Onyx.multiSet({
+                            ...reportDraftCommentCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
+                            ...reportCollectionDataSet,
+                            [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
+                        }),
                     )
 
                     // Then they are still in alphabetical order

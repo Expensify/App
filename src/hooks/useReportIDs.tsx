@@ -126,7 +126,7 @@ function ReportIDsContextProvider({
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const {activeWorkspaceID} = useActiveWorkspace();
 
-    const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID), [activeWorkspaceID, policies, accountID]);
+    const policyMemberAccountIDs = getPolicyEmployeeListByIdWithoutCurrentUser(policies, activeWorkspaceID, accountID);
 
     const getOrderedReportIDs = useCallback(
         (currentReportID?: string) =>
@@ -158,7 +158,7 @@ function ReportIDsContextProvider({
         }
 
         return {
-            orderedReportIDs: getOrderedReportIDs(),
+            orderedReportIDs,
             currentReportID: derivedCurrentReportID ?? '',
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID]);
