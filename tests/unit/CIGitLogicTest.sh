@@ -42,6 +42,7 @@ function init_git_server {
   setup_git_as_human
   npm init -y
   npm version --no-git-tag-version 1.0.0-0
+  npm install underscore
   echo "node_modules/" >> .gitignore
   git add -A
   git commit -m "Initial commit"
