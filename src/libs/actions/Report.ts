@@ -2421,7 +2421,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
         if (!isChatThread) {
             Navigation.goBack();
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -2430,7 +2430,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
             if (!isChatThread) {
                 Navigation.goBack();
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chat?.reportID), CONST.NAVIGATION.TYPE.FORCED_UP);
         }
     }
 }
