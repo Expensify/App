@@ -38,12 +38,12 @@ function getApiRoot(request?: Request): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
     if (shouldUseStagingServer) {
-        if (CONFIG.IS_USING_WEB_PROXY && !request?.requiresShortLivedAuthToken) {
+        if (CONFIG.IS_USING_WEB_PROXY && !request?.isForWebViewOrNewTab) {
             return shouldUseSecure ? proxyConfig.STAGING_SECURE : proxyConfig.STAGING;
         }
         return shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_API_ROOT : CONFIG.EXPENSIFY.STAGING_API_ROOT;
     }
-    if (request?.requiresShortLivedAuthToken) {
+    if (request?.isForWebViewOrNewTab) {
         return shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.EXPENSIFY_URL;
     }
     return shouldUseSecure ? CONFIG.EXPENSIFY.DEFAULT_SECURE_API_ROOT : CONFIG.EXPENSIFY.DEFAULT_API_ROOT;

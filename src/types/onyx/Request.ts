@@ -21,7 +21,7 @@ type RequestData = {
     finallyData?: OnyxUpdate[];
     resolve?: (value: Response) => void;
     reject?: (value?: unknown) => void;
-    requiresShortLivedAuthToken?: boolean;
+    isForWebViewOrNewTab?: boolean;
 };
 
 type Request = RequestData & OnyxData;
