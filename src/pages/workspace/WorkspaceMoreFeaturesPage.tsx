@@ -18,8 +18,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from './PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
@@ -196,24 +195,22 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceMoreFeaturesPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
-                >
-                    <HeaderWithBackButton
-                        icon={Illustrations.Gears}
-                        title={translate('workspace.common.moreFeatures')}
-                        shouldShowBackButton={isSmallScreenWidth}
-                    />
+        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceMoreFeaturesPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    icon={Illustrations.Gears}
+                    title={translate('workspace.common.moreFeatures')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                />
 
-                    <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

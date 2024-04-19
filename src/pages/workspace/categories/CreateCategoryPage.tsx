@@ -9,9 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,30 +37,28 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={route.params.policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            >
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
+                    testID={CreateCategoryPage.displayName}
+                    shouldEnableMaxHeight
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={CreateCategoryPage.displayName}
-                        shouldEnableMaxHeight
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.categories.addCategory')}
-                            onBackButtonPress={Navigation.goBack}
-                        />
-                        <CategoryForm
-                            onSubmit={createCategory}
-                            policyCategories={policyCategories}
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <HeaderWithBackButton
+                        title={translate('workspace.categories.addCategory')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                    <CategoryForm
+                        onSubmit={createCategory}
+                        policyCategories={policyCategories}
+                    />
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

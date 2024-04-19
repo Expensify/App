@@ -14,9 +14,8 @@ import {setPolicyCustomTaxName} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -55,47 +54,45 @@ function WorkspaceTaxesSettingsCustomTaxName({
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        <AccessOrNotFoundWrapper policyID={policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+            >
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    shouldEnableMaxHeight
+                    testID={WorkspaceTaxesSettingsCustomTaxName.displayName}
+                    style={styles.defaultModalContainer}
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={WorkspaceTaxesSettingsCustomTaxName.displayName}
-                        style={styles.defaultModalContainer}
-                    >
-                        <HeaderWithBackButton title={translate('workspace.taxes.customTaxName')} />
+                    <HeaderWithBackButton title={translate('workspace.taxes.customTaxName')} />
 
-                        <FormProvider
-                            formID={ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME}
-                            submitButtonText={translate('workspace.editor.save')}
-                            style={[styles.flexGrow1, styles.ph5]}
-                            scrollContextEnabled
-                            enabledWhenOffline
-                            validate={validate}
-                            onSubmit={submit}
-                        >
-                            <View style={styles.mb4}>
-                                <InputWrapper
-                                    InputComponent={TextInput}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    inputID={INPUT_IDS.NAME}
-                                    label={translate('workspace.editor.nameInputLabel')}
-                                    accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                                    defaultValue={policy?.taxRates?.name}
-                                    maxLength={CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH}
-                                    multiline={false}
-                                    ref={inputCallbackRef}
-                                />
-                            </View>
-                        </FormProvider>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.WORKSPACE_TAX_CUSTOM_NAME}
+                        submitButtonText={translate('workspace.editor.save')}
+                        style={[styles.flexGrow1, styles.ph5]}
+                        scrollContextEnabled
+                        enabledWhenOffline
+                        validate={validate}
+                        onSubmit={submit}
+                    >
+                        <View style={styles.mb4}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.editor.nameInputLabel')}
+                                accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                defaultValue={policy?.taxRates?.name}
+                                maxLength={CONST.TAX_RATES.CUSTOM_NAME_MAX_LENGTH}
+                                multiline={false}
+                                ref={inputCallbackRef}
+                            />
+                        </View>
+                    </FormProvider>
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

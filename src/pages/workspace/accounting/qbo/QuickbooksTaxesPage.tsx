@@ -9,7 +9,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -23,7 +23,10 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const {syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isSwitchOn = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN']}
+            policyID={policyID}
+        >
             <FeatureEnabledAccessOrNotFoundWrapper
                 policyID={policyID}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -60,7 +63,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                     </ScrollView>
                 </ScreenWrapper>
             </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

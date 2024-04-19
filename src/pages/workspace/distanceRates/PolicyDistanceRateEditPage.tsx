@@ -15,9 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,49 +56,47 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+        <AccessOrNotFoundWrapper policyID={policyID}>
+            <FeatureEnabledAccessOrNotFoundWrapper
+                policyID={policyID}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+            >
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
+                    testID={PolicyDistanceRateEditPage.displayName}
+                    shouldEnableMaxHeight
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={PolicyDistanceRateEditPage.displayName}
-                        shouldEnableMaxHeight
+                    <HeaderWithBackButton
+                        title={translate('workspace.distanceRates.rate')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
+                    />
+                    <FormProvider
+                        formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM}
+                        submitButtonText={translate('common.save')}
+                        onSubmit={submitRate}
+                        validate={validate}
+                        enabledWhenOffline
+                        style={[styles.flexGrow1]}
+                        shouldHideFixErrorsAlert
+                        submitFlexEnabled={false}
+                        submitButtonStyles={[styles.mh5, styles.mt0]}
+                        disablePressOnEnter={false}
                     >
-                        <HeaderWithBackButton
-                            title={translate('workspace.distanceRates.rate')}
-                            shouldShowBackButton
-                            onBackButtonPress={() => Navigation.goBack()}
+                        <InputWrapperWithRef
+                            InputComponent={AmountForm}
+                            inputID={INPUT_IDS.RATE}
+                            extraDecimals={1}
+                            defaultValue={(parseFloat(currentRateValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(3)}
+                            isCurrencyPressable={false}
+                            currency={currency}
+                            ref={inputCallbackRef}
                         />
-                        <FormProvider
-                            formID={ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM}
-                            submitButtonText={translate('common.save')}
-                            onSubmit={submitRate}
-                            validate={validate}
-                            enabledWhenOffline
-                            style={[styles.flexGrow1]}
-                            shouldHideFixErrorsAlert
-                            submitFlexEnabled={false}
-                            submitButtonStyles={[styles.mh5, styles.mt0]}
-                            disablePressOnEnter={false}
-                        >
-                            <InputWrapperWithRef
-                                InputComponent={AmountForm}
-                                inputID={INPUT_IDS.RATE}
-                                extraDecimals={1}
-                                defaultValue={(parseFloat(currentRateValue) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET).toFixed(3)}
-                                isCurrencyPressable={false}
-                                currency={currency}
-                                ref={inputCallbackRef}
-                            />
-                        </FormProvider>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    </FormProvider>
+                </ScreenWrapper>
+            </FeatureEnabledAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
