@@ -82,6 +82,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
             return ReportUtils.getParticipantAccountIDs(report.reportID ?? '');
@@ -227,7 +228,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar = isGroupChat ? (
+    const renderAvatar = isGroupChat && !isThread ? (
         <AvatarWithImagePicker
             source={icons[0].source}
             isUsingDefaultAvatar={!report.avatarUrl}
