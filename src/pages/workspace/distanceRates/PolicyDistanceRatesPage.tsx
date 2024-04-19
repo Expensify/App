@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -8,11 +8,11 @@ import Button from '@components/Button';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -22,6 +22,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -55,6 +56,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
     const policyID = route.params.policyID;
+    const isFocused = useIsFocused();
 
     const customUnit: CustomUnit | undefined = useMemo(
         () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
@@ -92,6 +94,13 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         }, [fetchDistanceRates]),
     );
 
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedDistanceRates([]);
+    }, [isFocused]);
+
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
             Object.values(customUnitRates).map((value) => ({
@@ -104,21 +113,9 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? value.pendingFields?.rate ?? value.pendingFields?.enabled ?? value.pendingFields?.currency,
                 errors: value.errors ?? undefined,
-                rightElement: (
-                    <View style={styles.flexRow}>
-                        <Text style={[styles.alignSelfCenter, !value.enabled && styles.textSupporting]}>
-                            {value.enabled ? translate('workspace.distanceRates.enabled') : translate('workspace.distanceRates.disabled')}
-                        </Text>
-                        <View style={[styles.p1, styles.pl2]}>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                            />
-                        </View>
-                    </View>
-                ),
+                rightElement: <RightElementEnabledStatus enabled={value.enabled} />,
             })),
-        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, styles.alignSelfCenter, styles.flexRow, styles.p1, styles.pl2, styles.textSupporting, theme.icon, translate],
+        [customUnit?.attributes?.unit, customUnitRates, selectedDistanceRates, translate],
     );
 
     const addRate = () => {
@@ -130,7 +127,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const openRateDetails = (rate: RateForList) => {
-        setSelectedDistanceRates([]);
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 
@@ -310,6 +306,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                                 onDismissError={dismissError}
                                 showScrollIndicator
                                 ListItem={TableListItem}
+                                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                                 customListHeader={getCustomListHeader()}
                                 listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             />

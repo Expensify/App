@@ -23,7 +23,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {isTaxPolicyEnabled} from '@libs/PolicyUtils';
+import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -123,7 +123,7 @@ function MoneyRequestView({
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const taxRates = policy?.taxRates;
-    const formattedTaxAmount = transactionTaxAmount ? CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency) : '';
+    const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle =
@@ -132,7 +132,7 @@ function MoneyRequestView({
             ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
-    // Flags for allowing or disallowing editing a money request
+    // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
@@ -160,7 +160,7 @@ function MoneyRequestView({
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     // A flag for showing tax rate
-    const shouldShowTax = isTaxPolicyEnabled(isPolicyExpenseChat, policy) && transactionTaxCode && transactionTaxAmount;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
@@ -185,26 +185,26 @@ function MoneyRequestView({
 
     if (isCardTransaction) {
         if (formattedOriginalAmount) {
-            amountDescription += ` • ${translate('iou.original')} ${formattedOriginalAmount}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.original')} ${formattedOriginalAmount}`;
         }
         if (TransactionUtils.isPending(transaction)) {
-            amountDescription += ` • ${translate('iou.pending')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
         if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
     } else {
         if (!isDistanceRequest) {
-            amountDescription += ` • ${translate('iou.cash')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
         if (isApproved) {
-            amountDescription += ` • ${translate('iou.approved')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (isCancelled) {
-            amountDescription += ` • ${translate('iou.canceled')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isSettled) {
-            amountDescription += ` • ${translate('iou.settledExpensify')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         } else if (report.isWaitingOnBankAccount) {
-            amountDescription += ` • ${translate('iou.pending')}`;
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
         }
     }
 
@@ -220,7 +220,7 @@ function MoneyRequestView({
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
-            // Checks applied when creating a new money request
+            // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
@@ -408,7 +408,7 @@ function MoneyRequestView({
                     </OfflineWithFeedback>
                 )}
                 {shouldShowTag &&
-                    policyTagLists.map(({name}, index) => (
+                    policyTagLists.map(({name, orderWeight}, index) => (
                         <OfflineWithFeedback
                             key={name}
                             pendingAction={getPendingFieldAction('tag')}
@@ -421,7 +421,7 @@ function MoneyRequestView({
                                 titleStyle={styles.flex1}
                                 onPress={() =>
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, index, transaction?.transactionID ?? '', report.reportID),
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, orderWeight, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
                                 brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
@@ -446,7 +446,11 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAX_RATE))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
+                            }
                         />
                     </OfflineWithFeedback>
                 )}
@@ -459,7 +463,11 @@ function MoneyRequestView({
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.EDIT_REQUEST.getRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.TAX_AMOUNT))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+                                )
+                            }
                         />
                     </OfflineWithFeedback>
                 )}
@@ -480,6 +488,7 @@ function MoneyRequestView({
                             accessibilityLabel={translate('common.billable')}
                             isOn={!!transactionBillable}
                             onToggle={saveBillable}
+                            disabled={!canEdit}
                         />
                     </View>
                 )}

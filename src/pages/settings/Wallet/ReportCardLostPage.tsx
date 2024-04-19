@@ -11,7 +11,6 @@ import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -82,7 +81,6 @@ function ReportCardLostPage({
     formData,
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
-    usePrivatePersonalDetails();
 
     const domainCards = CardUtils.getDomainCards(cardList ?? {})[domain];
     const physicalCard = CardUtils.findPhysicalCard(domainCards);

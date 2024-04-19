@@ -2,36 +2,35 @@ import {useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
 import type {FlatList, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import type {LayoutChangeEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import Banner from '@components/Banner';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItemGroup from '@components/MenuItemGroup';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
-import withCurrentReportID from '@components/withCurrentReportID';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
+import withCurrentReportID from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
-import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
-import reportWithoutHasDraftSelector from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
-import type {ReportWithoutHasDraft} from '@libs/OnyxSelectors/reportWithoutHasDraftSelector';
 import Performance from '@libs/Performance';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -50,8 +49,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
+import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
 type ReportScreenOnyxPropsWithoutParentReportAction = {
     /** Get modal status */
@@ -79,7 +78,7 @@ type ReportScreenOnyxPropsWithoutParentReportAction = {
     sortedAllReportActions: OnyxTypes.ReportAction[];
 
     /** The report currently being looked at */
-    report: OnyxEntry<ReportWithoutHasDraft>;
+    report: OnyxEntry<OnyxTypes.Report>;
 
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
@@ -160,6 +159,7 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
+    const {isOffline} = useNetwork();
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -206,6 +206,7 @@ function ReportScreen({
             policyName: reportProp?.policyName,
             isOptimisticReport: reportProp?.isOptimisticReport,
             lastMentionedTime: reportProp?.lastMentionedTime,
+            avatarUrl: reportProp?.avatarUrl,
         }),
         [
             reportProp?.lastReadTime,
@@ -244,6 +245,7 @@ function ReportScreen({
             reportProp?.policyName,
             reportProp?.isOptimisticReport,
             reportProp?.lastMentionedTime,
+            reportProp?.avatarUrl,
         ],
     );
 
@@ -256,8 +258,7 @@ function ReportScreen({
         if (!sortedAllReportActions.length) {
             return [];
         }
-        const currentRangeOfReportActions = ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionIDFromRoute);
-        return currentRangeOfReportActions;
+        return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionIDFromRoute);
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
@@ -277,7 +278,8 @@ function ReportScreen({
         Performance.markStart(CONST.TIMING.CHAT_RENDER);
     }
     const [isComposerFocus, setIsComposerFocus] = useState(false);
-    const viewportOffsetTop = useViewportOffsetTop(Browser.isMobileSafari() && isComposerFocus && !modal?.willAlertModalBecomeVisible);
+    const shouldAdjustScrollView = useMemo(() => isComposerFocus && !modal?.willAlertModalBecomeVisible, [isComposerFocus, modal]);
+    const viewportOffsetTop = useViewportOffsetTop(shouldAdjustScrollView);
 
     const {reportPendingAction, reportErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
@@ -335,7 +337,18 @@ function ReportScreen({
         );
     }
 
-    const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(reportActions ?? []), [reportActions]);
+    const transactionThreadReportID = useMemo(
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
+        [report.reportID, reportActions, isOffline],
+    );
+
+    useEffect(() => {
+        if (!transactionThreadReportID || !route.params.reportActionID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
+    }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
+
     if (ReportUtils.isMoneyRequestReport(report)) {
         headerView = (
             <MoneyReportHeader
@@ -356,7 +369,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !reportIDFromRoute || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||
@@ -365,24 +378,29 @@ function ReportScreen({
             isLoading ||
             (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions));
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
+    const currentReportIDFormRoute = route.params?.reportID;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         (): boolean =>
-            !shouldShowSkeleton &&
-            ((!wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata?.isLoadingInitialReportActions &&
-                !userLeavingStatus) ||
-                shouldHideReport ||
-                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
-        [shouldShowSkeleton, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
+            (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
+            shouldHideReport ||
+            (!!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute)),
+        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute],
     );
 
     const fetchReport = useCallback(() => {
         Report.openReport(reportIDFromRoute, reportActionIDFromRoute);
     }, [reportIDFromRoute, reportActionIDFromRoute]);
+
+    useEffect(() => {
+        if (!report.reportID) {
+            return;
+        }
+
+        if (report?.errorFields?.notFound) {
+            Report.clearReportNotFoundErrors(report.reportID);
+        }
+    }, [report?.errorFields?.notFound, report.reportID]);
 
     useEffect(() => {
         if (!report.reportID || !isFocused) {
@@ -475,18 +493,21 @@ function ReportScreen({
 
         const onyxReportID = report.reportID;
         const prevOnyxReportID = prevReport.reportID;
+        const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
+        const isRemovalExpectedForReportType =
+            isEmpty(report) &&
+            (ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport) || ReportUtils.isGroupChat(prevReport));
+        const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+        const isTopLevelPolicyRoomWithNoStatus = !report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+        const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
 
         // Navigate to the Concierge chat if the room was removed from another device (e.g. user leaving a room or removed from a room)
         if (
             // non-optimistic case
             (!prevUserLeavingStatus && !!userLeavingStatus) ||
-            // optimistic case
-            (!!prevOnyxReportID &&
-                prevOnyxReportID === reportIDFromRoute &&
-                !onyxReportID &&
-                prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
-                (report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED || (!report.statusNum && !prevReport.parentReportID && prevReport.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM))) ||
-            ((ReportUtils.isMoneyRequest(prevReport) || ReportUtils.isMoneyRequestReport(prevReport) || ReportUtils.isPolicyExpenseChat(prevReport)) && isEmpty(report))
+            didReportClose ||
+            isRemovalExpectedForReportType ||
+            isClosedTopLevelPolicyRoom
         ) {
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
@@ -494,7 +515,7 @@ function ReportScreen({
                 Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
-                // Prevent navigation to the Money Request Report if it is pending deletion.
+                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
                 const parentReport = ReportUtils.getReport(prevReport.parentReportID);
                 if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
                     return;
@@ -588,7 +609,7 @@ function ReportScreen({
             return false;
         }
         const action = sortedAllReportActions.find((item) => item.reportActionID === reportActionIDFromRoute);
-        return action && ReportActionsUtils.isDeletedAction(action);
+        return action && !ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID);
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
     if (isLinkedReportActionDeleted ?? (!shouldShowSkeleton && reportActionIDFromRoute && reportActions?.length === 0 && !isLinkingToMessage)) {
@@ -608,85 +629,87 @@ function ReportScreen({
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
-                <ScreenWrapper
-                    navigation={navigation}
-                    style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={isTopMostReportId}
-                    testID={ReportScreen.displayName}
-                >
-                    <FullPageNotFoundView
-                        shouldShow={shouldShowNotFoundPage}
-                        subtitleKey="notFound.noAccess"
-                        shouldShowBackButton={isSmallScreenWidth}
-                        onBackButtonPress={Navigation.goBack}
-                        shouldShowLink={false}
+                <MenuItemGroup>
+                    <ScreenWrapper
+                        navigation={navigation}
+                        style={screenWrapperStyle}
+                        shouldEnableKeyboardAvoidingView={isTopMostReportId}
+                        testID={ReportScreen.displayName}
                     >
-                        <OfflineWithFeedback
-                            pendingAction={reportPendingAction}
-                            errors={reportErrors}
-                            shouldShowErrorMessages={false}
-                            needsOffscreenAlphaCompositing
+                        <FullPageNotFoundView
+                            shouldShow={shouldShowNotFoundPage}
+                            subtitleKey="notFound.noAccess"
+                            shouldShowBackButton={isSmallScreenWidth}
+                            onBackButtonPress={Navigation.goBack}
+                            shouldShowLink={false}
                         >
-                            {headerView}
-                            {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
-                                <View style={[styles.borderBottom]}>
-                                    <View style={[styles.appBG, styles.pl0]}>
-                                        <View style={[styles.ph5, styles.pb3]}>
-                                            <TaskHeaderActionButton report={report} />
+                            <OfflineWithFeedback
+                                pendingAction={reportPendingAction}
+                                errors={reportErrors}
+                                shouldShowErrorMessages={false}
+                                needsOffscreenAlphaCompositing
+                            >
+                                {headerView}
+                                {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                                    <View style={[styles.borderBottom]}>
+                                        <View style={[styles.appBG, styles.pl0]}>
+                                            <View style={[styles.ph5, styles.pb3]}>
+                                                <TaskHeaderActionButton report={report} />
+                                            </View>
                                         </View>
                                     </View>
-                                </View>
-                            )}
-                        </OfflineWithFeedback>
-                        {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
-                            <Banner
-                                containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
-                                textStyles={[styles.colorReversed]}
-                                text={translate('reportActionsView.chatWithAccountManager')}
-                                onClose={dismissBanner}
-                                onPress={chatWithAccountManager}
-                                shouldShowCloseButton
-                            />
-                        )}
-                        <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>
-                            <View
-                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                onLayout={onListLayout}
-                            >
-                                {shouldShowReportActionList && (
-                                    <ReportActionsView
-                                        reportActions={reportActions}
-                                        report={report}
-                                        parentReportAction={parentReportAction}
-                                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                                        isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
-                                        isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
-                                        isReadyForCommentLinking={!shouldShowSkeleton}
-                                        transactionThreadReportID={transactionThreadReportID}
-                                    />
                                 )}
+                            </OfflineWithFeedback>
+                            {!!accountManagerReportID && ReportUtils.isConciergeChatReport(report) && isBannerVisible && (
+                                <Banner
+                                    containerStyles={[styles.mh4, styles.mt4, styles.p4, styles.bgDark]}
+                                    textStyles={[styles.colorReversed]}
+                                    text={translate('reportActionsView.chatWithAccountManager')}
+                                    onClose={dismissBanner}
+                                    onPress={chatWithAccountManager}
+                                    shouldShowCloseButton
+                                />
+                            )}
+                            <DragAndDropProvider isDisabled={!isCurrentReportLoadedFromOnyx || !ReportUtils.canUserPerformWriteAction(report)}>
+                                <View
+                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                    onLayout={onListLayout}
+                                >
+                                    {shouldShowReportActionList && (
+                                        <ReportActionsView
+                                            reportActions={reportActions}
+                                            report={report}
+                                            parentReportAction={parentReportAction}
+                                            isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                                            isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
+                                            isLoadingOlderReportActions={reportMetadata?.isLoadingOlderReportActions}
+                                            isReadyForCommentLinking={!shouldShowSkeleton}
+                                            transactionThreadReportID={transactionThreadReportID}
+                                        />
+                                    )}
 
-                                {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
-                                    If we prevent rendering the report while they are loading then
-                                    we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                                {shouldShowSkeleton && <ReportActionsSkeletonView />}
+                                    {/* Note: The ReportActionsSkeletonView should be allowed to mount even if the initial report actions are not loaded.
+                                        If we prevent rendering the report while they are loading then
+                                        we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                    {shouldShowSkeleton && <ReportActionsSkeletonView />}
 
-                                {isCurrentReportLoadedFromOnyx ? (
-                                    <ReportFooter
-                                        onComposerFocus={() => setIsComposerFocus(true)}
-                                        onComposerBlur={() => setIsComposerFocus(false)}
-                                        report={report}
-                                        pendingAction={reportPendingAction}
-                                        isComposerFullSize={!!isComposerFullSize}
-                                        listHeight={listHeight}
-                                        isEmptyChat={isEmptyChat}
-                                        lastReportAction={lastReportAction}
-                                    />
-                                ) : null}
-                            </View>
-                        </DragAndDropProvider>
-                    </FullPageNotFoundView>
-                </ScreenWrapper>
+                                    {isCurrentReportLoadedFromOnyx ? (
+                                        <ReportFooter
+                                            onComposerFocus={() => setIsComposerFocus(true)}
+                                            onComposerBlur={() => setIsComposerFocus(false)}
+                                            report={report}
+                                            pendingAction={reportPendingAction}
+                                            isComposerFullSize={!!isComposerFullSize}
+                                            listHeight={listHeight}
+                                            isEmptyChat={isEmptyChat}
+                                            lastReportAction={lastReportAction}
+                                        />
+                                    ) : null}
+                                </View>
+                            </DragAndDropProvider>
+                        </FullPageNotFoundView>
+                    </ScreenWrapper>
+                </MenuItemGroup>
             </ReactionListContext.Provider>
         </ActionListContext.Provider>
     );
@@ -711,7 +734,6 @@ export default withCurrentReportID(
             report: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
                 allowStaleData: true,
-                selector: reportWithoutHasDraftSelector,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,

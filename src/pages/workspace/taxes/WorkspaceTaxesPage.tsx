@@ -1,17 +1,17 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceTaxRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
+import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openPolicyTaxesPage} from '@libs/actions/Policy';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -34,6 +35,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {TaxRate} from '@src/types/onyx';
 
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
 
@@ -52,6 +54,7 @@ function WorkspaceTaxesPage({
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const dropdownButtonRef = useRef(null);
+    const isFocused = useIsFocused();
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -65,18 +68,27 @@ function WorkspaceTaxesPage({
         }, [fetchTaxes]),
     );
 
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedTaxesIDs([]);
+    }, [isFocused]);
+
     const textForDefault = useCallback(
-        (taxID: string): string => {
+        (taxID: string, taxRate: TaxRate): string => {
+            let suffix;
             if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-                return translate('common.default');
+                suffix = translate('common.default');
+            } else if (taxID === defaultExternalID) {
+                suffix = translate('workspace.taxes.workspaceDefault');
+            } else if (taxID === foreignTaxDefault) {
+                suffix = translate('workspace.taxes.foreignDefault');
             }
-            if (taxID === defaultExternalID) {
-                return translate('workspace.taxes.workspaceDefault');
+            if (suffix) {
+                return `${taxRate.value} ${CONST.DOT_SEPARATOR} ${suffix}`;
             }
-            if (taxID === foreignTaxDefault) {
-                return translate('workspace.taxes.foreignDefault');
-            }
-            return '';
+            return `${taxRate.value}`;
         },
         [defaultExternalID, foreignTaxDefault, translate],
     );
@@ -88,27 +100,17 @@ function WorkspaceTaxesPage({
         return Object.entries(policy.taxRates?.taxes ?? {})
             .map(([key, value]) => ({
                 text: value.name,
-                alternateText: textForDefault(key),
+                alternateText: textForDefault(key, value),
                 keyForList: key,
                 isSelected: !!selectedTaxesIDs.includes(key),
                 isDisabledCheckbox: !PolicyUtils.canEditTaxRate(policy, key),
                 isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 pendingAction: value.pendingAction ?? (Object.keys(value.pendingFields ?? {}).length > 0 ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null),
                 errors: value.errors ?? ErrorUtils.getLatestErrorFieldForAnyField(value),
-                rightElement: (
-                    <View style={styles.flexRow}>
-                        <Text style={[styles.disabledText, styles.alignSelfCenter]}>{value.isDisabled ? translate('workspace.common.disabled') : translate('workspace.common.enabled')}</Text>
-                        <View style={[styles.p1, styles.pl2]}>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                            />
-                        </View>
-                    </View>
-                ),
+                rightElement: <RightElementEnabledStatus enabled={!value.isDisabled} />,
             }))
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
-    }, [policy, textForDefault, selectedTaxesIDs, styles.flexRow, styles.disabledText, styles.alignSelfCenter, styles.p1, styles.pl2, translate, theme.icon]);
+    }, [policy, textForDefault, selectedTaxesIDs]);
 
     const isLoading = !isOffline && taxesList === undefined;
 
@@ -168,7 +170,6 @@ function WorkspaceTaxesPage({
         if (!taxRate.keyForList) {
             return;
         }
-        setSelectedTaxesIDs([]);
         Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxRate.keyForList));
     };
 
@@ -278,6 +279,7 @@ function WorkspaceTaxesPage({
                             showScrollIndicator
                             ListItem={TableListItem}
                             customListHeader={getCustomListHeader()}
+                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                         />

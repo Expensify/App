@@ -23,7 +23,7 @@ type TextCommentFragmentProps = {
     source: OriginalMessageSource;
 
     /** The message fragment needing to be displayed */
-    fragment: Message;
+    fragment: Message | undefined;
 
     /** Should this message fragment be styled as deleted? */
     styleAsDeleted: boolean;
@@ -44,16 +44,16 @@ type TextCommentFragmentProps = {
 function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, source, style, displayAsGroup, iouMessage = ''}: TextCommentFragmentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {html = '', text} = fragment;
+    const {html = '', text} = fragment ?? {};
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
-    const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
-    if (!shouldRenderAsText(html, text) && !(containsOnlyEmojis && styleAsDeleted)) {
-        const editedTag = fragment.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
+    const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text ?? '');
+    if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
+        const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
 
         const htmlContent = containsOnlyEmojis ? Str.replaceAll(htmlWithDeletedTag, '<emoji>', '<emoji islarge>') : htmlWithDeletedTag;
@@ -89,9 +89,9 @@ function TextCommentFragment({fragment, styleAsDeleted, styleAsMuted = false, so
                     !DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth ? styles.userSelectText : styles.userSelectNone,
                 ]}
             >
-                {convertToLTR(message)}
+                {convertToLTR(message ?? '')}
             </Text>
-            {fragment.isEdited && (
+            {fragment?.isEdited && (
                 <>
                     <Text
                         style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
