@@ -5,11 +5,11 @@ import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackN
 import SCREENS from '@src/SCREENS';
 import type {FullScreenNavigatorRouterOptions} from './types';
 
-type StackState<TStackParams extends ParamListBase> = PlatformStackNavigationState<TStackParams> | PartialState<PlatformStackNavigationState<TStackParams>>;
+type StackState = PlatformStackNavigationState<ParamListBase> | PartialState<PlatformStackNavigationState<ParamListBase>>;
 
-const isAtLeastOneInState = <TStackParams extends ParamListBase>(state: StackState<TStackParams>, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
+const isAtLeastOneInState = (state: StackState, screenName: string): boolean => state.routes.some((route) => route.name === screenName);
 
-function adaptStateIfNecessary<TStackParams extends ParamListBase>(state: StackState<TStackParams>) {
+function adaptStateIfNecessary(state: StackState) {
     const isNarrowLayout = getIsNarrowLayout();
     const workspaceCentralPane = state.routes.at(-1);
     const topmostWorkspaceCentralPaneRoute = workspaceCentralPane?.state?.routes[0];
@@ -62,9 +62,9 @@ function adaptStateIfNecessary<TStackParams extends ParamListBase>(state: StackS
     }
 }
 
-function CustomFullScreenRouter<TStackParams extends ParamListBase>(options: FullScreenNavigatorRouterOptions) {
+function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const stackRouter = StackRouter(options) as Router<PlatformStackNavigationState<TStackParams>, any>;
+    const stackRouter = StackRouter(options) as Router<PlatformStackNavigationState<ParamListBase>, any>;
 
     return {
         ...stackRouter,
@@ -79,7 +79,7 @@ function CustomFullScreenRouter<TStackParams extends ParamListBase>(options: Ful
 
             return initialState;
         },
-        getRehydratedState(partialState: StackState<TStackParams>, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): PlatformStackNavigationState<TStackParams> {
+        getRehydratedState(partialState: StackState, {routeNames, routeParamList, routeGetIdList}: RouterConfigOptions): PlatformStackNavigationState<ParamListBase> {
             adaptStateIfNecessary(partialState);
             const state = stackRouter.getRehydratedState(partialState, {routeNames, routeParamList, routeGetIdList});
             return state;

@@ -5,10 +5,11 @@ import {StackView} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import navigationRef from '@libs/Navigation/navigationRef';
+import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
+import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 type Routes = StackNavigationState<ParamListBase>['routes'];
 function reduceReportRoutes(routes: Routes): Routes {
@@ -31,19 +32,21 @@ function reduceReportRoutes(routes: Routes): Routes {
     return result.reverse();
 }
 
-function createResponsiveStackNavigator<TStackParams extends ParamListBase>(Stack: ReturnType<typeof createPlatformStackNavigator<TStackParams>>) {
+function createCustomStackNavigator<TStackParams extends ParamListBase>() {
     function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         const {isSmallScreenWidth} = useWindowDimensions();
 
+        const webScreenOptions = withWebNavigationOptions(props.screenOptions);
+
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-            StackNavigationState<ParamListBase>,
+            PlatformStackNavigationState<ParamListBase>,
             ResponsiveStackNavigatorRouterOptions,
             StackActionHelpers<ParamListBase>,
             StackNavigationOptions,
             StackNavigationEventMap
         >(CustomRouter, {
             children: props.children,
-            screenOptions: props.screenOptions,
+            screenOptions: webScreenOptions,
             initialRouteName: props.initialRouteName,
         });
 
@@ -64,32 +67,23 @@ function createResponsiveStackNavigator<TStackParams extends ParamListBase>(Stac
             };
         }, [state]);
 
-
-
         return (
-            // <NavigationContent>
-            //     <StackView
-            //         // eslint-disable-next-line react/jsx-props-no-spreading
-            //         {...props}
-            //         state={stateToRender}
-            //         descriptors={descriptors}
-            //         navigation={navigation}
-            //     />
-            // </NavigationContent>
-            <Stack.Navigator
-                {...props}
-                state={stateToRender}
-                descriptors={descriptors}
-                navigation={navigation} />
+            <NavigationContent>
+                <StackView
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    state={stateToRender}
+                    descriptors={descriptors}
+                    navigation={navigation}
+                />
+            </NavigationContent>
         );
     }
     ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
+
+    return createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof ResponsiveStackNavigator>(
+        ResponsiveStackNavigator,
+    )<TStackParams>();
 }
 
-function createCustomStackNavigator<TStackParams extends ParamListBase>() {
-    const Stack = createPlatformStackNavigator<TStackParams>();
-
-    return createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof ResponsiveStackNavigator><TStackParams></TStackParams>(createResponsiveStackNavigator(Stack));
-}
-
-export default createCustomStackNavigator
+export default createCustomStackNavigator;
