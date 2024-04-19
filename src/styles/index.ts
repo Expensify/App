@@ -1088,6 +1088,8 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: 'transparent',
             overflow: 'hidden',
+            borderBottomWidth: 2,
+            borderColor: theme.border,
         },
 
         textInputContainerBorder: {

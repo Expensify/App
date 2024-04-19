@@ -57,10 +57,10 @@ function BaseTextInput(
         multiline = false,
         autoCorrect = true,
         prefixCharacter = '',
-        prefixStyle = [],
-        prefixContainerStyle = [],
         inputID,
         isMarkdownEnabled = false,
+        prefixContainerStyle = [],
+        prefixStyle = [],
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -250,6 +250,8 @@ function BaseTextInput(
         styles.textInputContainer,
         textInputContainerStyles,
         autoGrow && StyleUtils.getWidthStyle(textInputWidth),
+        !hideFocusedState && isFocused && styles.borderColorFocus,
+        (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
     ]);
 
@@ -260,25 +262,19 @@ function BaseTextInput(
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
-                    accessibilityLabel={label}
                     // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
                     // or if multiline is not supplied we calculate the textinput height, using onLayout.
                     onLayout={onLayout}
+                    accessibilityLabel={label}
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
-                        {borderColor: newTextInputContainerStyles.borderColor},
-                        {borderWidth: newTextInputContainerStyles.borderWidth},
-                        {borderBottomWidth: newTextInputContainerStyles.borderTopWidth},
                         touchableInputWrapperStyle,
-                        !hideFocusedState && isFocused && styles.borderColorFocus,
-                        (!!hasError || !!errorText) && styles.borderColorDanger,
                     ]}
                 >
                     <View
                         style={[
                             newTextInputContainerStyles,
-                            styles.borderNone,
 
                             // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
                             autoGrow && !newTextInputContainerStyles?.minWidth && styles.mnw2,
