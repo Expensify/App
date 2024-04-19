@@ -77,7 +77,7 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
+    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.REQUEST;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
