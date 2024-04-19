@@ -223,6 +223,31 @@ function IOURequestStepDistance({
                 }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.routePending'), false);
+                if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                    IOU.trackExpense(
+                        report,
+                        0,
+                        transaction?.currency ?? 'USD',
+                        transaction?.created ?? '',
+                        translate('iou.routePending'),
+                        currentUserPersonalDetails.login ?? '',
+                        currentUserPersonalDetails.accountID ?? 0,
+                        participants[0],
+                        '',
+                        {},
+                        '',
+                        '',
+                        '',
+                        0,
+                        false,
+                        policy,
+                        undefined,
+                        undefined,
+                        undefined,
+                        TransactionUtils.getValidWaypoints(waypoints, true),
+                    );
+                    return;
+                }
                 IOU.createDistanceRequest(
                     report,
                     participants[0],
