@@ -34,7 +34,7 @@ Expensify includes certain system mandatory violations that can't be disabled, e
 
 # Set category rules
 
-Admin on a Control workspace can enable specific rules for each category, including setting expense caps for specific categories, requiring receipts, and more. These rules can allow you to have a default expense limit of $2,500 but to only allow a daily entertainment limit of $150 per person. You can also choose to not require receipts for mileage or per diem expenses.
+Admins on a Control workspace can enable specific rules for each category, including setting expense caps for specific categories, requiring receipts, and more. These rules can allow you to have a default expense limit of $2,500 but to only allow a daily entertainment limit of $150 per person. You can also choose to not require receipts for mileage or per diem expenses.
 
 To set up category rules, 
 1. Hover over Settings, then click **Workspaces**. 
