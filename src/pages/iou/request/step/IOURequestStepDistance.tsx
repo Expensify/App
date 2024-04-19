@@ -113,7 +113,13 @@ function IOURequestStepDistance({
     }, [report, skipConfirmation, policy, iouType]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
-        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.submitExpense');
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            buttonText = translate('iou.split');
+        } else if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            buttonText = translate('iou.trackDistance');
+        } else {
+            buttonText = translate('iou.submitExpense');
+        }
     }
 
     useEffect(() => {

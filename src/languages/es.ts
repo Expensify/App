@@ -613,6 +613,7 @@ export default {
         submitExpense: 'Presentar gasto',
         paySomeone: ({name}: PaySomeoneParams) => `Pagar a ${name ?? 'alguien'}`,
         trackExpense: 'Seguimiento de gastos',
+        trackDistance: 'Seguimiento de distance',
         pay: 'Pagar',
         cancelPayment: 'Cancelar el pago',
         cancelPaymentConfirmation: '¿Estás seguro de que quieres cancelar este pago?',
