@@ -22,7 +22,6 @@ describe('libs/NextStepUtils', () => {
             // Important props
             id: policyID,
             owner: currentUserEmail,
-            submitsTo: currentUserAccountID,
             harvesting: {
                 enabled: false,
             },
@@ -49,6 +48,11 @@ describe('libs/NextStepUtils', () => {
                     [strangeAccountID]: {
                         accountID: strangeAccountID,
                         login: strangeEmail,
+                        avatar: '',
+                    },
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
                         avatar: '',
                     },
                 },
@@ -341,10 +345,14 @@ describe('libs/NextStepUtils', () => {
                 ];
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    submitsTo: currentUserAccountID,
                     preventSelfApproval: true,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            submitsTo: currentUserEmail,
+                        },
+                    },
                 }).then(() => {
-                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN, undefined, true);
 
                     expect(result).toMatchObject(optimisticNextStep);
                 });
@@ -403,7 +411,11 @@ describe('libs/NextStepUtils', () => {
                 ];
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    submitsTo: strangeAccountID,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            submitsTo: strangeEmail,
+                        },
+                    },
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
@@ -438,9 +450,17 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    employeeList: {
+                        [strangeEmail]: {
+                            submitsTo: currentUserEmail,
+                        },
+                    },
+                }).then(() => {
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
 
             test('submit and close approval mode', () => {
