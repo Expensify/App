@@ -863,19 +863,34 @@ function buildOnyxDataForTrackExpense(
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
+    let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isScanRequest ? CONST.QUICK_ACTIONS.TRACK_SCAN : CONST.QUICK_ACTIONS.TRACK_MANUAL;
+    if (TransactionUtils.isDistanceRequest(transaction)) {
+        newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE;
+    }
 
     if (chatReport) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastMessageText: iouAction.message?.[0]?.text,
-                lastMessageHtml: iouAction.message?.[0]?.html,
-                lastReadTime: DateUtils.getDBTime(),
-                iouReportID: iouReport?.reportID,
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    ...chatReport,
+                    lastMessageText: iouAction.message?.[0]?.text,
+                    lastMessageHtml: iouAction.message?.[0]?.html,
+                    lastReadTime: DateUtils.getDBTime(),
+                    iouReportID: iouReport?.reportID,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                value: {
+                    action: newQuickAction,
+                    chatReportID: chatReport.reportID,
+                    isFirstQuickAction: isEmptyObject(quickAction),
+                },
+            },
+        )
     }
 
     if (iouReport) {
