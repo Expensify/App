@@ -238,8 +238,9 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
             // Check if the file dimensions indicate corruption
-            // The width/height for corrupt file is -1 on android native and 0 on ios native
-            if (!fileData.width || !fileData.height || (fileData.width <= 0 && fileData.height <= 0)) {
+            // The width/height for a corrupted file is -1 on android native and 0 on ios native
+            // We must check only numeric values because the width/height can be undefined for non-image files
+            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }

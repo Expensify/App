@@ -244,25 +244,18 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         [selectedOptions, setSelectedOptions, styles, translate],
     );
 
-    const footerContent = useMemo(() => {
-        /**
-         * Creates a new group chat with all the selected options and the current user,
-         * or navigates to the existing chat if one with those participants already exists.
-         */
-        const createGroup = () => {
-            if (selectedOptions.length === 1) {
-                createChat();
-            }
-            if (!personalData || !personalData.login || !personalData.accountID) {
-                return;
-            }
-            const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
-            const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-            Report.setGroupDraft({participants: logins});
-            Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
-        };
+    const createGroup = useCallback(() => {
+        if (!personalData || !personalData.login || !personalData.accountID) {
+            return;
+        }
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
+        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
+        Report.setGroupDraft({participants: logins});
+        Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
+    }, [selectedOptions, personalData]);
 
-        return (
+    const footerContent = useMemo(
+        () => (
             <>
                 <ReferralProgramCTA
                     referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -272,14 +265,15 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 {!!selectedOptions.length && (
                     <Button
                         success
-                        text={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
+                        text={translate('common.next')}
                         onPress={createGroup}
                         pressOnEnter
                     />
                 )}
             </>
-        );
-    }, [createChat, personalData, selectedOptions, styles.mb5, translate]);
+        ),
+        [createGroup, selectedOptions.length, styles.mb5, translate],
+    );
 
     return (
         <View
@@ -302,6 +296,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
                     onSelectRow={createChat}
+                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
                     showLoadingPlaceholder={!areOptionsInitialized}
