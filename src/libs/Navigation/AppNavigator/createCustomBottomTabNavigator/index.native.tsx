@@ -1,4 +1,4 @@
-import type {ParamListBase, StackActionHelpers, StackRouterOptions} from '@react-navigation/native';
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {NativeStackView} from '@react-navigation/native-stack';
@@ -7,10 +7,15 @@ import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationRouterOptions,
+    PlatformStackNavigationState,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 import BottomTabBar from './BottomTabBar';
 import type CustomBottomTabNavigatorProps from './types';
-import {defaultScreenOptions, getStateToRender} from './utils';
+import {defaultScreenOptions} from './utils';
 
 function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
     function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ...props}: CustomBottomTabNavigatorProps) {
@@ -18,7 +23,7 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
 
         const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
-            StackRouterOptions,
+            PlatformStackNavigationRouterOptions,
             StackActionHelpers<ParamListBase>,
             NativeStackNavigationOptions,
             NativeStackNavigationEventMap
@@ -29,7 +34,6 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
         });
 
         const styles = useThemeStyles();
-        const stateToRender = getStateToRender(state);
 
         return (
             <ScreenWrapper
@@ -41,7 +45,7 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
                         <NativeStackView
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...props}
-                            state={stateToRender}
+                            state={state}
                             descriptors={descriptors}
                             navigation={navigation}
                         />

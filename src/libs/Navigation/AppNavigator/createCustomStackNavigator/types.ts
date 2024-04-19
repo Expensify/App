@@ -1,11 +1,16 @@
-import type {DefaultNavigatorOptions, ParamListBase, StackRouterOptions} from '@react-navigation/native';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {DefaultNavigatorOptions, ParamListBase} from '@react-navigation/native';
+import type {
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationRouterOptions,
+    PlatformStackNavigationState,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 
 type ResponsiveStackNavigatorConfig = {
     isSmallScreenWidth: boolean;
 };
 
-type ResponsiveStackNavigatorRouterOptions = StackRouterOptions;
+type ResponsiveStackNavigatorRouterOptions = PlatformStackNavigationRouterOptions;
 
 type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, PlatformStackNavigationState<ParamListBase>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap> &
     ResponsiveStackNavigatorConfig;

@@ -1,4 +1,4 @@
-import type {ParamListBase, StackActionHelpers, StackRouterOptions} from '@react-navigation/native';
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
@@ -7,7 +7,12 @@ import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationRouterOptions,
+    PlatformStackNavigationState,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 import BottomTabBar from './BottomTabBar';
 import type CustomBottomTabNavigatorProps from './types';
 import {defaultScreenOptions, getStateToRender} from './utils';
@@ -18,7 +23,7 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
 
         const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
-            StackRouterOptions,
+            PlatformStackNavigationRouterOptions,
             StackActionHelpers<ParamListBase>,
             StackNavigationOptions,
             StackNavigationEventMap
