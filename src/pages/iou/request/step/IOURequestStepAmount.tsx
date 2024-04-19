@@ -31,8 +31,8 @@ type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
 
-    /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<Transaction>;
+    /** The backup transaction object being modified in Onyx */
+    backupTransaction: OnyxEntry<Transaction>;
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
@@ -48,7 +48,7 @@ function IOURequestStepAmount({
     },
     transaction,
     splitDraftTransaction,
-    draftTransaction,
+    backupTransaction,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -59,7 +59,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? backupTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     useFocusEffect(
@@ -184,10 +184,10 @@ export default withWritableReportOrNotFound(
                     return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
                 },
             },
-            draftTransaction: {
+            backupTransaction: {
                 key: ({route}) => {
                     const transactionID = route.params.transactionID ?? 0;
-                    return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+                    return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
                 },
             },
         })(IOURequestStepAmount),
