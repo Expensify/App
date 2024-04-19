@@ -3215,7 +3215,7 @@ function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invit
 
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
         actorAccountID: currentUserAccountID,
         person: [
             {
