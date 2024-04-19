@@ -2,7 +2,10 @@ import {parse} from 'csv-parse';
 import fs from 'fs';
 
 const parser = parse();
+
 const adjacencyList: Record<string, string[]> = {};
+const visited: Map<string, boolean> = new Map<string, boolean>();
+const backEdges: Map<string, boolean> = new Map<string, boolean>();
 
 function addEdge(source: string, target: string) {
     if (!adjacencyList[source]) {
@@ -11,7 +14,7 @@ function addEdge(source: string, target: string) {
     adjacencyList[source].push(target);
 }
 
-function isCyclic(currentNode: string, visited: Map<string, boolean>, backEdges: Map<string, boolean>): boolean {
+function isCyclic(currentNode: string): boolean {
     visited.set(currentNode, true);
     backEdges.set(currentNode, true);
 
@@ -20,7 +23,7 @@ function isCyclic(currentNode: string, visited: Map<string, boolean>, backEdges:
     if (neighbours) {
         for (const node of neighbours) {
             if (!visited.has(node)) {
-                if (isCyclic(node, visited, backEdges)) {
+                if (isCyclic(node)) {
                     return true;
                 }
             } else if (backEdges.has(node)) {
@@ -35,12 +38,9 @@ function isCyclic(currentNode: string, visited: Map<string, boolean>, backEdges:
 }
 
 function detectCycle(): boolean {
-    const visited: Map<string, boolean> = new Map<string, boolean>();
-    const backEdges: Map<string, boolean> = new Map<string, boolean>();
-
     for (const [node] of Object.entries(adjacencyList)) {
         if (!visited.has(node)) {
-            if (isCyclic(node, visited, backEdges)) {
+            if (isCyclic(node)) {
                 const cycle = Array.from(backEdges.keys());
                 console.log(`Infinite redirect found in the cycle: ${cycle.join(' -> ')} -> ${node}`);
                 return true;
