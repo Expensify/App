@@ -8,7 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import {getAdminEmailList} from '@libs/PolicyUtils';
+import {getAdminEmployees} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -34,7 +34,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {exporter} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const exporters = getAdminEmailList(policy);
+    const exporters = getAdminEmployees(policy);
     const result = exporters?.length ? exporters : draft;
 
     const policyID = policy?.id ?? '';

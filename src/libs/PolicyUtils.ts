@@ -362,7 +362,7 @@ export {
     getTaxByID,
     hasPolicyCategoriesError,
     getPolicyIDFromNavigationState,
-    getAdminEmailList,
+    getAdminEmployees,
 };
 
 export type {MemberEmailsToAccountIDs};
