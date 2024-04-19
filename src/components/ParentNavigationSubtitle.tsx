@@ -35,7 +35,12 @@ function ParentNavigationSubtitle({parentNavigationSubtitleData, parentReportAct
             onPress={() => {
                 const parentAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '');
                 const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? '');
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, isVisibleAction && !isOffline ? parentReportActionID : undefined));
+                // Pop the thread report screen before navigating to the chat report.
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
+                if (isVisibleAction && !isOffline) {
+                    // Pop the chat report screen before navigating to the linked report action.
+                    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
+                }
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
             role={CONST.ROLE.LINK}

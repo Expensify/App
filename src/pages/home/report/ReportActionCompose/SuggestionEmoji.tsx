@@ -240,7 +240,7 @@ function SuggestionEmoji(
         <EmojiSuggestions
             highlightedEmojiIndex={highlightedEmojiIndex}
             emojis={suggestionValues.suggestedEmojis}
-            prefix={value.slice(suggestionValues.colonIndex + 1, selection.start)}
+            prefix={value.slice(suggestionValues.colonIndex + 1, selection.end)}
             onSelect={insertSelectedEmoji}
             preferredSkinToneIndex={preferredSkinTone}
             isEmojiPickerLarge={!!isAutoSuggestionPickerLarge}
