@@ -38,10 +38,14 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
             isActive: Boolean(autoSync?.enabled),
             onToggle: () =>
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
-                    jobID: autoSync?.jobID ?? '',
-                    enabled: !autoSync?.enabled,
-                }),
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC,
+                    JSON.stringify({
+                        enabled: !autoSync?.enabled,
+                    }),
+                ),
             pendingAction: pendingFields?.autoSync,
         },
         {
