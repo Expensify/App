@@ -1,4 +1,5 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Str from 'expensify-common/lib/str';
 import type {MutableRefObject} from 'react';
 import React from 'react';
 import {InteractionManager} from 'react-native';
@@ -170,7 +171,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Download,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
-            const messageHtml = reportAction?.message?.at(0)?.html;
+            const messageHtml = getActionHtml(reportAction);
             return (
                 isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction?.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
             );
@@ -199,6 +200,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             return !ReportUtils.shouldDisableThread(reportAction, reportID);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     InteractionManager.runAfterInteractions(() => {
@@ -206,12 +208,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                         // is false, so we need to pass true here to override this condition.
                         ReportActionComposeFocusManager.focus(true);
                     });
-                    Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
+                    Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, originalReportID);
                 });
                 return;
             }
-
-            Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, reportID);
+            Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, originalReportID);
         },
         getDescription: () => {},
     },
@@ -289,7 +290,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isDeletedAction = ReportActionsUtils.isDeletedAction(reportAction);
             const shouldDisplayThreadReplies = ReportUtils.shouldDisplayThreadReplies(reportAction, reportID);
             const subscribed = childReportNotificationPreference !== 'hidden';
-            const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
+            const isCommentAction = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID);
             const isWhisperAction = ReportActionsUtils.isWhisperAction(reportAction);
             return !subscribed && !isWhisperAction && isCommentAction && (!isDeletedAction || shouldDisplayThreadReplies);
         },
@@ -383,12 +384,19 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
+                } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
+                    setClipboardMessage('What would you like to do with this expense?');
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-                    Clipboard.setString(Localize.translateLocal('iou.heldRequest'));
+                    Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
-                    Clipboard.setString(Localize.translateLocal('iou.unheldRequest'));
+                    Clipboard.setString(Localize.translateLocal('iou.unheldExpense'));
                 } else if (content) {
-                    setClipboardMessage(content);
+                    setClipboardMessage(
+                        content.replace(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag, innerContent, closeTag): string => {
+                            const modifiedContent = Str.removeSMSDomain(innerContent) || '';
+                            return openTag + modifiedContent + closeTag || '';
+                        }),
+                    );
                 } else if (messageText) {
                     Clipboard.setString(messageText);
                 }
