@@ -1056,6 +1056,12 @@ function buildOnyxDataForTrackExpense(
 
     const failureData: OnyxUpdate[] = [];
 
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: quickAction,
+    });
+
     if (iouReport) {
         failureData.push(
             {
