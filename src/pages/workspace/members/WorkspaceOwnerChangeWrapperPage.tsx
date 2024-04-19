@@ -62,6 +62,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
                         title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                         onBackButtonPress={() => {
                             PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
+                            Navigation.goBack();
                             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
                         }}
                     />

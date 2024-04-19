@@ -47,7 +47,7 @@ type MemberChangeMessageRoomReferenceElement = {
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
 
-const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG));
+const policyChangeActionsSet = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
 
 let allReports: OnyxCollection<Report> = {};
 Onyx.connect({
@@ -126,7 +126,7 @@ function isMoneyRequestAction(reportAction: OnyxEntry<ReportAction>): reportActi
 }
 
 function isReportPreviewAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
 }
 
 function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -134,7 +134,7 @@ function isReportActionSubmitted(reportAction: OnyxEntry<ReportAction>): boolean
 }
 
 function isModifiedExpenseAction(reportAction: OnyxEntry<ReportAction> | ReportAction | Record<string, never>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
 }
 
 function isWhisperAction(reportAction: OnyxEntry<ReportAction> | EmptyObject): boolean {
@@ -152,29 +152,29 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxEntry<ReportAction>):
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxEntry<ReportAction>) {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED;
 }
 
 function isMemberChangeAction(reportAction: OnyxEntry<ReportAction>) {
     return (
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.LEAVE_POLICY
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY
     );
 }
 
 function isInviteMemberAction(reportAction: OnyxEntry<ReportAction>) {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
 }
 
 function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>) {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.LEAVE_POLICY;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY;
 }
 
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageReimbursementDequeued {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED;
 }
 
 /**
@@ -283,9 +283,9 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
             return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
         }
-        // Ensure that `REPORTPREVIEW` actions always come after if they have the same timestamp as another action type
-        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) && first.actionName !== second.actionName) {
-            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? 1 : -1) * invertedMultiplier;
+        // Ensure that `REPORT_PREVIEW` actions always come after if they have the same timestamp as another action type
+        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && first.actionName !== second.actionName) {
+            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 1 : -1) * invertedMultiplier;
         }
 
         // Then fallback on reportActionID as the final sorting criteria. It is a random number,
@@ -332,7 +332,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
         (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
         !!sortedReportActions[endIndex + 1]?.whisperedToAccountIDs?.length ||
         !!sortedReportActions[endIndex]?.whisperedToAccountIDs?.length ||
-        sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
+        sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
         sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
         sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED
     ) {
@@ -350,7 +350,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
         sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         sortedReportActions[startIndex - 1]?.isOptimisticAction ||
-        sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM
+        sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM
     ) {
         startIndex--;
     }
@@ -491,7 +491,7 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
-const {POLICYCHANGELOG: policyChangelogTypes, ROOMCHANGELOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
+const {POLICY_CHANGE_LOG: policyChangelogTypes, ROOM_CHANGE_LOG: roomChangeLogTypes, ...otherActionTypes} = CONST.REPORT.ACTIONS.TYPE;
 const supportedActionTypes: ActionName[] = [...Object.values(otherActionTypes), ...Object.values(policyChangelogTypes), ...Object.values(roomChangeLogTypes)];
 
 /**
@@ -519,7 +519,7 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // Ignore markedAsReimbursed action here since we're already display message that explains the expense was paid
     // elsewhere in the IOU reportAction
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED) {
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED) {
         return false;
     }
 
@@ -560,7 +560,7 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
         return false;
     }
 
-    // If a whisper action is the REPORTPREVIEW action, we are displaying it.
+    // If a whisper action is the REPORT_PREVIEW action, we are displaying it.
     // If the action's message text is empty and it is not a deleted parent with visible child actions, hide it. Else, consider the action to be displayable.
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
@@ -769,7 +769,7 @@ function getMostRecentReportActionLastModified(): string {
 function getReportPreviewAction(chatReportID: string, iouReportID: string): OnyxEntry<ReportAction> {
     return (
         Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {}).find(
-            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
+            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
         ) ?? null
     );
 }
@@ -778,11 +778,11 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
  * Get the iouReportID for a given report action.
  */
 function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAction>): string {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW ? reportAction.originalMessage.linkedReportID : '0';
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? reportAction.originalMessage.linkedReportID : '0';
 }
 
 function isCreatedTaskReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !!reportAction.originalMessage?.taskReportID;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !!reportAction.originalMessage?.taskReportID;
 }
 
 /**
@@ -810,10 +810,10 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
 function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
     const reportActionName = reportAction?.actionName;
     return (
-        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
-        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED ||
-        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASKEDITED
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED ||
+        reportActionName === CONST.REPORT.ACTIONS.TYPE.TASK_EDITED
     );
 }
 
@@ -858,7 +858,7 @@ function isNotifiableReportAction(reportAction: OnyxEntry<ReportAction>): boolea
         return false;
     }
 
-    const actions: ActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE];
+    const actions: ActionName[] = [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
 
     return actions.includes(reportAction.actionName);
 }
@@ -951,32 +951,32 @@ function getMemberChangeMessageFragment(reportAction: OnyxEntry<ReportAction>): 
 
 function isOldDotReportAction(action: ReportAction): boolean {
     return [
-        CONST.REPORT.ACTIONS.TYPE.CHANGEFIELD,
-        CONST.REPORT.ACTIONS.TYPE.CHANGEPOLICY,
-        CONST.REPORT.ACTIONS.TYPE.CHANGETYPE,
-        CONST.REPORT.ACTIONS.TYPE.DELEGATESUBMIT,
-        CONST.REPORT.ACTIONS.TYPE.DELETEDACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+        CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+        CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE,
+        CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT,
+        CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
-        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOCSV,
-        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOINTEGRATION,
-        CONST.REPORT.ACTIONS.TYPE.EXPORTEDTOQUICKBOOKS,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+        CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
         CONST.REPORT.ACTIONS.TYPE.FORWARDED,
-        CONST.REPORT.ACTIONS.TYPE.INTEGRATIONSMESSAGE,
-        CONST.REPORT.ACTIONS.TYPE.MANAGERATTACHRECEIPT,
-        CONST.REPORT.ACTIONS.TYPE.MANAGERDETACHRECEIPT,
-        CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED,
-        CONST.REPORT.ACTIONS.TYPE.MARKREIMBURSEDFROMINTEGRATION,
-        CONST.REPORT.ACTIONS.TYPE.OUTDATEDBANKACCOUNT,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHBOUNCE,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACHCANCELLED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTACCOUNTCHANGED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDELAYED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTREQUESTED,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTSETUP,
-        CONST.REPORT.ACTIONS.TYPE.SELECTEDFORRANDOMAUDIT,
+        CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+        CONST.REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT,
+        CONST.REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT,
+        CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+        CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
+        CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
+        CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
         CONST.REPORT.ACTIONS.TYPE.SHARE,
-        CONST.REPORT.ACTIONS.TYPE.STRIPEPAID,
-        CONST.REPORT.ACTIONS.TYPE.TAKECONTROL,
+        CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID,
+        CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
         CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         CONST.REPORT.ACTIONS.TYPE.UNSHARE,
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
@@ -1020,7 +1020,7 @@ function hasRequestFromCurrentAccount(reportID: string, currentAccountID: number
  * @param reportAction
  */
 function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableMentionWhisper {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER;
 }
 
 /**
@@ -1076,11 +1076,11 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
  * @param reportAction
  */
 function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 }
 
 function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLETRACKEXPENSEWHISPER;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
 }
 
 /**

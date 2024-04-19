@@ -31,6 +31,7 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
 
     const closePage = useCallback(() => {
         PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
+        Navigation.goBack();
         Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
     }, [accountID, policyID]);
 

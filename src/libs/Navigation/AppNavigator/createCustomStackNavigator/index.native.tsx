@@ -1,19 +1,19 @@
-import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
-import {NativeStackView} from '@react-navigation/native-stack';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import React, {useRef} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import {NativeStackView} from '@react-navigation/native-stack';
+import React from 'react';
+import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
+import useCommonLogic from './useCommonLogic';
 
 function createCustomStackNavigator<TStackParams extends ParamListBase>() {
     function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-        const {isSmallScreenWidth} = useWindowDimensions();
-        const isSmallScreenWidthRef = useRef(isSmallScreenWidth);
-        isSmallScreenWidthRef.current = isSmallScreenWidth;
+        const styles = useThemeStyles();
 
         const nativeScreenOptions = withNativeNavigationOptions(props.screenOptions);
 
@@ -29,22 +29,25 @@ function createCustomStackNavigator<TStackParams extends ParamListBase>() {
             initialRouteName: props.initialRouteName,
         });
 
+        const {stateToRender, searchRoute} = useCommonLogic(state);
+
         return (
             <NavigationContent>
                 <NativeStackView
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
-                    state={state}
+                    state={stateToRender}
                     descriptors={descriptors}
                     navigation={navigation}
                 />
+                {searchRoute && <View style={styles.dNone}>{descriptors[searchRoute.key].render()}</View>}
             </NavigationContent>
         );
     }
 
     ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
-    return createNavigatorFactory<StackNavigationState<ParamListBase>, NativeStackNavigationOptions, NativeStackNavigationEventMap, typeof ResponsiveStackNavigator>(
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
         ResponsiveStackNavigator,
     )<TStackParams>();
 }

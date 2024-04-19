@@ -1,40 +1,19 @@
-import type {ParamListBase, StackActionHelpers, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
-import React, {useEffect, useMemo} from 'react';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import navigationRef from '@libs/Navigation/navigationRef';
+import React from 'react';
+import {View} from 'react-native';
+import useThemeStyles from '@hooks/useThemeStyles';
 import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
+import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
-
-type Routes = StackNavigationState<ParamListBase>['routes'];
-function reduceReportRoutes(routes: Routes): Routes {
-    const result: Routes = [];
-    let count = 0;
-    const reverseRoutes = [...routes].reverse();
-
-    reverseRoutes.forEach((route) => {
-        if (route.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR) {
-            // Remove all report routes except the last 3. This will improve performance.
-            if (count < 3) {
-                result.push(route);
-                count++;
-            }
-        } else {
-            result.push(route);
-        }
-    });
-
-    return result.reverse();
-}
+import useCommonLogic from './useCommonLogic';
 
 function createCustomStackNavigator<TStackParams extends ParamListBase>() {
     function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
-        const {isSmallScreenWidth} = useWindowDimensions();
+        const styles = useThemeStyles();
 
         const webScreenOptions = withWebNavigationOptions(props.screenOptions);
 
@@ -50,22 +29,7 @@ function createCustomStackNavigator<TStackParams extends ParamListBase>() {
             initialRouteName: props.initialRouteName,
         });
 
-        useEffect(() => {
-            if (!navigationRef.isReady()) {
-                return;
-            }
-            navigationRef.resetRoot(navigationRef.getRootState());
-        }, [isSmallScreenWidth]);
-
-        const stateToRender = useMemo(() => {
-            const result = reduceReportRoutes(state.routes);
-
-            return {
-                ...state,
-                index: result.length - 1,
-                routes: [...result],
-            };
-        }, [state]);
+        const {stateToRender, searchRoute} = useCommonLogic(state);
 
         return (
             <NavigationContent>
@@ -76,12 +40,14 @@ function createCustomStackNavigator<TStackParams extends ParamListBase>() {
                     descriptors={descriptors}
                     navigation={navigation}
                 />
+                {searchRoute && <View style={styles.dNone}>{descriptors[searchRoute.key].render()}</View>}
             </NavigationContent>
         );
     }
+
     ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
-    return createNavigatorFactory<StackNavigationState<ParamListBase>, StackNavigationOptions, StackNavigationEventMap, typeof ResponsiveStackNavigator>(
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
         ResponsiveStackNavigator,
     )<TStackParams>();
 }

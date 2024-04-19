@@ -768,7 +768,7 @@ describe('ReportUtils', () => {
 
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
             const reportAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 whisperedToAccountIDs: [123456],
             } as ReportAction;
             expect(ReportUtils.shouldDisableThread(reportAction, reportID)).toBeTruthy();
