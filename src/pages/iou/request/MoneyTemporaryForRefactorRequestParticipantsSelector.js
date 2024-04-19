@@ -113,7 +113,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
             // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST && action !== CONST.IOU.ACTION.MOVE,
+            iouType === CONST.IOU.TYPE.REQUEST && action !== CONST.IOU.ACTION.REQUEST,
 
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
@@ -282,7 +282,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const isAllowedToSplit =
         (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
         ![CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE, CONST.IOU.TYPE.INVOICE].includes(iouType) &&
-        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(action);
+        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.REQUEST, CONST.IOU.ACTION.CATEGORIZE].includes(action);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {

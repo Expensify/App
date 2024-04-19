@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -77,7 +77,7 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
+    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.REQUEST;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 

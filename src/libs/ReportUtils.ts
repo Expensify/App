@@ -510,12 +510,6 @@ Onyx.connect({
     callback: (value) => (allReports = value),
 });
 
-let doesDomainHaveApprovedAccountant = false;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (value) => (doesDomainHaveApprovedAccountant = value?.doesDomainHaveApprovedAccountant ?? false),
-});
-
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -1093,14 +1087,6 @@ function canCreateTaskInReport(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
- * by cross-referencing the accountIDs with personalDetails.
- */
-function hasExpensifyEmails(accountIDs: number[]): boolean {
-    return accountIDs.some((accountID) => Str.extractEmailDomain(allPersonalDetails?.[accountID]?.login ?? '') === CONST.EXPENSIFY_PARTNER_NAME);
-}
-
-/**
  * Returns true if there are any guides accounts (team.expensify.com) in a list of accountIDs
  * by cross-referencing the accountIDs with personalDetails since guides that are participants
  * of the user's chats should have their personal details in Onyx.
@@ -1451,7 +1437,7 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>): bool
 }
 
 /**
- * Can only delete if the author is this user and the action is an ADDCOMMENT action or an IOU action in an unsettled report, or if the user is a
+ * Can only delete if the author is this user and the action is an ADD_COMMENT action or an IOU action in an unsettled report, or if the user is a
  * policy admin
  */
 function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string): boolean {
@@ -1478,7 +1464,7 @@ function canDeleteReportAction(reportAction: OnyxEntry<ReportAction>, reportID: 
     }
 
     if (
-        reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
         reportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
@@ -2038,7 +2024,7 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENTQUEUED` action
+ * Returns the preview message for `REIMBURSEMENT_QUEUED` action
  */
 function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportAction>, report: OnyxEntry<Report>, shouldUseShortDisplayName = true): string {
     const submitterDisplayName = getDisplayNameForParticipant(report?.ownerAccountID, shouldUseShortDisplayName) ?? '';
@@ -2054,7 +2040,7 @@ function getReimbursementQueuedActionMessage(reportAction: OnyxEntry<ReportActio
 }
 
 /**
- * Returns the preview message for `REIMBURSEMENTDEQUEUED` action
+ * Returns the preview message for `REIMBURSEMENT_DEQUEUED` action
  */
 function getReimbursementDeQueuedActionMessage(
     reportAction: OnyxEntry<ReportActionBase & OriginalMessageReimbursementDequeued>,
@@ -2074,12 +2060,12 @@ function getReimbursementDeQueuedActionMessage(
 }
 
 /**
- * Builds an optimistic REIMBURSEMENTDEQUEUED report action with a randomly generated reportActionID.
+ * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
  *
  */
 function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amount: number, currency: string): OptimisticCancelPaymentReportAction {
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
         actorAccountID: currentUserAccountID,
         message: [
             {
@@ -2562,12 +2548,12 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxEntry<ReportAction>, field
  * Can only edit if:
  *
  * - It was written by the current user
- * - It's an ADDCOMMENT that is not an attachment
+ * - It's an ADD_COMMENT that is not an attachment
  * - It's an expense where conditions for editability are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
-    const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
+    const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
     return Boolean(
         reportAction?.actorAccountID === currentUserAccountID &&
@@ -2939,7 +2925,7 @@ function getAdminRoomInvitedParticipants(parentReportAction: ReportAction | Reco
         return parentReportActionMessage;
     }
     const actionType = parentReportAction.actionName;
-    const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM;
+    const isInviteAction = actionType === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || actionType === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
 
     const verbKey = isInviteAction ? 'workspace.invite.invited' : 'workspace.invite.removed';
     const prepositionKey = isInviteAction ? 'workspace.invite.to' : 'workspace.invite.from';
@@ -3286,7 +3272,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
         commentText,
         reportAction: {
             reportActionID: NumberUtils.rand64(),
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: accountID,
             person: [
                 {
@@ -3823,7 +3809,7 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
     return {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport?.reportID,
-        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         originalMessage: {
             linkedReportID: iouReport?.reportID,
@@ -3860,7 +3846,7 @@ function buildOptimisticModifiedExpenseReportAction(
 ): OptimisticModifiedExpenseReportAction {
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy);
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
@@ -3896,7 +3882,7 @@ function buildOptimisticModifiedExpenseReportAction(
  */
 function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string, movedToReportID: string): OptimisticModifiedExpenseReportAction {
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
@@ -4220,7 +4206,7 @@ function buildOptimisticHoldReportAction(created = DateUtils.getDBTime()): Optim
 function buildOptimisticHoldReportActionComment(comment: string, created = DateUtils.getDBTime()): OptimisticHoldReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
@@ -4296,7 +4282,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
 
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
@@ -4323,7 +4309,7 @@ function buildOptimisticEditedTaskFieldReportAction({title, description}: Task):
 function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
     return {
         reportActionID: NumberUtils.rand64(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+        actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
         message: [
@@ -4639,11 +4625,6 @@ function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<P
         return true;
     }
 
-    // Include domain rooms with Partner Managers (Expensify accounts) in them for accounts that are on a domain with an Approved Accountant
-    if (isDomainRoom(report) && doesDomainHaveApprovedAccountant && hasExpensifyEmails(report?.participantAccountIDs ?? [])) {
-        return true;
-    }
-
     // If the room has an assigned guide, it can be seen.
     if (hasExpensifyGuidesEmails(report?.participantAccountIDs ?? [])) {
         return true;
@@ -4931,7 +4912,7 @@ function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
  *
  * - It was written by someone else and isn't a whisper
  * - It's a welcome message whisper
- * - It's an ADDCOMMENT that is not an attachment
+ * - It's an ADD_COMMENT that is not an attachment
  */
 function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined): boolean {
     let report = getReport(reportID);
@@ -4943,9 +4924,9 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
     }
     const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
     const isOriginalMessageHaveHtml =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST;
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
         // Allow flagging welcome message whispers as they can be set by any room creator
         if (report?.description && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.description) {
@@ -4958,7 +4939,7 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
 
     return Boolean(
         !isCurrentUserAction &&
-            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+            reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT &&
             !ReportActionsUtils.isDeletedAction(reportAction) &&
             !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
             !isEmptyObject(report) &&
@@ -6009,7 +5990,7 @@ function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean
  */
 function getIndicatedMissingPaymentMethod(userWallet: OnyxEntry<UserWallet>, reportId: string, reportAction: ReportAction): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = isCurrentUserSubmitter(reportId) && !isSettled(reportId);
-    if (!isSubmitterOfUnsettledReport || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+    if (!isSubmitterOfUnsettledReport || reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED) {
         return undefined;
     }
     const paymentType = reportAction.originalMessage?.paymentType;
@@ -6053,7 +6034,7 @@ function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<
 
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
     switch (reportAction?.actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW:
+        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
             return iouReport ? iouReport.managerID : reportAction?.actorAccountID;
 
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
