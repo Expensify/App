@@ -228,7 +228,7 @@ function BaseSelectionList<TItem extends ListItem>(
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
-        maxIndex: flattenedSections.allOptions.length - 1,
+        maxIndex: Math.min(flattenedSections.allOptions.length, CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * currentPage - 1),
         isActive: true,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index, true);
