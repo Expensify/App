@@ -283,5 +283,11 @@ module.exports = {
                 'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
             },
         },
+        {
+            files: ['en.ts', 'es.ts'],
+            rules: {
+                'rulesdir/use-periods-for-error-messages': 'error',
+            }
+        }
     ],
 };
