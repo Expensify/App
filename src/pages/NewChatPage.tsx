@@ -69,7 +69,8 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             [],
             true,
         );
-        const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
+        // We no longer limit the number of participants in a group chat
+        const maxParticipantsReached = false;
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
             filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
