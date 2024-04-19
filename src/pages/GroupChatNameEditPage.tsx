@@ -76,7 +76,7 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
             }
             Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
         },
-        [isUpdatingExistingReport, reportID],
+        [isUpdatingExistingReport, reportID, currentChatName],
     );
 
     return (
