@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
+import type {IOUAction, IOUType} from './CONST';
 import type {IOURequestType} from './libs/actions/IOU';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
@@ -22,13 +23,18 @@ const ROUTES = {
 
     ALL_SETTINGS: 'all-settings',
 
+    SEARCH: {
+        route: '/search/:query',
+        getRoute: (query: string) => `search/${query}` as const,
+    },
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
         route: 'flag/:reportID/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}` as const,
     },
-    SEARCH: 'search',
+    CHAT_FINDER: 'chat-finder',
     DETAILS: {
         route: 'details',
         getRoute: (login: string) => `details?login=${encodeURIComponent(login)}` as const,
@@ -205,7 +211,7 @@ const ROUTES = {
     EDIT_REQUEST: {
         route: 'r/:threadReportID/edit/:field/:tagIndex?',
         getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${threadReportID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
+            `r/${threadReportID}/edit/${field as string}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
@@ -274,7 +280,7 @@ const ROUTES = {
     EDIT_SPLIT_BILL: {
         route: `r/:reportID/split/:reportActionID/edit/:field/:tagIndex?`,
         getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${reportID}/split/${reportActionID}/edit/${field}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
+            `r/${reportID}/split/${reportActionID}/edit/${field as string}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
@@ -301,123 +307,114 @@ const ROUTES = {
         getRoute: (reportID: string) => `r/${reportID}/members` as const,
     },
     ROOM_INVITE: {
-        route: 'r/:reportID/invite',
-        getRoute: (reportID: string) => `r/${reportID}/invite` as const,
+        route: 'r/:reportID/invite/:role?',
+        getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
     MONEY_REQUEST_HOLD_REASON: {
-        route: ':iouType/edit/reason/:transactionID?',
-        getRoute: (iouType: string, transactionID: string, reportID: string, backTo: string) => `${iouType}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
+        route: ':type/edit/reason/:transactionID?',
+        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
+            `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
     },
     MONEY_REQUEST_MERCHANT: {
         route: ':iouType/new/merchant/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
+        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
     },
     MONEY_REQUEST_RECEIPT: {
         route: ':iouType/new/receipt/:reportID?',
-        getRoute: (iouType: string, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
+        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
     },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
-            `${action}/${iouType}/start/${transactionID}/${reportID}` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
-            `${action}/${iouType}/confirmation/${transactionID}/${reportID}` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
+            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/amount/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_RATE: {
         route: ':action/:iouType/taxRate/:transactionID/:reportID?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/taxRate/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/taxRate/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAX_AMOUNT: {
         route: ':action/:iouType/taxAmount/:transactionID/:reportID?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/taxAmount/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/taxAmount/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action}/${iouType}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_CURRENCY: {
         route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/currency/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
     },
     MONEY_REQUEST_STEP_DATE: {
         route: ':action/:iouType/date/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/date/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/date/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_DESCRIPTION: {
         route: ':action/:iouType/description/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action}/${iouType}/description/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/description/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_DISTANCE: {
         route: ':action/:iouType/distance/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/distance/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_MERCHANT: {
         route: ':action/:iouType/merchant/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/merchant/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/merchant/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: 'create/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType}/participants/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/participants/:transactionID/:reportID',
+        getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '', action: IOUAction = 'create') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/scan/${transactionID}/${reportID}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_TAG: {
         route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
-        getRoute: (
-            action: ValueOf<typeof CONST.IOU.ACTION>,
-            iouType: ValueOf<typeof CONST.IOU.TYPE>,
-            orderWeight: number,
-            transactionID: string,
-            reportID: string,
-            backTo = '',
-            reportActionID?: string,
-        ) => getUrlWithBackToParam(`${action}/${iouType}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID?: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID?: string, pageIndex = '', backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
     },
     // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
     // straight to those flows without needing to have optimistic transaction and report IDs.
     MONEY_REQUEST_START: {
         route: 'start/:iouType/:iouRequestType',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, iouRequestType: IOURequestType) => `start/${iouType}/${iouRequestType}` as const,
+        getRoute: (iouType: IOUType, iouRequestType: IOURequestType) => `start/${iouType as string}/${iouRequestType}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
         route: ':action/:iouType/start/:transactionID/:reportID/distance',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
-            `create/${iouType}/start/${transactionID}/${reportID}/distance` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `create/${iouType as string}/start/${transactionID}/${reportID}/distance` as const,
     },
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
         route: ':action/:iouType/start/:transactionID/:reportID/manual',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
-            `${action}/${iouType}/start/${transactionID}/${reportID}/manual` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/manual` as const,
     },
     MONEY_REQUEST_CREATE_TAB_SCAN: {
         route: ':action/:iouType/start/:transactionID/:reportID/scan',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) =>
-            `create/${iouType}/start/${transactionID}/${reportID}/scan` as const,
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `create/${iouType as string}/start/${transactionID}/${reportID}/scan` as const,
     },
 
     MONEY_REQUEST_STATE_SELECTOR: {
@@ -559,7 +556,7 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/members',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
     },
-    WORKSPACE_ACCOUNTING: {
+    POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
     },
@@ -650,7 +647,7 @@ const ROUTES = {
     WORKSPACE_OWNER_CHANGE_CHECK: {
         route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
         getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
-            `settings/workspaces/${policyID}/change-owner/${accountID}/${error}` as const,
+            `settings/workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const,
     },
     WORKSPACE_TAX_CREATE: {
         route: 'settings/workspaces/:policyID/taxes/new',
@@ -703,27 +700,27 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/accounts',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/accounts` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },
@@ -738,7 +735,7 @@ const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
 } as const;
 
-export {getUrlWithBackToParam, HYBRID_APP_ROUTES};
+export {HYBRID_APP_ROUTES, getUrlWithBackToParam};
 export default ROUTES;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -758,4 +755,4 @@ type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationErr
 
 type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
 
-export type {Route, HybridAppRoute};
+export type {HybridAppRoute, Route};
