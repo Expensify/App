@@ -77,7 +77,6 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
     const payeePersonalDetails = personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
     const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.REQUEST;
 
@@ -122,7 +121,7 @@ function IOURequestStepConfirmation({
         }
 
         const payeeParticipant = OptionsListUtils.getParticipantsOption({accountID: payeePersonalDetails?.accountID, selected: true}, personalDetails);
-        IOU.setMoneyRequestParticipants_temporaryForRefactor(transaction.transactionID, [...(transaction?.participants ?? []), payeeParticipant]);
+        IOU.setMoneyRequestParticipants_temporaryForRefactor(transaction.transactionID, [payeeParticipant, ...(transaction?.participants ?? [])]);
 
         // We only want to run it when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps

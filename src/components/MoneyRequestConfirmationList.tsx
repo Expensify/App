@@ -27,6 +27,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import * as UserUtils from '@libs/UserUtils';
 import * as IOU from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -41,7 +42,9 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
+import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import {usePersonalDetails} from './OnyxProvider';
 import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
@@ -214,6 +217,7 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {canUseViolations} = usePermissions();
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
@@ -350,8 +354,13 @@ function MoneyRequestConfirmationList({
      */
     const getParticipantsWithAmount = useCallback(
         (participantsList: Participant[]) => {
-            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
+            const amount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '');
+            const myAmount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '', true);
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
+                participantsList,
+                amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '',
+                myAmount > 0 ? CurrencyUtils.convertToDisplayString(myAmount, iouCurrencyCode) : '',
+            );
         },
         [iouAmount, iouCurrencyCode],
     );
@@ -386,8 +395,16 @@ function MoneyRequestConfirmationList({
 
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
+    const payeeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([payeePersonalDetails.accountID], personalDetails), false);
+    const payeeIcons = [
+        {
+            source: UserUtils.getAvatar(payeePersonalDetails.avatar, payeePersonalDetails.accountID),
+            name: payeePersonalDetails.login ?? '',
+            type: CONST.ICON_TYPE_AVATAR,
+            id: payeePersonalDetails.accountID,
+        },
+    ];
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
-    const shouldDisablePaidBySection = canModifyParticipants;
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
@@ -402,25 +419,11 @@ function MoneyRequestConfirmationList({
                 }));
             }
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
-            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                payeePersonalDetails,
-                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
-            );
-
-            sections.push(
-                {
-                    title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [formattedPayeeOption],
-                    shouldShow: true,
-                    isDisabled: shouldDisablePaidBySection,
-                },
-                {
-                    title: translate('moneyRequestConfirmationList.splitWith'),
-                    data: formattedParticipantsList,
-                    shouldShow: true,
-                },
-            );
+            sections.push({
+                title: translate('moneyRequestConfirmationList.splitAmounts'),
+                data: formattedParticipantsList,
+                shouldShow: true,
+            });
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
@@ -433,25 +436,14 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [
-        selectedParticipants,
-        selectedParticipantsProp,
-        hasMultipleParticipants,
-        iouAmount,
-        iouCurrencyCode,
-        getParticipantsWithAmount,
-        payeePersonalDetails,
-        translate,
-        shouldDisablePaidBySection,
-        canModifyParticipants,
-    ]);
+    }, [selectedParticipants, selectedParticipantsProp, hasMultipleParticipants, getParticipantsWithAmount, translate, canModifyParticipants]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
-    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
+        return [...selectedParticipants];
+    }, [selectedParticipants, hasMultipleParticipants]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
@@ -514,12 +506,12 @@ function MoneyRequestConfirmationList({
     const selectParticipant = useCallback(
         (option: Participant) => {
             // Return early if selected option is currently logged in user.
-            if (option.accountID === session?.accountID) {
+            if (option.accountID === session?.accountID || option.accountID === payeePersonalDetails.accountID) {
                 return;
             }
             onSelectParticipant?.(option);
         },
-        [session?.accountID, onSelectParticipant],
+        [session?.accountID, onSelectParticipant, payeePersonalDetails.accountID],
     );
 
     /**
@@ -609,7 +601,7 @@ function MoneyRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
+        const shouldDisableButton = isTypeSplit ? selectedParticipants.length === 1 : selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -657,11 +649,29 @@ function MoneyRequestConfirmationList({
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
+    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, isTypeSplit]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
     const classifiedFields = [
+        {
+            item: (
+                <MenuItem
+                    label={translate('moneyRequestConfirmationList.paidBy')}
+                    interactive={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate}
+                    description={payeePersonalDetails.login}
+                    title={payeePersonalDetails.displayName}
+                    icon={payeeIcons}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    shouldShowRightIcon={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate}
+                    titleWithTooltips={payeeTooltipDetails}
+                />
+            ),
+            shouldShow: isTypeSplit && action === CONST.IOU.ACTION.CREATE,
+            isSupplementary: false,
+        },
         {
             item: (
                 <MenuItemWithTopDescription
