@@ -12,7 +12,7 @@ function WelcomeVideoModalNavigator() {
     return (
         <NoDropZone>
             <View>
-                <Stack.Navigator screenOptions={{headerShown: false, animationEnabled: true}}>
+                <Stack.Navigator screenOptions={{headerShown: false}}>
                     <Stack.Screen
                         name={SCREENS.WELCOME_VIDEO.ROOT}
                         component={OnboardingWelcomeVideo}

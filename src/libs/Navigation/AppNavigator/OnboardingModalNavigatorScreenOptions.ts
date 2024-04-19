@@ -7,7 +7,6 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
  */
 const OnboardingModalNavigatorScreenOptions = (): PlatformStackNavigationOptions => ({
     headerShown: false,
-    animationEnabled: true,
     gestureDirection: 'horizontal',
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
     presentation: 'transparentModal',
