@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
+import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
@@ -62,8 +62,7 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
      */
     const handlePastedHTML = useCallback(
         (html: string) => {
-            const parser = new ExpensiMark();
-            paste(parser.htmlToMarkdown(html));
+            paste(parseHtmlToMarkdown(html));
         },
         [paste],
     );

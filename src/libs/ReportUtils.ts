@@ -69,6 +69,7 @@ import ModifiedExpenseMessage from './ModifiedExpenseMessage';
 import linkingConfig from './Navigation/linkingConfig';
 import Navigation from './Navigation/Navigation';
 import * as NumberUtils from './NumberUtils';
+import {parseHtmlToText} from './OnyxAwareParser';
 import Permissions from './Permissions';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as PhoneNumber from './PhoneNumber';
@@ -3174,8 +3175,7 @@ function getReportDescriptionText(report: Report): string {
         return '';
     }
 
-    const parser = new ExpensiMark();
-    return parser.htmlToText(report.description);
+    return parseHtmlToText(report.description);
 }
 
 function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
@@ -3183,12 +3183,10 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
         return '';
     }
 
-    const parser = new ExpensiMark();
-    return parser.htmlToText(policy.description);
+    return parseHtmlToText(policy.description);
 }
 
 function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
-    const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '');
     const isAttachmentOnly = file && !text;
     const isTextOnly = text && !file;
@@ -3200,7 +3198,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
         textForNewComment = CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML;
     } else if (isTextOnly) {
         htmlForNewComment = commentText;
-        textForNewComment = parser.htmlToText(htmlForNewComment);
+        textForNewComment = parseHtmlToText(htmlForNewComment);
     } else {
         htmlForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
         textForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;

@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import type {MutableRefObject} from 'react';
 import React from 'react';
@@ -19,6 +18,7 @@ import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import * as Localize from '@libs/Localize';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
+import {parseHtmlToMarkdown, parseHtmlToText} from '@libs/OnyxAwareParser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -30,7 +30,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import parseHtmlToMarkdown from '@libs/OnyxAwareParser';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
@@ -42,11 +41,10 @@ function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
 
 /** Sets the HTML string to Clipboard */
 function setClipboardMessage(content: string) {
-    const parser = new ExpensiMark();
     if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(parser.htmlToMarkdown(content));
+        Clipboard.setString(parseHtmlToMarkdown(content));
     } else {
-        const plainText = parser.htmlToText(content);
+        const plainText = parseHtmlToText(content);
         Clipboard.setHtml(content, plainText);
     }
 }

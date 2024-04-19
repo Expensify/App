@@ -1,6 +1,6 @@
-import ONYXKEYS from "@src/ONYXKEYS";
-import ExpensiMark from "expensify-common/lib/ExpensiMark";
-import Onyx from "react-native-onyx";
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import Onyx from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const parser = new ExpensiMark();
 
@@ -16,7 +16,7 @@ Onyx.connect({
 
         reportIDToNameMap[report.reportID] = report.reportName ?? '';
     },
-})
+});
 
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -29,11 +29,14 @@ Onyx.connect({
             accountIDToNameMap[personalDetails.accountID] = personalDetails.displayName ?? '';
         });
     },
-})
-
+});
 
 function parseHtmlToMarkdown(html: string): string {
     return parser.htmlToMarkdown(html, {reportIdToName: reportIDToNameMap, accountIDToName: accountIDToNameMap});
-};
+}
 
-export default parseHtmlToMarkdown;
+function parseHtmlToText(html: string): string {
+    return parser.htmlToText(html, {reportIdToName: reportIDToNameMap, accountIDToName: accountIDToNameMap});
+}
+
+export {parseHtmlToMarkdown, parseHtmlToText};
