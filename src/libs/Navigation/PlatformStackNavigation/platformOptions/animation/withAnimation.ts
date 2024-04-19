@@ -7,6 +7,7 @@ function withAnimation<PlatformOptions extends StackNavigationOptions | NativeSt
     slideFromLeft: PlatformOptions,
     slideFromRight: PlatformOptions,
     slideFromBottom: PlatformOptions,
+    none: PlatformOptions,
 ) {
     let animationOptions: PlatformOptions;
     switch (screenOptions?.animation) {
@@ -18,6 +19,9 @@ function withAnimation<PlatformOptions extends StackNavigationOptions | NativeSt
             break;
         case 'modal':
             animationOptions = slideFromBottom;
+            break;
+        case 'none':
+            animationOptions = none;
             break;
         default:
             animationOptions = slideFromRight;
