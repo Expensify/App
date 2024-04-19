@@ -2,6 +2,7 @@ import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {NativeStackView} from '@react-navigation/native-stack';
+import type {NativeStackNavigationConfig} from '@react-navigation/native-stack/lib/typescript/src/types';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,6 +13,7 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationRouterOptions,
     PlatformStackNavigationState,
+    PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 import BottomTabBar from './BottomTabBar';
 import type CustomBottomTabNavigatorProps from './types';
@@ -55,12 +57,18 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
             </ScreenWrapper>
         );
     }
-
     CustomBottomTabNavigator.displayName = 'CustomBottomTabNavigator';
 
-    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomBottomTabNavigator>(
-        CustomBottomTabNavigator,
-    )<TStackParams>();
+    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
+        withNativeNavigationOptions<TStackParams, RouteName>(screenOptions);
+
+    return createNavigatorFactory<
+        PlatformStackNavigationState<TStackParams>,
+        PlatformStackNavigationOptions,
+        PlatformStackNavigationEventMap,
+        typeof CustomBottomTabNavigator,
+        NativeStackNavigationConfig
+    >(CustomBottomTabNavigator)<TStackParams>(transformScreenProps);
 }
 
 export default createCustomBottomTabNavigator;

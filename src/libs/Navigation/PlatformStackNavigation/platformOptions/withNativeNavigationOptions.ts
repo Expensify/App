@@ -1,7 +1,11 @@
 import type {ParamListBase} from '@react-navigation/native';
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {NavigationOptionsRouteProps, PlatformStackNavigationOptions, PlatformStackNavigatorProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {
+    PlatformStackNavigationOptions,
+    PlatformStackScreenOptionsPropsWithoutNavigation,
+    PlatformStackScreenOptionsWithoutNavigation,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 import noAnimation from './animation/native/none';
 import slideFromBottomAnimation from './animation/native/slideFromBottom';
 import slideFromLeftAnimation from './animation/native/slideFromLeft';
@@ -14,12 +18,12 @@ const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigation
     ...getCommonNavigationOptions(screenOptions),
 });
 
-function withNativeNavigationOptions<TStackParams extends ParamListBase>(
-    screenOptions: PlatformStackNavigatorProps<TStackParams>['screenOptions'],
+function withNativeNavigationOptions<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams>(
+    screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>,
     defaultScreenOptions?: PlatformStackNavigationOptions,
 ) {
     return isRouteBasedScreenOptions(screenOptions)
-        ? (p: NavigationOptionsRouteProps<TStackParams>) => {
+        ? (p: PlatformStackScreenOptionsPropsWithoutNavigation<TStackParams, RouteName>) => {
               const routeBasedScreenOptions = screenOptions(p);
               return transformPlatformOptionsToNative({...defaultScreenOptions, ...routeBasedScreenOptions});
           }

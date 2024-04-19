@@ -3,7 +3,12 @@ import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/na
 import {NativeStackView} from '@react-navigation/native-stack';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackScreenOptionsWithoutNavigation,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
@@ -35,12 +40,18 @@ function createCustomFullScreenNavigator<TStackParams extends ParamListBase>() {
             </NavigationContent>
         );
     }
-
     CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
 
-    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigator>(
-        CustomFullScreenNavigator,
-    )<TStackParams>();
+    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
+        withNativeNavigationOptions<TStackParams, RouteName>(screenOptions);
+
+    return createNavigatorFactory<
+        PlatformStackNavigationState<TStackParams>,
+        PlatformStackNavigationOptions,
+        PlatformStackNavigationEventMap,
+        typeof CustomFullScreenNavigator,
+        NativeStackNavigationOptions
+    >(CustomFullScreenNavigator)<TStackParams>(transformScreenProps);
 }
 
 export default createCustomFullScreenNavigator;

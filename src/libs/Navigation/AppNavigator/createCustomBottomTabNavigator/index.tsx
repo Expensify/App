@@ -12,6 +12,7 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationRouterOptions,
     PlatformStackNavigationState,
+    PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 import BottomTabBar from './BottomTabBar';
 import type CustomBottomTabNavigatorProps from './types';
@@ -56,12 +57,18 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
             </ScreenWrapper>
         );
     }
-
     CustomBottomTabNavigator.displayName = 'CustomBottomTabNavigator';
 
-    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomBottomTabNavigator>(
-        CustomBottomTabNavigator,
-    )<TStackParams>();
+    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
+        withWebNavigationOptions<TStackParams, RouteName>(screenOptions);
+
+    return createNavigatorFactory<
+        PlatformStackNavigationState<TStackParams>,
+        PlatformStackNavigationOptions,
+        PlatformStackNavigationEventMap,
+        typeof CustomBottomTabNavigator,
+        StackNavigationOptions
+    >(CustomBottomTabNavigator)<TStackParams>(transformScreenProps);
 }
 
 export default createCustomBottomTabNavigator;

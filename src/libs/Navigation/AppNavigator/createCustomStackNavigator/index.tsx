@@ -6,7 +6,12 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
-import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {
+    PlatformStackNavigationEventMap,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackScreenOptionsWithoutNavigation,
+} from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 import useCommonLogic from './useCommonLogic';
@@ -44,12 +49,18 @@ function createCustomStackNavigator<TStackParams extends ParamListBase>() {
             </NavigationContent>
         );
     }
-
     ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
-    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
-        ResponsiveStackNavigator,
-    )<TStackParams>();
+    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
+        withWebNavigationOptions<TStackParams, RouteName>(screenOptions);
+
+    return createNavigatorFactory<
+        PlatformStackNavigationState<TStackParams>,
+        PlatformStackNavigationOptions,
+        PlatformStackNavigationEventMap,
+        typeof ResponsiveStackNavigator,
+        StackNavigationOptions
+    >(ResponsiveStackNavigator)<TStackParams>(transformScreenProps);
 }
 
 export default createCustomStackNavigator;
