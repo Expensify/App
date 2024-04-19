@@ -2,13 +2,15 @@ import type {ParamListBase} from '@react-navigation/native';
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationOptionsRouteProps, PlatformStackNavigationOptions, PlatformStackNavigatorProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import noAnimation from './animation/native/none';
+import slideFromBottomAnimation from './animation/native/slideFromBottom';
 import slideFromLeftAnimation from './animation/native/slideFromLeft';
 import slideFromRightAnimation from './animation/native/slideFromRight';
 import withAnimation from './animation/withAnimation';
 import getCommonNavigationOptions from './utils';
 
 const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigationOptions | undefined): NativeStackNavigationOptions => ({
-    ...withAnimation<NativeStackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, {animation: 'slide_from_bottom'}),
+    ...withAnimation<NativeStackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, slideFromBottomAnimation, noAnimation),
     ...getCommonNavigationOptions(screenOptions),
 });
 
