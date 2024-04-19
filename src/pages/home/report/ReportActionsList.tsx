@@ -348,12 +348,10 @@ function ReportActionsList({
         const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
-            if (unsubscribe) {
-                unsubscribe();
+            if (!unsubscribe) {
+                return;
             }
-            InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(report.reportID);
-            });
+            unsubscribe();
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
@@ -432,7 +430,7 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
                     shouldDisplay =
                         (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
                         isWithinVisibleThreshold;
