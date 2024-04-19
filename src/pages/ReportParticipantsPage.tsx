@@ -309,7 +309,6 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
-            shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
