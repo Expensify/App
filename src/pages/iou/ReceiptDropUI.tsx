@@ -22,7 +22,7 @@ function ReceiptDropUI({onDrop, receiptImageTopPosition = 0}: ReceiptDropUIProps
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={styles.receiptImageWrapper(receiptImageTopPosition)}>
+                <View>
                     <ImageSVG
                         src={ReceiptUpload}
                         contentFit="contain"
