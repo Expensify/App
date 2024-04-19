@@ -27,7 +27,7 @@ const draft = [
 ];
 
 type CardListItem = ListItem & {
-    value?: string;
+    value: string;
 };
 
 function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
