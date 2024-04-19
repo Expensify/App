@@ -197,6 +197,19 @@ function IOURequestStepAmount({
                     );
                     return;
                 }
+                if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                    IOU.trackExpense(
+                        report,
+                        backendAmount,
+                        currency ?? 'USD',
+                        transaction?.created ?? '',
+                        '',
+                        currentUserPersonalDetails.login ?? '',
+                        currentUserPersonalDetails.accountID ?? 0,
+                        participants[0],
+                        '',
+                    );
+                }
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
