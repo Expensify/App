@@ -51,6 +51,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -315,6 +316,7 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        rate: 'Rate',
         emptyLHN: {
             title: 'Woohoo! All caught up.',
             subtitleText1: 'Find a chat using the',
@@ -628,7 +630,8 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Route pending...',
+        routePending: 'Pending...',
+        defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         missingAmount: 'Missing amount',
@@ -732,6 +735,7 @@ export default {
         set: 'set',
         changed: 'changed',
         removed: 'removed',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
