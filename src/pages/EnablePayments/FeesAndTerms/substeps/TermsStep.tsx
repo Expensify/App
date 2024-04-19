@@ -3,15 +3,17 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@navigation/Navigation';
+// TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
 import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 function HaveReadAndAgreeLabel() {
     const {translate} = useLocalize();
@@ -91,10 +93,12 @@ function TermsStep() {
                     }
 
                     setError(false);
-                    BankAccounts.acceptWalletTerms({
-                        hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
-                        reportID: walletTerms?.chatReportID ?? '',
-                    });
+                    // TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
+                    // BankAccounts.acceptWalletTerms({
+                    //     hasAcceptedTerms: hasAcceptedDisclosure && hasAcceptedPrivacyPolicyAndWalletAgreement,
+                    //     reportID: walletTerms?.chatReportID ?? '',
+                    // });
+                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 }}
                 message={errorMessage}
                 isAlertVisible={error || Boolean(errorMessage)}

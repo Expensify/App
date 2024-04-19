@@ -7,7 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import FeesStep from './substeps/FeesStep';
 import TermsStep from './substeps/TermsStep';
 
@@ -22,6 +24,8 @@ function FeesAndTerms() {
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
+            // TODO: temporary for refactor https://github.com/Expensify/App/issues/36648
+            Navigation.navigate(ROUTES.SETTINGS_WALLET);
             return;
         }
         prevScreen();
