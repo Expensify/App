@@ -3066,6 +3066,7 @@ function completeOnboarding(
         const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 1, isTaskMessageFunction ? undefined : false);
 
         return {
+            task,
             currentTask,
             taskCreatedAction,
             taskReportAction,
@@ -3074,7 +3075,7 @@ function completeOnboarding(
         };
     });
 
-    const tasksForParameters = tasksData.reduce<TaskForParameters[]>((acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
+    const tasksForParameters = tasksData.reduce<TaskForParameters[]>((acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment}) => {
         const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
         const instructionCommentText = instructionComment.commentText;
         const instructionMessage: TaskMessage = {
@@ -3087,7 +3088,7 @@ function completeOnboarding(
             ...acc,
             {
                 type: 'task',
-                task: engagementChoice,
+                task: task.type,
                 taskReportID: currentTask.reportID,
                 parentReportID: currentTask.parentReportID ?? '',
                 parentReportActionID: taskReportAction.reportAction.reportActionID,
