@@ -17,7 +17,7 @@ function HoldBanner({isRequestDuplicate = false, shouldShowBorderBottom = false}
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.pb3, styles.ph5, shouldShowBorderBottom ? styles.borderBottom : {}]}>
             <TextPill>{translate('iou.hold')}</TextPill>
-            <Text style={[styles.textLabel, styles.pl3, styles.mw100, styles.flexShrink1]}>{isRequestDuplicate ? translate('iou.requestDuplicate') : translate('iou.requestOnHold')}</Text>
+            <Text style={[styles.textLabel, styles.pl3, styles.mw100, styles.flexShrink1]}>{isRequestDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold')}</Text>
         </View>
     );
 }

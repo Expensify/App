@@ -60,7 +60,7 @@ Onyx.connect({
 });
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
+    // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
     }
@@ -72,7 +72,7 @@ function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
+    // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
@@ -92,7 +92,7 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
 }
 
 function isManualRequest(transaction: Transaction): boolean {
-    // This is used during the request creation flow before the transaction has been saved to the server
+    // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
         return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     }
@@ -104,7 +104,7 @@ function isManualRequest(transaction: Transaction): boolean {
  * Optimistically generate a transaction.
  *
  * @param amount – in cents
- * @param [existingTransactionID] When creating a distance request, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
+ * @param [existingTransactionID] When creating a distance expense, an empty transaction has already been created with a transactionID. In that case, the transaction here needs to have
  * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(
@@ -200,7 +200,7 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Given the edit made to the money request, return an updated transaction object.
+ * Given the edit made to the expnse, return an updated transaction object.
  */
 function getUpdatedTransaction(transaction: Transaction, transactionChanges: TransactionChanges, isFromExpenseReport: boolean, shouldUpdateReceiptState = true): Transaction {
     // Only changing the first level fields so no need for deep clone now
@@ -239,12 +239,10 @@ function getUpdatedTransaction(transaction: Transaction, transactionChanges: Tra
 
     if (Object.hasOwn(transactionChanges, 'taxAmount') && typeof transactionChanges.taxAmount === 'number') {
         updatedTransaction.taxAmount = isFromExpenseReport ? -transactionChanges.taxAmount : transactionChanges.taxAmount;
-        shouldStopSmartscan = true;
     }
 
     if (Object.hasOwn(transactionChanges, 'taxCode') && typeof transactionChanges.taxCode === 'string') {
         updatedTransaction.taxCode = transactionChanges.taxCode;
-        shouldStopSmartscan = true;
     }
 
     if (Object.hasOwn(transactionChanges, 'billable') && typeof transactionChanges.billable === 'boolean') {
@@ -299,9 +297,9 @@ function getDescription(transaction: OnyxEntry<Transaction>): string {
 /**
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
-function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false): number {
+function getAmount(transaction: OnyxEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
+    if (!isFromExpenseReport || isFromTrackedExpense) {
         const amount = transaction?.modifiedAmount ?? 0;
         if (amount) {
             return Math.abs(amount);
