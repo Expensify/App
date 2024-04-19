@@ -84,13 +84,13 @@ function ExpensifyCardPage({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const shouldDisplayCardDomain = !cardList?.[cardID].nameValuePairs?.issuedBy;
-    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID].nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
+    const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy;
+    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
-            return CardUtils.getDomainCards(cardList)[domain].filter((card) => !card.nameValuePairs?.issuedBy);
+            return CardUtils.getDomainCards(cardList)[domain]?.filter((card) => !card?.nameValuePairs?.issuedBy);
         }
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
@@ -98,8 +98,8 @@ function ExpensifyCardPage({
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
 
-    const virtualCards = useMemo(() => cardsToShow.filter((card) => card.isVirtual), [cardsToShow]);
-    const physicalCards = useMemo(() => cardsToShow.filter((card) => !card.isVirtual), [cardsToShow]);
+    const virtualCards = useMemo(() => cardsToShow.filter((card) => card?.nameValuePairs?.isVirtual), [cardsToShow]);
+    const physicalCards = useMemo(() => cardsToShow.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
     const [cardsDetails, setCardsDetails] = useState<Record<number, TCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});

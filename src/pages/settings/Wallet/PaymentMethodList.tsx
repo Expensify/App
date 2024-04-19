@@ -222,7 +222,7 @@ function PaymentMethodList({
                     return;
                 }
 
-                const isAdminIssuedVirtualCard = !!card.nameValuePairs?.issuedBy;
+                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy;
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
                 if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
@@ -238,7 +238,7 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isAdminIssuedVirtualCard ? card.nameValuePairs?.cardTitle || card.bank : card.bank,
+                    title: isAdminIssuedVirtualCard ? card?.nameValuePairs?.cardTitle || card.bank : card.bank,
                     description: card.domainName,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '', card.cardID.toString() ?? '')),
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
@@ -253,6 +253,7 @@ function PaymentMethodList({
                     ...icon,
                 });
             });
+            console.log('%%%%%\n', 'assignedCardsGrouped', assignedCardsGrouped);
             return assignedCardsGrouped;
         }
 
@@ -297,7 +298,7 @@ function PaymentMethodList({
                 shouldShowRightIcon: true,
             };
         });
-
+        console.log('%%%%%\n', 'combinedPaymentMethods', combinedPaymentMethods);
         return combinedPaymentMethods;
     }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
 
