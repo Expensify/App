@@ -84,12 +84,15 @@ function SuggestionMention(
      *
      * The function is debounced to not perform requests on every keystroke.
      */
-    const debouncedSearchInServer = useDebounce(() => {
-        const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
-        if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
-            ReportUserActions.searchInServer(value, policyID);
-        }
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const debouncedSearchInServer = useDebounce(
+        useCallback(() => {
+            const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
+            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
+                ReportUserActions.searchInServer(value, policyID);
+            }
+        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     const formatLoginPrivateDomain = useCallback(
         (displayText = '', userLogin = '') => {
