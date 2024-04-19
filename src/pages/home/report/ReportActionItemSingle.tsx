@@ -85,7 +85,7 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(
-        () => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport && !ReportUtils.isInvoiceReport(iouReport),
+        () => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && iouReport && !ReportUtils.isInvoiceReport(iouReport),
         [action?.actionName, iouReport],
     );
     const isWorkspaceActor = ReportUtils.isInvoiceReport(iouReport ?? {}) || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
@@ -109,7 +109,7 @@ function ReportActionItemSingle({
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        // The ownerAccountID and actorAccountID can be the same if the a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID ? iouReport?.managerID : iouReport?.ownerAccountID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);

@@ -23,6 +23,10 @@ const SCREENS = {
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
+    SEARCH: {
+        CENTRAL_PANE: 'Search_Central_Pane',
+        BOTTOM_TAB: 'Search_Bottom_Tab',
+    },
     SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
@@ -95,7 +99,7 @@ const SCREENS = {
         ROOT: 'SaveTheWorld_Root',
     },
     LEFT_MODAL: {
-        SEARCH: 'Search',
+        CHAT_FINDER: 'ChatFinder',
         WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
     },
     WORKSPACE_SWITCHER: {
@@ -155,7 +159,6 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
-        PARTICIPANTS: 'Money_Request_Participants',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -203,6 +206,15 @@ const SCREENS = {
     },
 
     WORKSPACE: {
+        ACCOUNTING: {
+            ROOT: 'Policy_Accounting',
+            QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
+            QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Policy_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
+            QUICKBOOKS_ONLINE_CLASSES: 'Policy_Accounting_Quickbooks_Online_Import_Classes',
+            QUICKBOOKS_ONLINE_CUSTOMERS: 'Policy_Accounting_Quickbooks_Online_Import_Customers',
+            QUICKBOOKS_ONLINE_LOCATIONS: 'Policy_Accounting_Quickbooks_Online_Import_Locations',
+            QUICKBOOKS_ONLINE_TAXES: 'Policy_Accounting_Quickbooks_Online_Import_Taxes',
+        },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
         CARD: 'Workspace_Card',
@@ -214,7 +226,6 @@ const SCREENS = {
         INVOICES: 'Workspace_Invoices',
         TRAVEL: 'Workspace_Travel',
         MEMBERS: 'Workspace_Members',
-        ACCOUNTING: 'Workspace_Accounting',
         INVITE: 'Workspace_Invite',
         INVITE_MESSAGE: 'Workspace_Invite_Message',
         CATEGORIES: 'Workspace_Categories',
@@ -254,12 +265,6 @@ const SCREENS = {
         DISTANCE_RATES: 'Distance_Rates',
         CREATE_DISTANCE_RATE: 'Create_Distance_Rate',
         DISTANCE_RATES_SETTINGS: 'Distance_Rates_Settings',
-        QUICKBOOKS_ONLINE_IMPORT: 'Workspace_Accounting_Quickbooks_Online_Import',
-        QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: 'Workspace_Accounting_Quickbooks_Online_Import_Chart_Of_Accounts',
-        QUICKBOOKS_ONLINE_CLASSES: 'Workspace_Accounting_Quickbooks_Online_Import_Classes',
-        QUICKBOOKS_ONLINE_CUSTOMERS: 'Workspace_Accounting_Quickbooks_Online_Import_Customers',
-        QUICKBOOKS_ONLINE_LOCATIONS: 'Workspace_Accounting_Quickbooks_Online_Import_Locations',
-        QUICKBOOKS_ONLINE_TAXES: 'Workspace_Accounting_Quickbooks_Online_Import_Taxes',
         DISTANCE_RATE_DETAILS: 'Distance_Rate_Details',
         DISTANCE_RATE_EDIT: 'Distance_Rate_Edit',
     },
@@ -319,7 +324,7 @@ const SCREENS = {
     },
     ROOM_MEMBERS_ROOT: 'RoomMembers_Root',
     ROOM_INVITE_ROOT: 'RoomInvite_Root',
-    SEARCH_ROOT: 'Search_Root',
+    CHAT_FINDER_ROOT: 'ChatFinder_Root',
     FLAG_COMMENT_ROOT: 'FlagComment_Root',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     GET_ASSISTANCE: 'GetAssistance',
