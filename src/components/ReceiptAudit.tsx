@@ -14,7 +14,7 @@ function ReceiptAuditHeader({notes = [], showAuditMessage = false}: {notes?: str
 
     const issuesFoundText = notes.length > 0 ? translate('iou.receiptIssuesFound', notes.length) : translate('common.verified');
     return (
-        <View style={[styles.ph5, styles.mb1]}>
+        <View style={[styles.ph5, styles.mbn1]}>
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('common.receipt')}</Text>
                 {showAuditMessage && (
@@ -36,7 +36,7 @@ function ReceiptAuditHeader({notes = [], showAuditMessage = false}: {notes?: str
 
 function ReceiptAuditMessages({notes = []}: {notes?: string[]}) {
     const styles = useThemeStyles();
-    return <View style={[styles.mt1, styles.mb2, styles.ph5, styles.gap1]}>{notes.length > 0 && notes.map((message) => <Text style={[styles.textLabelError]}>{message}</Text>)}</View>;
+    return <View style={[styles.mtn1, styles.mb2, styles.ph5, styles.gap1]}>{notes.length > 0 && notes.map((message) => <Text style={[styles.textLabelError]}>{message}</Text>)}</View>;
 }
 
 export {ReceiptAuditHeader, ReceiptAuditMessages};

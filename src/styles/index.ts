@@ -4296,7 +4296,7 @@ const styles = (theme: ThemeColors) =>
         },
         moneyRequestViewImage: {
             ...spacing.mh5,
-            ...spacing.mv1,
+            ...spacing.mv3,
             overflow: 'hidden',
             borderWidth: 2,
             borderColor: theme.cardBG,
