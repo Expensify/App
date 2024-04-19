@@ -15,7 +15,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +32,7 @@ type ContactMethodsPageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type ContactMethodsPageProps = ContactMethodsPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
+type ContactMethodsPageProps = ContactMethodsPageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.CONTACT_METHODS>;
 
 function ContactMethodsPage({loginList, session, route}: ContactMethodsPageProps) {
     const styles = useThemeStyles();

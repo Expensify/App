@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -27,7 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Unit} from '@src/types/onyx/Policy';
 
-type WorkspaceRateAndUnitPageProps = WithPolicyProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RATE_AND_UNIT>;
+type WorkspaceRateAndUnitPageProps = WithPolicyProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RATE_AND_UNIT>;
 
 type ValidationError = {rate?: TranslationPaths | undefined};
 

@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Policy from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -30,7 +30,7 @@ type WorkspaceEditTagsPageOnyxProps = {
     policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 };
 
-type WorkspaceEditTagsPageProps = WorkspaceEditTagsPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;
+type WorkspaceEditTagsPageProps = WorkspaceEditTagsPageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_EDIT>;
 
 const validateTagName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM>) => {
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM> = {};

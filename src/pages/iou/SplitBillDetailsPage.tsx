@@ -9,7 +9,7 @@ import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -51,7 +51,7 @@ type SplitBillDetailsPageOnyxProps = SplitBillDetailsPageTransactionOnyxProps & 
 
 type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps &
     SplitBillDetailsPageOnyxProps &
-    PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
+    PlatformStackScreenOptionsProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
 function SplitBillDetailsPage({personalDetails, report, route, reportActions, transaction, draftTransaction, session}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();

@@ -20,7 +20,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -45,7 +45,7 @@ type RoomMembersPageOnyxProps = {
 type RoomMembersPageProps = WithReportOrNotFoundProps &
     WithCurrentUserPersonalDetailsProps &
     RoomMembersPageOnyxProps &
-    PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
+    PlatformStackScreenOptionsProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS_ROOT>;
 
 function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     const styles = useThemeStyles();

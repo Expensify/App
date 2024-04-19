@@ -8,7 +8,7 @@ import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as App from '@userActions/App';
 import * as Report from '@userActions/Report';
@@ -21,7 +21,7 @@ type ConciergePageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type ConciergePageProps = ConciergePageOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.CONCIERGE>;
+type ConciergePageProps = ConciergePageOnyxProps & PlatformStackScreenOptionsProps<AuthScreensParamList, typeof SCREENS.CONCIERGE>;
 
 /*
  * This is a "utility page", that does this:

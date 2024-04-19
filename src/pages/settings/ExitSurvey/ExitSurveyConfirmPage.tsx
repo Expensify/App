@@ -12,7 +12,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -31,7 +31,7 @@ type ExitSurveyConfirmPageOnyxProps = {
     isLoading: OnyxEntry<boolean>;
 };
 
-type ExitSurveyConfirmPageProps = ExitSurveyConfirmPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
+type ExitSurveyConfirmPageProps = ExitSurveyConfirmPageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
 
 function ExitSurveyConfirmPage({exitReason, isLoading, route, navigation}: ExitSurveyConfirmPageProps) {
     const {translate} = useLocalize();

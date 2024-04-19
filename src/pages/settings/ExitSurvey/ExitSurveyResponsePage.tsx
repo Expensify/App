@@ -16,7 +16,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import Navigation from '@navigation/Navigation';
@@ -35,7 +35,7 @@ type ExitSurveyResponsePageOnyxProps = {
     draftResponse: string;
 };
 
-type ExitSurveyResponsePageProps = ExitSurveyResponsePageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
+type ExitSurveyResponsePageProps = ExitSurveyResponsePageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE>;
 
 function ExitSurveyResponsePage({draftResponse, route, navigation}: ExitSurveyResponsePageProps) {
     const {translate} = useLocalize();

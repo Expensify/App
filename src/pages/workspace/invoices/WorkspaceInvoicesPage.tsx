@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
@@ -11,7 +11,7 @@ import type SCREENS from '@src/SCREENS';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
-type WorkspaceInvoicesPageProps = PlatformStackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
+type WorkspaceInvoicesPageProps = PlatformStackScreenOptionsProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
 
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();

@@ -16,7 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -34,7 +34,7 @@ type CategorySettingsPageOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 };
 
-type CategorySettingsPageProps = CategorySettingsPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
+type CategorySettingsPageProps = CategorySettingsPageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
 
 function CategorySettingsPage({route, policyCategories}: CategorySettingsPageProps) {
     const styles = useThemeStyles();

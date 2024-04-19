@@ -1,11 +1,11 @@
 import React from 'react';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import ReportScreen from '@pages/home/ReportScreen';
 import type SCREENS from '@src/SCREENS';
 import ReportScreenIDSetter from './ReportScreenIDSetter';
 
-type ReportScreenWrapperProps = PlatformStackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
+type ReportScreenWrapperProps = PlatformStackScreenOptionsProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
 function ReportScreenWrapper({route, navigation}: ReportScreenWrapperProps) {
     // The ReportScreen without the reportID set will display a skeleton

@@ -16,7 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Report from '@libs/actions/Report';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
@@ -35,7 +35,7 @@ type ReportParticipantDetailsOnyxProps = {
 };
 
 type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps &
-    PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS> &
+    PlatformStackScreenOptionsProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.DETAILS> &
     ReportParticipantDetailsOnyxProps;
 
 function ReportParticipantDetails({personalDetails, report, route}: ReportParticipantDetailsPageProps) {

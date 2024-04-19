@@ -15,7 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -37,7 +37,7 @@ type RoomNamePageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type RoomNamePageProps = RoomNamePageOnyxProps & WithReportOrNotFoundProps & PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOM_NAME>;
+type RoomNamePageProps = RoomNamePageOnyxProps & WithReportOrNotFoundProps & PlatformStackScreenOptionsProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.ROOM_NAME>;
 
 function RoomNamePage({report, policy, reports}: RoomNamePageProps) {
     const styles = useThemeStyles();

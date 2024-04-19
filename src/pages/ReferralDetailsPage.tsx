@@ -14,7 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -29,7 +29,7 @@ type ReferralDetailsPageOnyxProps = {
     account: OnyxEntry<Account>;
 };
 
-type ReferralDetailsPageProps = ReferralDetailsPageOnyxProps & PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
+type ReferralDetailsPageProps = ReferralDetailsPageOnyxProps & PlatformStackScreenOptionsProps<ReferralDetailsNavigatorParamList, typeof SCREENS.REFERRAL_DETAILS>;
 
 function ReferralDetailsPage({route, account}: ReferralDetailsPageProps) {
     const theme = useTheme();

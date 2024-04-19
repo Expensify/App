@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
@@ -68,7 +68,7 @@ type ReimbursementAccountOnyxProps = {
 
 type ReimbursementAccountPageProps = WithPolicyOnyxProps &
     ReimbursementAccountOnyxProps &
-    PlatformStackScreenProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
+    PlatformStackScreenOptionsProps<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>;
 
 const ROUTE_NAMES = {
     COMPANY: 'company',

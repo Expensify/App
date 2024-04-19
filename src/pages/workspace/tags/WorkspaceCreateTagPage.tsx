@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -32,7 +32,7 @@ type WorkspaceCreateTagPageOnyxProps = {
     policyTags: OnyxEntry<PolicyTagList>;
 };
 
-type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+type CreateTagPageProps = WorkspaceCreateTagPageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
 
 function CreateTagPage({route, policyTags}: CreateTagPageProps) {
     const styles = useThemeStyles();

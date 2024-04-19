@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -28,7 +28,7 @@ type LogInWithShortLivedAuthTokenPageOnyxProps = {
     account: OnyxEntry<Account>;
 };
 
-type LogInWithShortLivedAuthTokenPageProps = LogInWithShortLivedAuthTokenPageOnyxProps & PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type LogInWithShortLivedAuthTokenPageProps = LogInWithShortLivedAuthTokenPageOnyxProps & PlatformStackScreenOptionsProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function LogInWithShortLivedAuthTokenPage({route, account}: LogInWithShortLivedAuthTokenPageProps) {
     const theme = useTheme();

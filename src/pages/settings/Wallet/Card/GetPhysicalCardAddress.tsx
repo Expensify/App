@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import AddressForm from '@components/AddressForm';
 import useLocalize from '@hooks/useLocalize';
 import * as FormActions from '@libs/actions/FormActions';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,7 +18,7 @@ type GetPhysicalCardAddressOnyxProps = {
     draftValues: OnyxEntry<GetPhysicalCardForm>;
 };
 
-type GetPhysicalCardAddressProps = GetPhysicalCardAddressOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
+type GetPhysicalCardAddressProps = GetPhysicalCardAddressOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS>;
 
 function GetPhysicalCardAddress({
     draftValues,

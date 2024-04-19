@@ -14,7 +14,7 @@ import DateUtils from '@libs/DateUtils';
 import fileDownload from '@libs/fileDownload';
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WalletStatementNavigatorParamList} from '@navigation/types';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
@@ -27,7 +27,7 @@ type WalletStatementOnyxProps = {
     walletStatement: OnyxEntry<WalletStatement>;
 };
 
-type WalletStatementPageProps = WalletStatementOnyxProps & PlatformStackScreenProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
+type WalletStatementPageProps = WalletStatementOnyxProps & PlatformStackScreenOptionsProps<WalletStatementNavigatorParamList, typeof SCREENS.WALLET_STATEMENT_ROOT>;
 
 function WalletStatementPage({walletStatement, route}: WalletStatementPageProps) {
     const themePreference = useThemePreference();

@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
@@ -28,7 +28,7 @@ type GetAssistanceOnyxProps = {
     account: OnyxEntry<Account>;
 };
 
-type GetAssistancePageProps = GetAssistanceOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.GET_ASSISTANCE>;
+type GetAssistancePageProps = GetAssistanceOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.GET_ASSISTANCE>;
 
 function GetAssistancePage({route, account}: GetAssistancePageProps) {
     const styles = useThemeStyles();

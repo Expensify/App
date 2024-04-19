@@ -18,7 +18,7 @@ import * as CardUtils from '@libs/CardUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as CardSettings from '@userActions/Card';
@@ -34,7 +34,7 @@ type ActivatePhysicalCardPageOnyxProps = {
     cardList: OnyxEntry<Record<string, Card>>;
 };
 
-type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type ActivatePhysicalCardPageProps = ActivatePhysicalCardPageOnyxProps & PlatformStackScreenOptionsProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 const MAGIC_INPUT_MIN_HEIGHT = 86;

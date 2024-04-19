@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as User from '@userActions/User';
 import CONST from '@src/CONST';
@@ -32,7 +32,7 @@ type NewContactMethodPageOnyxProps = {
     loginList: OnyxEntry<LoginList>;
 };
 
-type NewContactMethodPageProps = NewContactMethodPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
+type NewContactMethodPageProps = NewContactMethodPageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
 const addNewContactMethod = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
     const phoneLogin = LoginUtils.getPhoneLogin(values.phoneOrEmail);

@@ -8,7 +8,7 @@ import withWindowDimensions from '@components/withWindowDimensions';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
 import compose from '@libs/compose';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -46,7 +46,7 @@ type OnyxProps = {
 
 type WithReportAndReportActionOrNotFoundProps = OnyxProps &
     WindowDimensionsProps &
-    PlatformStackScreenProps<FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT>;
+    PlatformStackScreenOptionsProps<FlagCommentNavigatorParamList & SplitDetailsNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT | typeof SCREENS.SPLIT_DETAILS.ROOT>;
 
 export default function <TProps extends WithReportAndReportActionOrNotFoundProps, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,

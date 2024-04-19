@@ -14,7 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
@@ -35,7 +35,7 @@ type ChatFinderPageOnyxProps = {
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-type ChatFinderPageProps = ChatFinderPageOnyxProps & PlatformStackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
+type ChatFinderPageProps = ChatFinderPageOnyxProps & PlatformStackScreenOptionsProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];

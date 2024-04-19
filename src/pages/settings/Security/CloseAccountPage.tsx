@@ -14,7 +14,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import * as CloseAccount from '@userActions/CloseAccount';
@@ -30,7 +30,7 @@ type CloseAccountPageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type CloseAccountPageProps = CloseAccountPageOnyxProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
+type CloseAccountPageProps = CloseAccountPageOnyxProps & PlatformStackScreenOptionsProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CLOSE>;
 
 function CloseAccountPage({session}: CloseAccountPageProps) {
     const styles = useThemeStyles();

@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -16,7 +16,7 @@ type WorkspaceAvatarOnyxProps = {
     isLoadingApp: OnyxEntry<boolean>;
 };
 
-type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
+type WorkspaceAvatarProps = WorkspaceAvatarOnyxProps & PlatformStackScreenOptionsProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_AVATAR>;
 
 function WorkspaceAvatar({policy, isLoadingApp = true}: WorkspaceAvatarProps) {
     const avatarURL = policy?.avatar ?? '' ? policy?.avatar ?? '' : ReportUtils.getDefaultWorkspaceAvatar(policy?.name ?? '');

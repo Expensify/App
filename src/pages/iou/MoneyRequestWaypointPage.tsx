@@ -1,6 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -9,7 +9,7 @@ import IOURequestStepWaypoint from './request/step/IOURequestStepWaypoint';
 type MoneyRequestWaypointPageOnyxProps = {
     transactionID: string | undefined;
 };
-type MoneyRequestWaypointPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & MoneyRequestWaypointPageOnyxProps;
+type MoneyRequestWaypointPageProps = PlatformStackScreenOptionsProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & MoneyRequestWaypointPageOnyxProps;
 
 // This component is responsible for grabbing the transactionID from the IOU key
 // You can't use Onyx props in the withOnyx mapping, so we need to set up and access the transactionID here, and then pass it down so that WaypointEditor can subscribe to the transaction.

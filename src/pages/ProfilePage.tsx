@@ -21,7 +21,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -40,7 +40,7 @@ import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
+type ProfilePageProps = PlatformStackScreenOptionsProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
 
 /**
  * Gets the phone number to display for SMS logins

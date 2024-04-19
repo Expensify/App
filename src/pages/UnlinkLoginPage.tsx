@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@navigation/types';
 import * as Session from '@userActions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +16,7 @@ type UnlinkLoginPageOnyxProps = {
     account: OnyxEntry<Account>;
 };
 
-type UnlinkLoginPageProps = UnlinkLoginPageOnyxProps & PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
+type UnlinkLoginPageProps = UnlinkLoginPageOnyxProps & PlatformStackScreenOptionsProps<PublicScreensParamList, typeof SCREENS.UNLINK_LOGIN>;
 
 function UnlinkLoginPage({route, account}: UnlinkLoginPageProps) {
     const accountID = route.params.accountID ?? -1;
