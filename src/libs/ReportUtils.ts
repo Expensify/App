@@ -6121,7 +6121,6 @@ export {
     getPolicyType,
     getReimbursementDeQueuedActionMessage,
     getReimbursementQueuedActionMessage,
-    getReport,
     getReportActionActorAccountID,
     getReportDescriptionText,
     getReportFieldKey,
