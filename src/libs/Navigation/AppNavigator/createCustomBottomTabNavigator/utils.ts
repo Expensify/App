@@ -1,7 +1,11 @@
 import type {ParamListBase} from '@react-navigation/native';
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
+
+const defaultScreenOptions: PlatformStackNavigationOptions = {
+    animation: 'none',
+};
 
 function getStateToRender(state: PlatformStackNavigationState<ParamListBase>): PlatformStackNavigationState<ParamListBase> {
     const routesToRender = [state.routes.at(-1)] as NavigationStateRoute[];
@@ -18,4 +22,4 @@ function getStateToRender(state: PlatformStackNavigationState<ParamListBase>): P
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }
 
-export default getStateToRender;
+export {defaultScreenOptions, getStateToRender};

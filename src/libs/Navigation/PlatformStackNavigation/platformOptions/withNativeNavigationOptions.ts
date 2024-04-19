@@ -14,13 +14,16 @@ const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigation
     ...getCommonNavigationOptions(screenOptions),
 });
 
-function withNativeNavigationOptions<TStackParams extends ParamListBase>(screenOptions: PlatformStackNavigatorProps<TStackParams>['screenOptions']) {
+function withNativeNavigationOptions<TStackParams extends ParamListBase>(
+    screenOptions: PlatformStackNavigatorProps<TStackParams>['screenOptions'],
+    defaultScreenOptions?: PlatformStackNavigationOptions,
+) {
     return isRouteBasedScreenOptions(screenOptions)
         ? (p: NavigationOptionsRouteProps<TStackParams>) => {
               const routeBasedScreenOptions = screenOptions(p);
-              return transformPlatformOptionsToNative(routeBasedScreenOptions);
+              return transformPlatformOptionsToNative({...defaultScreenOptions, ...routeBasedScreenOptions});
           }
-        : transformPlatformOptionsToNative(screenOptions);
+        : transformPlatformOptionsToNative({...defaultScreenOptions, ...screenOptions});
 }
 
 export default withNativeNavigationOptions;

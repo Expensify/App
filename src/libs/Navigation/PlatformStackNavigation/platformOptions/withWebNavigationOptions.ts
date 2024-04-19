@@ -15,13 +15,16 @@ const transformPlatformOptionsToWeb = (screenOptions: PlatformStackNavigationOpt
     ...getCommonNavigationOptions(screenOptions),
 });
 
-function withWebNavigationOptions<TStackParams extends ParamListBase>(screenOptions: PlatformStackNavigatorProps<TStackParams>['screenOptions']) {
+function withWebNavigationOptions<TStackParams extends ParamListBase>(
+    screenOptions: PlatformStackNavigatorProps<TStackParams>['screenOptions'],
+    defaultScreenOptions?: PlatformStackNavigationOptions,
+) {
     return isRouteBasedScreenOptions(screenOptions)
         ? (p: NavigationOptionsRouteProps<TStackParams>) => {
               const routeBasedScreenOptions = screenOptions(p);
-              return transformPlatformOptionsToWeb(routeBasedScreenOptions);
+              return transformPlatformOptionsToWeb({...defaultScreenOptions, ...routeBasedScreenOptions});
           }
-        : transformPlatformOptionsToWeb(screenOptions);
+        : transformPlatformOptionsToWeb({...defaultScreenOptions, ...screenOptions});
 }
 
 export default withWebNavigationOptions;
