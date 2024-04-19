@@ -44,9 +44,16 @@ type TooltipRect = {
 };
 
 type BaseTooltipState = {
+    /** Is tooltip visible */
     isVisible: boolean;
+
+    /** Show tooltip */
     showTooltip: () => void;
+
+    /** Hide tooltip */
     hideTooltip: () => void;
+
+    /** Update the tooltip bounding rectangle */
     updateBounds: (rect: TooltipRect) => void;
 };
 
