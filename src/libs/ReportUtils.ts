@@ -5520,6 +5520,10 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
     );
 }
 
+function isParentGroupChat(report: OnyxEntry<Report>): boolean {
+    return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report));
+}
+
 /**
  * Assume any report without a reportID is unusable.
  */
@@ -6167,6 +6171,7 @@ export {
     isDM,
     isDefaultRoom,
     isDeprecatedGroupDM,
+    isParentGroupChat,
     isExpenseReport,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
