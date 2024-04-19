@@ -163,6 +163,7 @@ function ReportScreen({
     const {isOffline} = useNetwork();
     const activeRoute = useNavigationState(getTopmostRouteName);
     const isReportOpenedInRHP = activeRoute === SCREENS.SEARCH.REPORT;
+    const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenedInRHP;
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
@@ -328,7 +329,7 @@ function ReportScreen({
             onNavigationMenuButtonClicked={goBack}
             report={report}
             parentReportAction={parentReportAction}
-            shouldShowBackButton={isReportOpenedInRHP}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 
@@ -338,7 +339,7 @@ function ReportScreen({
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
-                shouldShowBackButton={isReportOpenedInRHP}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
     }
@@ -362,7 +363,7 @@ function ReportScreen({
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
-                shouldShowBackButton={isReportOpenedInRHP}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
     }
@@ -481,7 +482,7 @@ function ReportScreen({
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (!isSmallScreenWidth || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             return;
         }
         Report.openReport(report.reportID);
@@ -646,7 +647,7 @@ function ReportScreen({
                         <FullPageNotFoundView
                             shouldShow={shouldShowNotFoundPage}
                             subtitleKey="notFound.noAccess"
-                            shouldShowBackButton={isSmallScreenWidth}
+                            shouldShowBackButton={shouldUseNarrowLayout}
                             onBackButtonPress={Navigation.goBack}
                             shouldShowLink={false}
                         >
@@ -657,7 +658,7 @@ function ReportScreen({
                                 needsOffscreenAlphaCompositing
                             >
                                 {headerView}
-                                {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                                {ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                     <View style={[styles.borderBottom]}>
                                         <View style={[styles.appBG, styles.pl0]}>
                                             <View style={[styles.ph5, styles.pb3]}>

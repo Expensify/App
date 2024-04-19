@@ -53,8 +53,8 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     transactionThreadReportID?: string | null;
 
-    /** Whether we should show the back button on the header */
-    shouldShowBackButton?: boolean;
+    /** Whether we should display the header as in narrow layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
 function MoneyReportHeader({
@@ -65,7 +65,7 @@ function MoneyReportHeader({
     report: moneyRequestReport,
     transactionThreadReport,
     reportActions,
-    shouldShowBackButton = false,
+    shouldUseNarrowLayout = false,
 }: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
@@ -197,7 +197,7 @@ function MoneyReportHeader({
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                shouldShowBackButton={shouldShowBackButton || isSmallScreenWidth}
+                shouldShowBackButton={shouldUseNarrowLayout || isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}

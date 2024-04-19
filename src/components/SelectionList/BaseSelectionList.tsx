@@ -20,7 +20,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import Log from '@libs/Log';
@@ -95,8 +94,6 @@ function BaseSelectionList<TItem extends ListItem>(
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const isTextInputFocusedRef = useRef<boolean>(false);
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
-    console.log('didScreemTransitionEnd', didScreenTransitionEnd);
 
     const incrementPage = () => setCurrentPage((prev) => prev + 1);
 
@@ -359,7 +356,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
                 onFocus={() => setFocusedIndex(normalizedIndex)}
-                shouldSyncFocus={!isTextInputFocusedRef.current && didScreenTransitionEnd}
+                shouldSyncFocus={!isTextInputFocusedRef.current}
             />
         );
     };

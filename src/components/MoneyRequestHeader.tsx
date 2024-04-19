@@ -51,8 +51,8 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<ReportAction>;
 
-    /** Whether we should show the back button on the header */
-    shouldShowBackButton?: boolean;
+    /** Whether we should display the header as in narrow layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
 function MoneyRequestHeader({
@@ -63,7 +63,7 @@ function MoneyRequestHeader({
     transaction,
     shownHoldUseExplanation = false,
     policy,
-    shouldShowBackButton = false,
+    shouldUseNarrowLayout = false,
 }: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -192,7 +192,7 @@ function MoneyRequestHeader({
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    shouldShowBackButton={shouldShowBackButton || isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout || isSmallScreenWidth}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
                 {isPending && (

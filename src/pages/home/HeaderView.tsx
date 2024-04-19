@@ -66,8 +66,8 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     /** The reportID of the current report */
     reportID: string;
 
-    /** Whether we should show the back button on the header */
-    shouldShowBackButton?: boolean;
+    /** Whether we should display the header as in narrow layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
 function HeaderView({
@@ -80,7 +80,7 @@ function HeaderView({
     reportID,
     guideCalendarLink,
     onNavigationMenuButtonClicked,
-    shouldShowBackButton = false,
+    shouldUseNarrowLayout = false,
 }: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
@@ -214,7 +214,7 @@ function HeaderView({
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
+    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
 
     const isLoading = !report.reportID || !title;
@@ -224,13 +224,13 @@ function HeaderView({
             style={[shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeader, !isSmallScreenWidth && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !(isSmallScreenWidth || shouldShowBackButton) && !isLoading && styles.pl5]}>
+            <View style={[styles.appContentHeader, !(isSmallScreenWidth || shouldUseNarrowLayout) && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeaderTitle, !(isSmallScreenWidth || shouldUseNarrowLayout) && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <>
-                            {(isSmallScreenWidth || shouldShowBackButton) && (
+                            {(isSmallScreenWidth || shouldUseNarrowLayout) && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
                                     style={styles.LHNToggle}
@@ -348,8 +348,10 @@ function HeaderView({
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
-                                    {canJoin && !isSmallScreenWidth && joinButton}
+                                    {isTaskReport && !(isSmallScreenWidth || shouldUseNarrowLayout) && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                                        <TaskHeaderActionButton report={report} />
+                                    )}
+                                    {canJoin && !(isSmallScreenWidth || shouldUseNarrowLayout) && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu
                                             anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
