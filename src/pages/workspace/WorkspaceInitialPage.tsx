@@ -262,20 +262,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
-    // We are checking if the user can access the route.
-    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
-    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
-
-    useEffect(() => {
-        if (!shouldShowNotFoundPage && canAccessRoute) {
-            return;
-        }
-        // We are dismissing any modals that are open when the NotFound view is shown
-        Navigation.isNavigationReady().then(() => {
-            Navigation.dismissRHP();
-        });
-    }, [canAccessRoute, policy, shouldShowNotFoundPage]);
-
     const policyAvatar = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
