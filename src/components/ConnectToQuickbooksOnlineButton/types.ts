@@ -1,10 +1,9 @@
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
 type ConnectToQuickbooksOnlineButtonProps = {
     policyID: string;
-    environmentURL: string;
     disconnectIntegrationBeforeConnecting?: boolean;
-    integrationToConnect?: ConnectionName;
+    integrationToDisconnect?: PolicyConnectionName;
 };
 
 // eslint-disable-next-line import/prefer-default-export

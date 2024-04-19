@@ -1,20 +1,28 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import WebView from 'react-native-webview';
-import type {WebViewNavigation} from 'react-native-webview';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removePolicyConnection} from '@libs/actions/connections';
 import getXeroSetupLink from '@libs/actions/connections/ConnectToXero';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectToXeroButtonOnyxProps, ConnectToXeroButtonProps} from './types';
+import type {Session} from '@src/types/onyx';
+import type {ConnectToXeroButtonProps} from './types';
 
-type WebViewNavigationEvent = WebViewNavigation;
+type ConnectToXeroButtonOnyxProps = {
+    /** Session info for the currently logged in user. */
+    session: OnyxEntry<Session>;
+};
 
-function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConnecting, integrationToConnect}: ConnectToXeroButtonProps) {
+function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps & ConnectToXeroButtonOnyxProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -23,41 +31,49 @@ function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConn
     const authToken = session?.authToken ?? null;
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
-
-    /**
-     * Handles in-app navigation for webview links
-     */
-    const handleNavigationStateChange = useCallback(({url}: WebViewNavigationEvent) => !!url, []);
-
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     return (
         <>
             <Button
-                onPress={() => setWebViewOpen(true)}
+                onPress={() => {
+                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+                        setIsDisconnectModalOpen(true);
+                        return;
+                    }
+                    setWebViewOpen(true);
+                }}
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && integrationToConnect && isDisconnectModalOpen && (
+            {disconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
-                    onConfirm={() => setWebViewOpen(true)}
+                    onConfirm={() => {
+                        removePolicyConnection(policyID, integrationToDisconnect);
+                        setIsDisconnectModalOpen(false);
+                        setWebViewOpen(true);
+                    }}
                     isVisible
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', integrationToConnect)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
                 />
             )}
-            {isWebViewOpen && (
-                <Modal
-                    onClose={() => setWebViewOpen(false)}
-                    fullscreen
-                    isVisible
-                    type="centered"
-                >
+            <Modal
+                onClose={() => setWebViewOpen(false)}
+                fullscreen
+                isVisible={isWebViewOpen}
+                type="centered"
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.accounting.title')}
+                    onBackButtonPress={() => setWebViewOpen(false)}
+                />
+                <FullPageOfflineBlockingView>
                     <WebView
                         ref={webViewRef}
                         source={{
@@ -69,17 +85,16 @@ function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConn
                         incognito
                         startInLoadingState
                         renderLoading={renderLoading}
-                        onNavigationStateChange={handleNavigationStateChange}
                     />
-                </Modal>
-            )}
+                </FullPageOfflineBlockingView>
+            </Modal>
         </>
     );
 }
 
 ConnectToXeroButton.displayName = 'ConnectToXeroButton';
 
-export default withOnyx<ConnectToXeroButtonProps, ConnectToXeroButtonOnyxProps>({
+export default withOnyx<ConnectToXeroButtonProps & ConnectToXeroButtonOnyxProps, ConnectToXeroButtonOnyxProps>({
     session: {
         key: ONYXKEYS.SESSION,
     },

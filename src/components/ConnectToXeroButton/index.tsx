@@ -1,17 +1,19 @@
 import React, {useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removePolicyConnection} from '@libs/actions/connections';
 import getXeroSetupLink from '@libs/actions/connections/ConnectToXero';
 import * as Link from '@userActions/Link';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {ConnectToXeroButtonOnyxProps, ConnectToXeroButtonProps} from './types';
+import CONST from '@src/CONST';
+import type {ConnectToXeroButtonProps} from './types';
 
-function ConnectToXeroButton({policyID, environmentURL, disconnectIntegrationBeforeConnecting, integrationToConnect}: ConnectToXeroButtonProps) {
+function ConnectToXeroButton({policyID, disconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -19,7 +21,7 @@ function ConnectToXeroButton({policyID, environmentURL, disconnectIntegrationBef
         <>
             <Button
                 onPress={() => {
-                    if (disconnectIntegrationBeforeConnecting && integrationToConnect) {
+                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -29,13 +31,17 @@ function ConnectToXeroButton({policyID, environmentURL, disconnectIntegrationBef
                 style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && integrationToConnect && isDisconnectModalOpen && (
+            {disconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     isVisible
-                    onConfirm={() => Link.openLink(getXeroSetupLink(policyID), environmentURL)}
+                    onConfirm={() => {
+                        removePolicyConnection(policyID, integrationToDisconnect);
+                        Link.openLink(getXeroSetupLink(policyID), environmentURL);
+                        setIsDisconnectModalOpen(false);
+                    }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', integrationToConnect)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
@@ -45,8 +51,4 @@ function ConnectToXeroButton({policyID, environmentURL, disconnectIntegrationBef
     );
 }
 
-export default withOnyx<ConnectToXeroButtonProps, ConnectToXeroButtonOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(ConnectToXeroButton);
+export default ConnectToXeroButton;

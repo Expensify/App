@@ -4,11 +4,13 @@ import ConfirmModal from '@components/ConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removePolicyConnection} from '@libs/actions/connections';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
+import CONST from '@src/CONST';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
 
-function ConnectToQuickbooksOnlineButton({policyID, disconnectIntegrationBeforeConnecting, integrationToConnect}: ConnectToQuickbooksOnlineButtonProps) {
+function ConnectToQuickbooksOnlineButton({policyID, disconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToQuickbooksOnlineButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -19,7 +21,7 @@ function ConnectToQuickbooksOnlineButton({policyID, disconnectIntegrationBeforeC
         <>
             <Button
                 onPress={() => {
-                    if (disconnectIntegrationBeforeConnecting && integrationToConnect) {
+                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -29,13 +31,17 @@ function ConnectToQuickbooksOnlineButton({policyID, disconnectIntegrationBeforeC
                 style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && integrationToConnect && (
+            {disconnectIntegrationBeforeConnecting && integrationToDisconnect && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     isVisible={isDisconnectModalOpen}
-                    onConfirm={() => Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL)}
+                    onConfirm={() => {
+                        removePolicyConnection(policyID, integrationToDisconnect);
+                        Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
+                        setIsDisconnectModalOpen(false);
+                    }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', integrationToConnect)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.QBO)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger

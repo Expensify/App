@@ -1,8 +1,7 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import WebView from 'react-native-webview';
-import type {WebViewNavigation} from 'react-native-webview';
+import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -11,12 +10,12 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {removePolicyConnection} from '@libs/actions/connections';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
-
-type WebViewNavigationEvent = WebViewNavigation;
 
 type ConnectToQuickbooksOnlineButtonOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -27,7 +26,7 @@ function ConnectToQuickbooksOnlineButton({
     policyID,
     session,
     disconnectIntegrationBeforeConnecting,
-    integrationToConnect,
+    integrationToDisconnect,
 }: ConnectToQuickbooksOnlineButtonProps & ConnectToQuickbooksOnlineButtonOnyxProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,18 +37,13 @@ function ConnectToQuickbooksOnlineButton({
 
     const renderLoading = () => <FullScreenLoadingIndicator />;
 
-    /**
-     * Handles in-app navigation for webview links
-     */
-    const handleNavigationStateChange = useCallback(({url}: WebViewNavigationEvent) => !!url, []);
-
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
     return (
         <>
             <Button
                 onPress={() => {
-                    if (disconnectIntegrationBeforeConnecting && integrationToConnect) {
+                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -59,13 +53,17 @@ function ConnectToQuickbooksOnlineButton({
                 style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && integrationToConnect && isDisconnectModalOpen && (
+            {disconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
-                    onConfirm={() => setWebViewOpen(true)}
+                    onConfirm={() => {
+                        removePolicyConnection(policyID, integrationToDisconnect);
+                        setIsDisconnectModalOpen(false);
+                        setWebViewOpen(true);
+                    }}
                     isVisible
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', integrationToConnect)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.QBO)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
@@ -94,7 +92,6 @@ function ConnectToQuickbooksOnlineButton({
                             incognito
                             startInLoadingState
                             renderLoading={renderLoading}
-                            onNavigationStateChange={handleNavigationStateChange}
                         />
                     </FullPageOfflineBlockingView>
                 </Modal>
