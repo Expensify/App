@@ -25,7 +25,7 @@ type ConfirmedRoutePropsOnyxProps = {
 };
 
 type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
-    /** Transaction that stores the distance request data */
+    /** Transaction that stores the distance expense data */
     transaction: OnyxEntry<Transaction>;
 
     /** Whether the size of the route pending icon is small. */

@@ -67,7 +67,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const route = useRoute();
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
@@ -89,6 +89,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
 
         return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
     }, [report, isGroupChat]);
+
+    // Get the active chat members by filtering out the pending members with delete action
+    const activeChatMembers = participants.flatMap((accountID) => {
+        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+    });
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
@@ -131,16 +137,16 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
         if (
             (isGroupChat ||
-                (isDefaultRoom && isChatThread && isPolicyMember) ||
+                (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
-                (isUserCreatedPolicyRoom && (isPolicyMember || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
+                (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
             !ReportUtils.isConciergeChatReport(report)
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: participants.length,
+                subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 action: () => {
                     if (isUserCreatedPolicyRoom || isChatThread) {
@@ -151,8 +157,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 },
             });
         } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyMember)
+            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
+            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
@@ -195,11 +201,12 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isMoneyRequestReport,
         report,
         isGroupDMChat,
-        isPolicyMember,
+        isPolicyEmployee,
         isUserCreatedPolicyRoom,
         session,
         isSelfDM,
         isDefaultRoom,
+        activeChatMembers.length,
         isGroupChat,
     ]);
 
@@ -242,7 +249,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     );
 
-    const reportName = useMemo(() => (isGroupChat ? ReportUtils.getGroupChatName(undefined, true, report.reportID ?? '') : ReportUtils.getReportName(report)), [report, isGroupChat]);
+    const reportName =
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
+            : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
