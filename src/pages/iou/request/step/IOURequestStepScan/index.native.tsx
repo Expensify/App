@@ -158,8 +158,13 @@ function IOURequestStepScan({
     const validateReceipt = (file: FileObject): Promise<boolean> =>
         checkPDFDocument.isValidPDF(file.uri ?? '').then((isValid) => {
             const {fileExtension} = FileUtils.splitExtensionFromFileName(file?.name ?? '');
+
+            if (!isValid) {
+                Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
+                return false;
+            }
+
             if (
-                !isValid ||
                 !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
                     fileExtension.toLowerCase() as (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number],
                 )
