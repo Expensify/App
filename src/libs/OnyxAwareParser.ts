@@ -14,7 +14,7 @@ Onyx.connect({
             return;
         }
 
-        reportIDToNameMap[report.reportID] = report.reportName ?? '';
+        reportIDToNameMap[report.reportID] = report.reportName ?? report.displayName ?? report.reportID;
     },
 });
 
@@ -26,7 +26,7 @@ Onyx.connect({
                 return;
             }
 
-            accountIDToNameMap[personalDetails.accountID] = personalDetails.displayName ?? '';
+            accountIDToNameMap[personalDetails.accountID] = personalDetails.displayName ?? String(personalDetails.accountID);
         });
     },
 });
