@@ -558,7 +558,10 @@ function buildOnyxDataForMoneyRequest(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
-            value: transactionThreadReport,
+            value: {
+                ...transactionThreadReport,
+                pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            },
         },
         // Remove the temporary transaction used during the creation flow
         {
@@ -746,6 +749,7 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: {
+                pendingFields: null,
                 errorFields: existingTransactionThreadReport
                     ? null
                     : {
@@ -911,7 +915,10 @@ function buildOnyxDataForTrackExpense(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
-            value: transactionThreadReport,
+            value: {
+                ...transactionThreadReport,
+                pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            },
         },
         // Remove the temporary transaction used during the creation flow
         {
@@ -1082,6 +1089,7 @@ function buildOnyxDataForTrackExpense(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
             value: {
+                pendingFields: null,
                 errorFields: existingTransactionThreadReport
                     ? null
                     : {
