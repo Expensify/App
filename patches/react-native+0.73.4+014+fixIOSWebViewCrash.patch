@@ -1,0 +1,57 @@
+From 03e1b9910a795c9e3cf0e2f09f9e4590eeabca29 Mon Sep 17 00:00:00 2001
+From: Riccardo Cipolleschi <riccardo.cipolleschi@gmail.com>
+Date: Mon, 19 Feb 2024 11:28:04 +0000
+Subject: [PATCH] [RN][iOS] Fix compiler flags passed to libraries
+
+---
+ .../scripts/cocoapods/__tests__/new_architecture-test.rb    | 5 +++--
+ packages/react-native/scripts/cocoapods/new_architecture.rb | 6 +++++-
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/packages/react-native/scripts/cocoapods/__tests__/new_architecture-test.rb b/packages/react-native/scripts/cocoapods/__tests__/new_architecture-test.rb
+index 46d129bba9372d..3eab8120a8560f 100644
+--- a/packages/react-native/scripts/cocoapods/__tests__/new_architecture-test.rb
++++ b/packages/react-native/scripts/cocoapods/__tests__/new_architecture-test.rb
+@@ -131,7 +131,8 @@ def test_installModulesDependencies_whenNewArchEnabledAndNewArchAndNoSearchPaths
+         NewArchitectureHelper.install_modules_dependencies(spec, true, '2022.05.16.00')
+ 
+         # Assert
+-        assert_equal(spec.compiler_flags, NewArchitectureHelper.folly_compiler_flags)
++        expected_flags = "$(inherited) -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1 -Wno-comma -Wno-shorten-64-to-32 -DRCT_NEW_ARCH_ENABLED=1"
++        assert_equal(spec.compiler_flags, expected_flags)
+         assert_equal(spec.pod_target_xcconfig["HEADER_SEARCH_PATHS"], "\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/Headers/Private/Yoga\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/fmt/include\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers/react/renderer/components/view/platform/cxx\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-FabricImage/React_FabricImage.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers/react/nativemodule/core\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-NativeModulesApple/React_NativeModulesApple.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-RCTFabric/RCTFabric.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-utils/React_utils.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-debug/React_debug.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-ImageManager/React_ImageManager.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-rendererdebug/React_rendererdebug.framework/Headers\"")
+         assert_equal(spec.pod_target_xcconfig["CLANG_CXX_LANGUAGE_STANDARD"], "c++20")
+         assert_equal(spec.pod_target_xcconfig["OTHER_CPLUSPLUSFLAGS"], "$(inherited) -DRCT_NEW_ARCH_ENABLED=1 -DFOLLY_NO_CONFIG -DFOLLY_MOBILE=1 -DFOLLY_USE_LIBCPP=1 -DFOLLY_CFG_NO_COROUTINES=1")
+@@ -172,7 +173,7 @@ def test_installModulesDependencies_whenNewArchDisabledAndSearchPathsAndCompiler
+         NewArchitectureHelper.install_modules_dependencies(spec, false, '2022.05.16.00')
+ 
+         # Assert
+-        assert_equal(spec.compiler_flags, "-Wno-nullability-completeness #{NewArchitectureHelper.folly_compiler_flags}")
++        assert_equal(spec.compiler_flags, "$(inherited) -Wno-nullability-completeness #{NewArchitectureHelper.folly_compiler_flags}")
+         assert_equal(spec.pod_target_xcconfig["HEADER_SEARCH_PATHS"], "#{other_flags} \"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/Headers/Private/Yoga\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/fmt/include\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-Fabric/React_Fabric.framework/Headers/react/renderer/components/view/platform/cxx\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-FabricImage/React_FabricImage.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/ReactCommon/ReactCommon.framework/Headers/react/nativemodule/core\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-NativeModulesApple/React_NativeModulesApple.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-RCTFabric/RCTFabric.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-utils/React_utils.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-debug/React_debug.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-ImageManager/React_ImageManager.framework/Headers\" \"${PODS_CONFIGURATION_BUILD_DIR}/React-rendererdebug/React_rendererdebug.framework/Headers\"")
+         assert_equal(spec.pod_target_xcconfig["CLANG_CXX_LANGUAGE_STANDARD"], "c++20")
+         assert_equal(
+diff --git a/packages/react-native/scripts/cocoapods/new_architecture.rb b/packages/react-native/scripts/cocoapods/new_architecture.rb
+index ba75b019a9b9b2..c9999beb82b7ea 100644
+--- a/packages/react-native/scripts/cocoapods/new_architecture.rb
++++ b/packages/react-native/scripts/cocoapods/new_architecture.rb
+@@ -104,6 +104,10 @@ def self.install_modules_dependencies(spec, new_arch_enabled, folly_version)
+         current_config = hash["pod_target_xcconfig"] != nil ? hash["pod_target_xcconfig"] : {}
+         current_headers = current_config["HEADER_SEARCH_PATHS"] != nil ? current_config["HEADER_SEARCH_PATHS"] : ""
+ 
++        flags_to_add = new_arch_enabled ?
++            "#{@@folly_compiler_flags} -DRCT_NEW_ARCH_ENABLED=1" :
++            "#{@@folly_compiler_flags}"
++
+         header_search_paths = ["\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/Headers/Private/Yoga\""]
+         if ENV['USE_FRAMEWORKS']
+             header_search_paths << "\"$(PODS_ROOT)/DoubleConversion\""
+@@ -123,7 +127,7 @@ def self.install_modules_dependencies(spec, new_arch_enabled, folly_version)
+                 }
+         end
+         header_search_paths_string = header_search_paths.join(" ")
+-        spec.compiler_flags = compiler_flags.empty? ? @@folly_compiler_flags : "#{compiler_flags} #{@@folly_compiler_flags}"
++        spec.compiler_flags = compiler_flags.empty? ? "$(inherited) #{flags_to_add}" : "$(inherited) #{compiler_flags} #{flags_to_add}"
+         current_config["HEADER_SEARCH_PATHS"] = current_headers.empty? ?
+             header_search_paths_string :
+             "#{current_headers} #{header_search_paths_string}"
