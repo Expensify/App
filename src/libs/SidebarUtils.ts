@@ -92,7 +92,7 @@ function getOrderedReportIDs(
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
             !!parentReportAction &&
-            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)
+            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
         );
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
@@ -108,7 +108,7 @@ function getOrderedReportIDs(
             currentReportId: currentReportId ?? '',
             isInGSDMode,
             betas,
-            policies,
+            policies: policies as OnyxCollection<Policy>,
             excludeEmptyChats: true,
             doesReportHaveViolations,
             includeSelfDM: true,
@@ -135,9 +135,9 @@ function getOrderedReportIDs(
         );
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reportsToDisplay.forEach((report) => {
+    reportsToDisplay.forEach((reportToDisplay) => {
+        let report = reportToDisplay as OnyxEntry<Report>;
         if (report) {
-            // eslint-disable-next-line no-param-reassign
             report = {
                 ...report,
                 displayName: ReportUtils.getReportName(report),
