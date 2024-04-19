@@ -1,11 +1,11 @@
+import lodashEvery from 'lodash/every';
 import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashMap from 'lodash/map';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import lodashValues from 'lodash/values';
 import lodashSome from 'lodash/some';
-import lodashEvery from 'lodash/every';
+import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
