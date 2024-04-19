@@ -249,7 +249,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     );
 
-    const reportName = useMemo(() => (isGroupChat ? ReportUtils.getGroupChatName(undefined, true, report.reportID ?? '') : ReportUtils.getReportName(report)), [report, isGroupChat]);
+    const reportName =
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
+            : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
