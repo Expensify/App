@@ -10,6 +10,7 @@ import withAnimation from './animation/withAnimation';
 import getCommonNavigationOptions from './utils';
 
 const transformPlatformOptionsToWeb = (screenOptions: PlatformStackNavigationOptions | undefined): StackNavigationOptions => ({
+    keyboardHandlingEnabled: screenOptions?.keyboardHandlingEnabled,
     ...withAnimation<StackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, slideFromBottomAnimation, noAnimation),
     ...getCommonNavigationOptions(screenOptions),
 });
