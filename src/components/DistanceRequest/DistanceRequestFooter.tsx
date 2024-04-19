@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -27,7 +27,7 @@ type DistanceRequestFooterOnyxProps = {
 };
 
 type DistanceRequestFooterProps = DistanceRequestFooterOnyxProps & {
-    /** The waypoints for the distance request */
+    /** The waypoints for the distance expense */
     waypoints?: WaypointCollection;
 
     /** Function to call when the user wants to add a new waypoint */
@@ -45,6 +45,18 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => Object.keys(waypoint).length).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
+
+    const getMarkerComponent = useCallback(
+        (icon: IconAsset): ReactNode => (
+            <ImageSVG
+                src={icon}
+                width={CONST.MAP_MARKER_SIZE}
+                height={CONST.MAP_MARKER_SIZE}
+                fill={theme.icon}
+            />
+        ),
+        [theme],
+    );
 
     const waypointMarkers = useMemo(
         () =>
@@ -67,18 +79,11 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                     return {
                         id: `${waypoint.lng},${waypoint.lat},${index}`,
                         coordinate: [waypoint.lng, waypoint.lat] as const,
-                        markerComponent: (): ReactNode => (
-                            <ImageSVG
-                                src={MarkerComponent}
-                                width={CONST.MAP_MARKER_SIZE}
-                                height={CONST.MAP_MARKER_SIZE}
-                                fill={theme.icon}
-                            />
-                        ),
+                        markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
                     };
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint),
-        [waypoints, lastWaypointIndex, theme.icon],
+        [waypoints, lastWaypointIndex, getMarkerComponent],
     );
 
     return (
@@ -91,7 +96,7 @@ function DistanceRequestFooter({waypoints, transaction, mapboxAccessToken, navig
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
                         text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
-                        innerStyles={[styles.ph10]}
+                        innerStyles={[styles.pl10, styles.pr10]}
                     />
                 </View>
             )}

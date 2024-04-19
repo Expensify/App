@@ -1,51 +1,5 @@
 # Adding new E2E Tests
 
-## Running your new test in development mode
-
-Typically you'd run all the tests with `npm run test:e2e` on your machine.
-This will run the tests with some local settings, however that is not
-optimal when you add a new test for which you want to quickly test if it works, as the prior command
-still runs the release version of the app, which is hard to debug.
-
-I recommend doing the following.
-
-1. We need to compile a android development app version that has capturing metrics enabled:
-```bash
-# Make sure that your .env file is the one we need for e2e testing:
-cp ./tests/e2e/.env.e2e .env
-
-# Build the android app like you normally would with
-npm run android
-```
-2. Rename `./index.js` to `./appIndex.js`
-3. Create a new `./index.js` with the following content:
-```js
-require('./src/libs/E2E/reactNativeLaunchingTest');
-```
-4. In `./src/libs/E2E/reactNativeLaunchingTest.ts` change the main app import to the new `./appIndex.js` file:
-```diff
-- import '../../../index';
-+ import '../../../appIndex';
-```
-
-> [!WARNING]
-> Make sure to not commit these changes to the repository!
-
-Now you can start the metro bundler in e2e mode with:
-
-```bash
-CAPTURE_METRICS=true E2E_TESTING=true npm start -- --reset-cache
-```
-
-Then we can execute our test with:
-
-```
-npm run test:e2e:dev -- --includes "My new test name"
-```
-
-> - `--includes "MyTestName"` will only run the test with the name "MyTestName", but is optional
-
-
 ## Creating a new test
 
 Tests are executed on device, inside the app code.
@@ -144,8 +98,13 @@ Done! When you now start the test runner, your new test will be executed as well
 
 ## Quickly test your test
 
-To check your new test you can simply run `npm run test:e2e`, which uses the
-`--development` flag. This will run the tests on the branch you are currently on, runs fewer iterations and most importantly, it tries to reuse the existing APK and just patch into the new app bundle, instead of rebuilding the release app from scratch.
+> [!TIP]
+> You can only run a specific test by specifying the `--includes` flag:
+> ```sh
+> npm run test:e2e:dev -- --includes "My new test name"
+> ```
+
+It is recommended to run a debug build of the e2e tests first to iterate quickly on your test. Follow the explanation in the [README](./README.md) to create a debug build.
 
 ## Debugging your test
 

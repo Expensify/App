@@ -1,6 +1,9 @@
 import type {ValueOf} from 'type-fest';
+import type {FileObject} from '@components/AttachmentModal';
 import type {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as OnyxCommon from './OnyxCommon';
 import type {Decision, Reaction} from './OriginalMessage';
@@ -41,6 +44,7 @@ type Message = {
     /** Fragment edited flag */
     isEdited?: boolean;
 
+    /** Whether thread's parent message is deleted or not */
     isDeletedParentAction?: boolean;
 
     /** Whether the pending transaction was reversed and didn't post to the card */
@@ -68,6 +72,9 @@ type Message = {
 
     /** resolution for actionable mention whisper */
     resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+
+    /** The time this report action was deleted */
+    deleted?: string;
 };
 
 type ImageMetadata = {
@@ -110,7 +117,7 @@ type Person = {
     text?: string;
 };
 
-type ReportActionBase = {
+type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: string;
 
@@ -122,6 +129,9 @@ type ReportActionBase = {
 
     actorAccountID?: number;
 
+    /** The account of the last message's actor */
+    actor?: string;
+
     /** Person who created the action */
     person?: Person[];
 
@@ -129,10 +139,10 @@ type ReportActionBase = {
     created: string;
 
     /** report action message */
-    message?: Message[];
+    message?: Array<Message | undefined>;
 
     /** report action message */
-    previousMessage?: Message[];
+    previousMessage?: Array<Message | undefined>;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -180,7 +190,7 @@ type ReportActionBase = {
     isFirstItem?: boolean;
 
     /** Informations about attachments of report action */
-    attachmentInfo?: File | EmptyObject;
+    attachmentInfo?: FileObject | EmptyObject;
 
     /** Receipt tied to report action */
     receipt?: Receipt;
@@ -188,12 +198,13 @@ type ReportActionBase = {
     /** ISO-formatted datetime */
     lastModified?: string;
 
-    /** Is this action pending? */
-    pendingAction?: OnyxCommon.PendingAction;
     delegateAccountID?: number;
 
     /** Server side errors keyed by microtime */
     errors?: OnyxCommon.Errors | OnyxCommon.ErrorFields;
+
+    /** Error associated with the report action */
+    error?: string;
 
     /** Whether the report action is attachment */
     isAttachment?: boolean;
@@ -215,11 +226,16 @@ type ReportActionBase = {
 
     /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
-};
+
+    /** The admins's ID */
+    adminAccountID?: number;
+}>;
 
 type ReportAction = ReportActionBase & OriginalMessage;
 
 type ReportActions = Record<string, ReportAction>;
 
+type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
+
 export default ReportAction;
-export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage};
+export type {ReportActions, ReportActionBase, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet};

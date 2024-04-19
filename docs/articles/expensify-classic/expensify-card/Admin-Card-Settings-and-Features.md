@@ -81,7 +81,7 @@ Follow the below steps to run reconciliation on the Expensify Card settlements:
     - Entry ID: a unique number grouping card payments and transactions settled by those payments
     - Amount: the amount debited from the Business Bank Account for payments
     - Merchant: the business where a purchase was made
-    - Card: refers to the Expensify credit card number and cardholder's email address
+    - Card: refers to the Expensify Card number and cardholder's email address
     - Business Account: the business bank account connected to Expensify that the settlement is paid from
     - Transaction ID: a special ID that helps Expensify support locate transactions if there's an issue
 

@@ -15,6 +15,8 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.media.AudioAttributes;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
@@ -31,6 +33,7 @@ import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 import androidx.versionedparcelable.ParcelUtils;
 
+import com.expensify.chat.R;
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -105,6 +108,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             builder.setChannelId(CHANNEL_MESSAGES_ID);
         } else {
             builder.setPriority(PRIORITY_MAX);
+            // Set sound for versions below Oreo
+            // for Oreo and above we set sound on the notification's channel level
+            builder.setSound(getSoundFile(context));
         }
 
         // Attempt to parse data and apply custom notification styling
@@ -129,6 +135,13 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private void createAndRegisterNotificationChannel(@NonNull Context context) {
         NotificationChannelGroup channelGroup = new NotificationChannelGroup(NOTIFICATION_GROUP_CHATS, CHANNEL_GROUP_NAME);
         NotificationChannel channel = new NotificationChannel(CHANNEL_MESSAGES_ID, CHANNEL_MESSAGES_NAME, NotificationManager.IMPORTANCE_HIGH);
+
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .build();
+
+        channel.setSound(getSoundFile(context), audioAttributes);
 
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannelGroup(channelGroup);
@@ -332,5 +345,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         return null;
+    }
+
+    private Uri getSoundFile(Context context) {
+        return Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.receive);
     }
 }

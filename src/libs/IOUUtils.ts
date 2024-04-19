@@ -1,23 +1,28 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import type {IOURequestType} from './actions/IOU';
 import * as CurrencyUtils from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
-function navigateToStartMoneyRequestStep(requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string) {
+function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.REQUEST) {
+        Navigation.goBack();
+        return;
+    }
     // If the participants were automatically added to the transaction, then the user needs taken back to the starting step
     switch (requestType) {
         case CONST.IOU.REQUEST_TYPE.DISTANCE:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             break;
         case CONST.IOU.REQUEST_TYPE.SCAN:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             break;
         default:
-            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(iouType, transactionID, reportID));
+            Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             break;
     }
 }
@@ -52,10 +57,19 @@ function calculateAmount(numberOfParticipants: number, total: number, currency: 
  * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
  * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
- * @param isDeleting - whether the user is deleting the request
+ * @param isDeleting - whether the user is deleting the expense
+ * @param isUpdating - whether the user is updating the expense
  */
-function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(iouReport: TReport, actorAccountID: number, amount: number, currency: string, isDeleting = false): TReport {
-    if (currency !== iouReport?.currency) {
+function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(
+    iouReport: TReport,
+    actorAccountID: number,
+    amount: number,
+    currency: string,
+    isDeleting = false,
+    isUpdating = false,
+): TReport {
+    // For the update case, we have calculated the diff amount in the calculateDiffAmount function so there is no need to compare currencies here
+    if ((currency !== iouReport?.currency && !isUpdating) || !iouReport) {
         return iouReport;
     }
 
@@ -82,7 +96,7 @@ function updateIOUOwnerAndTotal<TReport extends OnyxEntry<Report>>(iouReport: TR
 }
 
 /**
- * Returns whether or not an IOU report contains money requests in a different currency
+ * Returns whether or not an IOU report contains expenses in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
 function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
@@ -95,23 +109,39 @@ function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
  * Checks if the iou type is one of request, send, or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
-    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND];
+    const moneyRequestType: string[] = [CONST.IOU.TYPE.REQUEST, CONST.IOU.TYPE.SPLIT, CONST.IOU.TYPE.SEND, CONST.IOU.TYPE.TRACK_EXPENSE];
     return moneyRequestType.includes(iouType);
 }
 
 /**
- * Inserts a newly selected tag into the already existed report tags like a string
+ * Inserts a newly selected tag into the already existing tags like a string
  *
- * @param reportTags - currently selected tags for a report
- * @param tag - a newly selected tag, that should be added to the reportTags
+ * @param transactionTags - currently selected tags for a report
+ * @param tag - a newly selected tag, that should be added to the transactionTags
  * @param tagIndex - the index of a tag list
  * @returns
  */
-function insertTagIntoReportTagsString(reportTags: string, tag: string, tagIndex: number): string {
-    const splittedReportTags = reportTags.split(CONST.COLON);
-    splittedReportTags[tagIndex] = tag;
+function insertTagIntoTransactionTagsString(transactionTags: string, tag: string, tagIndex: number): string {
+    const tagArray = TransactionUtils.getTagArrayFromName(transactionTags);
+    tagArray[tagIndex] = tag;
 
-    return splittedReportTags.join(CONST.COLON).replace(/:*$/, '');
+    return tagArray.join(CONST.COLON).replace(/:*$/, '');
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType, navigateToStartMoneyRequestStep, insertTagIntoReportTagsString};
+function isMovingTransactionFromTrackExpense(action?: IOUAction) {
+    if (action === CONST.IOU.ACTION.REQUEST || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
+        return true;
+    }
+
+    return false;
+}
+
+export {
+    calculateAmount,
+    insertTagIntoTransactionTagsString,
+    isIOUReportPendingCurrencyConversion,
+    isMovingTransactionFromTrackExpense,
+    isValidMoneyRequestType,
+    navigateToStartMoneyRequestStep,
+    updateIOUOwnerAndTotal,
+};

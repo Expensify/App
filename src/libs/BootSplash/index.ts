@@ -2,7 +2,9 @@ import Log from '@libs/Log';
 import type {VisibilityStatus} from './types';
 
 function resolveAfter(delay: number): Promise<void> {
-    return new Promise<void>((resolve) => setTimeout(resolve, delay));
+    return new Promise<void>((resolve) => {
+        setTimeout(resolve, delay);
+    });
 }
 
 function hide(): Promise<void> {

@@ -1,4 +1,5 @@
 import type {ReportAction} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
 
 type AddressLineParams = {
@@ -90,6 +91,7 @@ type ReportArchiveReasonsMergedParams = {
 type ReportArchiveReasonsRemovedFromPolicyParams = {
     displayName: string;
     policyName: string;
+    shouldUseYou?: boolean;
 };
 
 type ReportArchiveReasonsPolicyDeletedParams = {
@@ -99,23 +101,24 @@ type ReportArchiveReasonsPolicyDeletedParams = {
 type RequestCountParams = {
     count: number;
     scanningReceipts: number;
+    pendingReceipts: number;
 };
 
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
 
-type RequestAmountParams = {amount: number};
+type RequestAmountParams = {amount: string};
 
 type RequestedAmountMessageParams = {formattedAmount: string; comment?: string};
 
-type SplitAmountParams = {amount: number};
+type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
 type AmountEachParams = {amount: string};
 
-type PayerOwesAmountParams = {payer: string; amount: number | string};
+type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
 type PayerOwesParams = {payer: string};
 
@@ -157,7 +160,7 @@ type EnterMagicCodeParams = {contactMethod: string};
 
 type TransferParams = {amount: string};
 
-type InstantSummaryParams = {rate: number; minAmount: number};
+type InstantSummaryParams = {rate: string; minAmount: string};
 
 type NotYouParams = {user: string};
 
@@ -195,7 +198,7 @@ type OOOEventSummaryFullDayParams = {summary: string; dayCount: number; date: st
 
 type OOOEventSummaryPartialDayParams = {summary: string; timePeriod: string; date: string};
 
-type ParentNavigationSummaryParams = {rootReportName?: string; workspaceName?: string};
+type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
 
 type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
@@ -208,8 +211,6 @@ type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; ol
 type UpdatedTheDistanceParams = {newDistanceToDisplay: string; oldDistanceToDisplay: string; newAmountToDisplay: string; oldAmountToDisplay: string};
 
 type FormattedMaxLengthParams = {formattedMaxLength: string};
-
-type TagSelectionParams = {tagName: string};
 
 type WalletProgramParams = {walletProgram: string};
 
@@ -246,6 +247,8 @@ type ViolationsRterParams = {
 type ViolationsTagOutOfPolicyParams = {tagName?: string};
 
 type ViolationsTaxOutOfPolicyParams = {taxName?: string};
+
+type PaySomeoneParams = {name?: string};
 
 type TaskCreatedActionParams = {title: string};
 
@@ -293,6 +296,12 @@ type ElectronicFundsParams = {percentage: string; amount: string};
 
 type LogSizeParams = {size: number};
 
+type HeldRequestParams = {comment: string};
+
+type DistanceRateOperationsParams = {count: number};
+
+type ReimbursementRateParams = {unit: Unit};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -311,6 +320,7 @@ export type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
@@ -358,7 +368,6 @@ export type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
@@ -395,4 +404,7 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     LogSizeParams,
+    HeldRequestParams,
+    PaySomeoneParams,
+    ReimbursementRateParams,
 };

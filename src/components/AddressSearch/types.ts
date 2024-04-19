@@ -3,6 +3,7 @@ import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, View, Vie
 import type {Place} from 'react-native-google-places-autocomplete';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type Locale from '@src/types/onyx/Locale';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 type CurrentLocationButtonProps = {
     /** Callback that is called when the button is clicked */
@@ -10,16 +11,6 @@ type CurrentLocationButtonProps = {
 
     /** Boolean to indicate if the button is clickable */
     isDisabled?: boolean;
-};
-
-type RenamedInputKeysProps = {
-    street: string;
-    street2: string;
-    city: string;
-    state: string;
-    lat: string;
-    lng: string;
-    zipCode: string;
 };
 
 type OnPressProps = {
@@ -59,7 +50,7 @@ type AddressSearchProps = {
     defaultValue?: string;
 
     /** A callback function when the value of this field has changed */
-    onInputChange: (value: string | number | RenamedInputKeysProps | StreetValue, key?: string) => void;
+    onInputChange?: (value: string | number | Address | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
     onPress?: (props: OnPressProps) => void;
@@ -74,10 +65,10 @@ type AddressSearchProps = {
     canUseCurrentLocation?: boolean;
 
     /** A list of predefined places that can be shown when the user isn't searching for something */
-    predefinedPlaces?: Place[];
+    predefinedPlaces?: Place[] | null;
 
     /** A map of inputID key names */
-    renamedInputKeys: RenamedInputKeysProps;
+    renamedInputKeys?: Address;
 
     /** Maximum number of characters allowed in search input */
     maxInputLength?: number;
@@ -94,4 +85,4 @@ type AddressSearchProps = {
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>, containerRef: RefObject<View | HTMLElement>) => boolean;
 
-export type {CurrentLocationButtonProps, AddressSearchProps, RenamedInputKeysProps, IsCurrentTargetInsideContainerType};
+export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue};

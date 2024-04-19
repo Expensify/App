@@ -1,5 +1,6 @@
 import type {RefObject} from 'react';
-import type {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {Text, View} from 'react-native';
 import type {PopoverAnchorPosition} from '@components/Modal/types';
 import type BaseModalProps from '@components/Modal/types';
 import type {WindowDimensionsProps} from '@components/withWindowDimensions/types';
@@ -20,13 +21,13 @@ type PopoverProps = BaseModalProps &
         anchorAlignment?: AnchorAlignment;
 
         /** The anchor ref of the popover */
-        anchorRef: RefObject<View | HTMLDivElement>;
+        anchorRef: RefObject<View | HTMLDivElement | Text>;
 
         /** Whether disable the animations */
         disableAnimation?: boolean;
 
         /** Whether we don't want to show overlay */
-        withoutOverlay: boolean;
+        withoutOverlay?: boolean;
 
         /** The dimensions of the popover */
         popoverDimensions?: PopoverDimensions;
@@ -36,6 +37,9 @@ type PopoverProps = BaseModalProps &
 
         /** Whether we want to show the popover on the right side of the screen */
         fromSidebarMediumScreen?: boolean;
+
+        /** Whether handle navigation back when modal show. */
+        shouldHandleNavigationBack?: boolean;
     };
 
 type PopoverWithWindowDimensionsProps = PopoverProps & WindowDimensionsProps;

@@ -115,7 +115,7 @@ function BaseGetPhysicalCard({
         }
 
         const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
-        const physicalCard = domainCards.find((card) => !card?.isVirtual);
+        const physicalCard = domainCards.find((card) => !card?.nameValuePairs?.isVirtual);
 
         // When there are no cards for the specified domain, user is redirected to the wallet page
         if (domainCards.length === 0) {
@@ -139,8 +139,7 @@ function BaseGetPhysicalCard({
         }
 
         // Redirect user to previous steps of the flow if he hasn't finished them yet
-        const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
-        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, updatedPrivatePersonalDetails, loginList);
+        GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues));
         isRouteSet.current = true;
     }, [cardList, currentRoute, domain, draftValues, loginList, privatePersonalDetails]);
 
@@ -149,7 +148,7 @@ function BaseGetPhysicalCard({
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
             const domainCards = CardUtils.getDomainCards(cardList)[domain];
-            const physicalCard = domainCards.find((card) => !card?.isVirtual);
+            const physicalCard = domainCards.find((card) => !card?.nameValuePairs?.isVirtual);
             const cardID = physicalCard?.cardID ?? 0;
 
             Wallet.requestPhysicalExpensifyCard(cardID, session?.authToken ?? '', updatedPrivatePersonalDetails);
@@ -159,8 +158,8 @@ function BaseGetPhysicalCard({
             Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
             return;
         }
-        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails, loginList);
-    }, [cardList, domain, draftValues, isConfirmation, loginList, session?.authToken]);
+        GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
+    }, [cardList, domain, draftValues, isConfirmation, session?.authToken]);
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}

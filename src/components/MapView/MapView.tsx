@@ -30,7 +30,21 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const [isIdle, setIsIdle] = useState(false);
         const [currentPosition, setCurrentPosition] = useState(cachedUserLocation);
         const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
-        const hasAskedForLocationPermission = useRef(false);
+        const shouldInitializeCurrentPosition = useRef(true);
+
+        // Determines if map can be panned to user's detected
+        // location without bothering the user. It will return
+        // false if user has already started dragging the map or
+        // if there are one or more waypoints present.
+        const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
+
+        const setCurrentPositionToInitialState = useCallback(() => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (cachedUserLocation || !initialState) {
+                return;
+            }
+            setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
+        }, [initialState, cachedUserLocation]);
 
         useFocusEffect(
             useCallback(() => {
@@ -38,34 +52,24 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     return;
                 }
 
-                if (hasAskedForLocationPermission.current) {
+                if (!shouldInitializeCurrentPosition.current) {
                     return;
                 }
 
-                hasAskedForLocationPermission.current = true;
-                getCurrentPosition(
-                    (params) => {
-                        const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                        setCurrentPosition(currentCoords);
-                        setUserLocation(currentCoords);
-                    },
-                    () => {
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        if (cachedUserLocation || !initialState) {
-                            return;
-                        }
+                shouldInitializeCurrentPosition.current = false;
 
-                        setCurrentPosition({longitude: initialState.location[0], latitude: initialState.location[1]});
-                    },
-                );
-            }, [cachedUserLocation, initialState, isOffline]),
+                if (!shouldPanMapToCurrentPosition()) {
+                    setCurrentPositionToInitialState();
+                    return;
+                }
+
+                getCurrentPosition((params) => {
+                    const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
+                    setCurrentPosition(currentCoords);
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
+            }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
         );
-
-        // Determines if map can be panned to user's detected
-        // location without bothering the user. It will return
-        // false if user has already started dragging the map or
-        // if there are one or more waypoints present.
-        const shouldPanMapToCurrentPosition = useCallback(() => !userInteractedWithMap && (!waypoints || waypoints.length === 0), [userInteractedWithMap, waypoints]);
 
         useEffect(() => {
             if (!currentPosition || !cameraRef.current) {
@@ -140,54 +144,50 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
         };
 
-        return (
-            <>
-                {!isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
-                    <View style={style}>
-                        <Mapbox.MapView
-                            style={{flex: 1}}
-                            styleURL={styleURL}
-                            onMapIdle={setMapIdle}
-                            onTouchStart={() => setUserInteractedWithMap(true)}
-                            pitchEnabled={pitchEnabled}
-                            attributionPosition={{...styles.r2, ...styles.b2}}
-                            scaleBarEnabled={false}
-                            logoPosition={{...styles.l2, ...styles.b2}}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...responder.panHandlers}
-                        >
-                            <Mapbox.Camera
-                                ref={cameraRef}
-                                defaultSettings={{
-                                    centerCoordinate: currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location,
-                                    zoomLevel: initialState?.zoom,
-                                }}
-                            />
-
-                            {waypoints?.map(({coordinate, markerComponent, id}) => {
-                                const MarkerComponent = markerComponent;
-                                return (
-                                    <MarkerView
-                                        id={id}
-                                        key={id}
-                                        coordinate={coordinate}
-                                    >
-                                        <MarkerComponent />
-                                    </MarkerView>
-                                );
-                            })}
-
-                            {directionCoordinates && <Direction coordinates={directionCoordinates} />}
-                        </Mapbox.MapView>
-                    </View>
-                ) : (
-                    <PendingMapView
-                        title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
-                        style={styles.mapEditView}
+        return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
+            <View style={style}>
+                <Mapbox.MapView
+                    style={{flex: 1}}
+                    styleURL={styleURL}
+                    onMapIdle={setMapIdle}
+                    onTouchStart={() => setUserInteractedWithMap(true)}
+                    pitchEnabled={pitchEnabled}
+                    attributionPosition={{...styles.r2, ...styles.b2}}
+                    scaleBarEnabled={false}
+                    logoPosition={{...styles.l2, ...styles.b2}}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...responder.panHandlers}
+                >
+                    <Mapbox.Camera
+                        ref={cameraRef}
+                        defaultSettings={{
+                            centerCoordinate: currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location,
+                            zoomLevel: initialState?.zoom,
+                        }}
                     />
-                )}
-            </>
+
+                    {waypoints?.map(({coordinate, markerComponent, id}) => {
+                        const MarkerComponent = markerComponent;
+                        return (
+                            <MarkerView
+                                id={id}
+                                key={id}
+                                coordinate={coordinate}
+                            >
+                                <MarkerComponent />
+                            </MarkerView>
+                        );
+                    })}
+
+                    {directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                </Mapbox.MapView>
+            </View>
+        ) : (
+            <PendingMapView
+                title={translate('distance.mapPending.title')}
+                subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                style={styles.mapEditView}
+            />
         );
     },
 );

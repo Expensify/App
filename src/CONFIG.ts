@@ -21,7 +21,7 @@ const secureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'SECURE_EXPEN
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const googleGeolocationAPIKey = get(Config, 'GOOGLE_GEOLOCATION_API_KEY', 'AIzaSyBqg6bMvQU7cPWDKhhzpYqJrTEnSorpiLI');
+const googleGeolocationAPIKey = get(Config, 'GCP_GEOLOCATION_API_KEY', '');
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -48,6 +48,7 @@ export default {
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
+        SECURE_EXPENSIFY_URL: secureExpensifyUrl,
         NEW_EXPENSIFY_URL: newExpensifyURL,
 
         // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (defined below)
@@ -72,7 +73,7 @@ export default {
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: get(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
-        SUFFIX: get(Config, 'PUSHER_DEV_SUFFIX', ''),
+        SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
     SITE_TITLE: 'New Expensify',
@@ -94,5 +95,5 @@ export default {
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
     },
-    GOOGLE_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
+    GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
 } as const;

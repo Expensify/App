@@ -5,6 +5,11 @@ inputs:
   ARTIFACT_NAME:
     description: The name of the workflow artifact where the APK should be uploaded
     required: true
+  ARTIFACT_RETENTION_DAYS:
+    description: The number of days to retain the artifact
+    required: false
+    # Thats github default:
+    default: "90"
   PACKAGE_SCRIPT_NAME:
     description: The name of the npm script to run to build the APK
     required: true
@@ -69,7 +74,8 @@ runs:
       shell: bash
 
     - name: Upload APK
-      uses: actions/upload-artifact@65d862660abb392b8c4a3d1195a2108db131dd05
+      uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
       with:
         name: ${{ inputs.ARTIFACT_NAME }}
         path: ${{ inputs.APP_OUTPUT_PATH }}
+        retention-days: ${{ inputs.ARTIFACT_RETENTION_DAYS }}

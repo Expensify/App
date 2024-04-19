@@ -8,14 +8,15 @@ import createOnyxContext from './createOnyxContext';
 const [withNetwork, NetworkProvider, NetworkContext] = createOnyxContext(ONYXKEYS.NETWORK);
 const [withPersonalDetails, PersonalDetailsProvider, , usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
 const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
-const [withReportActionsDrafts, ReportActionsDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
-const [withBlockedFromConcierge, BlockedFromConciergeProvider] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+const [withReportActionsDrafts, ReportActionsDraftsProvider, , useReportActionsDrafts] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
+const [withBlockedFromConcierge, BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [withBetas, BetasProvider, BetasContext, useBetas] = createOnyxContext(ONYXKEYS.BETAS);
 const [withReportCommentDrafts, ReportCommentDraftsProvider] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
 const [withPreferredTheme, PreferredThemeProvider, PreferredThemeContext] = createOnyxContext(ONYXKEYS.PREFERRED_THEME);
 const [withFrequentlyUsedEmojis, FrequentlyUsedEmojisProvider, , useFrequentlyUsedEmojis] = createOnyxContext(ONYXKEYS.FREQUENTLY_USED_EMOJIS);
 const [withPreferredEmojiSkinTone, PreferredEmojiSkinToneProvider, PreferredEmojiSkinToneContext] = createOnyxContext(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 const [, SessionProvider, , useSession] = createOnyxContext(ONYXKEYS.SESSION);
+const [, AccountProvider, , useAccount] = createOnyxContext(ONYXKEYS.ACCOUNT);
 
 type OnyxProviderProps = {
     /** Rendered child component */
@@ -37,6 +38,7 @@ function OnyxProvider(props: OnyxProviderProps) {
                 FrequentlyUsedEmojisProvider,
                 PreferredEmojiSkinToneProvider,
                 SessionProvider,
+                AccountProvider,
             ]}
         >
             {props.children}
@@ -66,5 +68,8 @@ export {
     useFrequentlyUsedEmojis,
     withPreferredEmojiSkinTone,
     PreferredEmojiSkinToneContext,
+    useBlockedFromConcierge,
+    useReportActionsDrafts,
     useSession,
+    useAccount,
 };

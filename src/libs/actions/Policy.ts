@@ -6,56 +6,102 @@ import lodashClone from 'lodash/clone';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {
+    AddBillingCardAndRequestWorkspaceOwnerChangeParams,
     AddMembersToWorkspaceParams,
+    CreatePolicyDistanceRateParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
     DeleteMembersFromWorkspaceParams,
+    DeletePolicyDistanceRatesParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
+    EnablePolicyCategoriesParams,
+    EnablePolicyConnectionsParams,
+    EnablePolicyDistanceRatesParams,
+    EnablePolicyReportFieldsParams,
+    EnablePolicyTagsParams,
+    EnablePolicyTaxesParams,
+    EnablePolicyWorkflowsParams,
+    LeavePolicyParams,
     OpenDraftWorkspaceRequestParams,
+    OpenPolicyCategoriesPageParams,
+    OpenPolicyDistanceRatesPageParams,
+    OpenPolicyMoreFeaturesPageParams,
+    OpenPolicyTagsPageParams,
+    OpenPolicyTaxesPageParams,
+    OpenPolicyWorkflowsPageParams,
     OpenWorkspaceInvitePageParams,
     OpenWorkspaceMembersPageParams,
     OpenWorkspaceParams,
     OpenWorkspaceReimburseViewParams,
+    RequestWorkspaceOwnerChangeParams,
+    SetPolicyDistanceRatesDefaultCategoryParams,
+    SetPolicyDistanceRatesEnabledParams,
+    SetPolicyDistanceRatesUnitParams,
+    SetWorkspaceApprovalModeParams,
+    SetWorkspaceAutoReportingFrequencyParams,
+    SetWorkspaceAutoReportingMonthlyOffsetParams,
+    SetWorkspaceAutoReportingParams,
+    SetWorkspacePayerParams,
+    SetWorkspaceReimbursementParams,
+    UpdatePolicyDistanceRateValueParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceCustomUnitAndRateParams,
     UpdateWorkspaceDescriptionParams,
     UpdateWorkspaceGeneralSettingsParams,
+    UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as PhoneNumber from '@libs/PhoneNumber';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
     PersonalDetailsList,
     Policy,
-    PolicyMember,
+    PolicyCategories,
+    PolicyCategory,
+    PolicyEmployee,
+    PolicyOwnershipChangeChecks,
+    PolicyTag,
     PolicyTagList,
+    PolicyTags,
     RecentlyUsedCategories,
     RecentlyUsedTags,
     ReimbursementAccount,
     Report,
     ReportAction,
+    TaxRatesWithDefault,
     Transaction,
 } from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
     onyxOptimisticData: OnyxUpdate[];
+    onyxSuccessData: OnyxUpdate[];
     onyxFailureData: OnyxUpdate[];
 };
 
@@ -90,6 +136,12 @@ type NewCustomUnit = {
     rates: Rate;
 };
 
+type WorkspaceMembersRoleData = {
+    accountID: number;
+    email: string;
+    role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER;
+};
+
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -110,7 +162,6 @@ Onyx.connect({
                     return;
                 }
                 const {reportID} = policyReport;
-                cleanUpMergeQueries[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {hasDraft: false};
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
                 cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
             });
@@ -129,15 +180,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (value) => (allReports = value),
-});
-
-let allPolicyMembers: OnyxCollection<PolicyMember>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    waitForCollectionCallback: true,
-    callback: (val) => {
-        allPolicyMembers = val;
-    },
 });
 
 let lastAccessedWorkspacePolicyID: OnyxEntry<string> = null;
@@ -196,6 +238,21 @@ Onyx.connect({
     callback: (val) => (allRecentlyUsedTags = val),
 });
 
+let allPolicyCategories: OnyxCollection<PolicyCategories> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+    waitForCollectionCallback: true,
+    callback: (val) => (allPolicyCategories = val),
+});
+
+let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
+Onyx.connect({
+    key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
+    callback: (value) => {
+        policyOwnershipChecks = value ?? {};
+    },
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  */
@@ -204,24 +261,47 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 }
 
 /**
+ * Checks if the currency is supported for direct reimbursement
+ * USD currency is the only one supported in NewDot for now
+ */
+function isCurrencySupportedForDirectReimbursement(currency: string) {
+    return currency === CONST.CURRENCY.USD;
+}
+
+/**
+ * Returns the policy of the report
+ */
+function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+    if (!allPolicies || !policyID) {
+        return {};
+    }
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
+
+/**
  * Check if the user has any active free policies (aka workspaces)
  */
-function hasActiveFreePolicy(policies: Array<OnyxEntry<Policy>> | PoliciesRecord): boolean {
-    const adminFreePolicies = Object.values(policies).filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyFreePolicies = false): boolean {
+    const adminChatEnabledPolicies = Object.values(policies ?? {}).filter(
+        (policy) =>
+            policy &&
+            ((policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN) ||
+                (!includeOnlyFreePolicies && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.role === CONST.POLICY.ROLE.ADMIN && policy.isPolicyExpenseChatEnabled)),
+    );
 
-    if (adminFreePolicies.length === 0) {
+    if (adminChatEnabledPolicies.length === 0) {
         return false;
     }
 
-    if (adminFreePolicies.some((policy) => !policy?.pendingAction)) {
+    if (adminChatEnabledPolicies.some((policy) => !policy?.pendingAction)) {
         return true;
     }
 
-    if (adminFreePolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
+    if (adminChatEnabledPolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)) {
         return true;
     }
 
-    if (adminFreePolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
+    if (adminChatEnabledPolicies.some((policy) => policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
         return false;
     }
 
@@ -249,7 +329,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 errors: null,
             },
         },
-        ...(!hasActiveFreePolicy(filteredPolicies)
+        ...(!hasActiveChatEnabledPolicies(filteredPolicies, true)
             ? [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
@@ -262,7 +342,10 @@ function deleteWorkspace(policyID: string, policyName: string) {
             : []),
     ];
 
-    const reportsToArchive = Object.values(allReports ?? {}).filter((report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report)));
+    const reportsToArchive = Object.values(allReports ?? {}).filter(
+        (report) => report?.policyID === policyID && (ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isTaskReport(report)),
+    );
+    const finallyData: OnyxUpdate[] = [];
     reportsToArchive.forEach((report) => {
         const {reportID, ownerAccountID} = report ?? {};
         optimisticData.push({
@@ -271,8 +354,8 @@ function deleteWorkspace(policyID: string, policyName: string) {
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                hasDraft: false,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+                policyName: '',
             },
         });
 
@@ -289,12 +372,22 @@ function deleteWorkspace(policyID: string, policyName: string) {
             emailClosingReport = allPersonalDetails?.[ownerAccountID]?.login ?? '';
         }
         const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
-        const optimisticReportActions: Record<string, ReportAction> = {};
-        optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction as ReportAction;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: optimisticReportActions,
+            value: {
+                [optimisticClosedReportAction.reportActionID]: optimisticClosedReportAction as ReportAction,
+            },
+        });
+
+        // We are temporarily adding this workaround because 'DeleteWorkspace' doesn't
+        // support receiving the optimistic reportActions' ids for the moment.
+        finallyData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [optimisticClosedReportAction.reportActionID]: null,
+            },
         });
     });
 
@@ -310,22 +403,22 @@ function deleteWorkspace(policyID: string, policyName: string) {
     ];
 
     reportsToArchive.forEach((report) => {
-        const {reportID, stateNum, statusNum, hasDraft, oldPolicyName} = report ?? {};
+        const {reportID, stateNum, statusNum, oldPolicyName} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
-                hasDraft,
                 oldPolicyName,
+                policyName: report?.policyName,
             },
         });
     });
 
     const params: DeleteWorkspaceParams = {policyID};
 
-    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE, params, {optimisticData, finallyData, failureData});
 
     // Reset the lastAccessedWorkspacePolicyID
     if (policyID === lastAccessedWorkspacePolicyID) {
@@ -348,6 +441,7 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
+        onyxSuccessData: [],
     };
 
     if (!announceReport) {
@@ -357,13 +451,16 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
     if (announceReport?.participantAccountIDs) {
         // Everyone in special policy rooms is visible
         const participantAccountIDs = [...announceReport.participantAccountIDs, ...accountIDs];
+        const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
             value: {
+                participants: ReportUtils.buildParticipantsFromAccountIDs(participantAccountIDs),
                 participantAccountIDs,
                 visibleChatMemberAccountIDs: participantAccountIDs,
+                pendingChatMembers,
             },
         });
     }
@@ -372,21 +469,309 @@ function buildAnnounceRoomMembersOnyxData(policyID: string, accountIDs: number[]
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
         value: {
+            participants: announceReport?.participants,
             participantAccountIDs: announceReport?.participantAccountIDs,
             visibleChatMemberAccountIDs: announceReport?.visibleChatMemberAccountIDs,
+            pendingChatMembers: announceReport?.pendingChatMembers ?? null,
+        },
+    });
+    announceRoomMembers.onyxSuccessData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport?.reportID}`,
+        value: {
+            pendingChatMembers: announceReport?.pendingChatMembers ?? null,
         },
     });
     return announceRoomMembers;
 }
 
+function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
+    const policy = getPolicy(policyID);
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: enabled,
+                harvesting: {
+                    enabled,
+                },
+                autoReportingFrequency: frequency,
+                pendingFields: {autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReporting: policy.autoReporting ?? null,
+                harvesting: {
+                    enabled: policy.harvesting?.enabled ?? null,
+                },
+                autoReportingFrequency: policy.autoReportingFrequency ?? null,
+                pendingFields: {autoReporting: null},
+                errorFields: {autoReporting: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReporting: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>) {
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReportingFrequency: frequency,
+                pendingFields: {autoReportingFrequency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReportingFrequency: policy.autoReportingFrequency ?? null,
+                pendingFields: {autoReportingFrequency: null},
+                errorFields: {autoReportingFrequency: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingFrequency: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingFrequencyParams = {policyID, frequency};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_FREQUENCY, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>) {
+    const value = JSON.stringify({autoReportingOffset: autoReportingOffset.toString()});
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReportingOffset,
+                pendingFields: {autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                autoReportingOffset: policy.autoReportingOffset ?? null,
+                pendingFields: {autoReportingOffset: null},
+                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {autoReportingOffset: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceAutoReportingMonthlyOffsetParams = {policyID, value};
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
+    const policy = getPolicy(policyID);
+
+    const value = {
+        approver,
+        approvalMode,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                ...value,
+                pendingFields: {approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                approver: policy.approver ?? null,
+                approvalMode: policy.approvalMode ?? null,
+                pendingFields: {approvalMode: null},
+                errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxError('workflowsApprovalPage.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {approvalMode: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceApprovalModeParams = {
+        policyID,
+        value: JSON.stringify({
+            ...value,
+            // This property should now be set to false for all Collect policies
+            isAutoApprovalEnabled: false,
+        }),
+    };
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspacePayer(policyID: string, reimburserEmail: string) {
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                achAccount: {reimburser: reimburserEmail},
+                errorFields: {reimburser: null},
+                pendingFields: {reimburser: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: {reimburser: null},
+                pendingFields: {reimburser: null},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
+                errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
+                pendingFields: {reimburser: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspacePayerParams = {policyID, reimburserEmail};
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_PAYER, params, {optimisticData, failureData, successData});
+}
+
+function clearPolicyErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
+}
+
+function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
+    const policy = getPolicy(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursementChoice,
+                achAccount: {reimburser: reimburserEmail},
+                errorFields: {reimbursementChoice: null},
+                pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: {reimbursementChoice: null},
+                pendingFields: {reimbursementChoice: null},
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursementChoice: policy.reimbursementChoice ?? null,
+                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
+                errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                pendingFields: {reimbursementChoice: null},
+            },
+        },
+    ];
+
+    const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice};
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
+}
+
+function clearWorkspaceReimbursementErrors(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimbursementChoice: null}});
+}
+
 /**
  * Build optimistic data for removing users from the announcement room
  */
-function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: number[]): AnnounceRoomMembersOnyxData {
+function removeOptimisticAnnounceRoomMembers(policyID: string, policyName: string, accountIDs: number[]): AnnounceRoomMembersOnyxData {
     const announceReport = ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID);
     const announceRoomMembers: AnnounceRoomMembersOnyxData = {
         onyxOptimisticData: [],
         onyxFailureData: [],
+        onyxSuccessData: [],
     };
 
     if (!announceReport) {
@@ -394,22 +779,41 @@ function removeOptimisticAnnounceRoomMembers(policyID: string, accountIDs: numbe
     }
 
     if (announceReport?.participantAccountIDs) {
-        const remainUsers = announceReport.participantAccountIDs.filter((e) => !accountIDs.includes(e));
+        const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, announceReport?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
         announceRoomMembers.onyxOptimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
-                participantAccountIDs: [...remainUsers],
-                visibleChatMemberAccountIDs: [...remainUsers],
+                pendingChatMembers,
+                ...(accountIDs.includes(sessionAccountID)
+                    ? {
+                          statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                          stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                          oldPolicyName: policyName,
+                      }
+                    : {}),
             },
         });
-
         announceRoomMembers.onyxFailureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
             value: {
-                participantAccountIDs: announceReport.participantAccountIDs,
-                visibleChatMemberAccountIDs: announceReport.visibleChatMemberAccountIDs,
+                pendingChatMembers: announceReport?.pendingChatMembers ?? null,
+                ...(accountIDs.includes(sessionAccountID)
+                    ? {
+                          statusNum: announceReport.statusNum,
+                          stateNum: announceReport.stateNum,
+                          oldPolicyName: announceReport.oldPolicyName,
+                      }
+                    : {}),
+            },
+        });
+        announceRoomMembers.onyxSuccessData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${announceReport.reportID}`,
+            value: {
+                pendingChatMembers: announceReport?.pendingChatMembers ?? null,
             },
         });
     }
@@ -428,30 +832,52 @@ function removeMembers(accountIDs: number[], policyID: string) {
         return;
     }
 
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
-    const policy = ReportUtils.getPolicy(policyID);
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const policy = getPolicy(policyID);
+
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
+    const emailList = accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).filter((login) => !!login) as string[];
     const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
 
-    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policyID, accountIDs);
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
-    const successMembersState: OnyxCollection<PolicyMember> = {};
-    const failureMembersState: OnyxCollection<PolicyMember> = {};
-    accountIDs.forEach((accountID) => {
-        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
-        successMembersState[accountID] = null;
-        failureMembersState[accountID] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
+    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
+    const successMembersState: OnyxCollection<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
+    emailList.forEach((email) => {
+        optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        successMembersState[email] = null;
+        failureMembersState[email] = {errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')};
     });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: optimisticMembersState,
+            key: policyKey,
+            value: {employeeList: optimisticMembersState},
         },
         ...announceRoomMembers.onyxOptimisticData,
     ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: successMembersState},
+        },
+        ...announceRoomMembers.onyxSuccessData,
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {employeeList: failureMembersState},
+        },
+        ...announceRoomMembers.onyxFailureData,
+    ];
+
+    const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     workspaceChats.forEach((report) => {
         optimisticData.push({
@@ -461,25 +887,39 @@ function removeMembers(accountIDs: number[], policyID: string) {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 oldPolicyName: policy.name,
-                hasDraft: false,
+                pendingChatMembers,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                pendingChatMembers: null,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                pendingChatMembers: null,
             },
         });
     });
-    optimisticClosedReportActions.forEach((reportAction, index) => {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
-            value: {[reportAction.reportActionID]: reportAction as ReportAction},
-        });
-    });
+    // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
+    // optimisticClosedReportActions.forEach((reportAction, index) => {
+    //     optimisticData.push({
+    //         onyxMethod: Onyx.METHOD.MERGE,
+    //         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChats?.[index]?.reportID}`,
+    //         value: {[reportAction.reportActionID]: reportAction as ReportAction},
+    //     });
+    // });
 
     // If the policy has primaryLoginsInvited, then it displays informative messages on the members page about which primary logins were added by secondary logins.
     // If we delete all these logins then we should clear the informative messages since they are no longer relevant.
     if (!isEmptyObject(policy?.primaryLoginsInvited ?? {})) {
         // Take the current policy members and remove them optimistically
-        const policyMemberAccountIDs = Object.keys(allPolicyMembers?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`] ?? {}).map((accountID) => Number(accountID));
-        const remainingMemberAccountIDs = policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID));
-        const remainingLogins: string[] = PersonalDetailsUtils.getLoginsByAccountIDs(remainingMemberAccountIDs);
+        const employeeListEmails = Object.keys(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList ?? {});
+        const remainingLogins = employeeListEmails.filter((email) => !emailList.includes(email));
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
 
         if (policy.primaryLoginsInvited) {
@@ -490,7 +930,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
         if (!remainingLogins.some((remainingLogin) => !!invitedPrimaryToSecondaryLogins[remainingLogin])) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: membersListKey,
+                key: policyKey,
                 value: {
                     primaryLoginsInvited: null,
                 },
@@ -498,32 +938,15 @@ function removeMembers(accountIDs: number[], policyID: string) {
         }
     }
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: successMembersState,
-        },
-    ];
-
     const filteredWorkspaceChats = workspaceChats.filter((report): report is Report => report !== null);
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-            value: failureMembersState,
-        },
-        ...announceRoomMembers.onyxFailureData,
-    ];
 
-    filteredWorkspaceChats.forEach(({reportID, stateNum, statusNum, hasDraft, oldPolicyName = null}) => {
+    filteredWorkspaceChats.forEach(({reportID, stateNum, statusNum, oldPolicyName = null}) => {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 stateNum,
                 statusNum,
-                hasDraft,
                 oldPolicyName,
             },
         });
@@ -537,11 +960,322 @@ function removeMembers(accountIDs: number[], policyID: string) {
     });
 
     const params: DeleteMembersFromWorkspaceParams = {
-        emailList: accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).join(','),
+        emailList: emailList.join(','),
         policyID,
     };
 
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
+}
+
+function leaveWorkspace(policyID: string) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const workspaceChats = ReportUtils.getAllWorkspaceReports(policyID);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                employeeList: {
+                    [sessionEmail]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                employeeList: {
+                    [sessionEmail]: null,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingAction: policy?.pendingAction,
+                employeeList: {
+                    [sessionEmail]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove'),
+                    },
+                },
+            },
+        },
+    ];
+
+    const pendingChatMembers = ReportUtils.getPendingChatMembers([sessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+    workspaceChats.forEach((report) => {
+        const parentReport = ReportUtils.getRootParentReport(report);
+        const reportToCheckOwner = isEmptyObject(parentReport) ? report : parentReport;
+
+        if (ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isReportOwner(reportToCheckOwner)) {
+            return;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                oldPolicyName: policy?.name ?? '',
+                pendingChatMembers,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                pendingChatMembers: null,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                pendingChatMembers: null,
+            },
+        });
+    });
+
+    const params: LeavePolicyParams = {
+        policyID,
+        email: sessionEmail,
+    };
+    API.write(WRITE_COMMANDS.LEAVE_POLICY, params, {optimisticData, successData, failureData});
+}
+
+function updateWorkspaceMembersRole(policyID: string, accountIDs: number[], newRole: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) {
+    const previousEmployeeList = {...allPolicies?.[policyID]?.employeeList};
+    const memberRoles: WorkspaceMembersRoleData[] = accountIDs.reduce((result: WorkspaceMembersRoleData[], accountID: number) => {
+        if (!allPersonalDetails?.[accountID]?.login) {
+            return result;
+        }
+
+        result.push({
+            accountID,
+            email: allPersonalDetails?.[accountID]?.login ?? '',
+            role: newRole,
+        });
+
+        return result;
+    }, []);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                employeeList: {
+                    ...memberRoles.reduce((member: Record<string, {role: string; pendingAction: PendingAction}>, current) => {
+                        // eslint-disable-next-line no-param-reassign
+                        member[current.email] = {role: current?.role, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+                        return member;
+                    }, {}),
+                },
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                employeeList: {
+                    ...memberRoles.reduce((member: Record<string, {role: string; pendingAction: PendingAction}>, current) => {
+                        // eslint-disable-next-line no-param-reassign
+                        member[current.email] = {role: current?.role, pendingAction: null};
+                        return member;
+                    }, {}),
+                },
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                employeeList: previousEmployeeList,
+                errors: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
+            },
+        },
+    ];
+
+    const params: UpdateWorkspaceMembersRoleParams = {
+        policyID,
+        employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
+}
+
+function requestWorkspaceOwnerChange(policyID: string) {
+    const policy = getPolicy(policyID);
+    const ownershipChecks = {...policyOwnershipChecks?.[policyID]} ?? {};
+
+    const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
+
+    if (changeOwnerErrors && changeOwnerErrors.length > 0) {
+        const currentError = changeOwnerErrors[0];
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
+            ownershipChecks.shouldClearOutstandingBalance = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.OWNER_OWES_AMOUNT) {
+            ownershipChecks.shouldTransferAmountOwed = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION) {
+            ownershipChecks.shouldTransferSubscription = true;
+        }
+
+        if (currentError === CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION) {
+            ownershipChecks.shouldTransferSingleSubscription = true;
+        }
+
+        Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, {
+            [policyID]: ownershipChecks,
+        });
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                isLoading: true,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: true,
+                isChangeOwnerFailed: false,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: true,
+            },
+        },
+    ];
+
+    const params: RequestWorkspaceOwnerChangeParams = {
+        policyID,
+        ...ownershipChecks,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
+}
+
+function clearWorkspaceOwnerChangeFlow(policyID: string) {
+    Onyx.merge(ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS, null);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        errorFields: null,
+        isLoading: false,
+        isChangeOwnerSuccessful: false,
+        isChangeOwnerFailed: false,
+    });
+}
+
+function addBillingCardAndRequestPolicyOwnerChange(
+    policyID: string,
+    cardData: {
+        cardNumber: string;
+        cardYear: string;
+        cardMonth: string;
+        cardCVV: string;
+        addressName: string;
+        addressZip: string;
+        currency: string;
+    },
+) {
+    const {cardNumber, cardYear, cardMonth, cardCVV, addressName, addressZip, currency} = cardData;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                errorFields: null,
+                isLoading: true,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: false,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: true,
+                isChangeOwnerFailed: false,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isLoading: false,
+                isChangeOwnerSuccessful: false,
+                isChangeOwnerFailed: true,
+            },
+        },
+    ];
+
+    const params: AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
+        policyID,
+        cardNumber,
+        cardYear,
+        cardMonth,
+        cardCVV,
+        addressName,
+        addressZip,
+        currency,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_BILLING_CARD_AND_REQUEST_WORKSPACE_OWNER_CHANGE, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -560,7 +1294,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
     Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
         const accountID = invitedEmailsToAccountIDs[email];
         const cleanAccountID = Number(accountID);
-        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
+        const login = PhoneNumber.addSMSDomainIfPhoneNumber(email);
 
         const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
 
@@ -597,6 +1331,12 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                 },
                 isOptimisticReport: true,
                 hasOutstandingChildRequest,
+                pendingChatMembers: [
+                    {
+                        accountID: accountID.toString(),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                ],
             },
         });
         workspaceMembersChats.onyxOptimisticData.push({
@@ -616,6 +1356,7 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
                     createChat: null,
                 },
                 isOptimisticReport: false,
+                pendingChatMembers: null,
             },
         });
         workspaceMembersChats.onyxSuccessData.push({
@@ -640,22 +1381,25 @@ function createPolicyExpenseChats(policyID: string, invitedEmailsToAccountIDs: I
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs, welcomeNote: string, policyID: string) {
-    const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}` as const;
-    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
-    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins(logins, accountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs);
 
     const announceRoomMembers = buildAnnounceRoomMembersOnyxData(policyID, accountIDs);
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs);
 
-    const optimisticMembersState: OnyxCollection<PolicyMember> = {};
-    const failureMembersState: OnyxCollection<PolicyMember> = {};
-    accountIDs.forEach((accountID) => {
-        optimisticMembersState[accountID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
-        failureMembersState[accountID] = {
+    const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
+    const successMembersState: OnyxCollection<PolicyEmployee> = {};
+    const failureMembersState: OnyxCollection<PolicyEmployee> = {};
+    Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
+        optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.POLICY.ROLE.USER};
+        successMembersState[email] = {pendingAction: null};
+        failureMembersState[email] = {
             errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericAdd'),
         };
     });
@@ -663,10 +1407,12 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
+            key: policyKey,
 
             // Convert to object with each key containing {pendingAction: ‘add’}
-            value: optimisticMembersState,
+            value: {
+                employeeList: optimisticMembersState,
+            },
         },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
@@ -676,35 +1422,25 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
-
-            // Convert to object with each key clearing pendingAction, when it is an existing account.
-            // Remove the object, when it is a newly created account.
-            value: accountIDs.reduce((accountIDsWithClearedPendingAction, accountID) => {
-                let value = null;
-                const accountAlreadyExists = !isEmptyObject(allPersonalDetails?.[accountID]);
-
-                if (accountAlreadyExists) {
-                    value = {pendingAction: null, errors: null};
-                }
-
-                return {...accountIDsWithClearedPendingAction, [accountID]: value};
-            }, {}),
+            key: policyKey,
+            value: {
+                employeeList: successMembersState,
+            },
         },
         ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxSuccessData,
+        ...announceRoomMembers.onyxSuccessData,
     ];
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: membersListKey,
+            key: policyKey,
 
             // Convert to object with each key containing the error. We don’t
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: failureMembersState,
         },
-        ...newPersonalDetailsOnyxData.finallyData,
         ...membersChats.onyxFailureData,
         ...announceRoomMembers.onyxFailureData,
     ];
@@ -718,6 +1454,37 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
     }
     API.write(WRITE_COMMANDS.ADD_MEMBERS_TO_WORKSPACE, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Invite member to the specified policyID
+ * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
+ */
+function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticMembersState = {policyID, inviterEmail};
+    const failureMembersState = {policyID, inviterEmail};
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: optimisticMembersState,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {...failureMembersState, errors: ErrorUtils.getMicroSecondOnyxError('common.genericEditFailureMessage')},
+        },
+    ];
+
+    const params = {policyID, inviterEmail};
+
+    API.write(WRITE_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK, params, {optimisticData, failureData});
 }
 
 /**
@@ -836,13 +1603,37 @@ function clearAvatarErrors(policyID: string) {
  */
 function updateGeneralSettings(policyID: string, name: string, currency: string) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+    const customUnitID = distanceUnit?.customUnitID;
 
     if (!policy) {
         return;
     }
 
-    const distanceUnit = Object.values(policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const distanceRate = Object.values(distanceUnit?.rates ?? {}).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
+    const currentRates = distanceUnit?.rates ?? {};
+    const optimisticRates: Record<string, Rate> = {};
+    const finallyRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
+
+    if (customUnitID) {
+        for (const rateID of Object.keys(currentRates)) {
+            optimisticRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {currency: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                currency,
+            };
+            finallyRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {currency: null},
+                currency,
+            };
+            failureRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {currency: null},
+                errorFields: {currency: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+            };
+        }
+    }
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -853,6 +1644,7 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 ...policy,
 
                 pendingFields: {
+                    ...policy.pendingFields,
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
 
@@ -862,21 +1654,14 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 },
                 name,
                 outputCurrency: currency,
-                ...(distanceUnit?.customUnitID && distanceRate?.customUnitRateID
-                    ? {
-                          customUnits: {
-                              [distanceUnit?.customUnitID]: {
-                                  ...distanceUnit,
-                                  rates: {
-                                      [distanceRate?.customUnitRateID]: {
-                                          ...distanceRate,
-                                          currency,
-                                      },
-                                  },
-                              },
-                          },
-                      }
-                    : {}),
+                ...(customUnitID && {
+                    customUnits: {
+                        [customUnitID]: {
+                            ...distanceUnit,
+                            rates: optimisticRates,
+                        },
+                    },
+                }),
             },
         },
     ];
@@ -888,9 +1673,18 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 pendingFields: {
                     generalSettings: null,
                 },
+                ...(customUnitID && {
+                    customUnits: {
+                        [customUnitID]: {
+                            ...distanceUnit,
+                            rates: finallyRates,
+                        },
+                    },
+                }),
             },
         },
     ];
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -899,13 +1693,14 @@ function updateGeneralSettings(policyID: string, name: string, currency: string)
                 errorFields: {
                     generalSettings: ErrorUtils.getMicroSecondOnyxError('workspace.editor.genericFailureMessage'),
                 },
-                ...(distanceUnit?.customUnitID
-                    ? {
-                          customUnits: {
-                              [distanceUnit.customUnitID]: distanceUnit,
-                          },
-                      }
-                    : {}),
+                ...(customUnitID && {
+                    customUnits: {
+                        [customUnitID]: {
+                            ...distanceUnit,
+                            rates: failureRates,
+                        },
+                    },
+                }),
             },
         },
     ];
@@ -1106,10 +1901,13 @@ function updateWorkspaceCustomUnitAndRate(policyID: string, currentCustomUnit: C
  * Removes an error after trying to delete a member
  */
 function clearDeleteMemberError(policyID: string, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
-        [accountID]: {
-            pendingAction: null,
-            errors: null,
+    const email = allPersonalDetails?.[accountID]?.login ?? '';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [email]: {
+                pendingAction: null,
+                errors: null,
+            },
         },
     });
 }
@@ -1118,8 +1916,11 @@ function clearDeleteMemberError(policyID: string, accountID: number) {
  * Removes an error after trying to add a member
  */
 function clearAddMemberError(policyID: string, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
-        [accountID]: null,
+    const email = allPersonalDetails?.[accountID]?.login ?? '';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [email]: null,
+        },
     });
     Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
         [accountID]: null,
@@ -1242,7 +2043,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: {
                 id: policyID,
-                type: CONST.POLICY.TYPE.FREE,
+                type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
@@ -1252,15 +2053,16 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
                 makeMeAdmin,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
-            value: {
-                [sessionAccountID]: {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    errors: {},
+                autoReporting: true,
+                employeeList: {
+                    [sessionEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        errors: {},
+                    },
+                },
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                harvesting: {
+                    enabled: true,
                 },
             },
         },
@@ -1303,7 +2105,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 id: policyID,
-                type: CONST.POLICY.TYPE.FREE,
+                type: CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
                 role: CONST.POLICY.ROLE.ADMIN,
                 owner: sessionEmail,
@@ -1311,16 +2113,23 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 isPolicyExpenseChatEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                autoReporting: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                harvesting: {
+                    enabled: true,
+                },
                 customUnits,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: {
-                [sessionAccountID]: {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    errors: {},
+                areCategoriesEnabled: true,
+                areTagsEnabled: false,
+                areDistanceRatesEnabled: false,
+                areWorkflowsEnabled: false,
+                areReportFieldsEnabled: false,
+                areConnectionsEnabled: false,
+                employeeList: {
+                    [sessionEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        errors: {},
+                    },
                 },
             },
         },
@@ -1374,11 +2183,6 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
-            value: null,
-        },
     ];
 
     const successData: OnyxUpdate[] = [
@@ -1414,6 +2218,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     addWorkspaceRoom: null,
                 },
                 pendingAction: null,
+                pendingChatMembers: [],
             },
         },
         {
@@ -1448,9 +2253,9 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     const failureData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: null,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {employeeList: null},
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1492,7 +2297,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         ownerEmail: policyOwnerEmail,
         makeMeAdmin,
         policyName: workspaceName,
-        type: CONST.POLICY.TYPE.FREE,
+        type: CONST.POLICY.TYPE.TEAM,
         announceCreatedReportActionID,
         adminsCreatedReportActionID,
         expenseCreatedReportActionID,
@@ -1534,6 +2339,47 @@ function openWorkspaceReimburseView(policyID: string) {
     const params: OpenWorkspaceReimburseViewParams = {policyID};
 
     API.read(READ_COMMANDS.OPEN_WORKSPACE_REIMBURSE_VIEW, params, {successData, failureData});
+}
+
+function openPolicyWorkflowsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyWorkflowsPage invalid params', {policyID});
+        return;
+    }
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    };
+
+    const params: OpenPolicyWorkflowsPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
 }
 
 function setPolicyIDForReimburseView(policyID: string) {
@@ -1583,6 +2429,45 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
     API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
 }
 
+function openPolicyCategoriesPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyCategoriesPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyCategoriesPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE, params);
+}
+
+function openPolicyTagsPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyTasgPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyTagsPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
+}
+
+function openPolicyTaxesPage(policyID: string) {
+    if (!policyID) {
+        Log.warn('openPolicyTaxesPage invalid params', {policyID});
+        return;
+    }
+
+    const params: OpenPolicyTaxesPageParams = {
+        policyID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_TAXES_PAGE, params);
+}
+
 function openWorkspaceInvitePage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceInvitePage invalid params', {policyID, clientMemberEmails});
@@ -1607,7 +2492,7 @@ function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccount
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
-function setWorkspaceInviteMessageDraft(policyID: string, message: string) {
+function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`, message);
 }
 
@@ -1633,23 +2518,23 @@ function buildOptimisticPolicyRecentlyUsedCategories(policyID?: string, category
     return lodashUnion([category], policyRecentlyUsedCategories);
 }
 
-function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, reportTags?: string): RecentlyUsedTags {
-    if (!policyID || !reportTags) {
+function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTags?: string): RecentlyUsedTags {
+    if (!policyID || !transactionTags) {
         return {};
     }
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-    const policyTagKeys = Object.keys(policyTags);
+    const policyTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
     const policyRecentlyUsedTags = allRecentlyUsedTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`] ?? {};
     const newOptimisticPolicyRecentlyUsedTags: RecentlyUsedTags = {};
 
-    reportTags.split(CONST.COLON).forEach((tag, index) => {
+    TransactionUtils.getTagArrayFromName(transactionTags).forEach((tag, index) => {
         if (!tag) {
             return;
         }
 
         const tagListKey = policyTagKeys[index];
-        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([...tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
+        newOptimisticPolicyRecentlyUsedTags[tagListKey] = [...new Set([tag, ...(policyRecentlyUsedTags[tagListKey] ?? [])])];
     });
 
     return newOptimisticPolicyRecentlyUsedTags;
@@ -1672,7 +2557,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(sessionEmail);
     const employeeAccountID = iouReport.ownerAccountID;
-    const employeeEmail = iouReport.ownerEmail;
+    const employeeEmail = iouReport.ownerEmail ?? '';
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticCustomUnits();
     const oldPersonalPolicyID = iouReport.policyID;
     const iouReportID = iouReport.reportID;
@@ -1692,7 +2577,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         expenseCreatedReportActionID: workspaceChatCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
-    if (!employeeAccountID || !employeeEmail) {
+    if (!employeeAccountID) {
         return;
     }
 
@@ -1712,7 +2597,28 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
         // Setting the currency to USD as we can only add the VBBA for this policy currency right now
         outputCurrency: CONST.CURRENCY.USD,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        autoReporting: true,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+        harvesting: {
+            enabled: true,
+        },
         customUnits,
+        areCategoriesEnabled: true,
+        areTagsEnabled: false,
+        areDistanceRatesEnabled: false,
+        areWorkflowsEnabled: false,
+        areReportFieldsEnabled: false,
+        areConnectionsEnabled: false,
+        employeeList: {
+            [sessionEmail]: {
+                role: CONST.POLICY.ROLE.ADMIN,
+                errors: {},
+            },
+            [employeeEmail]: {
+                role: CONST.POLICY.ROLE.USER,
+                errors: {},
+            },
+        },
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -1720,20 +2626,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: newWorkspace,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: {
-                [sessionAccountID]: {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    errors: {},
-                },
-                [employeeAccountID]: {
-                    role: CONST.POLICY.ROLE.USER,
-                    errors: {},
-                },
-            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1787,13 +2679,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
                 pendingFields: {
                     addWorkspaceRoom: null,
                 },
-                pendingAction: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${policyID}`,
-            value: {
                 pendingAction: null,
             },
         },
@@ -1867,13 +2752,6 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     ];
 
     const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: {
-                pendingAction: null,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
@@ -2092,11 +2970,2021 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     return policyID;
 }
 
+function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Record<string, {name: string; enabled: boolean}>) {
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const optimisticPolicyCategoriesData = {
+        ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+            acc[key] = {
+                ...policyCategories[key],
+                ...categoriesToUpdate[key],
+                errors: null,
+                pendingFields: {
+                    enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            };
+
+            return acc;
+        }, {}),
+    };
+    const shouldDisableRequiresCategory = !OptionsListUtils.hasEnabledOptions({...policyCategories, ...optimisticPolicyCategoriesData});
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticPolicyCategoriesData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: null,
+                            pendingFields: {
+                                enabled: null,
+                            },
+                            pendingAction: null,
+                        };
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    ...Object.keys(categoriesToUpdate).reduce<PolicyCategories>((acc, key) => {
+                        acc[key] = {
+                            ...policyCategories[key],
+                            ...categoriesToUpdate[key],
+                            errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                            pendingFields: {
+                                enabled: null,
+                            },
+                            pendingAction: null,
+                        };
+
+                        return acc;
+                    }, {}),
+                },
+            },
+        ],
+    };
+    if (shouldDisableRequiresCategory) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                requiresCategory: false,
+                pendingFields: {
+                    requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    requiresCategory: null,
+                },
+            },
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                requiresCategory: policy?.requiresCategory,
+                pendingFields: {
+                    requiresCategory: null,
+                },
+            },
+        });
+    }
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify(Object.keys(categoriesToUpdate).map((key) => categoriesToUpdate[key])),
+    };
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
+}
+
+function createPolicyCategory(policyID: string, categoryName: string) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        name: categoryName,
+                        enabled: true,
+                        errors: null,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        errors: null,
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [categoryName]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify([{name: categoryName}]),
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
+}
+
+function renamePolicyCategory(policyID: string, policyCategory: {oldName: string; newName: string}) {
+    const policyCategoryToUpdate = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[policyCategory.oldName] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.oldName]: null,
+                    [policyCategory.newName]: {
+                        ...policyCategoryToUpdate,
+                        name: policyCategory.newName,
+                        unencodedName: decodeURIComponent(policyCategory.newName),
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        pendingFields: {
+                            name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.oldName]: null,
+                    [policyCategory.newName]: {
+                        ...policyCategoryToUpdate,
+                        name: policyCategory.newName,
+                        unencodedName: decodeURIComponent(policyCategory.newName),
+                        errors: null,
+                        pendingAction: null,
+                        pendingFields: {
+                            name: null,
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: {
+                    [policyCategory.newName]: null,
+                    [policyCategory.oldName]: {
+                        ...policyCategoryToUpdate,
+                        name: policyCategory.oldName,
+                        unencodedName: decodeURIComponent(policyCategory.oldName),
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                        pendingAction: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify({[policyCategory.oldName]: policyCategory.newName}),
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY, parameters, onyxData);
+}
+
+function createPolicyTag(policyID: string, tagName: string) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            [tagName]: {
+                                name: tagName,
+                                enabled: true,
+                                errors: null,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            [tagName]: {
+                                errors: null,
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            [tagName]: {
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tags: JSON.stringify([{name: tagName}]),
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
+}
+
+function setWorkspaceTagEnabled(policyID: string, tagsToUpdate: Record<string, {name: string; enabled: boolean}>) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: null,
+                                    pendingFields: {
+                                        enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    },
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: null,
+                                    pendingFields: {
+                                        enabled: null,
+                                    },
+                                    pendingAction: null,
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...Object.keys(tagsToUpdate).reduce<PolicyTags>((acc, key) => {
+                                acc[key] = {
+                                    ...policyTag.tags[key],
+                                    ...tagsToUpdate[key],
+                                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                                    pendingFields: {
+                                        enabled: null,
+                                    },
+                                    pendingAction: null,
+                                };
+
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tags: JSON.stringify(Object.keys(tagsToUpdate).map((key) => tagsToUpdate[key])),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
+}
+
+function deletePolicyTags(policyID: string, tagsToDelete: string[]) {
+    const policyTag = PolicyUtils.getTagLists(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})?.[0] ?? {};
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
+                                acc[tagName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...tagsToDelete.reduce<Record<string, null | Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
+                                acc[tagName] = null;
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [policyTag.name]: {
+                        tags: {
+                            ...tagsToDelete.reduce<Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>>>((acc, tagName) => {
+                                acc[tagName] = {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.deleteFailureMessage')};
+                                return acc;
+                            }, {}),
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        tags: JSON.stringify(tagsToDelete),
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
+}
+
+function clearPolicyTagErrors(policyID: string, tagName: string) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const tag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName].tags?.[tagName];
+    if (!tag) {
+        return;
+    }
+
+    if (tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+            [tagListName]: {
+                tags: {
+                    [tagName]: null,
+                },
+            },
+        });
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+        [tagListName]: {
+            tags: {
+                [tagName]: {
+                    errors: null,
+                    pendingAction: null,
+                },
+            },
+        },
+    });
+}
+
+function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName: string}) {
+    const tagListName = Object.keys(allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {})[0];
+    const oldTag = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]?.[tagListName]?.tags?.[policyTag.oldName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.oldName]: null,
+                            [policyTag.newName]: {
+                                ...oldTag,
+                                name: policyTag.newName,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                pendingFields: {
+                                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.newName]: {
+                                errors: null,
+                                pendingAction: null,
+                                pendingFields: {
+                                    name: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [tagListName]: {
+                        tags: {
+                            [policyTag.newName]: null,
+                            [policyTag.oldName]: {
+                                ...oldTag,
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        oldName: policyTag.oldName,
+        newName: policyTag.newName,
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
+}
+
+function setWorkspaceRequiresCategory(policyID: string, requiresCategory: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresCategory,
+                    errors: {
+                        requiresCategory: null,
+                    },
+                    pendingFields: {
+                        requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errors: {
+                        requiresCategory: null,
+                    },
+                    pendingFields: {
+                        requiresCategory: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresCategory: !requiresCategory,
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.updateFailureMessage'),
+                    pendingFields: {
+                        requiresCategory: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        requiresCategory,
+    };
+
+    API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, onyxData);
+}
+
+function clearCategoryErrors(policyID: string, categoryName: string) {
+    const category = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]?.[categoryName];
+
+    if (!category) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {
+        [category.name]: {
+            errors: null,
+        },
+    });
+}
+
+function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: string[]) {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+    const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] ?? {};
+    const optimisticPolicyCategoriesData = categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
+        acc[categoryName] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        return acc;
+    }, {});
+    const shouldDisableRequiresCategory = !OptionsListUtils.hasEnabledOptions(
+        Object.values(policyCategories).filter((category) => !categoryNamesToDelete.includes(category.name) && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticPolicyCategoriesData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: categoryNamesToDelete.reduce<Record<string, null>>((acc, categoryName) => {
+                    acc[categoryName] = null;
+                    return acc;
+                }, {}),
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: categoryNamesToDelete.reduce<Record<string, Partial<PolicyCategory>>>((acc, categoryName) => {
+                    acc[categoryName] = {
+                        pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.deleteFailureMessage'),
+                    };
+                    return acc;
+                }, {}),
+            },
+        ],
+    };
+    if (shouldDisableRequiresCategory) {
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                requiresCategory: false,
+                pendingFields: {
+                    requiresCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    requiresCategory: null,
+                },
+            },
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                requiresCategory: policy?.requiresCategory,
+                pendingFields: {
+                    requiresCategory: null,
+                },
+            },
+        });
+    }
+
+    const parameters = {
+        policyID,
+        categories: JSON.stringify(categoryNamesToDelete),
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);
+}
+
+/**
+ * Accept user join request to a workspace
+ */
+function acceptJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT;
+    if (!reportAction) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {choice},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {choice},
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {choice: ''},
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        requests: JSON.stringify({
+            [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
+                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+            },
+        }),
+    };
+
+    API.write(WRITE_COMMANDS.ACCEPT_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Decline user join request to a workspace
+ */
+function declineJoinRequest(reportID: string, reportAction: OnyxEntry<ReportAction>) {
+    if (!reportAction) {
+        return;
+    }
+    const choice = CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE;
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {choice},
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {choice},
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {choice: ''},
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        requests: JSON.stringify({
+            [(reportAction.originalMessage as OriginalMessageJoinPolicyChangeLog['originalMessage']).policyID]: {
+                requests: [{accountID: reportAction?.actorAccountID, adminsRoomMessageReportActionID: reportAction.reportActionID}],
+            },
+        }),
+    };
+
+    API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
+}
+
+function openPolicyDistanceRatesPage(policyID?: string) {
+    if (!policyID) {
+        return;
+    }
+
+    const params: OpenPolicyDistanceRatesPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
+}
+
+function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
+    const isNarrowLayout = getIsNarrowLayout();
+    if (isNarrowLayout) {
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        }, 1000);
+        return;
+    }
+
+    /**
+     * The app needs to set a navigation action to the microtask queue, it guarantees to execute Onyx.update first, then the navigation action.
+     * More details - https://github.com/Expensify/App/issues/37785#issuecomment-1989056726.
+     */
+    new Promise<void>((resolve) => {
+        resolve();
+    }).then(() => {
+        Navigation.navigate(featureRoute);
+    });
+}
+
+function enablePolicyCategories(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areCategoriesEnabled: enabled,
+                    pendingFields: {
+                        areCategoriesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areCategoriesEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areCategoriesEnabled: !enabled,
+                    pendingFields: {
+                        areCategoriesEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyCategoriesParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    }
+}
+
+function enablePolicyConnections(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areConnectionsEnabled: enabled,
+                    pendingFields: {
+                        areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areConnectionsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areConnectionsEnabled: !enabled,
+                    pendingFields: {
+                        areConnectionsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
+}
+
+function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areDistanceRatesEnabled: enabled,
+                    pendingFields: {
+                        areDistanceRatesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areDistanceRatesEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areDistanceRatesEnabled: !enabled,
+                    pendingFields: {
+                        areDistanceRatesEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyDistanceRatesParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
+    }
+}
+
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReportFieldsEnabled: enabled,
+                    pendingFields: {
+                        areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areReportFieldsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areReportFieldsEnabled: !enabled,
+                    pendingFields: {
+                        areReportFieldsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyReportFieldsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData);
+}
+
+function enablePolicyTags(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areTagsEnabled: enabled,
+                    pendingFields: {
+                        areTagsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areTagsEnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areTagsEnabled: !enabled,
+                    pendingFields: {
+                        areTagsEnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyTagsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    }
+}
+
+function enablePolicyTaxes(policyID: string, enabled: boolean) {
+    const defaultTaxRates: TaxRatesWithDefault = CONST.DEFAULT_TAX;
+    const taxRatesData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        ...defaultTaxRates,
+                        taxes: {
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {
+                                        ...defaultTaxRates.taxes[taxKey],
+                                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                                    },
+                                }),
+                                {},
+                            ),
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        taxes: {
+                            ...Object.keys(defaultTaxRates.taxes).reduce(
+                                (prevTaxesData, taxKey) => ({
+                                    ...prevTaxesData,
+                                    [taxKey]: {pendingAction: null},
+                                }),
+                                {},
+                            ),
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: undefined,
+                },
+            },
+        ],
+    };
+    const policy = getPolicy(policyID);
+    const shouldAddDefaultTaxRatesData = (!policy?.taxRates || isEmptyObject(policy.taxRates)) && enabled;
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    tax: {
+                        trackingEnabled: enabled,
+                    },
+                    pendingFields: {
+                        tax: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.optimisticData ?? [] : []),
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        tax: null,
+                    },
+                },
+            },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.successData ?? [] : []),
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    tax: {
+                        trackingEnabled: !enabled,
+                    },
+                    pendingFields: {
+                        tax: null,
+                    },
+                },
+            },
+            ...(shouldAddDefaultTaxRatesData ? taxRatesData.failureData ?? [] : []),
+        ],
+    };
+
+    const parameters: EnablePolicyTaxesParams = {policyID, enabled};
+    if (shouldAddDefaultTaxRatesData) {
+        parameters.taxFields = JSON.stringify(defaultTaxRates);
+    }
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    }
+}
+
+function enablePolicyWorkflows(policyID: string, enabled: boolean) {
+    const policy = getPolicy(policyID);
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areWorkflowsEnabled: enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                              autoReporting: false,
+                              harvesting: {
+                                  enabled: false,
+                              },
+                              reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                          }
+                        : {}),
+                    pendingFields: {
+                        areWorkflowsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  harvesting: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                  reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                              }
+                            : {}),
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: null,
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    areWorkflowsEnabled: !enabled,
+                    ...(!enabled
+                        ? {
+                              approvalMode: policy.approvalMode,
+                              autoReporting: policy.autoReporting,
+                              harvesting: policy.harvesting,
+                              reimbursementChoice: policy.reimbursementChoice,
+                          }
+                        : {}),
+                    pendingFields: {
+                        areWorkflowsEnabled: null,
+                        ...(!enabled
+                            ? {
+                                  approvalMode: null,
+                                  autoReporting: null,
+                                  harvesting: null,
+                                  reimbursementChoice: null,
+                              }
+                            : {}),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyWorkflowsParams = {policyID, enabled};
+
+    API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
+
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+    }
+}
+
+function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
+    const newName = policyTagListName.newName;
+    const oldName = policyTagListName.oldName;
+    const oldPolicyTags = policyTags?.[oldName] ?? {};
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [newName]: {...oldPolicyTags, name: newName, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    [oldName]: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    [newName]: {pendingAction: null},
+                    [oldName]: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                value: {
+                    errors: {
+                        [oldName]: oldName,
+                        [newName]: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                    },
+                    [newName]: null,
+                    [oldName]: oldPolicyTags,
+                },
+            },
+        ],
+    };
+    const parameters = {
+        policyID,
+        oldName,
+        newName,
+    };
+
+    API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
+}
+
+function setPolicyRequiresTag(policyID: string, requiresTag: boolean) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresTag,
+                    errors: {requiresTag: null},
+                    pendingFields: {
+                        requiresTag: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errors: {
+                        requiresTag: null,
+                    },
+                    pendingFields: {
+                        requiresTag: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    requiresTag: !requiresTag,
+                    errors: ErrorUtils.getMicroSecondOnyxError('workspace.tags.genericFailureMessage'),
+                    pendingFields: {
+                        requiresTag: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        requiresTag,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
+}
+
+function openPolicyMoreFeaturesPage(policyID: string) {
+    const params: OpenPolicyMoreFeaturesPageParams = {policyID};
+
+    API.read(READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE, params);
+}
+
+function createPolicyDistanceRate(policyID: string, customUnitID: string, customUnitRate: Rate) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [customUnitRate.customUnitRateID ?? '']: {
+                                ...customUnitRate,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [customUnitRate.customUnitRateID ?? '']: {
+                                pendingAction: null,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnitID]: {
+                        rates: {
+                            [customUnitRate.customUnitRateID ?? '']: {
+                                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: CreatePolicyDistanceRateParams = {
+        policyID,
+        customUnitID,
+        customUnitRate: JSON.stringify(customUnitRate),
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_POLICY_DISTANCE_RATE, params, {optimisticData, successData, failureData});
+}
+
+function clearCreateDistanceRateItemAndError(policyID: string, customUnitID: string, customUnitRateIDToClear: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [customUnitRateIDToClear]: null,
+                },
+            },
+        },
+    });
+}
+
+function clearPolicyDistanceRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                errorFields: updatedErrorFields,
+            },
+        },
+    });
+}
+
+function clearDeleteDistanceRateError(policyID: string, customUnitID: string, rateID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [rateID]: {
+                        errors: null,
+                    },
+                },
+            },
+        },
+    });
+}
+
+function clearPolicyDistanceRateErrorFields(policyID: string, customUnitID: string, rateID: string, updatedErrorFields: ErrorFields) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [rateID]: {
+                        errorFields: updatedErrorFields,
+                    },
+                },
+            },
+        },
+    });
+}
+
+/**
+ * Takes removes pendingFields and errorFields from a customUnit
+ */
+function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
+    const cleanedCustomUnit = {...customUnit};
+
+    delete cleanedCustomUnit.pendingFields;
+    delete cleanedCustomUnit.errorFields;
+
+    return cleanedCustomUnit;
+}
+
+function setPolicyDistanceRatesUnit(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
+                        pendingFields: {attributes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        pendingFields: {attributes: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        ...currentCustomUnit,
+                        errorFields: {attributes: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {attributes: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesUnitParams = {
+        policyID,
+        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_UNIT, params, {optimisticData, successData, failureData});
+}
+
+function setPolicyDistanceRatesDefaultCategory(policyID: string, currentCustomUnit: CustomUnit, newCustomUnit: CustomUnit) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        ...newCustomUnit,
+                        pendingFields: {defaultCategory: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [newCustomUnit.customUnitID]: {
+                        pendingFields: {defaultCategory: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [currentCustomUnit.customUnitID]: {
+                        ...currentCustomUnit,
+                        errorFields: {defaultCategory: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                        pendingFields: {defaultCategory: null},
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesDefaultCategoryParams = {
+        policyID,
+        customUnit: JSON.stringify(removePendingFieldsFromCustomUnit(newCustomUnit)),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
+}
+
+/**
+ * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
+ */
+function prepareCustomUnitRatesArray(customUnitRates: Rate[]): Rate[] {
+    const customUnitRateArray: Rate[] = [];
+    customUnitRates.forEach((rate) => {
+        const cleanedRate = {...rate};
+        delete cleanedRate.pendingFields;
+        delete cleanedRate.errorFields;
+        customUnitRateArray.push(cleanedRate);
+    });
+
+    return customUnitRateArray;
+}
+
+function updatePolicyDistanceRateValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
+    const currentRates = customUnit.rates;
+    const optimisticRates: Record<string, Rate> = {};
+    const successRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
+    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
+
+    for (const rateID of Object.keys(customUnit.rates)) {
+        if (rateIDs.includes(rateID)) {
+            const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
+            optimisticRates[rateID] = {...foundRate, pendingFields: {rate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+            successRates[rateID] = {...foundRate, pendingFields: {rate: null}};
+            failureRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {rate: null},
+                errorFields: {rate: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+            };
+        }
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: optimisticRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: successRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: failureRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: UpdatePolicyDistanceRateValueParams = {
+        policyID,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE, params, {optimisticData, successData, failureData});
+}
+
+function setPolicyDistanceRatesEnabled(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {
+    const currentRates = customUnit.rates;
+    const optimisticRates: Record<string, Rate> = {};
+    const successRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
+    const rateIDs = customUnitRates.map((rate) => rate.customUnitRateID);
+
+    for (const rateID of Object.keys(currentRates)) {
+        if (rateIDs.includes(rateID)) {
+            const foundRate = customUnitRates.find((rate) => rate.customUnitRateID === rateID);
+            optimisticRates[rateID] = {...foundRate, pendingFields: {enabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}};
+            successRates[rateID] = {...foundRate, pendingFields: {enabled: null}};
+            failureRates[rateID] = {
+                ...currentRates[rateID],
+                pendingFields: {enabled: null},
+                errorFields: {enabled: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+            };
+        }
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: optimisticRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: successRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: failureRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetPolicyDistanceRatesEnabledParams = {
+        policyID,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateArray: JSON.stringify(prepareCustomUnitRatesArray(customUnitRates)),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED, params, {optimisticData, successData, failureData});
+}
+
+function deletePolicyDistanceRates(policyID: string, customUnit: CustomUnit, rateIDsToDelete: string[]) {
+    const currentRates = customUnit.rates;
+    const optimisticRates: Record<string, Rate> = {};
+    const successRates: Record<string, Rate> = {};
+    const failureRates: Record<string, Rate> = {};
+
+    for (const rateID of Object.keys(currentRates)) {
+        if (rateIDsToDelete.includes(rateID)) {
+            optimisticRates[rateID] = {
+                ...currentRates[rateID],
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+            failureRates[rateID] = {
+                ...currentRates[rateID],
+                pendingAction: null,
+                errors: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
+            };
+        } else {
+            optimisticRates[rateID] = currentRates[rateID];
+            successRates[rateID] = currentRates[rateID];
+        }
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: optimisticRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: successRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: {
+                        rates: failureRates,
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: DeletePolicyDistanceRatesParams = {
+        policyID,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateID: rateIDsToDelete,
+    };
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
+}
+
+function setPolicyCustomTaxName(policyID: string, customTaxName: string) {
+    const policy = getPolicy(policyID);
+    const originalCustomTaxName = policy?.taxRates?.name;
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        name: customTaxName,
+                        pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        pendingFields: {name: null},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        name: originalCustomTaxName,
+                        pendingFields: {name: null},
+                        errorFields: {name: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        customTaxName,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_CUSTOM_TAX_NAME, parameters, onyxData);
+}
+
+function setWorkspaceCurrencyDefault(policyID: string, taxCode: string) {
+    const policy = getPolicy(policyID);
+    const originalDefaultExternalID = policy?.taxRates?.defaultExternalID;
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        defaultExternalID: taxCode,
+                        pendingFields: {defaultExternalID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        pendingFields: {defaultExternalID: null},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        defaultExternalID: originalDefaultExternalID,
+                        pendingFields: {defaultExternalID: null},
+                        errorFields: {defaultExternalID: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        taxCode,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAXES_CURRENCY_DEFAULT, parameters, onyxData);
+}
+
+function setForeignCurrencyDefault(policyID: string, taxCode: string) {
+    const policy = getPolicy(policyID);
+    const originalDefaultForeignCurrencyID = policy?.taxRates?.foreignTaxDefault;
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        foreignTaxDefault: taxCode,
+                        pendingFields: {foreignTaxDefault: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        pendingFields: {foreignTaxDefault: null},
+                        errorFields: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    taxRates: {
+                        foreignTaxDefault: originalDefaultForeignCurrencyID,
+                        pendingFields: {foreignTaxDefault: null},
+                        errorFields: {foreignTaxDefault: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        taxCode,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TAXES_FOREIGN_CURRENCY_DEFAULT, parameters, onyxData);
+}
+
 export {
     removeMembers,
+    leaveWorkspace,
+    updateWorkspaceMembersRole,
+    requestWorkspaceOwnerChange,
+    clearWorkspaceOwnerChangeFlow,
+    addBillingCardAndRequestPolicyOwnerChange,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
-    hasActiveFreePolicy,
+    hasActiveChatEnabledPolicies,
     setWorkspaceErrors,
     clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
@@ -2120,6 +5008,9 @@ export {
     generatePolicyID,
     createWorkspace,
     openWorkspaceMembersPage,
+    openPolicyCategoriesPage,
+    openPolicyTagsPage,
+    openPolicyTaxesPage,
     openWorkspaceInvitePage,
     openWorkspace,
     removeWorkspace,
@@ -2132,5 +5023,56 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
     setWorkspaceInviteMessageDraft,
+    setWorkspaceAutoReporting,
+    setWorkspaceApprovalMode,
+    setWorkspaceAutoReportingFrequency,
+    setWorkspaceAutoReportingMonthlyOffset,
     updateWorkspaceDescription,
+    setWorkspaceCategoryEnabled,
+    setWorkspaceRequiresCategory,
+    inviteMemberToWorkspace,
+    acceptJoinRequest,
+    declineJoinRequest,
+    createPolicyCategory,
+    renamePolicyCategory,
+    clearCategoryErrors,
+    setWorkspacePayer,
+    setWorkspaceReimbursement,
+    openPolicyWorkflowsPage,
+    setPolicyRequiresTag,
+    renamePolicyTaglist,
+    enablePolicyCategories,
+    enablePolicyConnections,
+    enablePolicyDistanceRates,
+    enablePolicyReportFields,
+    enablePolicyTags,
+    enablePolicyTaxes,
+    enablePolicyWorkflows,
+    openPolicyDistanceRatesPage,
+    openPolicyMoreFeaturesPage,
+    generateCustomUnitID,
+    createPolicyDistanceRate,
+    clearCreateDistanceRateItemAndError,
+    clearDeleteDistanceRateError,
+    setPolicyDistanceRatesUnit,
+    setPolicyDistanceRatesDefaultCategory,
+    createPolicyTag,
+    renamePolicyTag,
+    clearPolicyTagErrors,
+    clearWorkspaceReimbursementErrors,
+    deleteWorkspaceCategories,
+    deletePolicyTags,
+    setWorkspaceTagEnabled,
+    setWorkspaceCurrencyDefault,
+    setForeignCurrencyDefault,
+    setPolicyCustomTaxName,
+    clearPolicyErrorField,
+    isCurrencySupportedForDirectReimbursement,
+    clearPolicyDistanceRatesErrorFields,
+    clearPolicyDistanceRateErrorFields,
+    updatePolicyDistanceRateValue,
+    setPolicyDistanceRatesEnabled,
+    deletePolicyDistanceRates,
 };
+
+export type {NewCustomUnit};

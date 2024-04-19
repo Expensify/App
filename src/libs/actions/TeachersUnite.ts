@@ -4,7 +4,7 @@ import * as API from '@libs/API';
 import type {AddSchoolPrincipalParams, ReferTeachersUniteVolunteerParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as PhoneNumber from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -69,7 +69,7 @@ function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, l
  */
 function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: string, policyID: string) {
     const policyName = CONST.TEACHERS_UNITE.POLICY_NAME;
-    const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
+    const loggedInEmail = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
     const reportCreationData: ReportCreationData = {};
 
     const expenseChatData = ReportUtils.buildOptimisticChatReport([sessionAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, sessionAccountID, true, policyName);
@@ -96,17 +96,13 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
                 outputCurrency: allPersonalDetails?.[sessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: {
-                [sessionAccountID]: {
-                    role: CONST.POLICY.ROLE.USER,
-                    errors: {},
+                employeeList: {
+                    [sessionEmail]: {
+                        role: CONST.POLICY.ROLE.USER,
+                        errors: {},
+                    },
                 },
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
         {
@@ -155,9 +151,11 @@ function addSchoolPrincipal(firstName: string, partnerUserID: string, lastName: 
 
     const failureData: OnyxUpdate[] = [
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-            value: null,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                [sessionEmail]: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.SET,

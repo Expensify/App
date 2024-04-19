@@ -1,10 +1,11 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportNextStep} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -23,6 +24,13 @@ Onyx.connect({
 
         currentUserAccountID = value?.accountID ?? -1;
     },
+});
+
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
 });
 
 function parseMessage(messages: Message[] | undefined) {
@@ -51,7 +59,7 @@ function parseMessage(messages: Message[] | undefined) {
 }
 
 type BuildNextStepParameters = {
-    isPaidWithWallet?: boolean;
+    isPaidWithExpensify?: boolean;
 };
 
 /**
@@ -59,17 +67,21 @@ type BuildNextStepParameters = {
  *
  * @param report
  * @param predictedNextStatus - a next expected status of the report
- * @param parameters.isPaidWithWallet - Whether a report has been paid with the wallet or outside of Expensify
+ * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
-function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithWallet}: BuildNextStepParameters = {}): ReportNextStep | null {
+function buildNextStep(
+    report: Report | EmptyObject,
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
+    {isPaidWithExpensify}: BuildNextStepParameters = {},
+): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
-    const policy = ReportUtils.getPolicy(policyID);
-    const {submitsTo, harvesting, isPreventSelfApprovalEnabled, autoReportingFrequency, autoReportingOffset} = policy;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    const {submitsTo, harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
     const isSelfApproval = currentUserAccountID === submitsTo;
@@ -160,7 +172,7 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             }
 
             // Prevented self submitting
-            if (isPreventSelfApprovalEnabled && isSelfApproval) {
+            if (preventSelfApproval && isSelfApproval) {
                 optimisticNextStep.message = [
                     {
                         text: "Oops! Looks like you're submitting to ",
@@ -218,7 +230,7 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             };
 
             // Self review & another reviewer
-            if (isOwner) {
+            if (!isSelfApproval || (isSelfApproval && isOwner)) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -243,6 +255,20 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             break;
         }
 
+        // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
+        case CONST.REPORT.STATUS_NUM.CLOSED:
+            optimisticNextStep = {
+                type,
+                title: 'Finished!',
+                message: [
+                    {
+                        text: 'No further action required!',
+                    },
+                ],
+            };
+
+            break;
+
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
             // Self review
@@ -261,7 +287,7 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
                         text: ' to ',
                     },
                     {
-                        text: 'review',
+                        text: 'pay',
                         type: 'strong',
                     },
                     {
@@ -272,10 +298,23 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
 
             // Another owner
             if (!isOwner) {
-                optimisticNextStep.title = 'Finished!';
                 optimisticNextStep.message = [
                     {
-                        text: 'No further action required!',
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: managerDisplayName,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'pay',
+                        type: 'strong',
+                    },
+                    {
+                        text: ' %expenses.',
                     },
                 ];
             }
@@ -304,7 +343,7 @@ function buildNextStep(report: Report | EmptyObject, predictedNextStatus: ValueO
             };
 
             // Paid outside of Expensify
-            if (isPaidWithWallet === false) {
+            if (isPaidWithExpensify === false) {
                 optimisticNextStep.message?.push({text: ' outside of Expensify'});
             }
 

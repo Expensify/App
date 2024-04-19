@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getCurrentUserAccountID} from '@libs/actions/Report';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -31,7 +32,8 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
 
     const originalMessage = reportClosedAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ? reportClosedAction.originalMessage : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[report?.ownerAccountID ?? 0]);
+    const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? 0];
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails);
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
@@ -56,6 +58,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
               displayName: `<strong>${displayName}</strong>`,
               oldDisplayName: `<strong>${oldDisplayName}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
+              shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
           })
         : translate(`reportArchiveReasons.${archiveReason}`);
 

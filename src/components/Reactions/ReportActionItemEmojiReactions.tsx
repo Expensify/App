@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Tooltip from '@components/Tooltip';
+import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +23,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
     emojiReactions: OnyxEntry<ReportActionReactions>;
 
     /** The user's preferred locale. */
-    preferredLocale: OnyxEntry<Locale>;
+    preferredLocale?: OnyxEntry<Locale>;
 
     /** The report action that these reactions are for */
     reportAction: ReportAction;
@@ -37,6 +37,9 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type PopoverReactionListAnchors = Record<string, ReactionListAnchor>;
@@ -68,6 +71,8 @@ type FormattedReaction = {
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;
+
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 function ReportActionItemEmojiReactions({
@@ -77,6 +82,7 @@ function ReportActionItemEmojiReactions({
     emojiReactions = {},
     shouldBlockReactions = false,
     preferredLocale = CONST.LOCALES.DEFAULT,
+    setIsEmojiPickerActive,
 }: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
@@ -149,7 +155,7 @@ function ReportActionItemEmojiReactions({
                                     shouldDisableOpacity={!!reportAction.pendingAction}
                                 >
                                     <EmojiReactionBubble
-                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
+                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null)}
                                         count={reaction.reactionCount}
                                         emojiCodes={reaction.emojiCodes}
                                         onPress={reaction.onPress}
@@ -166,6 +172,7 @@ function ReportActionItemEmojiReactions({
                     <AddReactionBubble
                         onSelectEmoji={toggleReaction}
                         reportAction={reportAction}
+                        setIsEmojiPickerActive={setIsEmojiPickerActive}
                     />
                 )}
             </View>

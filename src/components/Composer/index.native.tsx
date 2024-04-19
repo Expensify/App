@@ -1,9 +1,9 @@
-import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {TextInput} from 'react-native';
 import {StyleSheet} from 'react-native';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -27,14 +27,15 @@ function Composer(
         // user can read new chats without the keyboard in the way of the view.
         // On Android the selection prop is required on the TextInput but this prop has issues on IOS
         selection,
+        value,
         ...props
     }: ComposerProps,
     ref: ForwardedRef<TextInput>,
 ) {
-    const textInput = useRef<AnimatedTextInputRef | null>(null);
+    const textInput = useRef<AnimatedMarkdownTextInputRef | null>(null);
     const {isFocused, shouldResetFocus} = useResetComposerFocus(textInput);
     const theme = useTheme();
-    const markdownStyle = useMarkdownStyle();
+    const markdownStyle = useMarkdownStyle(value);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -42,7 +43,7 @@ function Composer(
      * Set the TextInput Ref
      * @param {Element} el
      */
-    const setTextInputRef = useCallback((el: AnimatedTextInputRef) => {
+    const setTextInputRef = useCallback((el: AnimatedMarkdownTextInputRef) => {
         textInput.current = el;
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
@@ -68,11 +69,12 @@ function Composer(
     const composerStyle = useMemo(() => StyleSheet.flatten(style), [style]);
 
     return (
-        <MarkdownTextInput
+        <RNMarkdownTextInput
             multiline
             autoComplete="off"
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
+            value={value}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
             rejectResponderTermination={false}
             smartInsertDelete={false}

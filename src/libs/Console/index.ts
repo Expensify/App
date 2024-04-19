@@ -1,15 +1,30 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import isEmpty from 'lodash/isEmpty';
+import Onyx from 'react-native-onyx';
 import {addLog} from '@libs/actions/Console';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Log} from '@src/types/onyx';
+
+let shouldStoreLogs = false;
+
+Onyx.connect({
+    key: ONYXKEYS.SHOULD_STORE_LOGS,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        shouldStoreLogs = val;
+    },
+});
 
 /* store the original console.log function so we can call it */
 // eslint-disable-next-line no-console
 const originalConsoleLog = console.log;
 
 /* List of patterns to ignore in logs. "logs" key always needs to be ignored because otherwise it will cause infinite loop */
-const logPatternsToIgnore = [`merge() called for key: ${ONYXKEYS.LOGS}`];
+const logPatternsToIgnore = [`merge called for key: ${ONYXKEYS.LOGS}`];
 
 /**
  * Check if the log should be attached to the console
@@ -44,11 +59,15 @@ function logMessage(args: unknown[]) {
 
 /**
  * Override the console.log function to add logs to the store
+ * Log only in production environment to avoid storing large logs in development
  * @param args arguments passed to the console.log function
  */
 // eslint-disable-next-line no-console
 console.log = (...args) => {
-    logMessage(args);
+    if (shouldStoreLogs && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV) {
+        logMessage(args);
+    }
+
     originalConsoleLog.apply(console, args);
 };
 
@@ -100,5 +119,29 @@ function createLog(text: string) {
     }
 }
 
-export {sanitizeConsoleInput, createLog, shouldAttachLog};
+/**
+ * Loops through all the logs and parses the message if it's a stringified JSON
+ * @param logs Logs captured on the current device
+ * @returns CapturedLogs with parsed messages
+ */
+function parseStringifiedMessages(logs: Log[]): Log[] {
+    if (isEmpty(logs)) {
+        return logs;
+    }
+
+    return logs.map((log) => {
+        try {
+            const parsedMessage = JSON.parse(log.message);
+            return {
+                ...log,
+                message: parsedMessage,
+            };
+        } catch {
+            // If the message can't be parsed, just return the original log
+            return log;
+        }
+    });
+}
+
+export {sanitizeConsoleInput, createLog, shouldAttachLog, parseStringifiedMessages};
 export type {Log};

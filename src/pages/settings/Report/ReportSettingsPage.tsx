@@ -1,16 +1,16 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGroupChatName} from '@libs/GroupChatUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
@@ -27,13 +27,14 @@ type ReportSettingsPageProps = WithReportOrNotFoundProps & StackScreenProps<Repo
 function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const reportID = report?.reportID ?? '';
     const styles = useThemeStyles();
+    const isGroupChat = ReportUtils.isGroupChat(report);
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => Object.values(policies ?? {}).find((policy) => policy && policy.id === report?.policyID) ?? null, [policies, report?.policyID]);
     const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
-    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report);
+    const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
     const notificationPreference =
         report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
@@ -43,10 +44,11 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
     const shouldAllowWriteCapabilityEditing = useMemo(() => ReportUtils.canEditWriteCapability(report, linkedWorkspace), [report, linkedWorkspace]);
+    const shouldAllowChangeVisibility = useMemo(() => ReportUtils.canEditRoomVisibility(report, linkedWorkspace), [report, linkedWorkspace]);
 
     const shouldShowNotificationPref = !isMoneyRequestReport && report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const roomNameLabel = translate(isMoneyRequestReport ? 'workspace.editor.nameInputLabel' : 'newRoomPage.roomName');
-    const reportName = ReportUtils.isGroupChat(report) ? getGroupChatName(report) : ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName(report);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -92,9 +94,13 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                             ) : (
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
-                                    title={report?.reportName}
-                                    description={translate('newRoomPage.roomName')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))}
+                                    title={report?.reportName === '' ? reportName : report?.reportName}
+                                    description={isGroupChat ? translate('common.name') : translate('newRoomPage.roomName')}
+                                    onPress={() =>
+                                        isGroupChat
+                                            ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(reportID))
+                                            : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(reportID))
+                                    }
                                 />
                             )}
                         </OfflineWithFeedback>
@@ -141,8 +147,17 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 />
                             </View>
                         )}
-                        {report?.visibility !== undefined && (
-                            <View style={[styles.pv3]}>
+                    </View>
+                    {!!report?.visibility &&
+                        (shouldAllowChangeVisibility ? (
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
+                                description={translate('newRoomPage.visibility')}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_VISIBILITY.getRoute(report.reportID))}
+                            />
+                        ) : (
+                            <View style={[styles.pv3, styles.ph5]}>
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
                                     numberOfLines={1}
@@ -157,8 +172,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                                 </Text>
                                 <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate(`newRoomPage.${report.visibility}Description`)}</Text>
                             </View>
-                        )}
-                    </View>
+                        ))}
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>

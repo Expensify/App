@@ -5,6 +5,8 @@ labels: Weekly, AutoAssignerAppLibraryReview
 ---
 In order to properly evaluate if a new library can be added to `package.json`, please fill out this request form. It will be automatically assigned someone from our review team that will go through and vet the library.
 
+*In order to add any new production dependency, it must be approved by the App Deployer team. They will evaluate the library and decide if it's something we want to move forward with or if other alternatives should be explored.*
+
 Note: This is only for production dependencies. While we don't want people to add packages to dev-dependencies willy-nilly, we recognize that there isn't as great of a need there to secure them.
 
 # Name of library:

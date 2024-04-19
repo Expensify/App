@@ -43,6 +43,16 @@ allprojects {
             def REACT_NATIVE_VERSION = new File(['node', '--print',"JSON.parse(require('fs').readFileSync(require.resolve('react-native/package.json'), 'utf-8')).version"].execute(null, rootDir).text.trim())
             force "com.facebook.react:react-native:" + REACT_NATIVE_VERSION
             force "com.facebook.react:hermes-engine:" + REACT_NATIVE_VERSION
+
+            //Fix Investigate App Crash MainActivity.onCreate #35655
+            force "com.facebook.soloader:soloader:0.10.4+"
+
+            eachDependency { dependency ->
+                if (dependency.requested.group == 'org.bouncycastle') {
+                    println dependency.requested.module
+                    dependency.useTarget 'org.bouncycastle:bcprov-jdk15to18:1.71'
+                }
+            }
         }
     }
     repositories {

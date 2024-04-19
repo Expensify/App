@@ -13,7 +13,7 @@ type OnyxUpdateEvent = {
 };
 
 type OnyxUpdatesFromServer = {
-    type: 'https' | 'pusher';
+    type: 'https' | 'pusher' | 'airship';
     lastUpdateID: number | string;
     previousUpdateID: number | string;
     request?: Request;

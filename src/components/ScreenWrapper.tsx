@@ -1,7 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
 import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef, useEffect, useRef, useState} from 'react';
+import React, {createContext, forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 import {Keyboard, PanResponder, View} from 'react-native';
 import {PickerAvoidingView} from 'react-native-picker-select';
@@ -14,7 +14,7 @@ import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {CentralPaneNavigatorParamList, RootStackParamList} from '@libs/Navigation/types';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import CustomDevMenu from './CustomDevMenu';
@@ -23,9 +23,10 @@ import KeyboardAvoidingView from './KeyboardAvoidingView';
 import OfflineIndicator from './OfflineIndicator';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import TestToolsModal from './TestToolsModal';
+import withNavigationFallback from './withNavigationFallback';
 
-type ChildrenProps = {
-    insets?: EdgeInsets;
+type ScreenWrapperChildrenProps = {
+    insets: EdgeInsets;
     safeAreaPaddingBottomStyle?: {
         paddingBottom?: DimensionValue;
     };
@@ -34,7 +35,7 @@ type ChildrenProps = {
 
 type ScreenWrapperProps = {
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: ReactNode | React.FC<ChildrenProps>;
+    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
 
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
@@ -83,17 +84,22 @@ type ScreenWrapperProps = {
     /** Whether to avoid scroll on virtual viewport */
     shouldAvoidScrollOnVirtualViewport?: boolean;
 
+    /** Whether to use cached virtual viewport height  */
+    shouldUseCachedViewportHeight?: boolean;
+
     /**
      * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
      * when the screen transition ends.
      *
      * This is required because transitionEnd event doesn't trigger in the testing environment.
      */
-    navigation?: StackNavigationProp<RootStackParamList>;
+    navigation?: StackNavigationProp<RootStackParamList> | StackNavigationProp<CentralPaneNavigatorParamList>;
 
     /** Whether to show offline indicator on wide screens */
     shouldShowOfflineIndicatorInWideScreen?: boolean;
 };
+
+const ScreenWrapperStatusContext = createContext({didScreenTransitionEnd: false});
 
 function ScreenWrapper(
     {
@@ -115,6 +121,7 @@ function ScreenWrapper(
         navigation: navigationProp,
         shouldAvoidScrollOnVirtualViewport = true,
         shouldShowOfflineIndicatorInWideScreen = false,
+        shouldUseCachedViewportHeight = false,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -127,7 +134,7 @@ function ScreenWrapper(
      */
     const navigationFallback = useNavigation<StackNavigationProp<RootStackParamList>>();
     const navigation = navigationProp ?? navigationFallback;
-    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldEnableMaxHeight);
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions(shouldUseCachedViewportHeight);
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
     const keyboardState = useKeyboardState();
@@ -144,7 +151,6 @@ function ScreenWrapper(
 
     const panResponder = useRef(
         PanResponder.create({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             onStartShouldSetPanResponderCapture: (_e, gestureState) => gestureState.numberActiveTouches === CONST.TEST_TOOL.NUMBER_OF_TAPS,
             onPanResponderRelease: toggleTestToolsModal,
         }),
@@ -152,7 +158,6 @@ function ScreenWrapper(
 
     const keyboardDissmissPanResponder = useRef(
         PanResponder.create({
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             onMoveShouldSetPanResponderCapture: (_e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
                 const shouldDismissKeyboard = shouldDismissKeyboardBeforeClose && isKeyboardShown && Browser.isMobile();
@@ -198,10 +203,21 @@ function ScreenWrapper(
     }, []);
 
     const isAvoidingViewportScroll = useTackInputFocus(shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && Browser.isMobileSafari());
+    const contextValue = useMemo(() => ({didScreenTransitionEnd}), [didScreenTransitionEnd]);
 
     return (
         <SafeAreaConsumer>
-            {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
+            {({
+                insets = {
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                },
+                paddingTop,
+                paddingBottom,
+                safeAreaPaddingBottomStyle,
+            }) => {
                 const paddingStyle: StyleProp<ViewStyle> = {};
 
                 if (includePaddingTop) {
@@ -218,7 +234,7 @@ function ScreenWrapper(
                         ref={ref}
                         style={[styles.flex1, {minHeight}]}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(isDevelopment ? panResponder.panHandlers : {})}
+                        {...panResponder.panHandlers}
                         testID={testID}
                     >
                         <View
@@ -236,18 +252,20 @@ function ScreenWrapper(
                                     enabled={shouldEnablePickerAvoiding}
                                 >
                                     <HeaderGap styles={headerGapStyles} />
-                                    {isDevelopment && <TestToolsModal />}
+                                    <TestToolsModal />
                                     {isDevelopment && <CustomDevMenu />}
-                                    {
-                                        // If props.children is a function, call it to provide the insets to the children.
-                                        typeof children === 'function'
-                                            ? children({
-                                                  insets,
-                                                  safeAreaPaddingBottomStyle,
-                                                  didScreenTransitionEnd,
-                                              })
-                                            : children
-                                    }
+                                    <ScreenWrapperStatusContext.Provider value={contextValue}>
+                                        {
+                                            // If props.children is a function, call it to provide the insets to the children.
+                                            typeof children === 'function'
+                                                ? children({
+                                                      insets,
+                                                      safeAreaPaddingBottomStyle,
+                                                      didScreenTransitionEnd,
+                                                  })
+                                                : children
+                                        }
+                                    </ScreenWrapperStatusContext.Provider>
                                     {isSmallScreenWidth && shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                     {!isSmallScreenWidth && shouldShowOfflineIndicatorInWideScreen && (
                                         <OfflineIndicator
@@ -267,4 +285,6 @@ function ScreenWrapper(
 
 ScreenWrapper.displayName = 'ScreenWrapper';
 
-export default forwardRef(ScreenWrapper);
+export default withNavigationFallback(forwardRef(ScreenWrapper));
+export {ScreenWrapperStatusContext};
+export type {ScreenWrapperChildrenProps};

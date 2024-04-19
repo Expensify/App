@@ -3,6 +3,7 @@ import CONST from '@src/CONST';
 import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
+import type {ReceiptError} from '@src/types/onyx/Transaction';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 
@@ -39,16 +40,16 @@ function getAuthenticateErrorMessage(response: Response): keyof TranslationFlatO
  * Method used to get an error object with microsecond as the key.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxError(error: string | null, isTranslated = false): Errors {
-    return {[DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
+function getMicroSecondOnyxError(error: string, isTranslated = false, errorKey?: number): Errors {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: error && [error, {isTranslated}]};
 }
 
 /**
  * Method used to get an error object with microsecond as the key and an object as the value.
  * @param error - error key or message to be saved
  */
-function getMicroSecondOnyxErrorObject(error: Errors): ErrorFields {
-    return {[DateUtils.getMicroseconds()]: error};
+function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorFields {
+    return {[errorKey ?? DateUtils.getMicroseconds()]: error};
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error
@@ -110,6 +111,21 @@ function getEarliestErrorField<TOnyxData extends OnyxDataWithErrorFields>(onyxDa
 }
 
 /**
+ * Method used to get the latest error field for any field
+ */
+function getLatestErrorFieldForAnyField<TOnyxData extends OnyxDataWithErrorFields>(onyxData: TOnyxData): Errors {
+    const errorFields = onyxData.errorFields ?? {};
+
+    if (Object.keys(errorFields).length === 0) {
+        return {};
+    }
+
+    const fieldNames = Object.keys(errorFields);
+    const latestErrorFields = fieldNames.map((fieldName) => getLatestErrorField(onyxData, fieldName));
+    return latestErrorFields.reduce((acc, error) => ({...acc, ...error}), {});
+}
+
+/**
  * Method used to attach already translated message with isTranslated property
  * @param errors - An object containing current errors in the form
  * @returns Errors in the form of {timestamp: [message, {isTranslated}]}
@@ -150,15 +166,35 @@ function addErrorMessage<TKey extends TranslationPaths>(errors: Errors, inputID?
     }
 }
 
+/**
+ * Check if the error includes a receipt.
+ */
+function isReceiptError(message: unknown): message is ReceiptError {
+    if (typeof message === 'string') {
+        return false;
+    }
+    if (Array.isArray(message)) {
+        return false;
+    }
+    if (Object.keys(message as Record<string, unknown>).length === 0) {
+        return false;
+    }
+    return ((message as Record<string, unknown>)?.error ?? '') === CONST.IOU.RECEIPT_ERROR;
+}
+
 export {
+    addErrorMessage,
     getAuthenticateErrorMessage,
-    getMicroSecondOnyxError,
-    getMicroSecondOnyxErrorObject,
-    getLatestErrorMessage,
-    getLatestErrorField,
     getEarliestErrorField,
     getErrorMessageWithTranslationData,
     getErrorsWithTranslationData,
-    addErrorMessage,
+    getLatestErrorField,
+    getLatestErrorMessage,
     getLatestErrorMessageField,
+    getLatestErrorFieldForAnyField,
+    getMicroSecondOnyxError,
+    getMicroSecondOnyxErrorObject,
+    isReceiptError,
 };
+
+export type {OnyxDataWithErrors};

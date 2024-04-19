@@ -12,6 +12,7 @@ import DeletedRoomAvatar from '@assets/images/avatars/deleted-room.svg';
 import DomainRoomAvatar from '@assets/images/avatars/domain-room.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
+import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
@@ -29,6 +30,7 @@ import CardsAndDomains from '@assets/images/cards-and-domains.svg';
 import Cash from '@assets/images/cash.svg';
 import Chair from '@assets/images/chair.svg';
 import ChatBubbleAdd from '@assets/images/chatbubble-add.svg';
+import ChatBubbleReply from '@assets/images/chatbubble-reply.svg';
 import ChatBubbleUnread from '@assets/images/chatbubble-unread.svg';
 import ChatBubble from '@assets/images/chatbubble.svg';
 import ChatBubbles from '@assets/images/chatbubbles.svg';
@@ -40,6 +42,8 @@ import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
+import DocumentSlash from '@assets/images/document-slash.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -67,6 +71,7 @@ import Flag from '@assets/images/flag.svg';
 import FlagLevelOne from '@assets/images/flag_level_01.svg';
 import FlagLevelTwo from '@assets/images/flag_level_02.svg';
 import FlagLevelThree from '@assets/images/flag_level_03.svg';
+import Folder from '@assets/images/folder.svg';
 import Fullscreen from '@assets/images/fullscreen.svg';
 import Gallery from '@assets/images/gallery.svg';
 import Gear from '@assets/images/gear.svg';
@@ -79,6 +84,8 @@ import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
+import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
@@ -89,11 +96,13 @@ import Lock from '@assets/images/lock.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
+import MakeAdmin from '@assets/images/make-admin.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
 import NewWindow from '@assets/images/new-window.svg';
@@ -115,6 +124,7 @@ import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
+import RemoveMembers from '@assets/images/remove-members.svg';
 import Rotate from '@assets/images/rotate-image.svg';
 import RotateLeft from '@assets/images/rotate-left.svg';
 import Scan from '@assets/images/scan.svg';
@@ -128,8 +138,12 @@ import Linkedin from '@assets/images/social-linkedin.svg';
 import Podcast from '@assets/images/social-podcast.svg';
 import Twitter from '@assets/images/social-twitter.svg';
 import Youtube from '@assets/images/social-youtube.svg';
+import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
+import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
+import Tax from '@assets/images/tax.svg';
+import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
 import Transfer from '@assets/images/transfer.svg';
@@ -142,10 +156,10 @@ import Users from '@assets/images/users.svg';
 import VolumeHigh from '@assets/images/volume-high.svg';
 import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
+import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Wrench from '@assets/images/wrench.svg';
 import Zoom from '@assets/images/zoom.svg';
-import LoungeAccess from './svgs/LoungeAccessIcon';
 
 export {
     ActiveRoomAvatar,
@@ -187,6 +201,7 @@ export {
     CreditCard,
     DeletedRoomAvatar,
     Document,
+    DocumentSlash,
     DomainRoomAvatar,
     DotIndicator,
     DotIndicatorUnfilled,
@@ -215,6 +230,10 @@ export {
     FlagLevelTwo,
     FlagLevelThree,
     Fullscreen,
+    Folder,
+    Tag,
+    Tax,
+    Thread,
     Gallery,
     Gear,
     Globe,
@@ -234,20 +253,22 @@ export {
     LinkCopy,
     Location,
     Lock,
-    LoungeAccess,
     Luggage,
     MagnifyingGlass,
     Mail,
+    MakeAdmin,
     Menu,
     Meter,
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneyWaving,
     Monitor,
     Mute,
     ExpensifyLogoNew,
     NewWindow,
     NewWorkspace,
+    NotificationsAvatar,
     Offline,
     OfflineCloud,
     OldDotWireframe,
@@ -261,15 +282,18 @@ export {
     Plus,
     Printer,
     Profile,
+    QBOSquare,
     QrCode,
     QuestionMark,
     Receipt,
+    RemoveMembers,
     ReceiptSearch,
     Rotate,
     RotateLeft,
     Scan,
     Send,
     Shield,
+    Stopwatch,
     Sync,
     Task,
     ThumbsUp,
@@ -285,7 +309,9 @@ export {
     VolumeHigh,
     VolumeLow,
     Wallet,
+    Workflows,
     Workspace,
+    XeroSquare,
     Zoom,
     Twitter,
     Youtube,
@@ -295,5 +321,7 @@ export {
     Instagram,
     ChatBubbleAdd,
     ChatBubbleUnread,
+    ChatBubbleReply,
     Lightbulb,
+    DocumentPlus,
 };

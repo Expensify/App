@@ -5,18 +5,50 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
-import type {BottomTabNavigatorParamList, CentralPaneNavigatorParamList, SettingsNavigatorParamList} from '@navigation/types';
-import policyMemberPropType from '@pages/policyMemberPropType';
+import type {
+    BottomTabNavigatorParamList,
+    CentralPaneNavigatorParamList,
+    FullScreenNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
+    SettingsNavigatorParamList,
+    WorkspacesCentralPaneNavigatorParamList,
+} from '@navigation/types';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceParamList = BottomTabNavigatorParamList & CentralPaneNavigatorParamList & SettingsNavigatorParamList;
-type PolicyRoute = RouteProp<WorkspaceParamList, ValueOf<typeof SCREENS.WORKSPACE>>;
+type NavigatorsParamList = BottomTabNavigatorParamList &
+    CentralPaneNavigatorParamList &
+    SettingsNavigatorParamList &
+    ReimbursementAccountNavigatorParamList &
+    FullScreenNavigatorParamList &
+    WorkspacesCentralPaneNavigatorParamList;
+
+type PolicyRoute = RouteProp<
+    NavigatorsParamList,
+    | typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT
+    | typeof SCREENS.WORKSPACE.INITIAL
+    | typeof SCREENS.WORKSPACE.BILLS
+    | typeof SCREENS.WORKSPACE.MORE_FEATURES
+    | typeof SCREENS.WORKSPACE.MEMBERS
+    | typeof SCREENS.WORKSPACE.INVITE
+    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVER
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
+    | typeof SCREENS.WORKSPACE.TRAVEL
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
+    | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.INVOICES
+    | typeof SCREENS.WORKSPACE.CARD
+    | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
+    | typeof SCREENS.WORKSPACE.TAX_EDIT
+>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
@@ -80,17 +112,15 @@ const policyPropTypes = {
         tax: PropTypes.shape({
             trackingEnabled: PropTypes.bool,
         }),
-    }),
 
-    /** The employee list of this policy */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
+        /** Collection of tax rates attached to a policy */
+        taxRates: taxPropTypes,
+    }),
 };
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyMembers: OnyxEntry<OnyxTypes.PolicyMembers>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
-    policyMembersDraft: OnyxEntry<OnyxTypes.PolicyMember>;
 };
 
 type WithPolicyProps = WithPolicyOnyxProps & {
@@ -99,9 +129,7 @@ type WithPolicyProps = WithPolicyOnyxProps & {
 
 const policyDefaultProps: WithPolicyOnyxProps = {
     policy: {} as OnyxTypes.Policy,
-    policyMembers: {},
     policyDraft: {} as OnyxTypes.Policy,
-    policyMembersDraft: {},
 };
 
 /*
@@ -132,17 +160,11 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
-        policyMembers: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
-        },
         policyDraft: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
-        },
-        policyMembersDraft: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
         },
     })(forwardRef(WithPolicy));
 }
 
-export {policyPropTypes, policyDefaultProps};
-export type {WithPolicyOnyxProps, WithPolicyProps, PolicyRoute};
+export {policyDefaultProps, policyPropTypes};
+export type {PolicyRoute, WithPolicyOnyxProps, WithPolicyProps};

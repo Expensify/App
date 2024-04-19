@@ -1,8 +1,12 @@
-import type {ValueOf} from 'type-fest';
+import type {KeysOfUnion, ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
+import type ReportAction from './ReportAction';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
@@ -16,12 +20,31 @@ type Waypoint = {
 
     /** The longitude of the waypoint */
     lng?: number;
+
+    /** Address city */
+    city?: string;
+
+    /** Address state */
+    state?: string;
+
+    /** Address zip code */
+    zipCode?: string;
+
+    /** Address country */
+    country?: string;
+
+    /** Address street line 1 */
+    street?: string;
+
+    /** Address street line 2 */
+    street2?: string;
 };
 
 type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 type Comment = {
     comment?: string;
+    hold?: string;
     waypoints?: WaypointCollection;
     isLoading?: boolean;
     type?: string;
@@ -38,7 +61,7 @@ type Geometry = {
     type?: GeometryType;
 };
 
-type ReceiptSource = string | number;
+type ReceiptSource = string;
 
 type Receipt = {
     receiptID?: number;
@@ -47,6 +70,7 @@ type Receipt = {
     source?: ReceiptSource;
     filename?: string;
     state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
+    type?: string;
 };
 
 type Route = {
@@ -55,8 +79,6 @@ type Route = {
 };
 
 type Routes = Record<string, Route>;
-
-type TransactionPendingFieldsKey = keyof Transaction | keyof Comment;
 
 type ReceiptError = {error?: string; source: string; filename: string};
 
@@ -77,126 +99,137 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
-type Transaction = {
-    /** The original transaction amount */
-    amount: number;
+type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** The original transaction amount */
+        amount: number;
 
-    /** Whether the request is billable */
-    billable?: boolean;
+        /** The transaction tax amount */
+        taxAmount?: number;
 
-    /** The category name */
-    category?: string;
+        /** The transaction tax code */
+        taxCode?: string;
 
-    /** The comment object on the transaction */
-    comment: Comment;
+        /** Whether the expense is billable */
+        billable?: boolean;
 
-    /** Date that the request was created */
-    created: string;
+        /** The category name */
+        category?: string;
 
-    /** The original currency of the transaction */
-    currency: string;
+        /** The comment object on the transaction */
+        comment: Comment;
 
-    /** Any additional error message to show */
-    errors?: OnyxCommon.Errors | ReceiptErrors;
+        /** Date that the expense was created */
+        created: string;
 
-    /** Server side errors keyed by microtime */
-    errorFields?: OnyxCommon.ErrorFields<'route'>;
+        /** The original currency of the transaction */
+        currency: string;
 
-    /** The name of the file used for a receipt (formerly receiptFilename) */
-    filename?: string;
+        /** Any additional error message to show */
+        errors?: OnyxCommon.Errors | ReceiptErrors;
 
-    /** Used during the creation flow before the transaction is saved to the server */
-    iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+        /** Server side errors keyed by microtime */
+        errorFields?: OnyxCommon.ErrorFields<'route'>;
 
-    /** The original merchant name */
-    merchant: string;
+        /** The name of the file used for a receipt (formerly receiptFilename) */
+        filename?: string;
 
-    /** The edited transaction amount */
-    modifiedAmount?: number;
+        /** Used during the creation flow before the transaction is saved to the server */
+        iouRequestType?: IOURequestType;
 
-    /** The edited transaction date */
-    modifiedCreated?: string;
+        /** The original merchant name */
+        merchant: string;
 
-    /** The edited currency of the transaction */
-    modifiedCurrency?: string;
+        /** The edited transaction amount */
+        modifiedAmount?: number;
 
-    /** The edited merchant name */
-    modifiedMerchant?: string;
+        /** The edited transaction date */
+        modifiedCreated?: string;
 
-    /** The edited waypoints for the distance request */
-    modifiedWaypoints?: WaypointCollection;
+        /** The edited currency of the transaction */
+        modifiedCurrency?: string;
 
-    /**
-     * Used during the creation flow before the transaction is saved to the server and helps dictate where
-     * the user is navigated to when pressing the back button on the confirmation step
-     */
-    participantsAutoAssigned?: boolean;
+        /** The edited merchant name */
+        modifiedMerchant?: string;
 
-    /** Selected participants */
-    participants?: Participant[];
+        /** The edited waypoints for the distance expense */
+        modifiedWaypoints?: WaypointCollection;
 
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
+        /**
+         * Used during the creation flow before the transaction is saved to the server and helps dictate where
+         * the user is navigated to when pressing the back button on the confirmation step
+         */
+        participantsAutoAssigned?: boolean;
 
-    /** The receipt object associated with the transaction */
-    receipt?: Receipt;
+        /** Selected participants */
+        participants?: Participant[];
 
-    /** The iouReportID associated with the transaction */
-    reportID: string;
+        /** The receipt object associated with the transaction */
+        receipt?: Receipt;
 
-    /** Existing routes */
-    routes?: Routes;
+        /** The iouReportID associated with the transaction */
+        reportID: string;
 
-    /** The transaction id */
-    transactionID: string;
+        /** Existing routes */
+        routes?: Routes;
 
-    /** The transaction tag */
-    tag?: string;
+        /** The transaction id */
+        transactionID: string;
 
-    /** Whether the transaction was created globally */
-    isFromGlobalCreate?: boolean;
+        /** The transaction tag */
+        tag?: string;
 
-    /** The transaction tax rate */
-    taxRate?: TaxRate;
+        /** Whether the transaction was created globally */
+        isFromGlobalCreate?: boolean;
 
-    /** Tax amount */
-    taxAmount?: number;
+        /** The transaction tax rate */
+        taxRate?: TaxRate;
 
-    /** Pending fields for the transaction */
-    pendingFields?: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}>;
+        /** Card Transactions */
 
-    /** Card Transactions */
+        /** The parent transaction id */
+        parentTransactionID?: string;
 
-    /** The parent transaction id */
-    parentTransactionID?: string;
+        /** Whether the expense is reimbursable or not */
+        reimbursable?: boolean;
 
-    /** Whether the expense is reimbursable or not */
-    reimbursable?: boolean;
+        /** The CC for this transaction */
+        cardID?: number;
 
-    /** The CC for this transaction */
-    cardID?: number;
+        /** If the transaction is pending or posted */
+        status?: ValueOf<typeof CONST.TRANSACTION.STATUS>;
 
-    /** If the transaction is pending or posted */
-    status?: ValueOf<typeof CONST.TRANSACTION.STATUS>;
+        /** If an EReceipt should be generated for this transaction */
+        hasEReceipt?: boolean;
 
-    /** If an EReceipt should be generated for this transaction */
-    hasEReceipt?: boolean;
+        /** The MCC Group for this transaction */
+        mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
-    /** The MCC Group for this transaction */
-    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+        /** Modified MCC Group */
+        modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
-    /** Modified MCC Group */
-    modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
+        /** If the transaction was made in a foreign currency, we send the original amount and currency */
+        originalAmount?: number;
 
-    /** If the transaction was made in a foreign currency, we send the original amount and currency */
-    originalAmount?: number;
+        /** The original currency of the transaction */
+        originalCurrency?: string;
 
-    /** The original currency of the transaction */
-    originalCurrency?: string;
+        /** Indicates transaction loading */
+        isLoading?: boolean;
 
-    /** Indicates transaction loading */
-    isLoading?: boolean;
-};
+        /** The actionable report action ID associated with the transaction */
+        actionableWhisperReportActionID?: string;
+
+        /** The linked reportAction id for the tracked expense */
+        linkedTrackedExpenseReportAction?: ReportAction;
+
+        /** The linked report id for the tracked expense */
+        linkedTrackedExpenseReportID?: string;
+    },
+    keyof Comment
+>;
+
+type TransactionPendingFieldsKey = KeysOfUnion<Transaction['pendingFields']>;
 
 type AdditionalTransactionChanges = {
     comment?: string;
@@ -207,5 +240,19 @@ type AdditionalTransactionChanges = {
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
+type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey, TransactionChanges, TaxRate, ReceiptSource};
+export type {
+    WaypointCollection,
+    Comment,
+    Receipt,
+    Waypoint,
+    ReceiptError,
+    ReceiptErrors,
+    TransactionPendingFieldsKey,
+    TransactionChanges,
+    TaxRate,
+    ReceiptSource,
+    TransactionCollectionDataSet,
+};

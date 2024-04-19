@@ -1,37 +1,45 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import Text from '@components/Text';
-import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useHover from '@hooks/useHover';
+import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import RadioListItem from './RadioListItem';
-import type {BaseListItemProps, RadioItem, User} from './types';
-import UserListItem from './UserListItem';
+import type {BaseListItemProps, ListItem} from './types';
 
-function BaseListItem<TItem extends User | RadioItem>({
+function BaseListItem<TItem extends ListItem>({
     item,
-    isFocused = false,
+    pressableStyle,
+    wrapperStyle,
+    containerStyle,
     isDisabled = false,
-    showTooltip,
     shouldPreventDefaultFocusOnSelectRow = false,
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
     rightHandSideComponent,
     keyForList,
+    errors,
+    pendingAction,
+    FooterComponent,
+    children,
+    isFocused,
+    shouldSyncFocus = true,
+    onFocus = () => {},
+    hoverStyle,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const isUserItem = 'icons' in item && item?.icons?.length && item.icons.length > 0;
-    const ListItem = isUserItem ? UserListItem : RadioListItem;
+    const {hovered, bind} = useHover();
+
+    const pressableRef = useRef<View | HTMLDivElement>(null);
+
+    // Sync focus on an item
+    useSyncFocus(pressableRef, Boolean(isFocused && shouldSyncFocus));
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -48,72 +56,29 @@ function BaseListItem<TItem extends User | RadioItem>({
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
-            pendingAction={isUserItem ? item.pendingAction : undefined}
-            errors={isUserItem ? item.errors : undefined}
+            pendingAction={pendingAction}
+            errors={errors}
             errorRowStyles={styles.ph5}
+            contentContainerStyle={containerStyle}
         >
             <PressableWithFeedback
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...bind}
+                ref={pressableRef}
                 onPress={() => onSelectRow(item)}
                 disabled={isDisabled}
-                accessibilityLabel={item.text}
+                accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 hoverDimmingValue={1}
-                hoverStyle={styles.hoveredComponentBG}
+                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList}
+                nativeID={keyForList ?? ''}
+                style={pressableStyle}
+                onFocus={onFocus}
             >
-                <View
-                    style={[
-                        styles.flex1,
-                        styles.justifyContentBetween,
-                        styles.sidebarLinkInner,
-                        styles.userSelectNone,
-                        isUserItem ? styles.peopleRow : styles.optionRow,
-                        isFocused && styles.sidebarLinkActive,
-                    ]}
-                >
-                    {canSelectMultiple && (
-                        <View
-                            role={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            style={StyleUtils.getCheckboxPressableStyle()}
-                        >
-                            <View
-                                style={[
-                                    StyleUtils.getCheckboxContainerStyle(20),
-                                    styles.mr3,
-                                    item.isSelected && styles.checkedContainer,
-                                    item.isSelected && styles.borderColorFocus,
-                                    item.isDisabled && styles.cursorDisabled,
-                                    item.isDisabled && styles.buttonOpacityDisabled,
-                                ]}
-                            >
-                                {item.isSelected && (
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </View>
-                    )}
-
-                    <ListItem
-                        item={item}
-                        textStyles={[
-                            styles.optionDisplayName,
-                            isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                            styles.sidebarLinkTextBold,
-                            styles.pre,
-                            item.alternateText ? styles.mb1 : null,
-                        ]}
-                        alternateTextStyles={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                        isDisabled={isDisabled}
-                        onSelectRow={() => onSelectRow(item)}
-                        showTooltip={showTooltip}
-                    />
+                <View style={wrapperStyle}>
+                    {typeof children === 'function' ? children(hovered) : children}
 
                     {!canSelectMultiple && item.isSelected && !rightHandSideComponent && (
                         <View
@@ -128,13 +93,18 @@ function BaseListItem<TItem extends User | RadioItem>({
                             </View>
                         </View>
                     )}
+                    {!item.isSelected && !!item.brickRoadIndicator && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                src={Expensicons.DotIndicator}
+                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
+                            />
+                        </View>
+                    )}
+
                     {rightHandSideComponentRender()}
                 </View>
-                {isUserItem && item.invitedSecondaryLogin && (
-                    <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>
-                        {translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}
-                    </Text>
-                )}
+                {FooterComponent}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

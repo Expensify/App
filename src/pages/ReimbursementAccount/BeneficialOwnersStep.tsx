@@ -47,6 +47,7 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
+    const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const defaultValues = {
         ownsMoreThan25Percent: reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false,
         hasOtherBeneficialOwners: reimbursementAccount?.achData?.hasOtherBeneficialOwners ?? reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false,
@@ -76,11 +77,15 @@ function BeneficialOwnersStep({reimbursementAccount, reimbursementAccountDraft, 
             ),
         );
 
-        BankAccounts.updateBeneficialOwnersForBankAccount(Number(reimbursementAccount?.achData?.bankAccountID ?? '0'), {
-            ownsMoreThan25Percent: isUserUBO,
-            beneficialOwners: JSON.stringify(beneficialOwners),
-            beneficialOwnerKeys,
-        });
+        BankAccounts.updateBeneficialOwnersForBankAccount(
+            Number(reimbursementAccount?.achData?.bankAccountID ?? '0'),
+            {
+                ownsMoreThan25Percent: isUserUBO,
+                beneficialOwners: JSON.stringify(beneficialOwners),
+                beneficialOwnerKeys,
+            },
+            policyID,
+        );
     };
 
     const addBeneficialOwner = (beneficialOwnerID: string) => {

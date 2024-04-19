@@ -53,7 +53,7 @@ jobs:
     name: Build and deploy Desktop
     needs: validateActor
     if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-12-xl
+    runs-on: macos-13-large
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -76,6 +76,8 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_PRODUCTION }}
+
 
       - name: Build staging desktop app
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
@@ -87,6 +89,7 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GCP_GEOLOCATION_API_KEY: $${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
 
   iOS:
     name: Build and deploy iOS
@@ -103,6 +106,7 @@ jobs:
         run: ./scripts/setup-mapbox-sdk.sh ${{ secrets.MAPBOX_SDK_DOWNLOAD_TOKEN }}
 
       - name: Setup Node
+        id: setup-node
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Ruby
@@ -112,11 +116,11 @@ jobs:
           bundler-cache: true
 
       - name: Cache Pod dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: pods-cache
         with:
           path: ios/Pods
-          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock') }}
+          key: ${{ runner.os }}-pods-cache-${{ hashFiles('ios/Podfile.lock', 'firebase.json') }}
           restore-keys: ${{ runner.os }}-pods-cache-
 
       - name: Compare Podfile.lock and Manifest.lock
@@ -125,7 +129,7 @@ jobs:
 
       - name: Install cocoapods
         uses: nick-invision/retry@0711ba3d7808574133d713a0d92d2941be03a350
-        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true'
+        if: steps.pods-cache.outputs.cache-hit != 'true' || steps.compare-podfile-and-manifest.outputs.IS_PODFILE_SAME_AS_MANIFEST != 'true' || steps.setup-node.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 10
           max_attempts: 5
@@ -220,7 +224,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Setup Cloudflare CLI
-        run: pip3 install cloudflare==2.17.0
+        run: pip3 install cloudflare==2.19.0
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4

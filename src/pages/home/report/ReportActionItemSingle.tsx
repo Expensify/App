@@ -1,6 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -27,9 +28,9 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import ReportActionItemDate from './ReportActionItemDate';
 import ReportActionItemFragment from './ReportActionItemFragment';
 
-type ReportActionItemSingleProps = ChildrenProps & {
+type ReportActionItemSingleProps = Partial<ChildrenProps> & {
     /** All the data of the action */
-    action: ReportAction;
+    action: OnyxEntry<ReportAction>;
 
     /** Styles for the outermost View */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -38,7 +39,7 @@ type ReportActionItemSingleProps = ChildrenProps & {
     report: Report;
 
     /** IOU Report for this action, if any */
-    iouReport?: Report;
+    iouReport?: OnyxEntry<Report>;
 
     /** Show header for action */
     showHeader?: boolean;
@@ -77,12 +78,13 @@ function ReportActionItemSingle({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const actorAccountID = action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport ? iouReport.managerID : action.actorAccountID;
+    const actorAccountID = ReportUtils.getReportActionActorAccountID(action, iouReport);
+
     let displayName = ReportUtils.getDisplayNameForParticipant(actorAccountID);
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const displayAllActors = useMemo(() => action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && iouReport, [action.actionName, iouReport]);
+    const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && iouReport, [action?.actionName, iouReport]);
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors);
     let avatarSource = UserUtils.getAvatar(avatar ?? '', actorAccountID);
 
@@ -90,7 +92,7 @@ function ReportActionItemSingle({
         displayName = ReportUtils.getPolicyName(report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(report);
-    } else if (action.delegateAccountID && personalDetails[action.delegateAccountID]) {
+    } else if (action?.delegateAccountID && personalDetails[action?.delegateAccountID]) {
         // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
         // details. This will be improved upon when the Copilot feature is implemented.
         const delegateDetails = personalDetails[action.delegateAccountID];
@@ -104,7 +106,7 @@ function ReportActionItemSingle({
     let secondaryAvatar: Icon;
     const primaryDisplayName = displayName;
     if (displayAllActors) {
-        // The ownerAccountID and actorAccountID can be the same if the a user requests money back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
+        // The ownerAccountID and actorAccountID can be the same if the a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
         const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID ? iouReport?.managerID : iouReport?.ownerAccountID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
@@ -141,7 +143,7 @@ function ReportActionItemSingle({
                   text: displayName,
               },
           ]
-        : action.person;
+        : action?.person;
 
     const reportID = report?.reportID;
     const iouReportID = iouReport?.reportID;
@@ -155,14 +157,14 @@ function ReportActionItemSingle({
                 Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(iouReportID));
                 return;
             }
-            showUserDetails(action.delegateAccountID ? String(action.delegateAccountID) : String(actorAccountID));
+            showUserDetails(action?.delegateAccountID ? String(action.delegateAccountID) : String(actorAccountID));
         }
-    }, [isWorkspaceActor, reportID, actorAccountID, action.delegateAccountID, iouReportID, displayAllActors]);
+    }, [isWorkspaceActor, reportID, actorAccountID, action?.delegateAccountID, iouReportID, displayAllActors]);
 
     const shouldDisableDetailPage = useMemo(
         () =>
             CONST.RESTRICTED_ACCOUNT_IDS.includes(actorAccountID ?? 0) ||
-            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
+            (!isWorkspaceActor && ReportUtils.isOptimisticPersonalDetail(action?.delegateAccountID ? Number(action.delegateAccountID) : actorAccountID ?? -1)),
         [action, isWorkspaceActor, actorAccountID],
     );
 
@@ -189,7 +191,7 @@ function ReportActionItemSingle({
         return (
             <UserDetailsTooltip
                 accountID={Number(actorAccountID ?? 0)}
-                delegateAccountID={Number(action.delegateAccountID ?? 0)}
+                delegateAccountID={Number(action?.delegateAccountID ?? 0)}
                 icon={icon}
             >
                 <View>
@@ -237,13 +239,13 @@ function ReportActionItemSingle({
                             {personArray?.map((fragment, index) => (
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
-                                    key={`person-${action.reportActionID}-${index}`}
+                                    key={`person-${action?.reportActionID}-${index}`}
                                     accountID={actorAccountID ?? 0}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
-                                    delegateAccountID={action.delegateAccountID}
+                                    delegateAccountID={action?.delegateAccountID}
                                     isSingleLine
                                     actorIcon={icon}
-                                    moderationDecision={action.message?.[0].moderationDecision?.decision}
+                                    moderationDecision={action?.message?.[0]?.moderationDecision?.decision}
                                 />
                             ))}
                         </PressableWithoutFeedback>
@@ -255,7 +257,7 @@ function ReportActionItemSingle({
                                 >{`${status?.emojiCode}`}</Text>
                             </Tooltip>
                         )}
-                        <ReportActionItemDate created={action.created} />
+                        <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
                 <View style={hasBeenFlagged ? styles.blockquote : {}}>{children}</View>

@@ -15,7 +15,7 @@ type AnimatedStepProps = ChildrenProps & {
     direction: AnimationDirection;
 
     /** Callback to fire when the animation ends */
-    onAnimationEnd: () => void;
+    onAnimationEnd?: () => void;
 };
 
 function AnimatedStep({onAnimationEnd, direction = CONST.ANIMATION_DIRECTION.IN, style, children}: AnimatedStepProps) {

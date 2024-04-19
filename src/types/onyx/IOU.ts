@@ -21,6 +21,7 @@ type Participant = {
     phoneNumber?: string;
     text?: string;
     isSelected?: boolean;
+    isSelfDM?: boolean;
 };
 
 type Split = {
@@ -35,6 +36,8 @@ type Split = {
     createdChatReportActionID?: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
+    transactionThreadReportID?: string;
+    createdReportActionIDForThread?: string;
 };
 
 type IOU = {

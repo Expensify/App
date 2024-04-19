@@ -1,6 +1,6 @@
 type VerifyIdentityForBankAccountParams = {
     bankAccountID: number;
     onfidoData: string;
-    canUseNewVbbaFlow?: boolean;
+    policyID: string;
 };
 export default VerifyIdentityForBankAccountParams;

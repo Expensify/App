@@ -10,8 +10,8 @@ import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/AddDebitCardForm';
 import type {BankAccountList, FundList} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -29,7 +29,7 @@ const kycWallRef: MutableRefObject<KYCWallRef | null> = createRef<KYCWallRef>();
 /**
  * When we successfully add a payment method or pass the KYC checks we will continue with our setup action if we have one set.
  */
-function continueSetup(fallbackRoute: Route = ROUTES.HOME) {
+function continueSetup(fallbackRoute?: Route) {
     if (!kycWallRef.current?.continueAction) {
         Navigation.goBack(fallbackRoute);
         return;
@@ -77,8 +77,8 @@ function openWalletPage() {
 function getMakeDefaultPaymentOnyxData(
     bankAccountID: number,
     fundID: number,
-    previousPaymentMethod: PaymentMethod,
-    currentPaymentMethod: PaymentMethod,
+    previousPaymentMethod?: PaymentMethod,
+    currentPaymentMethod?: PaymentMethod,
     isOptimisticData = true,
 ): OnyxUpdate[] {
     const onyxData: OnyxUpdate[] = [
@@ -87,6 +87,7 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
+                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
@@ -97,6 +98,7 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
+                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
@@ -134,7 +136,7 @@ function getMakeDefaultPaymentOnyxData(
  * Sets the default bank account or debit card for an Expensify Wallet
  *
  */
-function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previousPaymentMethod: PaymentMethod, currentPaymentMethod: PaymentMethod) {
+function makeDefaultPaymentMethod(bankAccountID: number, fundID: number, previousPaymentMethod?: PaymentMethod, currentPaymentMethod?: PaymentMethod) {
     const parameters: MakeDefaultPaymentMethodParams = {
         bankAccountID,
         fundID,
@@ -203,7 +205,15 @@ function clearDebitCardFormErrorAndSubmit() {
     Onyx.set(ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM, {
         isLoading: false,
         errors: undefined,
-        setupComplete: false,
+        [INPUT_IDS.SETUP_COMPLETE]: false,
+        [INPUT_IDS.NAME_ON_CARD]: '',
+        [INPUT_IDS.CARD_NUMBER]: '',
+        [INPUT_IDS.EXPIRATION_DATE]: '',
+        [INPUT_IDS.SECURITY_CODE]: '',
+        [INPUT_IDS.ADDRESS_STREET]: '',
+        [INPUT_IDS.ADDRESS_ZIP_CODE]: '',
+        [INPUT_IDS.ADDRESS_STATE]: '',
+        [INPUT_IDS.ACCEPT_TERMS]: '',
     });
 }
 
@@ -284,7 +294,7 @@ function saveWalletTransferMethodType(filterPaymentMethodType?: FilterMethodPaym
 
 function dismissSuccessfulTransferBalancePage() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
-    Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    Navigation.goBack();
 }
 
 /**
@@ -304,7 +314,7 @@ type PaymentListKey = typeof ONYXKEYS.BANK_ACCOUNT_LIST | typeof ONYXKEYS.FUND_L
  * @param paymentListKey The onyx key for the provided payment method
  * @param paymentMethodID
  */
-function clearDeletePaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: string) {
+function clearDeletePaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: number) {
     Onyx.merge(paymentListKey, {
         [paymentMethodID]: {
             pendingAction: null,
@@ -318,7 +328,7 @@ function clearDeletePaymentMethodError(paymentListKey: PaymentListKey, paymentMe
  * @param paymentListKey The onyx key for the provided payment method
  * @param paymentMethodID
  */
-function clearAddPaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: string) {
+function clearAddPaymentMethodError(paymentListKey: PaymentListKey, paymentMethodID: number) {
     Onyx.merge(paymentListKey, {
         [paymentMethodID]: null,
     });

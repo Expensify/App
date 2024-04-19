@@ -8,12 +8,15 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
-import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import useLocalize from '@hooks/useLocalize';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,17 +55,20 @@ function BaseTextInput(
         onInputChange = () => {},
         shouldDelayFocus = false,
         multiline = false,
-        shouldInterceptSwipe = false,
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
+        isMarkdownEnabled = false,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
+    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
+    const markdownStyle = useMarkdownStyle();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -264,11 +270,7 @@ function BaseTextInput(
 
     return (
         <>
-            <View
-                style={[containerStyles]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
-            >
+            <View style={[containerStyles]}>
                 <PressableWithoutFeedback
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
@@ -327,13 +329,14 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            <RNTextInput
-                                ref={(element) => {
+                            <InputComponent
+                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                    const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
-                                        ref(element);
+                                        ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = element;
+                                        ref.current = baseTextInputRef;
                                     }
 
                                     input.current = element;
@@ -376,6 +379,7 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
+                                markdownStyle={markdownStyle}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator

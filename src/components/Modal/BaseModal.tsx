@@ -15,6 +15,7 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
+import ModalContent from './ModalContent';
 import type BaseModalProps from './types';
 
 function BaseModal(
@@ -33,6 +34,7 @@ function BaseModal(
         animationIn,
         animationOut,
         useNativeDriver: useNativeDriverProp,
+        useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
@@ -41,6 +43,9 @@ function BaseModal(
         avoidKeyboard = false,
         children,
         shouldUseCustomBackdrop = false,
+        onBackdropPress,
+        shouldEnableNewFocusManagement = false,
+        restoreFocusType,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -54,6 +59,14 @@ function BaseModal(
 
     const isVisibleRef = useRef(isVisible);
     const wasVisible = usePrevious(isVisible);
+
+    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+    const saveFocusState = () => {
+        if (shouldEnableNewFocusManagement) {
+            ComposerFocusManager.saveFocusState(modalId);
+        }
+        ComposerFocusManager.resetReadyToFocus(modalId);
+    };
 
     /**
      * Hides modal
@@ -69,18 +82,16 @@ function BaseModal(
                 onModalHide();
             }
             Modal.onModalDidClose();
-            if (!fullscreen) {
-                ComposerFocusManager.setReadyToFocus();
-            }
+            ComposerFocusManager.refocusAfterModalFullyClosed(modalId, restoreFocusType);
         },
-        [shouldSetModalVisibility, onModalHide, fullscreen],
+        [shouldSetModalVisibility, onModalHide, restoreFocusType, modalId],
     );
 
     useEffect(() => {
         isVisibleRef.current = isVisible;
         let removeOnCloseListener: () => void;
         if (isVisible) {
-            Modal.willAlertModalBecomeVisible(true);
+            Modal.willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             removeOnCloseListener = Modal.setCloseModal(onClose);
         }
@@ -91,7 +102,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose]);
+    }, [isVisible, wasVisible, onClose, type]);
 
     useEffect(
         () => () => {
@@ -117,11 +128,15 @@ function BaseModal(
             return;
         }
 
-        onClose();
+        if (onBackdropPress) {
+            onBackdropPress();
+        } else {
+            onClose();
+        }
     };
 
     const handleDismissModal = () => {
-        ComposerFocusManager.setReadyToFocus();
+        ComposerFocusManager.setReadyToFocus(modalId);
     };
 
     const {
@@ -175,47 +190,59 @@ function BaseModal(
     });
 
     return (
-        <ReactNativeModal
-            // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-            onClick={(e) => e.stopPropagation()}
-            onBackdropPress={handleBackdropPress}
-            // Note: Escape key on web/desktop will trigger onBackButtonPress callback
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            onBackButtonPress={Modal.closeTop}
-            onModalShow={handleShowModal}
-            propagateSwipe={propagateSwipe}
-            onModalHide={hideModal}
-            onModalWillShow={() => ComposerFocusManager.resetReadyToFocus()}
-            onDismiss={handleDismissModal}
-            onSwipeComplete={() => onClose?.()}
-            swipeDirection={swipeDirection}
-            isVisible={isVisible}
-            backdropColor={theme.overlay}
-            backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
-            backdropTransitionOutTiming={0}
-            hasBackdrop={fullscreen}
-            coverScreen={fullscreen}
-            style={modalStyle}
-            deviceHeight={windowHeight}
-            deviceWidth={windowWidth}
-            animationIn={animationIn ?? modalStyleAnimationIn}
-            animationOut={animationOut ?? modalStyleAnimationOut}
-            useNativeDriver={useNativeDriverProp && useNativeDriver}
-            hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-            animationInTiming={animationInTiming}
-            animationOutTiming={animationOutTiming}
-            statusBarTranslucent={statusBarTranslucent}
-            onLayout={onLayout}
-            avoidKeyboard={avoidKeyboard}
-            customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+        // this is a workaround for modal not being visible on the new arch in some cases
+        // it's necessary to have a non-collapseable view as a parent of the modal to prevent
+        // a conflict between RN core and Reanimated shadow tree operations
+        // position absolute is needed to prevent the view from interfering with flex layout
+        <View
+            collapsable={false}
+            style={[styles.pAbsolute]}
         >
-            <View
-                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
-                ref={ref}
+            <ReactNativeModal
+                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                onClick={(e) => e.stopPropagation()}
+                onBackdropPress={handleBackdropPress}
+                // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                onBackButtonPress={Modal.closeTop}
+                onModalShow={handleShowModal}
+                propagateSwipe={propagateSwipe}
+                onModalHide={hideModal}
+                onModalWillShow={saveFocusState}
+                onDismiss={handleDismissModal}
+                onSwipeComplete={() => onClose?.()}
+                swipeDirection={swipeDirection}
+                isVisible={isVisible}
+                backdropColor={theme.overlay}
+                backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
+                backdropTransitionOutTiming={0}
+                hasBackdrop={fullscreen}
+                coverScreen={fullscreen}
+                style={modalStyle}
+                deviceHeight={windowHeight}
+                deviceWidth={windowWidth}
+                animationIn={animationIn ?? modalStyleAnimationIn}
+                animationOut={animationOut ?? modalStyleAnimationOut}
+                useNativeDriver={useNativeDriverProp && useNativeDriver}
+                useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
+                hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+                animationInTiming={animationInTiming}
+                animationOutTiming={animationOutTiming}
+                statusBarTranslucent={statusBarTranslucent}
+                onLayout={onLayout}
+                avoidKeyboard={avoidKeyboard}
+                customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
             >
-                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-            </View>
-        </ReactNativeModal>
+                <ModalContent onDismiss={handleDismissModal}>
+                    <View
+                        style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                        ref={ref}
+                    >
+                        <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                    </View>
+                </ModalContent>
+            </ReactNativeModal>
+        </View>
     );
 }
 

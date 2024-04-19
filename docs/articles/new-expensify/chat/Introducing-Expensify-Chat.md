@@ -12,7 +12,7 @@ For a quick snapshot of how Expensify Chat works, and New Expensify in general, 
 
 # What’s Expensify Chat?
 
-Expensify Chat is an instant messaging and payment platform. You can manage all your payments, wether for business or personal, and discuss the transactions themselves. 
+Expensify Chat is an instant messaging and payment platform. You can manage all your payments, whether for business or personal, and discuss the transactions themselves. 
 
 With Expensify Chat, you can start a conversation about that missing receipt your employee forgot to submit or chat about splitting that electric bill with your roommates. Expensify makes sending and receiving money as easy as sending and receiving messages. Chat with anyone directly, in groups, or in rooms. 
 

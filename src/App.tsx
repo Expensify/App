@@ -2,7 +2,6 @@ import {PortalProvider} from '@gorhom/portal';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import Onyx from 'react-native-onyx';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
@@ -14,13 +13,16 @@ import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackgro
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
+import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
@@ -31,22 +33,13 @@ import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import * as Session from './libs/actions/Session';
-import * as Environment from './libs/Environment/Environment';
-import InitialUrlContext from './libs/InitialUrlContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 
 type AppProps = {
-    /** If we have an authToken this is true */
+    /** URL passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
     url?: Route;
 };
-
-// For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
-if (window && Environment.isDevelopment()) {
-    window.Onyx = Onyx;
-    window.setSupportToken = Session.setSupportAuthToken;
-}
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -61,7 +54,7 @@ function App({url}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
     return (
-        <InitialUrlContext.Provider value={url}>
+        <InitialURLContextProvider url={url}>
             <GestureHandlerRootView style={fill}>
                 <ComposeProviders
                     components={[
@@ -78,6 +71,7 @@ function App({url}: AppProps) {
                         KeyboardStateProvider,
                         PopoverContextProvider,
                         CurrentReportIDContextProvider,
+                        ScrollOffsetContextProvider,
                         ReportAttachmentsProvider,
                         PickerStateProvider,
                         EnvironmentProvider,
@@ -85,6 +79,7 @@ function App({url}: AppProps) {
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
                         PlaybackContextProvider,
+                        FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
                     ]}
@@ -92,13 +87,12 @@ function App({url}: AppProps) {
                     <CustomStatusBarAndBackground />
                     <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
                         <ColorSchemeWrapper>
-                            {/* @ts-expect-error TODO: Remove this once Expensify (https://github.com/Expensify/App/issues/25231) is migrated to TypeScript. */}
                             <Expensify />
                         </ColorSchemeWrapper>
                     </ErrorBoundary>
                 </ComposeProviders>
             </GestureHandlerRootView>
-        </InitialUrlContext.Provider>
+        </InitialURLContextProvider>
     );
 }
 

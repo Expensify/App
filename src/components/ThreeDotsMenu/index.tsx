@@ -1,9 +1,9 @@
-import React, {useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -12,44 +12,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import type {AnchorPosition} from '@src/styles';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type IconAsset from '@src/types/utils/IconAsset';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Modal} from '@src/types/onyx';
+import type ThreeDotsMenuProps from './types';
 
-type ThreeDotsMenuProps = {
-    /** Tooltip for the popup icon */
-    iconTooltip?: TranslationPaths;
-
-    /** icon for the popup trigger */
-    icon?: IconAsset;
-
-    /** Any additional styles to pass to the icon container. */
-    iconStyles?: StyleProp<ViewStyle>;
-
-    /** The fill color to pass into the icon. */
-    iconFill?: string;
-
-    /** Function to call on icon press */
-    onIconPress?: () => void;
-
-    /** menuItems that'll show up on toggle of the popup menu */
-    menuItems: PopoverMenuItem[];
-
-    /** The anchor position of the menu */
-    anchorPosition: AnchorPosition;
-
-    /** The anchor alignment of the menu */
-    anchorAlignment?: AnchorAlignment;
-
-    /** Whether the popover menu should overlay the current view */
-    shouldOverlay?: boolean;
-
-    /** Whether the menu is disabled */
-    disabled?: boolean;
-
-    /** Should we announce the Modal visibility changes? */
-    shouldSetModalVisibility?: boolean;
+type ThreeDotsMenuOnyxProps = {
+    /** Details about any modals being used */
+    modal: OnyxEntry<Modal>;
 };
 
 function ThreeDotsMenu({
@@ -67,12 +36,14 @@ function ThreeDotsMenu({
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
+    modal = {},
 }: ThreeDotsMenuProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const buttonRef = useRef<HTMLDivElement | null>(null);
     const {translate} = useLocalize();
+    const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
 
     const showPopoverMenu = () => {
         setPopupMenuVisible(true);
@@ -81,6 +52,13 @@ function ThreeDotsMenu({
     const hidePopoverMenu = () => {
         setPopupMenuVisible(false);
     };
+
+    useEffect(() => {
+        if (!isBehindModal || !isPopupMenuVisible) {
+            return;
+        }
+        hidePopoverMenu();
+    }, [isBehindModal, isPopupMenuVisible]);
 
     return (
         <>
@@ -120,7 +98,7 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                isVisible={isPopupMenuVisible}
+                isVisible={isPopupMenuVisible && !isBehindModal}
                 anchorPosition={anchorPosition}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
@@ -135,4 +113,8 @@ function ThreeDotsMenu({
 
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
-export default ThreeDotsMenu;
+export default withOnyx<ThreeDotsMenuProps, ThreeDotsMenuOnyxProps>({
+    modal: {
+        key: ONYXKEYS.MODAL,
+    },
+})(ThreeDotsMenu);
