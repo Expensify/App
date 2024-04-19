@@ -590,11 +590,22 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 }
 
 /**
+ * Check if transaction is duplicated
+ */
+function isDuplicate(transactionID: string, checkDissmissed: boolean): boolean {
+    return true;
+}
+
+/**
  * Check if transaction is on hold
  */
 function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
     if (!transaction) {
         return false;
+    }
+
+    if (isDuplicate(transaction.transactionID, true)) {
+        return true;
     }
 
     return !!transaction.comment?.hold;
@@ -700,6 +711,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    isDuplicate,
 };
 
 export type {TransactionChanges};
