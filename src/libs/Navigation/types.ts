@@ -61,6 +61,9 @@ type CentralPaneNavigatorParamList = {
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.WORKSPACES]: undefined;
+    [SCREENS.SEARCH.CENTRAL_PANE]: {
+        query: string;
+    };
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
 };
 
@@ -734,6 +737,7 @@ type WelcomeVideoModalNavigatorParamList = {
 
 type BottomTabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
+    [SCREENS.SEARCH.BOTTOM_TAB]: undefined;
     [SCREENS.SETTINGS.ROOT]: undefined;
 };
 
