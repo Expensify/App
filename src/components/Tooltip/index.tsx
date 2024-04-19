@@ -1,19 +1,31 @@
 import React from 'react';
-import BaseTooltip from './BaseTooltip';
+import EducationalTooltip from './EducationalTooltip';
+import HoverableTooltip from './HoverableTooltip';
 import type {TooltipExtendedProps} from './types';
 
-function Tooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
+function Tooltip({shouldRender = true, shouldRenderWithoutHover, children, ...props}: TooltipExtendedProps) {
     if (!shouldRender) {
         return children;
     }
 
+    if (shouldRenderWithoutHover) {
+        return (
+            <EducationalTooltip
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            >
+                {children}
+            </EducationalTooltip>
+        );
+    }
+
     return (
-        <BaseTooltip
+        <HoverableTooltip
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {children}
-        </BaseTooltip>
+        </HoverableTooltip>
     );
 }
 

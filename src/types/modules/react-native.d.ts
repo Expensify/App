@@ -244,7 +244,13 @@ declare module 'react-native' {
         onKeyUpCapture?: KeyboardEventHandler;
     }
 
-    // Extracted from react-native-web, packages/react-native-web/src/exports/View/types.js
+    // Extracted from react-native-web, packages/react-native-web/src/types/index.js
+    type LayoutValue = {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    };
     type LayoutEvent = {
         nativeEvent: {
             layout: LayoutValue;

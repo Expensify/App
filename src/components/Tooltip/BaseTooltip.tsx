@@ -1,9 +1,5 @@
-import React, {forwardRef, memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {Animated} from 'react-native';
-import type {LayoutChangeEvent, LayoutRectangle} from 'react-native';
-import TooltipRenderedOnPageBody from '@components/Tooltip/TooltipRenderedOnPageBody';
-import TooltipSense from '@components/Tooltip/TooltipSense';
-import type TooltipProps from '@components/Tooltip/types';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -11,25 +7,27 @@ import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
+import type {BaseTooltipProps, TooltipRect} from './types';
+import TooltipSense from './TooltipSense';
+import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 
-function Tooltip(
-    {
-        children,
-        numberOfLines = CONST.TOOLTIP_MAX_LINES,
-        maxWidth = variables.sideBarWidth,
-        text = '',
-        renderTooltipContent,
-        renderTooltipContentKey = [],
-        shiftHorizontal = 0,
-        shiftVertical = 0,
-        shouldForceRenderingBelow = false,
-        wrapperStyle = {},
-        shouldRenderWithoutHover = false,
-        shouldForceRenderingLeft = false,
-    }: TooltipProps,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ref: unknown,
-) {
+/**
+ * The base tooltip implementation, exposing the tooltip's state
+ * while leaving the bounds computation to its parent.
+ */
+function BaseTooltip({
+    children,
+    numberOfLines = CONST.TOOLTIP_MAX_LINES,
+    maxWidth = variables.sideBarWidth,
+    text = '',
+    renderTooltipContent,
+    renderTooltipContentKey = [],
+    shiftHorizontal = 0,
+    shiftVertical = 0,
+    shouldForceRenderingBelow = false,
+    wrapperStyle = {},
+    shouldForceRenderingLeft = false,
+}: BaseTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -90,7 +88,7 @@ function Tooltip(
     /**
      * Update the tooltip bounding rectangle
      */
-    const updateBounds = (bounds: LayoutRectangle) => {
+    const updateBounds = (bounds: TooltipRect) => {
         if (bounds.width === 0) {
             setIsRendered(false);
         }
@@ -123,17 +121,9 @@ function Tooltip(
         setIsVisible(false);
     }, []);
 
-    useEffect(() => {
-        const intervalID = setInterval(hideTooltip, 5000);
-        return () => {
-            clearInterval(intervalID);
-        };
-    }, [hideTooltip]);
-
-    // Skip the tooltip and return the children if the text is empty.
-    // Only render tooltip if shouldRenderWithoutHover because hover event is DOM-specific.
-    if ((StringUtils.isEmptyString(text) && renderTooltipContent == null) || !shouldRenderWithoutHover) {
-        return children;
+    // Skip the tooltip and return the children if the text is empty, we don't have a render function.
+    if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
+        return children({isVisible, showTooltip, hideTooltip, updateBounds});
     }
 
     return (
@@ -156,27 +146,16 @@ function Tooltip(
                     // This prevents flickering/moving while remaining performant.
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
-                    shouldForceRenderingLeft={shouldForceRenderingLeft}
                     wrapperStyle={wrapperStyle}
+                    shouldForceRenderingLeft={shouldForceRenderingLeft}
                 />
             )}
 
-            {React.isValidElement(children) ? (
-                <>
-                    {React.cloneElement(children as React.ReactElement, {
-                        onLayout: ({nativeEvent}: LayoutChangeEvent) => {
-                            updateBounds(nativeEvent.layout);
-                            showTooltip();
-                        },
-                    })}
-                </>
-            ) : (
-                children
-            )}
+            {children({isVisible, showTooltip, hideTooltip, updateBounds})}
         </>
     );
 }
 
-Tooltip.displayName = 'Tooltip';
+BaseTooltip.displayName = 'Tooltip';
 
-export default memo(forwardRef(Tooltip));
+export default memo(BaseTooltip);

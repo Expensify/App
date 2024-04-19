@@ -1,8 +1,9 @@
 import type {ReactNode} from 'react';
+import type React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
-type TooltipProps = ChildrenProps & {
+type SharedTooltipProps = {
     /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
     text?: string;
 
@@ -26,25 +27,52 @@ type TooltipProps = ChildrenProps & {
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
     renderTooltipContentKey?: string[];
 
-    /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
-    shouldHandleScroll?: boolean;
+    /** Whether to left align the tooltip relative to wrapped component */
+    shouldForceRenderingLeft?: boolean;
 
     shouldForceRenderingBelow?: boolean;
 
     /** Additional styles for tooltip wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Whether to show the tooltip immediately without hovering over the wrapped component */
-    shouldRenderWithoutHover?: boolean;
-
-    /** Whether to left align the tooltip relative to wrapped component */
-    shouldForceRenderingLeft?: boolean;
 };
 
-type TooltipExtendedProps = TooltipProps & {
+type TooltipRect = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
+type BaseTooltipState = {
+    isVisible: boolean;
+    showTooltip: () => void;
+    hideTooltip: () => void;
+    updateBounds: (rect: TooltipRect) => void;
+};
+
+type BaseTooltipProps = SharedTooltipProps & {
+    children: React.FC<BaseTooltipState>;
+};
+
+type TooltipProps = ChildrenProps & SharedTooltipProps;
+
+type HoverableTooltipProps = TooltipProps & {
+    /** Whether to show the tooltip immediately without hovering over the wrapped component */
+    shouldRenderWithoutHover?: false | undefined;
+
+    /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
+    shouldHandleScroll?: boolean;
+};
+
+type EducationalTooltipProps = TooltipProps & {
+    /** Whether to show the tooltip immediately without hovering over the wrapped component */
+    shouldRenderWithoutHover: true;
+};
+
+type TooltipExtendedProps = (EducationalTooltipProps | HoverableTooltipProps) & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
     shouldRender?: boolean;
 };
 
 export default TooltipProps;
-export type {TooltipExtendedProps};
+export type {HoverableTooltipProps, TooltipRect, BaseTooltipProps, TooltipExtendedProps};
