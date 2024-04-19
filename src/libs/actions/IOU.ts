@@ -99,7 +99,7 @@ type TrackExpenseInformation = {
 type SendInvoiceInformation = {
     senderWorkspaceID: string;
     receiver: Partial<OnyxTypes.PersonalDetails>;
-    invoiceRoomID: string;
+    invoiceRoomReportID: string;
     createdChatReportActionID: string;
     invoiceReportID: string;
     reportPreviewReportActionID: string;
@@ -1756,7 +1756,7 @@ function getSendInvoiceInformation(
     return {
         senderWorkspaceID,
         receiver,
-        invoiceRoomID: chatReport.reportID,
+        invoiceRoomReportID: chatReport.reportID,
         createdChatReportActionID: optimisticCreatedActionForChat.reportActionID,
         invoiceReportID: optimisticInvoiceReport.reportID,
         reportPreviewReportActionID: reportPreviewAction.reportActionID,
@@ -3366,7 +3366,7 @@ function sendInvoice(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const {senderWorkspaceID, receiver, invoiceRoomID, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
+    const {senderWorkspaceID, receiver, invoiceRoomReportID, createdChatReportActionID, invoiceReportID, reportPreviewReportActionID, transactionID, transactionThreadReportID, onyxData} =
         getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories);
 
     let parameters: SendInvoiceParams = {
@@ -3377,7 +3377,7 @@ function sendInvoice(
         merchant: transaction?.merchant ?? '',
         category: transaction?.category,
         date: transaction?.created ?? '',
-        invoiceRoomID,
+        invoiceRoomReportID,
         createdChatReportActionID,
         invoiceReportID,
         reportPreviewReportActionID,
@@ -3400,8 +3400,8 @@ function sendInvoice(
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
     resetMoneyRequestInfo();
-    Navigation.dismissModal(invoiceRoomID);
-    Report.notifyNewAction(invoiceRoomID, receiver.accountID);
+    Navigation.dismissModal(invoiceRoomReportID);
+    Report.notifyNewAction(invoiceRoomReportID, receiver.accountID);
 }
 
 /**

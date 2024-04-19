@@ -8,7 +8,7 @@ type SendInvoiceParams = {
     merchant: string;
     date: string;
     category?: string;
-    invoiceRoomID?: string;
+    invoiceRoomReportID?: string;
     createdChatReportActionID: string;
     invoiceReportID: string;
     reportPreviewReportActionID: string;
