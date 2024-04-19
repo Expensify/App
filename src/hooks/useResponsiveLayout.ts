@@ -22,28 +22,31 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();
 
     const [isInModal, setIsInModal] = useState(false);
-    const hasSetIsInModal = useRef(false);
-    const updateModalStatus = () => {
-        if (hasSetIsInModal.current) {
-            return;
-        }
-        const isDisplayedInModal = Navigation.isDisplayedInModal();
-        if (isInModal !== isDisplayedInModal) {
-            setIsInModal(isDisplayedInModal);
-        }
-        hasSetIsInModal.current = true;
-    };
+    // const hasSetIsInModal = useRef(false);
+    // const updateModalStatus = () => {
+    //     if (hasSetIsInModal.current) {
+    //         return;
+    //     }
+    //     const isDisplayedInModal = Navigation.isDisplayedInModal();
+    //     if (isInModal !== isDisplayedInModal) {
+    //         setIsInModal(isDisplayedInModal);
+    //     }
+    //     hasSetIsInModal.current = true;
+    // };
 
     useEffect(() => {
-        const unsubscribe = navigationRef?.current?.addListener('state', updateModalStatus);
+        Navigation.isNavigationReady().then(() => {
+            setIsInModal(Navigation.isDisplayedInModal());
+        });
+        // const unsubscribe = navigationRef?.current?.addListener('state', updateModalStatus);
 
-        if (navigationRef?.current?.isReady()) {
-            updateModalStatus();
-        }
+        // if (navigationRef?.current?.isReady()) {
+        //     updateModalStatus();
+        // }
 
-        return () => {
-            unsubscribe?.();
-        };
+        // return () => {
+        //     unsubscribe?.();
+        // };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
