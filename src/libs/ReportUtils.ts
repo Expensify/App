@@ -3919,7 +3919,13 @@ function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: 
     };
 }
 
-function buildOptimisticTaskReportAction(taskReportID: string, actionName: OriginalMessageActionName, message = ''): OptimisticTaskReportAction {
+function buildOptimisticTaskReportAction(
+    taskReportID: string,
+    actionName: OriginalMessageActionName,
+    message = '',
+    actorAccountID = currentUserAccountID,
+    createdOffset = 0,
+): OptimisticTaskReportAction {
     const originalMessage = {
         taskReportID,
         type: actionName,
@@ -3927,7 +3933,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: Origi
     };
     return {
         actionName,
-        actorAccountID: currentUserAccountID,
+        actorAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
@@ -3948,7 +3954,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: Origi
         ],
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
-        created: DateUtils.getDBTime(),
+        created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
         isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };

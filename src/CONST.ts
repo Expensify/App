@@ -3621,6 +3621,7 @@ const CONST = {
             tasks: [
                 {
                     type: 'createWorkspace',
+                    autoCompleted: true,
                     title: 'Create a workspace',
                     subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
                     message:
@@ -3633,6 +3634,7 @@ const CONST = {
                 },
                 {
                     type: 'trackExpense',
+                    autoCompleted: false,
                     title: 'Track an expense',
                     subtitle: 'Track an expense in any currency, in just a few clicks.',
                     message:
@@ -3659,6 +3661,7 @@ const CONST = {
             tasks: [
                 {
                     type: 'submitExpense',
+                    autoCompleted: false,
                     title: 'Submit an expense',
                     subtitle: 'Submit an expense by entering an amount or scanning a receipt.',
                     message:
@@ -3673,6 +3676,7 @@ const CONST = {
                 },
                 {
                     type: 'enableWallet',
+                    autoCompleted: false,
                     title: 'Enable your wallet',
                     subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
                     message:
@@ -3698,6 +3702,7 @@ const CONST = {
             tasks: [
                 {
                     type: 'createWorkspace',
+                    autoCompleted: true,
                     title: 'Create a workspace',
                     subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
                     message:
@@ -3710,6 +3715,7 @@ const CONST = {
                 },
                 {
                     type: 'meetGuide',
+                    autoCompleted: false,
                     title: 'Meet your setup specialist',
                     subtitle: '',
                     message: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
@@ -3719,6 +3725,7 @@ const CONST = {
                 },
                 {
                     type: 'setupCategories',
+                    autoCompleted: false,
                     title: 'Set up categories',
                     subtitle: 'Set up categories so your team can code expenses for easy reporting.',
                     message:
@@ -3734,6 +3741,7 @@ const CONST = {
                 },
                 {
                     type: 'addExpenseApprovals',
+                    autoCompleted: false,
                     title: 'Add expense approvals',
                     subtitle: 'Add expense approvals to review your team’s spend and keep it under control.',
                     message:
@@ -3749,6 +3757,7 @@ const CONST = {
                 },
                 {
                     type: 'inviteTeam',
+                    autoCompleted: false,
                     title: 'Invite your team',
                     subtitle: 'Invite your team to Expensify so they can start tracking expenses today.',
                     message:
@@ -3776,6 +3785,7 @@ const CONST = {
             tasks: [
                 {
                     type: 'trackExpense',
+                    autoCompleted: false,
                     title: 'Track an expense',
                     subtitle: 'Track an expense in any currency, whether you have a receipt or not.',
                     message:
@@ -3802,6 +3812,7 @@ const CONST = {
             tasks: [
                 {
                     type: 'startChat',
+                    autoCompleted: false,
                     title: 'Start a chat',
                     subtitle: 'Start a chat with a friend or group using their email or phone number.',
                     message:
@@ -3817,6 +3828,7 @@ const CONST = {
                 },
                 {
                     type: 'splitExpense',
+                    autoCompleted: false,
                     title: 'Split an expense',
                     subtitle: 'Split an expense right in your chat with one or more friends.',
                     message:
@@ -3831,6 +3843,7 @@ const CONST = {
                 },
                 {
                     type: 'enableWallet',
+                    autoCompleted: false,
                     title: 'Enable your wallet',
                     subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
                     message:

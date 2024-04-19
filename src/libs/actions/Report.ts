@@ -128,7 +128,7 @@ type TaskForParameters =
           parentReportActionID: string;
           assigneeChatReportID: string;
           createdTaskReportActionID: string;
-          completedTaskReportActionID: string;
+          completedTaskReportActionID?: string;
           title: string;
           description: string;
       }
@@ -3065,7 +3065,9 @@ function completeOnboarding(
               })
             : task.message;
         const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 1, isTaskMessageFunction ? undefined : false);
-        const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete');
+        const completedTaskReportAction = task.autoCompleted
+            ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+            : null;
 
         return {
             task,
@@ -3098,7 +3100,7 @@ function completeOnboarding(
                     parentReportActionID: taskReportAction.reportAction.reportActionID,
                     assigneeChatReportID: '',
                     createdTaskReportActionID: taskCreatedAction.reportActionID,
-                    completedTaskReportActionID: completedTaskReportAction.reportActionID,
+                    completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
                     title: currentTask.reportName ?? '',
                     description: currentTask.description ?? '',
                 },
@@ -3146,8 +3148,6 @@ function completeOnboarding(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
                     value: {
                         ...currentTask,
-                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                         pendingFields: {
                             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                             reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3163,7 +3163,6 @@ function completeOnboarding(
                     value: {
                         [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
                         [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
-                        [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
                     },
                 },
             ];
@@ -3176,6 +3175,25 @@ function completeOnboarding(
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
                     value: {
                         [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
+                    },
+                });
+            }
+
+            if (completedTaskReportAction) {
+                tasksForOptimisticDataAcc.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                    value: {
+                        [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
+                    },
+                });
+
+                tasksForOptimisticDataAcc.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
                     },
                 });
             }
