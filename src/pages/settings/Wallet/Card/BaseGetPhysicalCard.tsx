@@ -110,7 +110,7 @@ function BaseGetPhysicalCard({
     const isRouteSet = useRef(false);
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
-    const physicalCard = domainCards.find((card) => !card?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+    const physicalCard = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
     const cardID = physicalCard?.cardID ?? 0;
 
     useEffect(() => {

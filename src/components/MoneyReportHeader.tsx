@@ -43,7 +43,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of report actions for the report */
@@ -77,7 +77,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [requestType, setRequestType] = useState<'pay' | 'approve'>();
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
@@ -106,7 +106,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
-    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport);
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
@@ -119,7 +119,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
         if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
             setIsHoldMenuVisible(true);
         } else if (chatReport) {
-            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, false);
+            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
         }
     };
 
@@ -288,7 +288,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 danger
             />
             <ConfirmModal
-                title={translate('iou.deleteRequest')}
+                title={translate('iou.deleteExpense')}
                 isVisible={isDeleteRequestModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteRequestModalVisible(false)}

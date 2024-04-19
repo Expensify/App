@@ -8,14 +8,11 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as UserUtils from '@libs/UserUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, FundList, LoginList, Policy, PolicyMembers, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
+import type {BankAccountList, FundList, LoginList, Policy, ReimbursementAccount, UserWallet, WalletTerms} from '@src/types/onyx';
 
 type CheckingMethod = () => boolean;
 
 type IndicatorOnyxProps = {
-    /** The employee list of all policies (coming from Onyx) */
-    allPolicyMembers: OnyxCollection<PolicyMembers>;
-
     /** All the user's policies (from Onyx via withFullPolicy) */
     policies: OnyxCollection<Policy>;
 
@@ -40,14 +37,13 @@ type IndicatorOnyxProps = {
 
 type IndicatorProps = IndicatorOnyxProps;
 
-function Indicator({reimbursementAccount, allPolicyMembers, policies, bankAccountList, fundList, userWallet, walletTerms, loginList}: IndicatorOnyxProps) {
+function Indicator({reimbursementAccount, policies, bankAccountList, fundList, userWallet, walletTerms, loginList}: IndicatorOnyxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
     // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = Object.fromEntries(Object.entries(policies ?? {}).filter(([, policy]) => policy?.id));
-    const cleanAllPolicyMembers = Object.fromEntries(Object.entries(allPolicyMembers ?? {}).filter(([, policyMembers]) => !!policyMembers));
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since
@@ -57,7 +53,7 @@ function Indicator({reimbursementAccount, allPolicyMembers, policies, bankAccoun
         () => PaymentMethods.hasPaymentMethodError(bankAccountList, fundList),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasPolicyError),
         () => Object.values(cleanPolicies).some(PolicyUtils.hasCustomUnitsError),
-        () => Object.values(cleanAllPolicyMembers).some(PolicyUtils.hasPolicyMemberError),
+        () => Object.values(cleanPolicies).some(PolicyUtils.hasEmployeeListError),
         () => Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
         () => !!loginList && UserUtils.hasLoginListError(loginList),
 
@@ -77,9 +73,6 @@ function Indicator({reimbursementAccount, allPolicyMembers, policies, bankAccoun
 Indicator.displayName = 'Indicator';
 
 export default withOnyx<IndicatorProps, IndicatorOnyxProps>({
-    allPolicyMembers: {
-        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-    },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },

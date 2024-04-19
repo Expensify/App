@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,7 +43,22 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?: ValueOf<typeof SCREENS.WORKSPACE>;
+    routeName?:
+        | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
+        | typeof SCREENS.WORKSPACE.INITIAL
+        | typeof SCREENS.WORKSPACE.CARD
+        | typeof SCREENS.WORKSPACE.REIMBURSE
+        | typeof SCREENS.WORKSPACE.BILLS
+        | typeof SCREENS.WORKSPACE.INVOICES
+        | typeof SCREENS.WORKSPACE.TRAVEL
+        | typeof SCREENS.WORKSPACE.DISTANCE_RATES
+        | typeof SCREENS.WORKSPACE.WORKFLOWS
+        | typeof SCREENS.WORKSPACE.CATEGORIES
+        | typeof SCREENS.WORKSPACE.TAGS
+        | typeof SCREENS.WORKSPACE.TAXES
+        | typeof SCREENS.WORKSPACE.MORE_FEATURES
+        | typeof SCREENS.WORKSPACE.PROFILE
+        | typeof SCREENS.WORKSPACE.MEMBERS;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -60,7 +76,7 @@ function dismissError(policyID: string) {
     Policy.removeWorkspace(policyID);
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -69,6 +85,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -99,7 +116,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         ReimbursementAccount.navigateToBankAccountRoute(policyID);
     }, [policyID, policyName]);
 
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
+    const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
@@ -195,6 +212,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAXES,
             brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
+
+    if (policy?.areConnectionsEnabled && canUseAccountingIntegrations) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.accounting',
+            icon: Expensicons.Sync,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
+            // brickRoadIndicator should be set when API will be ready
+            brickRoadIndicator: undefined,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 

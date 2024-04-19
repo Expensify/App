@@ -171,6 +171,12 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** The parent report ID */
         // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
         parentReportID: string | undefined;
+
+        /** Whether report is from group policy */
+        isGroupPolicyReport: boolean;
+
+        /** policy ID of the report */
+        policyID: string;
     };
 
 const {RNTextInputReset} = NativeModules;
@@ -217,6 +223,8 @@ function ComposerWithSuggestions(
         isEmptyChat,
         lastReportAction,
         parentReportActionID,
+        isGroupPolicyReport,
+        policyID,
 
         // Focus
         onFocus,
@@ -591,8 +599,8 @@ function ComposerWithSuggestions(
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocused) {
+        ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+            if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
                 return;
             }
 
@@ -769,6 +777,8 @@ function ComposerWithSuggestions(
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                isGroupPolicyReport={isGroupPolicyReport}
+                policyID={policyID}
                 // Input
                 value={value}
                 setValue={setValue}
