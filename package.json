@@ -110,7 +110,7 @@
     "domhandler": "^4.3.0",
     "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#13de5b0606662df33fa1392ad82cc11daadff52e",
     "expo": "51.0.0-beta.0",
-    "expo-av": "~13.10.4",
+    "expo-av": "14.0.0",
     "expo-image": "1.11.0",
     "expo-image-manipulator": "11.8.0",
     "htmlparser2": "^7.2.0",
