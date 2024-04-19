@@ -486,9 +486,10 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
-            <View 
-            // @ts-expect-error `LayoutChangeEvent` doesn't contain a `top` property, but it is needed in the code to set the position of the receipt image
-            onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top))}>
+            <View
+                // @ts-expect-error `LayoutChangeEvent` doesn't contain a `top` property, but it is needed in the code to set the position of the receipt image
+                onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top))}
+            >
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
                     height={CONST.RECEIPT.ICON_SIZE}
