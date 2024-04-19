@@ -20,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -56,7 +55,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
-function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWithDefault | undefined, newAmount: number) {
+function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, taxRates: OnyxTypes.TaxRatesWithDefault | undefined, newAmount: number) {
     if (!transaction?.amount) {
         return;
     }
