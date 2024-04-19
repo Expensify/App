@@ -115,8 +115,6 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const formattedTransactionAmount = transactionAmount ? CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency) : '';
-    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && CurrencyUtils.convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
@@ -259,7 +257,7 @@ function MoneyRequestView({
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                {(showMapAsImage || hasReceipt) && (
+                {hasReceipt && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction?.errors}

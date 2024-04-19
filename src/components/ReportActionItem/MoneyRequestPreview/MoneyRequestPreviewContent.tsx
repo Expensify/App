@@ -116,8 +116,6 @@ function MoneyRequestPreviewContent({
     }
 
     const receiptImages = hasReceipt ? [{...ReceiptUtils.getThumbnailAndImageURIs(transaction), transaction}] : [];
-    const hasPendingWaypoints = transaction?.pendingFields?.waypoints;
-    const showMapAsImage = isDistanceRequest && hasPendingWaypoints;
 
     const getSettledMessage = (): string => {
         if (isCardTransaction) {
@@ -226,7 +224,7 @@ function MoneyRequestPreviewContent({
                         !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles] : {},
                     ]}
                 >
-                    {(hasReceipt || showMapAsImage) && (
+                    {hasReceipt && (
                         <ReportActionItemImages
                             images={receiptImages}
                             isHovered={isHovered || isScanning}
