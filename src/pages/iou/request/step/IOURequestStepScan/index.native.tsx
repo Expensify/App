@@ -70,7 +70,7 @@ function IOURequestStepScan({
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, iouType]);
+    }, [report, skipConfirmation, policy]);
 
     const {translate} = useLocalize();
 

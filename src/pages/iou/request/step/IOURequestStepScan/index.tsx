@@ -85,7 +85,7 @@ function IOURequestStepScan({
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, iouType]);
+    }, [report, skipConfirmation, policy]);
 
     /**
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.

@@ -329,7 +329,8 @@ function MoneyRequestAmountForm(
 
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 return translate('iou.splitExpense');
-            } else if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            }
+            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
                 return translate('iou.trackExpense');
             }
             return translate('iou.submitExpense');

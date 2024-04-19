@@ -110,7 +110,7 @@ function IOURequestStepDistance({
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, iouType]);
+    }, [report, skipConfirmation, policy]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -271,7 +271,7 @@ function IOURequestStepDistance({
         // If there was no reportID, then that means the user started this flow from the global menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [report, iouType, reportID, transactionID, backTo, waypoints, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction, translate]);
+    }, [report, iouType, reportID, transactionID, backTo, waypoints, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction, translate, policy]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.

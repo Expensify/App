@@ -90,7 +90,7 @@ function IOURequestStepAmount({
         }
 
         return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation, iouType]);
+    }, [report, skipConfirmation]);
 
     useFocusEffect(
         useCallback(() => {
