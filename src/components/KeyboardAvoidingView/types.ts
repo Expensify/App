@@ -1,3 +1,4 @@
-import {KeyboardAvoidingViewProps} from 'react-native';
+import type {KeyboardAvoidingViewProps} from 'react-native';
 
-export default KeyboardAvoidingViewProps;
+// eslint-disable-next-line import/prefer-default-export
+export type {KeyboardAvoidingViewProps};
