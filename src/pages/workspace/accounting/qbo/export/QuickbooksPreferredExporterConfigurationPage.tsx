@@ -40,12 +40,17 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
-            result?.map((vendor) => ({
-                value: vendor.email,
-                text: vendor.email,
-                keyForList: vendor.email,
-                isSelected: exporter === vendor.email,
-            })) ?? [],
+            result.reduce<CardListItem[]>((vendors, vendor) => {
+                if (vendor.email) {
+                    vendors.push({
+                        value: vendor.email,
+                        text: vendor.email,
+                        keyForList: vendor.email,
+                        isSelected: exporter === vendor.email,
+                    });
+                }
+                return vendors;
+            }, []),
         [result, exporter],
     );
 
