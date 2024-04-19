@@ -7,16 +7,10 @@ import slideFromRightAnimation from './animationOptions/web/slideFromRight';
 import withAnimation from './animationOptions/withAnimation';
 import getCommonNavigationOptions from './utils';
 
-const transformPlatformOptionsToWeb = (screenOptions?: PlatformStackNavigationOptions): StackNavigationOptions => {
-    if (screenOptions === undefined) {
-        return {};
-    }
-
-    return {
-        ...withAnimation<StackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, {}),
-        ...getCommonNavigationOptions(screenOptions),
-    };
-};
+const transformPlatformOptionsToWeb = (screenOptions: PlatformStackNavigationOptions | undefined): StackNavigationOptions => ({
+    ...withAnimation<StackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, {}),
+    ...getCommonNavigationOptions(screenOptions),
+});
 
 function withWebNavigationOptions<TStackParams extends ParamListBase>(screenOptions: PlatformStackNavigatorProps<TStackParams>['screenOptions']) {
     return isRouteBasedScreenOptions(screenOptions)

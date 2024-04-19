@@ -7,16 +7,10 @@ import slideFromRightAnimation from './animationOptions/native/slideFromRight';
 import withAnimation from './animationOptions/withAnimation';
 import getCommonNavigationOptions from './utils';
 
-const transformPlatformOptionsToNative = (screenOptions?: PlatformStackNavigationOptions): NativeStackNavigationOptions => {
-    if (screenOptions === undefined) {
-        return {};
-    }
-
-    return {
-        ...withAnimation<NativeStackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, {animation: 'slide_from_bottom'}),
-        ...getCommonNavigationOptions(screenOptions),
-    };
-};
+const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigationOptions | undefined): NativeStackNavigationOptions => ({
+    ...withAnimation<NativeStackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, {animation: 'slide_from_bottom'}),
+    ...getCommonNavigationOptions(screenOptions),
+});
 
 function withNativeNavigationOptions<TStackParams extends ParamListBase>(screenOptions: PlatformStackNavigatorProps<TStackParams>['screenOptions']) {
     return isRouteBasedScreenOptions(screenOptions)
