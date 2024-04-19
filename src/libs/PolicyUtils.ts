@@ -320,7 +320,7 @@ function getPolicyIDFromNavigationState() {
 }
 
 function getAdminEmailList(policy: Policy | null): PolicyEmployee[] {
-    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.email && employee.role === CONST.POLICY.ROLE.ADMIN);
+    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 export {
