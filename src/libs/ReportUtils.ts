@@ -4574,7 +4574,7 @@ function shouldHideReport(report: OnyxEntry<Report>, currentReportId: string): b
 }
 
 /**
- * Checks to see if a report's parentAction is an expense that contains a violation
+ * Checks to see if a report's parentAction is an expense that contains a violation type of either violation or warning
  */
 function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transactionViolations: OnyxCollection<TransactionViolation[]>, parentReportAction: OnyxEntry<ReportAction>): boolean {
     if (parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) {
@@ -4590,7 +4590,7 @@ function doesTransactionThreadHaveViolations(report: OnyxEntry<Report>, transact
     if (report?.stateNum !== CONST.REPORT.STATE_NUM.OPEN && report?.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED) {
         return false;
     }
-    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations);
+    return TransactionUtils.hasViolation(IOUTransactionID, transactionViolations) || TransactionUtils.hasWarning(IOUTransactionID, transactionViolations);
 }
 
 /**

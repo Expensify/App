@@ -620,7 +620,7 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  */
 function isDuplicate(transactionID: string, checkDismissed = false): boolean {
     const hasDuplicatedViolation = !!allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]?.some(
-        (violation: TransactionViolation) => violation.type === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     if (!checkDismissed) {
         return hasDuplicatedViolation;
@@ -647,6 +647,15 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     return Boolean(
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION),
+    );
+}
+
+/**
+ * Checks if any violations for the provided transaction are of type 'warning'
+ */
+function hasWarning(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(
+        transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING),
     );
 }
 
@@ -742,6 +751,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    hasWarning,
 };
 
 export type {TransactionChanges};
