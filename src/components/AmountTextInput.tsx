@@ -31,7 +31,7 @@ type AmountTextInputProps = {
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
 
-    /** Style for the container */
+    /** Style for the TextInput container */
     containerStyle?: StyleProp<ViewStyle>;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 

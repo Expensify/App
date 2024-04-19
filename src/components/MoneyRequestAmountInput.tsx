@@ -57,7 +57,7 @@ type MoneyRequestAmountInputProps = {
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 
-    /** Style for the container prefix */
+    /** Style for the prefix  container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
 
     /** Style for the touchable input wrapper */
@@ -160,7 +160,7 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (typeof amount !== 'number') {
+        if (!currency || typeof amount !== 'number') {
             return;
         }
         const frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
@@ -169,7 +169,7 @@ function MoneyRequestAmountInput(
             start: frontendAmount.length,
             end: frontendAmount.length,
         });
-        // we want to re-initialize the state only when the selected tab or amount changes
+        // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount]);
 
