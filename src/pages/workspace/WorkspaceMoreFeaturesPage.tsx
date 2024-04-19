@@ -48,7 +48,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
     const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline.config.syncTax;
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax;
 
     const spendItems: Item[] = [
         {

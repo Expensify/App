@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/onyx-props-must-have-default */
 import Str from 'expensify-common/lib/str';
 import React from 'react';
 import {FlatList} from 'react-native';
