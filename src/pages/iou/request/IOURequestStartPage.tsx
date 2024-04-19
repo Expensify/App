@@ -106,7 +106,7 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate],
     );
