@@ -509,11 +509,10 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
-            send: 'pay expenses',
+            pay: 'pay expenses',
             split: 'split an expense',
-            request: 'submit an expense',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'track-expense': 'track an expense',
+            submit: 'submit an expense',
+            track: 'track an expense',
         },
     },
     reportAction: {

@@ -502,11 +502,10 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
-            send: 'pagar gastos',
+            pay: 'pagar gastos',
             split: 'dividir un gasto',
-            request: 'presentar un gasto',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'track-expense': 'rastrear un gasto',
+            submit: 'presentar un gasto',
+            track: 'rastrear un gasto',
         },
     },
     reportAction: {

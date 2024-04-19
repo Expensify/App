@@ -1411,16 +1411,18 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
-            REQUEST: 'request',
+            SUBMIT: 'submit',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
+            PAY: 'pay',
             SPLIT: 'split',
             REQUEST: 'request',
-            TRACK_EXPENSE: 'track-expense',
+            SUBMIT: 'submit',
+            TRACK: 'track',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
