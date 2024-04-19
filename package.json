@@ -75,7 +75,7 @@
     "@invertase/react-native-apple-authentication": "^2.2.2",
     "@kie/act-js": "^2.6.0",
     "@kie/mock-github": "^1.0.0",
-    "@onfido/react-native-sdk": "10.6.0",
+    "@onfido/react-native-sdk": "11.1.0",
     "@react-native-async-storage/async-storage": "1.21.0",
     "@react-native-camera-roll/camera-roll": "7.4.0",
     "@react-native-clipboard/clipboard": "^1.13.2",
