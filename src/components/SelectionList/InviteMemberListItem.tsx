@@ -26,6 +26,8 @@ function InviteMemberListItem<TItem extends ListItem>({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
+    onFocus,
+    shouldSyncFocus,
 }: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -66,6 +68,8 @@ function InviteMemberListItem<TItem extends ListItem>({
                 ) : undefined
             }
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
         >
             {(hovered?: boolean) => (
                 <>
