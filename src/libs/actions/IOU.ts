@@ -265,7 +265,7 @@ function getReportPreviewAction(chatReportID: string, iouReportID: string): Onyx
     // Find the report preview action from the chat report
     return (
         Object.values(reportActions).find(
-            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
+            (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && reportAction.originalMessage.linkedReportID === iouReportID,
         ) ?? null
     );
 }
@@ -1420,7 +1420,7 @@ function getMoneyRequestInformation(
     // 2. CREATED action for the iouReport
     // 3. IOU action for the iouReport
     // 4. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
-    // 5. REPORTPREVIEW action for the chatReport
+    // 5. REPORT_PREVIEW action for the chatReport
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
         ReportUtils.buildOptimisticMoneyRequestEntities(
@@ -1627,7 +1627,7 @@ function getTrackExpenseInformation(
     // 1. CREATED action for the iouReport (if tracking in the Expense chat)
     // 2. IOU action for the iouReport (if tracking in the Expense chat), otherwise – for chatReport
     // 3. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
-    // 4. REPORTPREVIEW action for the chatReport (if tracking in the Expense chat)
+    // 4. REPORT_PREVIEW action for the chatReport (if tracking in the Expense chat)
     const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = ReportUtils.buildOptimisticMoneyRequestEntities(
         shouldUseMoneyReport && iouReport ? iouReport : chatReport,
         CONST.IOU.REPORT_ACTION_TYPE.TRACK,
@@ -2475,6 +2475,7 @@ const getConvertTrackedExpenseInformation = (
     linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID: string,
     transactionThreadReportID: string,
+    resolution: IOUAction,
 ) => {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -2526,7 +2527,7 @@ const getConvertTrackedExpenseInformation = (
         value: {
             [actionableWhisperReportActionID]: {
                 originalMessage: {
-                    resolution: CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING,
+                    resolution,
                 },
             },
         },
@@ -2582,6 +2583,7 @@ function convertTrackedExpenseToRequest(
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
+        CONST.IOU.ACTION.REQUEST,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -2648,6 +2650,7 @@ function categorizeTrackedExpense(
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
+        CONST.IOU.ACTION.CATEGORIZE,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -2717,6 +2720,7 @@ function shareTrackedExpense(
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
+        CONST.IOU.ACTION.SHARE,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -2820,7 +2824,7 @@ function requestMoney(
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     switch (action) {
-        case CONST.IOU.ACTION.MOVE: {
+        case CONST.IOU.ACTION.REQUEST: {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }
@@ -3375,7 +3379,7 @@ function createSplitsAndOnyxData(
         // 2. CREATED action for the iouReport
         // 3. IOU action for the iouReport
         // 4. Transaction Thread and the CREATED action for it
-        // 5. REPORTPREVIEW action for the chatReport
+        // 5. REPORT_PREVIEW action for the chatReport
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             ReportUtils.buildOptimisticMoneyRequestEntities(
                 oneOnOneIOUReport,
@@ -5339,7 +5343,7 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
         const iouReport = ReportUtils.getReport(action.childReportID ?? '');
         const policy = PolicyUtils.getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, chatReport, policy);
-        return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && shouldShowSettlementButton;
+        return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
     });
 }
 
