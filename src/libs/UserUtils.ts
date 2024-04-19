@@ -122,7 +122,7 @@ function getDefaultAvatarURL(accountID: string | number = ''): string {
 }
 
 /**
- * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
+ * Given a user's avatar path, returns true if URL points to a default avatar, false otherwise
  * @param avatarSource - the avatar source from user's personalDetails
  */
 function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
@@ -135,11 +135,6 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
         if (avatarSource === CONST.CONCIERGE_ICON_URL_2021 || avatarSource === CONST.CONCIERGE_ICON_URL) {
             return true;
         }
-    }
-
-    if (!avatarSource) {
-        // If source is undefined, we should also use a default avatar
-        return true;
     }
 
     return false;
