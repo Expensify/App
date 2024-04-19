@@ -312,10 +312,6 @@ const ROUTES = {
         route: 'r/:reportID/invite/:role?',
         getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
-    MONEY_REQUEST_PARTICIPANTS: {
-        route: ':iouType/new/participants/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
