@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SpacerView from '@components/SpacerView';
@@ -113,13 +114,17 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                             {collectionAccountID && (
                                 <>
-                                    <MenuItemWithTopDescription
-                                        shouldShowRightIcon
-                                        title="Croissant Co Payroll Account" // TODO: set to the current selected value
-                                        description={translate('workspace.qbo.advancedConfig.qboAccount')}
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                        onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                    />
+                                    <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
+                                        <MenuItemWithTopDescription
+                                            shouldShowRightIcon
+                                            title="Croissant Co Payroll Account" // TODO: set to the current selected value
+                                            description={translate('workspace.qbo.advancedConfig.qboAccount')}
+                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                            onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                                            errorText={errors?.collectionAccountID}
+                                            brickRoadIndicator={errors?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        />
+                                    </OfflineWithFeedback>
 
                                     <View style={styles.mv3}>
                                         <SpacerView
@@ -136,12 +141,16 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                         interactive={false}
                                     />
 
-                                    <MenuItemWithTopDescription
-                                        title="Croissant Co Money in Clearing" // TODO: set to the current selected value
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                        onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                    />
+                                    <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
+                                        <MenuItemWithTopDescription
+                                            title="Croissant Co Money in Clearing" // TODO: set to the current selected value
+                                            shouldShowRightIcon
+                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                            onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                                            errorText={errors?.collectionAccountID}
+                                            brickRoadIndicator={errors?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        />
+                                    </OfflineWithFeedback>
                                 </>
                             )}
                         </ScrollView>
