@@ -56,6 +56,8 @@ type FloatingActionButtonAndPopoverOnyxProps = {
 
     /** Personal details of all the users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    quickActionReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxProps & {
@@ -135,7 +137,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails}: FloatingActionButtonAndPopoverProps,
+    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails, quickActionReport}: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
@@ -146,8 +148,6 @@ function FloatingActionButtonAndPopover(
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
-
-    const quickActionReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : null), [quickAction]);
 
     const quickActionPolicy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`] : undefined;
 
@@ -397,6 +397,9 @@ export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<Floa
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    quickActionReport: {
+        key: ({quickAction}) => `${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`,
     },
 })(forwardRef(FloatingActionButtonAndPopover));
 

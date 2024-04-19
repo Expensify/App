@@ -104,6 +104,10 @@ type ReportActionItemOnyxProps = {
 
     /** Transaction associated with this report, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    originalReport: OnyxEntry<OnyxTypes.Report>;
+
+    linkedReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type ReportActionItemProps = {
@@ -153,6 +157,8 @@ const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is
 function ReportActionItem({
     action,
     report,
+    originalReport,
+    linkedReport,
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
@@ -191,7 +197,6 @@ function ReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const originalReportID = ReportUtils.getOriginalReportID(report.reportID, action);
-    const originalReport = report.reportID === originalReportID ? report : ReportUtils.getReport(originalReportID);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const reportScrollManager = useReportScrollManager();
@@ -524,7 +529,6 @@ function ReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
-            const linkedReport = ReportUtils.isChatThread(report) ? ReportUtils.getReport(report.parentReportID) : report;
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
@@ -994,6 +998,12 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             const transactionID = (action as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (action as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
+    },
+    originalReport: {
+        key: ({report, action}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportUtils.getOriginalReportID(report.reportID, action)}`,
+    },
+    linkedReport: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportUtils.isChatThread(report) ? report.parentReportID : report.reportID}`,
     },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {

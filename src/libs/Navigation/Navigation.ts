@@ -1,11 +1,13 @@
 import {findFocusedRoute} from '@react-navigation/core';
 import type {EventArg, NavigationContainerEventMap} from '@react-navigation/native';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as ReportUtils from '@libs/ReportUtils';
-import {getReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
@@ -30,6 +32,13 @@ const navigationIsReadyPromise = new Promise<void>((resolve) => {
 let pendingRoute: Route | null = null;
 
 let shouldPopAllStateOnUP = false;
+
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
 
 /**
  * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
@@ -58,7 +67,7 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
         originalDismissModal(ref);
         return;
     }
-    const report = getReport(reportID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
 

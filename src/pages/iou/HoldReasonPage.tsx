@@ -1,6 +1,7 @@
 import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -45,7 +46,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
 
-    const report = ReportUtils.getReport(reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
     const navigateBack = () => {

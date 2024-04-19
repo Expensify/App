@@ -1,3 +1,4 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as OnyxUpdates from '@libs/actions/OnyxUpdates';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
@@ -5,13 +6,13 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
 import {extractPolicyIDFromPath} from '@libs/PolicyUtils';
-import {doesReportBelongToWorkspace, getReport} from '@libs/ReportUtils';
+import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from './index';
 
@@ -24,6 +25,13 @@ Onyx.connect({
         }
         lastVisitedPath = value;
     },
+});
+
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
 });
 
 /**
@@ -40,7 +48,7 @@ export default function subscribeToReportCommentPushNotifications() {
         if (onyxData && lastUpdateID && previousUpdateID) {
             Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
 
-            const updates: OnyxUpdatesFromServer = {
+            const updates: OnyxTypes.OnyxUpdatesFromServer = {
                 type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
                 lastUpdateID,
                 previousUpdateID,
@@ -64,7 +72,7 @@ export default function subscribeToReportCommentPushNotifications() {
         }
 
         const policyID = lastVisitedPath && extractPolicyIDFromPath(lastVisitedPath);
-        const report = getReport(reportID.toString());
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID.toString()}`] ?? null;
         const policyEmployeeAccountIDs = policyID ? getPolicyEmployeeAccountIDs(policyID) : [];
 
         const reportBelongsToWorkspace = policyID && !isEmptyObject(report) && doesReportBelongToWorkspace(report, policyEmployeeAccountIDs, policyID);

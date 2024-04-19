@@ -36,6 +36,9 @@ type SettlementButtonOnyxProps = {
 
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
+
+    /** When the button is opened via an IOU, the chatReport that the IOU is linked to */
+    chatReport: OnyxEntry<Report>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
@@ -118,6 +121,7 @@ function SettlementButton({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
     buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    chatReport,
     chatReportID = '',
     currency = CONST.CURRENCY.USD,
     enablePaymentsRoute,
@@ -148,7 +152,6 @@ function SettlementButton({
     }, []);
 
     const session = useSession();
-    const chatReport = ReportUtils.getReport(chatReportID);
     const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
@@ -277,5 +280,8 @@ export default withOnyx<SettlementButtonProps, SettlementButtonOnyxProps>({
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    chatReport: {
+        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
     },
 })(SettlementButton);

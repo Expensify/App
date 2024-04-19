@@ -19,7 +19,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Beta, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
@@ -35,6 +35,8 @@ type BaseReportActionContextMenuOnyxProps = {
 
     /** The transaction linked to the report action this context menu is attached to. */
     transaction: OnyxEntry<Transaction>;
+
+    originalReport: OnyxEntry<Report>;
 };
 
 type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
@@ -114,6 +116,7 @@ function BaseReportActionContextMenu({
     reportID,
     betas,
     reportActions,
+    originalReport,
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
@@ -200,8 +203,6 @@ function BaseReportActionContextMenu({
     );
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: MutableRefObject<View | null>) => {
-        const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
-        const originalReport = ReportUtils.getReport(originalReportID);
         showContextMenu(
             CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -209,7 +210,7 @@ function BaseReportActionContextMenu({
             anchorRef?.current as ViewType | RNText | null,
             reportID,
             reportAction?.reportActionID,
-            originalReportID,
+            originalReport?.reportID,
             draftMessage,
             checkIfContextMenuActive,
             () => {
@@ -303,6 +304,13 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
         key: ({reportActions, reportActionID}) => {
             const reportAction = reportActions?.[reportActionID];
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? 0}`;
+        },
+    },
+    originalReport: {
+        key: ({reportID, reportActionID, reportActions}) => {
+            const reportAction = reportActions?.[reportActionID] ?? null;
+            const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+            return `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`;
         },
     },
 })(

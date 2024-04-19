@@ -5,7 +5,8 @@ import React from 'react';
 import {InteractionManager} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
@@ -27,14 +28,15 @@ import * as Download from '@userActions/Download';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
-function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
+function getActionHtml(reportAction: OnyxEntry<OnyxTypes.ReportAction>): string {
     const message = reportAction?.message?.at(-1) ?? null;
     return message?.html ?? '';
 }
@@ -52,9 +54,9 @@ function setClipboardMessage(content: string) {
 
 type ShouldShow = (
     type: string,
-    reportAction: OnyxEntry<ReportAction>,
+    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
     isArchivedRoom: boolean,
-    betas: OnyxEntry<Beta[]>,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     menuTarget: MutableRefObject<ContextMenuAnchor> | undefined,
     isChronosReport: boolean,
     reportID: string,
@@ -65,8 +67,8 @@ type ShouldShow = (
 ) => boolean;
 
 type ContextMenuActionPayload = {
-    reportAction: ReportAction;
-    transaction?: OnyxEntry<Transaction>;
+    reportAction: OnyxTypes.ReportAction;
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
     reportID: string;
     draftMessage: string;
     selection: string;
@@ -106,11 +108,19 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
     shouldPreventDefaultFocusOnPress?: boolean;
 };
 
+let allReports: OnyxCollection<OnyxTypes.Report>;
+// eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
 // A list of all the context actions in this menu.
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
-        shouldShow: (type, reportAction): reportAction is ReportAction =>
+        shouldShow: (type, reportAction): reportAction is OnyxTypes.ReportAction =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !ReportActionsUtils.isMessageDeleted(reportAction),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
             const isMini = !closePopover;
@@ -126,7 +136,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 }
             };
 
-            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>) => {
+            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>) => {
                 Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
@@ -169,7 +179,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Download,
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is OnyxTypes.ReportAction => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = getActionHtml(reportAction);
             return (
@@ -356,7 +366,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
-                    const iouReport = ReportUtils.getReport(ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction));
+                    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ReportActionsUtils.getIOUReportIDFromReportActionPreview(reportAction)}`] ?? null;
                     const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isTaskAction(reportAction)) {
@@ -367,7 +377,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (ReportActionsUtils.isReimbursementDeQueuedAction(reportAction)) {
                     const {expenseReportID} = reportAction.originalMessage;
-                    const expenseReport = ReportUtils.getReport(expenseReportID);
+                    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`] ?? null;
                     const displayMessage = ReportUtils.getReimbursementDeQueuedActionMessage(reportAction, expenseReport);
                     Clipboard.setString(displayMessage);
                 } else if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
@@ -380,7 +390,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const logMessage = ReportActionsUtils.getMemberChangeMessageFragment(reportAction).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (ReportActionsUtils.isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, ReportUtils.getReport(reportID), false));
+                    Clipboard.setString(ReportUtils.getReimbursementQueuedActionMessage(reportAction, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null, false));
                 } else if (ReportActionsUtils.isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = ReportActionsUtils.getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);

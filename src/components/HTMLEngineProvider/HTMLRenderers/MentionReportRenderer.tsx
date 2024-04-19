@@ -10,7 +10,6 @@ import Text from '@components/Text';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getReport} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -35,7 +34,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
 
     // Get mention details based on reportID from tag attribute
     if (!isEmpty(htmlAttributeReportID)) {
-        const report = getReport(htmlAttributeReportID);
+        const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}`];
 
         reportID = report?.reportID ?? undefined;
         mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? report?.displayName ?? htmlAttributeReportID);
@@ -61,8 +60,8 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
 
-    const currentReportID = useCurrentReportID();
-    const currentReport = getReport(currentReportID?.currentReportID);
+    const currentReportIDValue = useCurrentReportID();
+    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue?.currentReportID}`] ?? null;
     const isGroupPolicyReport = useMemo(() => (currentReport && !isEmptyObject(currentReport) ? ReportUtils.isGroupPolicy(currentReport) : false), [currentReport]);
 
     const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReport, reports, tnode);
@@ -72,7 +71,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const {reportID, mentionDisplayText} = mentionDetails;
 
     const navigationRoute = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
-    const isCurrentRoomMention = reportID === currentReportID?.currentReportID;
+    const isCurrentRoomMention = reportID === currentReportIDValue?.currentReportID;
 
     const flattenStyle = StyleSheet.flatten(style as TextStyle);
     const {color, ...styleWithoutColor} = flattenStyle;

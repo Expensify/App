@@ -428,7 +428,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         lastReadTime: currentTime,
     };
 
-    const report = ReportUtils.getReport(reportID);
+    const report = currentReportData?.[reportID];
 
     if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
@@ -699,7 +699,7 @@ function openReport(
         parameters.shouldRetry = false;
     }
 
-    const report = ReportUtils.getReport(reportID);
+    const report = currentReportData?.[reportID];
     // If we open an exist report, but it is not present in Onyx yet, we should change the method to set for this report
     // and we need data to be available when we navigate to the chat page
     if (isEmptyObject(report)) {
@@ -2436,7 +2436,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
 }
 
 function leaveGroupChat(reportID: string) {
-    const report = ReportUtils.getReport(reportID);
+    const report = currentReportData?.[reportID];
     if (!report) {
         Log.warn('Attempting to leave Group Chat that does not existing locally');
         return;
@@ -2989,7 +2989,7 @@ function completeEngagementModal(choice: ValueOf<typeof CONST.ONBOARDING_CHOICES
     const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID]);
     conciergeChatReportID = conciergeChatReport?.reportID;
 
-    const report = ReportUtils.getReport(conciergeChatReportID);
+    const report = currentReportData?.[conciergeChatReportID ?? ''];
 
     if (!isEmptyObject(report) && ReportUtils.getReportNotificationPreference(report) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         optimisticReport.notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;

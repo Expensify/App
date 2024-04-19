@@ -294,6 +294,13 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => (allReports = value),
+});
+
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns Returns avatar data for a list of user accountIDs
@@ -592,7 +599,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         const properSchemaForMoneyRequestMessage = ReportUtils.getReportPreviewMessage(report, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = ReportUtils.formatReportLastMessageText(properSchemaForMoneyRequestMessage);
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction)}`];
         const lastIOUMoneyReportAction = allSortedReportActions[iouReport?.reportID ?? '']?.find(
             (reportAction, key) =>
                 ReportActionUtils.shouldReportActionBeVisible(reportAction, key) &&
@@ -774,7 +781,7 @@ function createOption(
  * Get the option for a given report.
  */
 function getReportOption(participant: Participant): ReportUtils.OptionData {
-    const report = ReportUtils.getReport(participant.reportID);
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
 
     const option = createOption(
         report?.visibleChatMemberAccountIDs ?? [],
@@ -803,7 +810,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
  * Get the option for a policy expense report.
  */
 function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
-    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
+    const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] : null;
 
     const option = createOption(
         expenseReport?.visibleChatMemberAccountIDs ?? [],
