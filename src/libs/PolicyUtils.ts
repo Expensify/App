@@ -319,7 +319,7 @@ function getPolicyIDFromNavigationState() {
     return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
-function getAdminEmailList(policy: Policy | null): PolicyEmployee[] {
+function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
