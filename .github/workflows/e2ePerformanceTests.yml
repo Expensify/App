@@ -107,7 +107,7 @@ jobs:
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfUnmergedPR
         run: |
-          git merge --allow-unrelated-histories --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          git merge --allow-unrelated-histories -X ours --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
           git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
