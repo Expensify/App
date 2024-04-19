@@ -14,7 +14,6 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,50 +66,49 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     };
 
     return (
-        <AccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={PolicyDistanceRatesSettingsPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={PolicyDistanceRatesSettingsPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                    <View style={styles.flexGrow1}>
+                <HeaderWithBackButton title={translate('workspace.common.settings')} />
+                <View style={styles.flexGrow1}>
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'attributes')}
+                        pendingAction={customUnits[customUnitID].pendingFields?.attributes}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('attributes')}
+                    >
+                        <UnitSelector
+                            label={translate('workspace.distanceRates.unit')}
+                            defaultValue={defaultUnit}
+                            wrapperStyle={[styles.ph5, styles.mt3]}
+                            setNewUnit={setNewUnit}
+                        />
+                    </OfflineWithFeedback>
+                    {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
                         <OfflineWithFeedback
-                            errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'attributes')}
-                            pendingAction={customUnits[customUnitID].pendingFields?.attributes}
+                            errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'defaultCategory')}
+                            pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('attributes')}
+                            onClose={() => clearErrorFields('defaultCategory')}
                         >
-                            <UnitSelector
-                                label={translate('workspace.distanceRates.unit')}
-                                defaultValue={defaultUnit}
+                            <CategorySelector
+                                policyID={policyID}
+                                label={translate('workspace.distanceRates.defaultCategory')}
+                                defaultValue={defaultCategory}
                                 wrapperStyle={[styles.ph5, styles.mt3]}
-                                setNewUnit={setNewUnit}
+                                setNewCategory={setNewCategory}
                             />
                         </OfflineWithFeedback>
-                        {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
-                            <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'defaultCategory')}
-                                pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearErrorFields('defaultCategory')}
-                            >
-                                <CategorySelector
-                                    policyID={policyID}
-                                    label={translate('workspace.distanceRates.defaultCategory')}
-                                    defaultValue={defaultCategory}
-                                    wrapperStyle={[styles.ph5, styles.mt3]}
-                                    setNewCategory={setNewCategory}
-                                />
-                            </OfflineWithFeedback>
-                        )}
-                    </View>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                    )}
+                </View>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

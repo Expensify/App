@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
@@ -26,43 +25,39 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
         <AccessOrNotFoundWrapper
             accessVariants={['ADMIN']}
             policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={QuickbooksTaxesPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={QuickbooksTaxesPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.taxes')} />
-                    <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.taxesDescription')}</Text>
-                        <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <View style={styles.flex1}>
-                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
-                            </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.syncTaxes}>
-                                <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                                    <Switch
-                                        accessibilityLabel={translate('workspace.qbo.taxes')}
-                                        isOn={isSwitchOn}
-                                        onToggle={() =>
-                                            Connections.updatePolicyConnectionConfig(
-                                                policyID,
-                                                CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICKBOOKS_IMPORTS.SYNC_TAXES,
-                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                                            )
-                                        }
-                                    />
-                                </View>
-                            </OfflineWithFeedback>
+                <HeaderWithBackButton title={translate('workspace.qbo.taxes')} />
+                <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
+                    <Text style={styles.pb5}>{translate('workspace.qbo.taxesDescription')}</Text>
+                    <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={styles.flex1}>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
                         </View>
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                        <OfflineWithFeedback pendingAction={pendingFields?.syncTaxes}>
+                            <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
+                                <Switch
+                                    accessibilityLabel={translate('workspace.qbo.taxes')}
+                                    isOn={isSwitchOn}
+                                    onToggle={() =>
+                                        Connections.updatePolicyConnectionConfig(
+                                            policyID,
+                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                            CONST.QUICKBOOKS_IMPORTS.SYNC_TAXES,
+                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                        )
+                                    }
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

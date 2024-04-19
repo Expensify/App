@@ -195,7 +195,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     );
 
     return (
-        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={route.params.policyID}
+        >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}

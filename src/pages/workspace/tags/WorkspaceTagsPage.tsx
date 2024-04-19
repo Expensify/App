@@ -256,70 +256,69 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     };
 
     return (
-        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={route.params.policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceTagsPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
-                    offlineIndicatorStyle={styles.mtAuto}
+                <HeaderWithBackButton
+                    icon={Illustrations.Tag}
+                    title={translate('workspace.common.tags')}
+                    shouldShowBackButton={isSmallScreenWidth}
                 >
-                    <HeaderWithBackButton
-                        icon={Illustrations.Tag}
-                        title={translate('workspace.common.tags')}
-                        shouldShowBackButton={isSmallScreenWidth}
-                    >
-                        {!isSmallScreenWidth && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    <ConfirmModal
-                        isVisible={deleteTagsConfirmModalVisible}
-                        onConfirm={handleDeleteTags}
-                        onCancel={() => setDeleteTagsConfirmModalVisible(false)}
-                        title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
-                        prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
+                    {!isSmallScreenWidth && getHeaderButtons()}
+                </HeaderWithBackButton>
+                <ConfirmModal
+                    isVisible={deleteTagsConfirmModalVisible}
+                    onConfirm={handleDeleteTags}
+                    onCancel={() => setDeleteTagsConfirmModalVisible(false)}
+                    title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
+                    prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                </View>
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
                     />
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-                    </View>
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
-                        />
-                    )}
-                    {tagList.length === 0 && !isLoading && (
-                        <WorkspaceEmptyStateSection
-                            title={translate('workspace.tags.emptyTags.title')}
-                            icon={Illustrations.EmptyStateExpenses}
-                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                        />
-                    )}
-                    {tagList.length > 0 && !isLoading && (
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data: tagList, isDisabled: false}]}
-                            onCheckboxPress={toggleTag}
-                            onSelectRow={navigateToTagSettings}
-                            onSelectAll={toggleAllTags}
-                            showScrollIndicator
-                            ListItem={TableListItem}
-                            customListHeader={getCustomListHeader()}
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
-                        />
-                    )}
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                )}
+                {tagList.length === 0 && !isLoading && (
+                    <WorkspaceEmptyStateSection
+                        title={translate('workspace.tags.emptyTags.title')}
+                        icon={Illustrations.EmptyStateExpenses}
+                        subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                    />
+                )}
+                {tagList.length > 0 && !isLoading && (
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data: tagList, isDisabled: false}]}
+                        onCheckboxPress={toggleTag}
+                        onSelectRow={navigateToTagSettings}
+                        onSelectAll={toggleAllTags}
+                        showScrollIndicator
+                        ListItem={TableListItem}
+                        customListHeader={getCustomListHeader()}
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
+                    />
+                )}
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

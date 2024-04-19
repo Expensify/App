@@ -10,7 +10,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -59,29 +58,28 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     );
 
     return (
-        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={route.params.policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={EditCategoryPage.displayName}
+                shouldEnableMaxHeight
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={EditCategoryPage.displayName}
-                    shouldEnableMaxHeight
-                >
-                    <HeaderWithBackButton
-                        title={translate('workspace.categories.editCategory')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
-                    />
-                    <CategoryForm
-                        onSubmit={editCategory}
-                        validateEdit={validate}
-                        categoryName={currentCategoryName}
-                        policyCategories={policyCategories}
-                    />
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                <HeaderWithBackButton
+                    title={translate('workspace.categories.editCategory')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
+                />
+                <CategoryForm
+                    onSubmit={editCategory}
+                    validateEdit={validate}
+                    categoryName={currentCategoryName}
+                    policyCategories={policyCategories}
+                />
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

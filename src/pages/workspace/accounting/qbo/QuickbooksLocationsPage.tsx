@@ -11,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
@@ -29,56 +28,52 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
         <AccessOrNotFoundWrapper
             accessVariants={['ADMIN']}
             policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={QuickbooksLocationsPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={QuickbooksLocationsPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.locations')} />
-                    <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.locationsDescription')}</Text>
-                        <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <View style={styles.flex1}>
-                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
-                            </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.syncLocations}>
-                                <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                                    <Switch
-                                        accessibilityLabel={translate('workspace.qbo.locations')}
-                                        isOn={isSwitchOn}
-                                        onToggle={() =>
-                                            Connections.updatePolicyConnectionConfig(
-                                                policyID,
-                                                CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICKBOOKS_IMPORTS.SYNC_LOCATIONS,
-                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                                            )
-                                        }
-                                    />
-                                </View>
-                            </OfflineWithFeedback>
+                <HeaderWithBackButton title={translate('workspace.qbo.locations')} />
+                <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
+                    <Text style={styles.pb5}>{translate('workspace.qbo.locationsDescription')}</Text>
+                    <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={styles.flex1}>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
                         </View>
-                        {isSwitchOn && (
-                            <OfflineWithFeedback>
-                                <MenuItemWithTopDescription
-                                    interactive={false}
-                                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                                    description={translate('workspace.qbo.displayedAs')}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                        <OfflineWithFeedback pendingAction={pendingFields?.syncLocations}>
+                            <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
+                                <Switch
+                                    accessibilityLabel={translate('workspace.qbo.locations')}
+                                    isOn={isSwitchOn}
+                                    onToggle={() =>
+                                        Connections.updatePolicyConnectionConfig(
+                                            policyID,
+                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                            CONST.QUICKBOOKS_IMPORTS.SYNC_LOCATIONS,
+                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                        )
+                                    }
                                 />
-                            </OfflineWithFeedback>
-                        )}
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
-                            <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
-                        </View>
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                            </View>
+                        </OfflineWithFeedback>
+                    </View>
+                    {isSwitchOn && (
+                        <OfflineWithFeedback>
+                            <MenuItemWithTopDescription
+                                interactive={false}
+                                title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                                description={translate('workspace.qbo.displayedAs')}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
+                        <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

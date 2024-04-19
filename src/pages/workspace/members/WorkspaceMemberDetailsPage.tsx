@@ -128,7 +128,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, policyID]);
 
     return (
-        <AccessOrNotFoundWrapper policyID={policyID}>
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={policyID}
+        >
             <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
                 <HeaderWithBackButton
                     title={displayName}

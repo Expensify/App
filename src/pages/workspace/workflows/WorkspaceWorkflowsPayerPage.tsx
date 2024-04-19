@@ -175,7 +175,10 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     );
 
     return (
-        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={route.params.policyID}
+        >
             <FullPageNotFoundView
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}

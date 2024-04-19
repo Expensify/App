@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
@@ -27,46 +26,42 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
         <AccessOrNotFoundWrapper
             accessVariants={['ADMIN']}
             policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={QuickbooksChartOfAccountsPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={QuickbooksChartOfAccountsPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
-                    <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
-                        <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <View style={styles.flex1}>
-                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
-                            </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
-                                <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                                    <Switch
-                                        accessibilityLabel={translate('workspace.qbo.accounts')}
-                                        isOn={isSwitchOn}
-                                        onToggle={() =>
-                                            Connections.updatePolicyConnectionConfig(
-                                                policyID,
-                                                CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICKBOOKS_IMPORTS.ENABLE_NEW_CATEGORIES,
-                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                                            )
-                                        }
-                                    />
-                                </View>
-                            </OfflineWithFeedback>
-                        </View>
+                <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
+                <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
+                    <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
+                    <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
-                            <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
                         </View>
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                        <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
+                            <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
+                                <Switch
+                                    accessibilityLabel={translate('workspace.qbo.accounts')}
+                                    isOn={isSwitchOn}
+                                    onToggle={() =>
+                                        Connections.updatePolicyConnectionConfig(
+                                            policyID,
+                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                            CONST.QUICKBOOKS_IMPORTS.ENABLE_NEW_CATEGORIES,
+                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                        )
+                                    }
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    </View>
+                    <View style={styles.flex1}>
+                        <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

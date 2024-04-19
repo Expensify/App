@@ -30,7 +30,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -247,70 +246,69 @@ function WorkspaceCategoriesPage({policy, policyCategories, route}: WorkspaceCat
     const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
 
     return (
-        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={route.params.policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceCategoriesPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceCategoriesPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
-                    offlineIndicatorStyle={styles.mtAuto}
+                <HeaderWithBackButton
+                    icon={Illustrations.FolderOpen}
+                    title={translate('workspace.common.categories')}
+                    shouldShowBackButton={isSmallScreenWidth}
                 >
-                    <HeaderWithBackButton
-                        icon={Illustrations.FolderOpen}
-                        title={translate('workspace.common.categories')}
-                        shouldShowBackButton={isSmallScreenWidth}
-                    >
-                        {!isSmallScreenWidth && getHeaderButtons()}
-                    </HeaderWithBackButton>
-                    <ConfirmModal
-                        isVisible={deleteCategoriesConfirmModalVisible}
-                        onConfirm={handleDeleteCategories}
-                        onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
-                        title={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
-                        prompt={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
-                        confirmText={translate('common.delete')}
-                        cancelText={translate('common.cancel')}
-                        danger
+                    {!isSmallScreenWidth && getHeaderButtons()}
+                </HeaderWithBackButton>
+                <ConfirmModal
+                    isVisible={deleteCategoriesConfirmModalVisible}
+                    onConfirm={handleDeleteCategories}
+                    onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
+                    title={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
+                    prompt={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                </View>
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
                     />
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
-                    </View>
-                    {isLoading && (
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.spinner}
-                        />
-                    )}
-                    {shouldShowEmptyState && (
-                        <WorkspaceEmptyStateSection
-                            title={translate('workspace.categories.emptyCategories.title')}
-                            icon={Illustrations.EmptyStateExpenses}
-                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        />
-                    )}
-                    {!shouldShowEmptyState && !isLoading && (
-                        <SelectionList
-                            canSelectMultiple
-                            sections={[{data: categoryList, isDisabled: false}]}
-                            onCheckboxPress={toggleCategory}
-                            onSelectRow={navigateToCategorySettings}
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            onSelectAll={toggleAllCategories}
-                            showScrollIndicator
-                            ListItem={TableListItem}
-                            onDismissError={dismissError}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        />
-                    )}
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                )}
+                {shouldShowEmptyState && (
+                    <WorkspaceEmptyStateSection
+                        title={translate('workspace.categories.emptyCategories.title')}
+                        icon={Illustrations.EmptyStateExpenses}
+                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                    />
+                )}
+                {!shouldShowEmptyState && !isLoading && (
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data: categoryList, isDisabled: false}]}
+                        onCheckboxPress={toggleCategory}
+                        onSelectRow={navigateToCategorySettings}
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        onSelectAll={toggleAllCategories}
+                        showScrollIndicator
+                        ListItem={TableListItem}
+                        onDismissError={dismissError}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    />
+                )}
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

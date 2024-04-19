@@ -35,7 +35,10 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
     }, [accountID, policyID]);
 
     return (
-        <AccessOrNotFoundWrapper policyID={policyID}>
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={policyID}
+        >
             <ScreenWrapper testID={WorkspaceOwnerChangeErrorPage.displayName}>
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}

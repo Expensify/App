@@ -9,7 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
@@ -71,36 +70,32 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         <AccessOrNotFoundWrapper
             accessVariants={['ADMIN']}
             policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={QuickbooksImportPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={QuickbooksImportPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.import')} />
-                    <ScrollView contentContainerStyle={styles.pb2}>
-                        <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
-                        {sections.map((section) => (
-                            <OfflineWithFeedback
-                                key={section.description}
-                                pendingAction={section.pendingAction}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={quickbooksOnlineConfigTitles[`${section.title ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`]}
-                                    description={section.description}
-                                    shouldShowRightIcon
-                                    onPress={section.action}
-                                    brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                />
-                            </OfflineWithFeedback>
-                        ))}
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                <HeaderWithBackButton title={translate('workspace.qbo.import')} />
+                <ScrollView contentContainerStyle={styles.pb2}>
+                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
+                    {sections.map((section) => (
+                        <OfflineWithFeedback
+                            key={section.description}
+                            pendingAction={section.pendingAction}
+                        >
+                            <MenuItemWithTopDescription
+                                title={quickbooksOnlineConfigTitles[`${section.title ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`]}
+                                description={section.description}
+                                shouldShowRightIcon
+                                onPress={section.action}
+                                brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        </OfflineWithFeedback>
+                    ))}
+                </ScrollView>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }

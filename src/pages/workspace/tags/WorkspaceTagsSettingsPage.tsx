@@ -16,7 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,51 +40,50 @@ function WorkspaceTagsSettingsPage({route, policyTags}: WorkspaceTagsSettingsPag
         [route.params.policyID],
     );
     return (
-        <AccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={route.params.policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
-            >
-                {({policy}) => (
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={WorkspaceTagsSettingsPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate('common.settings')} />
-                        <View style={styles.flexGrow1}>
-                            <OfflineWithFeedback
-                                errors={policy?.errorFields?.requiresTag}
-                                pendingAction={policy?.pendingFields?.requiresTag}
-                                errorRowStyles={styles.mh5}
-                            >
-                                <View style={[styles.mt2, styles.mh4]}>
-                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.requiresTag')}</Text>
-                                        <Switch
-                                            isOn={policy?.requiresTag ?? false}
-                                            accessibilityLabel={translate('workspace.tags.requiresTag')}
-                                            onToggle={updateWorkspaceRequiresTag}
-                                        />
-                                    </View>
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        >
+            {({policy}) => (
+                <ScreenWrapper
+                    includeSafeAreaPaddingBottom={false}
+                    style={[styles.defaultModalContainer]}
+                    testID={WorkspaceTagsSettingsPage.displayName}
+                >
+                    <HeaderWithBackButton title={translate('common.settings')} />
+                    <View style={styles.flexGrow1}>
+                        <OfflineWithFeedback
+                            errors={policy?.errorFields?.requiresTag}
+                            pendingAction={policy?.pendingFields?.requiresTag}
+                            errorRowStyles={styles.mh5}
+                        >
+                            <View style={[styles.mt2, styles.mh4]}>
+                                <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.requiresTag')}</Text>
+                                    <Switch
+                                        isOn={policy?.requiresTag ?? false}
+                                        accessibilityLabel={translate('workspace.tags.requiresTag')}
+                                        onToggle={updateWorkspaceRequiresTag}
+                                    />
                                 </View>
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback
-                                errors={policyTags?.[policyTagName]?.errors}
-                                pendingAction={policyTags?.[policyTagName]?.pendingAction}
-                                errorRowStyles={styles.mh5}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={policyTagName}
-                                    description={translate(`workspace.tags.customTagName`)}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID))}
-                                    shouldShowRightIcon
-                                />
-                            </OfflineWithFeedback>
-                        </View>
-                    </ScreenWrapper>
-                )}
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                            </View>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback
+                            errors={policyTags?.[policyTagName]?.errors}
+                            pendingAction={policyTags?.[policyTagName]?.pendingAction}
+                            errorRowStyles={styles.mh5}
+                        >
+                            <MenuItemWithTopDescription
+                                title={policyTagName}
+                                description={translate(`workspace.tags.customTagName`)}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID))}
+                                shouldShowRightIcon
+                            />
+                        </OfflineWithFeedback>
+                    </View>
+                </ScreenWrapper>
+            )}
         </AccessOrNotFoundWrapper>
     );
 }

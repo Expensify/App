@@ -16,7 +16,6 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -54,49 +53,48 @@ function ValuePage({
     }
 
     return (
-        <AccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={['ADMIN', 'PAID']}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={ValuePage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={ValuePage.displayName}
-                >
-                    <HeaderWithBackButton
-                        title={translate('workspace.taxes.value')}
-                        onBackButtonPress={goBack}
-                    />
+                <HeaderWithBackButton
+                    title={translate('workspace.taxes.value')}
+                    onBackButtonPress={goBack}
+                />
 
-                    <FormProvider
-                        formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}
-                        submitButtonText={translate('workspace.editor.save')}
-                        style={[styles.flexGrow1]}
-                        scrollContextEnabled
-                        validate={validateTaxValue}
-                        onSubmit={submit}
-                        enabledWhenOffline
-                        disablePressOnEnter={false}
-                        shouldHideFixErrorsAlert
-                        submitFlexEnabled={false}
-                        submitButtonStyles={[styles.mh5, styles.mt0]}
-                    >
-                        <InputWrapper
-                            InputComponent={AmountForm}
-                            inputID={INPUT_IDS.VALUE}
-                            defaultValue={defaultValue}
-                            hideCurrencySymbol
-                            // The default currency uses 2 decimal places, so we substract it
-                            extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
-                            // We increase the amount max length to support the extra decimals.
-                            amountMaxLength={CONST.MAX_TAX_RATE_DECIMAL_PLACES + CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                            extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
-                            ref={inputCallbackRef}
-                        />
-                    </FormProvider>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM}
+                    submitButtonText={translate('workspace.editor.save')}
+                    style={[styles.flexGrow1]}
+                    scrollContextEnabled
+                    validate={validateTaxValue}
+                    onSubmit={submit}
+                    enabledWhenOffline
+                    disablePressOnEnter={false}
+                    shouldHideFixErrorsAlert
+                    submitFlexEnabled={false}
+                    submitButtonStyles={[styles.mh5, styles.mt0]}
+                >
+                    <InputWrapper
+                        InputComponent={AmountForm}
+                        inputID={INPUT_IDS.VALUE}
+                        defaultValue={defaultValue}
+                        hideCurrencySymbol
+                        // The default currency uses 2 decimal places, so we substract it
+                        extraDecimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES - 2}
+                        // We increase the amount max length to support the extra decimals.
+                        amountMaxLength={CONST.MAX_TAX_RATE_DECIMAL_PLACES + CONST.MAX_TAX_RATE_INTEGER_PLACES}
+                        extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
+                        ref={inputCallbackRef}
+                    />
+                </FormProvider>
+            </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
