@@ -67,7 +67,7 @@ function BaseListItem<TItem extends ListItem>({
                 {...bind}
                 ref={pressableRef}
                 onPress={(e) => {
-                    if (shouldPreventEnterKeySubmit && e instanceof KeyboardEvent && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }
                     onSelectRow(item);
