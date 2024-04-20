@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -90,6 +91,9 @@ function IOURequestStepParticipants({
             }
 
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
+            IOU.setCustomUnitRateID(transactionID, rateID);
+
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.

@@ -170,26 +170,22 @@ function WorkspaceSwitcherPage() {
             testID={WorkspaceSwitcherPage.displayName}
             includeSafeAreaPaddingBottom={false}
         >
-            {({didScreenTransitionEnd}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('workspace.switcher.headerTitle')}
-                        onBackButtonPress={Navigation.goBack}
-                    />
-                    <SelectionList<WorkspaceListItem>
-                        ListItem={UserListItem}
-                        sections={didScreenTransitionEnd ? sections : CONST.EMPTY_ARRAY}
-                        onSelectRow={selectPolicy}
-                        textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
-                        listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
-                        initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
-                        showLoadingPlaceholder
-                    />
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('workspace.switcher.headerTitle')}
+                onBackButtonPress={Navigation.goBack}
+            />
+            <SelectionList<WorkspaceListItem>
+                ListItem={UserListItem}
+                sections={sections}
+                onSelectRow={selectPolicy}
+                textInputLabel={usersWorkspaces.length >= CONST.WORKSPACE_SWITCHER.MINIMUM_WORKSPACES_TO_SHOW_SEARCH ? translate('common.search') : undefined}
+                textInputValue={searchTerm}
+                onChangeText={setSearchTerm}
+                headerMessage={headerMessage}
+                listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
+                initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
+                showLoadingPlaceholder
+            />
         </ScreenWrapper>
     );
 }

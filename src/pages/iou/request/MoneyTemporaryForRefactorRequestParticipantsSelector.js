@@ -196,7 +196,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         (option) => {
             onParticipantsAdded([
                 {
-                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
                     iouType,
                 },
