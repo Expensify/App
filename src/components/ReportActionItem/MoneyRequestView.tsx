@@ -167,8 +167,49 @@ function MoneyRequestView({
     const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
-    // A flag for showing tax rate
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    // Inside the MoneyRequestView component
+
+// A flag for showing tax rate
+const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+// Check if the tax rate is invalid
+const isInvalidTaxRate = shouldShowTax && (!taxRates || !transactionTaxCode || !taxRateTitle);
+
+// Function to get the error message for tax rate
+const getTaxRateError = () => {
+    if (isInvalidTaxRate) {
+        return translate('common.error.invalidTaxRate');
+    }
+    return '';
+};
+
+// Function to check if there are any violations for tax field
+const hasTaxViolations = hasViolations('tax');
+
+// Function to get the error message for tax field
+const getTaxViolationError = () => {
+    if (hasTaxViolations) {
+        const violations = getViolationsForField('tax');
+        return ViolationsUtils.getViolationTranslation(violations[0], translate);
+    }
+    return '';
+};
+
+// Render tax rate menu item with error indicator if tax rate is invalid or there are violations
+<MenuItemWithTopDescription
+    title={taxRateTitle ?? ''}
+    description={taxRatesDescription}
+    interactive={canEdit}
+    shouldShowRightIcon={canEdit}
+    titleStyle={styles.flex1}
+    onPress={() =>
+        Navigation.navigate(
+            ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
+        )
+    }
+    brickRoadIndicator={(isInvalidTaxRate || hasTaxViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+    error={(isInvalidTaxRate || hasTaxViolations) ? getTaxRateError() || getTaxViolationError() : ''}
+/>
+
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
