@@ -74,7 +74,7 @@ describe('SignInPage', () => {
 
     // Initialize the network key for OfflineWithFeedback
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock() as typeof fetch;
+        global.fetch = TestHelper.getGlobalFetchMock();
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });

@@ -4,8 +4,9 @@ const shallowCompare = (obj1?: object, obj2?: object) => {
         return true;
     }
     if (obj1 && obj2) {
-        // @ts-expect-error we know that obj1 and obj2 are params of a route.
-        return Object.keys(obj1).length === Object.keys(obj2).length && Object.keys(obj1).every((key) => obj1[key] === obj2[key]);
+        const keys1 = Object.keys(obj1) as Array<keyof typeof obj1>;
+        const keys2 = Object.keys(obj2) as Array<keyof typeof obj2>;
+        return keys1.length === keys2.length && keys1.every((key) => obj1[key] === obj2[key]);
     }
     return false;
 };

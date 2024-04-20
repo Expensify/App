@@ -70,7 +70,6 @@ beforeAll(() => {
     // Mock octokit module
     const moctokit: InternalOctokit = {
         rest: {
-            // @ts-expect-error This error was removed because getting the rest of the data from internalOctokit makes the test to break
             actions: {
                 listWorkflowRuns: mockListWorkflowRuns as unknown as typeof GithubUtils.octokit.actions.listWorkflowRuns,
             },

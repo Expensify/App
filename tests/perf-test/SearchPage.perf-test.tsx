@@ -114,7 +114,6 @@ beforeAll(() =>
 
 // Initialize the network key for OfflineWithFeedback
 beforeEach(() => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     global.fetch = TestHelper.getGlobalFetchMock();
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
@@ -177,7 +176,7 @@ test('[Search Page] should render list with cached options', async () => {
                     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
                 }),
             )
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            // @ts-expect-error Navigation prop is only used within this test
             .then(() => measurePerformance(<ChatFinderPageWithCachedOptions navigation={navigation} />, {scenario}))
     );
 });
@@ -206,7 +205,7 @@ test('[Search Page] should interact when text input changes', async () => {
                     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
                 }),
             )
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            // @ts-expect-error Navigation prop is only used within this test
             .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });
@@ -235,7 +234,7 @@ test.skip('[Search Page] should render selection list', async () => {
                     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
                 }),
             )
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            // @ts-expect-error Navigation prop is only used within this test
             .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });
@@ -266,7 +265,7 @@ test('[Search Page] should search in selection list', async () => {
                     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
                 }),
             )
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            // @ts-expect-error Navigation prop is only used within this test
             .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });
@@ -297,7 +296,7 @@ test('[Search Page] should click on list item', async () => {
                     [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
                 }),
             )
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            // @ts-expect-error Navigation prop is only used within this test
             .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });

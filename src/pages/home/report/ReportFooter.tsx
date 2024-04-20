@@ -117,7 +117,11 @@ function ReportFooter({
     );
 
     const onSubmitComment = useCallback(
-        (text: string) => {
+        (text: string | undefined) => {
+            if (text === undefined) {
+                return;
+            }
+
             const isTaskCreated = handleCreateTask(text);
             if (isTaskCreated) {
                 return;
@@ -146,7 +150,6 @@ function ReportFooter({
                 <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose
-                            // @ts-expect-error TODO: Remove this once ReportActionCompose (https://github.com/Expensify/App/issues/31984) is migrated to TypeScript.
                             onSubmit={onSubmitComment}
                             onComposerFocus={onComposerFocus}
                             onComposerBlur={onComposerBlur}

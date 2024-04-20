@@ -206,8 +206,7 @@ function AdditionalDetailsStep({walletAdditionalDetails = DEFAULT_WALLET_ADDITIO
                         placeholder={translate('common.phoneNumberPlaceholder')}
                         shouldSaveDraft
                     />
-                    {/* @ts-expect-error TODO: Remove this once DatePicker (https://github.com/Expensify/App/issues/25148) is migrated to TypeScript. */}
-                    <InputWrapper<unknown>
+                    <InputWrapper
                         InputComponent={DatePicker}
                         inputID="dob"
                         containerStyles={[styles.mt4]}

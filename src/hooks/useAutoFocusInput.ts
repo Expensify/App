@@ -13,7 +13,6 @@ export default function useAutoFocusInput(): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
-    // @ts-expect-error TODO: Remove this when Expensify.js is migrated.
     const {isSplashHidden} = useContext(Expensify.SplashScreenHiddenContext);
 
     const inputRef = useRef<TextInput | null>(null);

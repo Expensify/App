@@ -6,6 +6,7 @@ import * as Policy from '@src/libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
+import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ESH_EMAIL = 'eshgupta1217@gmail.com';
@@ -21,15 +22,13 @@ describe('actions/Policy', () => {
     });
 
     beforeEach(() => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
         global.fetch = TestHelper.getGlobalFetchMock();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
     describe('createWorkspace', () => {
         it('creates a new workspace', async () => {
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.pause();
+            (fetch as MockFetch)?.pause?.();
             Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             await waitForBatchedUpdates();
 
@@ -122,8 +121,7 @@ describe('actions/Policy', () => {
             });
 
             // Check for success data
-            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            fetch.resume();
+            (fetch as MockFetch)?.resume?.();
             await waitForBatchedUpdates();
 
             policy = await new Promise((resolve) => {

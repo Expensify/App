@@ -91,13 +91,12 @@ function StateSelectionPage() {
                 shouldShowBackButton
                 onBackButtonPress={() => {
                     const backTo = params?.backTo ?? '';
-                    let backToRoute = '';
+                    let backToRoute = '' as Route;
 
                     if (backTo) {
-                        backToRoute = appendParam(backTo, 'state', currentState ?? '');
+                        backToRoute = appendParam(backTo, 'state', currentState ?? '') as Route;
                     }
 
-                    // @ts-expect-error Navigation.goBack does take a param
                     Navigation.goBack(backToRoute);
                 }}
             />
