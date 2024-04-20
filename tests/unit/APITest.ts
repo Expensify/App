@@ -72,7 +72,7 @@ describe('APITests', () => {
             .then(() => {
                 // When API Writes and Reads are called
                 API.write<WriteCommand>('mock command' as WriteCommand, {param1: 'value1'} as ApiRequestCommandParameters[WriteCommand]);
-                API.write<WriteCommand>('mock command' as WriteCommand, {param2: 'value2'} as ApiRequestCommandParameters[WriteCommand]);
+                API.read<ReadCommand>('mock command' as ReadCommand, {param2: 'value2'} as unknown as ApiRequestCommandParameters[ReadCommand]);
                 API.write<WriteCommand>('mock command' as WriteCommand, {param3: 'value3'} as ApiRequestCommandParameters[WriteCommand]);
                 return waitForBatchedUpdates();
             })
