@@ -459,10 +459,13 @@ function MoneyRequestConfirmationList({
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const getParticipantOptions = useCallback(() => {
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
-        if (isPolicyExpenseChat) {
+        if (isPolicyExpenseChat || isReadOnly) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
-                const amount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
+                const amount =
+                    isPolicyExpenseChat || !transaction?.comment?.splits
+                        ? IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer)
+                        : transaction.comment.splits.find((split) => split.accountID === participantOption.accountID)?.amount;
                 return {
                     ...participantOption,
                     descriptiveText: CurrencyUtils.convertToDisplayString(amount),
@@ -483,7 +486,18 @@ function MoneyRequestConfirmationList({
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, transaction?.splitShares, currencyList, iouAmount]);
+    }, [
+        iouCurrencyCode,
+        isPolicyExpenseChat,
+        onSplitShareChange,
+        payeePersonalDetails,
+        selectedParticipants,
+        transaction?.splitShares,
+        currencyList,
+        iouAmount,
+        isReadOnly,
+        transaction?.comment,
+    ]);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
