@@ -1019,12 +1019,21 @@ function getCategoryListSections(
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
-
+    const enabledCategoriesNames = enabledCategories.map((category) => category.name);
+    const selectedOptionsWithDisabledState: Category[] = [];
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
+    selectedOptions.forEach((option) => {
+        if (enabledCategoriesNames.includes(option.name)) {
+            selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: true});
+            return;
+        }
+        selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: false});
+    });
+
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptions, true);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1062,7 +1071,7 @@ function getCategoryListSections(
     }
 
     if (selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptions, true);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
         categorySections.push({
             // "Selected" section
             title: '',
