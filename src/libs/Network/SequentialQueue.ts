@@ -163,7 +163,6 @@ NetworkStore.onReconnection(flush);
 function push(request: OnyxRequest) {
     // Add request to Persisted Requests so that it can be retried if it fails
     PersistedRequests.save(request);
-    Log.info(`[SequentialQueue] '${request.commandName}' command queued. Queue length is ${PersistedRequests.getLength()}`);
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (NetworkStore.isOffline()) {
