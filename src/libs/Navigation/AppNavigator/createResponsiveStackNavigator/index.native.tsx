@@ -16,50 +16,50 @@ import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 import useStateWithSearch from './useStateWithSearch';
 
+function ResponsiveStackNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: ResponsiveStackNavigatorProps) {
+    const styles = useThemeStyles();
+
+    const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
+    const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
+        withNativeNavigationOptions<ParamList2, RouteName>(options);
+
+    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+        PlatformStackNavigationState<ParamListBase>,
+        ResponsiveStackNavigatorRouterOptions,
+        StackActionHelpers<ParamListBase>,
+        PlatformStackNavigationOptions,
+        NativeStackNavigationEventMap,
+        NativeStackNavigationOptions
+    >(
+        CustomRouter,
+        {
+            id,
+            children,
+            screenOptions: nativeScreenOptions,
+            screenListeners,
+            initialRouteName,
+        },
+        transformScreenProps,
+    );
+
+    const {stateToRender, searchRoute} = useStateWithSearch(state);
+
+    return (
+        <NavigationContent>
+            <NativeStackView
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                state={stateToRender}
+                descriptors={descriptors}
+                navigation={navigation}
+            />
+            {searchRoute && <View style={styles.dNone}>{descriptors[searchRoute.key].render()}</View>}
+        </NavigationContent>
+    );
+}
+ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
+
 function createResponsiveStackNavigator<ParamList extends ParamListBase>() {
-    function ResponsiveStackNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: ResponsiveStackNavigatorProps) {
-        const styles = useThemeStyles();
-
-        const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
-        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
-            withNativeNavigationOptions<ParamList2, RouteName>(options);
-
-        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-            PlatformStackNavigationState<ParamListBase>,
-            ResponsiveStackNavigatorRouterOptions,
-            StackActionHelpers<ParamListBase>,
-            PlatformStackNavigationOptions,
-            NativeStackNavigationEventMap,
-            NativeStackNavigationOptions
-        >(
-            CustomRouter,
-            {
-                id,
-                children,
-                screenOptions: nativeScreenOptions,
-                screenListeners,
-                initialRouteName,
-            },
-            transformScreenProps,
-        );
-
-        const {stateToRender, searchRoute} = useStateWithSearch(state);
-
-        return (
-            <NavigationContent>
-                <NativeStackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={stateToRender}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-                {searchRoute && <View style={styles.dNone}>{descriptors[searchRoute.key].render()}</View>}
-            </NavigationContent>
-        );
-    }
-    ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
-
     return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
         ResponsiveStackNavigator,
     )<ParamList>();

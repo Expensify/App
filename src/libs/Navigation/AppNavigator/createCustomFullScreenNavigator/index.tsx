@@ -15,57 +15,57 @@ import type {
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
+function CustomFullScreenNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: FullScreenNavigatorProps<ParamListBase>) {
+    const webScreenOptions = withWebNavigationOptions(screenOptions);
+
+    const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
+        withWebNavigationOptions<ParamList2, RouteName>(options);
+
+    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+        PlatformStackNavigationState<ParamListBase>,
+        FullScreenNavigatorRouterOptions,
+        StackActionHelpers<ParamListBase>,
+        PlatformStackNavigationOptions,
+        StackNavigationEventMap,
+        StackNavigationOptions
+    >(
+        CustomFullScreenRouter,
+        {
+            id,
+            children,
+            screenOptions: webScreenOptions,
+            screenListeners,
+            initialRouteName,
+        },
+        transformScreenProps,
+    );
+
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    useEffect(() => {
+        if (!navigationRef.isReady()) {
+            return;
+        }
+        // We need to separately reset state of this navigator to trigger getRehydratedState.
+        navigation.reset(navigation.getState());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSmallScreenWidth]);
+
+    return (
+        <NavigationContent>
+            <StackView
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+            />
+        </NavigationContent>
+    );
+}
+CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
+
 function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
-    function CustomFullScreenNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: FullScreenNavigatorProps<ParamListBase>) {
-        const webScreenOptions = withWebNavigationOptions(screenOptions);
-
-        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
-            withWebNavigationOptions<ParamList2, RouteName>(options);
-
-        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-            PlatformStackNavigationState<ParamListBase>,
-            FullScreenNavigatorRouterOptions,
-            StackActionHelpers<ParamListBase>,
-            PlatformStackNavigationOptions,
-            StackNavigationEventMap,
-            StackNavigationOptions
-        >(
-            CustomFullScreenRouter,
-            {
-                id,
-                children,
-                screenOptions: webScreenOptions,
-                screenListeners,
-                initialRouteName,
-            },
-            transformScreenProps,
-        );
-
-        const {isSmallScreenWidth} = useWindowDimensions();
-
-        useEffect(() => {
-            if (!navigationRef.isReady()) {
-                return;
-            }
-            // We need to separately reset state of this navigator to trigger getRehydratedState.
-            navigation.reset(navigation.getState());
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [isSmallScreenWidth]);
-
-        return (
-            <NavigationContent>
-                <StackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={state}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-        );
-    }
-    CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
-
     return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigator>(
         CustomFullScreenNavigator,
     )<ParamList>();

@@ -12,46 +12,46 @@ import type {
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
+function CustomFullScreenNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: FullScreenNavigatorProps<ParamListBase>) {
+    const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
+
+    const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
+        withNativeNavigationOptions<ParamList2, RouteName>(options);
+
+    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+        PlatformStackNavigationState<ParamListBase>,
+        FullScreenNavigatorRouterOptions,
+        StackActionHelpers<ParamListBase>,
+        PlatformStackNavigationOptions,
+        NativeStackNavigationEventMap,
+        NativeStackNavigationOptions
+    >(
+        CustomFullScreenRouter,
+        {
+            id,
+            children,
+            screenOptions: nativeScreenOptions,
+            screenListeners,
+            initialRouteName,
+        },
+        transformScreenProps,
+    );
+
+    return (
+        <NavigationContent>
+            <NativeStackView
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+            />
+        </NavigationContent>
+    );
+}
+CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
+
 function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
-    function CustomFullScreenNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: FullScreenNavigatorProps<ParamListBase>) {
-        const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
-
-        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
-            withNativeNavigationOptions<ParamList2, RouteName>(options);
-
-        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-            PlatformStackNavigationState<ParamListBase>,
-            FullScreenNavigatorRouterOptions,
-            StackActionHelpers<ParamListBase>,
-            PlatformStackNavigationOptions,
-            NativeStackNavigationEventMap,
-            NativeStackNavigationOptions
-        >(
-            CustomFullScreenRouter,
-            {
-                id,
-                children,
-                screenOptions: nativeScreenOptions,
-                screenListeners,
-                initialRouteName,
-            },
-            transformScreenProps,
-        );
-
-        return (
-            <NavigationContent>
-                <NativeStackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={state}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-        );
-    }
-    CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
-
     return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigator>(
         CustomFullScreenNavigator,
     )<ParamList>();
