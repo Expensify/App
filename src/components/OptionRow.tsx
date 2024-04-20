@@ -22,7 +22,6 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
-import TextInput from './TextInput';
 
 type OptionRowProps = {
     /** Style for hovered state */
@@ -203,6 +202,7 @@ function OptionRow({
                         hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
                         needsOffscreenAlphaCompositing={(option.icons?.length ?? 0) >= 2}
                         onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (event) => event.preventDefault() : undefined}
+                        tabIndex={option.tabIndex ?? 0}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -347,6 +347,7 @@ export default React.memo(
         prevProps.option.subtitle === nextProps.option.subtitle &&
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon &&
+        prevProps.option.tabIndex === nextProps.option.tabIndex &&
         lodashIsEqual(prevProps.option.amountProps, nextProps.option.amountProps),
 );
 

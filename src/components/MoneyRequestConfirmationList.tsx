@@ -476,6 +476,7 @@ function MoneyRequestConfirmationList({
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
+            tabIndex: -1,
             amountProps: {
                 amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
                 currency: iouCurrencyCode,
