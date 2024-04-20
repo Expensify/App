@@ -275,6 +275,8 @@ function FloatingActionButtonAndPopover(
             showCreateMenu();
         }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
     return (
         <View style={styles.flexGrow1}>
@@ -290,7 +292,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense
+                    ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
                                   icon: getIconForAction(CONST.IOU.TYPE.TRACK_EXPENSE),
@@ -323,6 +325,19 @@ function FloatingActionButtonAndPopover(
                     },
                     {
                         icon: getIconForAction(CONST.IOU.TYPE.SEND),
+                        text: translate('iou.splitExpense'),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                IOU.startMoneyRequest(
+                                    CONST.IOU.TYPE.SPLIT,
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ReportUtils.generateReportID(),
+                                ),
+                            ),
+                    },
+                    {
+                        icon: Expensicons.Send,
                         text: translate('iou.paySomeone', {}),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
