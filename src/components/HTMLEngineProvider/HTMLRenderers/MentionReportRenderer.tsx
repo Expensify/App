@@ -36,7 +36,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
     if (!isEmpty(htmlAttributeReportID)) {
         const report = getReport(htmlAttributeReportID);
 
-        reportID = report?.reportID ?? undefined;
+        reportID = report?.reportID ?? htmlAttributeReportID;
         mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? report?.displayName ?? htmlAttributeReportID);
         // Get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
