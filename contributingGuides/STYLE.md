@@ -72,10 +72,10 @@ Using arrow functions is the preferred way to write an anonymous function such a
 
 ```javascript
 // Bad
-_.map(someArray, function (item) {...});
+someArray.map(function (item) {...});
 
 // Good
-_.map(someArray, (item) => {...});
+someArray.map((item) => {...});
 ```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
@@ -419,7 +419,7 @@ const propTypes = {
 
 ### Important Note:
 
-In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `_.isEmpty()` instead.
+In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `.length > 0` instead.
 
 ```javascript
 // Bad! This will cause a breaking an error on native platforms
@@ -438,7 +438,7 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 {
     return (
         <View>
-            {!_.isEmpty(props.title)
+            {props.title.length > 0
                 ? <View style={styles.title}>{props.title}</View>
                 : null}
             <View style={styles.body}>This is the body</View>
