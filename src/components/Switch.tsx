@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {Animated} from 'react-native';
+import {Animated, InteractionManager} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useNativeDriver from '@libs/useNativeDriver';
@@ -44,8 +44,16 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
         <PressableWithFeedback
             disabled={disabled}
             style={[styles.switchTrack, !isOn && styles.switchInactive]}
-            onPress={() => onToggle(!isOn)}
-            onLongPress={() => onToggle(!isOn)}
+            onPress={() => {
+                InteractionManager.runAfterInteractions(() => {
+                    onToggle(!isOn);
+                });
+            }}
+            onLongPress={() => {
+                InteractionManager.runAfterInteractions(() => {
+                    onToggle(!isOn);
+                });
+            }}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
             accessibilityLabel={accessibilityLabel}

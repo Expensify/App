@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -10,6 +10,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
+let allPolicies: OnyxCollection<OnyxTypes.Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
+
 /**
  * Reset user's reimbursement account. This will delete the bank account.
  */
@@ -20,6 +27,8 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
     if (!session?.email) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
+
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
 
     API.write(
         WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP,
@@ -38,6 +47,13 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
                         isLoading: true,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         achData: null,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {
+                        achAccount: null,
                     },
                 },
             ],
@@ -118,6 +134,13 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     value: {isLoading: false, pendingAction: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {
+                        achAccount: policy?.achAccount,
+                    },
                 },
             ],
         },

@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
@@ -37,15 +36,32 @@ type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFou
 
 function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNotFoundComponentProps) {
     const isPolicyIDInRoute = !!props.policyID?.length;
+    const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
     const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
     const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
-    const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
-    const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
-    const prevIsFocused = usePrevious(isFocused);
     const pendingField = props.policy?.pendingFields?.[props.featureName];
-    const prevPendingField = usePrevious(pendingField);
+    const [isFeatureScreenOpen, setIsFeatureScreenOpen] = useState(false);
+    const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        if (!isFeatureScreenOpen && isFocused) {
+            setIsFeatureScreenOpen(true);
+            setIsPolicyFeatureEnabled(isFeatureEnabled);
+            return;
+        }
+        if (!isFocused) {
+            setIsFeatureScreenOpen(false);
+            return;
+        }
+        setIsPolicyFeatureEnabled((isPrevFeatureEnabled) => {
+            if (!pendingField || isOffline) {
+                return isFeatureEnabled;
+            }
+            return isPrevFeatureEnabled;
+        });
+    }, [isFocused, pendingField, isOffline, isFeatureEnabled, isFeatureScreenOpen]);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
@@ -56,15 +72,6 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
         Policy.openWorkspace(props.policyID, []);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isPolicyIDInRoute, props.policyID]);
-
-    useEffect(() => {
-        setIsPolicyFeatureEnabled((isCurrentPolicyFeatureEnabled) => {
-            if (prevPendingField !== pendingField || isOffline || !pendingField || !prevIsFocused) {
-                return isFeatureEnabled;
-            }
-            return isCurrentPolicyFeatureEnabled;
-        });
-    }, [pendingField, isFeatureEnabled, isOffline, prevPendingField, prevIsFocused]);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
