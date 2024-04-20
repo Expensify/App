@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
-import Log from '@libs/Log';
 import * as Request from '@libs/Request';
 import * as RequestThrottle from '@libs/RequestThrottle';
 import * as PersistedRequests from '@userActions/PersistedRequests';
