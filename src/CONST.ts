@@ -3379,9 +3379,9 @@ const CONST = {
 
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
-            MONEY_REQUEST: 'request',
+            SUBMIT_EXPENSE: 'submitExpense',
             START_CHAT: 'startChat',
-            SEND_MONEY: 'sendMoney',
+            PAY_SOMEONE: 'paySomeone',
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },

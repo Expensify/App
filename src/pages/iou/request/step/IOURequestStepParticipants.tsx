@@ -54,8 +54,8 @@ function IOURequestStepParticipants({
         if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {});
         }
-        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSplitRequest, action]);
+        return translate('iou.submitExpense');
+    }, [iouType, translate, isSplitRequest, action]);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;

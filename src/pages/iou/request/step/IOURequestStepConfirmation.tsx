@@ -100,8 +100,8 @@ function IOURequestStepConfirmation({
         if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
-        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, report, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
+        return translate('iou.submitExpense');
+    }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
     const participants = useMemo(
         () =>

@@ -2645,13 +2645,13 @@ export default {
             header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText1: 'Submit expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
             buttonText1: 'Pay Someone, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Pay Someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
