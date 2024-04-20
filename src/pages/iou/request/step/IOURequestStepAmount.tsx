@@ -214,12 +214,18 @@ function IOURequestStepAmount({
     };
 
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
+        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
+
+        // Edits to the amount from the splits page should reset the split shares.
+        if (transaction?.splitShares) {
+            const participantAccountIDs = Object.keys(transaction.splitShares).map((accountID) => Number(accountID));
+            IOU.resetSplitShares(transactionID, participantAccountIDs, newAmount, currency);
+        }
+
         if (!isEditing) {
             navigateToNextPage({amount, paymentMethod});
             return;
         }
-
-        const newAmount = CurrencyUtils.convertToBackendAmount(Number.parseFloat(amount));
 
         // If the value hasn't changed, don't request to save changes on the server and just close the modal
         if (newAmount === TransactionUtils.getAmount(transaction) && currency === TransactionUtils.getCurrency(transaction)) {
