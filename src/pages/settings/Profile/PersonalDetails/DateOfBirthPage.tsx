@@ -10,7 +10,6 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -23,14 +22,14 @@ import type {PrivatePersonalDetails} from '@src/types/onyx';
 type DateOfBirthPageOnyxProps = {
     /** User's private personal details */
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+    /** Whether app is loading */
+    isLoadingApp: OnyxEntry<boolean>;
 };
 type DateOfBirthPageProps = DateOfBirthPageOnyxProps;
 
-function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
+function DateOfBirthPage({privatePersonalDetails, isLoadingApp = true}: DateOfBirthPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    usePrivatePersonalDetails();
-    const isLoadingPersonalDetails = privatePersonalDetails?.isLoading ?? true;
 
     /**
      * @returns An object containing the errors for each inputID
@@ -59,7 +58,7 @@ function DateOfBirthPage({privatePersonalDetails}: DateOfBirthPageProps) {
                 title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            {isLoadingPersonalDetails ? (
+            {isLoadingApp ? (
                 <FullscreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
             ) : (
                 <FormProvider
@@ -89,5 +88,8 @@ DateOfBirthPage.displayName = 'DateOfBirthPage';
 export default withOnyx<DateOfBirthPageProps, DateOfBirthPageOnyxProps>({
     privatePersonalDetails: {
         key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+    isLoadingApp: {
+        key: ONYXKEYS.IS_LOADING_APP,
     },
 })(DateOfBirthPage);

@@ -3,13 +3,14 @@ import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
 import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setForeignCurrencyDefault} from '@libs/actions/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
@@ -21,7 +22,6 @@ import type SCREENS from '@src/SCREENS';
 
 type WorkspaceTaxesSettingsForeignCurrencyProps = WithPolicyAndFullscreenLoadingProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT>;
-
 function WorkspaceTaxesSettingsForeignCurrency({
     route: {
         params: {policyID},
@@ -31,8 +31,15 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const submit = ({keyForList}: ListItem) => {
-        setForeignCurrencyDefault(policyID, keyForList ?? '');
+    const taxRates = policy?.taxRates;
+    const foreignTaxDefault = taxRates?.foreignTaxDefault ?? '';
+    const defaultExternalID = taxRates?.defaultExternalID ?? '';
+
+    const selectedTaxRate =
+        foreignTaxDefault === defaultExternalID ? taxRates && TransactionUtils.getDefaultTaxName(taxRates) : TransactionUtils.getTaxName(taxRates?.taxes ?? {}, foreignTaxDefault);
+
+    const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
+        setForeignCurrencyDefault(policyID, taxes.data.code ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
@@ -55,8 +62,8 @@ function WorkspaceTaxesSettingsForeignCurrency({
 
                                 <View style={[styles.mb4, styles.flex1]}>
                                     <TaxPicker
-                                        selectedTaxRate={policy?.taxRates?.foreignTaxDefault}
-                                        taxRates={policy?.taxRates}
+                                        selectedTaxRate={selectedTaxRate}
+                                        policyID={policyID}
                                         insets={insets}
                                         onSubmit={submit}
                                     />

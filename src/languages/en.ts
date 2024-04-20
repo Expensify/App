@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -49,6 +50,8 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PaySomeoneParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -258,7 +261,6 @@ export default {
         cantFindAddress: "Can't find your address? ",
         enterManually: 'Enter it manually',
         message: 'Message ',
-        leaveRoom: 'Leave room',
         leaveThread: 'Leave thread',
         you: 'You',
         youAfterPreposition: 'you',
@@ -314,6 +316,13 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        rate: 'Rate',
+        emptyLHN: {
+            title: 'Woohoo! All caught up.',
+            subtitleText1: 'Find a chat using the',
+            subtitleText2: 'button above, or create something using the',
+            subtitleText3: 'button below.',
+        },
     },
     location: {
         useCurrent: 'Use current location',
@@ -412,7 +421,7 @@ export default {
     },
     login: {
         hero: {
-            header: 'Split bills, request payments, and chat with friends.',
+            header: 'Manage spend, split expenses, and chat with your team.',
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
         },
     },
@@ -464,14 +473,9 @@ export default {
         copyEmailToClipboard: 'Copy email to clipboard',
         markAsUnread: 'Mark as unread',
         markAsRead: 'Mark as read',
-        editAction: ({action}: EditActionParams) =>
-            `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
-        deleteAction: ({action}: DeleteActionParams) =>
-            `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'}`,
-        deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `Are you sure you want to delete this ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'expense' : 'request'}` : 'comment'
-            }?`,
+        editAction: ({action}: EditActionParams) => `Edit ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Delete ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}`,
+        deleteConfirmation: ({action}: DeleteConfirmationParams) => `Are you sure you want to delete this ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'expense' : 'comment'}?`,
         onlyVisible: 'Only visible to',
         replyInThread: 'Reply in thread',
         joinThread: 'Join thread',
@@ -499,7 +503,7 @@ export default {
         beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, submit expenses and settle up.',
         beginningOfChatHistorySelfDM: 'This is your personal space. Use it for notes, tasks, drafts, and reminders.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
@@ -507,9 +511,9 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
-            send: 'send money',
-            split: 'split a bill',
-            request: 'request money',
+            send: 'pay expenses',
+            split: 'split an expense',
+            request: 'submit an expense',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'track-expense': 'track an expense',
         },
@@ -518,7 +522,7 @@ export default {
         asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
-        hereAlternateText: 'Notify everyone online in this room',
+        hereAlternateText: 'Notify everyone in this conversation',
     },
     newMessages: 'New messages',
     reportTypingIndicator: {
@@ -587,18 +591,18 @@ export default {
         addReceipt: 'Add receipt',
     },
     quickAction: {
-        scanReceipt: 'Scan Receipt',
-        recordDistance: 'Record Distance',
-        requestMoney: 'Request Money',
-        splitBill: 'Split Bill',
-        splitScan: 'Split Receipt',
-        splitDistance: 'Split Distance',
-        sendMoney: 'Send Money',
-        assignTask: 'Assign Task',
-        shortcut: 'Shortcut',
-        trackManual: 'Track Manual',
-        trackScan: 'Track Scan',
-        trackDistance: 'Track Distance',
+        scanReceipt: 'Scan receipt',
+        recordDistance: 'Record distance',
+        requestMoney: 'Submit expense',
+        splitBill: 'Split expense',
+        splitScan: 'Split receipt',
+        splitDistance: 'Split distance',
+        sendMoney: 'Pay someone',
+        assignTask: 'Assign task',
+        header: 'Quick action',
+        trackManual: 'Track expense',
+        trackScan: 'Track receipt',
+        trackDistance: 'Track distance',
     },
     iou: {
         amount: 'Amount',
@@ -610,12 +614,13 @@ export default {
         card: 'Card',
         original: 'Original',
         split: 'Split',
-        addToSplit: 'Add to split',
-        splitBill: 'Split bill',
-        request: 'Request',
+        splitExpense: 'Split expense',
+        paySomeone: ({name}: PaySomeoneParams) => `Pay ${name ?? 'someone'}`,
+        expense: 'Expense',
+        categorize: 'Categorize',
+        share: 'Share',
         participants: 'Participants',
-        requestMoney: 'Request money',
-        sendMoney: 'Send money',
+        submitExpense: 'Submit expense',
         trackExpense: 'Track expense',
         pay: 'Pay',
         cancelPayment: 'Cancel payment',
@@ -625,7 +630,8 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Route pending...',
+        routePending: 'Pending...',
+        defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         missingAmount: 'Missing amount',
@@ -634,20 +640,20 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        requestCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('request', 'requests', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
             }`,
-        deleteRequest: 'Delete request',
-        deleteConfirmation: 'Are you sure that you want to delete this request?',
+        deleteExpense: 'Delete expense',
+        deleteConfirmation: 'Are you sure that you want to delete this expense?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
-        requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
-        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `requested ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
+        submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
+        submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -663,7 +669,7 @@ export default {
         payerSettled: ({amount}: PayerSettledParams) => `paid ${amount}`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `approved ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager} cancelled the ${amount} payment.`,
+        adminCanceledRequest: ({manager, amount}: AdminCanceledRequestParams) => `${manager ? `${manager}: ` : ''}cancelled the ${amount} payment.`,
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
@@ -672,16 +678,16 @@ export default {
         paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}paid ${amount} using Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
-        changedTheRequest: 'changed the request',
+        changedTheExpense: 'changed the expense',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `the ${valueName} to ${newValueToDisplay}`,
         setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) => `set the distance to ${newDistanceToDisplay}, which set the amount to ${newAmountToDisplay}`,
         removedTheRequest: ({valueName, oldValueToDisplay}: RemovedTheRequestParams) => `the ${valueName} (previously ${oldValueToDisplay})`,
         updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `the ${valueName} to ${newValueToDisplay} (previously ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `changed the distance to ${newDistanceToDisplay} (previously ${oldDistanceToDisplay}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
-        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'request'}`,
+        threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
-        threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
+        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         tagSelection: 'Select a tag to better organize your spend.',
         categorySelection: 'Select a category to better organize your spend.',
         error: {
@@ -690,36 +696,36 @@ export default {
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
-            genericCreateFailureMessage: 'Unexpected error requesting money, please try again later',
+            genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             receiptFailureMessage: "The receipt didn't upload. ",
             saveFileMessage: 'Download the file ',
             loseFileMessage: 'or dismiss this error and lose it',
-            genericDeleteFailureMessage: 'Unexpected error deleting the money request, please try again later',
-            genericEditFailureMessage: 'Unexpected error editing the money request, please try again later',
+            genericDeleteFailureMessage: 'Unexpected error deleting this expense, please try again later',
+            genericEditFailureMessage: 'Unexpected error editing this expense, please try again later',
             genericSmartscanFailureMessage: 'Transaction is missing fields',
             duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
             atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
-            splitBillMultipleParticipantsErrorMessage: 'Split bill is only allowed between a single workspace or individual users. Please update your selection.',
+            splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Started settling up, payment is held until ${submitterDisplayName} enables their Wallet`,
         enableWallet: 'Enable Wallet',
         hold: 'Hold',
-        holdRequest: 'Hold request',
-        unholdRequest: 'Unhold request',
-        heldRequest: 'held this request',
-        unheldRequest: 'unheld this request',
-        explainHold: "Explain why you're holding this request.",
+        holdExpense: 'Hold expense',
+        unholdExpense: 'Unhold expense',
+        heldExpense: 'held this expense',
+        unheldExpense: 'unheld this expense',
+        explainHold: "Explain why you're holding this expense.",
         reason: 'Reason',
         holdReasonRequired: 'A reason is required when holding.',
-        requestOnHold: 'This request was put on hold. Review the comments for next steps.',
+        expenseOnHold: 'This expense was put on hold. Review the comments for next steps.',
         confirmApprove: 'Confirm what to approve',
         confirmApprovalAmount: 'Approve the entire report total or only the amount not on hold.',
         confirmPay: 'Confirm what to pay',
         confirmPayAmount: 'Pay all out-of-pocket spend or only the amount not on hold.',
         payOnly: 'Pay only',
         approveOnly: 'Approve only',
-        holdEducationalTitle: 'This request is on',
+        holdEducationalTitle: 'This expense is on',
         whatIsHoldTitle: 'What is hold?',
         whatIsHoldExplain: 'Hold is our way of streamlining financial collaboration. "Reject" is so harsh!',
         holdIsTemporaryTitle: 'Hold is usually temporary',
@@ -729,6 +735,7 @@ export default {
         set: 'set',
         changed: 'changed',
         removed: 'removed',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -885,6 +892,19 @@ export default {
             submitBug: 'submit a bug',
             confirmResetDescription: 'All unsent draft messages will be lost, but the rest of your data is safe.',
             resetAndRefresh: 'Reset and refresh',
+            clientSideLogging: 'Client side logging',
+            noLogsToShare: 'No logs to share',
+            useProfiling: 'Use profiling',
+            profileTrace: 'Profile trace',
+            releaseOptions: 'Release options',
+            testingPreferences: 'Testing preferences',
+            useStagingServer: 'Use Staging Server',
+            forceOffline: 'Force offline',
+            simulatFailingNetworkRequests: 'Simulate failing network requests',
+            authenticationStatus: 'Authentication status',
+            deviceCredentials: 'Device credentials',
+            invalidate: 'Invalidate',
+            destroy: 'Destroy',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -893,6 +913,7 @@ export default {
             execute: 'Execute',
             noLogsAvailable: 'No logs available',
             logSizeTooLarge: ({size}: LogSizeParams) => `Log size exceeds the limit of ${size} MB. Please use "Save log" to download the log file instead.`,
+            logs: 'Logs',
         },
         security: 'Security',
         signOut: 'Sign out',
@@ -916,8 +937,7 @@ export default {
         reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
         enterMessageHere: 'Enter message here',
         closeAccountWarning: 'Closing your account cannot be undone.',
-        closeAccountPermanentlyDeleteData:
-            'This will permanently delete all of your unsubmitted expense data and will cancel and decline any outstanding money requests. Are you sure you want to delete the account?',
+        closeAccountPermanentlyDeleteData: 'Are you sure you want to delete your account? This will permanently delete any outstanding expenses.',
         enterDefaultContactToConfirm: 'Please type your default contact method to confirm you wish to close your account. Your default contact method is:',
         enterDefaultContact: 'Enter your default contact method',
         defaultContact: 'Default contact method:',
@@ -1041,6 +1061,11 @@ export default {
         expensifyCard: 'Expensify Card',
         walletActivationPending: "We're reviewing your information, please check back in a few minutes!",
         walletActivationFailed: 'Unfortunately your wallet cannot be enabled at this time. Please chat with Concierge for further assistance.',
+        addYourBankAccount: 'Add your bank account.',
+        addBankAccountBody: "Let's connect your bank account to Expensify so it’s easier than ever to send and receive payments directly in the app.",
+        chooseYourBankAccount: 'Choose your bank account.',
+        chooseAccountBody: 'Make sure that you select the right one.',
+        confirmYourBankAccount: 'Confirm your bank account.',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -1208,6 +1233,12 @@ export default {
     groupConfirmPage: {
         groupName: 'Group name',
     },
+    groupChat: {
+        groupMembersListTitle: 'Directory of all group members.',
+        lastMemberTitle: 'Heads up!',
+        lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
+        defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
+    },
     languagePage: {
         language: 'Language',
         languages: {
@@ -1233,19 +1264,6 @@ export default {
             },
         },
         chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
-    },
-    signInPage: {
-        expensifyDotCash: 'New Expensify',
-        theCode: 'the code',
-        openJobs: 'open jobs',
-        heroHeading: 'Split bills\nand chat with friends.',
-        heroDescription: {
-            phrase1: "Money talks. And now that chat and payments are in one place, it's also easy. Your payments get to you as fast as you can get your point across.",
-            phrase2: 'The New Expensify is open source. View',
-            phrase3: 'the code',
-            phrase4: 'View',
-            phrase5: 'open jobs',
-        },
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',
@@ -1297,6 +1315,29 @@ export default {
         loginForm: 'Login form',
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
+    onboarding: {
+        welcome: 'Welcome!',
+        welcomeVideo: {
+            title: 'Welcome to Expensify',
+            description: 'Getting paid is as easy as sending a message.',
+            button: "Let's go",
+        },
+        whatsYourName: "What's your name?",
+        purpose: {
+            title: 'What do you want to do today?',
+            error: 'Please make a selection before continuing',
+            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
+            [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "I'm just looking around",
+        },
+        error: {
+            requiredFirstName: 'Please input your first name to continue',
+            requiredLastName: 'Please input your last name to continue',
+        },
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
@@ -1345,7 +1386,6 @@ export default {
         localTime: 'Local time',
     },
     newChatPage: {
-        createChat: 'Create chat',
         startGroup: 'Start group',
         addToGroup: 'Add to group',
     },
@@ -1777,11 +1817,13 @@ export default {
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',
+            reportFields: 'Report Fields',
             taxes: 'Taxes',
             bills: 'Bills',
             invoices: 'Invoices',
             travel: 'Travel',
             members: 'Members',
+            accounting: 'Accounting',
             plan: 'Plan',
             profile: 'Profile',
             bankAccount: 'Bank account',
@@ -1806,6 +1848,29 @@ export default {
             distanceRates: 'Distance rates',
             welcomeNote: ({workspaceName}: WelcomeNoteParams) =>
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
+        },
+        qbo: {
+            import: 'Import',
+            importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
+            classes: 'Classes',
+            accounts: 'Chart of accounts',
+            locations: 'Locations',
+            taxes: 'Taxes',
+            customers: 'Customers/Projects',
+            imported: 'Imported',
+            displayedAs: 'Displayed as',
+            notImported: 'Not imported',
+            importedAsTags: 'Imported, displayed as tags',
+            importedAsReportFields: 'Imported, displayed as report fields',
+            accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
+            accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
+            accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
+            classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
+            customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
+            locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
+            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            locationsAdditionalDescription:
+                'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
         },
         type: {
             free: 'Free',
@@ -1875,9 +1940,13 @@ export default {
                 subtitle: 'Set up custom fields for spend.',
             },
             connections: {
-                title: 'Connections',
+                title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+        },
+        reportFields: {
+            delete: 'Delete field',
+            deleteConfirmation: 'Are you sure that you want to delete this field?',
         },
         tags: {
             tagName: 'Tag name',
@@ -1955,7 +2024,8 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove these members?',
             removeMembersTitle: 'Remove members',
             removeMemberButtonTitle: 'Remove from workspace',
-            removeMemberPrompt: ({memberName}) => `Are you sure you want to remove ${memberName}`,
+            removeMemberGroupButtonTitle: 'Remove from group',
+            removeMemberPrompt: ({memberName}: {memberName: string}) => `Are you sure you want to remove ${memberName}?`,
             removeMemberTitle: 'Remove member',
             transferOwner: 'Transfer owner',
             makeMember: 'Make member',
@@ -2002,6 +2072,52 @@ export default {
             invalidRateError: 'Please enter a valid rate',
             lowRateError: 'Rate must be greater than 0',
         },
+        accounting: {
+            title: 'Connections',
+            subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
+            qbo: 'Quickbooks Online',
+            xero: 'Xero',
+            setup: 'Set up',
+            lastSync: 'Last synced just now',
+            import: 'Import',
+            export: 'Export',
+            advanced: 'Advanced',
+            other: 'Other integrations',
+            syncNow: 'Sync now',
+            disconnect: 'Disconnect',
+            disconnectTitle: 'Disconnect integration',
+            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            enterCredentials: 'Enter your credentials',
+            connections: {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                    switch (stage) {
+                        case 'quickbooksOnlineImportCustomers':
+                            return 'Importing customers';
+                        case 'quickbooksOnlineImportEmployees':
+                            return 'Importing employees';
+                        case 'quickbooksOnlineImportAccounts':
+                            return 'Importing accounts';
+                        case 'quickbooksOnlineImportClasses':
+                            return 'Importing classes';
+                        case 'quickbooksOnlineImportLocations':
+                            return 'Importing locations';
+                        case 'quickbooksOnlineImportProcessing':
+                            return 'Processing imported data';
+                        case 'quickbooksOnlineSyncBillPayments':
+                            return 'Synchronizing reimbursed reports and bill Payments';
+                        case 'quickbooksOnlineSyncTaxCodes':
+                            return 'Importing tax codes';
+                        case 'quickbooksOnlineCheckConnection':
+                            return 'Checking QuickBooks Online connection';
+                        case 'quickbooksOnlineImportMain':
+                            return 'Importing your QuickBooks Online data';
+                        default: {
+                            return `Translation missing for stage: ${stage}`;
+                        }
+                    }
+                },
+            },
+        },
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
@@ -2032,6 +2148,7 @@ export default {
         },
         invite: {
             member: 'Invite member',
+            members: 'Invite members',
             invitePeople: 'Invite new members',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             pleaseEnterValidLogin: `Please ensure the email or phone number is valid (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
@@ -2039,6 +2156,7 @@ export default {
             users: 'users',
             invited: 'invited',
             removed: 'removed',
+            leftWorkspace: 'left the workspace',
             to: 'to',
             from: 'from',
         },
@@ -2061,8 +2179,6 @@ export default {
             disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
             enableRate: 'Enable rate',
             status: 'Status',
-            enabled: 'Enabled',
-            disabled: 'Disabled',
             unit: 'Unit',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
@@ -2408,7 +2524,6 @@ export default {
     parentReportAction: {
         deletedReport: '[Deleted report]',
         deletedMessage: '[Deleted message]',
-        deletedRequest: '[Deleted request]',
         deletedExpense: '[Deleted expense]',
         reversedTransaction: '[Reversed transaction]',
         deletedTask: '[Deleted task]',
@@ -2455,6 +2570,12 @@ export default {
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accept',
         decline: 'Decline',
+    },
+    actionableMentionTrackExpense: {
+        submit: 'Submit it to someone',
+        categorize: 'Categorize it',
+        share: 'Share it with my accountant',
+        nothing: 'Nothing for now',
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers Unite',
@@ -2530,27 +2651,27 @@ export default {
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
-            buttonText1: 'Request money, ',
+            buttonText1: 'Submit expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Request money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `It pays to get paid! Request money from a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
+            header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
-            buttonText1: 'Send money, ',
+            buttonText1: 'Pay someone, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Send money, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `You gotta send money to make money! Send money to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
+            header: `Pay someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `You gotta spend money to make money! Pay someone with Expensify and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Invite a friend, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
+            body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Be the first to chat, send or request money, split a bill, or share your invite link with a friend, and you'll get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. You can post your invite link on social media, too!`,
+            body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
         },
         copyReferralLink: 'Copy invite link',
     },
@@ -2558,7 +2679,7 @@ export default {
         [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
         [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split bills with friends',
+        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
         welcomeMessage: 'Welcome to Expensify',
         welcomeSubtitle: 'What would you like to do?',
     },
