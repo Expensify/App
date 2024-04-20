@@ -1,13 +1,13 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
+import renderEmojisAsTextComponents from './renderEmojisAsTextComponents';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 import WrappedText from './WrappedText';
-import { renderEmojisAsTextComponents } from './renderEmojisAsTextComponents';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
-    const { elements, hasLargeStyle } = renderEmojisAsTextComponents(defaultRendererProps);
+    const {elements, hasLargeStyle} = renderEmojisAsTextComponents(defaultRendererProps, styles);
 
     return (
         <TDefaultRenderer

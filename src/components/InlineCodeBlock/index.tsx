@@ -1,25 +1,23 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import {StyleSheet} from 'react-native';
 import Text from '@components/Text';
-import type InlineCodeBlockProps from './types';
-import type { TTextOrTPhrasing } from './types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { renderEmojisAsTextComponents } from './renderEmojisAsTextComponents';
+import renderEmojisAsTextComponents from './renderEmojisAsTextComponents';
+import type InlineCodeBlockProps from './types';
+import type {TTextOrTPhrasing} from './types';
 
-function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({ TDefaultRenderer, textStyle, defaultRendererProps, boxModelStyle }: InlineCodeBlockProps<TComponent>) {
+function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, textStyle, defaultRendererProps, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
     const flattenTextStyle = StyleSheet.flatten(textStyle);
-    const { textDecorationLine, ...textStyles } = flattenTextStyle;
-    const { elements, hasLargeStyle } = renderEmojisAsTextComponents(defaultRendererProps);
+    const {textDecorationLine, ...textStyles} = flattenTextStyle;
+    const {elements, hasLargeStyle} = renderEmojisAsTextComponents(defaultRendererProps, styles);
 
     return (
         <TDefaultRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
         >
-            <Text style={[boxModelStyle, textStyles, hasLargeStyle ? styles.onlyEmojisText : {}]}>
-                {elements}
-            </Text>
+            <Text style={[boxModelStyle, textStyles, hasLargeStyle ? styles.onlyEmojisText : {}]}>{elements}</Text>
         </TDefaultRenderer>
     );
 }
