@@ -126,6 +126,12 @@ type Category = {
     isSelected?: boolean;
 };
 
+type Tax = {
+    modifiedName: string;
+    isSelected?: boolean;
+    isDisabled?: boolean;
+};
+
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
 type GetOptionsConfig = {
@@ -1162,21 +1168,26 @@ function getTagListSections(
     const tagSections = [];
     const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
+    const enabledTags = sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name));
+    const enabledTagsNames = enabledTags.map((tag) => tag.name);
+    const selectedTagsWithDisabledState: SelectedTagOption[] = [];
     const numberOfTags = enabledTags.length;
+
+    selectedOptions.forEach((tag) => {
+        if (enabledTagsNames.includes(tag.name)) {
+            selectedTagsWithDisabledState.push({...tag, enabled: true});
+            return;
+        }
+        selectedTagsWithDisabledState.push({...tag, enabled: false});
+    });
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {
-        const selectedTagOptions = selectedOptions.map((option) => ({
-            name: option.name,
-            // Should be marked as enabled to be able to be de-selected
-            enabled: true,
-        }));
         tagSections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getTagsOptions(selectedTagOptions, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
 
         return tagSections;
@@ -1215,17 +1226,11 @@ function getTagListSections(
     const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
     if (selectedOptions.length) {
-        const selectedTagOptions = selectedOptions.map((option) => ({
-            name: option.name,
-            // Should be marked as enabled to be able to unselect even though the selected category is disabled
-            enabled: true,
-        }));
-
         tagSections.push({
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(selectedTagOptions, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
     }
 
@@ -1367,33 +1372,39 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[]
         tooltipText: taxRate.modifiedName,
         isDisabled: taxRate.isDisabled,
         data: taxRate,
+        isSelected: taxRate.isSelected,
     }));
 }
 
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): TaxSection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Tax[], searchInputValue: string): TaxSection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
+    const enabledTaxRatesNames = enabledTaxRates.map((tax) => tax.modifiedName);
+    const selectedTaxRateWithDisabledState: Tax[] = [];
     const numberOfTaxRates = enabledTaxRates.length;
+
+    selectedOptions.forEach((tax) => {
+        if (enabledTaxRatesNames.includes(tax.modifiedName)) {
+            selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
+            return;
+        }
+        selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
+    });
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
-        const selectedTaxRateOptions = selectedOptions.map((option) => ({
-            modifiedName: option.name,
-            // Should be marked as enabled to be able to be de-selected
-            isDisabled: false,
-        }));
         policyRatesSections.push({
             // "Selected" sectiong
             title: '',
             shouldShow: false,
-            data: getTaxRatesOptions(selectedTaxRateOptions),
+            data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
 
         return policyRatesSections;
@@ -1423,24 +1434,15 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
         return policyRatesSections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
     const filteredTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName && !selectedOptionNames.includes(taxRate.modifiedName));
 
     if (selectedOptions.length > 0) {
-        const selectedTaxRatesOptions = selectedOptions.map((option) => {
-            const taxRateObject = Object.values(taxes).find((taxRate) => taxRate.modifiedName === option.name);
-
-            return {
-                modifiedName: option.name,
-                isDisabled: !!taxRateObject?.isDisabled,
-            };
-        });
-
         policyRatesSections.push({
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTaxRatesOptions(selectedTaxRatesOptions),
+            data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
     }
 
@@ -1623,7 +1625,7 @@ function getOptions(
     }
 
     if (includeTaxRates) {
-        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Category[], searchInputValue);
+        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Tax[], searchInputValue);
 
         return {
             recentReports: [],
@@ -2378,4 +2380,4 @@ export {
     getFirstKeyForList,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option, OptionTree};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
