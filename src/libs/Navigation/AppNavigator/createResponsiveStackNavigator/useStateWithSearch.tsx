@@ -28,7 +28,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
     return result.reverse();
 }
 
-const useCommonLogic = (state: PlatformStackNavigationState<ParamListBase>) => {
+const useStateWithSearch = (state: PlatformStackNavigationState<ParamListBase>) => {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return useMemo(() => {
@@ -62,4 +62,4 @@ const useCommonLogic = (state: PlatformStackNavigationState<ParamListBase>) => {
     }, [isSmallScreenWidth, state]);
 };
 
-export default useCommonLogic;
+export default useStateWithSearch;

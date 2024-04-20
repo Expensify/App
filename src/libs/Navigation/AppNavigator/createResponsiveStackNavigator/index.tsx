@@ -1,11 +1,11 @@
 import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {createNavigatorFactory, useNavigationBuilder} from '@react-navigation/native';
-import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import {NativeStackView} from '@react-navigation/native-stack';
+import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import {StackView} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
+import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
 import type {
     PlatformStackNavigationEventMap,
     PlatformStackNavigationOptions,
@@ -14,31 +14,40 @@ import type {
 } from '@libs/Navigation/PlatformStackNavigation/types';
 import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
-import useCommonLogic from './useCommonLogic';
+import useStateWithSearch from './useStateWithSearch';
 
-function createCustomStackNavigator<TStackParams extends ParamListBase>() {
+function createReponsiveStackNavigator<TStackParams extends ParamListBase>() {
     function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         const styles = useThemeStyles();
 
-        const nativeScreenOptions = withNativeNavigationOptions(props.screenOptions);
+        const webScreenOptions = withWebNavigationOptions(props.screenOptions);
+
+        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
+            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
+        ) => withWebNavigationOptions<TStackParams2, RouteName>(options);
 
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
             ResponsiveStackNavigatorRouterOptions,
             StackActionHelpers<ParamListBase>,
-            NativeStackNavigationOptions,
-            NativeStackNavigationEventMap
-        >(CustomRouter, {
-            children: props.children,
-            screenOptions: nativeScreenOptions,
-            initialRouteName: props.initialRouteName,
-        });
+            PlatformStackNavigationOptions,
+            StackNavigationEventMap,
+            StackNavigationOptions
+        >(
+            CustomRouter,
+            {
+                children: props.children,
+                screenOptions: webScreenOptions,
+                initialRouteName: props.initialRouteName,
+            },
+            transformScreenProps,
+        );
 
-        const {stateToRender, searchRoute} = useCommonLogic(state);
+        const {stateToRender, searchRoute} = useStateWithSearch(state);
 
         return (
             <NavigationContent>
-                <NativeStackView
+                <StackView
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     state={stateToRender}
@@ -51,16 +60,9 @@ function createCustomStackNavigator<TStackParams extends ParamListBase>() {
     }
     ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
-    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
-        withNativeNavigationOptions<TStackParams, RouteName>(screenOptions);
-
-    return createNavigatorFactory<
-        PlatformStackNavigationState<TStackParams>,
-        PlatformStackNavigationOptions,
-        PlatformStackNavigationEventMap,
-        typeof ResponsiveStackNavigator,
-        NativeStackNavigationOptions
-    >(ResponsiveStackNavigator)<TStackParams>(transformScreenProps);
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
+        ResponsiveStackNavigator,
+    )<TStackParams>();
 }
 
-export default createCustomStackNavigator;
+export default createReponsiveStackNavigator;
