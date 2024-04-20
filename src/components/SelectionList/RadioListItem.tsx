@@ -14,6 +14,7 @@ function RadioListItem<TItem extends ListItem>({
     onSelectRow,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
+    shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     isMultilineSupported = false,
     onFocus,
@@ -34,6 +35,7 @@ function RadioListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
             keyForList={item.keyForList}
             onFocus={onFocus}
