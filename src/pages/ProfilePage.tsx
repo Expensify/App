@@ -130,7 +130,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const navigateBackTo = route?.params?.backTo;
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && !!report.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
         : '';
