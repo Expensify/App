@@ -118,7 +118,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             false,
             {},
             [],
-            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
         );
 
