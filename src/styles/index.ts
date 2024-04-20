@@ -3207,7 +3207,7 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 3,
         },
 
-        WorkspaceRightColumn: {
+        workspaceRightColumn: {
             marginLeft: 100,
         },
 
