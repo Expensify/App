@@ -260,7 +260,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                         {translate('workspace.common.workspaceType')}
                     </Text>
                 </View>
-                <View style={[styles.WorkspaceRightColumn, styles.mr2]} />
+                <View style={[styles.workspaceRightColumn, styles.mr2]} />
             </View>
         );
     }, [isLessThanMediumScreen, styles, translate]);
