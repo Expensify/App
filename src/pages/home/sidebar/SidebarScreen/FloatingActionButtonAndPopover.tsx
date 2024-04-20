@@ -270,6 +270,8 @@ function FloatingActionButtonAndPopover(
             showCreateMenu();
         }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
     return (
         <View style={styles.flexGrow1}>
@@ -285,7 +287,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense
+                    ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
                                   icon: Expensicons.DocumentPlus,

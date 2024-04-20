@@ -483,6 +483,12 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         currency?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        backTo: Routes;
+        reportID: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
         action: IOUAction;
         iouType: IOUType;
