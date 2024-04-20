@@ -207,7 +207,7 @@ function BaseOptionsList(
     /**
      * Function which renders a section header component
      */
-    const renderSectionHeader = ({section: {title, shouldShow}}: {section: OptionsListDataWithIndexOffset}) => {
+    const renderSectionHeader = ({section: {title, shouldShow, onSectionButtonPress}}: {section: OptionsListDataWithIndexOffset}) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
         }
@@ -220,9 +220,11 @@ function BaseOptionsList(
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
                 <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween, sectionHeaderStyle]}>
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
-                    <PressableWithFeedback>
-                        <Text style={[styles.pr5, styles.textLabelSupporting]}>Reset</Text>
-                    </PressableWithFeedback>
+                    {onSectionButtonPress && (
+                        <PressableWithFeedback onPress={() => onSectionButtonPress()}>
+                            <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>Reset</Text>
+                        </PressableWithFeedback>
+                    )}
                 </View>
             );
         }

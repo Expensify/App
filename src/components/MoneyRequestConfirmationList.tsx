@@ -491,6 +491,7 @@ function MoneyRequestConfirmationList({
                 title: translate('moneyRequestConfirmationList.splitWith'),
                 data: formattedParticipantsList,
                 shouldShow: true,
+                onSectionButtonPress: () => IOU.resetSplitShares(transaction),
             });
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
@@ -504,7 +505,7 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, hasMultipleParticipants, translate, getParticipantOptions]);
+    }, [selectedParticipants, hasMultipleParticipants, translate, getParticipantOptions, transaction]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {

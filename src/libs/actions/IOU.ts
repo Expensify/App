@@ -5856,6 +5856,7 @@ function setSplitShares(transactionID: string, participantAccountIDs: number[], 
             ...result,
             [accountID]: {
                 amount: splitAmount,
+                isModified: false,
             },
         };
     }, {});
@@ -5864,6 +5865,14 @@ function setSplitShares(transactionID: string, participantAccountIDs: number[], 
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares: null}).then(() => {
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares});
     });
+}
+
+function resetSplitShares(transaction: NonNullable<OnyxTypes.Transaction>) {
+    const accountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
+    if (!accountIDs) {
+        return;
+    }
+    setSplitShares(transaction.transactionID, accountIDs, transaction.amount, transaction.currency);
 }
 
 /**
@@ -6111,6 +6120,7 @@ export {
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
     setSplitShares,
+    resetSplitShares,
     setIndividualShare,
     adjustRemainingSplitShares,
     splitBill,
