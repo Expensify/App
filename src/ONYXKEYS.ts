@@ -115,7 +115,7 @@ const ONYXKEYS = {
     /** Boolean flag only true when first set */
     NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'nvp_isFirstTimeNewExpensifyUser',
 
-    /** This NVP contains the choice that the user made on the engagement modal */
+    /** This NVP contains information about whether the onboarding flow was completed or not */
     NVP_ONBOARDING: 'nvp_onboarding',
 
     /** Contains the user preference for the LHN priority mode */
