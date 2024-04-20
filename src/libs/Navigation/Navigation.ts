@@ -15,7 +15,6 @@ import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
-import originalDismissRHP from './dismissRHP';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
 import originalGetTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
@@ -69,11 +68,6 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
     }
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
     originalDismissModalWithReport({reportID, ...report}, ref);
-};
-
-// Re-exporting the dismissRHP here to fill in default value for navigationRef. The dismissRHP isn't defined in this file to avoid cyclic dependencies.
-const dismissRHP = (ref = navigationRef) => {
-    originalDismissRHP(ref);
 };
 
 // Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
@@ -378,7 +372,6 @@ export default {
     setShouldPopAllStateOnUP,
     navigate,
     setParams,
-    dismissRHP,
     dismissModal,
     dismissModalWithReport,
     isActiveRoute,

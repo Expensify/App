@@ -310,10 +310,6 @@ const ROUTES = {
         route: 'r/:reportID/invite/:role?',
         getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
-    MONEY_REQUEST_PARTICIPANTS: {
-        route: ':iouType/new/participants/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
@@ -375,6 +371,11 @@ const ROUTES = {
         route: ':action/:iouType/distance/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_STEP_DISTANCE_RATE: {
+        route: ':action/:iouType/distanceRate/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/distanceRate/${transactionID}/${reportID}`, backTo),
     },
     MONEY_REQUEST_STEP_MERCHANT: {
         route: ':action/:iouType/merchant/:transactionID/:reportID',

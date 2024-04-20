@@ -270,6 +270,8 @@ function FloatingActionButtonAndPopover(
             showCreateMenu();
         }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
     return (
         <View style={styles.flexGrow1}>
@@ -285,7 +287,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense
+                    ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
                                   icon: Expensicons.DocumentPlus,
@@ -311,6 +313,19 @@ function FloatingActionButtonAndPopover(
                                 IOU.startMoneyRequest(
                                     CONST.IOU.TYPE.REQUEST,
                                     // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ReportUtils.generateReportID(),
+                                ),
+                            ),
+                    },
+                    {
+                        icon: Expensicons.Transfer,
+                        text: translate('iou.splitExpense'),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                IOU.startMoneyRequest(
+                                    CONST.IOU.TYPE.SPLIT,
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                     // for all of the routes in the creation flow.
                                     ReportUtils.generateReportID(),
                                 ),
