@@ -48,7 +48,7 @@ type TextInputWithCurrencySymbolProps = {
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 
-    /** Style for the prefix  container */
+    /** Style for the prefix container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
 
     /** Customizes the touchable wrapper of the TextInput component */

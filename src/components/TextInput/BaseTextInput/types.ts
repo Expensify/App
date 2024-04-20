@@ -111,7 +111,7 @@ type CustomBaseTextInputProps = {
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 
-    /** Style for the prefix  container */
+    /** Style for the prefix container */
     prefixContainerStyle?: StyleProp<ViewStyle>;
 };
 
