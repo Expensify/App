@@ -86,7 +86,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return Expensicons.MoneyCircle;
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.Receipt;
+            return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
