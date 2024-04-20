@@ -311,7 +311,7 @@ function MoneyRequestView({
                 shouldShowRightIcon={canEditDistance}
                 titleStyle={styles.flex1}
                 onPress={() =>
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, transaction?.transactionID ?? '', report.reportID))
                 }
             />
         </OfflineWithFeedback>
