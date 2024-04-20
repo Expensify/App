@@ -268,6 +268,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                         text={translate('common.next')}
                         onPress={createGroup}
                         pressOnEnter
+                        large
                     />
                 )}
             </>
