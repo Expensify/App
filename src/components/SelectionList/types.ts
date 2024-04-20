@@ -77,9 +77,6 @@ type ListItem = {
     /** Whether this option is disabled for selection */
     isDisabled?: boolean | null;
 
-    /** To apply diabled style when item is not diabled to unselect */
-    applyDisabledStyle?: boolean | null;
-
     /** List title is bold by default. Use this props to customize it */
     isBold?: boolean;
 

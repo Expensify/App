@@ -431,7 +431,6 @@ type OptionData = {
     descriptiveText?: string;
     notificationPreference?: NotificationPreference | null;
     isDisabled?: boolean | null;
-    applyDisabledStyle?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean;
     reportID?: string;
