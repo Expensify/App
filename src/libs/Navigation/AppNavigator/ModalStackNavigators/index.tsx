@@ -45,8 +45,8 @@ type Screens = Partial<Record<Screen, () => React.ComponentType>>;
  * @param screens key/value pairs where the key is the name of the screen and the value is a functon that returns the lazy-loaded component
  * @param getScreenOptions optional function that returns the screen options, override the default options
  */
-function createModalStackNavigator<TStackParams extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => PlatformStackNavigationOptions): React.ComponentType {
-    const ModalStackNavigator = createPlatformStackNavigator<TStackParams>();
+function createModalStackNavigator<ParamList extends ParamListBase>(screens: Screens, getScreenOptions?: (styles: ThemeStyles) => PlatformStackNavigationOptions): React.ComponentType {
+    const ModalStackNavigator = createPlatformStackNavigator<ParamList>();
 
     function ModalStack() {
         const screenOptions = useModalScreenOptions(getScreenOptions);

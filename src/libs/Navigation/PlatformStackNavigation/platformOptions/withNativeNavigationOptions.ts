@@ -18,12 +18,12 @@ const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigation
     ...getCommonNavigationOptions(screenOptions),
 });
 
-function withNativeNavigationOptions<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams>(
-    screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>,
+function withNativeNavigationOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
+    screenOptions: PlatformStackScreenOptionsWithoutNavigation<ParamList, RouteName>,
     defaultScreenOptions?: PlatformStackNavigationOptions,
 ) {
     return isRouteBasedScreenOptions(screenOptions)
-        ? (p: PlatformStackScreenOptionsPropsWithoutNavigation<TStackParams, RouteName>) => {
+        ? (p: PlatformStackScreenOptionsPropsWithoutNavigation<ParamList, RouteName>) => {
               const routeBasedScreenOptions = screenOptions(p);
               return transformPlatformOptionsToNative({...defaultScreenOptions, ...routeBasedScreenOptions});
           }

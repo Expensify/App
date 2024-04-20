@@ -15,13 +15,12 @@ import type {
 import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
-function createCustomFullScreenNavigator<TStackParams extends ParamListBase>() {
+function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
     function CustomFullScreenNavigator(props: FullScreenNavigatorProps<ParamListBase>) {
         const webScreenOptions = withWebNavigationOptions(props.screenOptions);
 
-        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
-            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
-        ) => withWebNavigationOptions<TStackParams2, RouteName>(options);
+        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
+            withWebNavigationOptions<ParamList2, RouteName>(options);
 
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -65,9 +64,9 @@ function createCustomFullScreenNavigator<TStackParams extends ParamListBase>() {
     }
     CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
 
-    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigator>(
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigator>(
         CustomFullScreenNavigator,
-    )<TStackParams>();
+    )<ParamList>();
 }
 
 export default createCustomFullScreenNavigator;

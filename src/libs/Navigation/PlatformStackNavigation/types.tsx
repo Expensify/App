@@ -3,7 +3,7 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
 
-type PlatformStackNavigationState<TStackParams extends ParamListBase> = StackNavigationState<TStackParams>;
+type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
 
 type OmitNever<T extends Record<string, unknown>> = {
     [K in keyof T as T[K] extends never ? never : K]: T[K];
@@ -85,44 +85,44 @@ type PlatformStackNavigationEventMap = CommonStackNavigationEventMap;
 type PlatformStackNavigationRouterOptions = StackRouterOptions;
 
 type PlatformStackNavigatorProps<
-    TStackParams extends ParamListBase,
-    RouteName extends keyof TStackParams = keyof TStackParams,
+    ParamList extends ParamListBase,
+    RouteName extends keyof ParamList = keyof ParamList,
     RouterOptions extends PlatformStackNavigationRouterOptions = PlatformStackNavigationRouterOptions,
-> = DefaultNavigatorOptions<TStackParams, PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
+> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
     RouterOptions &
     StackNavigationConfig;
 
-type PlatformStackScreenOptionsProps<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams, NavigatorID extends string | undefined = undefined> = {
-    route: PlatformStackRouteProp<TStackParams, RouteName>;
-    navigation: PlatformStackNavigationProp<TStackParams, RouteName, NavigatorID>;
+type PlatformStackScreenOptionsProps<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = {
+    route: PlatformStackRouteProp<ParamList, RouteName>;
+    navigation: PlatformStackNavigationProp<ParamList, RouteName, NavigatorID>;
 };
 
-type PlatformStackScreenOptionsPropsWithoutNavigation<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams> = {
-    route: PlatformStackRouteProp<TStackParams, RouteName>;
+type PlatformStackScreenOptionsPropsWithoutNavigation<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = {
+    route: PlatformStackRouteProp<ParamList, RouteName>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigation: any;
 };
 
-type PlatformStackScreenOptions<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams> = PlatformStackNavigatorProps<
-    TStackParams,
-    RouteName
->['screenOptions'];
+type PlatformStackScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = PlatformStackNavigatorProps<ParamList, RouteName>['screenOptions'];
 
-type PlatformStackScreenOptionsWithoutNavigation<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams> =
+type PlatformStackScreenOptionsWithoutNavigation<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> =
     | PlatformStackNavigationOptions
-    | ((props: PlatformStackScreenOptionsPropsWithoutNavigation<TStackParams, RouteName>) => PlatformStackNavigationOptions)
+    | ((props: PlatformStackScreenOptionsPropsWithoutNavigation<ParamList, RouteName>) => PlatformStackNavigationOptions)
     | undefined;
 
-type PlatformStackNavigationProp<
-    TStackParams extends ParamListBase,
-    RouteName extends keyof TStackParams = keyof TStackParams,
-    NavigatorID extends string | undefined = undefined,
-> = NavigationProp<TStackParams, RouteName, NavigatorID, PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap>;
-type PlatformStackRouteProp<TStackParams extends ParamListBase, RouteName extends keyof TStackParams> = RouteProp<TStackParams, RouteName>;
+type PlatformStackNavigationProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = NavigationProp<
+    ParamList,
+    RouteName,
+    NavigatorID,
+    PlatformStackNavigationState<ParamList>,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationEventMap
+>;
+type PlatformStackRouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList> = RouteProp<ParamList, RouteName>;
 
-function isRouteBasedScreenOptions<TStackParams extends ParamListBase, RouteName extends keyof TStackParams = keyof TStackParams>(
-    screenOptions: PlatformStackScreenOptions<TStackParams, RouteName>,
-): screenOptions is (props: PlatformStackScreenOptionsPropsWithoutNavigation<TStackParams, RouteName>) => PlatformStackNavigationOptions {
+function isRouteBasedScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
+    screenOptions: PlatformStackScreenOptions<ParamList, RouteName>,
+): screenOptions is (props: PlatformStackScreenOptionsPropsWithoutNavigation<ParamList, RouteName>) => PlatformStackNavigationOptions {
     return typeof screenOptions === 'function';
 }
 

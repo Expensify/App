@@ -14,13 +14,12 @@ import type {
     PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 
-function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
-    function PlatformStackNavigator({screenOptions, children, ...props}: PlatformStackNavigatorProps<TStackParams>) {
+function createPlatformStackNavigator<ParamList extends ParamListBase>() {
+    function PlatformStackNavigator({screenOptions, children, ...props}: PlatformStackNavigatorProps<ParamList>) {
         const webScreenOptions = withWebNavigationOptions(screenOptions);
 
-        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
-            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
-        ) => withWebNavigationOptions<TStackParams2, RouteName>(options);
+        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
+            withWebNavigationOptions<ParamList2, RouteName>(options);
 
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -53,9 +52,9 @@ function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
     }
     PlatformStackNavigator.displayName = 'PlatformStackNavigator';
 
-    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
         PlatformStackNavigator,
-    )<TStackParams>();
+    )<ParamList>();
 }
 
 export default createPlatformStackNavigator;

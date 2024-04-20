@@ -8,9 +8,9 @@ import type {
 
 type FullScreenNavigatorRouterOptions = PlatformStackNavigationRouterOptions;
 
-type FullScreenNavigatorProps<TStackParams extends ParamListBase> = DefaultNavigatorOptions<
-    TStackParams,
-    PlatformStackNavigationState<TStackParams>,
+type FullScreenNavigatorProps<ParamList extends ParamListBase> = DefaultNavigatorOptions<
+    ParamList,
+    PlatformStackNavigationState<ParamList>,
     PlatformStackNavigationOptions,
     PlatformStackNavigationEventMap
 >;

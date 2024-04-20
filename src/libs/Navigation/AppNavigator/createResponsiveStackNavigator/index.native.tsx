@@ -16,14 +16,13 @@ import CustomRouter from './CustomRouter';
 import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOptions} from './types';
 import useStateWithSearch from './useStateWithSearch';
 
-function createResponsiveStackNavigator<TStackParams extends ParamListBase>() {
+function createResponsiveStackNavigator<ParamList extends ParamListBase>() {
     function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
         const styles = useThemeStyles();
 
         const nativeScreenOptions = withNativeNavigationOptions(props.screenOptions);
-        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
-            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
-        ) => withNativeNavigationOptions<TStackParams2, RouteName>(options);
+        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
+            withNativeNavigationOptions<ParamList2, RouteName>(options);
 
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -59,9 +58,9 @@ function createResponsiveStackNavigator<TStackParams extends ParamListBase>() {
     }
     ResponsiveStackNavigator.displayName = 'ResponsiveStackNavigator';
 
-    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
+    return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof ResponsiveStackNavigator>(
         ResponsiveStackNavigator,
-    )<TStackParams>();
+    )<ParamList>();
 }
 
 export default createResponsiveStackNavigator;
