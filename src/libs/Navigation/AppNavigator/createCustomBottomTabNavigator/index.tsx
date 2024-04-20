@@ -22,7 +22,7 @@ function CustomBottomTabNavigator({id, initialRouteName, children, screenOptions
     const webScreenOptions = withWebNavigationOptions(screenOptions, defaultScreenOptions);
 
     const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
-        withWebNavigationOptions<ParamList2, RouteName>(options);
+        withWebNavigationOptions<ParamList2, RouteName>(options, defaultScreenOptions);
 
     const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
         PlatformStackNavigationState<ParamListBase>,
