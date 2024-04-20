@@ -85,7 +85,7 @@ function IOURequestStepDistance({
     const isLoadingRoute = transaction?.comment?.isLoading ?? false;
     const isLoading = transaction?.isLoading ?? false;
     const hasRouteError = !!transaction?.errorFields?.route;
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction, true);
     const validatedWaypoints = TransactionUtils.getValidWaypoints(waypoints);
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !isEqual(previousValidatedWaypoints, validatedWaypoints);

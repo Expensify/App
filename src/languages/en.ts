@@ -51,6 +51,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -315,6 +316,7 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        rate: 'Rate',
         emptyLHN: {
             title: 'Woohoo! All caught up.',
             subtitleText1: 'Find a chat using the',
@@ -627,7 +629,8 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Route pending...',
+        routePending: 'Pending...',
+        defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
         missingAmount: 'Missing amount',
@@ -731,6 +734,7 @@ export default {
         set: 'set',
         changed: 'changed',
         removed: 'removed',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -2652,9 +2656,9 @@ export default {
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
-            buttonText1: 'Pay Someone, ',
+            buttonText1: 'Pay someone, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Pay Someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Pay someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `You gotta spend money to make money! Pay someone with Expensify and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
