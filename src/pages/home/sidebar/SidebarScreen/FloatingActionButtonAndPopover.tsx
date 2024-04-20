@@ -324,7 +324,7 @@ function FloatingActionButtonAndPopover(
                             ),
                     },
                     {
-                        icon: getIconForAction(CONST.IOU.TYPE.SEND),
+                        icon: Expensicons.Transfer,
                         text: translate('iou.splitExpense'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
@@ -337,7 +337,7 @@ function FloatingActionButtonAndPopover(
                             ),
                     },
                     {
-                        icon: Expensicons.Send,
+                        icon: getIconForAction(CONST.IOU.TYPE.SEND),
                         text: translate('iou.paySomeone', {}),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
