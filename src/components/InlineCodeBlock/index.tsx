@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import renderEmojisAsTextComponents from './renderEmojisAsTextComponents';
+import renderEmojis from './renderEmojis';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 
@@ -10,7 +10,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     const styles = useThemeStyles();
     const flattenTextStyle = StyleSheet.flatten(textStyle);
     const {textDecorationLine, ...textStyles} = flattenTextStyle;
-    const {elements, hasLargeStyle} = renderEmojisAsTextComponents(defaultRendererProps, styles);
+    const {elements, hasLargeStyle} = renderEmojis(defaultRendererProps, styles);
 
     return (
         <TDefaultRenderer

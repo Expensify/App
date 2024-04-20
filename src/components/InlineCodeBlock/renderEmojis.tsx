@@ -1,10 +1,10 @@
 import React from 'react';
 import type {TDefaultRendererProps} from 'react-native-render-html';
-import Text from '@components/Text';
+import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import type {ThemeStyles} from '@styles/index';
 import type {TTextOrTPhrasing} from './types';
 
-function renderEmojisAsTextComponents(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>, styles: ThemeStyles) {
+function renderEmojis(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>, styles: ThemeStyles) {
     const elements: Array<string | React.JSX.Element> = [];
     let hasLargeStyle = false;
 
@@ -28,12 +28,11 @@ function renderEmojisAsTextComponents(defaultRendererProps: TDefaultRendererProp
                 hasLargeStyle = true;
             }
             elements.push(
-                <Text
-                    style={[largeStyle, styles.emojiDefault]}
+                <EmojiWithTooltip
+                    style={[styles.cursorDefault, largeStyle, styles.emojiDefault]}
                     key={child.data}
-                >
-                    {child.data}
-                </Text>,
+                    emojiCode={child.data}
+                />,
             );
         } else {
             elements.push(child.data);
@@ -43,4 +42,4 @@ function renderEmojisAsTextComponents(defaultRendererProps: TDefaultRendererProp
     return {elements, hasLargeStyle};
 }
 
-export default renderEmojisAsTextComponents;
+export default renderEmojis;
