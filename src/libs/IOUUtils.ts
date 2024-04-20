@@ -9,7 +9,7 @@ import Navigation from './Navigation/Navigation';
 import * as TransactionUtils from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction): void {
-    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.MOVE) {
+    if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.REQUEST) {
         Navigation.goBack();
         return;
     }
@@ -129,7 +129,7 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
 }
 
 function isMovingTransactionFromTrackExpense(action?: IOUAction) {
-    if (action === CONST.IOU.ACTION.MOVE || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
+    if (action === CONST.IOU.ACTION.REQUEST || action === CONST.IOU.ACTION.SHARE || action === CONST.IOU.ACTION.CATEGORIZE) {
         return true;
     }
 

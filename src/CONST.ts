@@ -6,9 +6,10 @@ import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
+import type {Unit} from './types/onyx/Policy';
 
 type RateAndUnit = {
-    unit: string;
+    unit: Unit;
     rate: number;
 };
 type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
@@ -633,59 +634,59 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
-                ACTIONABLEJOINREQUEST: 'ACTIONABLEJOINREQUEST',
-                ACTIONABLEMENTIONWHISPER: 'ACTIONABLEMENTIONWHISPER',
-                ACTIONABLETRACKEXPENSEWHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
-                ADDCOMMENT: 'ADDCOMMENT',
+                ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
+                ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
+                ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
-                CHANGEFIELD: 'CHANGEFIELD', // OldDot Action
-                CHANGEPOLICY: 'CHANGEPOLICY', // OldDot Action
-                CHANGETYPE: 'CHANGETYPE', // OldDot Action
-                CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
+                CHANGE_POLICY: 'CHANGEPOLICY', // OldDot Action
+                CHANGE_TYPE: 'CHANGETYPE', // OldDot Action
+                CHRONOS_OOO_LIST: 'CHRONOSOOOLIST',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
-                DELEGATESUBMIT: 'DELEGATESUBMIT', // OldDot Action
-                DELETEDACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
+                DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
                 DONATION: 'DONATION', // OldDot Action
-                EXPORTEDTOCSV: 'EXPORTEDTOCSV', // OldDot Action
-                EXPORTEDTOINTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
-                EXPORTEDTOQUICKBOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
+                EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
+                EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
+                EXPORTED_TO_QUICK_BOOKS: 'EXPORTEDTOQUICKBOOKS', // OldDot Action
                 FORWARDED: 'FORWARDED', // OldDot Action
                 HOLD: 'HOLD',
-                HOLDCOMMENT: 'HOLDCOMMENT',
+                HOLD_COMMENT: 'HOLDCOMMENT',
                 IOU: 'IOU',
-                INTEGRATIONSMESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
-                MANAGERATTACHRECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
-                MANAGERDETACHRECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
-                MARKEDREIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
-                MARKREIMBURSEDFROMINTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
-                MODIFIEDEXPENSE: 'MODIFIEDEXPENSE',
+                INTEGRATIONS_MESSAGE: 'INTEGRATIONSMESSAGE', // OldDot Action
+                MANAGER_ATTACH_RECEIPT: 'MANAGERATTACHRECEIPT', // OldDot Action
+                MANAGER_DETACH_RECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
+                MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
+                MARK_REIMBURSED_FROM_INTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
+                MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
-                OUTDATEDBANKACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
-                REIMBURSEMENTACHBOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
-                REIMBURSEMENTACHCANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
-                REIMBURSEMENTACCOUNTCHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
-                REIMBURSEMENTDELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
-                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
-                REIMBURSEMENTDEQUEUED: 'REIMBURSEMENTDEQUEUED',
-                REIMBURSEMENTREQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
-                REIMBURSEMENTSETUP: 'REIMBURSEMENTSETUP', // OldDot Action
+                OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
+                REIMBURSEMENT_ACH_CANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
+                REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
+                REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
+                REIMBURSEMENT_DEQUEUED: 'REIMBURSEMENTDEQUEUED',
+                REIMBURSEMENT_REQUESTED: 'REIMBURSEMENTREQUESTED', // OldDot Action
+                REIMBURSEMENT_SETUP: 'REIMBURSEMENTSETUP', // OldDot Action
                 RENAMED: 'RENAMED',
-                REPORTPREVIEW: 'REPORTPREVIEW',
-                SELECTEDFORRANDOMAUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
+                REPORT_PREVIEW: 'REPORTPREVIEW',
+                SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
-                STRIPEPAID: 'STRIPEPAID', // OldDot Action
+                STRIPE_PAID: 'STRIPEPAID', // OldDot Action
                 SUBMITTED: 'SUBMITTED',
-                TAKECONTROL: 'TAKECONTROL', // OldDot Action
-                TASKCANCELLED: 'TASKCANCELLED',
-                TASKCOMPLETED: 'TASKCOMPLETED',
-                TASKEDITED: 'TASKEDITED',
-                TASKREOPENED: 'TASKREOPENED',
+                TAKE_CONTROL: 'TAKECONTROL', // OldDot Action
+                TASK_CANCELLED: 'TASKCANCELLED',
+                TASK_COMPLETED: 'TASKCOMPLETED',
+                TASK_EDITED: 'TASKEDITED',
+                TASK_REOPENED: 'TASKREOPENED',
                 UNAPPROVED: 'UNAPPROVED', // OldDot Action
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
-                UPDATEGROUPCHATMEMBERROLE: 'UPDATEGROUPCHATMEMBERROLE',
-                POLICYCHANGELOG: {
+                UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
+                POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -713,16 +714,16 @@ const CONST = {
                     REMOVE_FROM_ROOM: 'POLICYCHANGELOG_REMOVEFROMROOM',
                     LEAVE_ROOM: 'POLICYCHANGELOG_LEAVEROOM',
                     REPLACE_CATEGORIES: 'POLICYCHANGELOG_REPLACE_CATEGORIES',
-                    SET_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
+                    SET_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_SET_AUTOREIMBURSEMENT',
                     SET_AUTO_JOIN: 'POLICYCHANGELOG_SET_AUTO_JOIN',
                     SET_CATEGORY_NAME: 'POLICYCHANGELOG_SET_CATEGORY_NAME',
                     SHARED_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_SHARED_BUDGET_NOTIFICATION',
                     UPDATE_ACH_ACCOUNT: 'POLICYCHANGELOG_UPDATE_ACH_ACCOUNT',
                     UPDATE_APPROVER_RULE: 'POLICYCHANGELOG_UPDATE_APPROVER_RULE',
                     UPDATE_AUDIT_RATE: 'POLICYCHANGELOG_UPDATE_AUDIT_RATE',
-                    UPDATE_AUTOHARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
-                    UPDATE_AUTOREIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
-                    UPDATE_AUTOREPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
+                    UPDATE_AUTO_HARVESTING: 'POLICYCHANGELOG_UPDATE_AUTOHARVESTING',
+                    UPDATE_AUTO_REIMBURSEMENT: 'POLICYCHANGELOG_UPDATE_AUTOREIMBURSEMENT',
+                    UPDATE_AUTO_REPORTING_FREQUENCY: 'POLICYCHANGELOG_UPDATE_AUTOREPORTING_FREQUENCY',
                     UPDATE_BUDGET: 'POLICYCHANGELOG_UPDATE_BUDGET',
                     UPDATE_CATEGORY: 'POLICYCHANGELOG_UPDATE_CATEGORY',
                     UPDATE_CURRENCY: 'POLICYCHANGELOG_UPDATE_CURRENCY',
@@ -753,7 +754,7 @@ const CONST = {
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                 },
-                ROOMCHANGELOG: {
+                ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
                     LEAVE_ROOM: 'LEAVEROOM',
@@ -1411,7 +1412,7 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
-            MOVE: 'move',
+            REQUEST: 'request',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
@@ -1436,7 +1437,6 @@ const CONST = {
             DELETE: 'delete',
             APPROVE: 'approve',
             TRACK: 'track',
-            MOVE: 'move',
         },
         AMOUNT_MAX_LENGTH: 10,
         RECEIPT_STATE: {
@@ -3559,7 +3559,7 @@ const CONST = {
             "# Let's start tracking your expenses!\n" +
             '\n' +
             "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > New Workspace\n' +
+            '1. From the home screen, click the green + button > *New Workspace*\n' +
             '2. Give your workspace a name (e.g. "My business expenses").\n' +
             '\n' +
             'Then, add expenses to your workspace:\n' +
@@ -3572,7 +3572,7 @@ const CONST = {
             '# Expensify is the fastest way to get paid back!\n' +
             '\n' +
             'To submit expenses for reimbursement:\n' +
-            '1. From the home screen, click the green + button > Request money.\n' +
+            '1. From the home screen, click the green + button > *Request money*.\n' +
             "2. Enter an amount or scan a receipt, then input your boss's email.\n" +
             '\n' +
             "That'll send a request to get you paid back. Let me know if you have any questions!",
@@ -3580,7 +3580,7 @@ const CONST = {
             "# Let's start managing your team's expenses!\n" +
             '\n' +
             "To manage your team's expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > New Workspace\n' +
+            '1. From the home screen, click the green + button > *New Workspace*\n' +
             '2. Give your workspace a name (e.g. "Sales team expenses").\n' +
             '\n' +
             'Then, invite your team to your workspace via the Members pane and [connect a business bank account](https://help.expensify.com/articles/new-expensify/bank-accounts/Connect-a-Bank-Account) to reimburse them. Let me know if you have any questions!',
@@ -3588,7 +3588,7 @@ const CONST = {
             "# Let's start tracking your expenses! \n" +
             '\n' +
             "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > New Workspace\n' +
+            '1. From the home screen, click the green + button > *New Workspace*\n' +
             '2. Give your workspace a name (e.g. "My expenses").\n' +
             '\n' +
             'Then, add expenses to your workspace:\n' +
@@ -3601,7 +3601,7 @@ const CONST = {
             '# Splitting the bill is as easy as a conversation!\n' +
             '\n' +
             'To split an expense:\n' +
-            '1. From the home screen, click the green + button > Request money.\n' +
+            '1. From the home screen, click the green + button > *Request money*.\n' +
             '2. Enter an amount or scan a receipt, then choose who you want to split it with.\n' +
             '\n' +
             "We'll send a request to each person so they can pay you back. Let me know if you have any questions!",
@@ -4352,6 +4352,6 @@ type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 
-export type {Country, IOUAction, IOUType};
+export type {Country, IOUAction, IOUType, RateAndUnit};
 
 export default CONST;
