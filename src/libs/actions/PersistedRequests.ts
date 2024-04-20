@@ -1,7 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
-import * as PersistedRequests from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 
@@ -22,7 +21,7 @@ function clear() {
 function save(requestToPersist: Request) {
     persistedRequests.push(requestToPersist);
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
-        Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${PersistedRequests.getLength()}`);
+        Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
     });
 }
 
