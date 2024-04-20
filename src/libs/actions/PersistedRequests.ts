@@ -48,4 +48,8 @@ function getAll(): Request[] {
     return persistedRequests;
 }
 
-export {clear, save, getAll, remove, update};
+function getLength(): number {
+    return persistedRequests.length;
+}
+
+export {clear, save, getAll, remove, update, getLength};
