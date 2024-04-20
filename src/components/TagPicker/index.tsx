@@ -4,8 +4,10 @@ import {withOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
@@ -13,7 +15,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/
 type SelectedTagOption = {
     name: string;
     enabled: boolean;
-    accountID: number | null;
+    accountID: number | undefined;
 };
 
 type TagPickerOnyxProps = {
@@ -30,14 +32,14 @@ type TagPickerProps = TagPickerOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
 
-    /** The selected tag of the money request */
+    /** The selected tag of the expense */
     selectedTag: string;
 
     /** The name of tag list we are getting tags for */
     tagListName: string;
 
     /** Callback to submit the selected tag */
-    onSubmit: () => void;
+    onSubmit: (selectedTag: Partial<ReportUtils.OptionData>) => void;
 
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
@@ -47,6 +49,7 @@ type TagPickerProps = TagPickerOnyxProps & {
 };
 
 function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRecentlyUsedTags, shouldShowDisabledAndSelectedOption = false, onSubmit}: TagPickerProps) {
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
@@ -66,8 +69,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
             {
                 name: selectedTag,
                 enabled: true,
-                accountID: null,
-                isSelected: true,
+                accountID: undefined,
             },
         ];
     }, [selectedTag]);
@@ -82,7 +84,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
     }, [selectedOptions, policyTagList, shouldShowDisabledAndSelectedOption]);
 
     const sections = useMemo(
-        () => OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
+        () => OptionsListUtils.getFilteredOptions([], [], [], searchValue, selectedOptions, [], false, false, false, {}, [], true, enabledTags, policyRecentlyUsedTagsList, false).tagOptions,
         [searchValue, enabledTags, selectedOptions, policyRecentlyUsedTagsList],
     );
 
@@ -92,15 +94,16 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
 
     return (
         <SelectionList
+            ListItem={RadioListItem}
+            sectionTitleStyles={styles.mt5}
             sections={sections}
-            headerMessage={headerMessage}
             textInputValue={searchValue}
+            headerMessage={headerMessage}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
+            isRowMultilineSupported
+            initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
-            ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
         />
     );
 }
