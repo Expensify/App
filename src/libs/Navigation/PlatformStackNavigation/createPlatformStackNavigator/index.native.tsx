@@ -13,44 +13,46 @@ import type {
     PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 
+function PlatformStackNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
+    const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
+
+    const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
+        withNativeNavigationOptions<ParamList2, RouteName>(options);
+
+    const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+        PlatformStackNavigationState<ParamListBase>,
+        PlatformStackNavigationRouterOptions,
+        StackActionHelpers<ParamListBase>,
+        PlatformStackNavigationOptions,
+        NativeStackNavigationEventMap,
+        NativeStackNavigationOptions
+    >(
+        StackRouter,
+        {
+            id,
+            children,
+            screenOptions: nativeScreenOptions,
+            screenListeners,
+            initialRouteName,
+        },
+        transformScreenProps,
+    );
+
+    return (
+        <NavigationContent>
+            <NativeStackView
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                state={state}
+                descriptors={descriptors}
+                navigation={navigation}
+            />
+        </NavigationContent>
+    );
+}
+PlatformStackNavigator.displayName = 'PlatformStackNavigator';
+
 function createPlatformStackNavigator<ParamList extends ParamListBase>() {
-    function PlatformStackNavigator({screenOptions, children, ...props}: PlatformStackNavigatorProps<ParamList>) {
-        const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
-
-        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
-            withNativeNavigationOptions<ParamList2, RouteName>(options);
-
-        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
-            PlatformStackNavigationState<ParamListBase>,
-            PlatformStackNavigationRouterOptions,
-            StackActionHelpers<ParamListBase>,
-            PlatformStackNavigationOptions,
-            NativeStackNavigationEventMap,
-            NativeStackNavigationOptions
-        >(
-            StackRouter,
-            {
-                children: props.children,
-                screenOptions: nativeScreenOptions,
-                initialRouteName: props.initialRouteName,
-            },
-            transformScreenProps,
-        );
-
-        return (
-            <NavigationContent>
-                <NativeStackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={state}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-            </NavigationContent>
-        );
-    }
-    PlatformStackNavigator.displayName = 'PlatformStackNavigator';
-
     return createNavigatorFactory<PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
         PlatformStackNavigator,
     )<ParamList>();

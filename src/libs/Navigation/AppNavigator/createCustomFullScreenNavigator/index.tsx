@@ -16,8 +16,8 @@ import CustomFullScreenRouter from './CustomFullScreenRouter';
 import type {FullScreenNavigatorProps, FullScreenNavigatorRouterOptions} from './types';
 
 function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
-    function CustomFullScreenNavigator(props: FullScreenNavigatorProps<ParamListBase>) {
-        const webScreenOptions = withWebNavigationOptions(props.screenOptions);
+    function CustomFullScreenNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: FullScreenNavigatorProps<ParamListBase>) {
+        const webScreenOptions = withWebNavigationOptions(screenOptions);
 
         const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
             withWebNavigationOptions<ParamList2, RouteName>(options);
@@ -32,9 +32,11 @@ function createCustomFullScreenNavigator<ParamList extends ParamListBase>() {
         >(
             CustomFullScreenRouter,
             {
-                children: props.children,
+                id,
+                children,
                 screenOptions: webScreenOptions,
-                initialRouteName: props.initialRouteName,
+                screenListeners,
+                initialRouteName,
             },
             transformScreenProps,
         );

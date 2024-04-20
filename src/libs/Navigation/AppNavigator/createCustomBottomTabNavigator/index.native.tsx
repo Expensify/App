@@ -19,7 +19,7 @@ import type CustomBottomTabNavigatorProps from './types';
 import {defaultScreenOptions} from './utils';
 
 function createCustomBottomTabNavigator<ParamList extends ParamListBase>() {
-    function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ...props}: CustomBottomTabNavigatorProps) {
+    function CustomBottomTabNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: CustomBottomTabNavigatorProps) {
         const nativeScreenOptions = withNativeNavigationOptions(screenOptions, defaultScreenOptions);
 
         const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
@@ -35,8 +35,10 @@ function createCustomBottomTabNavigator<ParamList extends ParamListBase>() {
         >(
             StackRouter,
             {
+                id,
                 children,
                 screenOptions: nativeScreenOptions,
+                screenListeners,
                 initialRouteName,
             },
             transformScreenProps,

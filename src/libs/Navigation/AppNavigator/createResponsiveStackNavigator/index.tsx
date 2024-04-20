@@ -17,10 +17,10 @@ import type {ResponsiveStackNavigatorProps, ResponsiveStackNavigatorRouterOption
 import useStateWithSearch from './useStateWithSearch';
 
 function createReponsiveStackNavigator<ParamList extends ParamListBase>() {
-    function ResponsiveStackNavigator(props: ResponsiveStackNavigatorProps) {
+    function ResponsiveStackNavigator({id, initialRouteName, children, screenOptions, screenListeners, ...props}: ResponsiveStackNavigatorProps) {
         const styles = useThemeStyles();
 
-        const webScreenOptions = withWebNavigationOptions(props.screenOptions);
+        const webScreenOptions = withWebNavigationOptions(screenOptions);
 
         const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(options: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>) =>
             withWebNavigationOptions<ParamList2, RouteName>(options);
@@ -35,9 +35,11 @@ function createReponsiveStackNavigator<ParamList extends ParamListBase>() {
         >(
             CustomRouter,
             {
-                children: props.children,
+                id,
+                children,
                 screenOptions: webScreenOptions,
-                initialRouteName: props.initialRouteName,
+                screenListeners,
+                initialRouteName,
             },
             transformScreenProps,
         );
