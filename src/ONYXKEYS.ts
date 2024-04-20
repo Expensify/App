@@ -135,6 +135,9 @@ const ONYXKEYS = {
     /** This NVP contains the choice that the user made on the engagement modal */
     NVP_INTRO_SELECTED: 'nvp_introSelected',
 
+    /** This NVP contains the choice that the user made on the engagement modal */
+    NVP_ONBOARDING: 'nvp_onboarding',
+
     /** This NVP contains the active policyID */
     NVP_ACTIVE_POLICY_ID: 'nvp_expensify_activePolicyID',
 

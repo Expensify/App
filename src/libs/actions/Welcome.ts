@@ -4,10 +4,12 @@ import type {SelectedPurposeType} from '@pages/OnboardingPurpose/BaseOnboardingP
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type Onboarding from '@src/types/onyx/Onboarding';
+import { isObject } from 'lodash';
 
 let hasSelectedPurpose: boolean | undefined;
 let hasProvidedPersonalDetails: boolean | undefined;
-let isFirstTimeNewExpensifyUser: boolean | undefined;
+let onboarding: Onboarding | [];
 let hasDismissedModal: boolean | undefined;
 let isLoadingReportData = true;
 
@@ -57,18 +59,20 @@ function isAbleToDetermineOnboardingStatus({onAble, onNotAble}: DetermineOnboard
  */
 function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOnboardingFlowProps) {
     isOnboardingFlowStatusKnownPromise.then(() => {
-        if (!isFirstTimeNewExpensifyUser) {
+        console.log("onboardingNVP: ", onboarding);
+        if (isObject(onboarding) && onboarding?.hasCompletedGuidedSetupFlow) {
             return;
         }
 
-        const onboardingFlowCompleted = hasProvidedPersonalDetails && hasSelectedPurpose;
+        console.log("onboarding: ", onboarding);
+
+        const onboardingFlowCompleted = onboarding?.hasCompletedGuidedSetupFlow || onboarding?.hasCompletedGuidedSetupFlow === undefined;
+
+        console.log("onboarding?.hasCompletedGuidedSetupFlow: ", onboarding?.hasCompletedGuidedSetupFlow);
 
         if (onboardingFlowCompleted) {
             onCompleted?.();
         } else {
-            // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
-            Onyx.set(ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, false);
-
             onNotCompleted?.();
         }
     });
@@ -82,7 +86,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    const hasRequiredOnyxKeysBeenLoaded = [isFirstTimeNewExpensifyUser, hasDismissedModal].every((value) => value !== undefined);
+    const hasRequiredOnyxKeysBeenLoaded = [onboarding, hasDismissedModal].every((value) => value !== undefined);
 
     if (isLoadingReportData || !hasRequiredOnyxKeysBeenLoaded) {
         return;
@@ -111,13 +115,11 @@ function setOnboardingPurposeSelected(value: SelectedPurposeType) {
 }
 
 Onyx.connect({
-    key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
-    initWithStoredValues: false,
+    key: ONYXKEYS.NVP_ONBOARDING,
+    initWithStoredValues: true,
     callback: (value) => {
-        // If isFirstTimeNewExpensifyUser was true do not update it to false. We update it to false inside the Welcome.isOnboardingFlowCompleted logic
-        // More context here https://github.com/Expensify/App/pull/16962#discussion_r1167351359
-
-        isFirstTimeNewExpensifyUser = value ?? undefined;
+        console.log("ONYXKEYS.NVP_ONBOARDING: ", value);
+        onboarding = value;
 
         checkOnReady();
     },

@@ -159,6 +159,7 @@ function bindEventToChannel<EventName extends PusherEventName>(channel: Channel 
 
     const chunkedDataEvents: Record<string, ChunkedDataEvents> = {};
     const callback = (eventData: EventData<EventName>) => {
+        console.log("callback: ", callback);
         if (shouldForceOffline) {
             Log.info('[Pusher] Ignoring a Push event because shouldForceOffline = true');
             return;

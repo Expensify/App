@@ -45,11 +45,19 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const routes = navigationState?.routes;
         const currentRoute = routes?.[navigationState?.index ?? 0];
 
-        if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
+        console.log("BottomTabBar: ", currentRoute);
+
+        if (!!(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
             return;
         }
 
-        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)});
+        console.log("isOnboardingFlowCompleted");
+
+        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => {
+                console.log("onboarding: on not complete");
+                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+            }
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
