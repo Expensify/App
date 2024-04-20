@@ -1,5 +1,5 @@
 import type {ThemeVars} from '@storybook/theming';
-import {create} from '@storybook/theming';
+import {create} from '@storybook/theming/create';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
 import colors from '../src/styles/theme/colors';
 
@@ -13,6 +13,7 @@ const theme: ThemeVars = create({
     colorPrimary: colors.productDark400,
     colorSecondary: colors.green,
     appContentBg: colors.productDark100,
+    appPreviewBg: colors.productDark100,
     textColor: colors.productDark900,
     barTextColor: colors.productDark900,
     barSelectedColor: colors.green,

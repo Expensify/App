@@ -84,7 +84,13 @@ function AmountForm(
         if (!ids.includes(relatedTargetId)) {
             return;
         }
+
         event.preventDefault();
+        setSelection({
+            start: selection.end,
+            end: selection.end,
+        });
+
         if (!textInput.current) {
             return;
         }

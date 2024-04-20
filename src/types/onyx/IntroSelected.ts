@@ -3,7 +3,7 @@ import type CONST from '@src/CONST';
 
 type IntroSelected = {
     /** The choice that the user selected in the engagement modal */
-    choice: ValueOf<typeof CONST.INTRO_CHOICES>;
+    choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
 };
 
 export default IntroSelected;

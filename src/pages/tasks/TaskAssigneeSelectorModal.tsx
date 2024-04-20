@@ -7,7 +7,8 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, usePersonalDetails, useSession} from '@components/OnyxProvider';
+import {useBetas, useSession} from '@components/OnyxProvider';
+import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -39,22 +40,18 @@ type TaskAssigneeSelectorModalOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type UseOptions = {
-    reports: OnyxCollection<Report>;
-};
-
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
 
-function useOptions({reports}: UseOptions) {
-    const allPersonalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+function useOptions() {
     const betas = useBetas();
     const [isLoading, setIsLoading] = useState(true);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const {options: optionsList, areOptionsInitialized} = useOptionsList();
 
     const options = useMemo(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getFilteredOptions(
-            reports,
-            allPersonalDetails,
+            optionsList.reports,
+            optionsList.personalDetails,
             betas,
             debouncedSearchValue.trim(),
             [],
@@ -87,18 +84,18 @@ function useOptions({reports}: UseOptions) {
             currentUserOption,
             headerMessage,
         };
-    }, [debouncedSearchValue, allPersonalDetails, isLoading, betas, reports]);
+    }, [optionsList.reports, optionsList.personalDetails, betas, debouncedSearchValue, isLoading]);
 
-    return {...options, isLoading, searchValue, debouncedSearchValue, setSearchValue};
+    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
 
-function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, isLoading, searchValue, setSearchValue, headerMessage} = useOptions({reports});
+    const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -174,7 +171,7 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                         option?.login ?? '',
                         option?.accountID ?? -1,
                         report.reportID,
-                        report,
+                        null, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                         OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? ''}),
                     );
 
@@ -188,7 +185,7 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                     option?.login ?? '',
                     option.accountID,
                     task?.shareDestination ?? '',
-                    report,
+                    null, // passing null as report is null in this condition
                     OptionsListUtils.isCurrentUser({...option, accountID: option?.accountID ?? -1, login: option?.login ?? undefined}),
                 );
                 Navigation.goBack(ROUTES.NEW_TASK);
@@ -215,14 +212,14 @@ function TaskAssigneeSelectorModal({reports, task, didScreenTransitionEnd}: Task
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                     <SelectionList
-                        sections={didScreenTransitionEnd && !isLoading ? sections : []}
+                        sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
                         onChangeText={onChangeText}
                         textInputValue={searchValue}
                         headerMessage={headerMessage}
                         textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        showLoadingPlaceholder={isLoading || !didScreenTransitionEnd}
+                        showLoadingPlaceholder={!areOptionsInitialized}
                     />
                 </View>
             </FullPageNotFoundView>
