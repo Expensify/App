@@ -1,9 +1,11 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import React, {useEffect} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
@@ -35,7 +37,31 @@ type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFou
 function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNotFoundComponentProps) {
     const isPolicyIDInRoute = !!props.policyID?.length;
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
-    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+    const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
+    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
+    const pendingField = props.policy?.pendingFields?.[props.featureName];
+    const [isFeatureScreenOpen, setIsFeatureScreenOpen] = useState(false);
+    const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
+
+    useEffect(() => {
+        if (!isFeatureScreenOpen && isFocused) {
+            setIsFeatureScreenOpen(true);
+            setIsPolicyFeatureEnabled(isFeatureEnabled);
+            return;
+        }
+        if (!isFocused) {
+            setIsFeatureScreenOpen(false);
+            return;
+        }
+        setIsPolicyFeatureEnabled((isPrevFeatureEnabled) => {
+            if (!pendingField || isOffline) {
+                return isFeatureEnabled;
+            }
+            return isPrevFeatureEnabled;
+        });
+    }, [isFocused, pendingField, isOffline, isFeatureEnabled, isFeatureScreenOpen]);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
