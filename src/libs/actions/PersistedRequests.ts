@@ -18,6 +18,10 @@ function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
+function getLength(): number {
+    return persistedRequests.length;
+}
+
 function save(requestToPersist: Request) {
     persistedRequests.push(requestToPersist);
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
@@ -49,10 +53,6 @@ function update(oldRequestIndex: number, newRequest: Request) {
 
 function getAll(): Request[] {
     return persistedRequests;
-}
-
-function getLength(): number {
-    return persistedRequests.length;
 }
 
 export {clear, save, getAll, remove, update, getLength};
