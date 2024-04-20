@@ -329,7 +329,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 iconWidth={variables.emptyWorkspaceIconWidth}
                 iconHeight={variables.emptyWorkspaceIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
-                subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
             />
             <Button
