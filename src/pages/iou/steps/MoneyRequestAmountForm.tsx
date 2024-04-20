@@ -318,7 +318,7 @@ function MoneyRequestAmountForm(
         if (skipConfirmation) {
             if (currentAmount !== '') {
                 const currencyAmount = CurrencyUtils.convertToDisplayString(CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount)), currency) ?? '';
-                let text = translate('iou.submitAmount', {amount: currencyAmount});;
+                let text = translate('iou.submitAmount', {amount: currencyAmount});
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     text = translate('iou.splitAmount', {amount: currencyAmount});
                 } else if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {

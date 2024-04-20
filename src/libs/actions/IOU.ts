@@ -890,7 +890,7 @@ function buildOnyxDataForTrackExpense(
                     isFirstQuickAction: isEmptyObject(quickAction),
                 },
             },
-        )
+        );
     }
 
     if (iouReport) {
