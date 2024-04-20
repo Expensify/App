@@ -352,6 +352,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 onCheckboxPress={onCheckboxPress ? () => onCheckboxPress?.(item) : undefined}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                shouldPreventEnterKeySubmit
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList ?? ''}
                 isMultilineSupported={isRowMultilineSupported}
