@@ -65,6 +65,7 @@ function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerPr
     const headerMessage = OptionsListUtils.getHeaderMessageForNonUserList(sections[0].data.length > 0, searchValue);
 
     const selectedOptionKey = useMemo(() => sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
+
     return (
         <SelectionList
             sections={sections}

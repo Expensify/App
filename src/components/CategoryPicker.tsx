@@ -70,6 +70,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories]);
 
     const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((category) => category.searchText === selectedCategory)[0]?.keyForList, [sections, selectedCategory]);
+
     return (
         <SelectionList
             sections={sections}

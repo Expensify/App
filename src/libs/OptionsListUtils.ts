@@ -1052,9 +1052,10 @@ function getCategoryListSections(
     }
 
     if (searchInputValue) {
+        const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
         const searchCategories: Category[] = [];
 
-        enabledCategories.forEach((category) => {
+        categoriesForSearch.forEach((category) => {
             if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
                 return;
             }
@@ -1168,7 +1169,7 @@ function getTagListSections(
     const tagSections = [];
     const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledTags = sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name));
+    const enabledTags = sortedTags.filter((tag) => tag.enabled);
     const enabledTagsNames = enabledTags.map((tag) => tag.name);
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
     const numberOfTags = enabledTags.length;
@@ -1194,13 +1195,15 @@ function getTagListSections(
     }
 
     if (searchInputValue) {
-        const searchTags = enabledTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const enabledSearchTags = enabledTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
 
         tagSections.push({
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(searchTags, selectedOptions),
+            data: getTagsOptions(tagsForSearch, selectedOptions),
         });
 
         return tagSections;
