@@ -9,7 +9,6 @@ type Card = {
     availableSpend: number;
     domainName: string;
     lastFourPAN?: string;
-    isVirtual: boolean; // Deprecating, use nameValuePairs.isVirtual
     fraud: ValueOf<typeof CONST.EXPENSIFY_CARD.FRAUD_TYPES>;
     errors?: OnyxCommon.Errors;
     isLoading?: boolean;

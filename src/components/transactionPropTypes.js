@@ -39,7 +39,7 @@ export default PropTypes.shape({
             /** The text of the comment */
             comment: PropTypes.string,
 
-            /** The waypoints defining the distance request */
+            /** The waypoints defining the distance expense */
             waypoints: PropTypes.shape({
                 /** The latitude of the waypoint */
                 lat: PropTypes.number,
