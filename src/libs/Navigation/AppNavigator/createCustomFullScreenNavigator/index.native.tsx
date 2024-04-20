@@ -16,17 +16,26 @@ function createCustomFullScreenNavigator<TStackParams extends ParamListBase>() {
     function CustomFullScreenNavigator(props: FullScreenNavigatorProps<ParamListBase>) {
         const nativeScreenOptions = withNativeNavigationOptions(props.screenOptions);
 
+        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
+            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
+        ) => withNativeNavigationOptions<TStackParams2, RouteName>(options);
+
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
             FullScreenNavigatorRouterOptions,
             StackActionHelpers<ParamListBase>,
-            NativeStackNavigationOptions,
-            NativeStackNavigationEventMap
-        >(CustomFullScreenRouter, {
-            children: props.children,
-            screenOptions: nativeScreenOptions,
-            initialRouteName: props.initialRouteName,
-        });
+            PlatformStackNavigationOptions,
+            NativeStackNavigationEventMap,
+            NativeStackNavigationOptions
+        >(
+            CustomFullScreenRouter,
+            {
+                children: props.children,
+                screenOptions: nativeScreenOptions,
+                initialRouteName: props.initialRouteName,
+            },
+            transformScreenProps,
+        );
 
         return (
             <NavigationContent>
@@ -42,16 +51,9 @@ function createCustomFullScreenNavigator<TStackParams extends ParamListBase>() {
     }
     CustomFullScreenNavigator.displayName = 'CustomFullScreenNavigator';
 
-    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
-        withNativeNavigationOptions<TStackParams, RouteName>(screenOptions);
-
-    return createNavigatorFactory<
-        PlatformStackNavigationState<TStackParams>,
-        PlatformStackNavigationOptions,
-        PlatformStackNavigationEventMap,
-        typeof CustomFullScreenNavigator,
-        NativeStackNavigationOptions
-    >(CustomFullScreenNavigator)<TStackParams>(transformScreenProps);
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomFullScreenNavigator>(
+        CustomFullScreenNavigator,
+    )<TStackParams>();
 }
 
 export default createCustomFullScreenNavigator;

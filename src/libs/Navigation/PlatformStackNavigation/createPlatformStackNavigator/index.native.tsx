@@ -1,44 +1,60 @@
-import {createNavigatorFactory} from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/native';
-import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
+import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
+import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
+import {NativeStackView} from '@react-navigation/native-stack';
 import React from 'react';
 import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
 import type {
     PlatformStackNavigationEventMap,
     PlatformStackNavigationOptions,
+    PlatformStackNavigationRouterOptions,
     PlatformStackNavigationState,
     PlatformStackNavigatorProps,
     PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 
 function createPlatformStackNavigator<TStackParams extends ParamListBase>() {
-    const Stack = createNativeStackNavigator<TStackParams>();
-
     function PlatformStackNavigator({screenOptions, children, ...props}: PlatformStackNavigatorProps<TStackParams>) {
         const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
 
+        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
+            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
+        ) => withNativeNavigationOptions<TStackParams2, RouteName>(options);
+
+        const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
+            PlatformStackNavigationState<ParamListBase>,
+            PlatformStackNavigationRouterOptions,
+            StackActionHelpers<ParamListBase>,
+            PlatformStackNavigationOptions,
+            NativeStackNavigationEventMap,
+            NativeStackNavigationOptions
+        >(
+            StackRouter,
+            {
+                children: props.children,
+                screenOptions: nativeScreenOptions,
+                initialRouteName: props.initialRouteName,
+            },
+            transformScreenProps,
+        );
+
         return (
-            <Stack.Navigator
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-                screenOptions={nativeScreenOptions}
-            >
-                {children}
-            </Stack.Navigator>
+            <NavigationContent>
+                <NativeStackView
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    state={state}
+                    descriptors={descriptors}
+                    navigation={navigation}
+                />
+            </NavigationContent>
         );
     }
+    PlatformStackNavigator.displayName = 'PlatformStackNavigator';
 
-    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
-        withNativeNavigationOptions<TStackParams, RouteName>(screenOptions);
-
-    return createNavigatorFactory<
-        PlatformStackNavigationState<TStackParams>,
-        PlatformStackNavigationOptions,
-        PlatformStackNavigationEventMap,
-        typeof PlatformStackNavigator,
-        NativeStackNavigationOptions
-    >(PlatformStackNavigator)<TStackParams>(transformScreenProps);
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof PlatformStackNavigator>(
+        PlatformStackNavigator,
+    )<TStackParams>();
 }
 
 export default createPlatformStackNavigator;

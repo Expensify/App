@@ -22,17 +22,26 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
     function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ...props}: CustomBottomTabNavigatorProps) {
         const webScreenOptions = withWebNavigationOptions(screenOptions, defaultScreenOptions);
 
+        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
+            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
+        ) => withWebNavigationOptions<TStackParams2, RouteName>(options);
+
         const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
             PlatformStackNavigationRouterOptions,
             StackActionHelpers<ParamListBase>,
-            StackNavigationOptions,
-            StackNavigationEventMap
-        >(StackRouter, {
-            children,
-            screenOptions: webScreenOptions,
-            initialRouteName,
-        });
+            PlatformStackNavigationOptions,
+            StackNavigationEventMap,
+            StackNavigationOptions
+        >(
+            StackRouter,
+            {
+                children,
+                screenOptions: webScreenOptions,
+                initialRouteName,
+            },
+            transformScreenProps,
+        );
 
         const styles = useThemeStyles();
         const stateToRender = getStateToRender(state);
@@ -59,16 +68,9 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
     }
     CustomBottomTabNavigator.displayName = 'CustomBottomTabNavigator';
 
-    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
-        withWebNavigationOptions<TStackParams, RouteName>(screenOptions);
-
-    return createNavigatorFactory<
-        PlatformStackNavigationState<TStackParams>,
-        PlatformStackNavigationOptions,
-        PlatformStackNavigationEventMap,
-        typeof CustomBottomTabNavigator,
-        StackNavigationOptions
-    >(CustomBottomTabNavigator)<TStackParams>(transformScreenProps);
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomBottomTabNavigator>(
+        CustomBottomTabNavigator,
+    )<TStackParams>();
 }
 
 export default createCustomBottomTabNavigator;

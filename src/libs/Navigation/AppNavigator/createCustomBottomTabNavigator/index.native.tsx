@@ -2,7 +2,6 @@ import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {createNavigatorFactory, StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {NativeStackView} from '@react-navigation/native-stack';
-import type {NativeStackNavigationConfig} from '@react-navigation/native-stack/lib/typescript/src/types';
 import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,17 +22,26 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
     function CustomBottomTabNavigator({initialRouteName, children, screenOptions, ...props}: CustomBottomTabNavigatorProps) {
         const nativeScreenOptions = withNativeNavigationOptions(screenOptions, defaultScreenOptions);
 
+        const transformScreenProps = <TStackParams2 extends ParamListBase, RouteName extends keyof TStackParams2>(
+            options: PlatformStackScreenOptionsWithoutNavigation<TStackParams2, RouteName>,
+        ) => withNativeNavigationOptions<TStackParams2, RouteName>(options);
+
         const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
             PlatformStackNavigationRouterOptions,
             StackActionHelpers<ParamListBase>,
-            NativeStackNavigationOptions,
-            NativeStackNavigationEventMap
-        >(StackRouter, {
-            children,
-            screenOptions: nativeScreenOptions,
-            initialRouteName,
-        });
+            PlatformStackNavigationOptions,
+            NativeStackNavigationEventMap,
+            NativeStackNavigationOptions
+        >(
+            StackRouter,
+            {
+                children,
+                screenOptions: nativeScreenOptions,
+                initialRouteName,
+            },
+            transformScreenProps,
+        );
 
         const styles = useThemeStyles();
 
@@ -59,16 +67,9 @@ function createCustomBottomTabNavigator<TStackParams extends ParamListBase>() {
     }
     CustomBottomTabNavigator.displayName = 'CustomBottomTabNavigator';
 
-    const transformScreenProps = <RouteName extends keyof TStackParams>(screenOptions: PlatformStackScreenOptionsWithoutNavigation<TStackParams, RouteName>) =>
-        withNativeNavigationOptions<TStackParams, RouteName>(screenOptions);
-
-    return createNavigatorFactory<
-        PlatformStackNavigationState<TStackParams>,
-        PlatformStackNavigationOptions,
-        PlatformStackNavigationEventMap,
-        typeof CustomBottomTabNavigator,
-        NativeStackNavigationConfig
-    >(CustomBottomTabNavigator)<TStackParams>(transformScreenProps);
+    return createNavigatorFactory<PlatformStackNavigationState<TStackParams>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, typeof CustomBottomTabNavigator>(
+        CustomBottomTabNavigator,
+    )<TStackParams>();
 }
 
 export default createCustomBottomTabNavigator;
