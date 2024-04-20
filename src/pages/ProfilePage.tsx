@@ -236,7 +236,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!isEmptyObject(report) && !isCurrentUser && (
+                            {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
                                 <MenuItem
                                     title={`${translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}
