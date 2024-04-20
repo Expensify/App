@@ -35,14 +35,16 @@ type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFou
 };
 
 function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNotFoundComponentProps) {
-    const isPolicyIDInRoute = !!props.policyID?.length;
-    const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
-    const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
-    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
-    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const pendingField = props.policy?.pendingFields?.[props.featureName];
+    const isPolicyIDInRoute = !!props.policyID?.length;
+    const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+
+    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
+
+    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
+    const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
     useEffect(() => {
         if (!isFocused) {
