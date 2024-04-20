@@ -41,27 +41,17 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const pendingField = props.policy?.pendingFields?.[props.featureName];
-    const [isFeatureScreenOpen, setIsFeatureScreenOpen] = useState(false);
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
 
     useEffect(() => {
-        if (!isFeatureScreenOpen && isFocused) {
-            setIsFeatureScreenOpen(true);
-            setIsPolicyFeatureEnabled(isFeatureEnabled);
-            return;
-        }
         if (!isFocused) {
-            setIsFeatureScreenOpen(false);
             return;
         }
-        setIsPolicyFeatureEnabled((isPrevFeatureEnabled) => {
-            if (!pendingField || isOffline) {
-                return isFeatureEnabled;
-            }
-            return isPrevFeatureEnabled;
-        });
-    }, [isFocused, pendingField, isOffline, isFeatureEnabled, isFeatureScreenOpen]);
+        if (!pendingField || isOffline) {
+            setIsPolicyFeatureEnabled(isFeatureEnabled);
+        }
+    }, [isFocused, pendingField, isOffline, isFeatureEnabled]);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
