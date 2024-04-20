@@ -74,6 +74,9 @@ type MoneyRequestConfirmationListOnyxProps = {
 
     /** Last selected distance rates */
     lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
+
+    /** List of currencies */
+    currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
 type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps & {
@@ -169,8 +172,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** The action to take */
     action?: IOUAction;
-
-    currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
 };
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
@@ -408,7 +409,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
             const amountInCents = CurrencyUtils.convertToBackendAmount(value);
-            IOU.setSplitShare(transaction?.transactionID, accountID, amountInCents);
+            IOU.setIndividualShare(transaction?.transactionID, accountID, amountInCents);
         },
         [transaction?.transactionID],
     );
@@ -434,26 +435,8 @@ function MoneyRequestConfirmationList({
         if (!isTypeSplit || !transaction?.splitShares) {
             return;
         }
-
-        const sumOfManualShares = Object.keys(transaction.splitShares)
-            .filter((key: string) => transaction?.splitShares?.[Number(key)]?.isModified)
-            .map((key: string): number => transaction?.splitShares?.[Number(key)]?.amount ?? 0)
-            .reduce((prev: number, current: number): number => prev + current, 0);
-
-        if (!sumOfManualShares) {
-            return;
-        }
-
-        const unModifiedSharesAccountIDs = Object.keys(transaction.splitShares)
-            .filter((key: string) => !transaction?.splitShares?.[Number(key)]?.isModified)
-            .map((key: string) => Number(key));
-
-        const remainingTotal = iouAmount - sumOfManualShares;
-        if (remainingTotal <= 0) {
-            return;
-        }
-        IOU.adjustRemainingSplitShares(transaction.transactionID, unModifiedSharesAccountIDs, remainingTotal, iouCurrencyCode ?? CONST.CURRENCY.USD);
-    }, [transaction, iouAmount, iouCurrencyCode, isTypeSplit]);
+        IOU.adjustRemainingSplitShares(transaction);
+    }, [isTypeSplit, transaction]);
 
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
@@ -477,7 +460,7 @@ function MoneyRequestConfirmationList({
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
             tabIndex: -1,
-            amountProps: {
+            amountInputOptions: {
                 amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
                 currency: iouCurrencyCode,
                 prefixCharacter: currencySymbol,
@@ -1112,5 +1095,7 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     lastSelectedDistanceRates: {
         key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
     },
-    currencyList: {key: ONYXKEYS.CURRENCY_LIST},
+    currencyList: {
+        key: ONYXKEYS.CURRENCY_LIST,
+    },
 })(MoneyRequestConfirmationList);

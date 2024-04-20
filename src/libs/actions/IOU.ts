@@ -5844,7 +5844,10 @@ function setShownHoldUseExplanation() {
     Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
 }
 
-function resetSplitShares(transactionID: string, participantAccountIDs: number[], amount: number, currency: string) {
+/**
+ * Sets the `splitShares` map that holds individual shares of a split bill
+ */
+function setSplitShares(transactionID: string, participantAccountIDs: number[], amount: number, currency: string) {
     const participantAccountIDsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== userAccountID);
     const splitShares: SplitShares = [userAccountID, ...participantAccountIDsWithoutCurrentUser].reduce((result: SplitShares, accountID): SplitShares => {
         const isPayer = accountID === userAccountID;
@@ -5863,7 +5866,10 @@ function resetSplitShares(transactionID: string, participantAccountIDs: number[]
     });
 }
 
-function setSplitShare(transactionID: string, participantAccountID: number, participantShare: number) {
+/**
+ * Sets and individual split shares of the participant accountID supplied
+ */
+function setIndividualShare(transactionID: string, participantAccountID: number, participantShare: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         splitShares: {
             [participantAccountID]: {amount: participantShare, isModified: true},
@@ -5871,9 +5877,31 @@ function setSplitShare(transactionID: string, participantAccountID: number, part
     });
 }
 
-function adjustRemainingSplitShares(transactionID: string, remainingAccountIDs: number[], remainingAmount: number, currency: string) {
-    const splitShares: SplitShares = remainingAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
-        const splitAmount = IOUUtils.calculateAmount(remainingAccountIDs.length - 1, remainingAmount, currency, index === 0);
+/**
+ * Adjusts remaining unmodified shares when another share is modified
+ * E.g. if total bill is $100 and split between 3 participants, when the user changes the first share to $50, the remaining unmodified shares will become $25 each.
+ */
+function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transaction>) {
+    const sumOfManualShares = Object.keys(transaction.splitShares ?? {})
+        .filter((key: string) => transaction?.splitShares?.[Number(key)]?.isModified)
+        .map((key: string): number => transaction?.splitShares?.[Number(key)]?.amount ?? 0)
+        .reduce((prev: number, current: number): number => prev + current, 0);
+
+    if (!sumOfManualShares) {
+        return;
+    }
+
+    const unModifiedSharesAccountIDs = Object.keys(transaction.splitShares ?? {})
+        .filter((key: string) => !transaction?.splitShares?.[Number(key)]?.isModified)
+        .map((key: string) => Number(key));
+
+    const remainingTotal = transaction.amount - sumOfManualShares;
+    if (remainingTotal <= 0) {
+        return;
+    }
+
+    const splitShares: SplitShares = unModifiedSharesAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
+        const splitAmount = IOUUtils.calculateAmount(unModifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
         return {
             ...result,
             [accountID]: {
@@ -5881,7 +5909,8 @@ function adjustRemainingSplitShares(transactionID: string, remainingAccountIDs: 
             },
         };
     }, {});
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares});
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
 }
 
 /**
@@ -6081,8 +6110,8 @@ export {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setShownHoldUseExplanation,
-    resetSplitShares,
-    setSplitShare,
+    setSplitShares,
+    setIndividualShare,
     adjustRemainingSplitShares,
     splitBill,
     splitBillAndOpenReport,

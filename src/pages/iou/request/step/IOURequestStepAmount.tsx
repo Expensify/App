@@ -202,7 +202,7 @@ function IOURequestStepAmount({
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-                IOU.resetSplitShares(transactionID, participantAccountIDs, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+                IOU.setSplitShares(transactionID, participantAccountIDs, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
             }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
             return;
@@ -219,7 +219,7 @@ function IOURequestStepAmount({
         // Edits to the amount from the splits page should reset the split shares.
         if (transaction?.splitShares) {
             const participantAccountIDs = Object.keys(transaction.splitShares).map((accountID) => Number(accountID));
-            IOU.resetSplitShares(transactionID, participantAccountIDs, newAmount, currency);
+            IOU.setSplitShares(transactionID, participantAccountIDs, newAmount, currency);
         }
 
         if (!isEditing) {

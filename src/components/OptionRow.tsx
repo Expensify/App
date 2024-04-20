@@ -253,7 +253,7 @@ function OptionRow({
                                         <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {option.amountProps ? <MoneyRequestAmountInput {...option.amountProps} /> : null}
+                                {option.amountInputOptions ? <MoneyRequestAmountInput {...option.amountInputOptions} /> : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
@@ -348,7 +348,7 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon &&
         prevProps.option.tabIndex === nextProps.option.tabIndex &&
-        lodashIsEqual(prevProps.option.amountProps, nextProps.option.amountProps),
+        lodashIsEqual(prevProps.option.amountInputOptions, nextProps.option.amountInputOptions),
 );
 
 export type {OptionRowProps};
