@@ -32,6 +32,12 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
     const offsetX = useRef(new Animated.Value(isOn ? OFFSET_X.ON : OFFSET_X.OFF));
     const theme = useTheme();
 
+    const handleSwitchPress = () => {
+        InteractionManager.runAfterInteractions(() => {
+            onToggle(!isOn);
+        });
+    };
+
     useEffect(() => {
         Animated.timing(offsetX.current, {
             toValue: isOn ? OFFSET_X.ON : OFFSET_X.OFF,
@@ -44,16 +50,8 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled}: SwitchProps) {
         <PressableWithFeedback
             disabled={disabled}
             style={[styles.switchTrack, !isOn && styles.switchInactive]}
-            onPress={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    onToggle(!isOn);
-                });
-            }}
-            onLongPress={() => {
-                InteractionManager.runAfterInteractions(() => {
-                    onToggle(!isOn);
-                });
-            }}
+            onPress={handleSwitchPress}
+            onLongPress={handleSwitchPress}
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
             accessibilityLabel={accessibilityLabel}
