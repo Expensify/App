@@ -3,8 +3,10 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useEffect, useMemo, useRef} from 'react';
 import type {SectionListRenderItem} from 'react-native';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import {PressableWithFeedback} from '@components/Pressable';
 import SectionList from '@components/SectionList';
 import Text from '@components/Text';
 import usePrevious from '@hooks/usePrevious';
@@ -216,8 +218,11 @@ function BaseOptionsList(
                 // We do this so that we can reference the height in `getItemLayout` –
                 // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
-                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, sectionHeaderStyle]}>
+                <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween, sectionHeaderStyle]}>
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
+                    <PressableWithFeedback>
+                        <Text style={[styles.pr5, styles.textLabelSupporting]}>Reset</Text>
+                    </PressableWithFeedback>
                 </View>
             );
         }
