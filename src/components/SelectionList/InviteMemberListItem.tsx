@@ -13,9 +13,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {InviteMemberListItemProps} from './types';
+import type {InviteMemberListItemProps, ListItem} from './types';
 
-function InviteMemberListItem({
+function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -26,7 +26,9 @@ function InviteMemberListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: InviteMemberListItemProps) {
+    onFocus,
+    shouldSyncFocus,
+}: InviteMemberListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -66,6 +68,8 @@ function InviteMemberListItem({
                 ) : undefined
             }
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
         >
             {(hovered?: boolean) => (
                 <>

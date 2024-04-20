@@ -49,11 +49,10 @@ function useMarkdownStyle(message: string | null = null): MarkdownStyle {
                 color: theme.mentionText,
                 backgroundColor: theme.mentionBG,
             },
-            // emoji: {
-            //     fontStyle: 'normal',
-            //     fontWeight: 'normal',
-            //     fontSize: 12,
-            // },
+            mentionReport: {
+                color: theme.mentionText,
+                backgroundColor: theme.mentionBG,
+            },
         }),
         [theme, emojiFontSize],
     );
