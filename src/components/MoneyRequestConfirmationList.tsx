@@ -1003,8 +1003,7 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {!isMovingTransactionFromTrackExpense &&
-                !hasRoute &&
+            {(!isMovingTransactionFromTrackExpense || !hasRoute) &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent
