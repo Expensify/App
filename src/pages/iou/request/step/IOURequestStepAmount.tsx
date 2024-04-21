@@ -31,8 +31,19 @@ type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
 
+<<<<<<< HEAD
     /** The backup transaction object being modified in Onyx */
     backupTransaction: OnyxEntry<Transaction>;
+=======
+    /** The draft transaction object being modified in Onyx */
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Personal details of all users */
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** The policy which the user has access to and which the report is tied to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+>>>>>>> 8e8b1735 (Merge pull request #40655 from DylanDylann/fix/40543)
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
@@ -48,7 +59,12 @@ function IOURequestStepAmount({
     },
     transaction,
     splitDraftTransaction,
+<<<<<<< HEAD
     backupTransaction,
+=======
+    skipConfirmation,
+    draftTransaction,
+>>>>>>> 8e8b1735 (Merge pull request #40655 from DylanDylann/fix/40543)
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -59,7 +75,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? backupTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     useFocusEffect(
@@ -81,13 +97,13 @@ function IOURequestStepAmount({
         // A temporary solution to not prevent users from editing the currency
         // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
         // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-        TransactionEdit.createBackupTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
+        TransactionEdit.createDraftTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
         return () => {
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '');
+            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '');
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -175,6 +191,7 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
+<<<<<<< HEAD
 export default withWritableReportOrNotFound(
     withFullTransactionOrNotFound(
         withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
@@ -193,3 +210,39 @@ export default withWritableReportOrNotFound(
         })(IOURequestStepAmount),
     ),
 );
+=======
+const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
+    splitDraftTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+        },
+    },
+    draftTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+        },
+    },
+    skipConfirmation: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
+        },
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+    policy: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+    },
+})(IOURequestStepAmount);
+
+const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails);
+// eslint-disable-next-line rulesdir/no-negated-variables
+const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
+
+export default IOURequestStepAmountWithFullTransactionOrNotFound;
+>>>>>>> 8e8b1735 (Merge pull request #40655 from DylanDylann/fix/40543)
