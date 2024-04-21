@@ -389,7 +389,6 @@ function FloatingActionButtonAndPopover(
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
                                   shouldRenderTooltip: quickAction?.isFirstQuickAction,
                                   shouldForceRenderingTooltipLeft: true,
-                                  shouldRenderTooltipWithoutHover: true,
                                   renderTooltipContent: renderQuickActionTooltip,
                                   tooltipWrapperStyle: styles.quickActionTooltipWrapper,
                               },

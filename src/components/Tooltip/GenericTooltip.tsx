@@ -1,4 +1,5 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import type {LayoutRectangle} from 'react-native';
 import {Animated} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -9,13 +10,13 @@ import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import TooltipSense from './TooltipSense';
-import type {BaseTooltipProps, TooltipRect} from './types';
+import type {GenericTooltipProps} from './types';
 
 /**
- * The base tooltip implementation, exposing the tooltip's state
- * while leaving the bounds computation to its parent.
+ * The generic tooltip implementation, exposing the tooltip's state
+ * while leaving the tooltip's target bounds computation to its parent.
  */
-function BaseTooltip({
+function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
     maxWidth = variables.sideBarWidth,
@@ -27,7 +28,7 @@ function BaseTooltip({
     shouldForceRenderingBelow = false,
     wrapperStyle = {},
     shouldForceRenderingLeft = false,
-}: BaseTooltipProps) {
+}: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
@@ -86,9 +87,9 @@ function BaseTooltip({
     }, [isVisible, text, prevText, showTooltip]);
 
     /**
-     * Update the tooltip bounding rectangle
+     * Update the tooltip's target bounding rectangle
      */
-    const updateBounds = (bounds: TooltipRect) => {
+    const updateTargetBounds = (bounds: LayoutRectangle) => {
         if (bounds.width === 0) {
             setIsRendered(false);
         }
@@ -123,7 +124,7 @@ function BaseTooltip({
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
-        return children({isVisible, showTooltip, hideTooltip, updateBounds});
+        return children({isVisible, showTooltip, hideTooltip, updateTargetBounds});
     }
 
     return (
@@ -151,11 +152,11 @@ function BaseTooltip({
                 />
             )}
 
-            {children({isVisible, showTooltip, hideTooltip, updateBounds})}
+            {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
         </>
     );
 }
 
-BaseTooltip.displayName = 'BaseTooltip';
+GenericTooltip.displayName = 'GenericTooltip';
 
-export default memo(BaseTooltip);
+export default memo(GenericTooltip);

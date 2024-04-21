@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SharedTooltipProps = {
@@ -36,14 +36,7 @@ type SharedTooltipProps = {
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-type TooltipRect = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
-
-type BaseTooltipState = {
+type GenericTooltipState = {
     /** Is tooltip visible */
     isVisible: boolean;
 
@@ -53,33 +46,26 @@ type BaseTooltipState = {
     /** Hide tooltip */
     hideTooltip: () => void;
 
-    /** Update the tooltip bounding rectangle */
-    updateBounds: (rect: TooltipRect) => void;
+    /** Update the tooltip's target bounding rectangle */
+    updateTargetBounds: (rect: LayoutRectangle) => void;
 };
 
-type BaseTooltipProps = SharedTooltipProps & {
-    children: React.FC<BaseTooltipState>;
+type GenericTooltipProps = SharedTooltipProps & {
+    children: React.FC<GenericTooltipState>;
 };
 
-type TooltipProps = ChildrenProps & SharedTooltipProps;
+type TooltipProps = ChildrenProps &
+    SharedTooltipProps & {
+        /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
+        shouldHandleScroll?: boolean;
+    };
 
-type HoverableTooltipProps = TooltipProps & {
-    /** Whether to show the tooltip immediately without hovering over the wrapped component */
-    shouldRenderWithoutHover?: false | undefined;
+type EducationalTooltipProps = ChildrenProps & TooltipProps;
 
-    /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
-    shouldHandleScroll?: boolean;
-};
-
-type EducationalTooltipProps = TooltipProps & {
-    /** Whether to show the tooltip immediately without hovering over the wrapped component */
-    shouldRenderWithoutHover: true;
-};
-
-type TooltipExtendedProps = (EducationalTooltipProps | HoverableTooltipProps) & {
+type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
     /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
     shouldRender?: boolean;
 };
 
 export default TooltipProps;
-export type {HoverableTooltipProps, TooltipRect, BaseTooltipProps, TooltipExtendedProps};
+export type {EducationalTooltipProps, GenericTooltipProps, TooltipExtendedProps};

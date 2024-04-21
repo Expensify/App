@@ -1,7 +1,7 @@
 import type {BoundsObserver} from '@react-ng/bounds-observer';
 import React, {useContext, useMemo, useRef} from 'react';
 import {PopoverContext} from '@components/PopoverProvider';
-import HoverableTooltip from './HoverableTooltip';
+import BaseTooltip from './BaseTooltip';
 import type {TooltipExtendedProps} from './types';
 
 function PopoverAnchorTooltip({shouldRender = true, children, ...props}: TooltipExtendedProps) {
@@ -23,14 +23,13 @@ function PopoverAnchorTooltip({shouldRender = true, children, ...props}: Tooltip
     }
 
     return (
-        <HoverableTooltip
+        <BaseTooltip
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            shouldRenderWithoutHover={false}
             ref={tooltipRef}
         >
             {children}
-        </HoverableTooltip>
+        </BaseTooltip>
     );
 }
 

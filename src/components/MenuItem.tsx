@@ -38,7 +38,7 @@ import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
-import Tooltip from './Tooltip';
+import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -261,9 +261,6 @@ type MenuItemBaseProps = {
     /** Whether to align the tooltip left */
     shouldForceRenderingTooltipLeft?: boolean;
 
-    /** Whether to show the tooltip immediately without hovering over */
-    shouldRenderTooltipWithoutHover?: boolean;
-
     /** Additional styles for tooltip wrapper */
     tooltipWrapperStyle?: StyleProp<ViewStyle>;
 
@@ -343,7 +340,6 @@ function MenuItem(
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
         shouldRenderTooltip = false,
-        shouldRenderTooltipWithoutHover = false,
         shouldForceRenderingTooltipLeft = false,
         tooltipWrapperStyle = {},
         renderTooltipContent,
@@ -445,10 +441,9 @@ function MenuItem(
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                 </View>
             )}
-            <Tooltip
+            <EducationalTooltip
                 shouldRender={shouldRenderTooltip}
                 shouldForceRenderingLeft={shouldForceRenderingTooltipLeft}
-                shouldRenderWithoutHover={shouldRenderTooltipWithoutHover}
                 renderTooltipContent={renderTooltipContent}
                 wrapperStyle={tooltipWrapperStyle}
                 shiftHorizontal={styles.popoverMenuItem.paddingHorizontal}
@@ -711,7 +706,7 @@ function MenuItem(
                         )}
                     </Hoverable>
                 </View>
-            </Tooltip>
+            </EducationalTooltip>
         </View>
     );
 }

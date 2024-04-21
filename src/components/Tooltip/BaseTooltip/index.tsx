@@ -1,19 +1,13 @@
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useCallback, useRef} from 'react';
+import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
-import BaseTooltip from '@components/Tooltip/BaseTooltip';
-import type {HoverableTooltipProps, TooltipRect} from '@components/Tooltip/types';
+import BaseTooltip from '@components/Tooltip/GenericTooltip';
+import type TooltipProps from '@components/Tooltip/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
-
-/**
- * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
- * wrapped element, which, upon hover, triggers the tooltip to be shown.
- * @param {propTypes} props
- * @returns {ReactNodeLike}
- */
 
 /**
  * Choose the correct bounding box for the tooltip to be positioned against.
@@ -47,7 +41,13 @@ function chooseBoundingBox(target: HTMLElement, clientX: number, clientY: number
     return target.getBoundingClientRect();
 }
 
-function HoverableTooltip({children, shouldHandleScroll = false, ...props}: HoverableTooltipProps, ref: ForwardedRef<BoundsObserver>) {
+/**
+ * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
+ * wrapped element, which, upon hover, triggers the tooltip to be shown.
+ * @param props
+ * @returns
+ */
+function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps, ref: ForwardedRef<BoundsObserver>) {
     const target = useRef<HTMLElement | null>(null);
     const initialMousePosition = useRef({x: 0, y: 0});
 
@@ -62,7 +62,7 @@ function HoverableTooltip({children, shouldHandleScroll = false, ...props}: Hove
     /**
      * Get the tooltip bounding rectangle
      */
-    const getBounds = (bounds: DOMRect): TooltipRect => {
+    const getBounds = (bounds: DOMRect): LayoutRectangle => {
         if (!target.current) {
             return bounds;
         }
@@ -91,14 +91,14 @@ function HoverableTooltip({children, shouldHandleScroll = false, ...props}: Hove
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
         <BaseTooltip {...props}>
-            {({isVisible, showTooltip, hideTooltip, updateBounds}) =>
+            {({isVisible, showTooltip, hideTooltip, updateTargetBounds}) =>
                 // Checks if valid element so we can wrap the BoundsObserver around it
                 // If not, we just return the primitive children
                 React.isValidElement(children) ? (
                     <BoundsObserver
                         enabled={isVisible}
                         onBoundsChange={(bounds) => {
-                            updateBounds(getBounds(bounds));
+                            updateTargetBounds(getBounds(bounds));
                         }}
                         ref={ref}
                     >
@@ -120,6 +120,6 @@ function HoverableTooltip({children, shouldHandleScroll = false, ...props}: Hove
     );
 }
 
-HoverableTooltip.displayName = 'HoverableTooltip';
+Tooltip.displayName = 'Tooltip';
 
-export default memo(forwardRef(HoverableTooltip));
+export default memo(forwardRef(Tooltip));
