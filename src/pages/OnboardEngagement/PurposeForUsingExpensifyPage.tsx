@@ -32,7 +32,7 @@ const messageCopy = {
         '\n' +
         'Next, start adding expenses to your workspace:\n' +
         '\n' +
-        '1. Click the green *+* > *Request money*.\n' +
+        '1. Click the green *+* > *Submit expense*.\n' +
         '2. Add an expense or scan a receipt.\n' +
         '3. Choose your workspace as the destination.\n' +
         '\n' +
@@ -40,7 +40,7 @@ const messageCopy = {
     [CONST.INTRO_CHOICES.SUBMIT]:
         "Here's how to submit expenses for reimbursement:\n" +
         '\n' +
-        '1. Click the green *+* > *Request money*.\n' +
+        '1. Click the green *+* > *Submit expense*.\n' +
         '2. Add an expense or scan a receipt.\n' +
         "3. Enter your reimburser's email or phone number.\n" +
         '\n' +
@@ -49,15 +49,15 @@ const messageCopy = {
     [CONST.INTRO_CHOICES.CHAT_SPLIT]:
         "Here's how to split expenses with friends:\n" +
         '\n' +
-        '1. Tap the green *+* > *Request money*.\n' +
+        '1. Tap the green *+* > *Split expense*.\n' +
         '2. Add an expense or scan a receipt.\n' +
         "3. Enter your friend's email or phone number.\n" +
-        '4. Tap *Split* next to their contact info.\n' +
+        '4. Select the option.\n' +
         '5. Repeat for any additional friends.\n' +
         "6. Tap *Add to split* when you're done.\n" +
-        '7. Review and tap *Split* to send your request(s).\n' +
+        '7. Review and tap *Split* to split your expense(s).\n' +
         '\n' +
-        "We'll send a money request to each of your friends and make sure you get paid back. Let me know how it goes!",
+        "We'll submit an expense to each of your friends and make sure you get paid back. Let me know how it goes!",
 };
 
 const menuIcons = {
@@ -86,7 +86,7 @@ function PurposeForUsingExpensifyModal() {
             return Navigation.navigate(ROUTES.ONBOARD_MANAGE_EXPENSES);
         }
 
-        Report.completeEngagementModal(message, choice);
+        Report.completeEngagementModal(choice, message);
         Report.navigateToConciergeChat(true);
     }, []);
 
