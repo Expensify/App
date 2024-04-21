@@ -5944,16 +5944,25 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
 
     const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
 
-    const transactionAmount = Math.abs(transaction.amount);
-    const transactionCreated = format(new Date(transaction.created), CONST.DATE.FNS_FORMAT_STRING);
+    const {created, amount, taxAmount, taxCode, currency, comment, merchant, waypoints, category, billable, tag, mccGroup} = getTransactionDetails(transaction) ?? {};
 
     IOU.createDraftTransaction({
         ...transaction,
         actionableWhisperReportActionID: reportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID: reportID,
-        amount: transactionAmount,
-        created: transactionCreated,
+        created,
+        amount,
+        taxAmount,
+        taxCode,
+        currency,
+        comment,
+        merchant,
+        waypoints,
+        category,
+        billable,
+        tag,
+        mccGroup,
     } as Transaction);
 
     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
