@@ -52,7 +52,7 @@ export default function useAnimatedHighlightStyle({
     const theme = useTheme();
 
     const highlightBackgroundStyle = useAnimatedStyle(() => ({
-        backgroundColor: interpolateColor(repeatableProgress.value, [0, 1], ['rgba(0, 0, 0, 0)', theme.border]),
+        backgroundColor: interpolateColor(repeatableProgress.value, [0, 1], [theme.appBG, theme.border]),
         height: interpolate(nonRepeatableProgress.value, [0, 1], [0, height]),
         opacity: interpolate(nonRepeatableProgress.value, [0, 1], [0, 1]),
         borderRadius,
