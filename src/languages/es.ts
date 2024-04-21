@@ -50,6 +50,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -305,12 +306,14 @@ export default {
         member: 'Miembro',
         role: 'Role',
         currency: 'Divisa',
+        rate: 'Tarifa',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',
             subtitleText1: 'Encuentra un chat usando el botón',
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
+        businessName: 'Nombre del Negocio',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -621,7 +624,8 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
-        routePending: 'Ruta pendiente...',
+        routePending: 'Pendiente...',
+        defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
@@ -727,6 +731,7 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Seleccione una tasa de reembolso del espacio de trabajo por ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1311,13 +1316,13 @@ export default {
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
     onboarding: {
-        welcome: '¡Bienvenido!',
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
             description: 'Cobrar es tan fácil como enviar un mensaje.',
             button: 'Vámonos',
         },
         whatsYourName: '¿Cómo te llamas?',
+        whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             error: 'Por favor, haga una selección antes de continuar.',

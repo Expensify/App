@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {SelectedPurposeType} from '@pages/OnboardingPurpose/BaseOnboardingPurpose';
+import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
@@ -78,7 +78,7 @@ function getPersonalDetails(accountID: number | undefined) {
     });
 }
 
-function setOnboardingPurposeSelected(value: SelectedPurposeType) {
+function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 
