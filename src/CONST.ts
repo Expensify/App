@@ -6,9 +6,10 @@ import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
+import type {Unit} from './types/onyx/Policy';
 
 type RateAndUnit = {
-    unit: string;
+    unit: Unit;
     rate: number;
 };
 type CurrencyDefaultMileageRate = Record<string, RateAndUnit>;
@@ -4351,6 +4352,6 @@ type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 
-export type {Country, IOUAction, IOUType};
+export type {Country, IOUAction, IOUType, RateAndUnit};
 
 export default CONST;
