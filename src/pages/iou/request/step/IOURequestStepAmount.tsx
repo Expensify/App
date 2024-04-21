@@ -31,19 +31,8 @@ type IOURequestStepAmountOnyxProps = {
     /** The draft transaction that holds data to be persisted on the current transaction */
     splitDraftTransaction: OnyxEntry<Transaction>;
 
-<<<<<<< HEAD
-    /** The backup transaction object being modified in Onyx */
-    backupTransaction: OnyxEntry<Transaction>;
-=======
     /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-
-    /** The policy which the user has access to and which the report is tied to */
-    policy: OnyxEntry<OnyxTypes.Policy>;
->>>>>>> 8e8b1735 (Merge pull request #40655 from DylanDylann/fix/40543)
+    draftTransaction: OnyxEntry<Transaction>;
 };
 
 type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
@@ -59,12 +48,7 @@ function IOURequestStepAmount({
     },
     transaction,
     splitDraftTransaction,
-<<<<<<< HEAD
-    backupTransaction,
-=======
-    skipConfirmation,
     draftTransaction,
->>>>>>> 8e8b1735 (Merge pull request #40655 from DylanDylann/fix/40543)
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -191,7 +175,6 @@ function IOURequestStepAmount({
 
 IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
-<<<<<<< HEAD
 export default withWritableReportOrNotFound(
     withFullTransactionOrNotFound(
         withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
@@ -201,48 +184,12 @@ export default withWritableReportOrNotFound(
                     return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
                 },
             },
-            backupTransaction: {
+            draftTransaction: {
                 key: ({route}) => {
                     const transactionID = route.params.transactionID ?? 0;
-                    return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
+                    return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
                 },
             },
         })(IOURequestStepAmount),
     ),
 );
-=======
-const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequestStepAmountOnyxProps>({
-    splitDraftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    draftTransaction: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
-        },
-    },
-    skipConfirmation: {
-        key: ({route}) => {
-            const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
-        },
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
-    },
-})(IOURequestStepAmount);
-
-const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
-
-export default IOURequestStepAmountWithFullTransactionOrNotFound;
->>>>>>> 8e8b1735 (Merge pull request #40655 from DylanDylann/fix/40543)
