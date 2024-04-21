@@ -24,11 +24,4 @@ function ConsolePage() {
 
 ConsolePage.displayName = 'ConsolePage';
 
-export default withOnyx<ConsolePageProps, ConsolePageOnyxProps>({
-    capturedLogs: {
-        key: ONYXKEYS.LOGS,
-    },
-    shouldStoreLogs: {
-        key: ONYXKEYS.SHOULD_STORE_LOGS,
-    },
-})(ConsolePage);
+export default ConsolePage;

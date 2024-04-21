@@ -10,7 +10,9 @@ type ConsoleModalProps = {
     /** Locally created file */
     isVisible: boolean
     /** Action to run when pressing Share button */
-    onClose?: () => void;
+    onClose: () => void;
+    /** Action to close the test tools modal */
+    closeTestToolsModal: () => void;
 };
 
 

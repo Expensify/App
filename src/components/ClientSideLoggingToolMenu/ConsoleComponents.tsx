@@ -132,6 +132,40 @@ function ConsoleComponents({capturedLogs, shouldStoreLogs, onClose, isViaTestToo
                 />
             </View>
 
+            <View style={[styles.dFlex, styles.flexRow, styles.m5, mhModal]}>
+                <Button
+                    text={translate('initialSettingsPage.debugConsole.saveLog')}
+                    onPress={saveLogs}
+                    large
+                    icon={Expensicons.Download}
+                    style={[styles.flex1, styles.mr1]}
+                />
+                <Button
+                    text={translate('initialSettingsPage.debugConsole.shareLog')}
+                    onPress={shareLogs}
+                    large
+                    icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
+                    style={[styles.flex1, styles.ml1]}
+                    isLoading={isGeneratingLogsFile}
+                />
+            </View>
+            <View style={[styles.mh5, mhModal]}>
+                <TextInput
+                    onChangeText={setInput}
+                    value={input}
+                    placeholder={translate('initialSettingsPage.debugConsole.enterCommand')}
+                    autoGrowHeight
+                    autoCorrect={false}
+                    accessibilityRole="text"
+                />
+                <Button
+                    success
+                    text={translate('initialSettingsPage.debugConsole.execute')}
+                    onPress={executeArbitraryCode}
+                    style={[styles.mt5]}
+                    large
+                />
+            </View>
             <ConfirmModal
                 title={translate('initialSettingsPage.debugConsole.shareLog')}
                 isVisible={isLimitModalVisible}

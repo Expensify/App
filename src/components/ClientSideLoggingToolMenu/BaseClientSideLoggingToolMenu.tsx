@@ -32,7 +32,9 @@ type BaseClientSideLoggingToolProps = {
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
     /** Boolean to know if this was opened via test tools modal */
-    isViaTestToolsModal: boolean
+    isViaTestToolsModal: boolean;
+    /** Action to close the test tools modal */
+    closeTestToolsModal: () => void;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
 function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging, isViaTestToolsModal, closeTestToolsModal}: BaseClientSideLoggingToolProps) {
@@ -94,9 +96,13 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
                     </TestToolRow>
                 </>
             )}
-            <ConsoleModal isVisible={isConsoleModalVisible && !!shouldStoreLogs} onClose={() => {
-                setIsConsoleModalVisible(false)
-            }} closeTestToolsModal={closeTestToolsModal}/>
+            <ConsoleModal
+                isVisible={isConsoleModalVisible && !!shouldStoreLogs}
+                onClose={() => {
+                    setIsConsoleModalVisible(false)
+                }}
+                closeTestToolsModal={closeTestToolsModal}
+            />
         </>
     );
 }
