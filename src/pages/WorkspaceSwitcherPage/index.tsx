@@ -185,6 +185,7 @@ function WorkspaceSwitcherPage() {
                 listFooterContent={shouldShowCreateWorkspace ? WorkspaceCardCreateAWorkspaceInstance : null}
                 initiallyFocusedOptionKey={activeWorkspaceID ?? CONST.WORKSPACE_SWITCHER.NAME}
                 showLoadingPlaceholder
+                searchFocusIndex={CONST.WORKSPACE_SWITCHER.NAME.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '') ? 0 : 1}
             />
         </ScreenWrapper>
     );

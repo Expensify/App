@@ -249,6 +249,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null;
 
+    /** Index to focus when search term changes */
+    searchFocusIndex?: number;
+
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
 
