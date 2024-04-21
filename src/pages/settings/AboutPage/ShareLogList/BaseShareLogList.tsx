@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {BaseShareLogListProps} from './types';
 
-function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
+function BaseShareLogList({onAttachLogToReport, isViaTestToolsModal = false}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -91,7 +91,13 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
+                        onBackButtonPress={() => {
+                            if (isViaTestToolsModal) {
+                                Navigation.goBack();
+                                return;
+                            }
+                            Navigation.goBack(ROUTES.SETTINGS_CONSOLE)
+                        }}
                     />
                     <SelectionList
                         ListItem={UserListItem}

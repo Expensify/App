@@ -860,6 +860,7 @@ const CONST = {
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
             ONBOARDING: 'onboarding',
+            CENTERED_SMALL_AND_UNSWIPEABLE: 'centered_small_and_unswipeable'
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -3100,7 +3101,7 @@ const CONST = {
     // Test tool menu parameters
     TEST_TOOL: {
         // Number of concurrent taps to open then the Test modal menu
-        NUMBER_OF_TAPS: 4,
+        NUMBER_OF_TAPS: 2,
     },
 
     MENU_HELP_URLS: {

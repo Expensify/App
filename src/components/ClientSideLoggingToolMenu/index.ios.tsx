@@ -4,7 +4,7 @@ import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 
-function ClientSideLoggingToolMenu() {
+function ClientSideLoggingToolMenu({isViaTestToolsModal = false, closeTestToolsModal}) {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
 
     const createFile = (logs: Log[]) => {
@@ -28,6 +28,8 @@ function ClientSideLoggingToolMenu() {
             onEnableLogging={() => setFile(undefined)}
             onDisableLogging={createFile}
             onShareLogs={shareLogs}
+            isViaTestToolsModal={isViaTestToolsModal}
+            closeTestToolsModal={closeTestToolsModal}
         />
     );
 }

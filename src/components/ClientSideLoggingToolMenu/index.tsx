@@ -3,12 +3,12 @@ import type {Log} from '@libs/Console';
 import localFileDownload from '@libs/localFileDownload';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 
-function ClientSideLoggingToolMenu() {
+function ClientSideLoggingToolMenu({isViaTestToolsModal = false}) {
     const downloadFile = (logs: Log[]) => {
         localFileDownload('logs', JSON.stringify(logs, null, 2));
     };
 
-    return <BaseClientSideLoggingToolMenu onDisableLogging={downloadFile} />;
+    return <BaseClientSideLoggingToolMenu onDisableLogging={downloadFile} isViaTestToolsModal={isViaTestToolsModal} />;
 }
 
 ClientSideLoggingToolMenu.displayName = 'ClientSideLoggingToolMenu';

@@ -164,6 +164,29 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 shouldAddTopSafeAreaPadding = false;
                 shouldAddBottomSafeAreaPadding = false;
                 break;
+            case CONST.MODAL.MODAL_TYPE.CENTERED_SMALL_AND_UNSWIPEABLE:
+                // A centered modal that takes up the minimum possible screen space on all devices and is unswipeable
+                modalStyle = {
+                    ...modalStyle,
+                    ...{
+                        alignItems: 'center',
+                    },
+                };
+                modalContainerStyle = {
+                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    borderRadius: 12,
+                    borderWidth: 0,
+                };
+
+                // Allow this modal to be dismissed with a swipe down or swipe right
+                swipeDirection = undefined;
+                animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
+                animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+                shouldAddTopSafeAreaMargin = false;
+                shouldAddBottomSafeAreaMargin = false;
+                shouldAddTopSafeAreaPadding = false;
+                shouldAddBottomSafeAreaPadding = false;
+                break;
             case CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED:
                 modalStyle = {
                     ...modalStyle,

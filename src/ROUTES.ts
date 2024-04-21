@@ -175,7 +175,7 @@ const ROUTES = {
     SETTINGS_CONSOLE: 'settings/troubleshoot/console',
     SETTINGS_SHARE_LOG: {
         route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
+        getRoute: (source: string, isViaTestToolsModal = false) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}&isViaTestToolsModal=${isViaTestToolsModal}` as const,
     },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
