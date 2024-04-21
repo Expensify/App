@@ -8,8 +8,8 @@ import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import {fakePersonalDetails} from "../utils/LHNTestUtils";
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
@@ -831,59 +831,59 @@ describe('ReportUtils', () => {
         afterEach(() => Onyx.clear());
 
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
-            it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async function () {
+            it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [])).toEqual("Four, One, Three, Two");
+                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [])).toEqual('Four, One, Three, Two');
             });
 
-            it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async function () {
+            it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual("Four, One, Three, Two");
+                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual('Four, One, Three, Two');
             });
 
-            it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async function () {
+            it('Should show 5 participants name if count > 5 and shouldApplyLimit is true', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual("Five, Four, One, Three, Two");
+                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual('Five, Four, One, Three, Two');
             });
 
-            it('Should show all participants name if count > 5 and shouldApplyLimit is false', async function () {
+            it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], false)).toEqual("Eight, Five, Four, One, Seven, Six, Three, Two");
+                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
-            it('Should use correct display name for participants', async function () {
+            it('Should use correct display name for participants', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                 };
 
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual("(833) 240-3627, floki@vikings.net, Lagertha, Ragnar");
+                expect(ReportUtils.getGroupChatName(report?.participantAccountIDs ?? [], true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
 
         describe('When participantAccountIDs is not passed to getGroupChatName and report ID is passed', () => {
-            it('Should show report name if count <= 5 and shouldApplyLimit is false', async function () {
+            it('Should show report name if count <= 5 and shouldApplyLimit is false', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -895,7 +895,7 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.getGroupChatName(undefined, false, '1')).toEqual("Let's talk");
             });
 
-            it('Should show report name if count <= 5 and shouldApplyLimit is true', async function () {
+            it('Should show report name if count <= 5 and shouldApplyLimit is true', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -907,7 +907,7 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.getGroupChatName(undefined, true, '1')).toEqual("Let's talk");
             });
 
-            it('Should show report name if count > 5 and shouldApplyLimit is true', async function () {
+            it('Should show report name if count > 5 and shouldApplyLimit is true', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
@@ -919,7 +919,7 @@ describe('ReportUtils', () => {
                 expect(ReportUtils.getGroupChatName(undefined, true, '1')).toEqual("Let's talk");
             });
 
-            it('Should show report name if count > 5 and shouldApplyLimit is false', async function () {
+            it('Should show report name if count > 5 and shouldApplyLimit is false', async () => {
                 const report = {
                     ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
                     chatType: CONST.REPORT.CHAT_TYPE.GROUP,
