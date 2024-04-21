@@ -379,11 +379,11 @@ function getDBTime(timestamp: string | number = ''): string {
 /**
  * Returns the current time plus skew in milliseconds in the format expected by the database
  */
-function getDBTimeWithSkew(): string {
+function getDBTimeWithSkew(timestamp: string | number = ''): string {
     if (networkTimeSkew > 0) {
-        return getDBTime(new Date().valueOf() + networkTimeSkew);
+        return getDBTime(new Date(timestamp).valueOf() + networkTimeSkew);
     }
-    return getDBTime();
+    return getDBTime(timestamp);
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
