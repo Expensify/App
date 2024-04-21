@@ -30,6 +30,8 @@ type Participant = {
 
 type Participants = Record<number, Participant>;
 
+type ReportNameKeys = 'isArchived' | 'isPinned' | 'isUnread' | 'isUnreadMention' | 'isUnreadAction' | 'isUnreadActionMention';
+
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The URL of the Group Chat report custom avatar */
@@ -186,6 +188,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         transactionThreadReportID?: string;
 
         fieldList?: Record<string, PolicyReportField>;
+
+        /** The reports name value pairs */
+        reportNameValuePairs?: Record<ReportNameKeys, string>;
     },
     PolicyReportField['fieldID']
 >;
