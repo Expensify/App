@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import * as AppImport from '@libs/actions/App';
 import * as OnyxUpdateManagerImport from '@libs/actions/OnyxUpdateManager';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager';
-// import {deferredUpdates, handleOnyxUpdateGap, queryPromise} from '@libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 
@@ -143,7 +142,7 @@ describe('OnyxUpdateManager', () => {
             expect(Object.keys(OnyxUpdateManager.deferredUpdates)).toHaveLength(3);
         });
 
-        OnyxUpdateManager.queryPromise?.then(() => {
+        OnyxUpdateManager.queryPromise?.finally(() => {
             expect(lastUpdateIDAppliedToClient).toBe(4);
             expect(OnyxUpdateManager.applyUpdates).toHaveBeenCalledTimes(1);
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -164,7 +163,7 @@ describe('OnyxUpdateManager', () => {
             Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
         });
 
-        OnyxUpdateManager.queryPromise?.then(() => {
+        OnyxUpdateManager.queryPromise?.finally(() => {
             expect(lastUpdateIDAppliedToClient).toBe(6);
             expect(OnyxUpdateManager.applyUpdates).toHaveBeenCalledTimes(1);
             // eslint-disable-next-line @typescript-eslint/naming-convention
