@@ -32,7 +32,7 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
 
     return (
         <Modal
-            isVisible={true}
+            isVisible={!!isTestToolsModalOpen}
             type={CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={toggleTestToolsModal}
         >
