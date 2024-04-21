@@ -110,6 +110,13 @@ const fakePersonalDetails: PersonalDetailsList = {
         avatar: 'none',
         firstName: 'Nine',
     },
+    10: {
+        accountID: 10,
+        login: 'email10@test.com',
+        displayName: 'Email Ten',
+        avatar: 'none',
+        firstName: 'Ten',
+    },
 };
 
 let lastFakeReportID = 0;

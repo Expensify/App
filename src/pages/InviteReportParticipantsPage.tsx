@@ -12,6 +12,7 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {Section} from '@components/SelectionList/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
@@ -45,7 +46,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [recentReports, setRecentReports] = useState<ReportUtils.OptionData[]>([]);
@@ -55,7 +56,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
     const excludedUsers = useMemo(() => [...PersonalDetailsUtils.getLoginsByAccountIDs(ReportUtils.getParticipantAccountIDs(report?.reportID ?? '')), ...CONST.EXPENSIFY_EMAILS], [report]);
 
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, false, options.reports, true);
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], debouncedSearchTerm, excludedUsers, false, options.reports, true);
 
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, OptionsListUtils.MemberForList> = {};
@@ -75,7 +76,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         setRecentReports(inviteOptions.recentReports);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [personalDetails, betas, searchTerm, excludedUsers, options]);
+    }, [personalDetails, betas, debouncedSearchTerm, excludedUsers, options]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
@@ -86,11 +87,11 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
 
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
-        if (searchTerm !== '') {
+        if (debouncedSearchTerm !== '') {
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option?.accountID;
                 const isOptionInPersonalDetails = invitePersonalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID);
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
+                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
@@ -128,7 +129,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
         }
 
         return sectionsArr;
-    }, [invitePersonalDetails, searchTerm, selectedOptions, translate, userToInvite, areOptionsInitialized, recentReports]);
+    }, [invitePersonalDetails, debouncedSearchTerm, selectedOptions, translate, userToInvite, areOptionsInitialized, recentReports]);
 
     const toggleOption = useCallback(
         (option: OptionsListUtils.MemberForList) => {
@@ -169,7 +170,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
     }, [selectedOptions, backRoute, reportID, validate]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
         if (!userToInvite && expensifyEmails.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
@@ -185,7 +186,7 @@ function InviteReportParticipantsPage({betas, personalDetails, report, didScreen
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName ?? ''});
         }
         return OptionsListUtils.getHeaderMessage(invitePersonalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [searchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
+    }, [debouncedSearchTerm, userToInvite, excludedUsers, invitePersonalDetails, translate, reportName]);
 
     return (
         <ScreenWrapper
