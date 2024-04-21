@@ -105,8 +105,8 @@ function PopoverMenu({
             setCurrentMenuItems([...selectedItem.subMenuItems]);
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
         } else {
-            onItemSelected(selectedItem, index);
             selectedItemIndex.current = index;
+            onItemSelected(selectedItem, index);
         }
     };
 
