@@ -405,7 +405,7 @@ describe('Unread Indicators', () => {
                                 reportActionID: createdReportActionID,
                             },
                             [commentReportActionID]: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                                 actorAccountID: USER_C_ACCOUNT_ID,
                                 person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                                 created: format(NEW_REPORT_FIST_MESSAGE_CREATED_DATE, CONST.DATE.FNS_DB_FORMAT_STRING),
