@@ -115,6 +115,7 @@ type OptionRowLHNDataProps = {
 };
 
 type OptionRowLHNOnyxProps = {
+    /** Data of the report that the option is for */
     report: OnyxEntry<Report>;
 };
 

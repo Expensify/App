@@ -104,15 +104,14 @@ type ReportActionItemOnyxProps = {
 
     /** Transaction associated with this report, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-
-    originalReport: OnyxEntry<OnyxTypes.Report>;
-
-    linkedReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type ReportActionItemProps = {
     /** Report for this action */
     report: OnyxTypes.Report;
+
+    /** Parent report for this action */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
 
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -157,8 +156,7 @@ const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is
 function ReportActionItem({
     action,
     report,
-    originalReport,
-    linkedReport,
+    parentReport,
     transactionThreadReport,
     linkedReportActionID,
     displayAsGroup,
@@ -335,8 +333,8 @@ function ReportActionItem({
                 draftMessage ?? '',
                 () => setIsContextMenuActive(true),
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(originalReport),
-                ReportUtils.chatIncludesChronos(originalReport),
+                ReportUtils.isArchivedRoom(originalReportID ?? ''),
+                ReportUtils.chatIncludesChronos(originalReportID ?? ''),
                 false,
                 false,
                 [],
@@ -344,7 +342,7 @@ function ReportActionItem({
                 setIsEmojiPickerActive as () => void,
             );
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
+        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -529,6 +527,7 @@ function ReportActionItem({
                 </ShowContextMenuContext.Provider>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED) {
+            const linkedReport = ReportUtils.isChatThread(report) ? parentReport : report;
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails[linkedReport?.ownerAccountID ?? -1]);
             const paymentType = action.originalMessage.paymentType ?? '';
 
@@ -915,7 +914,7 @@ function ReportActionItem({
                             displayAsGroup={displayAsGroup}
                             isVisible={hovered && draftMessage === undefined && !hasErrors}
                             draftMessage={draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
+                            isChronosReport={ReportUtils.chatIncludesChronos(originalReportID ?? '')}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                         />
@@ -999,12 +998,6 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
-    originalReport: {
-        key: ({report, action}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportUtils.getOriginalReportID(report.reportID, action)}`,
-    },
-    linkedReport: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${ReportUtils.isChatThread(report) ? report.parentReportID : report.reportID}`,
-    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
@@ -1039,6 +1032,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
             lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+            lodashIsEqual(prevProps.parentReport, nextProps.parentReport) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),

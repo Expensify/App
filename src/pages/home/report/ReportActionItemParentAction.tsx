@@ -117,6 +117,7 @@ function ReportActionItemParentAction({
                         }}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
+                        parentReport={ancestor.parentReport}
                         reportActions={reportActions}
                         transactionThreadReport={transactionThreadReport}
                         action={ancestor.reportAction}

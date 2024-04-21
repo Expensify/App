@@ -36,6 +36,7 @@ type BaseReportActionContextMenuOnyxProps = {
     /** The transaction linked to the report action this context menu is attached to. */
     transaction: OnyxEntry<Transaction>;
 
+    /** The original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
 };
 

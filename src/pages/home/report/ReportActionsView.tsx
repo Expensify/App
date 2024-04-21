@@ -49,6 +49,9 @@ type ReportActionsViewProps = ReportActionsViewOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
+    /** Parent report for the current report */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
 
@@ -79,6 +82,7 @@ let listOldID = Math.round(Math.random() * 100);
 
 function ReportActionsView({
     report,
+    parentReport,
     transactionThreadReport,
     session,
     parentReportAction,
@@ -489,6 +493,7 @@ function ReportActionsView({
         <>
             <ReportActionsList
                 report={report}
+                parentReport={parentReport}
                 transactionThreadReport={transactionThreadReport}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}

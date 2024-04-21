@@ -448,6 +448,7 @@ type OnyxDataTaskAssigneeChat = {
 
 type Ancestor = {
     report: Report;
+    parentReport: Report;
     reportAction: ReportAction;
     shouldDisplayNewMarker: boolean;
 };
@@ -1144,7 +1145,8 @@ function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>): boolean
 /**
  * Whether the provided report is an archived room
  */
-function isArchivedRoom(report: OnyxEntry<Report> | EmptyObject): boolean {
+function isArchivedRoom(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 }
 
@@ -4792,7 +4794,8 @@ function getAllPolicyReports(policyID: string): Array<OnyxEntry<Report>> {
 /**
  * Returns true if Chronos is one of the chat participants (1:1)
  */
-function chatIncludesChronos(report: OnyxEntry<Report> | EmptyObject): boolean {
+function chatIncludesChronos(reportOrID: OnyxEntry<Report> | EmptyObject | string): boolean {
+    const report = typeof reportOrID === 'string' ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`] ?? null : reportOrID;
     return Boolean(report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.CHRONOS));
 }
 
@@ -5752,6 +5755,7 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
         const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
         allAncestors.push({
             report: currentReport,
+            parentReport,
             reportAction: parentReportAction,
             shouldDisplayNewMarker: isParentReportActionUnread,
         });

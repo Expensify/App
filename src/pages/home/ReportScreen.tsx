@@ -683,6 +683,7 @@ function ReportScreen({
                                         <ReportActionsView
                                             reportActions={reportActions}
                                             report={report}
+                                            parentReport={parentReport}
                                             parentReportAction={parentReportAction}
                                             isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
                                             isLoadingNewerReportActions={reportMetadata?.isLoadingNewerReportActions}
@@ -803,6 +804,7 @@ export default withCurrentReportID(
                     lodashIsEqual(prevProps.modal, nextProps.modal) &&
                     lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
                     lodashIsEqual(prevProps.route, nextProps.route) &&
+                    lodashIsEqual(prevProps.parentReport, nextProps.parentReport) &&
                     lodashIsEqual(prevProps.report, nextProps.report)
                 );
             }),

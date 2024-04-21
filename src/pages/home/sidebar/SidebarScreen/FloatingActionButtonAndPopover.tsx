@@ -57,6 +57,7 @@ type FloatingActionButtonAndPopoverOnyxProps = {
     /** Personal details of all the users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 
+    /** The chat report for the last taken action */
     quickActionReport: OnyxEntry<OnyxTypes.Report>;
 };
 

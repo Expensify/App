@@ -41,6 +41,9 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
+    /** Parent report for the current report */
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -131,6 +134,7 @@ const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
     report,
+    parentReport,
     transactionThreadReport,
     reportActions = [],
     parentReportAction,
@@ -524,6 +528,7 @@ function ReportActionsList({
                 parentReportAction={parentReportAction}
                 index={index}
                 report={report}
+                parentReport={parentReport}
                 transactionThreadReport={transactionThreadReport}
                 linkedReportActionID={linkedReportActionID}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
@@ -535,6 +540,7 @@ function ReportActionsList({
         ),
         [
             report,
+            parentReport,
             linkedReportActionID,
             sortedVisibleReportActions,
             sortedReportActions.length,

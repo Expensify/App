@@ -97,6 +97,7 @@ function ReportActionsListWrapper() {
                         parentReportAction={createRandomReportAction(1)}
                         sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                         report={LHNTestUtilsModule.getFakeReport()}
+                        parentReport={LHNTestUtilsModule.getFakeReport()}
                         onLayout={mockOnLayout}
                         onScroll={mockOnScroll}
                         onContentSizeChange={() => {}}
