@@ -207,16 +207,7 @@ function WorkspacesListRow({
             <View style={[isNarrow && styles.mr5]}>
                 {isJoinRequestPending && (
                     <View
-                        style={[
-                            styles.flexRow,
-                            styles.gap2,
-                            styles.alignItemsCenter,
-                            styles.flex1,
-                            styles.justifyContentEnd,
-                            styles.ml2,
-                            !isNarrow && styles.pr4,
-                            isNarrow && styles.workspaceListBadge,
-                        ]}
+                        style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, !isNarrow && styles.pr4, isNarrow && styles.workspaceListBadge]}
                     >
                         <Badge
                             text={translate('workspace.common.requested')}

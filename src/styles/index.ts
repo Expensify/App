@@ -3208,11 +3208,11 @@ const styles = (theme: ThemeColors) =>
         },
 
         workspaceRightColumn: {
-            marginLeft: 100,
+            marginLeft: 124,
         },
 
         workspaceThreeDotMenu: {
-            marginLeft: 60,
+            marginLeft: 84,
         },
 
         workspaceListBadge: {
