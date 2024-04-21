@@ -850,6 +850,9 @@ const CONST = {
         // The minimum number of typed lines needed to enable the full screen composer
         FULL_COMPOSER_MIN_LINES: 3,
     },
+    REPORT_NAME_KEYS: {
+        isArchived: 'isArchived',
+    },
     MODAL: {
         MODAL_TYPE: {
             CONFIRM: 'confirm',
@@ -4352,6 +4355,8 @@ type Country = keyof typeof CONST.ALL_COUNTRIES;
 type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 
-export type {Country, IOUAction, IOUType, RateAndUnit};
+type ReportNameKeys = keyof typeof CONST.REPORT_NAME_KEYS;
+
+export type {Country, IOUAction, IOUType, RateAndUnit, ReportNameKeys};
 
 export default CONST;

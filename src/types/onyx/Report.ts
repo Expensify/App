@@ -5,6 +5,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 import type {PolicyReportField} from './Policy';
+import { ReportNameKeys } from '@src/CONST';
 
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
 
@@ -29,8 +30,6 @@ type Participant = {
 };
 
 type Participants = Record<number, Participant>;
-
-type ReportNameKeys = 'isArchived' | 'isPinned' | 'isUnread' | 'isUnreadMention' | 'isUnreadAction' | 'isUnreadActionMention';
 
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
