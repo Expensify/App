@@ -19,15 +19,15 @@ import * as OnyxUpdates from './OnyxUpdates';
 // 6. Restart the sequential queue
 // 7. Restart the Onyx updates from Pusher
 // This will ensure that the client is up-to-date with the server and all the updates have been applied in the correct order.
-// It's important that this file is separate and not imported by OnyxUpdates.js, so that there are no circular dependencies. Onyx
-// is used as a pub/sub mechanism to break out of the circular dependency.
-// The circular dependency happens because this file calls API.GetMissingOnyxUpdates() which uses the SaveResponseInOnyx.js file
-// (as a middleware). Therefore, SaveResponseInOnyx.js can't import and use this file directly.
+// It's important that this file is separate and not imported by OnyxUpdates.js, so that there are no circular dependencies.
+// Onyx is used as a pub/sub mechanism to break out of the circular dependency.
+// The circular dependency happens because this file calls API.GetMissingOnyxUpdates() which uses the SaveResponseInOnyx.js file (as a middleware).
+// Therefore, SaveResponseInOnyx.js can't import and use this file directly.
 
-let lastUpdateIDAppliedToClient: number | null = 0;
+let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value),
+    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
 });
 
 let isLoadingApp = false;
@@ -104,12 +104,12 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary): DetectGapAndSpl
     }
 
     let updatesAfterGaps: DeferredUpdatesDictionary = {};
-    if (gapExists && firstUpdateAfterGaps) {
+    if (gapExists) {
         updatesAfterGaps = Object.entries(updates).reduce<DeferredUpdatesDictionary>(
             (accUpdates, [lastUpdateID, update]) => ({
                 ...accUpdates,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                ...(Number(lastUpdateID) >= firstUpdateAfterGaps! ? {[Number(lastUpdateID)]: update} : {}),
+                ...(Number(lastUpdateID) >= firstUpdateAfterGaps ? {[Number(lastUpdateID)]: update} : {}),
             }),
             {},
         );
@@ -126,10 +126,7 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     const pendingDeferredUpdates = Object.entries(deferredUpdates).reduce<DeferredUpdatesDictionary>(
         (accUpdates, [lastUpdateID, update]) => ({
             ...accUpdates,
-            // It should not be possible for lastUpdateIDAppliedToClient to be null,
-            // after the missing updates have been applied.
-            // If still so we want to keep the deferred update in the list.
-            ...(!lastUpdateIDAppliedToClient || (Number(lastUpdateID) ?? 0) > lastUpdateIDAppliedToClient ? {[Number(lastUpdateID)]: update} : {}),
+            ...(Number(lastUpdateID) > lastUpdateIDAppliedToClient ? {[Number(lastUpdateID)]: update} : {}),
         }),
         {},
     );
@@ -147,6 +144,7 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
     if (latestMissingUpdateID) {
         return new Promise((resolve, reject) => {
             deferredUpdates = {};
+
             applyUpdates(applicableUpdates).then(() => {
                 // After we have applied the applicable updates, there might have been new deferred updates added.
                 // In the next (recursive) call of "validateAndApplyDeferredUpdates",
@@ -156,7 +154,7 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
 
                 // It should not be possible for lastUpdateIDAppliedToClient to be null, therefore we can ignore this case.
                 // If lastUpdateIDAppliedToClient got updated in the meantime, we will just retrigger the validation and application of the current deferred updates.
-                if (!lastUpdateIDAppliedToClient || latestMissingUpdateID <= lastUpdateIDAppliedToClient) {
+                if (latestMissingUpdateID <= lastUpdateIDAppliedToClient) {
                     validateAndApplyDeferredUpdates().then(resolve).catch(reject);
                     return;
                 }
@@ -177,7 +175,7 @@ function validateAndApplyDeferredUpdates(): Promise<Response[] | void> {
  * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  * @returns
  */
-function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID = 0) {
+function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromServer>, clientLastUpdateID?: number) {
     // If isLoadingApp is positive it means that OpenApp command hasn't finished yet, and in that case
     // we don't have base state of the app (reports, policies, etc) setup. If we apply this update,
     // we'll only have them overriten by the openApp response. So let's skip it and return.
@@ -203,7 +201,7 @@ function handleOnyxUpdateGap(onyxUpdatesFromServer: OnyxEntry<OnyxUpdatesFromSer
     const updateParams = onyxUpdatesFromServer;
     const lastUpdateIDFromServer = onyxUpdatesFromServer.lastUpdateID;
     const previousUpdateIDFromServer = onyxUpdatesFromServer.previousUpdateID;
-    const lastUpdateIDFromClient = clientLastUpdateID || lastUpdateIDAppliedToClient;
+    const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
     // In cases where we received a previousUpdateID and it doesn't match our lastUpdateIDAppliedToClient
     // we need to perform one of the 2 possible cases:
