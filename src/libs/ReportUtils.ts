@@ -50,7 +50,7 @@ import type {
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -2408,6 +2408,13 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
         cardID: TransactionUtils.getCardID(transaction),
         originalAmount: TransactionUtils.getOriginalAmount(transaction),
         originalCurrency: TransactionUtils.getOriginalCurrency(transaction),
+    };
+}
+
+function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
+    return {
+        ...transaction?.comment,
+        waypoints: TransactionUtils.getWaypoints(transaction),
     };
 }
 
@@ -5944,7 +5951,8 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
 
     const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
 
-    const {created, amount, taxAmount, taxCode, currency, comment, merchant, waypoints, category, billable, tag, mccGroup} = getTransactionDetails(transaction) ?? {};
+    const {created, amount, currency, merchant, mccGroup} = getTransactionDetails(transaction) ?? {};
+    const comment = getTransactionCommentObject(transaction);
 
     IOU.createDraftTransaction({
         ...transaction,
@@ -5953,15 +5961,9 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         linkedTrackedExpenseReportID: reportID,
         created,
         amount,
-        taxAmount,
-        taxCode,
         currency,
         comment,
         merchant,
-        waypoints,
-        category,
-        billable,
-        tag,
         mccGroup,
     } as Transaction);
 
