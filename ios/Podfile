@@ -1,5 +1,3 @@
-use_frameworks! :linkage => :static
-
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 # Set the type of Mapbox SDK to use
 # This value is used by $RNMapboxMaps
@@ -113,21 +111,6 @@ target 'NewExpensify' do
         end
       end
     end
-
-    deployment_target = '13.4'
-    
-    installer.generated_projects.each do |project|
-        project.targets.each do |target|
-            target.build_configurations.each do |config|
-                config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = deployment_target
-            end
-        end
-        project.build_configurations.each do |config|
-            config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = deployment_target
-        end
-    end
-
-    `sed -i -e  $'s/__IPHONE_10_0/__IPHONE_15_0/' #{installer.sandbox.root}/RCT-Folly/folly/portability/Time.h`
   end
 end
 

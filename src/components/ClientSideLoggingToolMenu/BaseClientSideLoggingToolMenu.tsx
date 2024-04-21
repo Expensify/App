@@ -12,7 +12,7 @@ import * as Console from '@libs/actions/Console';
 import {parseStringifiedMessages} from '@libs/Console';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CapturedLogs, Log} from '@src/types/onyx';
-import ConsoleModal from "@components/ClientSideLoggingToolMenu/ConsoleModal";
+import ConsoleModal from "./ConsoleModal";
 
 type BaseClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */
@@ -74,10 +74,10 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
                 />
             </TestToolRow>
             {!!shouldStoreLogs && isViaTestToolsModal &&
-                <TestToolRow title={'Debug console'}>
+                <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                     <Button
                         small
-                        text={'View logs'}
+                        text={translate('initialSettingsPage.debugConsole.viewConsole')}
                         onPress={() => setIsConsoleModalVisible(true)}
                     />
                 </TestToolRow>

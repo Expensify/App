@@ -1,13 +1,15 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ListRenderItem, ListRenderItemInfo, View} from 'react-native';
+import type {ListRenderItem, ListRenderItemInfo} from 'react-native';
+import {View} from 'react-native';
 import CONST from "@src/CONST";
 import useThemeStyles from "@hooks/useThemeStyles";
 import useLocalize from "@hooks/useLocalize";
 import InvertedFlatList from "@components/InvertedFlatList";
 import Text from "@components/Text";
-import {CapturedLogs, Log} from "@src/types/onyx";
+import type {CapturedLogs, Log} from "@src/types/onyx";
 import {format} from "date-fns";
-import {OnyxEntry, withOnyx} from "react-native-onyx";
+import {withOnyx} from "react-native-onyx";
+import type {OnyxEntry} from "react-native-onyx";
 import ONYXKEYS from "@src/ONYXKEYS";
 import {createLog, parseStringifiedMessages, sanitizeConsoleInput} from "@libs/Console";
 import {addLog} from "@userActions/Console";
@@ -130,40 +132,6 @@ function ConsoleComponents({capturedLogs, shouldStoreLogs, onClose, isViaTestToo
                 />
             </View>
 
-            <View style={[styles.dFlex, styles.flexRow, styles.m5, mhModal]}>
-                <Button
-                    text={translate('initialSettingsPage.debugConsole.saveLog')}
-                    onPress={saveLogs}
-                    large
-                    icon={Expensicons.Download}
-                    style={[styles.flex1, styles.mr1]}
-                />
-                <Button
-                    text={translate('initialSettingsPage.debugConsole.shareLog')}
-                    onPress={shareLogs}
-                    large
-                    icon={!isGeneratingLogsFile ? Expensicons.UploadAlt : undefined}
-                    style={[styles.flex1, styles.ml1]}
-                    isLoading={isGeneratingLogsFile}
-                />
-            </View>
-            <View style={[styles.mh5, mhModal]}>
-                <TextInput
-                    onChangeText={setInput}
-                    value={input}
-                    placeholder={translate('initialSettingsPage.debugConsole.enterCommand')}
-                    autoGrowHeight
-                    autoCorrect={false}
-                    accessibilityRole="text"
-                />
-                <Button
-                    success
-                    text={translate('initialSettingsPage.debugConsole.execute')}
-                    onPress={executeArbitraryCode}
-                    style={[styles.mt5]}
-                    large
-                />
-            </View>
             <ConfirmModal
                 title={translate('initialSettingsPage.debugConsole.shareLog')}
                 isVisible={isLimitModalVisible}
