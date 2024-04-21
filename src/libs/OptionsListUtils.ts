@@ -476,14 +476,15 @@ function getSearchText(
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
-        } else {
-            const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
-            if (allPersonalDetails) {
-                for (const accountID of visibleChatMemberAccountIDs) {
-                    const login = allPersonalDetails[accountID]?.login;
-                    if (login) {
-                        searchTerms = searchTerms.concat(login);
-                    }
+        } else if (allPersonalDetails) {
+            const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+                .filter(([_, participant]) => participant && !participant.hidden)
+                .map(([accountID]) => Number(accountID));
+
+            for (const accountID of visibleParticipantAccountIDs) {
+                const login = allPersonalDetails[accountID]?.login;
+                if (login) {
+                    searchTerms = searchTerms.concat(login);
                 }
             }
         }
@@ -708,10 +709,15 @@ function createOption(
         result.isPinned = report.isPinned;
         result.iouReportID = report.iouReportID;
         result.keyForList = String(report.reportID);
-        result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
+
+        const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+            .filter(([_, participant]) => participant && !participant.hidden)
+            .map(([accountID]) => Number(accountID));
+
+        result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -776,8 +782,12 @@ function createOption(
 function getReportOption(participant: Participant): ReportUtils.OptionData {
     const report = ReportUtils.getReport(participant.reportID);
 
+    const visibleParticipantAccountIDs = Object.entries(report?.participants ?? {})
+        .filter(([_, participant]) => participant && !participant.hidden)
+        .map(([accountID]) => Number(accountID));
+
     const option = createOption(
-        report?.visibleChatMemberAccountIDs ?? [],
+        visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
         !isEmptyObject(report) ? report : null,
         {},
@@ -805,8 +815,12 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
 function getPolicyExpenseReportOption(participant: Participant | ReportUtils.OptionData): ReportUtils.OptionData {
     const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
+    const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
+        .filter(([_, participant]) => participant && !participant.hidden)
+        .map(([accountID]) => Number(accountID));
+
     const option = createOption(
-        expenseReport?.visibleChatMemberAccountIDs ?? [],
+        visibleParticipantAccountIDs,
         allPersonalDetails ?? {},
         !isEmptyObject(expenseReport) ? expenseReport : null,
         {},
@@ -1472,8 +1486,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             }
 
             const isSelfDM = ReportUtils.isSelfDM(report);
-            // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
-            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
+            const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+                .filter(([_, participant]) => participant && !participant.hidden)
+                .map(([accountID]) => Number(accountID));
+
+            // Currently, currentUser is not included in visibleParticipantAccountIDs, so for selfDM we need to add the currentUser as participants.
+            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : visibleParticipantAccountIDs ?? [];
 
             if (!accountIDs || accountIDs.length === 0) {
                 return;
@@ -1505,7 +1523,7 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 }
 
 function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
-    const accountIDs = report.participantAccountIDs ?? [];
+    const accountIDs = Object.keys(report.participants ?? {}).map(Number);
 
     return {
         item: report,
@@ -1692,8 +1710,12 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
-        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
+        const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+            .filter(([_, participant]) => participant && !participant.hidden)
+            .map(([accountID]) => Number(accountID));
+
+        // Currently, currentUser is not included in visibleParticipantAccountIDs, so for selfDM we need to add the currentUser as participants.
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : visibleParticipantAccountIDs ?? [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
