@@ -53,8 +53,6 @@ type WorkspaceCategoriesPageProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
 };
 
-// type WorkspaceCategoriesPageProps = WorkspaceCategoriesOnyxProps &;
-
 function WorkspaceCategoriesPage({policy}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
