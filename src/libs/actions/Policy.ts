@@ -2382,6 +2382,19 @@ function openPolicyWorkflowsPage(policyID: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
 }
 
+function clearPendingFieldsForMoreFeatures(policyID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        pendingFields: {
+            areDistanceRatesEnabled: null,
+            areWorkflowsEnabled: null,
+            areCategoriesEnabled: null,
+            areTagsEnabled: null,
+            tax: null,
+            areConnectionsEnabled: null,
+        },
+    });
+}
+
 function setPolicyIDForReimburseView(policyID: string) {
     Onyx.merge(ONYXKEYS.WORKSPACE_RATE_AND_UNIT, {policyID, rate: null, unit: null});
 }
@@ -5075,6 +5088,7 @@ export {
     updatePolicyDistanceRateValue,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
+    clearPendingFieldsForMoreFeatures,
 };
 
 export type {NewCustomUnit};

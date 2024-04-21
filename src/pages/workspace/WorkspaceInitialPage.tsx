@@ -73,6 +73,8 @@ type WorkspaceInitialPageOnyxProps = {
 
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
+type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
+
 function dismissError(policyID: string) {
     PolicyUtils.goBackFromInvalidPolicy();
     Policy.removeWorkspace(policyID);
@@ -101,7 +103,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
         }),
         [policy],
-    ) as Record<PolicyFeatureName, boolean>;
+    ) as PolicyFeatureStates;
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -124,6 +126,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         }
         setIsCurrencyModalOpen(false);
     }, [policy?.outputCurrency, isCurrencyModalOpen]);
+
+    useEffect(() => {
+        Policy.clearPendingFieldsForMoreFeatures(policyID);
+    }, [policyID]);
 
     /** Call update workspace currency and hide the modal */
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
@@ -186,17 +192,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
-            const newFeatureStates = {} as Record<PolicyFeatureName, boolean>;
-            const keys = Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[];
-            keys.forEach((key) => {
+            const newFeatureStates = {} as PolicyFeatureStates;
+            (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
                 const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
-                if (prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key]) {
-                    newFeatureStates[key] = isFeatureEnabled;
-
-                    return;
-                }
-
-                newFeatureStates[key] = currentFeatureStates[key];
+                newFeatureStates[key] =
+                    prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
             });
             return {
                 ...policyFeatureStates,
