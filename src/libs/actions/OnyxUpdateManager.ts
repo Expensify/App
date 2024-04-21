@@ -38,16 +38,22 @@ Onyx.connect({
     },
 });
 
+// eslint-disable-next-line import/no-mutable-exports
 let queryPromise: Promise<Response | Response[] | void> | undefined;
 
 type DeferredUpdatesDictionary = Record<number, OnyxUpdatesFromServer>;
+// eslint-disable-next-line import/no-mutable-exports
 let deferredUpdates: DeferredUpdatesDictionary = {};
+
+const resetDeferralLogicVariables = () => {
+    queryPromise = undefined;
+    deferredUpdates = {};
+};
 
 // This function will reset the query variables, unpause the SequentialQueue and log an info to the user.
 function finalizeUpdatesAndResumeQueue() {
     console.debug('[OnyxUpdateManager] Done applying all updates');
-    queryPromise = undefined;
-    deferredUpdates = {};
+    resetDeferralLogicVariables();
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
     SequentialQueue.unpause();
 }
@@ -260,3 +266,5 @@ export default () => {
 };
 
 export {handleOnyxUpdateGap};
+export {queryPromise, deferredUpdates, applyUpdates, resetDeferralLogicVariables};
+export type {DeferredUpdatesDictionary};
