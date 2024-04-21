@@ -61,6 +61,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             });
 
             Navigation.dismissModal();
+
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
             if (isSmallScreenWidth) {
@@ -110,10 +111,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         return errors;
     };
 
-    const handleGoBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     const PersonalDetailsFooterInstance = <OfflineIndicator />;
 
     return (
@@ -121,7 +118,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
-                onBackButtonPress={handleGoBack}
+                onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView
                 style={[styles.flex1, styles.dFlex]}

@@ -50,7 +50,14 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         }
 
         Welcome.isOnboardingFlowCompleted({
-            onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE),
+            onNotCompleted: () =>
+                Navigation.navigate(
+                    // Uncomment once Stage 1 Onboarding Flow is ready
+                    //
+                    // ROUTES.ONBOARDING_PERSONAL_DETAILS
+                    //
+                    ROUTES.ONBOARD,
+                ),
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
