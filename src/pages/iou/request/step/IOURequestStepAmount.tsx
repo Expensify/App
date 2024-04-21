@@ -39,8 +39,8 @@ type IOURequestStepAmountOnyxProps = {
     /** Whether the confirmation step should be skipped */
     skipConfirmation: OnyxEntry<boolean>;
 
-    /** The draft transaction object being modified in Onyx */
-    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** The backup transaction object being modified in Onyx */
+    backupTransaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -66,7 +66,7 @@ function IOURequestStepAmount({
     personalDetails,
     currentUserPersonalDetails,
     splitDraftTransaction,
-    draftTransaction,
+    backupTransaction,
     skipConfirmation,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
@@ -79,7 +79,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? backupTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
@@ -266,10 +266,10 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
-    draftTransaction: {
+    backupTransaction: {
         key: ({route}) => {
             const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
         },
     },
     skipConfirmation: {
