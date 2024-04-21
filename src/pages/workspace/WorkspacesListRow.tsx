@@ -213,7 +213,7 @@ function WorkspacesListRow({
                             styles.alignItemsCenter,
                             styles.flex1,
                             styles.justifyContentEnd,
-                            styles.mln6,
+                            styles.ml2,
                             !isNarrow && styles.pr4,
                             isNarrow && styles.workspaceListBadge,
                         ]}
