@@ -5876,7 +5876,7 @@ function resetSplitShares(transaction: NonNullable<OnyxTypes.Transaction>) {
 }
 
 /**
- * Sets and individual split shares of the participant accountID supplied
+ * Sets an individual split share of the participant accountID supplied
  */
 function setIndividualShare(transactionID: string, participantAccountID: number, participantShare: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
@@ -5905,7 +5905,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
         .map((key: string) => Number(key));
 
     const remainingTotal = transaction.amount - sumOfManualShares;
-    if (remainingTotal <= 0) {
+    if (remainingTotal < 0) {
         return;
     }
 
