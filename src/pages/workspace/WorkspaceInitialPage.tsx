@@ -128,7 +128,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     }, [policy?.outputCurrency, isCurrencyModalOpen]);
 
     useEffect(() => {
+        if (isOffline) {
+            return;
+        }
         Policy.clearPendingFieldsForMoreFeatures(policyID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyID]);
 
     /** Call update workspace currency and hide the modal */
