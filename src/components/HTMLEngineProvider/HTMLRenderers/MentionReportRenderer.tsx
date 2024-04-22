@@ -65,7 +65,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = useMemo(
-        () => (currentReport && !isEmptyObject(currentReport) ? !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE : false),
+        () => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE,
         [currentReport],
     );
 
