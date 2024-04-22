@@ -690,15 +690,15 @@ function MoneyRequestConfirmationList({
                 <MenuItem
                     key={translate('moneyRequestConfirmationList.paidBy')}
                     label={translate('moneyRequestConfirmationList.paidBy')}
-                    interactive={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate && !isReadOnly}
-                    description={payeePersonalDetails.login}
-                    title={payeePersonalDetails.displayName}
+                    interactive={!isPolicyExpenseChat && !isReadOnly}
+                    description={payeePersonalDetails.login ?? ReportUtils.getDisplayNameForParticipant(payeePersonalDetails.accountID)}
+                    title={payeePersonalDetails.displayName ?? ReportUtils.getDisplayNameForParticipant(payeePersonalDetails.accountID)}
                     icon={payeeIcons}
                     onPress={() => {
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
-                    shouldShowRightIcon={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate && !isReadOnly}
-                    titleWithTooltips={payeeTooltipDetails}
+                    shouldShowRightIcon={!isPolicyExpenseChat && !isReadOnly}
+                    titleWithTooltips={payeePersonalDetails?.isOptimisticPersonalDetail ? undefined : payeeTooltipDetails}
                 />
             ),
             shouldShow: isTypeSplit && action === CONST.IOU.ACTION.CREATE,

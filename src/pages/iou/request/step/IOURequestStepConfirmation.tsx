@@ -21,6 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import * as UserUtils from '@libs/UserUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -77,7 +78,21 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const payeePersonalDetails = personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
+    const payeePersonalDetails = useMemo(() => {
+        if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
+            return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
+        }
+
+        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0] ?? -1));
+
+        return {
+            login: participant?.login ?? '',
+            accountID: participant?.accountID ?? -1,
+            avatar: UserUtils.getDefaultAvatarURL(participant?.accountID ?? -1),
+            displayName: participant?.login ?? '',
+            isOptimisticPersonalDetail: true,
+        };
+    }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
     const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.REQUEST;
 
     const requestType = TransactionUtils.getRequestType(transaction);
@@ -116,11 +131,11 @@ function IOURequestStepConfirmation({
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
-        if (transaction?.participants?.findIndex((participant) => participant.accountID === payeePersonalDetails?.accountID) !== -1 || iouType !== CONST.IOU.TYPE.SPLIT) {
+        if (transaction?.participants?.findIndex((participant) => participant.accountID === transaction?.splitPayerAccountIDs?.[0]) !== -1 || iouType !== CONST.IOU.TYPE.SPLIT) {
             return;
         }
 
-        const payeeParticipant: Participant = {accountID: payeePersonalDetails?.accountID, selected: true};
+        const payeeParticipant: Participant = {accountID: transaction?.splitPayerAccountIDs?.[0], selected: true};
         IOU.setMoneyRequestParticipants_temporaryForRefactor(transaction.transactionID, [payeeParticipant, ...(transaction?.participants ?? [])]);
 
         // We only want to run it when the component is mounted
@@ -362,6 +377,7 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         billable: !!transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitPayerAccoutIDs: transaction.splitPayerAccountIDs,
                     });
                 }
                 return;
