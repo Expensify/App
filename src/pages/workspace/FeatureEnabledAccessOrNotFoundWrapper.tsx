@@ -1,5 +1,4 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -40,20 +39,17 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
 
     const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
-    const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
 
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
     useEffect(() => {
-        if (!isFocused) {
+        if (pendingField && !isOffline) {
             return;
         }
-        if (!pendingField || isOffline) {
-            setIsPolicyFeatureEnabled(isFeatureEnabled);
-        }
-    }, [isFocused, pendingField, isOffline, isFeatureEnabled]);
+        setIsPolicyFeatureEnabled(isFeatureEnabled);
+    }, [pendingField, isOffline, isFeatureEnabled]);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
