@@ -1,10 +1,11 @@
+/* eslint-disable rulesdir/prefer-early-return */
 import {FlashList} from '@shopify/flash-list';
 import type {ForwardedRef, ReactElement} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
-import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {Easing, FadeOutDown, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -76,12 +77,18 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
         }),
         [isLargeScreenWidth, suggestions.length, windowWidth],
     );
+
+    const [data, setData] = useState<TSuggestion[]>([]);
     useEffect(() => {
-        rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
-            duration: 100,
-            easing: Easing.inOut(Easing.ease),
-        });
-    }, [suggestions.length, isSuggestionPickerLarge, rowHeight]);
+        rowHeight.value = withTiming(
+            measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge),
+            {
+                duration: 100,
+                easing: Easing.inOut(Easing.ease),
+            },
+            (finished) => finished && runOnJS(setData)(suggestions),
+        );
+    }, [suggestions, isSuggestionPickerLarge, rowHeight]);
 
     useEffect(() => {
         if (!scrollRef.current) {
@@ -101,8 +108,9 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
                     estimatedItemSize={CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT}
                     estimatedListSize={estimatedListSize}
                     ref={scrollRef}
+                    disableAutoLayout
                     keyboardShouldPersistTaps="handled"
-                    data={suggestions}
+                    data={data}
                     renderItem={renderItem}
                     renderScrollComponent={ScrollView}
                     keyExtractor={keyExtractor}
