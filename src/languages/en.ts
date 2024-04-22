@@ -512,11 +512,10 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
-            send: 'pay expenses',
+            pay: 'pay expenses',
             split: 'split an expense',
-            request: 'submit an expense',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'track-expense': 'track an expense',
+            submit: 'submit an expense',
+            track: 'track an expense',
         },
     },
     reportAction: {
@@ -2651,13 +2650,13 @@ export default {
             header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText1: 'Submit expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
             buttonText1: 'Pay someone, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Pay someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,

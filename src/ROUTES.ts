@@ -423,20 +423,20 @@ const ROUTES = {
     },
 
     MONEY_REQUEST_STATE_SELECTOR: {
-        route: 'request/state',
+        route: 'submit/state',
 
         getRoute: (state?: string, backTo?: string, label?: string) =>
-            `${getUrlWithBackToParam(`request/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
+            `${getUrlWithBackToParam(`submit/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
-    IOU_REQUEST: 'request/new',
-    IOU_SEND: 'send/new',
-    IOU_SEND_ADD_BANK_ACCOUNT: 'send/new/add-bank-account',
-    IOU_SEND_ADD_DEBIT_CARD: 'send/new/add-debit-card',
-    IOU_SEND_ENABLE_PAYMENTS: 'send/new/enable-payments',
+    IOU_REQUEST: 'submit/new',
+    IOU_SEND: 'pay/new',
+    IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
+    IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
+    IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
 
     NEW_TASK: 'new/task',
     NEW_TASK_ASSIGNEE: 'new/task/assignee',
@@ -695,7 +695,7 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
-    PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
+    PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
     ONBOARDING_WORK: 'onboarding/work',
@@ -739,6 +739,7 @@ const ROUTES = {
  */
 const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
+    MONEY_REQUEST_SUBMIT_CREATE: '/submit/new/scan',
 } as const;
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam};
