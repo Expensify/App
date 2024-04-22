@@ -2070,6 +2070,7 @@ export default {
             lowRateError: 'Rate must be greater than 0',
         },
         accounting: {
+            settings: 'settings',
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
             qbo: 'Quickbooks Online',

@@ -288,7 +288,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                                         style={[styles.textNormal, styles.link]}
                                         href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
                                     >
-                                        {`${translate('workspace.accounting.qbo')}, ${translate('common.settings')}`}
+                                        {`${translate('workspace.accounting.qbo')}, ${translate('workspace.accounting.settings')}`}
                                     </TextLink>
                                 </Text>
                             ) : (
