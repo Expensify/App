@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as App from '@userActions/App';
-import type DeferredUpdatesDictionary from '@userActions/OnyxUpdateManager/types';
+import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {applyUpdates} from './applyUpdates';
 import deferredUpdatesProxy from './deferredUpdates';
@@ -13,7 +13,7 @@ Onyx.connect({
 
 // In order for the deferred updates to be applied correctly in order,
 // we need to check if there are any gaps between deferred updates.
-type DetectGapAndSplitResult = {applicableUpdates: DeferredUpdatesDictionary; updatesAfterGaps: DeferredUpdatesDictionary; latestMissingUpdateID: number | undefined};
+
 function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdateID?: number): DetectGapAndSplitResult {
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 

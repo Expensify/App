@@ -7,7 +7,6 @@ import * as App from '@userActions/App';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
-import type DeferredUpdatesDictionary from './types';
 import * as OnyxUpdateManagerUtils from './utils';
 import deferredUpdatesProxy from './utils/deferredUpdates';
 
@@ -146,6 +145,4 @@ export default () => {
     });
 };
 
-export {handleOnyxUpdateGap};
-export {queryPromise, resetDeferralLogicVariables};
-export type {DeferredUpdatesDictionary};
+export {handleOnyxUpdateGap, queryPromise, resetDeferralLogicVariables};

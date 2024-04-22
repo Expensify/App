@@ -1,12 +1,15 @@
 import Onyx from 'react-native-onyx';
 import * as AppImport from '@libs/actions/App';
 import * as OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
+import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@libs/actions/OnyxUpdateManager/types';
+import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/App');
+jest.mock('@libs/actions/OnyxUpdateManager/utils');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
 type AppActionsMock = typeof AppImport & {
@@ -14,11 +17,41 @@ type AppActionsMock = typeof AppImport & {
 };
 
 type ApplyUpdatesMock = typeof ApplyUpdatesImport & {
-    applyUpdates: jest.Mock<Promise<void[]>>;
+    applyUpdates: jest.Mock<Promise<[]>, [updates: DeferredUpdatesDictionary]>;
+};
+
+type OnyxUpdateManagerUtilsMock = typeof OnyxUpdateManagerUtilsImport & {
+    detectGapsAndSplit: jest.Mock<Promise<DetectGapAndSplitResult>, [updates: DeferredUpdatesDictionary, clientLastUpdateID?: number]>;
+    validateAndApplyDeferredUpdates: jest.Mock<Promise<void>, [clientLastUpdateID?: number]>;
 };
 
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
+const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
+
+let onApplyUpdates: ((updates: DeferredUpdatesDictionary) => Promise<void>) | undefined;
+ApplyUpdates.applyUpdates.mockImplementation((updates: DeferredUpdatesDictionary) => {
+    const ApplyUpdatesMock: ApplyUpdatesMock = jest.requireActual('@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates');
+
+    if (onApplyUpdates === undefined) {
+        return ApplyUpdatesMock.applyUpdates(updates).then(() => []);
+    }
+
+    return onApplyUpdates(updates)
+        .then(() => ApplyUpdatesMock.applyUpdates(updates))
+        .then(() => []);
+});
+
+let onValidateAndApplyDeferredUpdates: ((clientLastUpdateID?: number) => Promise<void>) | undefined;
+OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates.mockImplementation((clientLastUpdateID?: number) => {
+    const UtilsMock: OnyxUpdateManagerUtilsMock = jest.requireActual('@libs/actions/OnyxUpdateManager/utils/__mocks__');
+
+    if (onValidateAndApplyDeferredUpdates === undefined) {
+        return UtilsMock.validateAndApplyDeferredUpdates(clientLastUpdateID);
+    }
+
+    return onValidateAndApplyDeferredUpdates(clientLastUpdateID).then(() => UtilsMock.validateAndApplyDeferredUpdates(clientLastUpdateID));
+});
 
 const createMockUpdate = (lastUpdateID: number): OnyxUpdatesFromServer => ({
     type: 'https',
@@ -46,6 +79,8 @@ const mockUpdate3 = createMockUpdate(3);
 const mockUpdate4 = createMockUpdate(4);
 const mockUpdate5 = createMockUpdate(5);
 const mockUpdate6 = createMockUpdate(6);
+const mockUpdate7 = createMockUpdate(7);
+const mockUpdate8 = createMockUpdate(8);
 
 const resetOnyxUpdateManager = async () => {
     await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
@@ -78,6 +113,11 @@ describe('OnyxUpdateManager', () => {
                 // After all missing and deferred updates have been applied, the lastUpdateIDAppliedToClient should be 6.
                 expect(lastUpdateIDAppliedToClient).toBe(5);
 
+                // There are no gaps in the deferred updates, therefore only one call to getMissingOnyxUpdates should be triggered
+                expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+                expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
+                expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(1);
+
                 // There should be only one call to applyUpdates. The call should contain all the deferred update,
                 // since the locally applied updates have changed in the meantime.
                 expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
@@ -86,21 +126,29 @@ describe('OnyxUpdateManager', () => {
             });
     });
 
-    it('should only apply deferred updates that are after the locally applied update (pending updates)', async () => {
+    it('should only apply deferred updates that are newer than the last locally applied update (pending updates)', async () => {
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate4);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate5);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate6);
 
-        // We manually update the lastUpdateIDAppliedToClient to 5, to simulate local updates being applied,
-        // while we are waiting for the missing updates to be fetched.
-        // Only the deferred updates after the lastUpdateIDAppliedToClient should be applied.
-        Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
+        onValidateAndApplyDeferredUpdates = async () => {
+            // We manually update the lastUpdateIDAppliedToClient to 5, to simulate local updates being applied,
+            // while we are waiting for the missing updates to be fetched.
+            // Only the deferred updates after the lastUpdateIDAppliedToClient should be applied.
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
+            onValidateAndApplyDeferredUpdates = undefined;
+        };
 
         return waitForBatchedUpdates()
             .then(() => OnyxUpdateManager.queryPromise)
             ?.then(() => {
                 // After all missing and deferred updates have been applied, the lastUpdateIDAppliedToClient should be 6.
                 expect(lastUpdateIDAppliedToClient).toBe(6);
+
+                // There are no gaps in the deferred updates, therefore only one call to getMissingOnyxUpdates should be triggered
+                expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+                expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
+                expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(1);
 
                 // Missing updates from 1 (last applied to client) to 3 (last "previousUpdateID" from first deferred update) should have been fetched from the server in the first and only call to getMissingOnyxUpdates
                 expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 3);
@@ -125,6 +173,11 @@ describe('OnyxUpdateManager', () => {
                 // After all missing and deferred updates have been applied, the lastUpdateIDAppliedToClient should be 6.
                 expect(lastUpdateIDAppliedToClient).toBe(6);
 
+                // Even though there is a gap in the deferred updates, we only want to fetch missing updates once per batch.
+                expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+                expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
+                expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(2);
+
                 // There should be multiple calls getMissingOnyxUpdates and applyUpdates, since we detect a gap in the deferred updates.
                 // The first call to getMissingOnyxUpdates should fetch updates from 1 (last applied to client) to 2 (last "previousUpdateID" from first deferred update) from the server.
                 expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
@@ -136,9 +189,125 @@ describe('OnyxUpdateManager', () => {
                 // The second call to getMissingOnyxUpdates should fetch the missing updates from the gap in the deferred updates. 3-4
                 expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
 
-                // After the gap in the deferred updates has been resolve, the remaining deferred updates (5, 6) should be applied.
+                // After the gap in the deferred updates has been resolved, the remaining deferred updates (5, 6) should be applied.
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {5: mockUpdate5, 6: mockUpdate6});
+            });
+    });
+
+    it('should re-fetch missing deferred updates only once per batch', async () => {
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate3);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate4);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate6);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate8);
+
+        return waitForBatchedUpdates()
+            .then(() => OnyxUpdateManager.queryPromise)
+            ?.then(() => {
+                // After all missing and deferred updates have been applied, the lastUpdateIDAppliedToClient should be 6.
+                expect(lastUpdateIDAppliedToClient).toBe(8);
+
+                // Even though there are multiple gaps in the deferred updates, we only want to fetch missing updates once per batch.
+                expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+                expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
+                expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(2);
+
+                // After the initial missing updates have been applied, the applicable updates (3-4) should be applied.
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: mockUpdate3, 4: mockUpdate4});
+
+                // The second call to getMissingOnyxUpdates should fetch the missing updates from the gap (4-7) in the deferred updates.
+                expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 4, 7);
+
+                // After the gap in the deferred updates has been resolved, the remaining deferred updates (8) should be applied.
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {8: mockUpdate8});
+            });
+    });
+
+    it('should not re-fetch missing updates if the locally applied update has been updated', async () => {
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate3);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate5);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate6);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate7);
+
+        onApplyUpdates = async () => {
+            // We manually update the lastUpdateIDAppliedToClient to 5, to simulate local updates being applied,
+            // while the applicable updates have been applied.
+            // When this happens, the OnyxUpdateManager should trigger another validation of the deferred updates,
+            // without triggering another re-fetching of missing updates from the server.
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
+            onApplyUpdates = undefined;
+        };
+
+        return waitForBatchedUpdates()
+            .then(() => OnyxUpdateManager.queryPromise)
+            ?.then(() => {
+                // After all missing and deferred updates have been applied, the lastUpdateIDAppliedToClient should be 6.
+                expect(lastUpdateIDAppliedToClient).toBe(7);
+
+                // Even though there are multiple gaps in the deferred updates, we only want to fetch missing updates once per batch.
+                expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+
+                // validateAndApplyDeferredUpdates should only be called once, since the locally applied update id has been updated in the meantime,
+                // and the deferred updates after the locally applied update don't have any gaps.
+                expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(1);
+
+                // Since there is a gap in the deferred updates, we need to run applyUpdates twice.
+                // Once for the applicable updates (before the gap) and then for the remaining deferred updates.
+                expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
+
+                // After the initial missing updates have been applied, the applicable updates (3) should be applied.
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: mockUpdate3});
+
+                // Since the lastUpdateIDAppliedToClient has changed to 5 in the meantime, we only need to apply the remaining deferred updates (6-7).
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {6: mockUpdate6, 7: mockUpdate7});
+            });
+    });
+
+    it('should re-fetch missing updates if the locally applied update has been updated, but there are still gaps after the locally applied update', async () => {
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate3);
+        OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate7);
+
+        onApplyUpdates = async () => {
+            // We manually update the lastUpdateIDAppliedToClient to 4, to simulate local updates being applied,
+            // while the applicable updates have been applied.
+            // When this happens, the OnyxUpdateManager should trigger another validation of the deferred updates,
+            // without triggering another re-fetching of missing updates from the server.
+            await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 4);
+            onApplyUpdates = undefined;
+        };
+
+        return waitForBatchedUpdates()
+            .then(() => OnyxUpdateManager.queryPromise)
+            ?.then(() => {
+                // After all missing and deferred updates have been applied, the lastUpdateIDAppliedToClient should be 6.
+                expect(lastUpdateIDAppliedToClient).toBe(7);
+
+                // Even though there are multiple gaps in the deferred updates, we only want to fetch missing updates once per batch.
+                expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+
+                // validateAndApplyDeferredUpdates should be called twice, once for the initial deferred updates and once for the remaining deferred updates with gaps.
+                // Unfortunately, we cannot easily count the calls of this function, since it recursively calls itself.
+                expect(OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates).toHaveBeenCalledTimes(1);
+
+                // Since there is a gap in the deferred updates, we need to run applyUpdates twice.
+                // Once for the applicable updates (before the gap) and then for the remaining deferred updates.
+                expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
+
+                // After the initial missing updates have been applied, the applicable updates (3) should be applied.
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: mockUpdate3});
+
+                // The second call to getMissingOnyxUpdates should fetch the missing updates from the gap in the deferred updates,
+                // that are later than the locally applied update (4-6). (including the last locally applied update)
+                expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 4, 6);
+
+                // Since the lastUpdateIDAppliedToClient has changed to 4 in the meantime and we're fetching updates 5-6 we only need to apply the remaining deferred updates (7).
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {7: mockUpdate7});
             });
     });
 });
