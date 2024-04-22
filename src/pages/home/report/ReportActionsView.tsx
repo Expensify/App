@@ -146,7 +146,7 @@ function ReportActionsView({
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
         const moneyRequestAction = allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID);
 
-        // Filter out the money request actions because we don't want to show any preview actions for one-transaction reports
+        // Filter out the expense actions because we don't want to show any preview actions for one-transaction reports
         const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
             const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
             return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
@@ -368,11 +368,11 @@ function ReportActionsView({
     }, [hasCachedActionOnFirstRender]);
 
     useEffect(() => {
-        // Temporary solution for handling REPORTPREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
-        // This code should be removed once REPORTPREVIEW is no longer repositioned.
-        // We need to call openReport for gaps created by moving REPORTPREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
+        // Temporary solution for handling REPORT_PREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
+        // This code should be removed once REPORT_PREVIEW is no longer repositioned.
+        // We need to call openReport for gaps created by moving REPORT_PREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
         const shouldOpenReport =
-            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
+            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             !hasCreatedAction &&
             isReadyForCommentLinking &&
             reportActions.length < 24 &&
@@ -421,11 +421,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    // When we are offline before opening a money request report,
-    // the total of the report and sometimes the money request aren't displayed because these actions aren't returned until `OpenReport` API is complete.
+    // When we are offline before opening an IOU/Expense report,
+    // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
-    // to display at least one money request action to match the total data.
+    // and we also generate an expense action if the number of expenses in reportActions is less than the total number of expenses
+    // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
             return reportActions;

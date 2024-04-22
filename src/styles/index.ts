@@ -1100,6 +1100,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
+            zIndex: 1,
         },
 
         textInputLabelBackground: {
@@ -3204,6 +3205,20 @@ const styles = (theme: ThemeColors) =>
 
         workspaceTypeSectionTitle: {
             marginLeft: 3,
+        },
+
+        workspaceRightColumn: {
+            marginLeft: 124,
+        },
+
+        workspaceThreeDotMenu: {
+            marginLeft: 84,
+        },
+
+        workspaceListBadge: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 6,
         },
 
         autoGrowHeightMultilineInput: {
