@@ -45,7 +45,7 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
 function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     connectionName: TConnectionName,
-    settingName: TSettingName,
+    settingName: string,
     settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
 ) {
     const optimisticData: OnyxUpdate[] = [
@@ -114,7 +114,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
         },
     ];
 
-    const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
+    const parameters: UpdatePolicyConnectionConfigParams = {
         policyID,
         connectionName,
         settingName,
