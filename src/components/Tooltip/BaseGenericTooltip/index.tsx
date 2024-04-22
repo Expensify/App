@@ -1,19 +1,18 @@
-import React, {useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {Animated, View} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import Log from '@libs/Log';
 import textRef from '@src/types/utils/textRef';
 import viewRef from '@src/types/utils/viewRef';
-import type {TooltipRenderedOnPageBodyProps} from './types';
+import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.
 // On every tooltip hover, we update the position in state which will result in re-rendering.
 // We also update the state on layout changes which will be triggered often.
 // There will be n number of tooltip components in the page.
 // It's good to memoize this one.
-function TooltipRenderedOnPageBody({
+function BaseGenericTooltip({
     animation,
     windowWidth,
     xOffset,
@@ -29,7 +28,7 @@ function TooltipRenderedOnPageBody({
     shouldForceRenderingBelow = false,
     wrapperStyle = {},
     shouldForceRenderingLeft = false,
-}: TooltipRenderedOnPageBodyProps) {
+}: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
@@ -40,13 +39,6 @@ function TooltipRenderedOnPageBody({
     const rootWrapper = useRef<HTMLDivElement>(null);
 
     const StyleUtils = useStyleUtils();
-
-    useEffect(() => {
-        if (!renderTooltipContent || !text) {
-            return;
-        }
-        Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
-    }, [text, renderTooltipContent]);
 
     useLayoutEffect(() => {
         // Calculate the tooltip width and height before the browser repaints the screen to prevent flicker
@@ -132,6 +124,6 @@ function TooltipRenderedOnPageBody({
     );
 }
 
-TooltipRenderedOnPageBody.displayName = 'TooltipRenderedOnPageBody';
+BaseGenericTooltip.displayName = 'BaseGenericTooltip';
 
-export default React.memo(TooltipRenderedOnPageBody);
+export default React.memo(BaseGenericTooltip);

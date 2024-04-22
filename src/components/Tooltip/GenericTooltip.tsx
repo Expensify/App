@@ -4,11 +4,12 @@ import {Animated} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Log from '@libs/Log';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
-import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
+import BaseGenericTooltip from './BaseGenericTooltip';
 import TooltipSense from './TooltipSense';
 import type {GenericTooltipProps} from './types';
 
@@ -49,6 +50,13 @@ function GenericTooltip({
     const animation = useRef(new Animated.Value(0));
     const isAnimationCanceled = useRef(false);
     const prevText = usePrevious(text);
+
+    useEffect(() => {
+        if (!renderTooltipContent || !text) {
+            return;
+        }
+        Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
+    }, [text, renderTooltipContent]);
 
     /**
      * Display the tooltip in an animation.
@@ -130,7 +138,7 @@ function GenericTooltip({
     return (
         <>
             {isRendered && (
-                <TooltipRenderedOnPageBody
+                <BaseGenericTooltip
                     animation={animation.current}
                     windowWidth={windowWidth}
                     xOffset={xOffset}

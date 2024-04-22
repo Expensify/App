@@ -3,7 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useCallback, useRef} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import Hoverable from '@components/Hoverable';
-import BaseTooltip from '@components/Tooltip/GenericTooltip';
+import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type TooltipProps from '@components/Tooltip/types';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 
@@ -90,7 +90,7 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <BaseTooltip {...props}>
+        <GenericTooltip {...props}>
             {({isVisible, showTooltip, hideTooltip, updateTargetBounds}) =>
                 // Checks if valid element so we can wrap the BoundsObserver around it
                 // If not, we just return the primitive children
@@ -116,7 +116,7 @@ function Tooltip({children, shouldHandleScroll = false, ...props}: TooltipProps,
                     children
                 )
             }
-        </BaseTooltip>
+        </GenericTooltip>
     );
 }
 

@@ -1,7 +1,7 @@
 import type {Animated} from 'react-native';
 import type TooltipProps from '@components/Tooltip/types';
 
-type TooltipRenderedOnPageBodyProps = {
+type BaseGenericTooltipProps = {
     /** Window width */
     windowWidth: number;
 
@@ -30,4 +30,4 @@ type TooltipRenderedOnPageBodyProps = {
 } & Pick<TooltipProps, 'renderTooltipContent' | 'maxWidth' | 'numberOfLines' | 'text' | 'shouldForceRenderingBelow' | 'wrapperStyle' | 'shouldForceRenderingLeft'>;
 
 // eslint-disable-next-line import/prefer-default-export
-export type {TooltipRenderedOnPageBodyProps};
+export type {BaseGenericTooltipProps};
