@@ -11,6 +11,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -42,6 +43,7 @@ function TagSettingsPage({route, policy}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
+    const {environmentURL} = useEnvironment();
 
     const {windowWidth} = useWindowDimensions();
 
