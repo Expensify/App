@@ -138,14 +138,14 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canJoin = ReportUtils.canJoinReport(report, parentReportAction, policy);
+    const canJoin = ReportUtils.canJoinChat(report, parentReportAction, policy);
     if (canJoin) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.join'),
             onSelected: join,
         });
-    } else if (ReportUtils.canLeaveReport(report, policy)) {
+    } else if (ReportUtils.canLeaveChat(report, policy)) {
         const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,

@@ -5974,7 +5974,7 @@ function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<
 /**
  * Whether the user can join a report
  */
-function canJoinReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>): boolean {
+function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>): boolean {
     if (ReportActionsUtils.isWhisperAction(parentReportAction)) {
         return false;
     }
@@ -5993,7 +5993,7 @@ function canJoinReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<
 /**
  * Whether the user can leave a report
  */
-function canLeaveReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     if (isSelfDM(report) || isParentGroupChat(report)) {
         return false;
     }
@@ -6126,8 +6126,8 @@ export {
     canFlagReportAction,
     canLeavePolicyExpenseChat,
     canLeaveRoom,
-    canJoinReport,
-    canLeaveReport,
+    canJoinChat,
+    canLeaveChat,
     canReportBeMentionedWithinPolicy,
     canRequestMoney,
     canSeeDefaultRoom,
