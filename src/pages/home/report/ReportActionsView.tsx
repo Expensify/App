@@ -137,21 +137,22 @@ function ReportActionsView({
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
-    const combinedReportActions = useMemo(() => {
+    const [combinedReportActions, parentReportActionForTransactionThread] = useMemo(() => {
         if (isEmptyObject(transactionThreadReportActions)) {
-            return allReportActions;
+            return [allReportActions, null];
         }
 
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+        const moneyRequestAction = allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID);
 
         // Filter out the expense actions because we don't want to show any preview actions for one-transaction reports
         const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
             const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
             return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
         });
-        return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-    }, [allReportActions, transactionThreadReportActions]);
+        return [ReportActionsUtils.getSortedReportActions(filteredReportActions, true), moneyRequestAction ?? null];
+    }, [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID]);
 
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID) {
@@ -492,6 +493,7 @@ function ReportActionsView({
                 transactionThreadReport={transactionThreadReport}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActionsToDisplay}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
