@@ -153,9 +153,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** Whether the expense is a distance expense */
     isDistanceRequest?: boolean;
 
-    /** Whether the expense is a scan expense */
-    isScanRequest?: boolean;
-
     /** Whether we're editing a split expense */
     isEditingSplitBill?: boolean;
 
@@ -186,7 +183,6 @@ function MoneyRequestConfirmationList({
     onConfirm,
     onSelectParticipant,
     iouType = CONST.IOU.TYPE.REQUEST,
-    isScanRequest = false,
     iouAmount,
     policyCategories,
     mileageRates,
@@ -232,6 +228,7 @@ function MoneyRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
+    const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
     const transactionID = transaction?.transactionID ?? '';
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
@@ -443,16 +440,19 @@ function MoneyRequestConfirmationList({
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const getParticipantOptions = useCallback(() => {
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
-        if (isPolicyExpenseChat || isReadOnly) {
+        if (isPolicyExpenseChat || isReadOnly || TransactionUtils.isScanRequest(transaction)) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
-                const amount =
-                    isPolicyExpenseChat || !transaction?.comment?.splits
-                        ? IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer)
-                        : transaction.comment.splits.find((split) => split.accountID === participantOption.accountID)?.amount;
+                let amount: number | undefined = 0;
+                if (iouAmount > 0) {
+                    amount =
+                        isPolicyExpenseChat || !transaction?.comment?.splits
+                            ? IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer)
+                            : transaction.comment.splits.find((split) => split.accountID === participantOption.accountID)?.amount;
+                }
                 return {
                     ...participantOption,
-                    descriptiveText: CurrencyUtils.convertToDisplayString(amount),
+                    descriptiveText: amount ? CurrencyUtils.convertToDisplayString(amount) : '',
                 };
             });
         }
@@ -471,18 +471,7 @@ function MoneyRequestConfirmationList({
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [
-        iouCurrencyCode,
-        isPolicyExpenseChat,
-        onSplitShareChange,
-        payeePersonalDetails,
-        selectedParticipants,
-        transaction?.splitShares,
-        currencyList,
-        iouAmount,
-        isReadOnly,
-        transaction?.comment,
-    ]);
+    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, isReadOnly]);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
