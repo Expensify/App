@@ -1,14 +1,14 @@
 diff --git a/node_modules/react-native-webview/apple/RNCWebView.mm b/node_modules/react-native-webview/apple/RNCWebView.mm
-index 70d5ee4..6c3467d 100644
+index ec75032..9685c81 100644
 --- a/node_modules/react-native-webview/apple/RNCWebView.mm
 +++ b/node_modules/react-native-webview/apple/RNCWebView.mm
-@@ -313,24 +313,28 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
-     
+@@ -318,24 +318,28 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+ #if !TARGET_OS_OSX
      if (oldViewProps.dataDetectorTypes != newViewProps.dataDetectorTypes) {
          WKDataDetectorTypes dataDetectorTypes = WKDataDetectorTypeNone;
 -            if (dataDetectorTypes & RNCWebViewDataDetectorTypes::Address) {
-+        for (const auto& type : newViewProps.dataDetectorTypes) {
-+            if (type == "address") {
++            for (const auto& type : newViewProps.dataDetectorTypes) {
++                if (type == "address") {
                  dataDetectorTypes |= WKDataDetectorTypeAddress;
 -            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::Link) {
 +            } else if (type == "link") {
@@ -41,14 +41,24 @@ index 70d5ee4..6c3467d 100644
          [_view setDataDetectorTypes:dataDetectorTypes];
      }
 diff --git a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
-index ae52bc8..d035207 100644
+index 682ab39..09e2bce 100644
 --- a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
 +++ b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
-@@ -187,7 +187,7 @@ export interface NativeProps extends ViewProps {
-   contentMode?: WithDefault<'recommended' | 'mobile' | 'desktop', 'recommended'>;
+@@ -202,17 +202,7 @@ export interface NativeProps extends ViewProps {
+     'recommended'
+   >;
    dataDetectorTypes?: WithDefault<
-     // eslint-disable-next-line @typescript-eslint/array-type
--    ReadonlyArray<'address' | 'link' | 'calendarEvent' | 'trackingNumber' | 'flightNumber' | 'lookupSuggestion' | 'phoneNumber' | 'all' | 'none'>,
+-    ReadonlyArray<
+-      | 'address'
+-      | 'link'
+-      | 'calendarEvent'
+-      | 'trackingNumber'
+-      | 'flightNumber'
+-      | 'lookupSuggestion'
+-      | 'phoneNumber'
+-      | 'all'
+-      | 'none'
+-    >,
 +    ReadonlyArray<string>,
      'phoneNumber'
    >;
