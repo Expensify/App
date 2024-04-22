@@ -5,6 +5,7 @@ import * as Middleware from '@libs/Middleware';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import * as Pusher from '@libs/Pusher/pusher';
 import * as Request from '@libs/Request';
+import * as PersistedRequests from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -159,6 +160,9 @@ function read<TCommand extends ReadCommand>(command: TCommand, apiCommandParamet
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.
+    if (PersistedRequests.getLength() > 0) {
+        Log.info(`[API] '${command}' is waiting on ${PersistedRequests.getLength()} write commands`);
+    }
     SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
