@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -28,16 +28,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyTagList} from '@src/types/onyx';
+import type {Policy as PolicyType} from '@src/types/onyx';
 
 type TagSettingsPageOnyxProps = {
     /** All policy tags */
-    policyTags: OnyxEntry<PolicyTagList>;
+    policy: OnyxEntry<PolicyType>;
 };
 
 type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
-function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
+function TagSettingsPage({route, policy}: TagSettingsPageProps) {
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
@@ -138,8 +139,4 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
 
 TagSettingsPage.displayName = 'TagSettingsPage';
 
-export default withOnyx<TagSettingsPageProps, TagSettingsPageOnyxProps>({
-    policyTags: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`,
-    },
-})(TagSettingsPage);
+export default withPolicyConnections(TagSettingsPage);
