@@ -116,7 +116,7 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @param currency The currency associated with the rate
  * @param translate Translate function
  * @param toLocaleDigit Function to convert to localized digit
- * @returns A string that describes the distance traveled and the rate used for expense calculation
+ * @returns A string that displays the rate used for expense calculation
  */
 function getRateForDisplay(
     unit: Unit | undefined,
@@ -134,11 +134,11 @@ function getRateForDisplay(
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
-    const ratePerUnit = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
+    const formattedRate = PolicyUtils.getUnitRateValue(toLocaleDigit, {rate});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = CurrencyUtils.getCurrencySymbol(currency) || `${currency} `;
 
-    return `${currencySymbol}${ratePerUnit} / ${singularDistanceUnit}`;
+    return `${currencySymbol}${formattedRate} / ${singularDistanceUnit}`;
 }
 
 /**
@@ -201,11 +201,7 @@ function getDistanceMerchant(
 function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate> {
     const mileageRates: Record<string, MileageRate> = {};
 
-    if (!policy) {
-        return mileageRates;
-    }
-
-    if (!policy?.customUnits) {
+    if (!policy || !policy?.customUnits) {
         return mileageRates;
     }
 
@@ -226,6 +222,13 @@ function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate>
 
     return mileageRates;
 }
+
+/**
+ * Retrieves the rate and unit for a P2P distance expense for a given currency.
+ *
+ * @param currency
+ * @returns The rate and unit in RateAndUnit object.
+ */
 
 function getRateForP2P(currency: string): RateAndUnit {
     return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
