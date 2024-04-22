@@ -139,7 +139,7 @@ function getRateForDisplay(
  * @returns A string that describes the distance traveled
  */
 function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, translate: LocaleContextProps['translate']): string {
-    if (!hasRoute || !rate || !unit) {
+    if (!hasRoute || !rate || !unit || !distanceInMeters) {
         return translate('iou.fieldPending');
     }
 
