@@ -1039,7 +1039,7 @@ function MoneyRequestConfirmationList({
                     disabled={didConfirm || !canUpdateSenderWorkspace}
                 />
             )}
-            {(!isMovingTransactionFromTrackExpense || !hasRoute) &&
+            {!isDistanceRequest &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent
