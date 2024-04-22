@@ -8,7 +8,6 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -78,7 +77,6 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
                 showScrollIndicator
                 shouldShowTooltips={false}
                 ListItem={RadioListItem}
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             />
         </ScreenWrapper>
     );

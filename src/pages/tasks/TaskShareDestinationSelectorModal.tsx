@@ -12,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportActions from '@libs/actions/Report';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -119,7 +118,6 @@ function TaskShareDestinationSelectorModal({isSearchingForReports}: TaskShareDes
                         showLoadingPlaceholder={areOptionsInitialized && debouncedSearchValue.trim() === '' ? options.sections.length === 0 : !didScreenTransitionEnd}
                         isLoadingNewOptions={isSearchingForReports ?? undefined}
                         textInputHint={textInputHint}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     />
                 </View>
             </>

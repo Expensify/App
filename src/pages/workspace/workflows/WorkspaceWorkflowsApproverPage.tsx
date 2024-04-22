@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -194,7 +193,6 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                         ListItem={UserListItem}
                         onSelectRow={setPolicyApprover}
                         showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

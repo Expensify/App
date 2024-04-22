@@ -5,7 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {CountryData} from '@libs/searchCountryOptions';
@@ -84,7 +83,6 @@ function CountrySelectionPage({route, navigation}: CountrySelectionPageProps) {
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldUseDynamicMaxToRenderPerBatch
-                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             />
         </ScreenWrapper>
     );
