@@ -47,9 +47,10 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
         {
             description: translate('workspace.qbo.exportExpenses'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.exportEntity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: Boolean(errorFields?.exportEntity) || Boolean(errorFields?.exportAccount) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined,
-            pendingAction: pendingFields?.exportEntity,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            pendingAction: pendingFields?.exportEntity || pendingFields?.exportAccount,
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
