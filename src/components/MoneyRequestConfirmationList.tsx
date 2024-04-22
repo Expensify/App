@@ -382,13 +382,14 @@ function MoneyRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[]) => {
+        (participantsList: Participant[], payerAccountID: number) => {
             const amount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '');
-            const myAmount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '', true);
+            const payerAmount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '', true);
             return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
                 participantsList,
                 amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '',
-                myAmount > 0 ? CurrencyUtils.convertToDisplayString(myAmount, iouCurrencyCode) : '',
+                payerAmount > 0 ? CurrencyUtils.convertToDisplayString(payerAmount, iouCurrencyCode) : '',
+                payerAccountID,
             );
         },
         [iouAmount, iouCurrencyCode],
@@ -438,7 +439,7 @@ function MoneyRequestConfirmationList({
         const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants, payeePersonalDetails.accountID);
             let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
 
             if (!canModifyParticipants) {
@@ -465,7 +466,7 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, selectedParticipantsProp, hasMultipleParticipants, getParticipantsWithAmount, translate, canModifyParticipants]);
+    }, [selectedParticipants, selectedParticipantsProp, hasMultipleParticipants, getParticipantsWithAmount, translate, canModifyParticipants, payeePersonalDetails.accountID]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
@@ -603,7 +604,7 @@ function MoneyRequestConfirmationList({
 
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
-                onConfirm?.(selectedParticipants);
+                onConfirm?.(selectedParticipants.filter((participant) => participant.accountID !== currentUserPersonalDetails.accountID));
             }
         },
         [
@@ -621,6 +622,7 @@ function MoneyRequestConfirmationList({
             iouAmount,
             isEditingSplitBill,
             onConfirm,
+            currentUserPersonalDetails.accountID,
         ],
     );
 

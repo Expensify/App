@@ -3127,6 +3127,7 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    splitPayerAccountIDs: number[] = [],
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -3292,11 +3293,17 @@ function createSplitsAndOnyxData(
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits: Split[] = [
+        {
+            email: currentUserEmailForIOUSplit,
+            accountID: currentUserAccountID,
+            amount: IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountIDs.includes(currentUserAccountID)),
+        },
+    ];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
+        const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountIDs.includes(participant.accountID ?? 0));
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
 
@@ -3526,6 +3533,7 @@ function splitBill({
         existingSplitChatReportID,
         billable,
         iouRequestType,
+        splitPayerAccoutIDs,
     );
 
     const parameters: SplitBillParams = {
