@@ -62,9 +62,9 @@ function TopBar({policy, session}: TopBarProps) {
                 {isAnonymousUser ? (
                     <SignInButton />
                 ) : (
-                    <Tooltip text={translate('common.search')}>
+                    <Tooltip text={translate('common.find')}>
                         <PressableWithoutFeedback
-                            accessibilityLabel={translate('sidebarScreen.buttonSearch')}
+                            accessibilityLabel={translate('sidebarScreen.buttonFind')}
                             style={[styles.flexRow, styles.mr2]}
                             onPress={Session.checkIfActionIsAllowed(() => Navigation.navigate(ROUTES.CHAT_FINDER))}
                         >

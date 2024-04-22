@@ -119,6 +119,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
         next: 'Siguiente',
@@ -543,7 +544,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Busca algo...',
+        buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',
