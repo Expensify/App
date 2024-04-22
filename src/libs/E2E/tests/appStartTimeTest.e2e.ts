@@ -20,7 +20,7 @@ const test = () => {
         // collect performance metrics and submit
         const metrics: PerformanceEntry[] = Performance.getPerformanceMetrics();
 
-        // underscore promises in sequence without for-loop
+        // promises in sequence without for-loop
         Promise.all(
             metrics.map((metric) =>
                 E2EClient.submitTestResults({

@@ -1,5 +1,6 @@
 import isEqual from 'lodash/isEqual';
 import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 
@@ -17,9 +18,15 @@ function clear() {
     return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, []);
 }
 
+function getLength(): number {
+    return persistedRequests.length;
+}
+
 function save(requestToPersist: Request) {
     persistedRequests.push(requestToPersist);
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests).then(() => {
+        Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
+    });
 }
 
 function remove(requestToRemove: Request) {
@@ -48,4 +55,4 @@ function getAll(): Request[] {
     return persistedRequests;
 }
 
-export {clear, save, getAll, remove, update};
+export {clear, save, getAll, remove, update, getLength};

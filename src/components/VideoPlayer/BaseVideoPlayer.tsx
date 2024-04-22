@@ -2,7 +2,7 @@
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -193,6 +193,18 @@ function BaseVideoPlayer({
             handlePlaybackStatusUpdate(status);
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
+
+    // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
+    // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
+    useLayoutEffect(
+        () => () => {
+            if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+                return;
+            }
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef, shouldUseSharedVideoElement],
+    );
 
     useEffect(() => {
         if (!isUploading || !videoPlayerRef.current) {
