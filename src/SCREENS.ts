@@ -282,7 +282,6 @@ const SCREENS = {
     },
 
     EDIT_REQUEST: {
-        ROOT: 'EditRequest_Root',
         CURRENCY: 'EditRequest_Currency',
         REPORT_FIELD: 'EditRequest_ReportField',
     },
