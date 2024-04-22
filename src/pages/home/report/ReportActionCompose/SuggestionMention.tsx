@@ -55,10 +55,9 @@ function SuggestionMention(
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initialValue: false});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isMentionSuggestionsMenuVisible = (!!suggestionValues.suggestedMentions.length || isSearchingForReports) && suggestionValues.shouldShowSuggestionMenu;
+    const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -394,7 +393,6 @@ function SuggestionMention(
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
             measureParentContainer={measureParentContainer}
-            isSearchingForMentions={isSearchingForReports}
         />
     );
 }
