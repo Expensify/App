@@ -12,7 +12,7 @@ type ConsoleModalProps = {
     /** Action to run when pressing Share button */
     onClose: () => void;
     /** Action to close the test tools modal */
-    closeTestToolsModal: () => void;
+    closeTestToolsModal?: () => void;
 };
 
 
@@ -29,10 +29,10 @@ function ConsoleModal({isVisible, onClose, closeTestToolsModal}: ConsoleModalPro
             <View style={[StyleUtils.getTestToolsModalStyle(windowWidth), {height: (windowHeight * 0.9)}]}>
 
                 <ConsoleComponents onClose={() => {
-                    if (onClose) {
-                        onClose()
+                    onClose()
+                    if (closeTestToolsModal) {
+                        closeTestToolsModal()
                     }
-                    closeTestToolsModal()
                 }} isViaTestToolsModal/>
             </View>
         </Modal>

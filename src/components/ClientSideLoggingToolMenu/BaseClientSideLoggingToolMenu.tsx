@@ -34,7 +34,7 @@ type BaseClientSideLoggingToolProps = {
     /** Boolean to know if this was opened via test tools modal */
     isViaTestToolsModal: boolean;
     /** Action to close the test tools modal */
-    closeTestToolsModal: () => void;
+    closeTestToolsModal?: () => void;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
 function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging, isViaTestToolsModal, closeTestToolsModal}: BaseClientSideLoggingToolProps) {
