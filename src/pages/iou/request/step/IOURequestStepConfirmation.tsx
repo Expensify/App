@@ -262,7 +262,7 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
             if (!transaction) {
                 return;
             }
@@ -281,6 +281,7 @@ function IOURequestStepConfirmation({
                 policy,
                 policyTags,
                 policyCategories,
+                customUnitRateID,
             );
         },
         [policy, policyCategories, policyTags, report, transaction],
@@ -432,7 +433,8 @@ function IOURequestStepConfirmation({
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
+                const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
                 return;
             }
 
