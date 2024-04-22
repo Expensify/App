@@ -2289,6 +2289,10 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
  * Get the key for a report field
  */
 function getReportFieldKey(reportFieldId: string) {
+    if (reportFieldId === CONST.REPORT_FIELD_TITLE_FIELD_ID) {
+        return reportFieldId;
+    }
+
     return `expensify_${reportFieldId}`;
 }
 
