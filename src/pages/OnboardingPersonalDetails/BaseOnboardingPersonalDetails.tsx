@@ -27,6 +27,8 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
+const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.TRACK, CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
+
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -46,9 +48,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            const openWorkPagePurposes = [CONST.ONBOARDING_CHOICES.TRACK, CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
-
-            if (openWorkPagePurposes.includes(onboardingPurposeSelected)) {
+            if (OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected)) {
                 Navigation.navigate(ROUTES.ONBOARDING_WORK);
 
                 return;
@@ -61,6 +61,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             });
 
             Navigation.dismissModal();
+
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
             if (isSmallScreenWidth) {
@@ -110,18 +111,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         return errors;
     };
 
-    const handleGoBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     const PersonalDetailsFooterInstance = <OfflineIndicator />;
 
     return (
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={50}
-                onBackButtonPress={handleGoBack}
+                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
+                onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView
                 style={[styles.flex1, styles.dFlex]}

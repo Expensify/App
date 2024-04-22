@@ -57,6 +57,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
             );
 
             Navigation.dismissModal();
+
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
             if (isSmallScreenWidth) {
@@ -89,10 +90,6 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
         return errors;
     };
 
-    const handleGoBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     const WorkFooterInstance = <OfflineIndicator />;
 
     return (
@@ -100,7 +97,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={75}
-                onBackButtonPress={handleGoBack}
+                onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView
                 style={[styles.flex1, styles.dFlex]}
