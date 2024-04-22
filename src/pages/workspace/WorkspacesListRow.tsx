@@ -181,7 +181,7 @@ function WorkspacesListRow({
                         </>
                     )}
                 </View>
-                <View style={[styles.flexRow, isWide && !isJoinRequestPending && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, isWide && styles.flex1, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                     <Icon
                         src={workspaceTypeIcon(workspaceType)}
                         width={variables.workspaceTypeIconWidth}
@@ -206,7 +206,9 @@ function WorkspacesListRow({
             </View>
             <View style={[isNarrow && styles.mr5]}>
                 {isJoinRequestPending && (
-                    <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, styles.mln6, styles.pr4]}>
+                    <View
+                        style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, !isNarrow && styles.pr4, isNarrow && styles.workspaceListBadge]}
+                    >
                         <Badge
                             text={translate('workspace.common.requested')}
                             textStyles={styles.textStrong}
@@ -220,7 +222,10 @@ function WorkspacesListRow({
                         <View style={[styles.flexRow, styles.flex0, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
                             <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
                         </View>
-                        <View ref={threeDotsMenuContainerRef}>
+                        <View
+                            ref={threeDotsMenuContainerRef}
+                            style={[styles.workspaceThreeDotMenu]}
+                        >
                             <ThreeDotsMenu
                                 onIconPress={() => {
                                     if (isSmallScreenWidth) {
