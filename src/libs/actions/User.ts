@@ -44,8 +44,8 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OriginalMessage} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import * as Link from './Link';
-import * as OnyxUpdates from './OnyxUpdates';
 import * as Report from './Report';
 import * as Session from './Session';
 
@@ -525,7 +525,7 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
             const types = flatten.map((data) => data?.originalMessage).filter(Boolean) as OriginalMessage[];
 
             for (const message of types) {
-                // someone sent money
+                // Pay someone flow
                 if ('IOUDetails' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
@@ -545,12 +545,12 @@ function playSoundForMessageType(pushJSON: OnyxServerUpdate[]) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // request money
+                // Submit expense flow
                 if ('IOUTransactionID' in message) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
-                // Someone completes a money request
+                // Someone reimburses an expense
                 if ('IOUReportID' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
@@ -597,7 +597,7 @@ function subscribeToUserEvents() {
             updates: pushJSON.updates ?? [],
             previousUpdateID: Number(pushJSON.previousUpdateID || 0),
         };
-        OnyxUpdates.applyOnyxUpdatesReliably(updates);
+        applyOnyxUpdatesReliably(updates);
     });
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
