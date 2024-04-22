@@ -123,15 +123,15 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                             {collectionAccountID && (
                                 <>
-                                    <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
+                                    <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
                                         <MenuItemWithTopDescription
                                             shouldShowRightIcon
                                             title="Croissant Co Payroll Account" // TODO: set to the current selected value
                                             description={translate('workspace.qbo.advancedConfig.qboAccount')}
                                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                             onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                            error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
-                                            brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                            error={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
+                                            brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         />
                                     </OfflineWithFeedback>
 
@@ -142,15 +142,14 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                         />
                                     </View>
 
-                                    <MenuItem
-                                        title={translate('workspace.qbo.advancedConfig.collectionAccount')}
-                                        description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
-                                        shouldShowBasicTitle
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                        interactive={false}
-                                    />
-
                                     <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
+                                        <MenuItem
+                                            title={translate('workspace.qbo.advancedConfig.collectionAccount')}
+                                            description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
+                                            shouldShowBasicTitle
+                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                            interactive={false}
+                                        />
                                         <MenuItemWithTopDescription
                                             title="Croissant Co Money in Clearing" // TODO: set to the current selected value
                                             shouldShowRightIcon
