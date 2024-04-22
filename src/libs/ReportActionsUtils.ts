@@ -27,6 +27,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
+import * as DateUtils from './DateUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -726,7 +727,7 @@ function getReportAction(reportID: string, reportActionID: string): OnyxEntry<Re
 
 function getMostRecentReportActionLastModified(): string {
     // Start with the oldest date possible
-    let mostRecentReportActionLastModified = new Date(0).toISOString();
+    let mostRecentReportActionLastModified = DateUtils.getDBTimeFromDate(new Date(0));
 
     // Flatten all the actions
     // Loop over them all to find the one that is the most recent
