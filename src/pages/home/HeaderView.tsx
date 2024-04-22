@@ -24,7 +24,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Link from '@userActions/Link';
 import * as Report from '@userActions/Report';
@@ -92,13 +91,9 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
-    const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
-    const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);
     const isPolicyEmployee = useMemo(() => !isEmptyObject(policy), [policy]);
-    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyEmployee);
     const reportDescription = ReportUtils.getReportDescriptionText(report);
     const policyName = ReportUtils.getPolicyName(report, true);
-    const canLeavePolicyExpenseChat = ReportUtils.canLeavePolicyExpenseChat(report, policy);
     const policyDescription = ReportUtils.getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && ReportUtils.isCurrentUserSubmitter(report.reportID);
     const shouldShowSubtitle = () => {
@@ -143,18 +138,14 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canLeave =
-        !isSelfDM &&
-        !ReportUtils.isParentGroupChat(report) &&
-        ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
-    const canJoin = canLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && (!isGroupChat || isChatThread);
+    const canJoin = ReportUtils.canJoinReport(report, parentReportAction, policy);
     if (canJoin) {
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.join'),
             onSelected: join,
         });
-    } else if (canLeave) {
+    } else if (ReportUtils.canLeaveReport(report, policy)) {
         const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,

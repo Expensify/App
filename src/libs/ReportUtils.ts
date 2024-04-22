@@ -5971,6 +5971,41 @@ function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<
     return isPolicyExpenseChat(report) && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, currentUserAccountID ?? -1) || isReportOwner(report));
 }
 
+/**
+ * Whether the user can join a report
+ */
+function canJoinReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>): boolean {
+    if (ReportActionsUtils.isWhisperAction(parentReportAction)) {
+        return false;
+    }
+
+    if (report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        return false;
+    }
+
+    if (isParentGroupChat(report)) {
+        return false;
+    }
+
+    return isUserCreatedPolicyRoom(report) || isChatReport(report) || canLeaveRoom(report, !isEmptyObject(policy)) || canLeavePolicyExpenseChat(report, policy);
+}
+
+/**
+ * Whether the user can leave a report
+ */
+function canLeaveReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (isSelfDM(report) || isParentGroupChat(report)) {
+        return false;
+    }
+
+    return (
+        (isChatThread(report) && !!report?.notificationPreference?.length) ||
+        isUserCreatedPolicyRoom(report) ||
+        canLeaveRoom(report, !isEmptyObject(policy)) ||
+        canLeavePolicyExpenseChat(report, policy)
+    );
+}
+
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW:
@@ -6091,6 +6126,8 @@ export {
     canFlagReportAction,
     canLeavePolicyExpenseChat,
     canLeaveRoom,
+    canJoinReport,
+    canLeaveReport,
     canReportBeMentionedWithinPolicy,
     canRequestMoney,
     canSeeDefaultRoom,
