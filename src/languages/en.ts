@@ -51,6 +51,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -315,12 +316,14 @@ export default {
         member: 'Member',
         role: 'Role',
         currency: 'Currency',
+        rate: 'Rate',
         emptyLHN: {
             title: 'Woohoo! All caught up.',
             subtitleText1: 'Find a chat using the',
             subtitleText2: 'button above, or create something using the',
             subtitleText3: 'button below.',
         },
+        businessName: 'Business name',
     },
     location: {
         useCurrent: 'Use current location',
@@ -628,10 +631,11 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Route pending...',
+        routePending: 'Pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        defaultRate: 'Default rate',
         receiptMissingDetails: 'Receipt missing details',
         missingAmount: 'Missing amount',
         missingMerchant: 'Missing merchant',
@@ -735,6 +739,7 @@ export default {
         changed: 'changed',
         removed: 'removed',
         transactionPending: 'Transaction pending.',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Select a workspace reimbursement rate per ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Notification preferences',
@@ -1315,13 +1320,13 @@ export default {
         notYou: ({user}: NotYouParams) => `Not ${user}?`,
     },
     onboarding: {
-        welcome: 'Welcome!',
         welcomeVideo: {
             title: 'Welcome to Expensify',
             description: 'Getting paid is as easy as sending a message.',
             button: "Let's go",
         },
         whatsYourName: "What's your name?",
+        whereYouWork: 'Where do you work?',
         purpose: {
             title: 'What do you want to do today?',
             error: 'Please make a selection before continuing',
@@ -2656,9 +2661,9 @@ export default {
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
-            buttonText1: 'Pay Someone, ',
+            buttonText1: 'Pay someone, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
-            header: `Pay Someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            header: `Pay someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `You gotta spend money to make money! Pay someone with Expensify and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
