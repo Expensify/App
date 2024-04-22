@@ -4,9 +4,6 @@ on:
   push:
     branches: [main]
     paths-ignore: [docs/**, contributingGuides/**, jest/**, workflow_tests/**]
-  pull_request:
-      types: [opened, synchronize]
-      branches-ignore: [staging, production]
 
 jobs:
   perf-tests:
@@ -41,6 +38,6 @@ jobs:
         uses: ./.github/actions/javascript/getGraphiteString
         with: 
           PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.number }}
-          
+
       - name: Send graphite data
         run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc -q0 stats.expensify.com 3003
