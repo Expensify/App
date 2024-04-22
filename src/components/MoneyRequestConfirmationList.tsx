@@ -690,14 +690,14 @@ function MoneyRequestConfirmationList({
                 <MenuItem
                     key={translate('moneyRequestConfirmationList.paidBy')}
                     label={translate('moneyRequestConfirmationList.paidBy')}
-                    interactive={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate}
+                    interactive={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate && !isReadOnly}
                     description={payeePersonalDetails.login}
                     title={payeePersonalDetails.displayName}
                     icon={payeeIcons}
                     onPress={() => {
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
                     }}
-                    shouldShowRightIcon={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate}
+                    shouldShowRightIcon={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate && !isReadOnly}
                     titleWithTooltips={payeeTooltipDetails}
                 />
             ),
