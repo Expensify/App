@@ -25,7 +25,7 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {OptionData} from '@libs/ReportUtils';
+import {getReport, type OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -67,6 +67,10 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             false,
             {},
             [],
+            true,
+            undefined,
+            undefined,
+            undefined,
             true,
         );
         const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -182,6 +186,11 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
      */
     const createChat = useCallback(
         (option?: OptionsListUtils.Option) => {
+            const report = getReport(option?.reportID);
+            if (option?.isSelfDM && report) {
+                Navigation.dismissModalWithReport(report);
+                return;
+            }
             let login = '';
 
             if (option?.login) {
@@ -200,6 +209,9 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & OptionsListUtils.Option) => {
+            if (item.isSelfDM) {
+                return null;
+            }
             /**
              * Removes a selected option from list if already selected. If not already selected add this option to the list.
              * @param  option
