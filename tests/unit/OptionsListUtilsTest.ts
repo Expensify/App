@@ -2576,14 +2576,34 @@ describe('OptionsListUtils', () => {
             },
         ];
 
-        const result = OptionsListUtils.getFilteredOptions([], [], [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        const result = OptionsListUtils.getFilteredOptions([], [], [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, 5, taxRatesWithDefault);
 
         expect(result.taxRatesOptions).toStrictEqual(resultList);
 
-        const searchResult = OptionsListUtils.getFilteredOptions([], [], [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        const searchResult = OptionsListUtils.getFilteredOptions([], [], [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, 5, taxRatesWithDefault);
         expect(searchResult.taxRatesOptions).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = OptionsListUtils.getFilteredOptions([], [], [], wrongSearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        const wrongSearchResult = OptionsListUtils.getFilteredOptions(
+            [],
+            [],
+            [],
+            wrongSearch,
+            [],
+            [],
+            false,
+            false,
+            false,
+            {},
+            [],
+            false,
+            {},
+            [],
+            false,
+            false,
+            true,
+            5,
+            taxRatesWithDefault,
+        );
         expect(wrongSearchResult.taxRatesOptions).toStrictEqual(wrongSearchResultList);
     });
 

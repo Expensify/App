@@ -1848,9 +1848,9 @@ function getOptions(
             reportOption.alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            // if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
-            //     break;
-            // }
+            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+                break;
+            }
 
             // Skip notifications@expensify.com
             if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
@@ -2057,6 +2057,7 @@ function getFilteredOptions(
     canInviteUser = true,
     includeSelectedOptions = false,
     includeTaxRates = false,
+    maxRecentReportsToShow = 5,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
     includeSelfDM = false,
     includePolicyReportFieldOptions = false,
@@ -2071,7 +2072,7 @@ function getFilteredOptions(
             selectedOptions,
             includeRecentReports: true,
             includePersonalDetails: true,
-            maxRecentReportsToShow: 5,
+            maxRecentReportsToShow,
             excludeLogins,
             includeOwnedWorkspaceChats,
             includeP2P,
