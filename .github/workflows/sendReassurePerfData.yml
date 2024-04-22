@@ -40,7 +40,7 @@ jobs:
         id: saveGraphiteString
         uses: ./.github/actions/javascript/getGraphiteString
         with: 
-          PR_NUMBER: 123
-
+          PR_NUMBER: ${{ steps.getMergedPullRequest.outputs.number }}
+          
       - name: Send graphite data
         run: echo -e "${{ steps.saveGraphiteString.outputs.GRAPHITE_STRING }}" | nc -q0 stats.expensify.com 3003
