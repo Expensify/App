@@ -37,7 +37,6 @@ type EditReportFieldDropdownPageOnyxProps = {
 
 type EditReportFieldDropdownPageProps = EditReportFieldDropdownPageComponentProps & EditReportFieldDropdownPageOnyxProps;
 
-//here check
 function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions, recentlyUsedReportFields}: EditReportFieldDropdownPageProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const theme = useTheme();
