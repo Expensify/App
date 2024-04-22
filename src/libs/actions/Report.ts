@@ -3073,7 +3073,7 @@ function completeOnboarding(
                 childOldestFourAccountIDs: `${actorAccountID}`,
             },
         );
-        const subtitleComment = hasSubtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID) : null;
+        const subtitleComment = hasSubtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID, 0, false) : null;
         const isTaskMessageFunction = typeof task.message === 'function';
         const taskMessage = isTaskMessageFunction
             ? task.message({
