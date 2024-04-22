@@ -28,7 +28,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, errors} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, errorFields, errors} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isSyncReimbursedSwitchOn = !!collectionAccountID;
     const selectedAccount = '92345'; // TODO: use fake selected account temporarily.
 
@@ -47,6 +47,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                     }),
                 ),
             pendingAction: pendingFields?.autoSync,
+            errors: errors,
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
@@ -54,6 +55,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             isActive: Boolean(syncPeople),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
+            errors: errors,
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
@@ -61,6 +63,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             isActive: Boolean(autoCreateVendor),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
+            errors: errors,
         },
     ];
 
@@ -82,6 +85,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                             {qboToggleSettingItems.map((item) => (
                                 <ToggleSettingOptionRow
                                     key={item.title}
+                                    errors={item.errors}
                                     title={item.title}
                                     subtitle={item.subtitle}
                                     shouldPlaceSubtitleBelowSwitch
@@ -101,6 +105,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                             <ToggleSettingOptionRow
                                 title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
+                                errors={errors}
                                 subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
@@ -125,8 +130,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                             description={translate('workspace.qbo.advancedConfig.qboAccount')}
                                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                             onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                            errorText={errors?.collectionAccountID}
-                                            brickRoadIndicator={errors?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                            error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
+                                            brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         />
                                     </OfflineWithFeedback>
 
@@ -151,8 +156,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                             shouldShowRightIcon
                                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                             onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                            errorText={errors?.collectionAccountID}
-                                            brickRoadIndicator={errors?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                            error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
+                                            brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         />
                                     </OfflineWithFeedback>
                                 </>
