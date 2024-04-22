@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {SelectedPurposeType} from '@pages/OnboardingPurpose/BaseOnboardingPurpose';
+import type {OnboardingPurposeType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -9,7 +9,6 @@ let hasSelectedPurpose: boolean | undefined;
 let hasProvidedPersonalDetails: boolean | undefined;
 let isFirstTimeNewExpensifyUser: boolean | undefined;
 let hasDismissedModal: boolean | undefined;
-let hasSelectedChoice: boolean | undefined;
 let isLoadingReportData = true;
 
 type DetermineOnboardingStatusProps = {
@@ -89,7 +88,7 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
  * - Whether we have loaded all reports the server knows about
  */
 function checkOnReady() {
-    const hasRequiredOnyxKeysBeenLoaded = [isFirstTimeNewExpensifyUser, hasSelectedChoice, hasDismissedModal].every((value) => value !== undefined);
+    const hasRequiredOnyxKeysBeenLoaded = [isFirstTimeNewExpensifyUser, hasDismissedModal].every((value) => value !== undefined);
 
     if (isLoadingReportData || !hasRequiredOnyxKeysBeenLoaded) {
         return;
@@ -113,7 +112,7 @@ function getPersonalDetails(accountID: number | undefined) {
     });
 }
 
-function setOnboardingPurposeSelected(value: SelectedPurposeType) {
+function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
 

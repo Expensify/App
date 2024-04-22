@@ -1,7 +1,9 @@
 import Str from 'expensify-common/lib/str';
 import lodashSortBy from 'lodash/sortBy';
-import type {ForwardedRef} from 'react';
+import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
@@ -11,10 +13,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
 import * as UserUtils from '@libs/UserUtils';
+import {isValidRoomName} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
@@ -23,6 +28,12 @@ type SuggestionValues = {
     atSignIndex: number;
     shouldShowSuggestionMenu: boolean;
     mentionPrefix: string;
+    prefixType: string;
+};
+
+type RoomMentionOnyxProps = {
+    /** All reports shared with the user */
+    reports: OnyxCollection<Report>;
 };
 
 /**
@@ -35,10 +46,22 @@ const defaultSuggestionsValues: SuggestionValues = {
     atSignIndex: -1,
     shouldShowSuggestionMenu: false,
     mentionPrefix: '',
+    prefixType: '',
 };
 
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused}: SuggestionProps,
+    {
+        value,
+        selection,
+        setSelection,
+        updateComment,
+        isAutoSuggestionPickerLarge,
+        measureParentContainer,
+        isComposerFocused,
+        reports,
+        isGroupPolicyReport,
+        policyID,
+    }: SuggestionProps & RoomMentionOnyxProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -83,6 +106,17 @@ function SuggestionMention(
         [currentUserPersonalDetails.login],
     );
 
+    const getMentionCode = useCallback(
+        (mention: Mention, mentionType: string): string => {
+            if (mentionType === '#') {
+                // room mention case
+                return mention.handle ?? '';
+            }
+            return mention.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${formatLoginPrivateDomain(mention.handle, mention.handle)}`;
+        },
+        [formatLoginPrivateDomain],
+    );
+
     /**
      * Replace the code of mention and update selection
      */
@@ -90,10 +124,7 @@ function SuggestionMention(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode =
-                mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
-                    ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
-                    : `@${formatLoginPrivateDomain(mentionObject.login, mentionObject.login)}`;
+            const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
             updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
@@ -108,7 +139,16 @@ function SuggestionMention(
                 suggestedMentions: [],
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection, formatLoginPrivateDomain],
+        [
+            value,
+            suggestionValues.atSignIndex,
+            suggestionValues.suggestedMentions,
+            suggestionValues.prefixType,
+            suggestionValues.mentionPrefix.length,
+            getMentionCode,
+            updateComment,
+            setSelection,
+        ],
     );
 
     /**
@@ -146,7 +186,7 @@ function SuggestionMention(
         [highlightedMentionIndex, insertSelectedMention, resetSuggestions, suggestionValues.suggestedMentions.length],
     );
 
-    const getMentionOptions = useCallback(
+    const getUserMentionOptions = useCallback(
         (personalDetailsParam: PersonalDetailsList, searchValue = ''): Mention[] => {
             const suggestions = [];
 
@@ -194,7 +234,7 @@ function SuggestionMention(
                 suggestions.push({
                     text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
-                    login: detail?.login,
+                    handle: detail?.login,
                     icons: [
                         {
                             name: detail?.login,
@@ -211,6 +251,27 @@ function SuggestionMention(
         [translate, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
+    const getRoomMentionOptions = useCallback(
+        (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
+            const filteredRoomMentions: Mention[] = [];
+            Object.values(reportBatch ?? {}).forEach((report) => {
+                if (!ReportUtils.canReportBeMentionedWithinPolicy(report, policyID ?? '')) {
+                    return;
+                }
+                if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    filteredRoomMentions.push({
+                        text: report.reportName,
+                        handle: report.reportName,
+                        alternateText: report.reportName,
+                    });
+                }
+            });
+
+            return lodashSortBy(filteredRoomMentions, 'handle').slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        },
+        [policyID],
+    );
+
     const calculateMentionSuggestion = useCallback(
         (selectionEnd: number) => {
             if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
@@ -219,19 +280,8 @@ function SuggestionMention(
                 return;
             }
 
-            const valueAfterTheCursor = value.substring(selectionEnd);
-            const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
-
-            let suggestionEndIndex;
-            if (indexOfFirstSpecialCharOrEmojiAfterTheCursor === -1) {
-                // We didn't find a special char/whitespace/emoji after the cursor, so we will use the entire string
-                suggestionEndIndex = value.length;
-            } else {
-                suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
-            }
-
             const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
-            const leftString = value.substring(afterLastBreakLineIndex, suggestionEndIndex);
+            const leftString = value.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
             const secondToLastWord = words[words.length - 3];
@@ -239,18 +289,21 @@ function SuggestionMention(
             let atSignIndex: number | undefined;
             let suggestionWord = '';
             let prefix: string;
+            let prefixType = '';
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
-            if (lastWord.startsWith('@')) {
+            if (lastWord.startsWith('@') || lastWord.startsWith('#')) {
                 atSignIndex = leftString.lastIndexOf(lastWord) + afterLastBreakLineIndex;
                 suggestionWord = lastWord;
 
                 prefix = suggestionWord.substring(1);
+                prefixType = suggestionWord.substring(0, 1);
             } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
                 atSignIndex = leftString.lastIndexOf(secondToLastWord) + afterLastBreakLineIndex;
                 suggestionWord = `${secondToLastWord} ${lastWord}`;
 
                 prefix = suggestionWord.substring(1);
+                prefixType = suggestionWord.substring(0, 1);
             } else {
                 prefix = lastWord.substring(1);
             }
@@ -259,14 +312,21 @@ function SuggestionMention(
                 suggestedMentions: [],
                 atSignIndex,
                 mentionPrefix: prefix,
+                prefixType,
             };
 
-            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(suggestionWord);
-
-            if (!isCursorBeforeTheMention && isMentionCode(suggestionWord)) {
-                const suggestions = getMentionOptions(personalDetails, prefix);
+            if (isMentionCode(suggestionWord) && prefixType === '@') {
+                const suggestions = getUserMentionOptions(personalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
+            }
+
+            const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
+            if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
+                // filter reports by room name and current policy
+                const filteredRoomMentions = getRoomMentionOptions(prefix, reports);
+                nextState.suggestedMentions = filteredRoomMentions;
+                nextState.shouldShowSuggestionMenu = !!filteredRoomMentions.length;
             }
 
             setSuggestionValues((prevState) => ({
@@ -275,7 +335,7 @@ function SuggestionMention(
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
+        [isComposerFocused, value, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, personalDetails, getRoomMentionOptions, reports],
     );
 
     useEffect(() => {
@@ -330,4 +390,8 @@ function SuggestionMention(
 
 SuggestionMention.displayName = 'SuggestionMention';
 
-export default forwardRef(SuggestionMention);
+export default withOnyx<SuggestionProps & RoomMentionOnyxProps & RefAttributes<SuggestionsRef>, RoomMentionOnyxProps>({
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+})(forwardRef(SuggestionMention));

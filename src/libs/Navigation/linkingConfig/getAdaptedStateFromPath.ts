@@ -319,7 +319,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // Routes
         // - found bottom tab
         // - matching central pane on desktop layout
-        if (isNarrowLayout) {
+
+        // We want to make sure that the bottom tab search page is always pushed with matching central pane page. Even on the narrow layout.
+        if (isNarrowLayout && bottomTabNavigator.state?.routes[0].name !== SCREENS.SEARCH.BOTTOM_TAB) {
             return {
                 adaptedState: state,
                 metainfo,
