@@ -722,6 +722,7 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
     [SCREENS.ONBOARDING.PURPOSE]: undefined;
+    [SCREENS.ONBOARDING.WORK]: undefined;
 };
 
 type WelcomeVideoModalNavigatorParamList = {

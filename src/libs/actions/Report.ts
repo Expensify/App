@@ -15,6 +15,7 @@ import type {
     AddEmojiReactionParams,
     AddWorkspaceRoomParams,
     CompleteEngagementModalParams,
+    CompleteGuidedSetupParams,
     DeleteCommentParams,
     ExpandURLPreviewParams,
     FlagCommentParams,
@@ -55,6 +56,7 @@ import * as EmojiUtils from '@libs/EmojiUtils';
 import * as Environment from '@libs/Environment/Environment';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -71,6 +73,7 @@ import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
+import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -84,6 +87,7 @@ import type {
     PolicyReportField,
     QuickAction,
     RecentlyUsedReportFields,
+    ReportAction,
     ReportActionReactions,
     ReportMetadata,
     ReportUserIsTyping,
@@ -92,7 +96,6 @@ import type {Decision, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
@@ -107,6 +110,42 @@ type ActionSubscriber = {
     callback: SubscriberCallback;
 };
 
+type Video = {
+    url: string;
+    thumbnailUrl: string;
+    duration: number;
+    width: number;
+    height: number;
+};
+
+type TaskMessage = Required<Pick<AddCommentOrAttachementParams, 'reportID' | 'reportActionID' | 'reportComment'>>;
+
+type TaskForParameters =
+    | {
+          type: 'task';
+          task: string;
+          taskReportID: string;
+          parentReportID: string;
+          parentReportActionID: string;
+          assigneeChatReportID: string;
+          createdTaskReportActionID: string;
+          completedTaskReportActionID?: string;
+          title: string;
+          description: string;
+      }
+    | ({
+          type: 'message';
+      } & TaskMessage);
+
+type GuidedSetupData = Array<
+    | ({type: 'message'} & AddCommentOrAttachementParams)
+    | TaskForParameters
+    | ({
+          type: 'video';
+      } & Video &
+          AddCommentOrAttachementParams)
+>;
+
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
@@ -120,6 +159,14 @@ Onyx.connect({
         }
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
+    },
+});
+
+let guideCalendarLink: string | undefined;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        guideCalendarLink = value?.guideCalendarLink ?? undefined;
     },
 });
 
@@ -787,6 +834,11 @@ function openReport(
             value: optimisticPersonalDetails,
         });
         successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: settledPersonalDetails,
+        });
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: settledPersonalDetails,
@@ -1983,16 +2035,6 @@ function deleteReport(reportID: string) {
 
     Onyx.multiSet(onyxData);
 
-    // Clear the optimistic personal detail
-    const participantPersonalDetails: OnyxCollection<PersonalDetails> = {};
-    report?.participantAccountIDs?.forEach((accountID) => {
-        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
-            return;
-        }
-        participantPersonalDetails[accountID] = null;
-    });
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantPersonalDetails);
-
     // Delete linked IOU report
     if (report?.iouReportID) {
         deleteReport(report.iouReportID);
@@ -2957,13 +2999,286 @@ function getReportPrivateNote(reportID: string | undefined) {
     API.read(READ_COMMANDS.GET_REPORT_PRIVATE_NOTE, parameters, {optimisticData, successData, failureData});
 }
 
+function completeOnboarding(
+    engagementChoice: OnboardingPurposeType,
+    data: ValueOf<typeof CONST.ONBOARDING_MESSAGES>,
+    {
+        login,
+        firstName,
+        lastName,
+    }: {
+        login: string;
+        firstName: string;
+        lastName: string;
+    },
+    adminsChatReportID?: string,
+) {
+    const targetEmail = CONST.EMAIL.CONCIERGE;
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
+    const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
+
+    // Mention message
+    const mentionHandle = LoginUtils.isEmailPublicDomain(login) ? login : login.split('@')[0];
+    const mentionComment = ReportUtils.buildOptimisticAddCommentReportAction(`Hey @${mentionHandle} 👋`, undefined, actorAccountID);
+    const mentionCommentAction: OptimisticAddCommentReportAction = mentionComment.reportAction;
+    const mentionMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: mentionCommentAction.reportActionID,
+        reportComment: mentionComment.commentText,
+    };
+
+    // Text message
+    const textComment = ReportUtils.buildOptimisticAddCommentReportAction(data.message, undefined, actorAccountID, 1);
+    const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
+    const textMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: textCommentAction.reportActionID,
+        reportComment: textComment.commentText,
+    };
+
+    // Video message
+    const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
+    const videoCommentAction: OptimisticAddCommentReportAction = videoComment.reportAction;
+    const videoMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: videoCommentAction.reportActionID,
+        reportComment: videoComment.commentText,
+    };
+
+    const tasksData = data.tasks.map((task, index) => {
+        const currentTask = ReportUtils.buildOptimisticTaskReport(
+            actorAccountID,
+            undefined,
+            targetChatReportID,
+            task.title,
+            undefined,
+            targetChatPolicyID,
+            CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        );
+        const taskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(targetEmail);
+        const taskReportAction = ReportUtils.buildOptimisticTaskCommentReportAction(
+            currentTask.reportID,
+            task.title,
+            0,
+            `task for ${task.title}`,
+            targetChatReportID,
+            actorAccountID,
+            index + 3,
+            {
+                childVisibleActionCount: 2,
+                childCommenterCount: 1,
+                childLastVisibleActionCreated: DateUtils.getDBTime(),
+                childOldestFourAccountIDs: `${actorAccountID}`,
+            },
+        );
+        const subtitleComment = task.subtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID) : null;
+        const isTaskMessageFunction = typeof task.message === 'function';
+        const taskMessage = isTaskMessageFunction
+            ? task.message({
+                  adminsRoomLink: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID ?? '')}`,
+                  guideCalendarLink: guideCalendarLink ?? CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL,
+              })
+            : task.message;
+        const instructionComment = ReportUtils.buildOptimisticAddCommentReportAction(taskMessage, undefined, actorAccountID, 1, isTaskMessageFunction ? undefined : false);
+        const completedTaskReportAction = task.autoCompleted
+            ? ReportUtils.buildOptimisticTaskReportAction(currentTask.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, 'marked as complete', actorAccountID, 2)
+            : null;
+
+        return {
+            task,
+            currentTask,
+            taskCreatedAction,
+            taskReportAction,
+            subtitleComment,
+            instructionComment,
+            completedTaskReportAction,
+        };
+    });
+
+    const tasksForParameters = tasksData.reduce<TaskForParameters[]>(
+        (acc, {task, currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment, completedTaskReportAction}) => {
+            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
+            const instructionCommentText = instructionComment.commentText;
+            const instructionMessage: TaskMessage = {
+                reportID: currentTask.reportID,
+                reportActionID: instructionCommentAction.reportActionID,
+                reportComment: instructionCommentText,
+            };
+
+            const tasksForParametersAcc: TaskForParameters[] = [
+                ...acc,
+                {
+                    type: 'task',
+                    task: task.type,
+                    taskReportID: currentTask.reportID,
+                    parentReportID: currentTask.parentReportID ?? '',
+                    parentReportActionID: taskReportAction.reportAction.reportActionID,
+                    assigneeChatReportID: '',
+                    createdTaskReportActionID: taskCreatedAction.reportActionID,
+                    completedTaskReportActionID: completedTaskReportAction?.reportActionID ?? undefined,
+                    title: currentTask.reportName ?? '',
+                    description: currentTask.description ?? '',
+                },
+                {
+                    type: 'message',
+                    ...instructionMessage,
+                },
+            ];
+
+            if (subtitleComment) {
+                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+                const subtitleCommentText = subtitleComment.commentText;
+                const subtitleMessage: TaskMessage = {
+                    reportID: currentTask.reportID,
+                    reportActionID: subtitleCommentAction.reportActionID,
+                    reportComment: subtitleCommentText,
+                };
+
+                tasksForParametersAcc.push({
+                    type: 'message',
+                    ...subtitleMessage,
+                });
+            }
+
+            return tasksForParametersAcc;
+        },
+        [],
+    );
+
+    const tasksForOptimisticData = tasksData.reduce<OnyxUpdate[]>(
+        (acc, {currentTask, taskCreatedAction, taskReportAction, subtitleComment, instructionComment, completedTaskReportAction}) => {
+            const instructionCommentAction: OptimisticAddCommentReportAction = instructionComment.reportAction;
+
+            const tasksForOptimisticDataAcc: OnyxUpdate[] = [
+                ...acc,
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                    value: {
+                        [taskReportAction.reportAction.reportActionID]: taskReportAction.reportAction as ReportAction,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                    value: {
+                        ...currentTask,
+                        pendingFields: {
+                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                        isOptimisticReport: true,
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                    value: {
+                        [taskCreatedAction.reportActionID]: taskCreatedAction as ReportAction,
+                        [instructionCommentAction.reportActionID]: instructionCommentAction as ReportAction,
+                    },
+                },
+            ];
+
+            if (subtitleComment) {
+                const subtitleCommentAction: OptimisticAddCommentReportAction = subtitleComment.reportAction;
+
+                tasksForOptimisticDataAcc.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                    value: {
+                        [subtitleCommentAction.reportActionID]: subtitleCommentAction as ReportAction,
+                    },
+                });
+            }
+
+            if (completedTaskReportAction) {
+                tasksForOptimisticDataAcc.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                    value: {
+                        [completedTaskReportAction.reportActionID]: completedTaskReportAction as ReportAction,
+                    },
+                });
+
+                tasksForOptimisticDataAcc.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                    value: {
+                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    },
+                });
+            }
+
+            return tasksForOptimisticDataAcc;
+        },
+        [],
+    );
+
+    const optimisticData: OnyxUpdate[] = [
+        ...tasksForOptimisticData,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
+            value: {
+                lastMentionedTime: DateUtils.getDBTime(),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [mentionCommentAction.reportActionID]: mentionCommentAction as ReportAction,
+                [textCommentAction.reportActionID]: textCommentAction as ReportAction,
+                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice: engagementChoice},
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [mentionCommentAction.reportActionID]: {pendingAction: null},
+                [textCommentAction.reportActionID]: {pendingAction: null},
+                [videoCommentAction.reportActionID]: {pendingAction: null},
+            },
+        },
+    ];
+
+    const guidedSetupData: GuidedSetupData = [
+        {type: 'message', ...mentionMessage},
+        {type: 'message', ...textMessage},
+        {type: 'video', ...data.video, ...videoMessage},
+        ...tasksForParameters,
+    ];
+
+    const parameters: CompleteGuidedSetupParams = {
+        engagementChoice,
+        firstName,
+        lastName,
+        guidedSetupData: JSON.stringify(guidedSetupData),
+    };
+
+    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData});
+}
+
 /**
  * Completes the engagement modal that new NewDot users see when they first sign up/log in by doing the following:
  *
  * - Sets the introSelected NVP to the choice the user made
  * - Creates an optimistic report comment from concierge
  */
-function completeEngagementModal(choice: ValueOf<typeof CONST.ONBOARDING_CHOICES>, text?: string) {
+function completeEngagementModal(choice: OnboardingPurposeType, text?: string) {
     const conciergeAccountID = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE])[0];
 
     // We do not need to send any message for some choices
@@ -3349,6 +3664,7 @@ export {
     setGroupDraft,
     clearGroupChat,
     startNewChat,
+    completeOnboarding,
     updateGroupChatName,
     updateGroupChatAvatar,
     leaveGroupChat,

@@ -139,6 +139,10 @@ type OptimisticAddCommentReportAction = Pick<
     | 'childStatusNum'
     | 'childStateNum'
     | 'errors'
+    | 'childVisibleActionCount'
+    | 'childCommenterCount'
+    | 'childLastVisibleActionCreated'
+    | 'childOldestFourAccountIDs'
 > & {isOptimisticAction: boolean};
 
 type OptimisticReportAction = {
@@ -3157,7 +3161,7 @@ function addDomainToShortMention(mention: string): string | undefined {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string): string {
+function getParsedComment(text: string, shouldEscapeText?: boolean): string {
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
         const mention = match.substring(1);
@@ -3165,7 +3169,7 @@ function getParsedComment(text: string): string {
         return mentionWithDomain ? `@${mentionWithDomain}` : match;
     });
 
-    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention) : lodashEscape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText}) : lodashEscape(text);
 }
 
 function getReportDescriptionText(report: Report): string {
@@ -3186,9 +3190,9 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number, createdOffset = 0, shouldEscapeText?: boolean): OptimisticReportAction {
     const parser = new ExpensiMark();
-    const commentText = getParsedComment(text ?? '');
+    const commentText = getParsedComment(text ?? '', shouldEscapeText);
     const isAttachmentOnly = file && !text;
     const isTextOnly = text && !file;
 
@@ -3225,7 +3229,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(accountID),
-            created: DateUtils.getDBTimeWithSkew(),
+            created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -3293,9 +3297,24 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
  * @param taskAssigneeAccountID - AccountID of the person assigned to the task
  * @param text - Text of the comment
  * @param parentReportID - Report ID of the parent report
+ * @param createdOffset - The offset for task's created time that created via a loop
  */
-function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle: string, taskAssigneeAccountID: number, text: string, parentReportID: string): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text);
+function buildOptimisticTaskCommentReportAction(
+    taskReportID: string,
+    taskTitle: string,
+    taskAssigneeAccountID: number,
+    text: string,
+    parentReportID: string,
+    actorAccountID?: number,
+    createdOffset = 0,
+    repliesConfig?: {
+        childVisibleActionCount?: number;
+        childCommenterCount?: number;
+        childLastVisibleActionCreated?: string;
+        childOldestFourAccountIDs?: string;
+    },
+): OptimisticReportAction {
+    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset);
     if (reportAction.reportAction.message?.[0]) {
         reportAction.reportAction.message[0].taskReportID = taskReportID;
     }
@@ -3313,6 +3332,26 @@ function buildOptimisticTaskCommentReportAction(taskReportID: string, taskTitle:
     reportAction.reportAction.childManagerAccountID = taskAssigneeAccountID;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS_NUM.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
+
+    if (actorAccountID) {
+        reportAction.reportAction.actorAccountID = actorAccountID;
+    }
+
+    if (repliesConfig?.childVisibleActionCount) {
+        reportAction.reportAction.childVisibleActionCount = repliesConfig.childVisibleActionCount;
+    }
+
+    if (repliesConfig?.childCommenterCount) {
+        reportAction.reportAction.childCommenterCount = repliesConfig.childCommenterCount;
+    }
+
+    if (repliesConfig?.childLastVisibleActionCreated) {
+        reportAction.reportAction.childLastVisibleActionCreated = repliesConfig.childLastVisibleActionCreated;
+    }
+
+    if (repliesConfig?.childOldestFourAccountIDs) {
+        reportAction.reportAction.childOldestFourAccountIDs = repliesConfig.childOldestFourAccountIDs;
+    }
 
     return reportAction;
 }
@@ -3879,7 +3918,13 @@ function updateReportPreview(iouReport: OnyxEntry<Report>, reportPreviewAction: 
     };
 }
 
-function buildOptimisticTaskReportAction(taskReportID: string, actionName: OriginalMessageActionName, message = ''): OptimisticTaskReportAction {
+function buildOptimisticTaskReportAction(
+    taskReportID: string,
+    actionName: OriginalMessageActionName,
+    message = '',
+    actorAccountID = currentUserAccountID,
+    createdOffset = 0,
+): OptimisticTaskReportAction {
     const originalMessage = {
         taskReportID,
         type: actionName,
@@ -3887,7 +3932,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: Origi
     };
     return {
         actionName,
-        actorAccountID: currentUserAccountID,
+        actorAccountID,
         automatic: false,
         avatar: getCurrentUserAvatarOrDefault(),
         isAttachment: false,
@@ -3908,7 +3953,7 @@ function buildOptimisticTaskReportAction(taskReportID: string, actionName: Origi
         ],
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
-        created: DateUtils.getDBTime(),
+        created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
         isFirstItem: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
@@ -4363,6 +4408,7 @@ function buildOptimisticTaskReport(
     title?: string,
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
+    notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ): OptimisticTaskReport {
     // When creating a report the participantsAccountIDs and visibleChatMemberAccountIDs are the same
     const participantsAccountIDs = assigneeAccountID && assigneeAccountID !== ownerAccountID ? [assigneeAccountID] : [];
@@ -4380,7 +4426,7 @@ function buildOptimisticTaskReport(
         policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        notificationPreference,
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 }
