@@ -118,6 +118,7 @@ type TaxSection = {
 
 type CategoryTreeSection = CategorySectionBase & {
     data: OptionTree[];
+    indexOffset?: number;
 };
 
 type Category = {
@@ -722,7 +723,7 @@ function createOption(
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = visibleReportActionItems[report.reportID];
-        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
+        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
 
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
@@ -1018,11 +1019,13 @@ function getCategoryListSections(
     const numberOfEnabledCategories = enabledCategories.length;
 
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
+        const data = getCategoryOptionTree(selectedOptions, true);
         categorySections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data,
+            indexOffset: data.length,
         });
 
         return categorySections;
@@ -1041,22 +1044,26 @@ function getCategoryListSections(
             });
         });
 
+        const data = getCategoryOptionTree(searchCategories, true);
         categorySections.push({
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getCategoryOptionTree(searchCategories, true),
+            data,
+            indexOffset: data.length,
         });
 
         return categorySections;
     }
 
     if (selectedOptions.length > 0) {
+        const data = getCategoryOptionTree(selectedOptions, true);
         categorySections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getCategoryOptionTree(selectedOptions, true),
+            data,
+            indexOffset: data.length,
         });
     }
 
@@ -1064,11 +1071,13 @@ function getCategoryListSections(
     const filteredCategories = enabledCategories.filter((category) => !selectedOptionNames.includes(category.name));
 
     if (numberOfEnabledCategories < CONST.CATEGORY_LIST_THRESHOLD) {
+        const data = getCategoryOptionTree(filteredCategories, false, selectedOptionNames);
         categorySections.push({
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
+            data,
+            indexOffset: data.length,
         });
 
         return categorySections;
@@ -1084,19 +1093,23 @@ function getCategoryListSections(
     if (filteredRecentlyUsedCategories.length > 0) {
         const cutRecentlyUsedCategories = filteredRecentlyUsedCategories.slice(0, maxRecentReportsToShow);
 
+        const data = getCategoryOptionTree(cutRecentlyUsedCategories, true);
         categorySections.push({
             // "Recent" section
             title: Localize.translateLocal('common.recent'),
             shouldShow: true,
-            data: getCategoryOptionTree(cutRecentlyUsedCategories, true),
+            data,
+            indexOffset: data.length,
         });
     }
 
+    const data = getCategoryOptionTree(filteredCategories, false, selectedOptionNames);
     categorySections.push({
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        data: getCategoryOptionTree(filteredCategories, false, selectedOptionNames),
+        data,
+        indexOffset: data.length,
     });
 
     return categorySections;
@@ -1702,7 +1715,7 @@ function getOptions(
             return;
         }
 
-        // In case user needs to add credit bank account, don't allow them to request more money from the workspace.
+        // In case user needs to add credit bank account, don't allow them to submit an expense from the workspace.
         if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
             return;
         }
@@ -2210,6 +2223,18 @@ function formatSectionsFromSearchTerm(
 }
 
 /**
+ * Helper method to get the `keyForList` for the first option in the OptionsList
+ */
+function getFirstKeyForList(data?: Option[] | null) {
+    if (!data?.length) {
+        return '';
+    }
+
+    const firstNonEmptyDataObj = data[0];
+
+    return firstNonEmptyDataObj.keyForList ? firstNonEmptyDataObj.keyForList : '';
+}
+/**
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string): Options {
@@ -2330,6 +2355,7 @@ export {
     createOptionFromReport,
     getReportOption,
     getTaxRatesSection,
+    getFirstKeyForList,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option, OptionTree};
