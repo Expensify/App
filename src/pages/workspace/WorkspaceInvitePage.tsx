@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -60,6 +60,8 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const firstRenderRef = useRef(true);
+
     const openWorkspaceInvitePage = () => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
@@ -102,12 +104,16 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         });
 
         const newSelectedOptions: MemberForList[] = [];
-        Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
-            if (!(login in detailsMap)) {
-                return;
-            }
-            newSelectedOptions.push({...detailsMap[login], isSelected: true});
-        });
+        if (firstRenderRef.current) {
+            // We only want to add the saved selected user on first render
+            firstRenderRef.current = false;
+            Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
+                if (!(login in detailsMap)) {
+                    return;
+                }
+                newSelectedOptions.push({...detailsMap[login], isSelected: true});
+            });
+        }
         selectedOptions.forEach((option) => {
             newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
         });
