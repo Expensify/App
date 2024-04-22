@@ -66,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
 
     return (
-        <View style={wrapperStyle}>
+        <View style={[styles.w100, wrapperStyle]}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, style]}>
                     <Button
