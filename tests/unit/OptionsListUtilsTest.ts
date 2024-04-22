@@ -2618,11 +2618,12 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {sortByReportTypeInSearch: true});
-            expect(filteredOptions.recentReports.length).toBe(4);
+            expect(filteredOptions.recentReports.length).toBe(5);
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
             expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
         });
 
         it('should filter users by email', () => {
