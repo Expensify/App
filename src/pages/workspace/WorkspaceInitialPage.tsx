@@ -8,12 +8,13 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HighlightableMenuItem from '@components/HighlightableMenuItem';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,7 +43,22 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?: ValueOf<typeof SCREENS.WORKSPACE>;
+    routeName?:
+        | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
+        | typeof SCREENS.WORKSPACE.INITIAL
+        | typeof SCREENS.WORKSPACE.CARD
+        | typeof SCREENS.WORKSPACE.REIMBURSE
+        | typeof SCREENS.WORKSPACE.BILLS
+        | typeof SCREENS.WORKSPACE.INVOICES
+        | typeof SCREENS.WORKSPACE.TRAVEL
+        | typeof SCREENS.WORKSPACE.DISTANCE_RATES
+        | typeof SCREENS.WORKSPACE.WORKFLOWS
+        | typeof SCREENS.WORKSPACE.CATEGORIES
+        | typeof SCREENS.WORKSPACE.TAGS
+        | typeof SCREENS.WORKSPACE.TAXES
+        | typeof SCREENS.WORKSPACE.MORE_FEATURES
+        | typeof SCREENS.WORKSPACE.PROFILE
+        | typeof SCREENS.WORKSPACE.MEMBERS;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -60,7 +76,7 @@ function dismissError(policyID: string) {
     Policy.removeWorkspace(policyID);
 }
 
-function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
+function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAccount, policyCategories}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const policy = policyDraft?.id ? policyDraft : policyProp;
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
@@ -69,6 +85,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -99,7 +116,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         ReimbursementAccount.navigateToBankAccountRoute(policyID);
     }, [policyID, policyName]);
 
-    const hasMembersError = PolicyUtils.hasPolicyMemberError(policyMembers);
+    const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
@@ -165,7 +182,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
             icon: Expensicons.Workflows,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.WORKFLOWS,
-            brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburserEmail ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 
@@ -198,6 +215,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
         });
     }
 
+    if (policy?.areConnectionsEnabled && canUseAccountingIntegrations) {
+        protectedCollectPolicyMenuItems.push({
+            translationKey: 'workspace.common.accounting',
+            icon: Expensicons.Sync,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
+            // brickRoadIndicator should be set when API will be ready
+            brickRoadIndicator: undefined,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+        });
+    }
+
     protectedCollectPolicyMenuItems.push({
         translationKey: 'workspace.common.moreFeatures',
         icon: Expensicons.Gear,
@@ -225,12 +253,21 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
     ];
 
     const prevPolicy = usePrevious(policy);
+    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
+    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isEmptyObject(policy) ||
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
+
+    useEffect(() => {
+        if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
+            return;
+        }
+        PolicyUtils.goBackFromInvalidPolicy();
+    }, [policy, prevPolicy]);
 
     const policyAvatar = useMemo(() => {
         if (!policy) {
@@ -269,6 +306,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                         onClose={() => dismissError(policyID)}
                         errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
+                        shouldDisableStrikeThrough={false}
+                        shouldHideOnDelete={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
@@ -276,7 +315,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
                             {menuItems.map((item) => (
-                                <MenuItem
+                                <HighlightableMenuItem
                                     key={item.translationKey}
                                     disabled={hasPolicyCreationError || isExecuting}
                                     interactive={!hasPolicyCreationError}
@@ -285,6 +324,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, policyMembers, r
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}
                                     wrapperStyle={styles.sectionMenuItem}
+                                    highlighted={enabledItem?.routeName === item.routeName}
                                     focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
                                     hoverAndPressStyle={styles.hoveredComponentBG}
                                     isPaneMenu

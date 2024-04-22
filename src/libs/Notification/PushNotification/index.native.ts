@@ -10,7 +10,7 @@ import NotificationType from './NotificationType';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
 import type PushNotificationType from './types';
 
-type NotificationEventActionCallback = (data: NotificationData) => void;
+type NotificationEventActionCallback = (data: NotificationData) => Promise<void>;
 
 type NotificationEventActionMap = Partial<Record<EventType, Record<string, NotificationEventActionCallback>>>;
 
@@ -56,7 +56,13 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
         });
         return;
     }
-    action(data);
+
+    /**
+     * The action callback should return a promise. It's very important we return that promise so that
+     * when these callbacks are run in Android's background process (via Headless JS), the process waits
+     * for the promise to resolve before quitting
+     */
+    return action(data);
 }
 
 /**
@@ -64,7 +70,7 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
  */
 function refreshNotificationOptInStatus() {
     Airship.push.getNotificationStatus().then((notificationStatus) => {
-        const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+        const isOptedIn = notificationStatus.isOptedIn && notificationStatus.areNotificationsAllowed;
         if (isOptedIn === isUserOptedInToPushNotifications) {
             return;
         }
@@ -83,23 +89,14 @@ function refreshNotificationOptInStatus() {
  */
 const init: Init = () => {
     // Setup event listeners
-    Airship.addListener(EventType.PushReceived, (notification) => {
-        // By default, refresh notification opt-in status to true if we receive a notification
-        if (!isUserOptedInToPushNotifications) {
-            PushNotificationActions.setPushNotificationOptInStatus(true);
-        }
-
-        pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload);
-    });
+    Airship.addListener(EventType.PushReceived, (notification) => pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload));
 
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
-    Airship.addListener(EventType.NotificationResponse, (event) => {
-        pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload);
-    });
+    Airship.addListener(EventType.NotificationResponse, (event) => pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload));
 
     // Keep track of which users have enabled push notifications via an NVP.
-    Airship.addListener(EventType.NotificationOptInStatus, refreshNotificationOptInStatus);
+    Airship.addListener(EventType.PushNotificationStatusChangedStatus, refreshNotificationOptInStatus);
 
     ForegroundNotifications.configureForegroundNotifications();
 };

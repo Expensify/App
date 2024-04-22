@@ -61,7 +61,7 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingRepor
         };
     });
 
-    const sections = [{data: currencyItems, indexOffset: 0}];
+    const sections = [{data: currencyItems}];
 
     const headerMessage = searchText.trim() && !currencyItems.length ? translate('common.noResultsFound') : '';
 

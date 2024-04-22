@@ -198,7 +198,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     return;
                 }
             }
-            const pendingChatMember = report?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+            const pendingChatMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
 
             result.push({
                 keyForList: String(accountID),
@@ -224,11 +224,11 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         return result;
     };
 
-    const isPolicyMember = useMemo(() => {
+    const isPolicyEmployee = useMemo(() => {
         if (!report?.policyID || policies === null) {
             return false;
         }
-        return PolicyUtils.isPolicyMember(report.policyID, policies);
+        return PolicyUtils.isPolicyEmployee(report.policyID, policies);
     }, [report?.policyID, policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
@@ -240,7 +240,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         >
             <FullPageNotFoundView
                 shouldShow={
-                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyMember) || ReportUtils.isDefaultRoom(report)))
+                    isEmptyObject(report) || (!ReportUtils.isChatThread(report) && ((ReportUtils.isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || ReportUtils.isDefaultRoom(report)))
                 }
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
                 onBackButtonPress={() => {
@@ -285,7 +285,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <SelectionList
                             canSelectMultiple
-                            sections={[{data, indexOffset: 0, isDisabled: false}]}
+                            sections={[{data, isDisabled: false}]}
                             textInputLabel={translate('optionsSelector.findMember')}
                             disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                             textInputValue={searchValue}

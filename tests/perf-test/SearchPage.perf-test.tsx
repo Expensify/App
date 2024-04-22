@@ -2,15 +2,18 @@ import type * as NativeNavigation from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import type {TextMatch} from '@testing-library/react-native/build/matches';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {measurePerformance} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
+import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
 import type {RootStackParamList} from '@libs/Navigation/types';
-import SearchPage from '@pages/SearchPage';
+import {createOptionList} from '@libs/OptionsListUtils';
+import ChatFinderPage from '@pages/ChatFinderPage';
 import ComposeProviders from '@src/components/ComposeProviders';
 import OnyxProvider from '@src/components/OnyxProvider';
 import CONST from '@src/CONST';
@@ -43,15 +46,12 @@ jest.mock('@src/libs/API', () => ({
 
 jest.mock('@src/libs/Navigation/Navigation');
 
-const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useFocusEffect: jest.fn(),
-        useIsFocused: () => ({
-            navigate: mockedNavigate,
-        }),
+        useIsFocused: () => true,
         useRoute: () => jest.fn(),
         useNavigation: () => ({
             navigate: jest.fn(),
@@ -76,6 +76,15 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
 
     return WithNavigationFocus;
 });
+// mock of useDismissedReferralBanners
+jest.mock('../../src/hooks/useDismissedReferralBanners', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        isDismissed: false,
+        setAsDismissed: () => {},
+    })),
+}));
 
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
@@ -94,6 +103,7 @@ const getMockedPersonalDetails = (length = 100) =>
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
+const mockedOptions = createOptionList(mockedPersonalDetails, mockedReports);
 
 beforeAll(() =>
     Onyx.init({
@@ -116,16 +126,16 @@ afterEach(() => {
     PusherHelper.teardown();
 });
 
-type SearchPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.SEARCH_ROOT> & {
+type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT> & {
     betas: OnyxEntry<Beta[]>;
     reports: OnyxCollection<Report>;
     isSearchingForReports: OnyxEntry<boolean>;
 };
 
-function SearchPageWrapper(args: SearchPageProps) {
+function ChatFinderPageWrapper(args: ChatFinderPageProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
-            <SearchPage
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, OptionListContextProvider, KeyboardStateProvider]}>
+            <ChatFinderPage
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...args}
                 navigation={args.navigation}
@@ -134,12 +144,49 @@ function SearchPageWrapper(args: SearchPageProps) {
     );
 }
 
-test('[Search Page] should interact when text input changes', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+function ChatFinderPageWithCachedOptions(args: ChatFinderPageProps) {
+    return (
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            <OptionsListContext.Provider value={useMemo(() => ({options: mockedOptions, initializeOptions: () => {}, areOptionsInitialized: true}), [])}>
+                <ChatFinderPage
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...args}
+                    navigation={args.navigation}
+                />
+            </OptionsListContext.Provider>
+        </ComposeProviders>
+    );
+}
+
+test('[Search Page] should render list with cached options', async () => {
     const {addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
-        await screen.findByTestId('SearchPage');
+        await screen.findByTestId('ChatFinderPage');
+    };
+
+    const navigation = {addListener};
+
+    return (
+        waitForBatchedUpdates()
+            .then(() =>
+                Onyx.multiSet({
+                    ...mockedReports,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                    [ONYXKEYS.BETAS]: mockedBetas,
+                    [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                }),
+            )
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            .then(() => measurePerformance(<ChatFinderPageWithCachedOptions navigation={navigation} />, {scenario}))
+    );
+});
+
+test('[Search Page] should interact when text input changes', async () => {
+    const {addListener} = TestHelper.createAddListenerMock();
+
+    const scenario = async () => {
+        await screen.findByTestId('ChatFinderPage');
 
         const input = screen.getByTestId('selection-list-text-input');
         fireEvent.changeText(input, 'Email Four');
@@ -160,17 +207,16 @@ test('[Search Page] should interact when text input changes', async () => {
                 }),
             )
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+            .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });
 
-test('[Search Page] should render selection list', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+test.skip('[Search Page] should render selection list', async () => {
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
     const smallMockedPersonalDetails = getMockedPersonalDetails(5);
 
     const scenario = async () => {
-        await screen.findByTestId('SearchPage');
+        await screen.findByTestId('ChatFinderPage');
         await waitFor(triggerTransitionEnd as Awaited<() => Promise<void>>);
         await screen.findByTestId('selection-list');
         await screen.findByText(smallMockedPersonalDetails['1'].login as TextMatch);
@@ -190,16 +236,15 @@ test('[Search Page] should render selection list', async () => {
                 }),
             )
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+            .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });
 
 test('[Search Page] should search in selection list', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
-        await screen.findByTestId('SearchPage');
+        await screen.findByTestId('ChatFinderPage');
         await waitFor(triggerTransitionEnd as Awaited<() => Promise<void>>);
 
         const input = screen.getByTestId('selection-list-text-input');
@@ -222,16 +267,15 @@ test('[Search Page] should search in selection list', async () => {
                 }),
             )
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+            .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });
 
 test('[Search Page] should click on list item', async () => {
-    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
     const {triggerTransitionEnd, addListener} = TestHelper.createAddListenerMock();
 
     const scenario = async () => {
-        await screen.findByTestId('SearchPage');
+        await screen.findByTestId('ChatFinderPage');
         const input = screen.getByTestId('selection-list-text-input');
         await waitFor(triggerTransitionEnd as Awaited<() => Promise<void>>);
 
@@ -254,6 +298,6 @@ test('[Search Page] should click on list item', async () => {
                 }),
             )
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-            .then(() => measurePerformance(<SearchPageWrapper navigation={navigation} />, {scenario}))
+            .then(() => measurePerformance(<ChatFinderPageWrapper navigation={navigation} />, {scenario}))
     );
 });

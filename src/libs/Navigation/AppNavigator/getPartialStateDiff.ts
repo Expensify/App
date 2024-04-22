@@ -1,20 +1,10 @@
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import getTopmostFullScreenRoute from '@libs/Navigation/getTopmostFullScreenRoute';
 import type {Metainfo} from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
+import shallowCompare from '@libs/ObjectUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
-
-// eslint-disable-next-line @typescript-eslint/ban-types
-const shallowCompare = (obj1?: object, obj2?: object) => {
-    if (!obj1 && !obj2) {
-        return true;
-    }
-    if (obj1 && obj2) {
-        // @ts-expect-error we know that obj1 and obj2 are params of a route.
-        return Object.keys(obj1).length === Object.keys(obj2).length && Object.keys(obj1).every((key) => obj1[key] === obj2[key]);
-    }
-    return false;
-};
 
 type GetPartialStateDiffReturnType = {
     [NAVIGATORS.BOTTOM_TAB_NAVIGATOR]?: NavigationPartialRoute;
@@ -73,10 +63,19 @@ function getPartialStateDiff(state: State<RootStackParamList>, templateState: St
     // This one is heuristic and may need to be improved if we will be able to navigate from modal screen with full screen in background to another modal screen with full screen in background.
     // For now this simple check is enough.
     if (metainfo.isFullScreenNavigatorMandatory) {
-        const stateTopmostFullScreen = state.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1);
-        const templateStateTopmostFullScreen = templateState.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1) as NavigationPartialRoute;
-        if (!stateTopmostFullScreen && templateStateTopmostFullScreen) {
-            diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = templateStateTopmostFullScreen;
+        const stateTopmostFullScreen = getTopmostFullScreenRoute(state);
+        const templateStateTopmostFullScreen = getTopmostFullScreenRoute(templateState);
+        const fullScreenDiff = templateState.routes.filter((route) => route.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR).at(-1) as NavigationPartialRoute;
+
+        if (
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            (!stateTopmostFullScreen && templateStateTopmostFullScreen) ||
+            (stateTopmostFullScreen &&
+                templateStateTopmostFullScreen &&
+                stateTopmostFullScreen.name !== templateStateTopmostFullScreen.name &&
+                !shallowCompare(stateTopmostFullScreen.params, templateStateTopmostFullScreen.params))
+        ) {
+            diff[NAVIGATORS.FULL_SCREEN_NAVIGATOR] = fullScreenDiff;
         }
     }
 

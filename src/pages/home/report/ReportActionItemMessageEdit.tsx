@@ -1,5 +1,4 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import Str from 'expensify-common/lib/str';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -85,31 +84,20 @@ function ReportActionItemMessageEdit(
     const {isSmallScreenWidth} = useWindowDimensions();
     const prevDraftMessage = usePrevious(draftMessage);
 
-    const getInitialDraft = () => {
-        if (draftMessage === action?.message?.[0].html) {
-            // We only convert the report action message to markdown if the draft message is unchanged.
-            const parser = new ExpensiMark();
-            return parser.htmlToMarkdown(draftMessage).trim();
-        }
-        // We need to decode saved draft message because it's escaped before saving.
-        return Str.htmlDecode(draftMessage);
-    };
-
     const getInitialSelection = () => {
         if (isMobileSafari) {
             return {start: 0, end: 0};
         }
 
-        const length = getInitialDraft().length;
+        const length = draftMessage.length;
         return {start: length, end: length};
     };
     const emojisPresentBefore = useRef<Emoji[]>([]);
     const [draft, setDraft] = useState(() => {
-        const initialDraft = getInitialDraft();
-        if (initialDraft) {
-            emojisPresentBefore.current = EmojiUtils.extractEmojis(initialDraft);
+        if (draftMessage) {
+            emojisPresentBefore.current = EmojiUtils.extractEmojis(draftMessage);
         }
-        return initialDraft;
+        return draftMessage;
     });
     const [selection, setSelection] = useState<Selection>(getInitialSelection);
     const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -125,12 +113,20 @@ function ReportActionItemMessageEdit(
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
 
     useEffect(() => {
-        if (ReportActionsUtils.isDeletedAction(action) || Boolean(action.message && draftMessage === action.message[0].html) || Boolean(prevDraftMessage === draftMessage)) {
+        const parser = new ExpensiMark();
+        const originalMessage = parser.htmlToMarkdown(action.message?.[0]?.html ?? '');
+        if (
+            ReportActionsUtils.isDeletedAction(action) ||
+            Boolean(action.message && draftMessage === originalMessage) ||
+            Boolean(prevDraftMessage === draftMessage || isCommentPendingSaved.current)
+        ) {
             return;
         }
-        setDraft(Str.htmlDecode(draftMessage));
+        setDraft(draftMessage);
     }, [draftMessage, action, prevDraftMessage]);
 
     useEffect(() => {
@@ -228,8 +224,17 @@ function ReportActionItemMessageEdit(
         () =>
             lodashDebounce((newDraft: string) => {
                 Report.saveReportActionDraft(reportID, action, newDraft);
+                isCommentPendingSaved.current = false;
             }, 1000),
         [reportID, action],
+    );
+
+    useEffect(
+        () => () => {
+            debouncedSaveDraft.cancel();
+            isCommentPendingSaved.current = false;
+        },
+        [debouncedSaveDraft],
     );
 
     /**
@@ -277,6 +282,7 @@ function ReportActionItemMessageEdit(
 
             // We want to escape the draft message to differentiate the HTML from the report action and the HTML the user drafted.
             debouncedSaveDraft(newDraft);
+            isCommentPendingSaved.current = true;
         },
         [debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, preferredSkinTone, preferredLocale, selection.end],
     );
@@ -290,7 +296,6 @@ function ReportActionItemMessageEdit(
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     const deleteDraft = useCallback(() => {
-        debouncedSaveDraft.cancel();
         Report.deleteReportActionDraft(reportID, action);
 
         if (isActive()) {
@@ -305,7 +310,7 @@ function ReportActionItemMessageEdit(
                 keyboardDidHideListener.remove();
             });
         }
-    }, [action, debouncedSaveDraft, index, reportID, reportScrollManager, isActive]);
+    }, [action, index, reportID, reportScrollManager, isActive]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -317,10 +322,6 @@ function ReportActionItemMessageEdit(
             return;
         }
 
-        // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
-        // debounce here.
-        debouncedSaveDraft.cancel();
-
         const trimmedNewDraft = draft.trim();
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
@@ -331,7 +332,7 @@ function ReportActionItemMessageEdit(
         }
         Report.editReportComment(reportID, action, trimmedNewDraft);
         deleteDraft();
-    }, [action, debouncedSaveDraft, deleteDraft, draft, reportID]);
+    }, [action, deleteDraft, draft, reportID]);
 
     /**
      * @param emoji

@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -8,21 +8,22 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
+import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
-
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
 
 type MoneyReportHeaderOnyxProps = {
     /** The chat report this report is linked to */
@@ -33,23 +34,50 @@ type MoneyReportHeaderOnyxProps = {
 
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
+
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** Array of report actions for the report */
+    reportActions: OnyxTypes.ReportAction[];
+
+    /** The reportID of the transaction thread report associated with this current report, if any */
+    // eslint-disable-next-line react/no-unused-prop-types
+    transactionThreadReportID?: string | null;
 };
 
-function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport}: MoneyReportHeaderProps) {
+function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, transactionThreadReport, reportActions}: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
+    const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport);
+    const requestParentReportAction = useMemo(() => {
+        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
+            return null;
+        }
+        return reportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+    }, [reportActions, transactionThreadReport?.parentReportActionID]);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedAction(requestParentReportAction as OnyxTypes.ReportAction);
+
+    // Only the requestor can delete the request, admins can only edit it.
+    const isActionOwner =
+        typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
+    const canDeleteRequest =
+        isActionOwner && (ReportUtils.canAddOrDeleteTransactions(moneyRequestReport) || ReportUtils.isTrackExpenseReport(transactionThreadReport)) && !isDeletedParentAction;
+    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [requestType, setRequestType] = useState<'pay' | 'approve'>();
+    const canAllowSettlement = ReportUtils.hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
     const isPayer = ReportUtils.isPayer(session, moneyRequestReport);
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
@@ -78,7 +106,44 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const shouldShowAnyButton = shouldShowSettlementButton || shouldShowApproveButton || shouldShowSubmitButton || shouldShowNextStep;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
+    const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
+    const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+
+    const confirmPayment = (type?: PaymentMethodType | undefined) => {
+        if (!type) {
+            return;
+        }
+        setPaymentType(type);
+        setRequestType('pay');
+        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
+            setIsHoldMenuVisible(true);
+        } else if (chatReport) {
+            IOU.payMoneyRequest(type, chatReport, moneyRequestReport, true);
+        }
+    };
+
+    const confirmApproval = () => {
+        setRequestType('approve');
+        if (ReportUtils.hasHeldExpenses(moneyRequestReport.reportID)) {
+            setIsHoldMenuVisible(true);
+        } else {
+            IOU.approveMoneyRequest(moneyRequestReport, true);
+        }
+    };
+
+    const deleteTransaction = useCallback(() => {
+        if (requestParentReportAction) {
+            const iouTransactionID = requestParentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? requestParentReportAction.originalMessage?.IOUTransactionID ?? '' : '';
+            if (ReportActionsUtils.isTrackExpenseAction(requestParentReportAction)) {
+                IOU.deleteTrackExpense(moneyRequestReport?.reportID ?? '', iouTransactionID, requestParentReportAction, true);
+                return;
+            }
+            IOU.deleteMoneyRequest(iouTransactionID, requestParentReportAction, true);
+        }
+
+        setIsDeleteRequestModalVisible(false);
+    }, [moneyRequestReport?.reportID, requestParentReportAction, setIsDeleteRequestModalVisible]);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(
@@ -94,6 +159,23 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
             onSelected: () => setIsConfirmModalVisible(true),
         });
     }
+
+    // If the report supports adding transactions to it, then it also supports deleting transactions from it.
+    if (canDeleteRequest && !isEmptyObject(transactionThreadReport)) {
+        threeDotsMenuItems.push({
+            icon: Expensicons.Trashcan,
+            text: translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction}),
+            onSelected: () => setIsDeleteRequestModalVisible(true),
+        });
+    }
+
+    useEffect(() => {
+        if (canDeleteRequest) {
+            return;
+        }
+
+        setIsDeleteRequestModalVisible(false);
+    }, [canDeleteRequest]);
 
     return (
         <View style={[styles.pt0]}>
@@ -115,18 +197,18 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
+                            confirmApproval={confirmApproval}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
-                            // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
-                            onPress={(paymentType: PaymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            onPress={confirmPayment}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
                             shouldDisableApproveButton={shouldDisableApproveButton}
                             style={[styles.pv2]}
-                            formattedAmount={formattedAmount}
+                            formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
                             isDisabled={!canAllowSettlement}
                         />
                     </View>
@@ -149,17 +231,17 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
+                            confirmApproval={confirmApproval}
                             policyID={moneyRequestReport.policyID}
                             chatReportID={moneyRequestReport.chatReportID}
                             iouReport={moneyRequestReport}
-                            // @ts-expect-error TODO: Remove this once IOU (https://github.com/Expensify/App/issues/24926) is migrated to TypeScript.
-                            onPress={(paymentType: PaymentType) => IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport)}
+                            onPress={confirmPayment}
                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                             addBankAccountRoute={bankAccountRoute}
                             shouldHidePaymentOptions={!shouldShowPayButton}
                             shouldShowApproveButton={shouldShowApproveButton}
+                            formattedAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? displayedAmount : ''}
                             shouldDisableApproveButton={shouldDisableApproveButton}
-                            formattedAmount={formattedAmount}
                             isDisabled={!canAllowSettlement}
                         />
                     </View>
@@ -182,6 +264,19 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                     </View>
                 )}
             </View>
+            {isHoldMenuVisible && requestType !== undefined && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
+                    requestType={requestType}
+                    fullAmount={fullAmount}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onClose={() => setIsHoldMenuVisible(false)}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    chatReport={chatReport}
+                    moneyRequestReport={moneyRequestReport}
+                />
+            )}
             <ConfirmModal
                 title={translate('iou.cancelPayment')}
                 isVisible={isConfirmModalVisible}
@@ -190,6 +285,16 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 prompt={translate('iou.cancelPaymentConfirmation')}
                 confirmText={translate('iou.cancelPayment')}
                 cancelText={translate('common.dismiss')}
+                danger
+            />
+            <ConfirmModal
+                title={translate('iou.deleteExpense')}
+                isVisible={isDeleteRequestModalVisible}
+                onConfirm={deleteTransaction}
+                onCancel={() => setIsDeleteRequestModalVisible(false)}
+                prompt={translate('iou.deleteConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
                 danger
             />
         </View>
@@ -204,6 +309,9 @@ export default withOnyx<MoneyReportHeaderProps, MoneyReportHeaderOnyxProps>({
     },
     nextStep: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.NEXT_STEP}${report.reportID}`,
+    },
+    transactionThreadReport: {
+        key: ({transactionThreadReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
     },
     session: {
         key: ONYXKEYS.SESSION,

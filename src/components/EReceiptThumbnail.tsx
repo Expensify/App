@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ReportUtils from '@libs/ReportUtils';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +15,7 @@ import * as eReceiptBGs from './Icon/EReceiptBGs';
 import * as Expensicons from './Icon/Expensicons';
 import * as MCCIcons from './Icon/MCCIcons';
 import Image from './Image';
+import Text from './Text';
 
 type EReceiptThumbnailOnyxProps = {
     transaction: OnyxEntry<Transaction>;
@@ -25,6 +27,15 @@ type EReceiptThumbnailProps = EReceiptThumbnailOnyxProps & {
     /** TransactionID of the transaction this EReceipt corresponds to. It's used by withOnyx HOC */
     // eslint-disable-next-line react/no-unused-prop-types
     transactionID: string;
+
+    /** Border radius to be applied on the parent view. */
+    borderRadius?: number;
+
+    /** The file extension of the receipt that the preview thumbnail is being displayed for. */
+    fileExtension?: string;
+
+    /** Whether it is a receipt thumbnail we are displaying. */
+    isReceiptThumbnail?: boolean;
 
     /** Center the eReceipt Icon vertically */
     centerIconV?: boolean;
@@ -42,13 +53,14 @@ const backgroundImages = {
     [CONST.ERECEIPT_COLORS.PINK]: eReceiptBGs.EReceiptBG_Pink,
 };
 
-function EReceiptThumbnail({transaction, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
+function EReceiptThumbnail({transaction, borderRadius, fileExtension, isReceiptThumbnail = false, centerIconV = true, iconSize = 'large'}: EReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const colorCode = isReceiptThumbnail ? StyleUtils.getFileExtensionColorCode(fileExtension) : StyleUtils.getEReceiptColorCode(transaction);
 
-    const backgroundImage = useMemo(() => backgroundImages[StyleUtils.getEReceiptColorCode(transaction)], [StyleUtils, transaction]);
+    const backgroundImage = useMemo(() => backgroundImages[colorCode], [colorCode]);
 
-    const colorStyles = StyleUtils.getEReceiptColorStyles(StyleUtils.getEReceiptColorCode(transaction));
+    const colorStyles = StyleUtils.getEReceiptColorStyles(colorCode);
     const primaryColor = colorStyles?.backgroundColor;
     const secondaryColor = colorStyles?.color;
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
@@ -58,15 +70,21 @@ function EReceiptThumbnail({transaction, centerIconV = true, iconSize = 'large'}
     let receiptIconWidth: number = variables.eReceiptIconWidth;
     let receiptIconHeight: number = variables.eReceiptIconHeight;
     let receiptMCCSize: number = variables.eReceiptMCCHeightWidth;
+    let labelFontSize: number = variables.fontSizeNormal;
+    let labelLineHeight: number = variables.lineHeightLarge;
 
     if (iconSize === 'small') {
         receiptIconWidth = variables.eReceiptIconWidthSmall;
         receiptIconHeight = variables.eReceiptIconHeightSmall;
         receiptMCCSize = variables.eReceiptMCCHeightWidthSmall;
+        labelFontSize = variables.fontSizeExtraSmall;
+        labelLineHeight = variables.lineHeightXSmall;
     } else if (iconSize === 'medium') {
         receiptIconWidth = variables.eReceiptIconWidthMedium;
         receiptIconHeight = variables.eReceiptIconHeightMedium;
         receiptMCCSize = variables.eReceiptMCCHeightWidthMedium;
+        labelFontSize = variables.fontSizeLabel;
+        labelLineHeight = variables.lineHeightNormal;
     }
 
     return (
@@ -77,6 +95,7 @@ function EReceiptThumbnail({transaction, centerIconV = true, iconSize = 'large'}
                 styles.overflowHidden,
                 styles.alignItemsCenter,
                 centerIconV ? styles.justifyContentCenter : {},
+                borderRadius ? {borderRadius} : {},
             ]}
         >
             <Image
@@ -93,7 +112,20 @@ function EReceiptThumbnail({transaction, centerIconV = true, iconSize = 'large'}
                         fill={secondaryColor}
                         additionalStyles={[styles.fullScreen]}
                     />
-                    {MCCIcon ? (
+                    {isReceiptThumbnail && fileExtension && (
+                        <Text
+                            selectable={false}
+                            style={[
+                                styles.labelStrong,
+                                StyleUtils.getFontSizeStyle(labelFontSize),
+                                StyleUtils.getLineHeightStyle(labelLineHeight),
+                                StyleUtils.getTextColorStyle(primaryColor ?? colors.black),
+                            ]}
+                        >
+                            {fileExtension.toUpperCase()}
+                        </Text>
+                    )}
+                    {MCCIcon && !isReceiptThumbnail ? (
                         <Icon
                             src={MCCIcon}
                             height={receiptMCCSize}
@@ -108,10 +140,9 @@ function EReceiptThumbnail({transaction, centerIconV = true, iconSize = 'large'}
 }
 
 EReceiptThumbnail.displayName = 'EReceiptThumbnail';
-
 export default withOnyx<EReceiptThumbnailProps, EReceiptThumbnailOnyxProps>({
     transaction: {
         key: ({transactionID}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
     },
 })(EReceiptThumbnail);
-export type {EReceiptThumbnailProps, EReceiptThumbnailOnyxProps};
+export type {IconSize, EReceiptThumbnailProps, EReceiptThumbnailOnyxProps};

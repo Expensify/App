@@ -260,11 +260,15 @@ type TaxRateDeleteMap = Record<
 function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const policyTaxRates = policy?.taxRates?.taxes;
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+    const firstTaxID = Object.keys(policyTaxRates ?? {}).sort((a, b) => a.localeCompare(b))[0];
 
     if (!policyTaxRates) {
         console.debug('Policy or tax rates not found');
         return;
     }
+
+    const isForeignTaxRemoved = foreignTaxDefault && taxesToDelete.includes(foreignTaxDefault);
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -273,6 +277,8 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        pendingFields: {foreignTaxDefault: isForeignTaxRemoved ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null},
+                        foreignTaxDefault: isForeignTaxRemoved ? firstTaxID : foreignTaxDefault,
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null};
                             return acc;
@@ -287,6 +293,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        pendingFields: {foreignTaxDefault: null},
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = null;
                             return acc;
@@ -301,6 +308,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     taxRates: {
+                        pendingFields: {foreignTaxDefault: null},
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {
                                 pendingAction: null,
@@ -380,7 +388,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
     const parameters = {
         policyID,
         taxCode: taxID,
-        taxAmount: Number(taxValue),
+        taxRate: stringTaxValue,
     } satisfies UpdatePolicyTaxValueParams;
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_TAX_VALUE, parameters, onyxData);
