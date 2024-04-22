@@ -34,6 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Session} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import _ from 'lodash';
 
 type ReportParticipantsPageOnyxProps = {
     /** Personal details of all the users */
@@ -93,6 +94,21 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 );
             }
 
+            const participantsPendingFields = report.participants?.[accountID]?.pendingFields;
+            let pendingAction;
+
+            if (pendingChatMember?.pendingAction) {
+                pendingAction = pendingChatMember.pendingAction;
+            } else if (participantsPendingFields) {
+                // We can have multiple Pending Fields in participant
+                for (const key in participantsPendingFields) {
+                    if (key in participantsPendingFields) {
+                        pendingAction = participantsPendingFields[key];
+                        break;
+                    }
+                }
+            }
+
             result.push({
                 keyForList: `${accountID}`,
                 accountID,
@@ -101,7 +117,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
-                pendingAction: pendingChatMember?.pendingAction,
+                pendingAction: pendingAction,
                 icons: [
                     {
                         source: UserUtils.getAvatar(details?.avatar, accountID),

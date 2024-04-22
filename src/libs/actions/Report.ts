@@ -2703,12 +2703,43 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participants,
+                participants: Object.keys(participants).reduce((acc, accountID) => {
+                    acc[Number(accountID)] = {
+                        ...participants[Number(accountID)],
+                        pendingFields: {
+                            role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        },
+                        errorFields: {
+                            role: null,
+                        },
+                    };
+                    return acc;
+                }, {} as Participants),
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                participants: Object.keys(participants).reduce((acc, accountID) => {
+                    acc[Number(accountID)] = {
+                        pendingFields: {
+                            role: null,
+                        },
+                        errorFields: {
+                            role: null,
+                        },
+                    };
+                    return acc;
+                }, {} as Participants),
             },
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData, successData});
 }
 
 /** Invites people to a group chat */
