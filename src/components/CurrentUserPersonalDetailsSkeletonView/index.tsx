@@ -15,15 +15,9 @@ type CurrentUserPersonalDetailsSkeletonViewProps = {
 
     /** The size of the avatar */
     avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-
-    /** Background color of the skeleton view */
-    backgroundColor?: string;
-
-    /** Foreground color of the skeleton view */
-    foregroundColor?: string;
 };
 
-function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE, backgroundColor, foregroundColor}: CurrentUserPersonalDetailsSkeletonViewProps) {
+function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.LARGE}: CurrentUserPersonalDetailsSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
