@@ -57,9 +57,7 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdate
 
     // When "firstUpdateAfterGaps" is not set yet, we need to set it to the last update in the list,
     // because we will fetch all missing updates up to the previous one and can then always apply the last update in the deferred updates.
-    if (!firstUpdateAfterGaps) {
-        firstUpdateAfterGaps = Number(updateValues[updateValues.length - 1].lastUpdateID);
-    }
+    const firstUpdateAfterGapWithFallback = firstUpdateAfterGaps ?? Number(updateValues[updateValues.length - 1].lastUpdateID);
 
     let updatesAfterGaps: DeferredUpdatesDictionary = {};
     if (gapExists) {
@@ -67,7 +65,7 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdate
             (accUpdates, [lastUpdateID, update]) => ({
                 ...accUpdates,
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                ...(Number(lastUpdateID) >= firstUpdateAfterGaps ? {[Number(lastUpdateID)]: update} : {}),
+                ...(Number(lastUpdateID) >= firstUpdateAfterGapWithFallback ? {[Number(lastUpdateID)]: update} : {}),
             }),
             {},
         );
