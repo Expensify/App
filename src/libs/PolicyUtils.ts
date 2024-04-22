@@ -333,6 +333,9 @@ function getDefaultApprover(policy: OnyxEntry<Policy> | EmptyObject): string {
     return policy?.approver ?? policy?.owner ?? '';
 }
 
+/**
+ * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
+ */
 function getSubmitToAccountID(policy: OnyxEntry<Policy> | EmptyObject, employeeAccountID: number): number {
     const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
     const defaultApprover = getDefaultApprover(policy);
