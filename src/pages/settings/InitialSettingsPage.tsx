@@ -484,7 +484,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                style={[styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100, styles.pt4]}
             >
                 {headerContent}
                 {accountMenuItems}

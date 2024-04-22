@@ -1697,25 +1697,6 @@ PODS:
     - React-perflogger (= 0.73.4)
   - RNAppleAuthentication (2.2.2):
     - React-Core
-  - RNCAsyncStorage (1.21.0):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNCClipboard (1.13.2):
     - glog
     - hermes-engine
@@ -2154,7 +2135,6 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
-  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
@@ -2385,8 +2365,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNAppleAuthentication:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
-  RNCAsyncStorage:
-    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCPicker:
@@ -2551,7 +2529,6 @@ SPEC CHECKSUMS:
   React-utils: 6e5ad394416482ae21831050928ae27348f83487
   ReactCommon: 840a955d37b7f3358554d819446bffcf624b2522
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
-  RNCAsyncStorage: 559f22cc4b582414e783fd7255974b29e24b451c
   RNCClipboard: c73bbc2e9012120161f1012578418827983bfd0c
   RNCPicker: c77efa39690952647b83d8085520bf50ebf94ecb
   RNDeviceInfo: cbf78fdb515ae73e641ee7c6b474f77a0299e7e6
@@ -2581,7 +2558,7 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 3033e0dd5272d46e97bcb406adea4ae0e6907abf
-  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
+  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
 

@@ -3,7 +3,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -451,19 +450,6 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
 }
 
 /**
- * Returns the translation key to use for the header title
- */
-function getHeaderTitleTranslationKey(transaction: OnyxEntry<Transaction>): TranslationPaths {
-    const headerTitles: Record<IOURequestType, TranslationPaths> = {
-        [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
-        [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
-        [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
-    };
-
-    return headerTitles[getRequestType(transaction)];
-}
-
-/**
  * Determine whether a transaction is made with an Expensify card.
  */
 function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -515,8 +501,8 @@ function hasMissingSmartscanFields(transaction: OnyxEntry<Transaction>): boolean
 /**
  * Check if the transaction has a defined route
  */
-function hasRoute(transaction: OnyxEntry<Transaction>): boolean {
-    return !!transaction?.routes?.route0?.geometry?.coordinates;
+function hasRoute(transaction: OnyxEntry<Transaction>, isDistanceRequestType: boolean): boolean {
+    return !!transaction?.routes?.route0?.geometry?.coordinates || (isDistanceRequestType && !!transaction?.comment?.customUnit?.quantity);
 }
 
 function getAllReportTransactions(reportID?: string): Transaction[] {
@@ -629,6 +615,20 @@ function getEnabledTaxRateCount(options: TaxRates) {
 }
 
 /**
+ * Check if the customUnitRateID has a value default for P2P distance requests
+ */
+function isCustomUnitRateIDForP2P(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.comment?.customUnit?.customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+}
+
+/**
+ * Get rate ID from the transaction object
+ */
+function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
+    return transaction?.comment?.customUnit?.customUnitRateID?.toString();
+}
+
+/**
  * Gets the default tax name
  */
 function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
@@ -655,7 +655,6 @@ export {
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getDescription,
-    getHeaderTitleTranslationKey,
     getRequestType,
     isManualRequest,
     isScanRequest,
@@ -700,6 +699,8 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    isCustomUnitRateIDForP2P,
+    getRateID,
 };
 
 export type {TransactionChanges};

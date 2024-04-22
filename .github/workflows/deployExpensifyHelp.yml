@@ -36,8 +36,8 @@ jobs:
 
       - name: Create docs routes file
         run: ./.github/scripts/createDocsRoutes.sh
-      
-      - name: Check duplicates in redirect.csv
+
+      - name: Check for duplicates and cycles in redirects.csv
         run: ./.github/scripts/verifyRedirect.sh
 
       - name: Build with Jekyll
