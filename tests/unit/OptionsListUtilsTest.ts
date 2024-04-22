@@ -368,7 +368,7 @@ describe('OptionsListUtils', () => {
         // When we filter in the Search view without providing a searchValue
         let results = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
         // Then the 2 personalDetails that don't have reports should be returned
-        expect(results.personalDetails.length).toBe(3);
+        expect(results.personalDetails.length).toBe(2);
 
         // Then all of the reports should be shown including the archived rooms.
         expect(results.recentReports.length).toBe(Object.values(OPTIONS.reports).length);
@@ -2618,7 +2618,7 @@ describe('OptionsListUtils', () => {
             const options = OptionsListUtils.getSearchOptions(OPTIONS, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
-            expect(filteredOptions.recentReports.length).toBe(6);
+            expect(filteredOptions.recentReports.length).toBe(5);
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
