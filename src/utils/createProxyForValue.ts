@@ -1,17 +1,18 @@
-const createProxyForValue = <Value, VariableName extends string>(value: Record<VariableName, Value>, variableName: VariableName) =>
+const createProxyForValue = <Value extends Record<string, unknown>>(value: Value) =>
     new Proxy(value, {
-        get: (target, prop) => {
-            if (prop !== variableName) {
+        get: (target, property) => {
+            if (typeof property === 'symbol') {
                 return undefined;
             }
-            return target[prop as VariableName];
+
+            return target[property];
         },
-        set: (target, prop, newValue) => {
-            if (prop !== variableName) {
+        set: (target, property, newValue) => {
+            if (typeof property === 'symbol') {
                 return false;
             }
             // eslint-disable-next-line no-param-reassign
-            target[prop as VariableName] = newValue;
+            target[property as keyof Value] = newValue;
             return true;
         },
     });

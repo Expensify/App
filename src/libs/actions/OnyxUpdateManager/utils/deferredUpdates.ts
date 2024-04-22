@@ -3,6 +3,6 @@ import createProxyForValue from '@src/utils/createProxyForValue';
 
 const deferredUpdatesValue = {deferredUpdates: {} as DeferredUpdatesDictionary};
 
-const deferredUpdatesProxy = createProxyForValue(deferredUpdatesValue, 'deferredUpdates');
+const deferredUpdatesProxy = createProxyForValue(deferredUpdatesValue);
 
 export default deferredUpdatesProxy;
