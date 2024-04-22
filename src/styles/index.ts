@@ -3213,6 +3213,20 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 3,
         },
 
+        workspaceRightColumn: {
+            marginLeft: 124,
+        },
+
+        workspaceThreeDotMenu: {
+            marginLeft: 84,
+        },
+
+        workspaceListBadge: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 6,
+        },
+
         autoGrowHeightMultilineInput: {
             maxHeight: 115,
         },
