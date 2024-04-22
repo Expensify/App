@@ -38,12 +38,6 @@ Onyx.connect({
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
 
-/** Validates that the merchant for a distance request transaction is in the expected format.
- * <distance> <unit> @ <formatted rate with currency> / <unit>
- * Example: 1.45 miles @ $0.67 / mi
- */
-const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?(\p{Sc}|\p{L}|\w){1,3} ?[0-9.]+\)? \/ \w+$/u;
-
 /**
  * Retrieves the default mileage rate based on a given policy.
  *
@@ -243,22 +237,18 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
 }
 
 /**
- * Extracts the distance from a merchant string.
+ * Converts the distance from kilometers or miles to meters.
  *
- * @param merchant - The merchant string containing the distance.
- * @returns The distance extracted from the merchant string.
+ * @param distance - The distance to be converted.
+ * @param unit - The unit of measurement for the distance.
+ * @returns The distance in meters.
  */
-function getDistanceFromMerchant(merchant: string | undefined, unit: Unit): number {
-    if (!merchant || !distanceMerchantRegex.test(merchant ?? '')) {
-        return 0;
-    }
 
-    const distance = Number(merchant.split(' ')[0]);
-    if (!distance) {
-        return 0;
+function convertToDistanceInMeters(distance: number, unit: Unit): number {
+    if (unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) {
+        return distance / METERS_TO_KM;
     }
-    // we need to convert the distance back to meters (it's saved in kilometers or miles in merchant) to pass it to getDistanceForDisplay
-    return unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? distance / METERS_TO_KM : distance / METERS_TO_MILES;
+    return distance / METERS_TO_MILES;
 }
 
 /**
@@ -286,8 +276,8 @@ export default {
     getMileageRates,
     getDistanceForDisplay,
     getRateForP2P,
-    getDistanceFromMerchant,
     getCustomUnitRateID,
+    convertToDistanceInMeters,
 };
 
 export type {MileageRate};

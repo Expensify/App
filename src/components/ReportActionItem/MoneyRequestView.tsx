@@ -192,7 +192,7 @@ function MoneyRequestView({
     const {unit} = mileageRate;
     const rate = (transaction?.comment?.customUnit?.defaultP2PRate as number) ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.getDistanceFromMerchant(transactionMerchant, unit);
+    const distance = DistanceRequestUtils.convertToDistanceInMeters((transaction?.comment?.customUnit?.quantity as number) ?? 0, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
