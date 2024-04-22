@@ -424,8 +424,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         onPress: (closePopover, {reportAction, reportID}) => {
             Environment.getEnvironmentURL().then((environmentURL) => {
                 const reportActionID = reportAction?.reportActionID;
-                const linkedReportID = ReportUtils.isThreadFirstChat(reportAction, reportID) ? ReportUtils.getReport(reportID)?.parentReportID : reportID;
-                Clipboard.setString(`${environmentURL}/r/${linkedReportID}/${reportActionID}`);
+                Clipboard.setString(`${environmentURL}/r/${ReportUtils.getOriginalReportID(reportID, reportAction)}/${reportActionID}`);
             });
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
