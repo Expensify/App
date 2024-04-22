@@ -26,7 +26,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
