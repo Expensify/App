@@ -369,7 +369,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                        options={onboardingScreenOptions}
+                        options={screenOptions.fullScreen}
                         component={OnboardingModalNavigator}
                     />
                     <RootStack.Screen
