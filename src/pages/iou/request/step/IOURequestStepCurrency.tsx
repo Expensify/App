@@ -8,6 +8,7 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
@@ -129,6 +130,7 @@ function IOURequestStepCurrency({
                     headerMessage={headerMessage}
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     showScrollIndicator
+                    shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 />
             )}
         </StepScreenWrapper>
