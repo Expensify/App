@@ -1135,6 +1135,11 @@ const CONST = {
         JPEG: 'image/jpeg',
     },
 
+    IMAGE_OBJECT_POSITION: {
+        TOP: 'top',
+        INITIAL: 'initial',
+    },
+
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
@@ -1414,16 +1419,18 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
-            REQUEST: 'request',
+            SUBMIT: 'submit',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
+            PAY: 'pay',
             SPLIT: 'split',
             REQUEST: 'request',
-            TRACK_EXPENSE: 'track-expense',
+            SUBMIT: 'submit',
+            TRACK: 'track',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
@@ -3380,9 +3387,9 @@ const CONST = {
 
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
-            MONEY_REQUEST: 'request',
+            SUBMIT_EXPENSE: 'submitExpense',
             START_CHAT: 'startChat',
-            SEND_MONEY: 'sendMoney',
+            PAY_SOMEONE: 'paySomeone',
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },

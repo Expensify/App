@@ -3481,6 +3481,79 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
     return expenseReport;
 }
 
+function getIOUSubmittedMessage(report: OnyxEntry<Report>) {
+    const policy = getPolicy(report?.policyID);
+
+    if (report?.ownerAccountID !== currentUserAccountID && policy.role === CONST.POLICY.ROLE.ADMIN) {
+        const ownerPersonalDetail = getPersonalDetailsForAccountID(report?.ownerAccountID ?? 0);
+        const ownerDisplayName = `${ownerPersonalDetail.displayName ?? ''}${ownerPersonalDetail.displayName !== ownerPersonalDetail.login ? ` (${ownerPersonalDetail.login})` : ''}`;
+
+        return [
+            {
+                style: 'normal',
+                text: 'You (on behalf of ',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'strong',
+                text: ownerDisplayName,
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'normal',
+                text: ' via admin-submit)',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'normal',
+                text: ' submitted this report',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'normal',
+                text: ' to ',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+            {
+                style: 'strong',
+                text: 'you',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            },
+        ];
+    }
+
+    const submittedToPersonalDetail = getPersonalDetailsForAccountID(policy?.submitsTo ?? 0);
+    let submittedToDisplayName = `${submittedToPersonalDetail.displayName ?? ''}${
+        submittedToPersonalDetail.displayName !== submittedToPersonalDetail.login ? ` (${submittedToPersonalDetail.login})` : ''
+    }`;
+    if (submittedToPersonalDetail?.accountID === currentUserAccountID) {
+        submittedToDisplayName = 'yourself';
+    }
+
+    return [
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'strong',
+            text: 'You',
+        },
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'normal',
+            text: ' submitted this report',
+        },
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'normal',
+            text: ' to ',
+        },
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            style: 'strong',
+            text: submittedToDisplayName,
+        },
+    ];
+}
+
 /**
  * @param iouReportID - the report ID of the IOU report the action belongs to
  * @param type - IOUReportAction type. Can be oneOf(create, decline, cancel, pay, split)
@@ -3490,8 +3563,13 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
  * @param paymentType - IOU paymentMethodType. Can be oneOf(Elsewhere, Expensify)
  * @param isSettlingUp - Whether we are settling up an IOU
  */
-function getIOUReportActionMessage(iouReportID: string, type: string, total: number, comment: string, currency: string, paymentType = '', isSettlingUp = false): [Message] {
+function getIOUReportActionMessage(iouReportID: string, type: string, total: number, comment: string, currency: string, paymentType = '', isSettlingUp = false): Message[] {
     const report = getReport(iouReportID);
+
+    if (type === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+        return getIOUSubmittedMessage(!isEmptyObject(report) ? report : null);
+    }
+
     const amount =
         type === CONST.IOU.REPORT_ACTION_TYPE.PAY
             ? CurrencyUtils.convertToDisplayString(getMoneyRequestSpendBreakdown(!isEmptyObject(report) ? report : null).totalDisplaySpend, currency)
@@ -3512,9 +3590,6 @@ function getIOUReportActionMessage(iouReportID: string, type: string, total: num
     switch (type) {
         case CONST.REPORT.ACTIONS.TYPE.APPROVED:
             iouMessage = `approved ${amount}`;
-            break;
-        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
-            iouMessage = `submitted ${amount}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `submitted ${amount}${comment && ` for ${comment}`}`;
@@ -5085,7 +5160,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  * None of the options should show in chat threads or if there is some special Expensify account
  * as a participant of the report.
  */
-function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true): IOUType[] {
+function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true, filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
     if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report))) {
         return [];
@@ -5103,7 +5178,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     let options: IOUType[] = [];
 
     if (isSelfDM(report)) {
-        options = [CONST.IOU.TYPE.TRACK_EXPENSE];
+        options = [CONST.IOU.TYPE.TRACK];
     }
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
@@ -5120,20 +5195,40 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     if (canRequestMoney(report, policy, otherParticipants)) {
-        options = [...options, CONST.IOU.TYPE.REQUEST];
+        options = [...options, CONST.IOU.TYPE.SUBMIT];
+        if (!filterDeprecatedTypes) {
+            options = [...options, CONST.IOU.TYPE.REQUEST];
+        }
 
         // If the user can request money from the workspace report, they can also track expenses
         if (canUseTrackExpense && (isPolicyExpenseChat(report) || isExpenseReport(report))) {
-            options = [...options, CONST.IOU.TYPE.TRACK_EXPENSE];
+            options = [...options, CONST.IOU.TYPE.TRACK];
         }
     }
 
     // Pay someone option should be visible only in 1:1 DMs
     if (isDM(report) && hasSingleOtherParticipantInReport) {
-        options = [...options, CONST.IOU.TYPE.SEND];
+        options = [...options, CONST.IOU.TYPE.PAY];
+        if (!filterDeprecatedTypes) {
+            options = [...options, CONST.IOU.TYPE.SEND];
+        }
     }
 
     return options;
+}
+
+/**
+ * This is a temporary function to help with the smooth transition with the oldDot.
+ * This function will be removed once the transition occurs in oldDot to new links.
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+function temporary_getMoneyRequestOptions(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportParticipants: number[],
+    canUseTrackExpense = true,
+): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>> {
+    return getMoneyRequestOptions(report, policy, reportParticipants, canUseTrackExpense, true) as Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>>;
 }
 
 /**
@@ -6002,7 +6097,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         created: transactionCreated,
     } as Transaction);
 
-    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.REQUEST, transactionID, reportID, undefined, actionName));
+    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
 }
 
 /**
@@ -6280,6 +6375,7 @@ export {
     sortReportsByLastRead,
     updateOptimisticParentReportAction,
     updateReportPreview,
+    temporary_getMoneyRequestOptions,
 };
 
 export type {
