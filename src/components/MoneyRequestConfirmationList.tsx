@@ -7,6 +7,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -299,7 +300,7 @@ function MoneyRequestConfirmationList({
     const previousTransactionAmount = usePrevious(transaction?.amount);
 
     const isFocused = useIsFocused();
-    const [formError, setFormError] = useState('');
+    const [formError, debouncedFormError, setFormError] = useDebouncedState('');
 
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
@@ -335,7 +336,7 @@ function MoneyRequestConfirmationList({
                 setFormError('');
             }
         }
-    }, [formError, isMerchantEmpty, merchantError, isMerchantRequired]);
+    }, [formError, isMerchantEmpty, merchantError, isMerchantRequired, setFormError]);
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -660,6 +661,7 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             isEditingSplitBill,
+            setFormError,
             onConfirm,
         ],
     );
@@ -711,14 +713,28 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={formError}
+                        message={isTypeSplit ? debouncedFormError : formError}
                     />
                 )}
 
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
+    }, [
+        isReadOnly,
+        iouType,
+        selectedParticipants.length,
+        confirm,
+        bankAccountRoute,
+        iouCurrencyCode,
+        policyID,
+        splitOrRequestOptions,
+        isTypeSplit,
+        formError,
+        debouncedFormError,
+        styles.ph1,
+        styles.mb2,
+    ]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.
