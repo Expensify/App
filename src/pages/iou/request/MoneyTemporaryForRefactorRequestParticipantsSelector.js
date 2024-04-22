@@ -10,11 +10,9 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
-import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
@@ -85,6 +83,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const {isSmallScreenWidth} = useWindowDimensions();
 
+    const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
+
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
@@ -104,7 +104,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
             // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
-            iouType === CONST.IOU.TYPE.REQUEST && action !== CONST.IOU.ACTION.MOVE,
+            (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.REQUEST,
 
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
@@ -113,7 +113,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             false,
             {},
             [],
-            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
         );
 
@@ -217,7 +217,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         (option) => {
             onParticipantsAdded([
                 {
-                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText'),
+                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
                     iouType,
                 },
@@ -282,7 +282,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
         iouType !== CONST.IOU.TYPE.SEND &&
         iouType !== CONST.IOU.TYPE.TRACK_EXPENSE &&
-        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.MOVE, CONST.IOU.ACTION.CATEGORIZE].includes(action);
+        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.REQUEST, CONST.IOU.ACTION.CATEGORIZE].includes(action);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -337,40 +337,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         );
     }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
 
-    const itemRightSideComponent = useCallback(
-        (item) => {
-            if (!isAllowedToSplit) {
-                return null;
-            }
-            if (item.isSelected) {
-                return (
-                    <PressableWithFeedback
-                        onPress={() => addParticipantToSelection(item)}
-                        disabled={item.isDisabled}
-                        role={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        accessibilityLabel={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
-                );
-            }
-
-            return (
-                <Button
-                    onPress={() => addParticipantToSelection(item)}
-                    style={[styles.pl2]}
-                    text={translate('iou.split')}
-                    small
-                />
-            );
-        },
-        [addParticipantToSelection, isAllowedToSplit, styles, translate],
-    );
-
     const renderEmptyWorkspaceView = () => (
         <>
             <BlockingView
@@ -378,7 +344,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 iconWidth={variables.emptyWorkspaceIconWidth}
                 iconHeight={variables.emptyWorkspaceIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
-                subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
             />
             <Button
@@ -393,7 +358,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     );
 
     const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
-    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+    if (
+        [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) &&
+        isAllSectionsEmpty &&
+        didScreenTransitionEnd &&
+        debouncedSearchTerm.trim() === '' &&
+        areOptionsInitialized
+    ) {
         return renderEmptyWorkspaceView();
     }
 
@@ -401,17 +372,17 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         <SelectionList
             onConfirm={handleConfirmSelection}
             sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-            ListItem={UserListItem}
+            ListItem={InviteMemberListItem}
             textInputValue={searchTerm}
             textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
             textInputHint={offlineMessage}
             onChangeText={setSearchTerm}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-            onSelectRow={addSingleParticipant}
+            onSelectRow={(item) => (isIOUSplit ? addParticipantToSelection(item) : addSingleParticipant(item))}
             footerContent={footerContent}
             headerMessage={header}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
-            rightHandSideComponent={itemRightSideComponent}
+            canSelectMultiple={isIOUSplit && isAllowedToSplit}
         />
     );
 }
