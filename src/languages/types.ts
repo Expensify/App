@@ -185,6 +185,8 @@ type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
+type ImportedFromAccountingSoftwareParams = {accountingSoftwareName: string};
+
 type WelcomeNoteParams = {workspaceName: string};
 
 type RoomNameReservedErrorParams = {reservedName: string};
@@ -403,4 +405,5 @@ export type {
     LogSizeParams,
     HeldRequestParams,
     PaySomeoneParams,
+    ImportedFromAccountingSoftwareParams,
 };

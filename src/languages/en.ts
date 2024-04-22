@@ -28,6 +28,7 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
+    ImportedFromAccountingSoftwareParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -1897,7 +1898,8 @@ export default {
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
-            importedFromAccountingSoftware: 'The categories below are imported from your',
+            importedFromAccountingSoftware: ({accountingSoftwareName}: ImportedFromAccountingSoftwareParams) =>
+                `The categories below are imported from your ${accountingSoftwareName} settings`,
         },
         moreFeatures: {
             spendSection: {
