@@ -294,6 +294,16 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(0);
         });
 
+        const unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+            resetUnreadMarker(newLastReadTime);
+            setMessageManuallyMarkedUnread(new Date().getTime());
+        });
+
+        const readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+            resetUnreadMarker(newLastReadTime);
+            setMessageManuallyMarkedUnread(0);
+        });
+
         const deletedReportActionSubscription = DeviceEventEmitter.addListener(`deletedReportAction_${report.reportID}`, (reportActionID) => {
             if (cacheUnreadMarkers.get(report.reportID) !== reportActionID) {
                 return;
@@ -305,9 +315,11 @@ function ReportActionsList({
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
+            unreadActionSubscriptionForTransactionThread.remove();
+            readNewestActionSubscriptionForTransactionThread.remove();
             deletedReportActionSubscription.remove();
         };
-    }, [report.reportID]);
+    }, [report.reportID, transactionThreadReport?.reportID]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -393,6 +405,9 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
+        if (transactionThreadReport?.reportID) {
+            Report.readNewestAction(transactionThreadReport?.reportID);
+        }
     };
 
     /**

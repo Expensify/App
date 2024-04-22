@@ -27,6 +27,7 @@ function OptionRowLHNData({
     lastReportActionTransaction = {},
     transactionViolations,
     canUseViolations,
+    transactionThreadReport,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -47,6 +48,7 @@ function OptionRowLHNData({
             policy,
             parentReportAction,
             hasViolations: !!shouldDisplayViolations,
+            transactionThreadReport,
         });
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
