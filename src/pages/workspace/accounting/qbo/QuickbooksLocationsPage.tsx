@@ -52,7 +52,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                             Connections.updatePolicyConnectionConfig(
                                                 policyID,
                                                 CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICKBOOKS_IMPORTS.SYNC_LOCATIONS,
+                                                CONST.QUICK_BOOKS_CONFIG.SYNC_LOCATIONS,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
