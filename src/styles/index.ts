@@ -4875,9 +4875,10 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'line-through',
         },
 
-        searchFiltersTabItem: {
-            flexBasis: '33%',
-            minWidth: 200,
+        searchFiltersButtonText: {
+            marginLeft: 4,
+            marginRight: 4,
+            fontWeight: 'bold',
         },
     } satisfies Styles);
 
