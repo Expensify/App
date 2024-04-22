@@ -159,7 +159,7 @@ function MoneyRequestView({
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
     const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
-    const iouType = isTrackExpense ? CONST.IOU.TYPE.TRACK_EXPENSE : CONST.IOU.TYPE.REQUEST;
+    const iouType = isTrackExpense ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string

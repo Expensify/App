@@ -67,7 +67,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const referralContentType = iouType === CONST.IOU.TYPE.SEND ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST;
+    const referralContentType = iouType === CONST.IOU.TYPE.PAY ? CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE : CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE;
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
@@ -109,7 +109,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
             // If we are using this component in the "Submit expense" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
             // sees the option to submit an expense from their admin on their own Workspace Chat.
-            (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.REQUEST,
+            (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
@@ -118,7 +118,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             false,
             {},
             [],
-            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
         );
 
@@ -233,12 +233,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                         reportID: option.reportID,
                         selected: true,
                         searchText: option.searchText,
-                        iouType: iouType === CONST.IOU.TYPE.REQUEST ? CONST.IOU.TYPE.SPLIT : iouType,
+                        iouType,
                     },
                 ];
             }
 
-            onParticipantsAdded(newSelectedOptions, newSelectedOptions.length !== 0 ? CONST.IOU.TYPE.SPLIT : undefined);
+            onParticipantsAdded(newSelectedOptions);
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
         [participants, onParticipantsAdded],
@@ -265,9 +265,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
         (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
-        iouType !== CONST.IOU.TYPE.SEND &&
-        iouType !== CONST.IOU.TYPE.TRACK_EXPENSE &&
-        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.REQUEST, CONST.IOU.ACTION.CATEGORIZE].includes(action);
+        iouType !== CONST.IOU.TYPE.PAY &&
+        iouType !== CONST.IOU.TYPE.TRACK &&
+        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].includes(action);
 
     const handleConfirmSelection = useCallback(
         (keyEvent, option) => {
@@ -329,7 +329,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 iconWidth={variables.emptyWorkspaceIconWidth}
                 iconHeight={variables.emptyWorkspaceIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
-                subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
             />
             <Button
@@ -344,7 +343,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     );
 
     const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
-    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+    if (
+        [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) &&
+        isAllSectionsEmpty &&
+        didScreenTransitionEnd &&
+        debouncedSearchTerm.trim() === '' &&
+        areOptionsInitialized
+    ) {
         return renderEmptyWorkspaceView();
     }
 

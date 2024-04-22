@@ -185,7 +185,7 @@ function AttachmentModal({
     const nope = useSharedValue(false);
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const isOverlayModalVisible = (isReceiptAttachment && isDeleteReceiptConfirmModalVisible) || (!isReceiptAttachment && isAttachmentInvalid);
-    const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK_EXPENSE : CONST.IOU.TYPE.REQUEST), [isTrackExpenseAction]);
+    const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
 
     const [file, setFile] = useState<FileObject | undefined>(
         originalFileName

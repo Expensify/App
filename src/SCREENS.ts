@@ -293,6 +293,7 @@ const SCREENS = {
     ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
+        WORK: 'Onboarding_Work',
     },
 
     ONBOARD_ENGAGEMENT: {

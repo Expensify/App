@@ -313,6 +313,7 @@ export default {
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
+        businessName: 'Nombre del Negocio',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -504,11 +505,10 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
-            send: 'pagar gastos',
+            pay: 'pagar gastos',
             split: 'dividir un gasto',
-            request: 'presentar un gasto',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'track-expense': 'rastrear un gasto',
+            submit: 'presentar un gasto',
+            track: 'rastrear un gasto',
         },
     },
     reportAction: {
@@ -1315,13 +1315,13 @@ export default {
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
     onboarding: {
-        welcome: '¡Bienvenido!',
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
             description: 'Cobrar es tan fácil como enviar un mensaje.',
             button: 'Vámonos',
         },
         whatsYourName: '¿Cómo te llamas?',
+        whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             error: 'Por favor, haga una selección antes de continuar.',
@@ -3140,13 +3140,13 @@ export default {
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText1: 'Presentar gasto, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Presenta un gasto y consigue $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `¡Vale la pena cobrar! Envia un gasto a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
             buttonText1: 'Pagar a alguien, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Paga a alguien y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
