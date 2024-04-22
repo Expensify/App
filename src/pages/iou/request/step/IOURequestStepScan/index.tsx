@@ -524,7 +524,7 @@ function IOURequestStepScan({
 
     const desktopUploadView = () => (
         <>
-            <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.y))}>
+            <View onLayout={({nativeEvent}) => setReceiptImageTopPosition(PixelRatio.roundToNearestPixel((nativeEvent.layout as DOMRect).top))}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
                     height={CONST.RECEIPT.ICON_SIZE}
