@@ -2731,6 +2731,7 @@ const run = () => {
     const PR_NUMBER = core.getInput('PR_NUMBER', { required: true });
     // Read the contents of the file, the file is in the JSONL format
     const regressionFile = fs_1.default.readFileSync('.reassure/baseline.perf', 'utf8');
+    console.log('regressionFile: ', regressionFile);
     // Split file contents by newline to get individual JSON entries
     const regressionEntries = regressionFile.split('\n');
     // Initialize string to store Graphite metrics
@@ -2761,6 +2762,7 @@ const run = () => {
         }
     });
     // Set generated graphite string to the github variable
+    console.log('GRAPHITE_STRING: ', graphiteString);
     core.setOutput('GRAPHITE_STRING', graphiteString);
 };
 if (require.main === require.cache[eval('__filename')]) {
