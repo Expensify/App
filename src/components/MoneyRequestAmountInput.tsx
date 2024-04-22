@@ -164,7 +164,7 @@ function MoneyRequestAmountInput(
             return;
         }
         const frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
-        setNewAmount(frontendAmount);
+        setCurrentAmount(frontendAmount);
         setSelection({
             start: frontendAmount.length,
             end: frontendAmount.length,
