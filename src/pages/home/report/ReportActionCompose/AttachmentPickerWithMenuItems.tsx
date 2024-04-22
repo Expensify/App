@@ -27,7 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type MoneyRequestOptions = Record<IOUType, PopoverMenuItem>;
+type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>, PopoverMenuItem>;
 
 type AttachmentPickerWithMenuItemsOnyxProps = {
     /** The policy tied to the report */
@@ -128,24 +128,24 @@ function AttachmentPickerWithMenuItems({
                 text: translate('iou.splitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
-            [CONST.IOU.TYPE.REQUEST]: {
+            [CONST.IOU.TYPE.SUBMIT]: {
                 icon: Expensicons.MoneyCircle,
                 text: translate('iou.submitExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? ''),
             },
-            [CONST.IOU.TYPE.SEND]: {
+            [CONST.IOU.TYPE.PAY]: {
                 icon: Expensicons.Send,
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? ''),
             },
-            [CONST.IOU.TYPE.TRACK_EXPENSE]: {
+            [CONST.IOU.TYPE.TRACK]: {
                 icon: Expensicons.DocumentPlus,
                 text: translate('iou.trackExpense'),
-                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, report?.reportID ?? ''),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? ''),
             },
         };
 
-        return ReportUtils.getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
+        return ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs ?? [], canUseTrackExpense).map((option) => ({
             ...options[option],
         }));
     }, [translate, report, policy, reportParticipantIDs, canUseTrackExpense]);

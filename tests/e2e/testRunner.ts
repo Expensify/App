@@ -99,6 +99,8 @@ const runTests = async (): Promise<void> => {
             throw new Error(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
         if (testResult?.error != null && !isCritical) {
+            // force test completion, since we don't want to have timeout error for non being execute test
+            server.forceTestCompletion();
             Logger.warn(`Test '${testResult.name}' failed with error: ${testResult.error}`);
         }
         let result = 0;

@@ -2573,7 +2573,7 @@ function convertTrackedExpenseToRequest(
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         transactionThreadReportID,
-        CONST.IOU.ACTION.REQUEST,
+        CONST.IOU.ACTION.SUBMIT,
     );
 
     optimisticData?.push(...moveTransactionOptimisticData);
@@ -2814,7 +2814,7 @@ function requestMoney(
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
     switch (action) {
-        case CONST.IOU.ACTION.REQUEST: {
+        case CONST.IOU.ACTION.SUBMIT: {
             if (!linkedTrackedExpenseReportAction || !actionableWhisperReportActionID || !linkedTrackedExpenseReportID) {
                 return;
             }

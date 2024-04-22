@@ -422,7 +422,7 @@ function AttachmentModal({
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                             CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.REQUEST,
+                            CONST.IOU.TYPE.SUBMIT,
                             transaction?.transactionID ?? '',
                             report?.reportID ?? '',
                             Navigation.getActiveRouteWithoutParams(),
