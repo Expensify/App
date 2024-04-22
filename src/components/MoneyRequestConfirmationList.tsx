@@ -688,6 +688,7 @@ function MoneyRequestConfirmationList({
         {
             item: (
                 <MenuItem
+                    key={translate('moneyRequestConfirmationList.paidBy')}
                     label={translate('moneyRequestConfirmationList.paidBy')}
                     interactive={!isPolicyExpenseChat && !transaction?.isFromGlobalCreate}
                     description={payeePersonalDetails.login}

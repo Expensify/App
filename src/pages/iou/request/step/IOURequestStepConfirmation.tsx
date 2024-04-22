@@ -120,7 +120,7 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        const payeeParticipant = OptionsListUtils.getParticipantsOption({accountID: payeePersonalDetails?.accountID, selected: true}, personalDetails);
+        const payeeParticipant: Participant = {accountID: payeePersonalDetails?.accountID, selected: true};
         IOU.setMoneyRequestParticipants_temporaryForRefactor(transaction.transactionID, [payeeParticipant, ...(transaction?.participants ?? [])]);
 
         // We only want to run it when the component is mounted
