@@ -5867,7 +5867,10 @@ function setSplitShares(transactionID: string, participantAccountIDs: number[], 
     });
 }
 
-function resetSplitShares(transaction: NonNullable<OnyxTypes.Transaction>, newAmount?: number, currency?: string) {
+function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string) {
+    if (!transaction) {
+        return;
+    }
     const accountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
     if (!accountIDs) {
         return;

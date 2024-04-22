@@ -353,7 +353,7 @@ function MoneyRequestConfirmationList({
         }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError, setFormError]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -430,7 +430,7 @@ function MoneyRequestConfirmationList({
         } else {
             setFormError('');
         }
-    }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode]);
+    }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {
