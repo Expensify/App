@@ -42,7 +42,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                     enabled: !autoSync?.enabled,
                 }),
             pendingAction: pendingFields?.autoSync,
-            errors: errors,
+            errors,
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
@@ -50,7 +50,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             isActive: Boolean(syncPeople),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
-            errors: errors,
+            errors,
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
@@ -58,7 +58,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             isActive: Boolean(autoCreateVendor),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
-            errors: errors,
+            errors,
         },
     ];
 
