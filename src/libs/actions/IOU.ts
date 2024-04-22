@@ -5338,7 +5338,7 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, chatReport, policy);
         return (
             (action.childReportID?.toString() !== excludedIOUReportID || (canApproveIOU(iouReport, chatReport, policy) && isPayer)) &&
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             shouldShowSettlementButton
         );
     });
