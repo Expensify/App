@@ -629,7 +629,7 @@ export default {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         routePending: 'Route pending...',
-        receiptScanning: 'Receipt scanning…',
+        receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         receiptMissingDetails: 'Receipt missing details',

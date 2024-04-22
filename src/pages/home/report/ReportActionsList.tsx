@@ -194,7 +194,6 @@ function ReportActionsList({
             ),
         [sortedReportActions, isOffline],
     );
-
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;

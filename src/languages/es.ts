@@ -622,7 +622,7 @@ export default {
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
         routePending: 'Ruta pendiente...',
-        receiptScanning: 'Escaneando recibo…',
+        receiptScanning: 'Escaneando recibo...',
         receiptScanInProgress: 'Escaneo en curso.',
         receiptScanInProgressDescription: 'Escaneando recibo. Vuelva a comprobarlo más tarde o introduzca los detalles ahora.',
         receiptMissingDetails: 'Recibo con campos vacíos',
