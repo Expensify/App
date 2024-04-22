@@ -397,16 +397,12 @@ function ReportActionItemMessageEdit(
         RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
     }, [textInputRef]);
 
-    const measureContainer = useCallback(
-        (callback: MeasureInWindowOnSuccessCallback) => {
-            if (!containerRef.current) {
-                return;
-            }
-            containerRef.current.measureInWindow(callback);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
+    const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
+        if (!containerRef.current) {
+            return;
+        }
+        containerRef.current.measureInWindow(callback);
+    }, []);
 
     /**
      * Focus the composer text input
