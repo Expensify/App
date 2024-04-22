@@ -2074,7 +2074,7 @@ export default {
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             disconnectTitle: 'Desconectar integración',
-            disconnectPrompt: (integrationToConnect?: ConnectionName) => {
+            disconnectPrompt: (integrationToConnect?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'Para configurar QuickBooks Online debe desconectarse. ¿Estás seguro de que deseas desconectar esta intregración?';

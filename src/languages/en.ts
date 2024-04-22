@@ -2082,7 +2082,7 @@ export default {
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: 'Disconnect integration',
-            disconnectPrompt: (integrationToConnect?: ConnectionName) => {
+            disconnectPrompt: (integrationToConnect?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
                         return 'To set up QuickBooks Online you must disconnect. Are you sure you want to disconnect this integration?';
