@@ -37,8 +37,8 @@ function CurrentUserPersonalDetailsSkeletonView({shouldAnimate = true, avatarSiz
         <View style={styles.avatarSectionWrapperSkeleton}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
-                backgroundColor={backgroundColor ?? theme.highlightBG}
-                foregroundColor={foregroundColor ?? theme.border}
+                backgroundColor={theme.skeletonLHNIn}
+                foregroundColor={theme.skeletonLHNOut}
                 height={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel + labelSize}
             >
                 <Circle
