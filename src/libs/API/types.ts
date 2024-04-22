@@ -141,6 +141,7 @@ const WRITE_COMMANDS = {
     REOPEN_TASK: 'ReopenTask',
     COMPLETE_TASK: 'CompleteTask',
     COMPLETE_ENGAGEMENT_MODAL: 'CompleteEngagementModal',
+    COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
     SET_NAME_VALUE_PAIR: 'SetNameValuePair',
     SET_REPORT_FIELD: 'Report_SetFields',
     DELETE_REPORT_FIELD: 'RemoveReportField',
@@ -343,6 +344,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REOPEN_TASK]: Parameters.ReopenTaskParams;
     [WRITE_COMMANDS.COMPLETE_TASK]: Parameters.CompleteTaskParams;
     [WRITE_COMMANDS.COMPLETE_ENGAGEMENT_MODAL]: Parameters.CompleteEngagementModalParams;
+    [WRITE_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [WRITE_COMMANDS.SET_NAME_VALUE_PAIR]: Parameters.SetNameValuePairParams;
     [WRITE_COMMANDS.SET_REPORT_FIELD]: Parameters.SetReportFieldParams;
     [WRITE_COMMANDS.SET_REPORT_NAME]: Parameters.SetReportNameParams;
@@ -412,7 +414,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_DEFAULT_CATEGORY]: Parameters.SetPolicyDistanceRatesDefaultCategoryParams;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams<any, any>;
+    [WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG]: Parameters.UpdatePolicyConnectionConfigParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CONNECTION]: Parameters.RemovePolicyConnectionParams;
     [WRITE_COMMANDS.UPDATE_POLICY_DISTANCE_RATE_VALUE]: Parameters.UpdatePolicyDistanceRateValueParams;
     [WRITE_COMMANDS.SET_POLICY_DISTANCE_RATES_ENABLED]: Parameters.SetPolicyDistanceRatesEnabledParams;
