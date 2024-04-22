@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {ConnectionName, Connections, PolicyConnectionName} from '@src/types/onyx/Policy';
 
 function removePolicyConnection(policyID: string, connectionName: PolicyConnectionName) {
     const optimisticData: OnyxUpdate[] = [
@@ -42,7 +42,12 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
     };
     API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, failureData});
 }
-function updatePolicyConnectionConfig(policyID: string, connectionName: string, settingName: string, settingValue: Partial<string | boolean>) {
+function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
+    policyID: string,
+    connectionName: TConnectionName,
+    settingName: TSettingName,
+    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
+) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -109,11 +114,11 @@ function updatePolicyConnectionConfig(policyID: string, connectionName: string, 
         },
     ];
 
-    const parameters = {
+    const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
         policyID,
         connectionName,
         settingName,
-        settingValue,
+        settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(settingName),
     };
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
