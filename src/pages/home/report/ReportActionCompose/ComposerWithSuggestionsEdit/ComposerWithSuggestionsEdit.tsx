@@ -21,6 +21,7 @@ type ComposerWithSuggestionsEditProps = ComposerProps & {
     measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
     value: string;
     selection: Selection;
+    isGroupPolicyReport: boolean;
 };
 
 function ComposerWithSuggestionsEdit(
@@ -45,6 +46,7 @@ function ComposerWithSuggestionsEdit(
         updateDraft,
         measureParentContainer,
         id = undefined,
+        isGroupPolicyReport,
     }: ComposerWithSuggestionsEditProps,
     ref: ForwardedRef<TextInput>,
 ) {
@@ -87,6 +89,7 @@ function ComposerWithSuggestionsEdit(
                 selection={selection}
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
+                isGroupPolicyReport={isGroupPolicyReport}
             />
         </>
     );

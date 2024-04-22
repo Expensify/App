@@ -59,6 +59,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string;
 
+    /** If current composer is connected with report from group policy */
+    isGroupPolicyReport: boolean;
+
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -77,7 +80,7 @@ const isMobileSafari = Browser.isMobileSafari();
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, isGroupPolicyReport, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
 ) {
     const theme = useTheme();
@@ -526,6 +529,7 @@ function ReportActionItemMessageEdit(
                             suggestionsRef={suggestionsRef}
                             updateDraft={updateDraft}
                             measureParentContainer={measureContainer}
+                            isGroupPolicyReport={isGroupPolicyReport}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>
