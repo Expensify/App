@@ -56,7 +56,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -78,7 +78,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -100,7 +100,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: null,
                             },
