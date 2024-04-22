@@ -114,7 +114,7 @@ function isValidMoneyRequestType(iouType: string): boolean {
 }
 
 /**
- * Checks if the iou type is one of submit, pat, track, or split.
+ * Checks if the iou type is one of submit, pay, track, or split.
  */
 // eslint-disable-next-line @typescript-eslint/naming-convention
 function temporary_isValidMoneyRequestType(iouType: string): boolean {
