@@ -831,8 +831,8 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
             // - the action is pending deletion and the user is offline
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (Boolean(action.originalMessage.IOUTransactionID) ||
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (isMessageDeleted(action) && action.childVisibleActionCount) ||
                 (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
     );
