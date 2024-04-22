@@ -49,6 +49,8 @@ import type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PaySomeoneParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -304,12 +306,14 @@ export default {
         member: 'Miembro',
         role: 'Role',
         currency: 'Divisa',
+        rate: 'Tarifa',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',
             subtitleText1: 'Encuentra un chat usando el botón',
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
+        businessName: 'Nombre del Negocio',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -409,7 +413,7 @@ export default {
     },
     login: {
         hero: {
-            header: 'Divida las facturas, solicite pagos y chatee con sus amigos.',
+            header: 'Gestiona, divide gastos y chatea con tu equipo.',
             body: 'Bienvenido al futuro de Expensify, tu nuevo lugar de referencia para la colaboración financiera con amigos y compañeros de equipo por igual.',
         },
     },
@@ -461,18 +465,10 @@ export default {
         copyEmailToClipboard: 'Copiar email al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: ({action}: EditActionParams) =>
-            `Editar ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'gastos' : 'solicitud'}` : 'comentario'
-            }`,
-        deleteAction: ({action}: DeleteActionParams) =>
-            `Eliminar ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'gastos' : 'solicitud'}` : 'comentario'
-            }`,
+        editAction: ({action}: EditActionParams) => `Editar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'}`,
+        deleteAction: ({action}: DeleteActionParams) => `Eliminar ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gastos' : 'comentario'}`,
         deleteConfirmation: ({action}: DeleteConfirmationParams) =>
-            `¿Estás seguro de que quieres eliminar esta ${
-                action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? `${action?.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK ? 'gastos' : 'solicitud'}` : 'comentario'
-            }`,
+            `¿Estás seguro de que quieres eliminar este ${action?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`,
         onlyVisible: 'Visible sólo para',
         replyInThread: 'Responder en el hilo',
         joinThread: 'Unirse al hilo',
@@ -501,7 +497,7 @@ export default {
         beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
-        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
+        beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear y presentar o pagar gastos.',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
@@ -509,9 +505,9 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
-            send: 'enviar dinero',
-            split: 'dividir una factura',
-            request: 'pedir dinero',
+            send: 'pagar gastos',
+            split: 'dividir un gasto',
+            request: 'presentar un gasto',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             'track-expense': 'rastrear un gasto',
         },
@@ -591,11 +587,11 @@ export default {
     quickAction: {
         scanReceipt: 'Escanear recibo',
         recordDistance: 'Grabar distancia',
-        requestMoney: 'Solicitar dinero',
-        splitBill: 'Dividir cuenta',
+        requestMoney: 'Presentar gasto',
+        splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
-        sendMoney: 'Enviar dinero',
+        sendMoney: 'Pagar a alguien',
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
         trackManual: 'Crear gasto',
@@ -612,14 +608,13 @@ export default {
         card: 'Tarjeta',
         original: 'Original',
         split: 'Dividir',
-        addToSplit: 'Añadir para dividir',
-        splitBill: 'Dividir factura',
-        request: 'Solicitar',
+        splitExpense: 'Dividir gasto',
+        expense: 'Gasto',
         categorize: 'Categorizar',
         share: 'Compartir',
         participants: 'Participantes',
-        requestMoney: 'Pedir dinero',
-        sendMoney: 'Enviar dinero',
+        submitExpense: 'Presentar gasto',
+        paySomeone: ({name}: PaySomeoneParams) => `Pagar a ${name ?? 'alguien'}`,
         trackExpense: 'Seguimiento de gastos',
         pay: 'Pagar',
         cancelPayment: 'Cancelar el pago',
@@ -629,7 +624,8 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
-        routePending: 'Ruta pendiente...',
+        routePending: 'Pendiente...',
+        defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
@@ -638,11 +634,11 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
-        requestCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('solicitude', 'solicitudes', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
+            `${count} ${Str.pluralize('gasto', 'gastos', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${
                 pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''
             }`,
-        deleteRequest: 'Eliminar solicitud',
+        deleteExpense: 'Eliminar gasto',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
@@ -650,9 +646,9 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
-        requestAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
-        requestedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicité ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `seguimiento ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
+        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         amountEach: ({amount}: AmountEachParams) => `${amount} cada uno`,
@@ -676,7 +672,7 @@ export default {
         paidWithExpensifyWithAmount: ({payer, amount}: PaidWithExpensifyWithAmountParams) => `${payer ? `${payer} ` : ''}pagó ${amount} con Expensify`,
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
-        changedTheRequest: 'cambió la solicitud',
+        changedTheExpense: 'cambió el gasto',
         setTheRequest: ({valueName, newValueToDisplay}: SetTheRequestParams) => `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay}`,
         setTheDistance: ({newDistanceToDisplay, newAmountToDisplay}: SetTheDistanceParams) =>
             `estableció la distancia a ${newDistanceToDisplay}, lo que estableció el importe a ${newAmountToDisplay}`,
@@ -685,9 +681,9 @@ export default {
             `${valueName === 'comerciante' ? 'el' : 'la'} ${valueName} a ${newValueToDisplay} (previamente ${oldValueToDisplay})`,
         updatedTheDistance: ({newDistanceToDisplay, oldDistanceToDisplay, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceParams) =>
             `cambió la distancia a ${newDistanceToDisplay} (previamente ${oldDistanceToDisplay}), lo que cambió el importe a ${newAmountToDisplay} (previamente ${oldAmountToDisplay})`,
-        threadRequestReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Solicitud de ${formattedAmount}`}`,
+        threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${comment ? `${formattedAmount} para ${comment}` : `Gasto de ${formattedAmount}`}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Seguimiento ${formattedAmount} ${comment ? `para ${comment}` : ''}`,
-        threadSentMoneyReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
+        threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} enviado${comment ? ` para ${comment}` : ''}`,
         tagSelection: 'Selecciona una etiqueta para organizar mejor tu dinero.',
         categorySelection: 'Seleccione una categoría para organizar mejor tu dinero.',
         error: {
@@ -696,28 +692,28 @@ export default {
             invalidTaxAmount: ({amount}: RequestAmountParams) => `El importe máximo del impuesto es ${amount}`,
             invalidSplit: 'La suma de las partes no equivale al importe total',
             other: 'Error inesperado, por favor inténtalo más tarde',
-            genericCreateFailureMessage: 'Error inesperado solicitando dinero. Por favor, inténtalo más tarde',
+            genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             receiptFailureMessage: 'El recibo no se subió. ',
             saveFileMessage: 'Guarda el archivo ',
             loseFileMessage: 'o descarta este error y piérdelo',
-            genericDeleteFailureMessage: 'Error inesperado eliminando la solicitud de dinero. Por favor, inténtalo más tarde',
-            genericEditFailureMessage: 'Error inesperado al guardar la solicitud de dinero. Por favor, inténtalo más tarde',
+            genericDeleteFailureMessage: 'Error inesperado al eliminar este gasto. Por favor, inténtalo más tarde',
+            genericEditFailureMessage: 'Error inesperado al editar este gasto. Por favor, inténtalo más tarde',
             genericSmartscanFailureMessage: 'La transacción tiene campos vacíos',
             duplicateWaypointsErrorMessage: 'Por favor, elimina los puntos de ruta duplicados',
             atLeastTwoDifferentWaypoints: 'Por favor, introduce al menos dos direcciones diferentes',
-            splitBillMultipleParticipantsErrorMessage: 'Solo puedes dividir una cuenta entre un único espacio de trabajo o con usuarios individuales. Por favor, actualiza tu selección.',
+            splitExpenseMultipleParticipantsErrorMessage: 'Solo puedes dividir un gasto entre un único espacio de trabajo o con usuarios individuales. Por favor, actualiza tu selección.',
             invalidMerchant: 'Por favor, introduce un comerciante correcto.',
         },
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `Inició el pago, pero no se procesará hasta que ${submitterDisplayName} active su Billetera`,
         enableWallet: 'Habilitar Billetera',
-        holdRequest: 'Bloquear solicitud',
-        unholdRequest: 'Desbloquear solicitud',
-        heldRequest: 'bloqueó esta solicitud',
-        unheldRequest: 'desbloqueó esta solicitud',
+        holdExpense: 'Bloquear gasto',
+        unholdExpense: 'Desbloquear gasto',
+        heldExpense: 'bloqueó este gasto',
+        unheldExpense: 'desbloqueó este gasto',
         explainHold: 'Explica la razón para bloquear esta solicitud.',
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
-        requestOnHold: 'Este solicitud está bloqueada. Revisa los comentarios para saber como proceder.',
+        expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
         confirmApprove: 'Confirma que quieres aprobar',
         confirmApprovalAmount: 'Aprobar el total o solo la parte no bloqueada.',
         confirmPay: 'Confirma que quieres pagar',
@@ -725,7 +721,7 @@ export default {
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Bloqueada',
-        holdEducationalTitle: 'Esta solicitud está',
+        holdEducationalTitle: 'Este gasto está',
         whatIsHoldTitle: '¿Qué es Bloquear?',
         whatIsHoldExplain: 'Bloquear es nuestra forma de agilizar la colaboración financiera. ¡"Rechazar" es tan duro!',
         holdIsTemporaryTitle: 'Bloquear suele ser temporal',
@@ -735,6 +731,7 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Seleccione una tasa de reembolso del espacio de trabajo por ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -936,8 +933,7 @@ export default {
         reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
         enterMessageHere: 'Escribe aquí tu mensaje',
         closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir.',
-        closeAccountPermanentlyDeleteData:
-            'Esta acción eliminará permanentemente toda la información de tus gastos no enviados y cancelará o rechazará cualquier solicitud de dinero pendiente. ¿Estás seguro de que quieres eliminar tu cuenta?',
+        closeAccountPermanentlyDeleteData: '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción eliminará permanentemente toda la información de cualquier gasto pendiente.',
         enterDefaultContactToConfirm: 'Por favor, escribe tu método de contacto predeterminado para confirmar que deseas eliminar tu cuenta. Tu método de contacto predeterminado es:',
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
@@ -1269,19 +1265,6 @@ export default {
         },
         chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
     },
-    signInPage: {
-        expensifyDotCash: 'Nuevo Expensify',
-        theCode: 'el código',
-        openJobs: 'trabajos disponibles',
-        heroHeading: 'Dividir cuentas\ny chatear con amigos.',
-        heroDescription: {
-            phrase1: 'El dinero habla. Y ahora que el chat y los pagos están en un solo lugar, también es fácil. Tus pagos te llegan tan rápido como puedes hacer llegar tu mensaje',
-            phrase2: 'Nuevo Expensify es de código abierto. Vista',
-            phrase3: 'el código',
-            phrase4: 'Vista',
-            phrase5: 'vacantes',
-        },
-    },
     termsOfUse: {
         phrase1: 'Al iniciar sesión, estás accediendo a los',
         phrase2: 'Términos de Servicio',
@@ -1333,13 +1316,13 @@ export default {
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
     onboarding: {
-        welcome: '¡Bienvenido!',
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
             description: 'Cobrar es tan fácil como enviar un mensaje.',
             button: 'Vámonos',
         },
         whatsYourName: '¿Cómo te llamas?',
+        whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             error: 'Por favor, haga una selección antes de continuar.',
@@ -1347,7 +1330,7 @@ export default {
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide cuentas con tus amigos',
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
         },
         error: {
@@ -1405,7 +1388,6 @@ export default {
         localTime: 'Hora local',
     },
     newChatPage: {
-        createChat: 'Crear chat',
         startGroup: 'Grupo de inicio',
         addToGroup: 'Añadir al grupo',
     },
@@ -2105,12 +2087,23 @@ export default {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importando clientes';
                         case 'quickbooksOnlineImportEmployees':
-                            return 'Importing employees';
+                            return 'Importando empleados';
                         case 'quickbooksOnlineImportAccounts':
-                            return 'Importing accounts';
+                            return 'Importando cuentas';
                         case 'quickbooksOnlineImportClasses':
-                            return 'Importing classes';
-
+                            return 'Importando clases';
+                        case 'quickbooksOnlineImportLocations':
+                            return 'Importando localidades';
+                        case 'quickbooksOnlineImportProcessing':
+                            return 'Procesando datos importados';
+                        case 'quickbooksOnlineSyncBillPayments':
+                            return 'Sincronizando reportes reembolsados y facturas pagadas';
+                        case 'quickbooksOnlineSyncTaxCodes':
+                            return 'Importando tipos de impuestos';
+                        case 'quickbooksOnlineCheckConnection':
+                            return 'Revisando conexión a QuickBooks Online';
+                        case 'quickbooksOnlineImportMain':
+                            return 'Importando datos desde QuickBooks Online';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -3021,7 +3014,6 @@ export default {
     parentReportAction: {
         deletedReport: '[Informe eliminado]',
         deletedMessage: '[Mensaje eliminado]',
-        deletedRequest: '[Solicitud eliminada]',
         deletedExpense: '[Gasto eliminado]',
         reversedTransaction: '[Transacción anulada]',
         deletedTask: '[Tarea eliminada]',
@@ -3048,7 +3040,7 @@ export default {
         decline: 'Rechazar',
     },
     actionableMentionTrackExpense: {
-        request: 'Pedirle a alguien que lo pague',
+        submit: 'Pedirle a alguien que lo pague',
         categorize: 'Categorizarlo',
         share: 'Compartirlo con mi contador',
         nothing: 'Por ahora, nada',
@@ -3151,27 +3143,27 @@ export default {
             body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
-            buttonText1: 'Pide dinero, ',
+            buttonText1: 'Presentar gasto, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Pide dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Vale la pena cobrar! Pide dinero a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
+            header: `Presenta un gasto y consigue $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `¡Vale la pena cobrar! Envia un gasto a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
-            buttonText1: 'Envía dinero, ',
+            buttonText1: 'Pagar a alguien, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            header: `Envía dinero y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `¡Hay que enviar dinero para ganar dinero! Envía dinero a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
+            header: `Paga a alguien y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
+            body: `¡Hay que gastar dinero para ganar dinero! Paga a alguien con Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {
             buttonText1: 'Invita a un amigo y ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Sé el primero en chatear, enviar o pedir dinero, dividir una factura o compartir tu enlace de invitación con un amigo, y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
+            body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE]: {
             buttonText1: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
-            body: `Sé el primero en chatear, enviar o pedir dinero, dividir una factura o compartir tu enlace de invitación con un amigo, y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
+            body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },

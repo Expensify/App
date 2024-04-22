@@ -43,7 +43,22 @@ type WorkspaceMenuItem = {
     icon: IconAsset;
     action: () => void;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?: ValueOf<typeof SCREENS.WORKSPACE>;
+    routeName?:
+        | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
+        | typeof SCREENS.WORKSPACE.INITIAL
+        | typeof SCREENS.WORKSPACE.CARD
+        | typeof SCREENS.WORKSPACE.REIMBURSE
+        | typeof SCREENS.WORKSPACE.BILLS
+        | typeof SCREENS.WORKSPACE.INVOICES
+        | typeof SCREENS.WORKSPACE.TRAVEL
+        | typeof SCREENS.WORKSPACE.DISTANCE_RATES
+        | typeof SCREENS.WORKSPACE.WORKFLOWS
+        | typeof SCREENS.WORKSPACE.CATEGORIES
+        | typeof SCREENS.WORKSPACE.TAGS
+        | typeof SCREENS.WORKSPACE.TAXES
+        | typeof SCREENS.WORKSPACE.MORE_FEATURES
+        | typeof SCREENS.WORKSPACE.PROFILE
+        | typeof SCREENS.WORKSPACE.MEMBERS;
 };
 
 type WorkspaceInitialPageOnyxProps = {
@@ -204,10 +219,10 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID)))),
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
             // brickRoadIndicator should be set when API will be ready
             brickRoadIndicator: undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING,
+            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
         });
     }
 
@@ -247,19 +262,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
-    // We are checking if the user can access the route.
-    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
-    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
-
     useEffect(() => {
-        if (!shouldShowNotFoundPage && canAccessRoute) {
+        if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
             return;
         }
-        // We are dismissing any modals that are open when the NotFound view is shown
-        Navigation.isNavigationReady().then(() => {
-            Navigation.dismissRHP();
-        });
-    }, [canAccessRoute, policy, shouldShowNotFoundPage]);
+        PolicyUtils.goBackFromInvalidPolicy();
+    }, [policy, prevPolicy]);
 
     const policyAvatar = useMemo(() => {
         if (!policy) {
@@ -298,6 +306,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                         onClose={() => dismissError(policyID)}
                         errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
+                        shouldDisableStrikeThrough={false}
+                        shouldHideOnDelete={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
