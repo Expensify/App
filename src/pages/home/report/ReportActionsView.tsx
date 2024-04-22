@@ -143,7 +143,10 @@ function ReportActionsView({
     );
 
     const parentReportActionForTransactionThread = useMemo(
-        () => (isEmptyObject(transactionThreadReportActions) ? null : allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID)),
+        () =>
+            isEmptyObject(transactionThreadReportActions)
+                ? null
+                : (allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
