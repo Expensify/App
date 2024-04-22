@@ -322,7 +322,6 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 });
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
-    [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../../pages/EditRequestPage').default as React.ComponentType,
     [SCREENS.EDIT_REQUEST.REPORT_FIELD]: () => require('../../../../pages/EditReportFieldPage').default as React.ComponentType,
 });
 

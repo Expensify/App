@@ -648,7 +648,6 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.EDIT_REQUEST]: {
                     screens: {
-                        [SCREENS.EDIT_REQUEST.ROOT]: ROUTES.EDIT_REQUEST.route,
                         [SCREENS.EDIT_REQUEST.REPORT_FIELD]: ROUTES.EDIT_REPORT_FIELD_REQUEST.route,
                     },
                 },
