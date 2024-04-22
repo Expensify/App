@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-plaid-link-sdk/README.md b/node_modules/react-native-plaid-link-sdk/README.md
-index 93ebca6..7bea608 100644
+index 93ebca6..b685c93 100644
 --- a/node_modules/react-native-plaid-link-sdk/README.md
 +++ b/node_modules/react-native-plaid-link-sdk/README.md
 @@ -49,7 +49,6 @@ cd ios && bundle install && bundle exec pod install
@@ -3208,14 +3208,14 @@ index 0000000..2dd7a54
 \ No newline at end of file
 diff --git a/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleAndroid.ts b/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleAndroid.ts
 new file mode 100644
-index 0000000..d1e4062
+index 0000000..be866d0
 --- /dev/null
 +++ b/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleAndroid.ts
 @@ -0,0 +1,20 @@
 +// we use Object type because methods on the native side use NSDictionary and ReadableMap
 +// and we want to stay compatible with those
 +import {TurboModuleRegistry, TurboModule} from 'react-native';
-+import { Int32, UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
++import { Double, UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 +
 +export interface Spec extends TurboModule {
 +    startLinkActivityForResult(
@@ -3228,20 +3228,20 @@ index 0000000..d1e4062
 +
 +    // those two are here for event emitter methods
 +    addListener(eventName: string): void;
-+    removeListeners(count: Int32): void;
++    removeListeners(count: Double): void;
 +}
 +
 +export default TurboModuleRegistry.get<Spec>('PlaidAndroid');
 diff --git a/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleiOS.ts b/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleiOS.ts
 new file mode 100644
-index 0000000..d1b3565
+index 0000000..418b582
 --- /dev/null
 +++ b/node_modules/react-native-plaid-link-sdk/src/fabric/NativePlaidLinkModuleiOS.ts
 @@ -0,0 +1,19 @@
 +// we use Object type because methods on the native side use NSDictionary and ReadableMap
 +// and we want to stay compatible with those
 +import {TurboModuleRegistry, TurboModule} from 'react-native';
-+import { Int32, UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
++import { Double, UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 +
 +export interface Spec extends TurboModule {
 +    create(token: string, noLoadingState: boolean): void;
@@ -3253,7 +3253,7 @@ index 0000000..d1b3565
 +    dismiss(): void;
 +    // those two are here for event emitter methods
 +    addListener(eventName: string): void;
-+    removeListeners(count: Int32): void;
++    removeListeners(count: Double): void;
 +}
 +
 +export default TurboModuleRegistry.get<Spec>('RNLinksdk');
