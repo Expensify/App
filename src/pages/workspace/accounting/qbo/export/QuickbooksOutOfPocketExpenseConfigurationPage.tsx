@@ -19,12 +19,12 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations, exportAccount, exportEntity, errors, syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncLocations, exportAccount, exportEntity, errorFields, syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const shouldShowTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
     const shouldShowLocationError = isLocationEnabled && exportEntity !== CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
-    const hasErrors = Boolean(errors?.exportEntity) || shouldShowTaxError || shouldShowLocationError;
+    const hasErrors = Boolean(errorFields?.exportEntity) || shouldShowTaxError || shouldShowLocationError;
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -59,9 +59,9 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyProps
                                     title={exportAccount}
                                     description={translate('workspace.qbo.accountsPayable')}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID))}
-                                    brickRoadIndicator={errors?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={errorFields?.exportAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     shouldShowRightIcon
-                                    error={errors?.exportAccount ? translate('common.genericErrorMessage') : undefined}
+                                    error={errorFields?.exportAccount ? translate('common.genericErrorMessage') : undefined}
                                     // TODO uncomment when errorText will be fixed
                                     // errorText={errors?.exportAccount}
                                 />

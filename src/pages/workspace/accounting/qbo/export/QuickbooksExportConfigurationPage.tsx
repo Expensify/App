@@ -26,47 +26,46 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const policyOwner = policy?.owner ?? '';
-    const {exporter, exportDate, exportEntity, exportInvoice, exportCompanyCard, errors, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {exporter, exportDate, exportEntity, exportInvoice, exportCompanyCard, errorFields, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const menuItems: MenuItem[] = [
         {
             description: translate('workspace.qbo.preferredExporter'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
-            brickRoadIndicator: errors?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exporter ?? policyOwner,
             pendingAction: pendingFields?.exporter,
-            errorText: errors?.exporter,
+            error: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.date'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errors?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportDate ? translate(`workspace.qbo.${exportDate}.label`) : undefined,
             pendingAction: pendingFields?.exportDate,
-            errorText: errors?.exportDate,
+            error: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.exportExpenses'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
-            brickRoadIndicator: errors?.exportEntity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: errorFields?.exportEntity ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined,
             pendingAction: pendingFields?.exportEntity,
-            errorText: errors?.exportEntity,
         },
         {
             description: translate('workspace.qbo.exportInvoices'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errors?.exportInvoice ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: errorFields?.exportInvoice ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportInvoice,
             pendingAction: pendingFields?.exportInvoice,
-            errorText: errors?.exportInvoice,
+            error: errorFields?.exportInvoice ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.exportCompany'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errors?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            brickRoadIndicator: errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportCompanyCard,
             pendingAction: pendingFields?.exportCompanyCard,
-            errorText: errors?.exportCompanyCard,
+            error: errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
@@ -103,7 +102,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
                                     brickRoadIndicator={menuItem?.brickRoadIndicator}
                                     // TODO uncomment when errorText will be fixed
                                     // errorText={menuItem?.errorText}
-                                    error={menuItem?.brickRoadIndicator ? translate('common.genericErrorMessage') : undefined}
+                                    error={menuItem?.error}
                                 />
                             </OfflineWithFeedback>
                         ))}
