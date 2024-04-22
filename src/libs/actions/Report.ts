@@ -3226,7 +3226,6 @@ function completeOnboarding(
             key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
             value: {
                 lastMentionedTime: DateUtils.getDBTime(),
-                permissions: [CONST.REPORT.PERMISSIONS.READ],
             },
         },
         {
