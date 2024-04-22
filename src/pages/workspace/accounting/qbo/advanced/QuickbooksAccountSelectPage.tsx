@@ -13,8 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -98,4 +98,4 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
 
 QuickbooksAccountSelectPage.displayName = 'QuickbooksAccountSelectPage';
 
-export default withPolicy(QuickbooksAccountSelectPage);
+export default withPolicyConnections(QuickbooksAccountSelectPage);

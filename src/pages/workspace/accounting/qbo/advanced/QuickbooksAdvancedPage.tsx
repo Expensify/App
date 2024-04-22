@@ -16,8 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy';
@@ -174,4 +174,4 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
 QuickbooksAdvancedPage.displayName = 'QuickbooksAdvancedPage';
 
-export default withPolicy(QuickbooksAdvancedPage);
+export default withPolicyConnections(QuickbooksAdvancedPage);
