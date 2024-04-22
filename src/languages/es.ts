@@ -1068,15 +1068,15 @@ export default {
         expensifyCard: 'Tarjeta Expensify',
         availableSpend: 'Límite restante',
         smartLimit: {
-            name: 'Smart limit',
+            name: 'Límite inteligente',
             title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta al mes. El límite se restablecerá el primer día del mes.`,
         },
         fixedLimit: {
-            name: 'Fixed limit',
+            name: 'Límite fijo',
             title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta, luego se desactivará.`,
         },
         monthlyLimit: {
-            name: 'Monthly limit',
+            name: 'Límite mensual',
             title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta y el límite se restablecerá a medida que se aprueben tus gastos.`,
         },
         virtualCardNumber: 'Número de la tarjeta virtual',
