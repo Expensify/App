@@ -1,12 +1,12 @@
 import Onyx from 'react-native-onyx';
 import * as AppImport from '@libs/actions/App';
-import * as OnyxUpdateManagerImport from '@libs/actions/OnyxUpdateManager';
+import * as OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager';
+import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
+import deferredUpdatesProxy from '@libs/actions/OnyxUpdateManager/utils/deferredUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
-const lastAppliedMissingUpdateIDOnyxKey = 'lastAppliedMissingUpdateID';
 
 const createTriggerPromise = () => {
     let trigger: () => void = () => undefined;
@@ -20,35 +20,40 @@ const createTriggerPromise = () => {
 };
 
 type AppActionsMock = typeof AppImport & {
+    lastUpdateIdFromUpdatesProxy: Record<'lastUpdateIdFromUpdates', number>;
     getMissingOnyxUpdates: jest.Mock<Promise<void[]>>;
     getMissingOnyxUpdatesTriggeredPromise: Promise<void>;
+    getMissingOnyxUpdatesDonePromise: Promise<void>;
 };
 
 jest.mock('@libs/actions/App', () => {
     const AppImplementation: typeof AppImport = jest.requireActual('@libs/actions/App');
     const AppOnyx: typeof Onyx = jest.requireActual('react-native-onyx').default;
     const APP_ONYXKEYS: typeof ONYXKEYS = jest.requireActual('@src/ONYXKEYS').default;
+    const appCreateProxyForValue = jest.requireActual('@src/utils/createProxyForValue').default;
 
-    let appLastAppliedMissingUpdateID = 2;
-    AppOnyx.connect({
-        // @ts-expect-error ignore invalid onyx key
-        key: 'lastAppliedMissingUpdateID',
-        callback: (value) => (appLastAppliedMissingUpdateID = (value as number | null) ?? 2),
-    });
+    const lastUpdateIdFromUpdatesValueInternal = {lastUpdateIdFromUpdates: 2};
+    const lastUpdateIdFromUpdatesProxy = appCreateProxyForValue(lastUpdateIdFromUpdatesValueInternal, 'lastUpdateIdFromUpdates');
+    const {lastUpdateIdFromUpdates} = lastUpdateIdFromUpdatesValueInternal;
 
-    const {promise: getMissingOnyxUpdatesTriggeredPromise, trigger: getMissingOnyxUpdatesWasTriggered, resetPromise: resetGetMissingOnyxUpdatesPromise} = createTriggerPromise();
+    const {promise: getMissingOnyxUpdatesTriggeredPromise, trigger: getMissingOnyxUpdatesWasTriggered, resetPromise: resetGetMissingOnyxUpdatesTriggeredPromise} = createTriggerPromise();
+    const {promise: getMissingOnyxUpdatesDonePromise, trigger: getMissingOnyxUpdatesDone, resetPromise: resetGetMissingOnyxUpdatesDonePromise} = createTriggerPromise();
 
     return {
         ...AppImplementation,
+        lastUpdateIdFromUpdatesProxy,
         finalReconnectAppAfterActivatingReliableUpdates: jest.fn(() => Promise.resolve()),
         getMissingOnyxUpdatesTriggeredPromise,
+        getMissingOnyxUpdatesDonePromise,
         getMissingOnyxUpdates: jest.fn(() => {
+            resetGetMissingOnyxUpdatesDonePromise();
             getMissingOnyxUpdatesWasTriggered();
 
-            const promise = AppOnyx.set(APP_ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, appLastAppliedMissingUpdateID);
+            const promise = AppOnyx.set(APP_ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIdFromUpdates);
 
             promise.finally(() => {
-                resetGetMissingOnyxUpdatesPromise();
+                getMissingOnyxUpdatesDone();
+                resetGetMissingOnyxUpdatesTriggeredPromise();
             });
 
             return promise;
@@ -56,60 +61,38 @@ jest.mock('@libs/actions/App', () => {
     } as AppActionsMock;
 });
 
-type OnyxUpdateManagerMock = typeof OnyxUpdateManagerImport & {
-    applyUpdates: jest.Mock<Promise<Response[]>>;
+type ApplyUpdatesMock = typeof ApplyUpdatesImport & {
+    applyUpdates: jest.Mock<Promise<void[]>>;
     applyUpdatesTriggeredPromise: Promise<void>;
 };
 
-jest.mock('@libs/actions/OnyxUpdateManager', () => {
-    const OnyxUpdateManagerImplementation: typeof OnyxUpdateManagerImport = jest.requireActual('@libs/actions/OnyxUpdateManager');
+jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates', () => {
+    const AppOnyx: typeof Onyx = jest.requireActual('react-native-onyx').default;
+    const APP_ONYXKEYS: typeof ONYXKEYS = jest.requireActual('@src/ONYXKEYS').default;
 
     const {promise: applyUpdatesTriggeredPromise, trigger: applyUpdatesTriggered, resetPromise: resetApplyUpdatesTriggeredPromise} = createTriggerPromise();
 
-    // return {
-    //     ...OnyxUpdateManagerImplementation,
-    //     applyUpdatesTriggeredPromise,
-    //     applyUpdates: jest.fn((updates: DeferredUpdatesDictionary) => {
-    //         applyUpdatesTriggered();
+    return {
+        applyUpdatesTriggeredPromise,
+        applyUpdates: jest.fn((updates: DeferredUpdatesDictionary) => {
+            applyUpdatesTriggered();
 
-    //         const promise = OnyxUpdateManagerImplementation.applyUpdates(updates);
+            const lastUpdateIdFromUpdates = Math.max(...Object.keys(updates).map(Number));
 
-    //         promise.finally(() => {
-    //             resetApplyUpdatesTriggeredPromise();
-    //         });
+            const promise = AppOnyx.set(APP_ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, lastUpdateIdFromUpdates);
 
-    //         return promise;
-    //     }),
-    // } as OnyxUpdateManagerMock;
+            promise.finally(() => {
+                resetApplyUpdatesTriggeredPromise();
+            });
 
-    return new Proxy(OnyxUpdateManagerImplementation, {
-        get: (target, prop) => {
-            switch (prop) {
-                case 'applyUpdatesTriggeredPromise':
-                    return applyUpdatesTriggeredPromise;
-                case 'applyUpdates':
-                    return jest.fn((updates: DeferredUpdatesDictionary) => {
-                        applyUpdatesTriggered();
-
-                        console.log('apply updates triggered');
-
-                        const promise = OnyxUpdateManagerImplementation.applyUpdates(updates);
-
-                        promise.finally(() => {
-                            resetApplyUpdatesTriggeredPromise();
-                        });
-
-                        return promise;
-                    });
-                default:
-                    return target[prop as keyof typeof OnyxUpdateManagerImport];
-            }
-        },
-    }) as OnyxUpdateManagerMock;
+            return promise;
+        }),
+    } as ApplyUpdatesMock;
 });
 
 const App = AppImport as AppActionsMock;
-const OnyxUpdateManager = OnyxUpdateManagerImport as OnyxUpdateManagerMock;
+const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
+const {applyUpdates} = ApplyUpdates;
 
 const createMockUpdate = (lastUpdateID: number): OnyxUpdatesFromServer => ({
     type: 'https',
@@ -139,59 +122,47 @@ const mockUpdate5 = createMockUpdate(5);
 const mockUpdate6 = createMockUpdate(6);
 
 const resetOnyxUpdateManager = async () => {
-    // @ts-expect-error ignore invalid onyx key
-    await Onyx.set(lastAppliedMissingUpdateIDOnyxKey, 2);
+    App.lastUpdateIdFromUpdatesProxy.lastUpdateIdFromUpdates = 2;
     await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
     OnyxUpdateManager.resetDeferralLogicVariables();
 };
 
 describe('OnyxUpdateManager', () => {
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-        return waitForBatchedUpdates();
-    });
+    let lastUpdateIDAppliedToClient = 1;
 
     beforeEach(async () => {
         jest.clearAllMocks();
         Onyx.clear();
         await resetOnyxUpdateManager();
+        Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
+        Onyx.connect({
+            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+            callback: (value) => (lastUpdateIDAppliedToClient = value ?? 1),
+        });
         return waitForBatchedUpdates();
     });
 
     it('should fetch missing Onyx updates once, defer updates and apply after missing updates', () => {
-        let lastUpdateIDAppliedToClient = 0;
-        Onyx.connect({
-            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-            callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
-        });
-
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate3);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate4);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate5);
 
         return App.getMissingOnyxUpdatesTriggeredPromise
             .then(() => {
-                expect(Object.keys(OnyxUpdateManager.deferredUpdates)).toHaveLength(3);
+                expect(Object.keys(deferredUpdatesProxy.deferredUpdates)).toHaveLength(3);
             })
             .then(waitForBatchedUpdates)
             .then(() => OnyxUpdateManager.queryPromise)
             ?.then(() => {
                 expect(lastUpdateIDAppliedToClient).toBe(5);
-                expect(OnyxUpdateManager.applyUpdates).toHaveBeenCalledTimes(1);
+                expect(applyUpdates).toHaveBeenCalledTimes(1);
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                expect(OnyxUpdateManager.applyUpdates).toHaveBeenCalledWith({3: mockUpdate3, 4: mockUpdate4, 5: mockUpdate5});
+                expect(applyUpdates).toHaveBeenCalledWith({3: mockUpdate3, 4: mockUpdate4, 5: mockUpdate5});
             });
     });
 
     it('should only apply deferred updates that are after the locally applied update', async () => {
-        let lastUpdateIDAppliedToClient = 0;
-        Onyx.connect({
-            key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-            callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
-        });
-
-        // @ts-expect-error ignore invalid onyx key
-        await Onyx.set(lastAppliedMissingUpdateIDOnyxKey, 3);
+        App.lastUpdateIdFromUpdatesProxy.lastUpdateIdFromUpdates = 3;
 
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate4);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate5);
@@ -199,16 +170,16 @@ describe('OnyxUpdateManager', () => {
 
         return App.getMissingOnyxUpdatesTriggeredPromise
             .then(() => {
-                expect(Object.keys(OnyxUpdateManager.deferredUpdates)).toHaveLength(3);
+                expect(Object.keys(deferredUpdatesProxy.deferredUpdates)).toHaveLength(3);
                 Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
             })
             .then(waitForBatchedUpdates)
             .then(() => OnyxUpdateManager.queryPromise)
             ?.then(() => {
                 expect(lastUpdateIDAppliedToClient).toBe(6);
-                expect(OnyxUpdateManager.applyUpdates).toHaveBeenCalledTimes(1);
+                expect(applyUpdates).toHaveBeenCalledTimes(1);
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                expect(OnyxUpdateManager.applyUpdates).toHaveBeenCalledWith({6: mockUpdate6});
+                expect(applyUpdates).toHaveBeenCalledWith({6: mockUpdate6});
             });
     });
 });
