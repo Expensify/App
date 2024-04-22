@@ -49,7 +49,6 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
             return;
         }
 
-        // Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS)});
         Welcome.isOnboardingFlowCompleted({
             onNotCompleted: () =>
                 Navigation.navigate(
