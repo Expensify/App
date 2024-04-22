@@ -106,7 +106,7 @@ function MoneyRequestView({
     const {translate, toLocaleDigit} = useLocalize();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
     const isExpenseTracking = (parentReportAction?.originalMessage as IOUMessage)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
-    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isExpenseTracking ? CONST.IOU.TYPE.TRACK_EXPENSE : undefined);
+    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isExpenseTracking ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
