@@ -118,7 +118,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
         policyID,
         connectionName,
         settingName,
-        settingValue: JSON.stringify(settingValue),
+        settingValue: typeof settingValue === 'object' ? JSON.stringify(settingValue) : settingValue,
         idempotencyKey: String(settingName),
     };
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
