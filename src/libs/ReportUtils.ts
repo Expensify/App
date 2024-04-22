@@ -2289,6 +2289,7 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
  * Get the key for a report field
  */
 function getReportFieldKey(reportFieldId: string) {
+    // The backend value for `text_title` is `text_title` itself, so we don't need to `expensify_` prefix it.
     if (reportFieldId === CONST.REPORT_FIELD_TITLE_FIELD_ID) {
         return reportFieldId;
     }
