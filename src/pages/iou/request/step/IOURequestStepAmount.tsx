@@ -218,7 +218,7 @@ function IOURequestStepAmount({
 
         // Edits to the amount from the splits page should reset the split shares.
         if (transaction?.splitShares) {
-            IOU.resetSplitShares(transaction);
+            IOU.resetSplitShares(transaction, newAmount, currency);
         }
 
         if (!isEditing) {
