@@ -87,6 +87,7 @@ https://help.expensify.com/articles/new-expensify/payments/Request-Money,https:/
 https://help.expensify.com/articles/expensify-classic/workspace-and-domain-settings/tax-tracking,https://help.expensify.com/articles/expensify-classic/expenses/expenses/Apply-Tax
 https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/User-Roles.html,https://help.expensify.com/expensify-classic/hubs/copilots-and-delegates/
 https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Owner,https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account
+https://help.expensify.com/articles/expensify-classic/expensify-billing/Billing-Owner.html,https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account
 https://help.expensify.com/articles/expensify-classic/insights-and-custom-reporting/Other-Export-Options.html,https://help.expensify.com/articles/expensify-classic/spending-insights/Other-Export-Options
 https://help.expensify.com/articles/expensify-classic/bank-accounts-and-credit-cards/business-bank-accounts/Business-Bank-Accounts-AUD,https://help.expensify.com/articles/expensify-classic/connect-credit-cards/Global-Reimbursements
 https://help.expensify.com/expensify-classic/hubs/bank-accounts-and-credit-cards,https://help.expensify.com/expensify-classic/hubs/
@@ -123,7 +124,6 @@ https://help.expensify.com/articles/expensify-classic/billing-and-subscriptions/
 https://help.expensify.com/articles/expensify-classic/billing-and-subscriptions/Tax-Exempt,https://help.expensify.com/articles/expensify-classic/expensify-billing/Tax-Exempt
 https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approving-Reports,https://help.expensify.com/expensify-classic/hubs/reports/
 https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Invite-Members,https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles
-https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Removing-Members,https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Removing-Members
 https://help.expensify.com/articles/expensify-classic/expense-and-report-features/Attendee-Tracking,https://help.expensify.com/articles/expensify-classic/expenses/Track-group-expenses
 https://help.expensify.com/articles/expensify-classic/expense-and-report-features/Currency,https://help.expensify.com/articles/expensify-classic/workspaces/Currency
 https://help.expensify.com/articles/expensify-classic/expense-and-report-features/Expense-Rules,https://help.expensify.com/articles/expensify-classic/expenses/Expense-Rules
@@ -158,3 +158,5 @@ https://help.expensify.com/articles/expensify-classic/workspaces/Budgets,https:/
 https://help.expensify.com/articles/expensify-classic/workspaces/Categories,https://help.expensify.com/articles/expensify-classic/workspaces/Create-categories
 https://help.expensify.com/articles/expensify-classic/workspaces/Tags,https://help.expensify.com/articles/expensify-classic/workspaces/Create-tags
 https://help.expensify.com/expensify-classic/hubs/manage-employees-and-report-approvals,https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Approval-Workflows
+https://help.expensify.com/articles/expensify-classic/reports/Report-Audit-Log-and-Comments,https://help.expensify.com/articles/expensify-classic/reports/Print-or-download-a-report
+https://help.expensify.com/articles/expensify-classic/reports/The-Reports-Page,https://help.expensify.com/articles/expensify-classic/reports/Report-statuses
