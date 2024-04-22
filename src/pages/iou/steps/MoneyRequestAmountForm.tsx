@@ -97,7 +97,7 @@ function MoneyRequestAmountForm(
         isCurrencyPressable = true,
         isEditing = false,
         skipConfirmation = false,
-        iouType = CONST.IOU.TYPE.REQUEST,
+        iouType = CONST.IOU.TYPE.SUBMIT,
         policyID = '',
         bankAccountRoute = '',
         onCurrencyButtonPress,
@@ -387,7 +387,7 @@ function MoneyRequestAmountForm(
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
-                {iouType === CONST.IOU.TYPE.SEND && skipConfirmation ? (
+                {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
                     <SettlementButton
                         pressOnEnter
                         onPress={submitAndNavigateToNextPage}
