@@ -124,7 +124,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 }
                             />
 
-                            {collectionAccountID && (
+                            {!!collectionAccountID && (
                                 <>
                                     <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
                                         <MenuItemWithTopDescription
