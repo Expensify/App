@@ -3860,9 +3860,6 @@ const CONST = {
         },
         [onboardingChoices.LOOKING_AROUND]: {
             message:
-                '# Welcome to Expensify!\n' +
-                "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
-                '\n' +
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
