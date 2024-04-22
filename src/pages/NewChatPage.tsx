@@ -187,9 +187,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
      */
     const createChat = useCallback(
         (option?: OptionsListUtils.Option) => {
-            const report = ReportUtils.getReport(option?.reportID);
-            if (option?.isSelfDM && report) {
-                Navigation.dismissModal(report.reportID);
+            if (option?.isSelfDM) {
+                Navigation.dismissModal(option.reportID);
                 return;
             }
             let login = '';
