@@ -3047,6 +3047,7 @@ function completeOnboarding(
     };
 
     const tasksData = data.tasks.map((task, index) => {
+        const hasSubtitle = !!task.subtitle;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
             undefined,
@@ -3066,13 +3067,13 @@ function completeOnboarding(
             actorAccountID,
             index + 3,
             {
-                childVisibleActionCount: 2,
+                childVisibleActionCount: hasSubtitle ? 2 : 1,
                 childCommenterCount: 1,
                 childLastVisibleActionCreated: DateUtils.getDBTime(),
                 childOldestFourAccountIDs: `${actorAccountID}`,
             },
         );
-        const subtitleComment = task.subtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID) : null;
+        const subtitleComment = hasSubtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID) : null;
         const isTaskMessageFunction = typeof task.message === 'function';
         const taskMessage = isTaskMessageFunction
             ? task.message({
