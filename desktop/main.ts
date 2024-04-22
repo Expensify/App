@@ -128,7 +128,7 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
-/** Menu Item callback to triggers an update check */
+/** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWindow) => {
     // Disable item until the check (and download) is complete
     if (menuItem) {
