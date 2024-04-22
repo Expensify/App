@@ -3161,7 +3161,17 @@ function addDomainToShortMention(mention: string): string | undefined {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, shouldEscapeText?: boolean): string {
+function getParsedComment(text: string, shouldEscapeText?: boolean, currentReportID?: string, policyID?: string): string {
+    let isGroupPolicyReport = false;
+    if (currentReportID) {
+        const currentReport = getReport(currentReportID);
+        isGroupPolicyReport = currentReport && !isEmptyObject(currentReport) ? isGroupPolicy(currentReport) : false;
+    }
+    if (policyID) {
+        const policyType = getPolicy(policyID).type;
+        isGroupPolicyReport = policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.FREE;
+    }
+
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
         const mention = match.substring(1);
@@ -3169,7 +3179,7 @@ function getParsedComment(text: string, shouldEscapeText?: boolean): string {
         return mentionWithDomain ? `@${mentionWithDomain}` : match;
     });
 
-    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText}) : lodashEscape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']}) : lodashEscape(text);
 }
 
 function getReportDescriptionText(report: Report): string {
@@ -3190,9 +3200,16 @@ function getPolicyDescriptionText(policy: OnyxEntry<Policy>): string {
     return parser.htmlToText(policy.description);
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number, createdOffset = 0, shouldEscapeText?: boolean): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(
+    text?: string,
+    file?: FileObject,
+    actorAccountID?: number,
+    createdOffset = 0,
+    shouldEscapeText?: boolean,
+    reportID?: string,
+): OptimisticReportAction {
     const parser = new ExpensiMark();
-    const commentText = getParsedComment(text ?? '', shouldEscapeText);
+    const commentText = getParsedComment(text ?? '', shouldEscapeText, reportID);
     const isAttachmentOnly = file && !text;
     const isTextOnly = text && !file;
 
@@ -3314,7 +3331,7 @@ function buildOptimisticTaskCommentReportAction(
         childOldestFourAccountIDs?: string;
     },
 ): OptimisticReportAction {
-    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset);
+    const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
     if (reportAction.reportAction.message?.[0]) {
         reportAction.reportAction.message[0].taskReportID = taskReportID;
     }

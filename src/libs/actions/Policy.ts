@@ -1722,7 +1722,7 @@ function updateWorkspaceDescription(policyID: string, description: string, curre
     if (description === currentDescription) {
         return;
     }
-    const parsedDescription = ReportUtils.getParsedComment(description);
+    const parsedDescription = ReportUtils.getParsedComment(description, undefined, undefined, policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {

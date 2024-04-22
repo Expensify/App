@@ -446,7 +446,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text && !file) {
-        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
+        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -455,13 +455,13 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file);
+        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
     }
 
     if (text && file) {
         // When there is both text and a file, the text for the report comment needs to be parsed)
-        reportCommentText = ReportUtils.getParsedComment(text ?? '');
+        reportCommentText = ReportUtils.getParsedComment(text ?? '', undefined, reportID);
 
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
@@ -1848,7 +1848,7 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
         return;
     }
 
-    const parsedDescription = ReportUtils.getParsedComment(newValue);
+    const parsedDescription = ReportUtils.getParsedComment(newValue, undefined, reportID);
 
     const optimisticData: OnyxUpdate[] = [
         {
