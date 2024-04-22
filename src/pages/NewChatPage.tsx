@@ -25,7 +25,8 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {getReport, type OptionData} from '@libs/ReportUtils';
+import type {OptionData} from '@libs/ReportUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -186,9 +187,9 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
      */
     const createChat = useCallback(
         (option?: OptionsListUtils.Option) => {
-            const report = getReport(option?.reportID);
+            const report = ReportUtils.getReport(option?.reportID);
             if (option?.isSelfDM && report) {
-                Navigation.dismissModalWithReport(report);
+                Navigation.dismissModal(report.reportID);
                 return;
             }
             let login = '';
