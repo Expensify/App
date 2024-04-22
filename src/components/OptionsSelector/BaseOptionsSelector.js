@@ -235,7 +235,7 @@ class BaseOptionsSelector extends Component {
         } else {
             defaultIndex = this.props.selectedOptions.length;
         }
-        if (typeof this.props.initiallyFocusedOptionKey === 'undefined') {
+        if (this.props.initiallyFocusedOptionKey === undefined) {
             return defaultIndex;
         }
 
@@ -502,7 +502,7 @@ class BaseOptionsSelector extends Component {
         const shouldShowShowMoreButton = this.state.allOptions.length > CONST.MAX_OPTIONS_SELECTOR_PAGE_LENGTH * this.state.paginationPage;
         const shouldShowFooter =
             !this.props.isReadOnly && (this.props.shouldShowConfirmButton || this.props.footerContent) && !(this.props.canSelectMultipleOptions && this.props.selectedOptions.length === 0);
-        const defaultConfirmButtonText = typeof this.props.confirmButtonText === 'undefined' ? this.props.translate('common.confirm') : this.props.confirmButtonText;
+        const defaultConfirmButtonText = this.props.confirmButtonText === undefined ? this.props.translate('common.confirm') : this.props.confirmButtonText;
         const shouldShowDefaultConfirmButton = !this.props.footerContent && defaultConfirmButtonText;
         const safeAreaPaddingBottomStyle = shouldShowFooter ? undefined : this.props.safeAreaPaddingBottomStyle;
         const listContainerStyles = this.props.listContainerStyles || [this.props.themeStyles.flex1];
