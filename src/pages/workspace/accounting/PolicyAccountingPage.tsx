@@ -54,7 +54,7 @@ type AccountingIntegration = {
     title: string;
     icon: IconAsset;
     setupConnectionButton: React.ReactNode;
-    connectedIntegrationMenuItems: MenuItemProps[];
+    onImportPagePress: () => void;
 };
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -77,32 +77,7 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                connectedIntegrationMenuItems: [
-                    {
-                        icon: Expensicons.Pencil,
-                        iconRight: Expensicons.ArrowRight,
-                        shouldShowRightIcon: true,
-                        title: translate('workspace.accounting.import'),
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
-                    },
-                    {
-                        icon: Expensicons.Send,
-                        iconRight: Expensicons.ArrowRight,
-                        shouldShowRightIcon: true,
-                        title: translate('workspace.accounting.export'),
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        onPress: () => {},
-                    },
-                    {
-                        icon: Expensicons.Gear,
-                        iconRight: Expensicons.ArrowRight,
-                        shouldShowRightIcon: true,
-                        title: translate('workspace.accounting.advanced'),
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        onPress: () => {},
-                    },
-                ],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
@@ -115,32 +90,7 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                connectedIntegrationMenuItems: [
-                    {
-                        icon: Expensicons.Pencil,
-                        iconRight: Expensicons.ArrowRight,
-                        shouldShowRightIcon: true,
-                        title: translate('workspace.accounting.import'),
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        onPress: () => {},
-                    },
-                    {
-                        icon: Expensicons.Send,
-                        iconRight: Expensicons.ArrowRight,
-                        shouldShowRightIcon: true,
-                        title: translate('workspace.accounting.export'),
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        onPress: () => {},
-                    },
-                    {
-                        icon: Expensicons.Gear,
-                        iconRight: Expensicons.ArrowRight,
-                        shouldShowRightIcon: true,
-                        title: translate('workspace.accounting.advanced'),
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        onPress: () => {},
-                    },
-                ],
+                onImportPagePress: () => {},
             };
     }
 }
@@ -180,7 +130,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 const {title, icon, setupConnectionButton} = accountingIntegrationData(integration, policyID, translate, styles);
                 return {
                     icon,
-                    iconType: 'avatar',
+                    iconType: CONST.ICON_TYPE_AVATAR,
                     interactive: false,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     shouldShowRightComponent: true,
@@ -193,11 +143,11 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
-        const {title, icon, connectedIntegrationMenuItems} = accountingIntegrationData(connectedIntegration, policyID, translate, styles);
+        const {title, icon, onImportPagePress} = accountingIntegrationData(connectedIntegration, policyID, translate, styles);
         return [
             {
                 icon,
-                iconType: 'avatar',
+                iconType: CONST.ICON_TYPE_AVATAR,
                 interactive: false,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
@@ -228,7 +178,34 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
-            ...(isEmptyObject(policy?.connections) ? [] : connectedIntegrationMenuItems),
+            ...(isEmptyObject(policy?.connections)
+                ? []
+                : [
+                      {
+                          icon: Expensicons.Pencil,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.import'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: onImportPagePress,
+                      },
+                      {
+                          icon: Expensicons.Send,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.export'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => {},
+                      },
+                      {
+                          icon: Expensicons.Gear,
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: translate('workspace.accounting.advanced'),
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          onPress: () => {},
+                      },
+                  ]),
         ];
     }, [
         connectedIntegration,
@@ -311,14 +288,14 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                                     />
                                     {!!otherIntegrationsItems?.length && otherIntegrationsItems?.length > 0 && (
                                         <CollapsibleSection
-                                            title="Other integrations"
+                                            title={translate('workspace.accounting.other')}
                                             wrapperStyle={styles.pr3}
                                             titleStyle={[styles.textNormal, styles.colorMuted]}
                                         >
                                             {otherIntegrationsItems.map((integration) => (
                                                 <MenuItem
                                                     icon={integration.icon}
-                                                    iconType="avatar"
+                                                    iconType={CONST.ICON_TYPE_AVATAR}
                                                     interactive={false}
                                                     shouldShowRightComponent
                                                     wrapperStyle={styles.sectionMenuItemTopDescription}

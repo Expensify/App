@@ -31,7 +31,7 @@ function ConnectToQuickbooksOnlineButton({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const [isWebViewOpen, setWebViewOpen] = useState<boolean>(false);
+    const [isWebViewOpen, setWebViewOpen] = useState(false);
 
     const authToken = session?.authToken ?? null;
 
@@ -74,7 +74,7 @@ function ConnectToQuickbooksOnlineButton({
                     onClose={() => setWebViewOpen(false)}
                     fullscreen
                     isVisible
-                    type="centered"
+                    type={CONST.MODAL.MODAL_TYPE.CENTERED}
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.accounting.title')}

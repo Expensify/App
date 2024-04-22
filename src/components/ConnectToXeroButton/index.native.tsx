@@ -26,7 +26,7 @@ function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConn
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
-    const [isWebViewOpen, setWebViewOpen] = useState<boolean>(false);
+    const [isWebViewOpen, setWebViewOpen] = useState(false);
 
     const authToken = session?.authToken ?? null;
 
@@ -67,7 +67,7 @@ function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConn
                 onClose={() => setWebViewOpen(false)}
                 fullscreen
                 isVisible={isWebViewOpen}
-                type="centered"
+                type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.accounting.title')}
