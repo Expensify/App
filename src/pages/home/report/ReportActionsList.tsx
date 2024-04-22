@@ -300,10 +300,10 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        // const readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
-        //     resetUnreadMarker(newLastReadTime);
-        //     setMessageManuallyMarkedUnread(0);
-        // });
+        const readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+            resetUnreadMarker(newLastReadTime);
+            setMessageManuallyMarkedUnread(0);
+        });
 
         const deletedReportActionSubscription = DeviceEventEmitter.addListener(`deletedReportAction_${report.reportID}`, (reportActionID) => {
             if (cacheUnreadMarkers.get(report.reportID) !== reportActionID) {
@@ -317,7 +317,7 @@ function ReportActionsList({
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
             unreadActionSubscriptionForTransactionThread.remove();
-            // readNewestActionSubscriptionForTransactionThread.remove();
+            readNewestActionSubscriptionForTransactionThread.remove();
             deletedReportActionSubscription.remove();
         };
     }, [report.reportID, transactionThreadReport?.reportID]);
