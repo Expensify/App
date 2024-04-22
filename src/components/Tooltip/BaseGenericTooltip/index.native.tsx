@@ -46,8 +46,8 @@ function BaseGenericTooltip({
         if (!textContentRef.current && !viewContentRef.current) {
             return;
         }
-        textContentRef.current?.measure((x, y, width) => setContentMeasuredWidth(width));
-        viewContentRef.current?.measure((x, y, width) => setContentMeasuredWidth(width));
+        const contentRef = viewContentRef.current ?? textContentRef.current;
+        contentRef?.measure((x, y, width) => setContentMeasuredWidth(width));
     }, []);
 
     const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
