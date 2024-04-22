@@ -39,8 +39,8 @@ type IOURequestStepAmountOnyxProps = {
     /** Whether the confirmation step should be skipped */
     skipConfirmation: OnyxEntry<boolean>;
 
-    /** The backup transaction object being modified in Onyx */
-    backupTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    /** The draft transaction object being modified in Onyx */
+    draftTransaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Personal details of all users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -66,8 +66,8 @@ function IOURequestStepAmount({
     personalDetails,
     currentUserPersonalDetails,
     splitDraftTransaction,
-    backupTransaction,
     skipConfirmation,
+    draftTransaction,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -79,7 +79,7 @@ function IOURequestStepAmount({
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const {amount: transactionAmount} = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction) ?? {amount: 0};
-    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? backupTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
+    const {currency: originalCurrency} = ReportUtils.getTransactionDetails(isEditing ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = CurrencyUtils.isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
@@ -111,13 +111,13 @@ function IOURequestStepAmount({
         // A temporary solution to not prevent users from editing the currency
         // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
         // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-        TransactionEdit.createBackupTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
+        TransactionEdit.createDraftTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
         return () => {
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '');
+            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '');
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -266,10 +266,10 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
             return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
         },
     },
-    backupTransaction: {
+    draftTransaction: {
         key: ({route}) => {
             const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
         },
     },
     skipConfirmation: {
