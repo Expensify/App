@@ -50,6 +50,9 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
+
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
 
@@ -148,6 +151,7 @@ function ReportActionsList({
     listID,
     onContentSizeChange,
     shouldEnableAutoScrollToTopThreshold,
+    parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
@@ -522,6 +526,7 @@ function ReportActionsList({
                 reportAction={reportAction}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 index={index}
                 report={report}
                 transactionThreadReport={transactionThreadReport}
@@ -544,6 +549,7 @@ function ReportActionsList({
             parentReportAction,
             reportActions,
             transactionThreadReport,
+            parentReportActionForTransactionThread,
         ],
     );
 

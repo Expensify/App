@@ -4,7 +4,7 @@ type UpdatePolicyConnectionConfigParams<TConnectionName extends ConnectionName, 
     policyID: string;
     connectionName: TConnectionName;
     settingName: TSettingName;
-    settingValue: Connections[TConnectionName]['config'][TSettingName];
+    settingValue?: Connections[TConnectionName]['config'][TSettingName];
     idempotencyKey: string;
 };
 

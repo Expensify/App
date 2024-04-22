@@ -94,7 +94,7 @@ function IOURequestStepDate({
         <StepScreenWrapper
             headerTitle={translate('common.date')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFoundPage={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowNotFoundPage={!IOUUtils.isValidMoneyRequestType(iouType)} // TODO: Check why is this even here
             shouldShowWrapper
             testID={IOURequestStepDate.displayName}
         >
