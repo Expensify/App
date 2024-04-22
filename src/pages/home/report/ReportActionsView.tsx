@@ -197,7 +197,7 @@ function ReportActionsView({
             }
 
             // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
-            if (transactionThreadReport?.reportID) {
+            if (!isEmptyObject(transactionThreadReport)) {
                 // Get newer actions based on the newest reportAction for the current report
                 const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
                 Report.getNewerActions(newestActionCurrentReport?.reportID ?? '0', newestActionCurrentReport?.reportActionID ?? '0');
@@ -209,7 +209,7 @@ function ReportActionsView({
                 Report.getNewerActions(reportID, newestReportAction.reportActionID);
             }
         },
-        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID, transactionThreadReport?.reportID, reportActionIDMap],
+        [isLoadingNewerReportActions, isLoadingInitialReportActions, reportID, transactionThreadReport, reportActionIDMap],
     );
 
     const hasMoreCached = reportActions.length < combinedReportActions.length;
@@ -308,19 +308,19 @@ function ReportActionsView({
             return;
         }
 
-        if (transactionThreadReport?.reportID) {
+        if (!isEmptyObject(transactionThreadReport)) {
             // Get newer actions based on the newest reportAction for the current report
             const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-            Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+            Report.getNewerActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
 
             // Get newer actions based on the newest reportAction for the transaction thread report
             const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-            Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+            Report.getNewerActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
         } else {
             // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
             Report.getOlderActions(reportID, oldestReportAction.reportActionID);
         }
-    }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport?.reportID]);
+    }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
     const loadNewerChats = useCallback(() => {
         if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
