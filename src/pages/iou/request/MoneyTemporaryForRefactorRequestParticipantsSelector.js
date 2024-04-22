@@ -89,9 +89,18 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         Report.searchInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const chatOptions = useMemo(() => {
+    const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return {};
+            return {
+                userToInvite: null,
+                recentReports: [],
+                personalDetails: [],
+                currentUserOption: null,
+                headerMessage: '',
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
+            };
         }
 
         const optionList = OptionsListUtils.getFilteredOptions(
@@ -120,25 +129,34 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         return optionList;
     }, [action, areOptionsInitialized, betas, canUseP2PDistanceRequests, didScreenTransitionEnd, iouRequestType, iouType, options.personalDetails, options.reports, participants]);
 
-    const filteredOptions = useMemo(() => {
-        if (!areOptionsInitialized || debouncedSearchTerm.trim() === '') {
-            return {};
+    const chatOptions = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return {
+                userToInvite: null,
+                recentReports: [],
+                personalDetails: [],
+                currentUserOption: null,
+                headerMessage: '',
+                categoryOptions: [],
+                tagOptions: [],
+                taxRatesOptions: [],
+            };
         }
 
-        const newOptions = OptionsListUtils.filterOptions(chatOptions, debouncedSearchTerm, {
+        const newOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {
             betas,
             selectedOptions: participants,
             excludeLogins: CONST.EXPENSIFY_EMAILS,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, betas, chatOptions, debouncedSearchTerm, participants]);
-
+    }, [areOptionsInitialized, betas, defaultOptions, debouncedSearchTerm, participants]);
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}
      */
     const [sections, header] = useMemo(() => {
-        const requestMoneyOptions = debouncedSearchTerm.trim() !== '' ? filteredOptions : chatOptions;
+        const requestMoneyOptions = chatOptions;
         const newSections = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
@@ -194,19 +212,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         );
 
         return [newSections, headerMessage];
-    }, [
-        debouncedSearchTerm,
-        filteredOptions,
-        chatOptions,
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        participants,
-        action,
-        maxParticipantsReached,
-        personalDetails,
-        translate,
-        options.recentReports,
-    ]);
+    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, action, maxParticipantsReached, personalDetails, translate, options.recentReports]);
 
     /**
      * Adds a single participant to the expense

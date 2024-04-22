@@ -196,7 +196,10 @@ type Options = {
 
 type PreviewConfig = {showChatPreviewLine?: boolean; forcePolicyNamePreview?: boolean; showPersonalDetails?: boolean};
 
-type FilterOptionsConfig = Pick<GetOptionsConfig, 'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins'>;
+type FilterOptionsConfig = Pick<
+    GetOptionsConfig,
+    'sortByReportTypeInSearch' | 'canInviteUser' | 'betas' | 'selectedOptions' | 'excludeUnknownUsers' | 'excludeLogins' | 'maxRecentReportsToShow'
+>;
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -1845,9 +1848,9 @@ function getOptions(
             reportOption.alternateText = getAlternateText(reportOption, {showChatPreviewLine, forcePolicyNamePreview});
 
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
-            if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
-                break;
-            }
+            // if (recentReportOptions.length > 0 && recentReportOptions.length === maxRecentReportsToShow) {
+            //     break;
+            // }
 
             // Skip notifications@expensify.com
             if (reportOption.login === CONST.EMAIL.NOTIFICATIONS) {
@@ -2300,7 +2303,19 @@ function getFirstKeyForList(data?: Option[] | null) {
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], selectedOptions = [], excludeUnknownUsers = false, excludeLogins = []} = config ?? {};
+    const {
+        sortByReportTypeInSearch = false,
+        canInviteUser = true,
+        betas = [],
+        selectedOptions = [],
+        excludeUnknownUsers = false,
+        excludeLogins = [],
+        maxRecentReportsToShow = 0,
+    } = config ?? {};
+    if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
+        return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
+    }
+
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
     const searchTerms = searchValue ? searchValue.split(' ') : [];
@@ -2329,7 +2344,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
         return keys;
     };
-    const matchResults = searchTerms.reduceRight((items, term) => {
+    const matchResults = searchTerms.reduce((items, term) => {
         const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
             let values: string[] = [];
             if (item.text) {
@@ -2358,11 +2373,16 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             } else {
                 values = values.concat(getParticipantsLoginsArray(item));
             }
+
             return uniqFast(values);
         });
         const personalDetails = filterArrayByMatch(items.personalDetails, term, (item) =>
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
+
+        if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
+            recentReports.splice(maxRecentReportsToShow);
+        }
 
         return {
             recentReports: recentReports ?? [],
