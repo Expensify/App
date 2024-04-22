@@ -503,6 +503,12 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         currency?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
+        backTo: Routes;
+        reportID: string;
+    };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
         action: IOUAction;
         iouType: IOUType;
@@ -736,6 +742,7 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
     [SCREENS.ONBOARDING.PURPOSE]: undefined;
+    [SCREENS.ONBOARDING.WORK]: undefined;
 };
 
 type WelcomeVideoModalNavigatorParamList = {

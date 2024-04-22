@@ -372,6 +372,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_DISTANCE_RATE: {
+        route: ':action/:iouType/distanceRate/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/distanceRate/${transactionID}/${reportID}`, backTo),
+    },
     MONEY_REQUEST_STEP_MERCHANT: {
         route: ':action/:iouType/merchant/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
@@ -693,6 +698,7 @@ const ROUTES = {
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
+    ONBOARDING_WORK: 'onboarding/work',
     ONBOARDING_PURPOSE: 'onboarding/purpose',
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
 
