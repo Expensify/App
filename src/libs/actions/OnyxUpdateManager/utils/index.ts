@@ -103,11 +103,15 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<v
         return new Promise((resolve, reject) => {
             deferredUpdatesProxy.deferredUpdates = {};
 
+            console.log({applicableUpdates});
+
             applyUpdates(applicableUpdates).then(() => {
                 // After we have applied the applicable updates, there might have been new deferred updates added.
                 // In the next (recursive) call of "validateAndApplyDeferredUpdates",
                 // the initial "updatesAfterGaps" and all new deferred updates will be applied in order,
                 // as long as there was no new gap detected. Otherwise repeat the process.
+
+                console.log({updatesAfterGaps});
                 deferredUpdatesProxy.deferredUpdates = {...deferredUpdatesProxy.deferredUpdates, ...updatesAfterGaps};
                 // updateDeferredUpdates(newDeferredUpdates);
 
