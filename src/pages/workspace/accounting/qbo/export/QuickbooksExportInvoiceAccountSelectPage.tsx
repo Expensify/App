@@ -11,8 +11,8 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -81,4 +81,4 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
 
 QuickbooksExportInvoiceAccountSelectPage.displayName = 'QuickbooksExportInvoiceAccountSelectPage';
 
-export default withPolicy(QuickbooksExportInvoiceAccountSelectPage);
+export default withPolicyConnections(QuickbooksExportInvoiceAccountSelectPage);
