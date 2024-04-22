@@ -369,9 +369,12 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
-    [SCREENS.MONEY_REQUEST.PARTICIPANTS]: {
-        iouType: string;
+    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+        action: IOUAction;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
+        transactionID: string;
         reportID: string;
+        backTo: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_DATE]: {
         action: IOUAction;
@@ -487,10 +490,10 @@ type MoneyRequestNavigatorParamList = {
         action: IOUAction;
         currency?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
-        action: IOUAction;
-        iouType: IOUType;
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
+        backTo: Routes;
         reportID: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: {
@@ -726,6 +729,7 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING_MODAL.ONBOARDING]: undefined;
     [SCREENS.ONBOARDING.PERSONAL_DETAILS]: undefined;
     [SCREENS.ONBOARDING.PURPOSE]: undefined;
+    [SCREENS.ONBOARDING.WORK]: undefined;
 };
 
 type WelcomeVideoModalNavigatorParamList = {
