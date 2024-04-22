@@ -3029,7 +3029,12 @@ function completeOnboarding(
     },
     adminsChatReportID?: string,
 ) {
-    const targetEmail = CONST.EMAIL.EXPENSIFY_PERSONA;
+    let targetEmail: string = CONST.EMAIL.CONCIERGE;
+    if (currentUserAccountID % 2 === 1) {
+        // for odd accountID, we will use the expensify persona instead of concierge
+        targetEmail = CONST.EMAIL.EXPENSIFY_PERSONA;
+    }
+
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
