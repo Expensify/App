@@ -28,6 +28,7 @@ import type {
     SplitDetailsNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
+    TransactionDuplicateNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceSwitcherNavigatorParamList,
 } from '@navigation/types';
@@ -321,6 +322,10 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
 });
 
+const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
+    [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: () => require('../../../../pages/TransactionDuplicate/Review').default as React.ComponentType,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
@@ -351,4 +356,5 @@ export {
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
     WorkspaceSettingsModalStackNavigator,
+    TransactionDuplicateStackNavigator,
 };

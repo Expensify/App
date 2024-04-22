@@ -589,6 +589,19 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: {
+                    screens: {
+                        [SCREENS.TRANSACTION_DUPLICATE.REVIEW]: {
+                            path: ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.route,
+                            exact: true,
+                        },
+                        // [SCREENS.TRANSACTION_DUPLICATE.MERCHANT]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.route,
+                        // [SCREENS.TRANSACTION_DUPLICATE.CATEGORY]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.route,
+                        // [SCREENS.TRANSACTION_DUPLICATE.TAG]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.route,
+                        // [SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION]: ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.route,
+                        // [SCREENS.TRANSACTION_DUPLICATE.CONFIRM]: ROUTES.TRANSACTION_DUPLICATE_CONFIRM.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SPLIT_DETAILS]: {
                     screens: {
                         [SCREENS.SPLIT_DETAILS.ROOT]: ROUTES.SPLIT_BILL_DETAILS.route,
