@@ -12,7 +12,6 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
     const styles = useThemeStyles();
     const sizeStyles = [styles.w100, styles.h100];
     const {translate} = useLocalize();
-
     const [isCorrupted, setIsCorrupted] = useState(false);
 
     return (
@@ -30,11 +29,9 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                             if ('message' in error && typeof error.message === 'string' && error.message.match(/corrupted/i)) {
                                 setIsCorrupted(true);
                             }
-
                             if (!('message' in error && typeof error.message === 'string' && error.message.match(/password/i))) {
                                 return;
                             }
-
                             if (!onPassword) {
                                 return;
                             }
