@@ -398,7 +398,7 @@ const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOU
     transactionBackup: {
         key: ({route}) => {
             const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
         },
     },
     policy: {
