@@ -124,7 +124,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             false,
             {},
             [],
-            canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
             false,
         );
 
@@ -335,7 +335,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 iconWidth={variables.emptyWorkspaceIconWidth}
                 iconHeight={variables.emptyWorkspaceIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
-                subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
             />
             <Button
@@ -350,7 +349,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     );
 
     const isAllSectionsEmpty = lodashEvery(sections, (section) => section.data.length === 0);
-    if ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) && isAllSectionsEmpty && didScreenTransitionEnd && searchTerm.trim() === '') {
+    if (
+        [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) &&
+        isAllSectionsEmpty &&
+        didScreenTransitionEnd &&
+        debouncedSearchTerm.trim() === '' &&
+        areOptionsInitialized
+    ) {
         return renderEmptyWorkspaceView();
     }
 
