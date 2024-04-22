@@ -313,6 +313,7 @@ export default {
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
+        businessName: 'Nombre del Negocio',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -1315,13 +1316,13 @@ export default {
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
     onboarding: {
-        welcome: '¡Bienvenido!',
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
             description: 'Cobrar es tan fácil como enviar un mensaje.',
             button: 'Vámonos',
         },
         whatsYourName: '¿Cómo te llamas?',
+        whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             error: 'Por favor, haga una selección antes de continuar.',
