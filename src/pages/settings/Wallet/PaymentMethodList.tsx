@@ -240,7 +240,8 @@ function PaymentMethodList({
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: isAdminIssuedVirtualCard ? card?.nameValuePairs?.cardTitle || card.bank : card.bank,
                     description: card.domainName,
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '', card.cardID.toString() ?? '')),
+                    onPress: () =>
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '', isAdminIssuedVirtualCard ? card.cardID.toString() ?? '' : undefined)),
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: true,
@@ -253,7 +254,6 @@ function PaymentMethodList({
                     ...icon,
                 });
             });
-            console.log('%%%%%\n', 'assignedCardsGrouped', assignedCardsGrouped);
             return assignedCardsGrouped;
         }
 
@@ -298,7 +298,6 @@ function PaymentMethodList({
                 shouldShowRightIcon: true,
             };
         });
-        console.log('%%%%%\n', 'combinedPaymentMethods', combinedPaymentMethods);
         return combinedPaymentMethods;
     }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
 

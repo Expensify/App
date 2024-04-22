@@ -249,7 +249,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain, cardID))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain, String(card.cardID)))}
                                         />
                                     </>
                                 ))}
@@ -269,7 +269,7 @@ function ExpensifyCardPage({
                                                 title={translate('reportCardLostOrDamaged.report')}
                                                 icon={Expensicons.Flag}
                                                 shouldShowRightIcon
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, cardID))}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, String(card.cardID)))}
                                             />
                                         </>
                                     );
@@ -282,7 +282,14 @@ function ExpensifyCardPage({
                             success
                             large
                             style={[styles.w100, styles.p5]}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(domain, cardID))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(
+                                        domain,
+                                        String(physicalCards?.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED)?.cardID),
+                                    ),
+                                )
+                            }
                             text={translate('activateCardPage.activatePhysicalCard')}
                         />
                     )}

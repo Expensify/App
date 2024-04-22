@@ -56,8 +56,8 @@ function ActivatePhysicalCardPage({
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain] ?? [];
-    const physicalCard = domainCards.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED);
-    const cardError = ErrorUtils.getLatestErrorMessage(physicalCard ?? {});
+    const inactiveCard = domainCards.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED);
+    const cardError = ErrorUtils.getLatestErrorMessage(inactiveCard ?? {});
 
     const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
 
@@ -65,21 +65,21 @@ function ActivatePhysicalCardPage({
      * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
      */
     useEffect(() => {
-        if (physicalCard?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN || physicalCard?.isLoading) {
+        if (inactiveCard?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN || inactiveCard?.isLoading) {
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID));
-    }, [cardID, cardList, domain, physicalCard?.isLoading, physicalCard?.state]);
+    }, [cardID, cardList, domain, inactiveCard?.isLoading, inactiveCard?.state]);
 
     useEffect(
         () => () => {
-            if (!physicalCard?.cardID) {
+            if (!inactiveCard?.cardID) {
                 return;
             }
-            CardSettings.clearCardListErrors(physicalCard?.cardID);
+            CardSettings.clearCardListErrors(inactiveCard?.cardID);
         },
-        [physicalCard?.cardID],
+        [inactiveCard?.cardID],
     );
 
     /**
@@ -96,8 +96,8 @@ function ActivatePhysicalCardPage({
     const onCodeInput = (text: string) => {
         setFormError('');
 
-        if (cardError && physicalCard?.cardID) {
-            CardSettings.clearCardListErrors(physicalCard?.cardID);
+        if (cardError && inactiveCard?.cardID) {
+            CardSettings.clearCardListErrors(inactiveCard?.cardID);
         }
 
         setLastFourDigits(text);
@@ -110,14 +110,14 @@ function ActivatePhysicalCardPage({
             setFormError('activateCardPage.error.thatDidntMatch');
             return;
         }
-        if (physicalCard?.cardID === undefined) {
+        if (inactiveCard?.cardID === undefined) {
             return;
         }
 
-        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, physicalCard?.cardID);
-    }, [lastFourDigits, physicalCard?.cardID]);
+        CardSettings.activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
+    }, [lastFourDigits, inactiveCard?.cardID]);
 
-    if (isEmptyObject(physicalCard)) {
+    if (isEmptyObject(inactiveCard)) {
         return <NotFoundPage />;
     }
 
@@ -152,7 +152,7 @@ function ActivatePhysicalCardPage({
             <Button
                 success
                 isDisabled={isOffline}
-                isLoading={physicalCard?.isLoading}
+                isLoading={inactiveCard?.isLoading}
                 medium={isExtraSmallScreenHeight}
                 large={!isExtraSmallScreenHeight}
                 style={[styles.w100, styles.p5, styles.mtAuto]}

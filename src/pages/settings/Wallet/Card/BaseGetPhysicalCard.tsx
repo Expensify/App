@@ -110,8 +110,8 @@ function BaseGetPhysicalCard({
     const isRouteSet = useRef(false);
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
-    const physicalCard = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-    const cardID = physicalCard?.cardID ?? 0;
+    const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+    const cardID = cardToBeIssued?.cardID ?? 0;
 
     useEffect(() => {
         if (isRouteSet.current || !privatePersonalDetails || !cardList) {
@@ -119,15 +119,15 @@ function BaseGetPhysicalCard({
         }
 
         // When there are no cards for the specified domain, user is redirected to the wallet page
-        if (domainCards.length === 0 || !physicalCard) {
+        if (domainCards.length === 0 || !cardToBeIssued) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             return;
         }
 
         // When there's no physical card or it exists but it doesn't have the required state for this flow,
         // redirect user to the espensify card page
-        if (physicalCard.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, physicalCard.cardID.toString()));
+        if (cardToBeIssued.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardToBeIssued.cardID.toString()));
             return;
         }
 
@@ -142,7 +142,7 @@ function BaseGetPhysicalCard({
         // Redirect user to previous steps of the flow if he hasn't finished them yet
         GetPhysicalCardUtils.setCurrentRoute(currentRoute, domain, GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues));
         isRouteSet.current = true;
-    }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, physicalCard, privatePersonalDetails]);
+    }, [cardList, currentRoute, domain, domainCards.length, draftValues, loginList, cardToBeIssued, privatePersonalDetails]);
 
     const onSubmit = useCallback(() => {
         const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
