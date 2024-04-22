@@ -7,7 +7,7 @@ import WrappedText from './WrappedText';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
-    const {elements, hasLargeStyle} = renderEmojis(defaultRendererProps, styles);
+    const {elements, hasLargeStyle} = renderEmojis(defaultRendererProps, textStyle, styles);
 
     return (
         <TDefaultRenderer

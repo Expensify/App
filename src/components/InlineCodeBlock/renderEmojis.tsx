@@ -1,10 +1,11 @@
 import React from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import type {TDefaultRendererProps} from 'react-native-render-html';
 import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import type {ThemeStyles} from '@styles/index';
 import type {TTextOrTPhrasing} from './types';
 
-function renderEmojis(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>, textStyles: TextStyle, styles: ThemeStyles) {
+function renderEmojis(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>, textStyles: StyleProp<TextStyle>, styles: ThemeStyles) {
     const elements: Array<string | React.JSX.Element> = [];
     let hasLargeStyle = false;
 
