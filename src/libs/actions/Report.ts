@@ -3029,7 +3029,7 @@ function completeOnboarding(
     },
     adminsChatReportID?: string,
 ) {
-    const targetEmail = CONST.EMAIL.CONCIERGE;
+    const targetEmail = CONST.EMAIL.EXPENSIFY_PERSONA;
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};

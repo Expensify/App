@@ -1202,6 +1202,7 @@ const CONST = {
         CHRONOS: 'chronos@expensify.com',
         CONCIERGE: 'concierge@expensify.com',
         CONTRIBUTORS: 'contributors@expensify.com',
+        EXPENSIFY_PERSONA: 'expensify@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
         HELP: 'help@expensify.com',
