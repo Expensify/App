@@ -11,6 +11,7 @@ import type {
     GetStatementPDFParams,
     RequestContactMethodValidateCodeParams,
     SetContactMethodAsDefaultParams,
+    SetNameValuePairParams,
     UpdateChatPriorityModeParams,
     UpdateFrequentlyUsedEmojisParams,
     UpdateNewsletterSubscriptionParams,
@@ -991,15 +992,30 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function dismissTrainingModal(type: ValueOf<typeof CONST.FEATURE_TRAINING.CONTENT_TYPES>) {
-    Onyx.merge(ONYXKEYS.NVP_DISMISSED_TRAINING_MODALS, {[type]: true});
+function dismissTrackTrainingModal() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
 }
 
 export {
     clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
-    dismissTrainingModal,
+    dismissTrackTrainingModal,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

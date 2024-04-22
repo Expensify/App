@@ -601,10 +601,7 @@ type SignInNavigatorParamList = {
 };
 
 type FeatureTrainingNavigatorParamList = {
-    [SCREENS.FEATURE_TRAINING_ROOT]: {
-        contentType: ValueOf<typeof CONST.FEATURE_TRAINING.CONTENT_TYPES>;
-        backTo?: string;
-    };
+    [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
 };
 
 type ReferralDetailsNavigatorParamList = {

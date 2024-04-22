@@ -58,6 +58,9 @@ type FloatingActionButtonAndPopoverOnyxProps = {
 
     /** Personal details of all the users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** Has user seen track expense training interstitial */
+    hasSeenTrackTraining: OnyxEntry<boolean>;
 };
 
 type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxProps & {
@@ -137,7 +140,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails}: FloatingActionButtonAndPopoverProps,
+    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails, hasSeenTrackTraining}: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
@@ -295,16 +298,19 @@ function FloatingActionButtonAndPopover(
                                   icon: Expensicons.DocumentPlus,
                                   text: translate('iou.trackExpense'),
                                   onSelected: () => {
-                                      Navigation.navigate(ROUTES.FEATURE_TRANING_MODAL.getRoute(CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE));
-                                      // interceptAnonymousUser(() =>
-                                      //     IOU.startMoneyRequest(
-                                      //         CONST.IOU.TYPE.TRACK_EXPENSE,
-                                      //         // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
-                                      //         // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                      //         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                      //         ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                      //     ),
-                                      // );
+                                      if (hasSeenTrackTraining) {
+                                          interceptAnonymousUser(() =>
+                                              IOU.startMoneyRequest(
+                                                  CONST.IOU.TYPE.TRACK_EXPENSE,
+                                                  // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                                  // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                                  ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                              ),
+                                          );
+                                      } else {
+                                          Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                      }
                                   },
                               },
                           ]
@@ -416,6 +422,9 @@ export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<Floa
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    hasSeenTrackTraining: {
+        key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
     },
 })(forwardRef(FloatingActionButtonAndPopover));
 

@@ -6,6 +6,7 @@ import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import * as User from '@userActions/User';
 import CONST from '@src/CONST';
 import Button from './Button';
 import CheckboxWithLabel from './CheckboxWithLabel';
@@ -23,7 +24,7 @@ type FeatureTrainingModalProps = {
     shouldShowDismissModalOption?: boolean;
 
     /** Animation for the tutorial */
-    renderIllustration: () => React.ReactElement;
+    renderIllustration: () => React.ReactElement | null;
 
     confirmText: string;
 
@@ -55,6 +56,7 @@ function FeatureTrainingModal({
     const toggleWillShowAgain = useCallback((checked?: boolean) => setWillShowAgain(!checked), []);
 
     const closeAndConfirmModal = useCallback(() => {
+        User.dismissTrackTrainingModal();
         setIsModalVisible(false);
         Navigation.goBack();
         onConfirm?.();
