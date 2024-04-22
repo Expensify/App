@@ -44,6 +44,7 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
+    // If the feature is pending, we should not update the feature state
     useEffect(() => {
         if (pendingField && !isOffline && !isFeatureEnabled) {
             return;

@@ -186,6 +186,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
+    // If features are pending, we should not update feature states
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
             const newFeatureStates = {} as PolicyFeatureStates;
