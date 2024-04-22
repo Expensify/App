@@ -1,21 +1,22 @@
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
+import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
 import SearchFilters from './SearchFilters';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 // import EmptySearchView from './EmptySearchView';
 
-type SearchMenuItem = {
-    title: string;
-    icon: IconAsset;
-    action: () => void;
-};
-
 function SearchPageBottomTab() {
+    const {translate} = useLocalize();
+
     return (
         <ScreenWrapper testID={SearchPageBottomTab.displayName}>
-            {/* <EmptySearchView /> */}
+            <TopBar
+                breadcrumbLabel={translate('common.search')}
+                shouldDisplaySearch={false}
+            />
             <SearchFilters />
+            {/* <EmptySearchView /> */}
             {/*  Search results list goes here  */}
         </ScreenWrapper>
     );

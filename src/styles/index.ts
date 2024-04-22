@@ -4874,6 +4874,11 @@ const styles = (theme: ThemeColors) =>
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
+
+        searchFiltersTabItem: {
+            flexBasis: '33%',
+            minWidth: 200,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

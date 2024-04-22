@@ -57,15 +57,19 @@ function SearchFilters() {
 
                 if (isSmallScreenWidth) {
                     return (
-                        <TabSelectorItem
+                        <View
                             key={item.title}
-                            icon={item.icon}
-                            title={item.title}
-                            isActive={isActive}
-                            activeOpacity={isActive ? 1 : 0}
-                            backgroundColor={isActive ? theme.border : theme.appBG}
-                            onPress={onPress}
-                        />
+                            style={[styles.searchFiltersTabItem]}
+                        >
+                            <TabSelectorItem
+                                icon={item.icon}
+                                title={item.title}
+                                isActive={isActive}
+                                activeOpacity={isActive ? 1 : 0}
+                                backgroundColor={isActive ? theme.border : theme.appBG}
+                                onPress={onPress}
+                            />
+                        </View>
                     );
                 }
 
