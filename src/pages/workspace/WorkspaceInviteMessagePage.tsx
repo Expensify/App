@@ -97,6 +97,9 @@ function WorkspaceInviteMessagePage({
             setWelcomeNote(parser.htmlToMarkdown(getDefaultWelcomeNote()));
             return;
         }
+        if (isEmptyObject(policy)) {
+            return;
+        }
         Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

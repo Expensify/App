@@ -305,6 +305,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         PolicyUtils.goBackFromInvalidPolicy();
     }, [policy, prevPolicy]);
 
+    // We are checking if the user can access the route.
+    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
+    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
+
+    useEffect(() => {
+        if (!shouldShowNotFoundPage && canAccessRoute) {
+            return;
+        }
+        // We are dismissing any modals that are open when the NotFound view is shown
+        Navigation.isNavigationReady().then(() => {
+            Navigation.dismissRHP();
+        });
+    }, [canAccessRoute, policy, shouldShowNotFoundPage]);
+
     const policyAvatar = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
