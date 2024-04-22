@@ -37,6 +37,11 @@ Onyx.connect({
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
+
+/** Validates that the merchant for a distance request transaction is in the expected format.
+ * <distance> <unit> @ <formatted rate with currency> / <unit>
+ * Example: 1.45 miles @ $0.67 / mi
+ */
 const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?(\p{Sc}|\p{L}|\w){1,3} ?[0-9.]+\)? \/ \w+$/u;
 
 /**
