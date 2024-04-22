@@ -100,7 +100,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     text="Navigate"
                     onPress={() => {
                         Navigation.dismissModal();
-                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+                        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE);
                     }}
                 />
             </TestToolRow>

@@ -549,6 +549,7 @@ function IOURequestStepScan({
                     onDrop={(e) => {
                         const file = e?.dataTransfer?.files[0];
                         if (file) {
+                            file.uri = URL.createObjectURL(file);
                             setReceiptAndNavigate(file);
                         }
                     }}

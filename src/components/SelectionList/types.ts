@@ -137,6 +137,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether the default focus should be prevented on row selection */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
+    /** Prevent the submission of the list item when enter key is pressed */
+    shouldPreventEnterKeySubmit?: boolean;
+
     /** Key used internally by React */
     keyForList?: string;
 
@@ -150,6 +153,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+    shouldPreventEnterKeySubmit?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
