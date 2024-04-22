@@ -4,7 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {RateAndUnit} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {LastSelectedDistanceRates, Report} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -29,6 +29,14 @@ Onyx.connect({
         }
 
         policies[key] = policy;
+    },
+});
+
+let lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+    callback: (value) => {
+        lastSelectedDistanceRates = value;
     },
 });
 
@@ -62,10 +70,7 @@ function getDefaultMileageRate(policy: OnyxEntry<Policy> | EmptyObject): Mileage
         return null;
     }
 
-    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
-    if (!distanceRate) {
-        return null;
-    }
+    const distanceRate = Object.values(distanceUnit.rates).find((rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE) ?? Object.values(distanceUnit.rates)[0];
 
     return {
         customUnitRateID: distanceRate.customUnitRateID,
@@ -106,7 +111,6 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
 }
 
 /**
- * @param hasRoute Whether the route exists for the distance request
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
  * @param currency The currency associated with the rate
@@ -115,15 +119,18 @@ function getRoundedDistanceInUnits(distanceInMeters: number, unit: Unit): string
  * @returns A string that describes the distance traveled and the rate used for expense calculation
  */
 function getRateForDisplay(
-    hasRoute: boolean,
-    unit: Unit,
+    unit: Unit | undefined,
     rate: number | undefined,
     currency: string | undefined,
     translate: LocaleContextProps['translate'],
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
+    isOffline?: boolean,
 ): string {
-    if (!hasRoute || !rate || !currency) {
+    if (isOffline && !rate) {
         return translate('iou.defaultRate');
+    }
+    if (!rate || !currency || !unit) {
+        return translate('iou.routePending');
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
@@ -135,15 +142,15 @@ function getRateForDisplay(
 }
 
 /**
- * @param hasRoute Whether the route exists for the distance request
+ * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
  * @param translate Translate function
  * @returns A string that describes the distance traveled
  */
-function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit, rate: number | undefined, translate: LocaleContextProps['translate']): string {
-    if (!hasRoute || !rate) {
+function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, translate: LocaleContextProps['translate']): string {
+    if (!hasRoute || !rate || !unit) {
         return translate('iou.routePending');
     }
 
@@ -156,7 +163,7 @@ function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit
 }
 
 /**
- * @param hasRoute Whether the route exists for the distance request
+ * @param hasRoute Whether the route exists for the distance expense
  * @param distanceInMeters Distance traveled
  * @param unit Unit that should be used to display the distance
  * @param rate Expensable amount allowed per unit
@@ -168,7 +175,7 @@ function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit
 function getDistanceMerchant(
     hasRoute: boolean,
     distanceInMeters: number,
-    unit: Unit,
+    unit: Unit | undefined,
     rate: number | undefined,
     currency: string,
     translate: LocaleContextProps['translate'],
@@ -179,7 +186,7 @@ function getDistanceMerchant(
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
-    const ratePerUnit = getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
+    const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit);
 
     return `${distanceInUnits} @ ${ratePerUnit}`;
 }
@@ -225,12 +232,12 @@ function getRateForP2P(currency: string): RateAndUnit {
 }
 
 /**
- * Calculates the request amount based on distance, unit, and rate.
+ * Calculates the expense amount based on distance, unit, and rate.
  *
  * @param distance - The distance traveled in meters
  * @param unit - The unit of measurement for the distance
- * @param rate - Rate used for calculating the request amount
- * @returns The computed request amount (rounded) in "cents".
+ * @param rate - Rate used for calculating the expense amount
+ * @returns The computed expense amount (rounded) in "cents".
  */
 function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): number {
     const convertedDistance = convertDistanceUnit(distance, unit);
@@ -263,12 +270,15 @@ function getDistanceFromMerchant(merchant: string | undefined, unit: Unit): numb
 function getCustomUnitRateID(reportID: string) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? null;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
+    const policy = PolicyUtils.getPolicy(report?.policyID ?? parentReport?.policyID ?? '');
+
+    let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
     if (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isPolicyExpenseChat(parentReport)) {
-        return '';
+        customUnitRateID = lastSelectedDistanceRates?.[policy?.id ?? ''] ?? getDefaultMileageRate(policy)?.customUnitRateID ?? '';
     }
 
-    return CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    return customUnitRateID;
 }
 
 export default {

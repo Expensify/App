@@ -99,6 +99,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                         autoFocus
                         onChangeText={setDescription}
                         autoGrowHeight
+                        isMarkdownEnabled
                         ref={(el: BaseTextInputRef | null): void => {
                             updateMultilineInputRange(el);
                         }}

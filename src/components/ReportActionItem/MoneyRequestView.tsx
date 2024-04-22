@@ -12,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -99,6 +100,7 @@ function MoneyRequestView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate, toLocaleDigit} = useLocalize();
     const {canUseViolations, canUseP2PDistanceRequests} = usePermissions();
@@ -138,7 +140,7 @@ function MoneyRequestView({
             ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
-    // Flags for allowing or disallowing editing a money request
+    // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
@@ -177,7 +179,7 @@ function MoneyRequestView({
 
     let amountDescription = `${translate('iou.amount')}`;
 
-    const hasRoute = TransactionUtils.hasRoute(transaction);
+    const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
     const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '0';
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -186,7 +188,7 @@ function MoneyRequestView({
     const {unit, rate} = mileageRate;
 
     const distance = DistanceRequestUtils.getDistanceFromMerchant(transactionMerchant, unit);
-    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(hasRoute, unit, rate, currency, translate, toLocaleDigit);
+    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const saveBillable = useCallback(
@@ -239,7 +241,7 @@ function MoneyRequestView({
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
-            // Checks applied when creating a new money request
+            // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
@@ -472,7 +474,14 @@ function MoneyRequestView({
                                         ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, orderWeight, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={
+                                    getErrorForField('tag', {
+                                        tagListIndex: index,
+                                        tagListName: name,
+                                    })
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
                                 error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
                             />
                         </OfflineWithFeedback>
@@ -499,6 +508,8 @@ function MoneyRequestView({
                                     ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
                                 )
                             }
+                            brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={getErrorForField('tax')}
                         />
                     </OfflineWithFeedback>
                 )}

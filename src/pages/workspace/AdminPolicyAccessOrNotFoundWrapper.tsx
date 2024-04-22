@@ -50,12 +50,7 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
     }
 
     if (shouldShowNotFoundPage) {
-        return (
-            <NotFoundPage
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))}
-                shouldForceFullScreen
-            />
-        );
+        return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(props.policyID))} />;
     }
 
     return typeof props.children === 'function' ? props.children(props) : props.children;
