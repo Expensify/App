@@ -31,7 +31,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
     const policyID = policy?.id ?? '';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, errorFields, errors} = qboConfig ?? {};
+    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, errorFields} = qboConfig ?? {};
     const isSyncReimbursedSwitchOn = !!collectionAccountID;
     const selectedAccount = '92345'; // TODO: use fake selected account temporarily.
 
