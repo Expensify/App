@@ -120,6 +120,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
+        learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
@@ -1352,6 +1353,9 @@ export default {
             requiredFirstName: 'Please input your first name to continue',
             requiredLastName: 'Please input your last name to continue',
         },
+    },
+    featureTraining: {
+        doNotShowAgain: "Don't show me this again",
     },
     personalDetails: {
         error: {

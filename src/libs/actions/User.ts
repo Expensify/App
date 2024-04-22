@@ -991,10 +991,15 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
+function dismissTrainingModal(type: ValueOf<typeof CONST.FEATURE_TRAINING.CONTENT_TYPES>) {
+    Onyx.merge(ONYXKEYS.NVP_DISMISSED_TRAINING_MODALS, {[type]: true});
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
     dismissReferralBanner,
+    dismissTrainingModal,
     resendValidateCode,
     requestContactMethodValidateCode,
     updateNewsletterSubscription,

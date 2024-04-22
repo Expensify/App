@@ -1,28 +1,19 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import Button from './Button';
+import FeatureTrainingModal from './FeatureTrainingModal';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
-import Modal from './Modal';
-import SafeAreaConsumer from './SafeAreaConsumer';
-import Text from './Text';
 import VideoPlayer from './VideoPlayer';
 
 // Aspect ratio and height of the video.
 // Useful before video loads to reserve space.
 const VIDEO_ASPECT_RATIO = 1280 / 960;
-
-const MODAL_PADDING = variables.spacing2;
 
 type VideoLoadedEventType = {
     srcElement: {
@@ -36,8 +27,6 @@ type VideoStatus = 'video' | 'animation';
 function OnboardingWelcomeVideo() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isModalVisible, setIsModalVisible] = useState(true);
-    const {shouldUseNarrowLayout} = useOnboardingLayout();
     const [welcomeVideoStatus, setWelcomeVideoStatus] = useState<VideoStatus>('video');
     const [isWelcomeVideoStatusLocked, setIsWelcomeVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -57,11 +46,6 @@ function OnboardingWelcomeVideo() {
         }
     }, [isOffline, isWelcomeVideoStatusLocked]);
 
-    const closeModal = useCallback(() => {
-        setIsModalVisible(false);
-        Navigation.goBack();
-    }, []);
-
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
             return;
@@ -74,7 +58,7 @@ function OnboardingWelcomeVideo() {
         }
     };
 
-    const getWelcomeVideo = () => {
+    const getWelcomeVideo = useCallback(() => {
         const aspectRatio = videoAspectRatio || VIDEO_ASPECT_RATIO;
 
         return (
@@ -111,51 +95,15 @@ function OnboardingWelcomeVideo() {
                 )}
             </View>
         );
-    };
+    }, [videoAspectRatio, welcomeVideoStatus, isSmallScreenWidth, styles]);
 
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <Modal
-                    isVisible={isModalVisible}
-                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                    onClose={closeModal}
-                    innerContainerStyle={{
-                        boxShadow: 'none',
-                        borderRadius: 16,
-                        paddingBottom: 20,
-                        paddingTop: shouldUseNarrowLayout ? undefined : MODAL_PADDING,
-                        ...(shouldUseNarrowLayout
-                            ? // Override styles defined by MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-                              // To make it take as little space as possible.
-                              {
-                                  flex: undefined,
-                                  width: 'auto',
-                              }
-                            : {}),
-                    }}
-                >
-                    <GestureHandlerRootView>
-                        <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
-                            <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{getWelcomeVideo()}</View>
-                            <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
-                                <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                    <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.welcomeVideo.title')}</Text>
-                                    <Text style={styles.textSupporting}>{translate('onboarding.welcomeVideo.description')}</Text>
-                                </View>
-                                <Button
-                                    large
-                                    success
-                                    pressOnEnter
-                                    onPress={closeModal}
-                                    text={translate('onboarding.welcomeVideo.button')}
-                                />
-                            </View>
-                        </View>
-                    </GestureHandlerRootView>
-                </Modal>
-            )}
-        </SafeAreaConsumer>
+        <FeatureTrainingModal
+            title={translate('onboarding.welcomeVideo.title')}
+            description={translate('onboarding.welcomeVideo.description')}
+            renderIllustration={getWelcomeVideo}
+            confirmText={translate('onboarding.welcomeVideo.button')}
+        />
     );
 }
 

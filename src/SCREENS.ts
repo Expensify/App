@@ -326,6 +326,7 @@ const SCREENS = {
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
+    FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

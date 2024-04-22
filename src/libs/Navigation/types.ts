@@ -594,6 +594,13 @@ type SignInNavigatorParamList = {
     [SCREENS.SIGN_IN_ROOT]: undefined;
 };
 
+type FeatureTrainingNavigatorParamList = {
+    [SCREENS.FEATURE_TRAINING_ROOT]: {
+        contentType: ValueOf<typeof CONST.FEATURE_TRAINING.CONTENT_TYPES>;
+        backTo?: string;
+    };
+};
+
 type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: {
         contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
@@ -782,6 +789,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+    [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
     [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
@@ -846,6 +854,7 @@ export type {
     EditRequestNavigatorParamList,
     PrivateNotesNavigatorParamList,
     SignInNavigatorParamList,
+    FeatureTrainingNavigatorParamList,
     ReferralDetailsNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     State,

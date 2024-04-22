@@ -12,6 +12,7 @@ import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type DismissedReferralBanners from './DismissedReferralBanners';
+import type DismissedTrainingModals from './DismissedTrainingModals';
 import type Download from './Download';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -95,6 +96,7 @@ export type {
     CurrencyList,
     CustomStatusDraft,
     DismissedReferralBanners,
+    DismissedTrainingModals,
     Download,
     FrequentlyUsedEmoji,
     Fund,

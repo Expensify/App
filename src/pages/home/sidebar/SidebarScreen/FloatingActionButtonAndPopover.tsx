@@ -15,6 +15,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
@@ -24,6 +25,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -279,16 +281,18 @@ function FloatingActionButtonAndPopover(
                               {
                                   icon: Expensicons.DocumentPlus,
                                   text: translate('iou.trackExpense'),
-                                  onSelected: () =>
-                                      interceptAnonymousUser(() =>
-                                          IOU.startMoneyRequest(
-                                              CONST.IOU.TYPE.TRACK_EXPENSE,
-                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
-                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                          ),
-                                      ),
+                                  onSelected: () => {
+                                      Navigation.navigate(ROUTES.FEATURE_TRANING_MODAL.getRoute(CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE));
+                                      // interceptAnonymousUser(() =>
+                                      //     IOU.startMoneyRequest(
+                                      //         CONST.IOU.TYPE.TRACK_EXPENSE,
+                                      //         // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                      //         // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                      //         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                      //         ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                      //     ),
+                                      // );
+                                  },
                               },
                           ]
                         : []),
