@@ -118,12 +118,13 @@ describe('IOUUtils', () => {
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        expect(IOUUtils.isValidMoneyRequestType('request')).toBe(true);
-        expect(IOUUtils.isValidMoneyRequestType('split')).toBe(true);
-        expect(IOUUtils.isValidMoneyRequestType('send')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('submit')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('split')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('pay')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('track')).toBe(true);
     });
 
     test('Return false for invalid iou type', () => {
-        expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('money')).toBe(false);
     });
 });
