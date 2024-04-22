@@ -1897,7 +1897,7 @@ export default {
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
-            importedFromAccountingSoftware: `The categories below are imported from your`,
+            importedFromAccountingSoftware: 'The categories below are imported from your',
         },
         moreFeatures: {
             spendSection: {
