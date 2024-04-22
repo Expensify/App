@@ -607,6 +607,7 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction} />
                 </View>
             )}
+<<<<<<< HEAD
             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {receiptImage || receiptThumbnail ? (
                 <ReceiptImage
@@ -683,6 +684,25 @@ function MoneyRequestConfirmationList({
                 interactive={!isReadOnly}
                 numberOfLinesTitle={2}
             />
+=======
+            {!isDistanceRequest &&
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                (receiptImage || receiptThumbnail
+                    ? receiptThumbnailContent
+                    : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                      PolicyUtils.isPaidGroupPolicy(policy) &&
+                      !isDistanceRequest &&
+                      iouType === CONST.IOU.TYPE.REQUEST && (
+                          <ReceiptEmptyState
+                              onPress={() =>
+                                  Navigation.navigate(
+                                      ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
+                                  )
+                              }
+                          />
+                      ))}
+            {primaryFields}
+>>>>>>> 4e922f14 (Merge pull request #40648 from ishpaul777/fix/40549)
             {!shouldShowAllFields && (
                 <ShowMoreButton
                     containerStyle={[styles.mt1, styles.mb2]}
