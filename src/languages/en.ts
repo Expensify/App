@@ -631,7 +631,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Pending...',
+        fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',

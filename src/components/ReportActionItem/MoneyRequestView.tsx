@@ -40,6 +40,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -103,8 +104,9 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+    const isExpenseTracking = (parentReportAction?.originalMessage as IOUMessage)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
+    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isExpenseTracking ? CONST.IOU.TYPE.TRACK_EXPENSE : undefined);
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
@@ -289,6 +291,7 @@ function MoneyRequestView({
                     }
                 />
             </OfflineWithFeedback>
+            {/* TODO: correct the pending field action https://github.com/Expensify/App/issues/36988 (?) */}
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}

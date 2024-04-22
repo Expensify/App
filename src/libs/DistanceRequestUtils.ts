@@ -20,18 +20,6 @@ type MileageRate = {
     name?: string;
 };
 
-const policies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policy, key) => {
-        if (!policy || !key || !policy.name) {
-            return;
-        }
-
-        policies[key] = policy;
-    },
-});
-
 let lastSelectedDistanceRates: OnyxEntry<LastSelectedDistanceRates> = {};
 Onyx.connect({
     key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
@@ -49,6 +37,7 @@ Onyx.connect({
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
 const METERS_TO_MILES = 0.000621371; // There are approximately 0.000621371 miles in a meter
+const distanceMerchantRegex = /^[0-9.]+ \w+ @ (-|-\()?(\p{Sc}|\p{L}|\w){1,3} ?[0-9.]+\)? \/ \w+$/u;
 
 /**
  * Retrieves the default mileage rate based on a given policy.
@@ -130,7 +119,7 @@ function getRateForDisplay(
         return translate('iou.defaultRate');
     }
     if (!rate || !currency || !unit) {
-        return translate('iou.routePending');
+        return translate('iou.fieldPending');
     }
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
@@ -151,7 +140,7 @@ function getRateForDisplay(
  */
 function getDistanceForDisplay(hasRoute: boolean, distanceInMeters: number, unit: Unit | undefined, rate: number | undefined, translate: LocaleContextProps['translate']): string {
     if (!hasRoute || !rate || !unit) {
-        return translate('iou.routePending');
+        return translate('iou.fieldPending');
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
@@ -182,7 +171,7 @@ function getDistanceMerchant(
     toLocaleDigit: LocaleContextProps['toLocaleDigit'],
 ): string {
     if (!hasRoute || !rate) {
-        return translate('iou.routePending');
+        return translate('iou.fieldPending');
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate);
@@ -255,7 +244,7 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
  * @returns The distance extracted from the merchant string.
  */
 function getDistanceFromMerchant(merchant: string | undefined, unit: Unit): number {
-    if (!merchant) {
+    if (!merchant || !distanceMerchantRegex.test(merchant ?? '')) {
         return 0;
     }
 
