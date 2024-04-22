@@ -10,6 +10,7 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import { dismissTrackTrainingModal } from '@libs/actions/User';
 
 // On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
 // We need to take this in consideration when checking if the screen is focused.
@@ -151,6 +153,7 @@ function FloatingActionButtonAndPopover(
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
+    const {isOffline} = useNetwork();
 
     const quickActionReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : null), [quickAction]);
 
@@ -298,7 +301,7 @@ function FloatingActionButtonAndPopover(
                                   icon: Expensicons.DocumentPlus,
                                   text: translate('iou.trackExpense'),
                                   onSelected: () => {
-                                      if (hasSeenTrackTraining) {
+                                      if (!!hasSeenTrackTraining || isOffline) {
                                           interceptAnonymousUser(() =>
                                               IOU.startMoneyRequest(
                                                   CONST.IOU.TYPE.TRACK_EXPENSE,

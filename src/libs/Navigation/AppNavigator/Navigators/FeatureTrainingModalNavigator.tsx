@@ -23,6 +23,6 @@ function FeatureTrainingModalNavigator() {
     );
 }
 
-FeatureTrainingModalNavigator.displayName = 'WelcomeVideoModalNavigator';
+FeatureTrainingModalNavigator.displayName = 'FeatureTrainingModalNavigator';
 
 export default FeatureTrainingModalNavigator;
