@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -101,6 +102,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
                         onSelectRow={onSelectDayOfMonth}
                         initiallyFocusedOptionKey={offset.toString()}
                         showScrollIndicator
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>

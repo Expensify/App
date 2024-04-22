@@ -12,6 +12,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
@@ -97,6 +98,7 @@ function PronounsPage({currentUserPersonalDetails, isLoadingApp = true}: Pronoun
                         onSelectRow={updatePronouns}
                         onChangeText={setSearchValue}
                         initiallyFocusedOptionKey={currentPronounsKey}
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     />
                 </>
             )}

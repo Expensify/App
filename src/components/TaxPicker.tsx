@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -78,6 +79,7 @@ function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerPr
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
             containerStyle={{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}}
+            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
         />
     );
 }
