@@ -76,6 +76,7 @@ function ReportVirtualCardFraudPage({
                     message={virtualCardError}
                     isLoading={formData?.isLoading}
                     buttonText={translate('reportFraudPage.deactivateCard')}
+                    containerStyles={[styles.m5]}
                 />
             </View>
         </ScreenWrapper>
