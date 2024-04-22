@@ -198,7 +198,6 @@ function ReportActionsView({
 
             // If this is a one transaction report, ensure we load newer actions for both this report and the report associated with the transaction
             if (transactionThreadReport?.reportID) {
-                console.log("123455");
                 // Get newer actions based on the newest reportAction for the current report
                 const newestActionCurrentReport = reportActionIDMap.find((item) => item.reportID === reportID);
                 Report.getNewerActions(newestActionCurrentReport?.reportID ?? '0', newestActionCurrentReport?.reportActionID ?? '0');
