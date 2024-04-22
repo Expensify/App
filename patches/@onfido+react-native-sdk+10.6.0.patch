@@ -1265,6 +1265,35 @@ index a9de0d0..da83d9f 100644
 +    s.dependency "React"
 +  end
  end
+diff --git a/node_modules/@onfido/react-native-sdk/package.json b/node_modules/@onfido/react-native-sdk/package.json
+index 50a331b..754c3c0 100644
+--- a/node_modules/@onfido/react-native-sdk/package.json
++++ b/node_modules/@onfido/react-native-sdk/package.json
+@@ -24,7 +24,8 @@
+     ],
+     "testPathIgnorePatterns": [
+       "/TestApp",
+-      "/SampleApp"
++      "/SampleApp",
++      "/FabricSample"
+     ],
+     "globals": {
+       "__DEV__": true
+@@ -82,6 +83,14 @@
+     "react-native": "0.72.6",
+     "typescript": "^4.6.4"
+   },
++  "codegenConfig": {
++    "name": "rnonfidosdk",
++    "type": "modules",
++    "jsSrcsDir": "./js",
++    "android": {
++      "javaPackageName": "com.onfido.reactnative.sdk"
++    }
++  },
+   "dependencies": {
+     "js-base64": "3.7.5"
+   },
 diff --git a/node_modules/@onfido/react-native-sdk/scripts/update-integration-versions.sh b/node_modules/@onfido/react-native-sdk/scripts/update-integration-versions.sh
 index 49f9d4c..1b9f304 100755
 --- a/node_modules/@onfido/react-native-sdk/scripts/update-integration-versions.sh
