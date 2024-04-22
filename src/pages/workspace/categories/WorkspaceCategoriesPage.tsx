@@ -65,7 +65,7 @@ function WorkspaceCategoriesPage({policy}: WorkspaceCategoriesPageProps) {
     const {environmentURL} = useEnvironment();
     const route = useRoute<RouteProp<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>>();
     const policyId = route.params.policyID;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}` as const);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
     const fetchCategories = useCallback(() => {
         Policy.openPolicyCategoriesPage(policyId);
@@ -282,7 +282,7 @@ function WorkspaceCategoriesPage({policy}: WorkspaceCategoriesPageProps) {
                         />
                         {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            {policy?.connections ? (
+                            {Object.keys(policy?.connections ?? {}).length ? (
                                 <Text>
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
                                     <TextLink
