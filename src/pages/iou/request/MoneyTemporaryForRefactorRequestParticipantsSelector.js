@@ -205,6 +205,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
                 newParticipants.push({
                     policyID: primaryPolicy.id,
+                    isSender: true,
                     selected: false,
                     iouType,
                 });

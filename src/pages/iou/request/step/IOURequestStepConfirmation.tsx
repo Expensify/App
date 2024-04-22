@@ -111,7 +111,7 @@ function IOURequestStepConfirmation({
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
 
-                if (participant.policyID && iouType === CONST.IOU.TYPE.INVOICE) {
+                if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
 

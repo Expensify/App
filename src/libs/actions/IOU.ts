@@ -1615,7 +1615,7 @@ function getSendInvoiceInformation(
 ): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
-    const senderWorkspaceID = participants?.find((participant) => participant?.policyID)?.policyID ?? '';
+    const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '';
     const receiverParticipant = participants?.find((participant) => participant?.accountID);
     const receiverAccountID = receiverParticipant?.accountID ?? -1;
     let receiver = ReportUtils.getPersonalDetailsForAccountID(receiverAccountID);
@@ -6295,6 +6295,7 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
                 ...participants,
                 {
                     policyID: chatReport?.policyID,
+                    isSender: true,
                     selected: false,
                 },
             ];
@@ -6490,7 +6491,7 @@ function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMeth
 /** Get report policy id of IOU request */
 function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, report: OnyxEntry<OnyxTypes.Report>): string {
     // Workspace sender will exist for invoices
-    const workspaceSender = transaction?.participants?.find((participant) => participant.policyID);
+    const workspaceSender = transaction?.participants?.find((participant) => participant.isSender);
     return workspaceSender?.policyID ?? report?.policyID ?? '0';
 }
 

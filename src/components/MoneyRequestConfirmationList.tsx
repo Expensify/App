@@ -283,7 +283,7 @@ function MoneyRequestConfirmationList({
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
 
     const senderWorkspace = useMemo(() => {
-        const senderWorkspaceParticipant = selectedParticipantsProp.find((participant) => participant.policyID);
+        const senderWorkspaceParticipant = selectedParticipantsProp.find((participant) => participant.isSender);
         return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
     }, [allPolicies, selectedParticipantsProp]);
 

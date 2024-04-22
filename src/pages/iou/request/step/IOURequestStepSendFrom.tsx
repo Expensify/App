@@ -70,6 +70,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
 
         newParticipants.push({
             policyID: item.value,
+            isSender: true,
             selected: false,
         });
 
