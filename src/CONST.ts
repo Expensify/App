@@ -1135,6 +1135,11 @@ const CONST = {
         JPEG: 'image/jpeg',
     },
 
+    IMAGE_OBJECT_POSITION: {
+        TOP: 'top',
+        INITIAL: 'initial',
+    },
+
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
