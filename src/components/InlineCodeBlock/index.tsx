@@ -10,7 +10,7 @@ function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer,
     const styles = useThemeStyles();
     const flattenTextStyle = StyleSheet.flatten(textStyle);
     const {textDecorationLine, ...textStyles} = flattenTextStyle;
-    const {elements, hasLargeStyle} = renderEmojis(defaultRendererProps, styles);
+    const {elements, hasLargeStyle} = renderEmojis(defaultRendererProps, textStyles, styles);
 
     return (
         <TDefaultRenderer

@@ -4,7 +4,7 @@ import EmojiWithTooltip from '@components/EmojiWithTooltip';
 import type {ThemeStyles} from '@styles/index';
 import type {TTextOrTPhrasing} from './types';
 
-function renderEmojis(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>, styles: ThemeStyles) {
+function renderEmojis(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>, textStyles: TextStyle, styles: ThemeStyles) {
     const elements: Array<string | React.JSX.Element> = [];
     let hasLargeStyle = false;
 
@@ -29,7 +29,7 @@ function renderEmojis(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasi
             }
             elements.push(
                 <EmojiWithTooltip
-                    style={[styles.cursorDefault, largeStyle, styles.emojiDefault]}
+                    style={[textStyles, styles.cursorDefault, largeStyle, styles.emojiDefault]}
                     key={child.data}
                     emojiCode={child.data}
                 />,
