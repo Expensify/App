@@ -4931,8 +4931,8 @@ function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFiltered
  * Used for compatibility with the backend auth validator for AddComment, and to account for MD in comments
  * @returns The comment's total length as seen from the backend
  */
-function getCommentLength(textComment: string): number {
-    return getParsedComment(textComment)
+function getCommentLength(textComment: string, reportID?: string, policyID?: string): number {
+    return getParsedComment(textComment, undefined, reportID, policyID)
         .replace(/[^ -~]/g, '\\u????')
         .trim().length;
 }

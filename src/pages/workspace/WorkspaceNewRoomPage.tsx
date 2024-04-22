@@ -183,7 +183,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
-            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
+            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription, policyID);
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
                 ErrorUtils.addErrorMessage(errors, 'reportDescription', [
                     'common.error.characterLimitExceedCounter',
