@@ -994,7 +994,7 @@ function MoneyRequestConfirmationList({
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={!isReadOnly && footerContent}
+            footerContent={footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
         >
