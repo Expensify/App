@@ -237,6 +237,7 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
+        transactionThreadReportID: transactionThreadReport?.reportID,
     };
 
     let participantAccountIDs = report.participantAccountIDs ?? [];

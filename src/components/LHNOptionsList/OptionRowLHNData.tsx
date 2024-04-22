@@ -72,6 +72,7 @@ function OptionRowLHNData({
         transactionViolations,
         canUseViolations,
         receiptTransactions,
+        transactionThreadReport,
     ]);
 
     return (
