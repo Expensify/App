@@ -96,14 +96,18 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
         },
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             path: ROUTES.ONBOARDING_ROOT,
-            initialRouteName: SCREENS.ONBOARDING.PERSONAL_DETAILS,
+            initialRouteName: SCREENS.ONBOARDING.PURPOSE,
             screens: {
+                [SCREENS.ONBOARDING.PURPOSE]: {
+                    path: ROUTES.ONBOARDING_PURPOSE,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.PERSONAL_DETAILS]: {
                     path: ROUTES.ONBOARDING_PERSONAL_DETAILS,
                     exact: true,
                 },
-                [SCREENS.ONBOARDING.PURPOSE]: {
-                    path: ROUTES.ONBOARDING_PURPOSE,
+                [SCREENS.ONBOARDING.WORK]: {
+                    path: ROUTES.ONBOARDING_WORK,
                     exact: true,
                 },
             },
@@ -569,6 +573,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
+                        [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.route,
                         [SCREENS.MONEY_REQUEST.HOLD]: ROUTES.MONEY_REQUEST_HOLD_REASON.route,
                         [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: ROUTES.MONEY_REQUEST_STEP_MERCHANT.route,
                         [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.route,

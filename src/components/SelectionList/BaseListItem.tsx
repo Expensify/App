@@ -18,6 +18,7 @@ function BaseListItem<TItem extends ListItem>({
     containerStyle,
     isDisabled = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
@@ -65,7 +66,12 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
-                onPress={() => onSelectRow(item)}
+                onPress={(e) => {
+                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                        return;
+                    }
+                    onSelectRow(item);
+                }}
                 disabled={isDisabled}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
