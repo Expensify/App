@@ -9,6 +9,8 @@ const run = () => {
     // Read the contents of the file, the file is in the JSONL format
     const regressionFile = fs.readFileSync('.reassure/baseline.perf', 'utf8');
 
+    console.log('regressionFile: ', regressionFile);
+
     // Split file contents by newline to get individual JSON entries
     const regressionEntries = regressionFile.split('\n');
 
@@ -46,6 +48,7 @@ const run = () => {
     });
 
     // Set generated graphite string to the github variable
+    console.log('GRAPHITE_STRING: ', graphiteString);
     core.setOutput('GRAPHITE_STRING', graphiteString);
 };
 
