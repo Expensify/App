@@ -15,7 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
-import * as ComposerUtils from '@libs/ComposerUtils';
+import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -311,6 +311,7 @@ function Composer(
     const inputStyleMemo = useMemo(
         () => [
             StyleSheet.flatten([style, {outline: 'none'}]),
+            StyleUtils.getComposeTextAreaPadding(isComposerFullSize),
             Browser.isMobileSafari() || Browser.isSafari() ? styles.rtlTextRenderForSafari : {},
             scrollStyleMemo,
             StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize),
@@ -338,7 +339,7 @@ function Composer(
                 onSelectionChange={addCursorPositionToSelectionChange}
                 onContentSizeChange={(e) => {
                     setTextInputWidth(`${e.nativeEvent.contentSize.width}px`);
-                    ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
+                    updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles);
                 }}
                 disabled={isDisabled}
                 onKeyPress={handleKeyPress}
