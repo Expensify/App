@@ -45,7 +45,7 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
     useEffect(() => {
-        if (pendingField && !isOffline) {
+        if (pendingField && !isOffline && !isFeatureEnabled) {
             return;
         }
         setIsPolicyFeatureEnabled(isFeatureEnabled);
