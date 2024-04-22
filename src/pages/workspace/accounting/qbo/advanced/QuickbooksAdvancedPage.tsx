@@ -63,7 +63,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
             isActive: Boolean(autoCreateVendor),
             onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, !autoCreateVendor),
             pendingAction: pendingFields?.autoCreateVendor,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
+            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
         },
     ];
@@ -87,6 +87,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                 <ToggleSettingOptionRow
                                     key={item.title}
                                     errors={item.errors}
+                                    onCloseError={item.onCloseError}
                                     title={item.title}
                                     subtitle={item.subtitle}
                                     shouldPlaceSubtitleBelowSwitch
@@ -106,7 +107,8 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
                             <ToggleSettingOptionRow
                                 title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
-                                errors={errors}
+                                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
+                                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
                                 subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
                                 shouldPlaceSubtitleBelowSwitch
                                 wrapperStyle={styles.mv3}
