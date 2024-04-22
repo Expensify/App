@@ -49,7 +49,7 @@ import SendButton from './SendButton';
 type ComposerRef = {
     blur: () => void;
     focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: (text: string, shouldAddTrailSpace: Emoji) => void;
+    replaceSelectionWithText: EmojiPickerActions.OnEmojiSelected;
     prepareCommentAndResetComposer: () => string;
     isFocused: () => boolean;
 };

@@ -74,7 +74,9 @@ type ExpensifyOnyxProps = {
 
 type ExpensifyProps = ExpensifyOnyxProps;
 
-const SplashScreenHiddenContext = React.createContext<{isSplashHidden?: boolean}>({});
+type SplashScreenHiddenContextType = {isSplashHidden?: boolean};
+
+const SplashScreenHiddenContext = React.createContext<SplashScreenHiddenContextType>({});
 
 function Expensify({
     isCheckingPublicRoom = true,
