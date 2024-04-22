@@ -1452,6 +1452,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...positioning.r4,
             ...styles.cursorDefault,
             ...styles.userSelectNone,
+            overflowAnchor: 'none',
             position: 'absolute',
             zIndex: 8,
         }),
