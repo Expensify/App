@@ -6,8 +6,6 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type OnyxPolicy from '@src/types/onyx/Policy';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 
-let hasSelectedPurpose: boolean | undefined;
-let hasProvidedPersonalDetails: boolean | undefined;
 let onboarding: Onboarding | [] | undefined;
 let hasDismissedModal: boolean | undefined;
 let isLoadingReportData = true;
@@ -46,36 +44,25 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
 }
 
 /**
- * Check that a few requests have completed so that the welcome action can proceed:
- *
- * - Whether we are a first time new expensify user
- * - Whether we have loaded all policies the server knows about
- * - Whether we have loaded all reports the server knows about
+ * Check if onboarding object is not undefined so user can see onboarding modal
  */
-function checkOnReady() {
-    const hasRequiredOnyxKeysBeenLoaded = [onboarding, hasSelectedPurpose, hasDismissedModal, hasProvidedPersonalDetails].every((value) => value !== undefined);
-
-    if (isLoadingReportData || !hasRequiredOnyxKeysBeenLoaded) {
+function checkOnboardingReady() {
+    if (onboarding === undefined) {
         return;
     }
 
     resolveOnboardingFlowStatus?.();
-    resolveIsReadyPromise?.();
 }
 
-function getPersonalDetails(accountID: number | undefined) {
-    Onyx.connect({
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        initWithStoredValues: true,
-        callback: (value) => {
-            if (!value || !accountID) {
-                return;
-            }
+/**
+ * Check if user dismissed modal and if report data are loaded
+ */
+function checkServerReady() {
+    if (isLoadingReportData || hasDismissedModal === undefined) {
+        return;
+    }
 
-            hasProvidedPersonalDetails = !!value[accountID]?.firstName && !!value[accountID]?.lastName;
-            checkOnReady();
-        },
-    });
+    resolveIsReadyPromise?.();
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurposeType) {
@@ -92,17 +79,7 @@ Onyx.connect({
 
         onboarding = value;
 
-        checkOnReady();
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    initWithStoredValues: true,
-    callback: (value) => {
-        hasSelectedPurpose = !!value;
-
-        checkOnReady();
+        checkOnboardingReady();
     },
 });
 
@@ -112,7 +89,7 @@ Onyx.connect({
     callback: (value) => {
         hasDismissedModal = value ?? false;
 
-        checkOnReady();
+        checkServerReady();
     },
 });
 
@@ -121,7 +98,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkOnReady();
+        checkServerReady();
     },
 });
 
@@ -139,17 +116,6 @@ Onyx.connect({
         }
 
         allPolicies[key] = {...allPolicies[key], ...val};
-    },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val, key) => {
-        if (!val || !key) {
-            return;
-        }
-
-        getPersonalDetails(val.accountID);
     },
 });
 
