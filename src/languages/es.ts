@@ -27,7 +27,6 @@ import type {
     FormattedMaxLengthParams,
     GoBackMessageParams,
     GoToRoomParams,
-    ImportedFromAccountingSoftwareParams,
     InstantSummaryParams,
     LocalTimeParams,
     LoggedInAsParams,
@@ -1922,7 +1921,7 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
-            importedFromAccountingSoftware: ({accountingSoftwareName}: ImportedFromAccountingSoftwareParams) => `Categorías importadas desde ${accountingSoftwareName}`,
+            importedFromAccountingSoftware: `Categorías importadas desde`,
         },
         moreFeatures: {
             spendSection: {
