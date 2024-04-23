@@ -177,7 +177,7 @@ const modifiedArray = _.chain(someArray)
 
 ## Accessing Object Properties and Default Values
 
-Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type.
 
 ```javascript
 // Bad
@@ -482,7 +482,7 @@ const propTypes = {
 
 ### Important Note:
 
-In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `_.isEmpty()` instead.
+In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
 
 ```javascript
 // Bad! This will cause a breaking an error on native platforms
@@ -501,7 +501,7 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 {
     return (
         <View>
-            {!_.isEmpty(props.title)
+            {!!props.title
                 ? <View style={styles.title}>{props.title}</View>
                 : null}
             <View style={styles.body}>This is the body</View>
