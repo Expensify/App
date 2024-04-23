@@ -47,11 +47,6 @@ const mockUpdate6 = createMockUpdate(6);
 const mockUpdate7 = createMockUpdate(7);
 const mockUpdate8 = createMockUpdate(8);
 
-const resetOnyxUpdateManager = async () => {
-    await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
-    OnyxUpdateManager.resetDeferralLogicVariables();
-};
-
 describe('OnyxUpdateManager', () => {
     let lastUpdateIDAppliedToClient = 1;
     beforeAll(() => {
@@ -63,7 +58,8 @@ describe('OnyxUpdateManager', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        await resetOnyxUpdateManager();
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
+        OnyxUpdateManager.resetDeferralLogicVariables();
         return waitForBatchedUpdates();
     });
 
