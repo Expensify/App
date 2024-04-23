@@ -232,10 +232,22 @@ function MoneyRequestAmountForm(
         if (skipConfirmation) {
             if (currentAmount !== '') {
                 const currencyAmount = CurrencyUtils.convertToDisplayString(CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount)), currency) ?? '';
-                const text = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitAmount', {amount: currencyAmount}) : translate('iou.submitAmount', {amount: currencyAmount});
+                let text = translate('iou.submitAmount', {amount: currencyAmount});
+                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    text = translate('iou.splitAmount', {amount: currencyAmount});
+                } else if (iouType === CONST.IOU.TYPE.TRACK) {
+                    text = translate('iou.trackAmount', {amount: currencyAmount});
+                }
                 return text[0].toUpperCase() + text.slice(1);
             }
-            return iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitExpense') : translate('iou.submitExpense');
+
+            if (iouType === CONST.IOU.TYPE.SPLIT) {
+                return translate('iou.splitExpense');
+            }
+            if (iouType === CONST.IOU.TYPE.TRACK) {
+                return translate('iou.trackExpense');
+            }
+            return translate('iou.submitExpense');
         }
         return isEditing ? translate('common.save') : translate('common.next');
     }, [skipConfirmation, iouType, currency, isEditing, translate]);
