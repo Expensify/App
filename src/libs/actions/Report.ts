@@ -851,6 +851,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
             parentReportAction?.message?.[0]?.text,
+            // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
             parentReport && ReportUtils.isSelfDM(parentReport) ? undefined : parentReport?.chatType,
             parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
