@@ -719,14 +719,6 @@ function ReportScreen({
 
 ReportScreen.displayName = 'ReportScreen';
 
-const parentReportSelector = (report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<OnyxTypes.Report> =>
-    report && {
-        type: report.type,
-        reportID: report.reportID,
-        parentReportID: report.parentReportID,
-        parentReportActionID: report.parentReportActionID,
-    };
-
 export default withCurrentReportID(
     withOnyx<ReportScreenPropsWithoutParentReportAction, ReportScreenOnyxPropsWithoutParentReportAction>(
         {
@@ -747,7 +739,6 @@ export default withCurrentReportID(
             },
             parentReport: {
                 key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-                selector: parentReportSelector,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
