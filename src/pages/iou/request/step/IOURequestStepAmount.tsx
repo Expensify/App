@@ -66,8 +66,8 @@ function IOURequestStepAmount({
     personalDetails,
     currentUserPersonalDetails,
     splitDraftTransaction,
-    draftTransaction,
     skipConfirmation,
+    draftTransaction,
 }: IOURequestStepAmountProps) {
     const {translate} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -111,13 +111,13 @@ function IOURequestStepAmount({
         // A temporary solution to not prevent users from editing the currency
         // We create a backup transaction and use it to save the currency and remove this transaction backup if we don't save the amount
         // It should be removed after this issue https://github.com/Expensify/App/issues/34607 is fixed
-        TransactionEdit.createBackupTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
+        TransactionEdit.createDraftTransaction(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction);
 
         return () => {
             if (isSaveButtonPressed.current) {
                 return;
             }
-            TransactionEdit.removeBackupTransaction(transaction?.transactionID ?? '');
+            TransactionEdit.removeDraftTransaction(transaction?.transactionID ?? '');
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -130,6 +130,32 @@ function IOURequestStepAmount({
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(action, iouType, transactionID, reportID, backTo ? 'confirm' : '', currency, Navigation.getActiveRouteWithoutParams()),
         );
+    };
+
+    const navigateToParticipantPage = () => {
+        switch (iouType) {
+            case CONST.IOU.TYPE.REQUEST:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
+            case CONST.IOU.TYPE.SEND:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
+                break;
+            default:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        }
+    };
+
+    const navigateToConfirmationPage = () => {
+        switch (iouType) {
+            case CONST.IOU.TYPE.REQUEST:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
+            case CONST.IOU.TYPE.SEND:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+                break;
+            default:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        }
     };
 
     const navigateToNextPage = ({amount, paymentMethod}: AmountParams) => {
@@ -173,7 +199,7 @@ function IOURequestStepAmount({
                     });
                     return;
                 }
-                if (iouType === CONST.IOU.TYPE.SEND) {
+                if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         IOU.sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
                         return;
@@ -182,7 +208,7 @@ function IOURequestStepAmount({
                     IOU.sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants[0]);
                     return;
                 }
-                if (iouType === CONST.IOU.TYPE.REQUEST) {
+                if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
                     IOU.requestMoney(
                         report,
                         backendAmount,
@@ -213,13 +239,13 @@ function IOURequestStepAmount({
                 }
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+            navigateToConfirmationPage();
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global + menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        navigateToParticipantPage();
     };
 
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
@@ -302,7 +328,7 @@ const IOURequestStepAmountWithOnyx = withOnyx<IOURequestStepAmountProps, IOURequ
 
 const IOURequestStepAmountWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepAmountWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails);
+const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmountWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
 
