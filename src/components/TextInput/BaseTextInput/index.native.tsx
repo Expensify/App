@@ -15,6 +15,7 @@ import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -59,6 +60,8 @@ function BaseTextInput(
         prefixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
+        shouldShowClearButton = false,
+        onClearInput = () => {},
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -381,6 +384,27 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
+                            {isFocused && !isReadOnly && shouldShowClearButton && value && (
+                                <Tooltip text="Clear">
+                                    <PressableWithoutFeedback
+                                        style={[styles.mt4, styles.ml1]}
+                                        accessibilityRole={CONST.ROLE.BUTTON}
+                                        accessibilityLabel="Clear"
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                        }}
+                                        onPress={() => {
+                                            setValue('');
+                                            onClearInput?.(inputID);
+                                        }}
+                                    >
+                                        <Icon
+                                            src={Expensicons.Close}
+                                            fill={theme.icon}
+                                        />
+                                    </PressableWithoutFeedback>
+                                </Tooltip>
+                            )}
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
