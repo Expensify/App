@@ -1243,7 +1243,13 @@ PODS:
   - react-native-config (1.5.0):
     - react-native-config/App (= 1.5.0)
   - react-native-config/App (1.5.0):
-    - React-Core
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-document-picker (9.1.1):
     - RCT-Folly
     - RCTRequired
@@ -1338,13 +1344,24 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-pdf (6.7.3):
-    - RCT-Folly
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
     - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-performance (5.1.0):
     - glog
     - hermes-engine
@@ -1365,8 +1382,25 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-plaid-link-sdk (11.5.0):
+    - glog
+    - hermes-engine
     - Plaid (~> 5.2.0)
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-quick-sqlite (8.0.0-beta.2):
     - React
     - React-callinvoker
@@ -1454,7 +1488,7 @@ PODS:
     - Yoga
   - react-native-view-shot (3.8.0):
     - React-Core
-  - react-native-webview (13.8.6):
+  - react-native-webview (13.6.4):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1723,7 +1757,24 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNDeviceInfo (10.3.1):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNDevMenu (4.1.1):
     - React-Core
     - React-Core/DevSupport
@@ -2000,9 +2051,24 @@ PODS:
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
   - VisionCamera (4.0.0-beta.13):
-    - React
-    - React-callinvoker
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -2450,7 +2516,7 @@ SPEC CHECKSUMS:
   react-native-airship: 6ab7a7974d53f92b0c46548fc198f797fdbf371f
   react-native-blob-util: a3ee23cfdde79c769c138d505670055de233b07a
   react-native-cameraroll: 95ce0d1a7d2d1fe55bf627ab806b64de6c3e69e9
-  react-native-config: 5330c8258265c1e5fdb8c009d2cabd6badd96727
+  react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
   react-native-geolocation: c1c21a8cda4abae6724a322458f64ac6889b8c2b
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
@@ -2458,15 +2524,15 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
   react-native-netinfo: 6479e7e2198f936e5abc14a3ec4d469ccbaf81e2
   react-native-pager-view: 9ac6bc0fb3fa31c6d403b253ee361e62ff7ccf7f
-  react-native-pdf: 37418fbb4e4285a5864c22cf55fa7f8883bbb04c
+  react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
   react-native-performance: 1aa5960d005159f4ab20be15b44714b53b44e075
-  react-native-plaid-link-sdk: 6c4d3d4f14288c546151d404aea812fa55edeea9
+  react-native-plaid-link-sdk: 93870f8cd1de8e0acca5cb5020188bdc94e15db6
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-release-profiler: 42fc8e09b4f6f9b7d14cc5a15c72165e871c0918
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: e8bdd57d9f8d34cc336f0ee6acb30712a8454446
   react-native-view-shot: 6b7ed61d77d88580fed10954d45fad0eb2d47688
-  react-native-webview: d82b4538faf87180d1607b1274c4da40c73843d2
+  react-native-webview: a5f5f316527235f869992aaaf05050776198806d
   React-nativeconfig: d7af5bae6da70fa15ce44f045621cf99ed24087c
   React-NativeModulesApple: 0123905d5699853ac68519607555a9a4f5c7b3ac
   React-perflogger: 8a1e1af5733004bdd91258dcefbde21e0d1faccd
@@ -2493,7 +2559,7 @@ SPEC CHECKSUMS:
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCClipboard: c73bbc2e9012120161f1012578418827983bfd0c
   RNCPicker: c77efa39690952647b83d8085520bf50ebf94ecb
-  RNDeviceInfo: 468a7cd19ad2b6697bab25c8baebf22c0603cb7c
+  RNDeviceInfo: cbf78fdb515ae73e641ee7c6b474f77a0299e7e6
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
   RNFBApp: 729c0666395b1953198dc4a1ec6deb8fbe1c302e
@@ -2519,7 +2585,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: 9f26224fce1233ffdad9fa4e56863e3de2190dc0
+  VisionCamera: 3033e0dd5272d46e97bcb406adea4ae0e6907abf
   Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
