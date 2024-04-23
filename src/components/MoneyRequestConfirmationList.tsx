@@ -2,14 +2,10 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
-import {type SectionListData, View} from 'react-native';
+import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import TableListItem from '@components/SelectionList/TableListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,7 +21,7 @@ import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import {PayeePersonalDetails} from '@libs/OptionsListUtils';
+import type {PayeePersonalDetails} from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -48,11 +44,11 @@ import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
-import {ListItem, type Section} from './SelectionList/types';
+import SelectionList from './SelectionList';
+import InviteMemberListItem from './SelectionList/InviteMemberListItem';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -182,7 +178,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 type MemberSection = {
     title: string | undefined;
     shouldShow: boolean;
-    data: (PayeePersonalDetails | Participant | ReportUtils.OptionData)[];
+    data: Array<PayeePersonalDetails | Participant | ReportUtils.OptionData>;
     isDisabled: boolean;
 };
 
@@ -232,7 +228,6 @@ function MoneyRequestConfirmationList({
     lastSelectedDistanceRates,
     action = CONST.IOU.ACTION.CREATE,
 }: MoneyRequestConfirmationListProps) {
-    console.log('ttuaj');
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -968,8 +963,6 @@ function MoneyRequestConfirmationList({
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
     const receiptThumbnailContent = useMemo(() => {
-        console.log('dupsko');
-
         return isLocalFile && Str.isPDF(receiptFilename) ? (
             <PDFThumbnail
                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -994,19 +987,17 @@ function MoneyRequestConfirmationList({
         );
     }, [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension]);
 
-    console.log('uuu');
-    console.log(isAttachmentInvalid);
-    console.log(isDistanceRequest);
-    console.log(receiptImage);
-    console.log(receiptThumbnail);
-
     return (
-        <View style={listStyles}>
+        <View>
             <SelectionList
                 canSelectMultiple={canModifyParticipants}
                 sections={optionSelectorSections}
                 ListItem={InviteMemberListItem}
                 onSelectRow={selectParticipant}
+                shouldShowTooltips
+                containerStyle={listStyles}
+                sectionTitleStyles={styles.sidebarLinkTextBold}
+                showScrollIndicator
             />
             {isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
