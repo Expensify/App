@@ -12,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -21,6 +22,8 @@ import type {ViolationField} from '@hooks/useViolations';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CardUtils from '@libs/CardUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
@@ -63,6 +66,9 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
 
     /** The actions from the parent report */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+
+    /** The rates for the policy */
+    rates: Record<string, MileageRate>;
 };
 
 type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutTransaction & {
@@ -89,13 +95,15 @@ function MoneyRequestView({
     policy,
     transactionViolations,
     shouldShowAnimatedBackground,
+    rates,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {translate} = useLocalize();
-    const {canUseViolations} = usePermissions();
+    const {translate, toLocaleDigit} = useLocalize();
+    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
     const moneyRequestReport = parentReport;
     const {
@@ -132,7 +140,7 @@ function MoneyRequestView({
             ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
-    // Flags for allowing or disallowing editing a money request
+    // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport.isCancelledIOU;
 
@@ -149,6 +157,9 @@ function MoneyRequestView({
     const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
+
+    const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
+    const iouType = isTrackExpense ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
@@ -169,6 +180,18 @@ function MoneyRequestView({
     );
 
     let amountDescription = `${translate('iou.amount')}`;
+
+    const hasRoute = TransactionUtils.hasRoute(transaction, isDistanceRequest);
+    const rateID = transaction?.comment.customUnit?.customUnitRateID ?? '0';
+
+    const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : rates[rateID as string] ?? {};
+    const {unit, rate} = mileageRate;
+
+    const distance = DistanceRequestUtils.getDistanceFromMerchant(transactionMerchant, unit);
+    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
+    const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
     const saveBillable = useCallback(
         (newBillable: boolean) => {
@@ -220,7 +243,7 @@ function MoneyRequestView({
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']) => {
-            // Checks applied when creating a new money request
+            // Checks applied when creating a new expense
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
@@ -253,6 +276,44 @@ function MoneyRequestView({
             return '';
         },
         [transactionAmount, isSettled, isCancelled, isPolicyExpenseChat, isEmptyMerchant, transactionDate, hasErrors, canUseViolations, hasViolations, translate, getViolationsForField],
+    );
+
+    const distanceRequestFields = canUseP2PDistanceRequests ? (
+        <>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.distance')}
+                    title={distanceToDisplay}
+                    interactive={canEditDistance}
+                    shouldShowRightIcon={canEditDistance}
+                    titleStyle={styles.flex1}
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
+                />
+            </OfflineWithFeedback>
+            <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+                <MenuItemWithTopDescription
+                    description={translate('common.rate')}
+                    title={rateToDisplay}
+                    // TODO: https://github.com/Expensify/App/issues/36987 make it interactive and show right icon when EditRatePage is ready
+                    interactive={false}
+                    shouldShowRightIcon={false}
+                    titleStyle={styles.flex1}
+                    // TODO: https://github.com/Expensify/App/issues/36987 Add route for editing rate
+                    onPress={() => {}}
+                />
+            </OfflineWithFeedback>
+        </>
+    ) : (
+        <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
+            <MenuItemWithTopDescription
+                description={translate('common.distance')}
+                title={transactionMerchant}
+                interactive={canEditDistance}
+                shouldShowRightIcon={canEditDistance}
+                titleStyle={styles.flex1}
+                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
+            />
+        </OfflineWithFeedback>
     );
 
     return (
@@ -297,7 +358,7 @@ function MoneyRequestView({
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                     CONST.IOU.ACTION.EDIT,
-                                    CONST.IOU.TYPE.REQUEST,
+                                    iouType,
                                     transaction?.transactionID ?? '',
                                     report.reportID,
                                     Navigation.getActiveRouteWithoutParams(),
@@ -316,9 +377,7 @@ function MoneyRequestView({
                         titleStyle={styles.textHeadlineH2}
                         interactive={canEditAmount}
                         shouldShowRightIcon={canEditAmount}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
-                        }
+                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         brickRoadIndicator={getErrorForField('amount') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         error={getErrorForField('amount')}
                     />
@@ -331,11 +390,7 @@ function MoneyRequestView({
                         interactive={canEdit}
                         shouldShowRightIcon={canEdit}
                         titleStyle={styles.flex1}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                            )
-                        }
+                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                         brickRoadIndicator={getErrorForField('comment') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         error={getErrorForField('comment')}
@@ -343,20 +398,7 @@ function MoneyRequestView({
                     />
                 </OfflineWithFeedback>
                 {isDistanceRequest ? (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
-                        <MenuItemWithTopDescription
-                            description={translate('common.distance')}
-                            title={transactionMerchant}
-                            interactive={canEditDistance}
-                            shouldShowRightIcon={canEditDistance}
-                            titleStyle={styles.flex1}
-                            onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                                )
-                            }
-                        />
-                    </OfflineWithFeedback>
+                    distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
@@ -366,9 +408,7 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                                )
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             error={getErrorForField('merchant')}
@@ -382,9 +422,7 @@ function MoneyRequestView({
                         interactive={canEditDate}
                         shouldShowRightIcon={canEditDate}
                         titleStyle={styles.flex1}
-                        onPress={() =>
-                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID))
-                        }
+                        onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         error={getErrorForField('date')}
                     />
@@ -398,9 +436,7 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                                )
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
                             brickRoadIndicator={getErrorForField('category') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             error={getErrorForField('category')}
@@ -421,10 +457,17 @@ function MoneyRequestView({
                                 titleStyle={styles.flex1}
                                 onPress={() =>
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, orderWeight, transaction?.transactionID ?? '', report.reportID),
+                                        ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(CONST.IOU.ACTION.EDIT, iouType, orderWeight, transaction?.transactionID ?? '', report.reportID),
                                     )
                                 }
-                                brickRoadIndicator={getErrorForField('tag', {tagListIndex: index, tagListName: name}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={
+                                    getErrorForField('tag', {
+                                        tagListIndex: index,
+                                        tagListName: name,
+                                    })
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
                                 error={getErrorForField('tag', {tagListIndex: index, tagListName: name})}
                             />
                         </OfflineWithFeedback>
@@ -447,10 +490,10 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                                )
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
+                            brickRoadIndicator={getErrorForField('tax') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            error={getErrorForField('tax')}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -464,9 +507,7 @@ function MoneyRequestView({
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}
                             onPress={() =>
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.REQUEST, transaction?.transactionID ?? '', report.reportID),
-                                )
+                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))
                             }
                         />
                     </OfflineWithFeedback>
@@ -519,6 +560,10 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
     parentReportActions: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
+    },
+    rates: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+        selector: DistanceRequestUtils.getMileageRates,
     },
 })(
     withOnyx<MoneyRequestViewProps, MoneyRequestViewTransactionOnyxProps>({

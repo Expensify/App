@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -9,6 +8,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
+import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -244,25 +244,18 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         [selectedOptions, setSelectedOptions, styles, translate],
     );
 
-    const footerContent = useMemo(() => {
-        /**
-         * Creates a new group chat with all the selected options and the current user,
-         * or navigates to the existing chat if one with those participants already exists.
-         */
-        const createGroup = () => {
-            if (selectedOptions.length === 1) {
-                createChat();
-            }
-            if (!personalData || !personalData.login || !personalData.accountID) {
-                return;
-            }
-            const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
-            const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
-            Report.setGroupDraft({participants: logins});
-            Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
-        };
+    const createGroup = useCallback(() => {
+        if (!personalData || !personalData.login || !personalData.accountID) {
+            return;
+        }
+        const selectedParticipants: SelectedParticipant[] = selectedOptions.map((option: OptionData) => ({login: option.login ?? '', accountID: option.accountID ?? -1}));
+        const logins = [...selectedParticipants, {login: personalData.login, accountID: personalData.accountID}];
+        Report.setGroupDraft({participants: logins});
+        Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
+    }, [selectedOptions, personalData]);
 
-        return (
+    const footerContent = useMemo(
+        () => (
             <>
                 <ReferralProgramCTA
                     referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
@@ -272,18 +265,24 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 {!!selectedOptions.length && (
                     <Button
                         success
-                        text={selectedOptions.length > 1 ? translate('common.next') : translate('newChatPage.createChat')}
+                        large
+                        text={translate('common.next')}
                         onPress={createGroup}
                         pressOnEnter
                     />
                 )}
             </>
-        );
-    }, [createChat, personalData, selectedOptions, styles.mb5, translate]);
+        ),
+        [createGroup, selectedOptions.length, styles.mb5, translate],
+    );
 
     return (
-        <View
-            style={styles.flex1}
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
+            includePaddingTop={false}
+            shouldEnablePickerAvoiding={false}
             testID={NewChatPage.displayName}
         >
             <KeyboardAvoidingView
@@ -302,6 +301,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                     textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     headerMessage={headerMessage}
                     onSelectRow={createChat}
+                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : createChat(option))}
                     rightHandSideComponent={itemRightSideComponent}
                     footerContent={footerContent}
                     showLoadingPlaceholder={!areOptionsInitialized}
@@ -311,7 +311,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 />
                 {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>
-        </View>
+        </ScreenWrapper>
     );
 }
 

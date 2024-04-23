@@ -29,6 +29,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                 <VideoPlayerPreview
                     key={key}
                     videoUrl={sourceURL}
+                    reportID={report?.reportID ?? ''}
                     fileName={fileName}
                     thumbnailUrl={thumbnailUrl}
                     videoDimensions={{width, height}}
