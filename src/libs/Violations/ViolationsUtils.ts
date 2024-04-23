@@ -110,6 +110,8 @@ function getTagViolationsForMultiLevelTags(
 }
 
 const ViolationsUtils = {
+    getTagViolationsForSingleLevelTags,
+    getTagViolationsForMultiLevelTags,
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
      * violations.

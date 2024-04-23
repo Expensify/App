@@ -162,7 +162,7 @@ function MoneyRequestView({
     // A flag for showing tax rate
     const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
-    const {getViolationsForField} = useViolations(transactionViolations ?? []);
+    const {getViolationsForField} = useViolations(transactionViolations ?? [], transaction, policy, policyTagList);
     const hasViolations = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
         [canUseViolations, getViolationsForField],
