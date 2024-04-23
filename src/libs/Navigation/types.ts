@@ -828,7 +828,7 @@ type AuthScreensParamList = SharedScreensParamList & {
 };
 
 type SearchReportParamList = {
-    [SCREENS.SEARCH.REPORT]: {
+    [SCREENS.SEARCH.REPORT_RHP]: {
         query: string;
         reportID: string;
     };

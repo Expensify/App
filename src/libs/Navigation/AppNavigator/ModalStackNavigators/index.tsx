@@ -343,7 +343,7 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 });
 
 const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
-    [SCREENS.SEARCH.REPORT]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
+    [SCREENS.SEARCH.REPORT_RHP]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
 });
 
 export {

@@ -668,7 +668,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
-                        [SCREENS.SEARCH.REPORT]: ROUTES.SEARCH_REPORT.route,
+                        [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                     },
                 },
             },

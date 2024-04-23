@@ -21,6 +21,7 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import withCurrentReportID from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useIsNarrowLayout from '@hooks/useIsNarrowLayout';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -161,8 +162,8 @@ function ReportScreen({
     const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
     const activeRoute = useNavigationState(getTopmostRouteName);
-    const isReportOpenedInRHP = activeRoute === SCREENS.SEARCH.REPORT;
-    const isNarrowLayout = isSmallScreenWidth || isReportOpenedInRHP;
+    const isReportOpenedInRHP = activeRoute === SCREENS.SEARCH.REPORT_RHP;
+    const isNarrowLayout = useIsNarrowLayout();
 
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
