@@ -225,7 +225,7 @@ function ReimbursementAccountPage({
      * Retrieve verified business bank account currently being set up.
      * @param ignoreLocalCurrentStep Pass true if you want the last "updated" view (from db), not the last "viewed" view (from onyx).
      */
-    function fetchData(ignoreLocalCurrentStep?: boolean, ignoreLocalSubStep?: boolean) {
+    function fetchData(ignoreLocalCurrentStep?: boolean) {
         // Show loader right away, as optimisticData might be set only later in case multiple calls are in the queue
         BankAccounts.setReimbursementAccountLoading(true);
 
@@ -234,16 +234,11 @@ function ReimbursementAccountPage({
         const stepToOpen = getStepToOpenFromRouteParams(route);
         const subStep = achData?.subStep ?? '';
         const localCurrentStep = achData?.currentStep ?? '';
-        BankAccounts.openReimbursementAccountPage(stepToOpen, ignoreLocalSubStep ? '' : subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
+        BankAccounts.openReimbursementAccountPage(stepToOpen, subStep, ignoreLocalCurrentStep ? '' : localCurrentStep, policyIDParam);
     }
 
     useEffect(() => {
-        // If the step to open is empty, we want to clear the sub step, so the connect option view is shown to the user
-        const isStepToOpenEmpty = getStepToOpenFromRouteParams(route) === '';
-        if (isStepToOpenEmpty) {
-            BankAccounts.setBankAccountSubStep(null);
-        }
-        fetchData(false, isStepToOpenEmpty);
+        fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // The empty dependency array ensures this runs only once after the component mounts.
 
