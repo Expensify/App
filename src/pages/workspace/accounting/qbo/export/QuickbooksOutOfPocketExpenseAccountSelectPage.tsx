@@ -15,16 +15,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-// TODO - should be removed after API fully working
-const draft = [
-    {
-        name: 'Accounts Payable (A/P)',
-    },
-    {
-        name: 'Payroll Accounts',
-    },
-];
+import type {Account} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
     value: string;
@@ -38,7 +29,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
     const {exportEntity, exportAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const data: CardListItem[] = useMemo(() => {
-        let result;
+        let result: Account[] | [];
         switch (exportEntity) {
             case CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK:
                 result = bankAccounts ?? [];
@@ -50,10 +41,10 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
                 result = journalEntryAccounts ?? [];
                 break;
             default:
-                result = draft;
+                result = [];
         }
 
-        return (draft ?? result)?.map((card) => ({
+        return result?.map((card) => ({
             value: card.name,
             text: card.name,
             keyForList: card.name,
