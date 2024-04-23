@@ -3,6 +3,7 @@ import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useNetwork from '@hooks/useNetwork';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -23,6 +24,7 @@ type WithPolicyConnectionsProps = WithPolicyProps;
  */
 function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnectionsProps & {policy: Policy}>) {
     function WithPolicyConnections({policy, policyDraft, route}: WithPolicyConnectionsProps) {
+        const {isOffline} = useNetwork();
         const [hasConnectionsDataBeenFetched, {status}] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy?.id ?? '0'}`, {
             initWithStoredValues: false,
         });
@@ -35,7 +37,7 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
             }
 
             openPolicyAccountingPage(policy.id);
-        }, [hasConnectionsDataBeenFetched, policy]);
+        }, [hasConnectionsDataBeenFetched, policy, isOffline]);
 
         if (!policy || status === 'loading' || !hasConnectionsDataBeenFetched) {
             return (

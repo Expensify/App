@@ -103,7 +103,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: IOUType;
+    iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
     /** IOU date */
     iouCreated?: string;
@@ -182,7 +182,7 @@ function MoneyRequestConfirmationList({
     onSendMoney,
     onConfirm,
     onSelectParticipant,
-    iouType = CONST.IOU.TYPE.REQUEST,
+    iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
     policyCategories,
     mileageRates,
@@ -224,7 +224,7 @@ function MoneyRequestConfirmationList({
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
     const {isOffline} = useNetwork();
 
-    const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
+    const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
@@ -623,7 +623,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.SEND) {
+            if (iouType === CONST.IOU.TYPE.PAY) {
                 if (!paymentMethod) {
                     return;
                 }
@@ -676,7 +676,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
+        const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
         const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
@@ -1054,14 +1054,14 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {(!isMovingTransactionFromTrackExpense || !hasRoute) &&
+            {!isDistanceRequest &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent
                     : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
                       PolicyUtils.isPaidGroupPolicy(policy) &&
                       !isDistanceRequest &&
-                      iouType === CONST.IOU.TYPE.REQUEST && (
+                      iouType === CONST.IOU.TYPE.SUBMIT && (
                           <ReceiptEmptyState
                               onPress={() =>
                                   Navigation.navigate(
