@@ -7,9 +7,10 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {MapRef} from 'react-map-gl';
-import Map, {Marker} from 'react-map-gl';
+import Map, {Layer, Marker, Source} from 'react-map-gl';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -177,6 +178,18 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             [mapRef],
         );
 
+        const centerMap = useCallback(() => {
+            if (directionCoordinates && directionCoordinates.length > 1) {
+                const bounds = [
+                    [Math.min(...directionCoordinates.map((coord) => coord[0])), Math.min(...directionCoordinates.map((coord) => coord[1]))], // Southwest
+                    [Math.max(...directionCoordinates.map((coord) => coord[0])), Math.max(...directionCoordinates.map((coord) => coord[1]))], // Northeast
+                ];
+                mapRef?.fitBounds([bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]]);
+                return;
+            }
+            mapRef?.easeTo({center: {lat: currentPosition?.latitude ?? 0, lon: currentPosition?.longitude ?? 0}, bearing: 0});
+        }, [directionCoordinates, currentPosition, mapRef]);
+
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View
                 style={style}
@@ -196,6 +209,27 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
                     mapStyle={styleURL}
                 >
+                    <Source
+                        id="my-data"
+                        type="geojson"
+                        data={{
+                            type: 'FeatureCollection',
+                            features: [{type: 'Feature', geometry: {type: 'Point', coordinates: [currentPosition?.longitude, currentPosition?.latitude]}}],
+                        }}
+                    >
+                        <Layer
+                            {...{
+                                id: 'point',
+                                type: 'circle',
+                                paint: {
+                                    /* eslint-disable @typescript-eslint/naming-convention */
+                                    'circle-radius': 8,
+                                    /* eslint-disable @typescript-eslint/naming-convention */
+                                    'circle-color': '#007bff',
+                                },
+                            }}
+                        />
+                    </Source>
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
                         return (
@@ -210,6 +244,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     })}
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Map>
+                <Button
+                    style={{marginTop: 8}}
+                    text="center"
+                    onPress={centerMap}
+                />
             </View>
         ) : (
             <PendingMapView

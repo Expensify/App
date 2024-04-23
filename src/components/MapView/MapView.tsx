@@ -4,6 +4,7 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
 import setUserLocation from '@libs/actions/UserLocation';
 import compose from '@libs/compose';
@@ -143,7 +144,17 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 onMapReady();
             }
         };
-
+        const centerMap = useCallback(() => {
+            if (directionCoordinates && directionCoordinates.length > 1) {
+                const bounds = [
+                    [Math.min(...directionCoordinates.map((coord) => coord[0])), Math.min(...directionCoordinates.map((coord) => coord[1]))], // Southwest
+                    [Math.max(...directionCoordinates.map((coord) => coord[0])), Math.max(...directionCoordinates.map((coord) => coord[1]))], // Northeast
+                ];
+                cameraRef?.current?.fitBounds(bounds[0], bounds[1], undefined, 1000);
+                return;
+            }
+            cameraRef?.current?.setCamera({heading: 0, centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]});
+        }, [directionCoordinates, currentPosition]);
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View style={style}>
                 <Mapbox.MapView
@@ -165,6 +176,31 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                             zoomLevel: initialState?.zoom,
                         }}
                     />
+                    <Mapbox.ShapeSource
+                        id="user-location"
+                        shape={{
+                            type: 'FeatureCollection',
+                            features: [
+                                {
+                                    type: 'Feature',
+                                    geometry: {
+                                        type: 'Point',
+                                        coordinates: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+                                    },
+                                    properties: {},
+                                },
+                            ],
+                        }}
+                    >
+                        <Mapbox.CircleLayer
+                            id="user-location-layer"
+                            sourceID="user-location"
+                            style={{
+                                circleColor: '#007bff',
+                                circleRadius: 8,
+                            }}
+                        />
+                    </Mapbox.ShapeSource>
 
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
@@ -181,6 +217,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
                     {directionCoordinates && <Direction coordinates={directionCoordinates} />}
                 </Mapbox.MapView>
+                <Button
+                    style={{marginTop: 8}}
+                    text="center"
+                    onPress={centerMap}
+                />
             </View>
         ) : (
             <PendingMapView
