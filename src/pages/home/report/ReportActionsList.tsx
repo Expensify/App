@@ -299,16 +299,6 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(0);
         });
 
-        const unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
-            resetUnreadMarker(newLastReadTime);
-            setMessageManuallyMarkedUnread(new Date().getTime());
-        });
-
-        const readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
-            resetUnreadMarker(newLastReadTime);
-            setMessageManuallyMarkedUnread(0);
-        });
-
         const deletedReportActionSubscription = DeviceEventEmitter.addListener(`deletedReportAction_${report.reportID}`, (reportActionID) => {
             if (cacheUnreadMarkers.get(report.reportID) !== reportActionID) {
                 return;
@@ -317,12 +307,30 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
+        let unreadActionSubscriptionForTransactionThread = null;
+        let readNewestActionSubscriptionForTransactionThread = null;
+        if (transactionThreadReport?.reportID) {
+            unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(new Date().getTime());
+            });
+
+            readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(0);
+            });
+        }
+
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
-            unreadActionSubscriptionForTransactionThread.remove();
-            readNewestActionSubscriptionForTransactionThread.remove();
             deletedReportActionSubscription.remove();
+            if (unreadActionSubscriptionForTransactionThread) {
+                unreadActionSubscriptionForTransactionThread.remove();
+            }
+            if (readNewestActionSubscriptionForTransactionThread) {
+                readNewestActionSubscriptionForTransactionThread.remove();
+            }
         };
     }, [report.reportID, transactionThreadReport?.reportID]);
 
