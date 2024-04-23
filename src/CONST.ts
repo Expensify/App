@@ -553,6 +553,7 @@ const CONST = {
     CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
+    DEEP_DIVE_EXPENSIFY_CARD: 'https://community.expensify.com/discussion/4848/deep-dive-expensify-card-and-quickbooks-online-auto-reconciliation-how-it-works',
     GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: `${USE_EXPENSIFY_URL}/terms`,
     PRIVACY_URL: `${USE_EXPENSIFY_URL}/privacy`,
@@ -1135,6 +1136,11 @@ const CONST = {
         JPEG: 'image/jpeg',
     },
 
+    IMAGE_OBJECT_POSITION: {
+        TOP: 'top',
+        INITIAL: 'initial',
+    },
+
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.
         IMAGE: /\.(jpg|jpeg|png|webp|gif|tiff|bmp|heic|heif)$/,
@@ -1220,12 +1226,30 @@ const CONST = {
     },
     QUICKBOOKS_ONLINE: 'quickbooksOnline',
 
-    QUICKBOOKS_IMPORTS: {
+    QUICK_BOOKS_CONFIG: {
         SYNC_CLASSES: 'syncClasses',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_TAXES: 'syncTaxes',
+        PREFERRED_EXPORTER: 'exporter',
+        EXPORT_DATE: 'exportDate',
+        OUT_OF_POCKET_EXPENSES: 'outOfPocketExpenses',
+        EXPORT_INVOICE: 'exportInvoice',
+        EXPORT_ENTITY: 'exportEntity',
+        EXPORT_ACCOUNT: 'exportAccount',
+        EXPORT_COMPANY_CARD: 'exportCompanyCard',
+        AUTO_SYNC: 'autoSync',
+        SYNCE_PEOPLE: 'syncPeople',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+    },
+
+    QUICKBOOKS_EXPORT_ENTITY: {
+        VENDOR_BILL: 'vendorBill',
+        CHECK: 'check',
+        JOURNAL_ENTRY: 'journalEntry',
     },
 
     ACCOUNT_ID: {
@@ -1414,16 +1438,18 @@ const CONST = {
         ACTION: {
             EDIT: 'edit',
             CREATE: 'create',
-            REQUEST: 'request',
+            SUBMIT: 'submit',
             CATEGORIZE: 'categorize',
             SHARE: 'share',
         },
         DEFAULT_AMOUNT: 0,
         TYPE: {
             SEND: 'send',
+            PAY: 'pay',
             SPLIT: 'split',
             REQUEST: 'request',
-            TRACK_EXPENSE: 'track-expense',
+            SUBMIT: 'submit',
+            TRACK: 'track',
         },
         REQUEST_TYPE: {
             DISTANCE: 'distance',
@@ -3380,9 +3406,9 @@ const CONST = {
 
     REFERRAL_PROGRAM: {
         CONTENT_TYPES: {
-            MONEY_REQUEST: 'request',
+            SUBMIT_EXPENSE: 'submitExpense',
             START_CHAT: 'startChat',
-            SEND_MONEY: 'sendMoney',
+            PAY_SOMEONE: 'paySomeone',
             REFER_FRIEND: 'referralFriend',
             SHARE_CODE: 'shareCode',
         },
@@ -4586,6 +4612,12 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
+    },
+
+    QUICKBOOKS_EXPORT_DATE: {
+        LAST_EXPENSE: 'lastExpense',
+        EXPORTED_DATE: 'exportedDate',
+        SUBMITTED_DATA: 'submittedData',
     },
 
     SESSION_STORAGE_KEYS: {
