@@ -310,6 +310,7 @@ function IOURequestStepDistance({
         translate,
         navigateToParticipantPage,
         navigateToConfirmationPage,
+        policy,
     ]);
 
     const getError = () => {
