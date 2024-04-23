@@ -835,20 +835,7 @@ function buildOnyxDataForTrackExpense(
     } else if (isDistanceRequest) {
         newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE;
     }
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.SET,
-        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: {
-            action: newQuickAction,
-            chatReportID: chatReport?.reportID,
-            isFirstQuickAction: isEmptyObject(quickAction),
-        },
-    });
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
-    let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = isScanRequest ? CONST.QUICK_ACTIONS.TRACK_SCAN : CONST.QUICK_ACTIONS.TRACK_MANUAL;
-    if (TransactionUtils.isDistanceRequest(transaction)) {
-        newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE;
-    }
 
     if (chatReport) {
         optimisticData.push(
