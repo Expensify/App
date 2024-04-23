@@ -14,9 +14,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {UserListItemProps} from './types';
+import type {ListItem, UserListItemProps} from './types';
 
-function UserListItem({
+function UserListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -27,7 +27,9 @@ function UserListItem({
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: UserListItemProps) {
+    onFocus,
+    shouldSyncFocus,
+}: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -67,6 +69,8 @@ function UserListItem({
                 ) : undefined
             }
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
         >
             {(hovered?: boolean) => (
                 <>

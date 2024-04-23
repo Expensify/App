@@ -38,7 +38,7 @@ type IOURequestStepDateOnyxProps = {
 
 type IOURequestStepDateProps = IOURequestStepDateOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        /** Holds data related to Expense view state, rather than the underlying Expense data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
@@ -79,7 +79,9 @@ function IOURequestStepDate({
             return;
         }
 
-        IOU.setMoneyRequestCreated(transaction?.transactionID ?? '0', newCreated, action === CONST.IOU.ACTION.CREATE);
+        const isTransactionDraft = action === CONST.IOU.ACTION.CREATE || IOUUtils.isMovingTransactionFromTrackExpense(action);
+
+        IOU.setMoneyRequestCreated(transaction?.transactionID ?? '0', newCreated, isTransactionDraft);
 
         if (isEditing) {
             IOU.updateMoneyRequestDate(transaction?.transactionID ?? '0', reportID, newCreated, policy, policyTags, policyCategories);
@@ -92,7 +94,7 @@ function IOURequestStepDate({
         <StepScreenWrapper
             headerTitle={translate('common.date')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFoundPage={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowNotFoundPage={!IOUUtils.isValidMoneyRequestType(iouType)} // TODO: Check why is this even here
             shouldShowWrapper
             testID={IOURequestStepDate.displayName}
         >
