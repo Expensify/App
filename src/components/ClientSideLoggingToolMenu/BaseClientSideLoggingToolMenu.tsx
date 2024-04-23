@@ -31,7 +31,7 @@ type BaseClientSideLoggingToolProps = {
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
     /** Path used to display location of saved file */
-    displayPath: string;
+    displayPath?: string;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
 function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging, displayPath}: BaseClientSideLoggingToolProps) {
