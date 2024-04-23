@@ -251,10 +251,14 @@ const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
-        if (!key || !actions) {
+        if (!key) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
+        if (!actions) {
+            delete allReportActions[reportID];
+            return;
+        }
         allReportActions[reportID] = actions;
         const sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;

@@ -24,10 +24,14 @@ const allTransactions: Record<string, Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (transaction, key) => {
-        if (!key || !transaction) {
+        if (!key) {
             return;
         }
         const transactionID = CollectionUtils.extractCollectionItemID(key);
+        if (!transaction) {
+            delete allTransactions[transactionID];
+            return;
+        }
         allTransactions[transactionID] = transaction;
     },
 });

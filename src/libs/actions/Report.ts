@@ -184,10 +184,13 @@ const allReportActions: OnyxCollection<ReportActions> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (action, key) => {
-        if (!key || !action) {
+        if (!key) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
+        if (!action) {
+            delete allReportActions[reportID];
+        }
         allReportActions[reportID] = action;
     },
 });
@@ -196,10 +199,14 @@ const currentReportData: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        if (!key || !report) {
+        if (!key) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
+        if (!report) {
+            delete currentReportData[reportID];
+            return;
+        }
         currentReportData[reportID] = report;
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         handleReportChanged(report);
