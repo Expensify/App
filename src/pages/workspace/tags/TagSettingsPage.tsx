@@ -11,6 +11,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -123,6 +124,19 @@ function TagSettingsPage({route, policy}: TagSettingsPageProps) {
                                     </View>
                                 </View>
                             </OfflineWithFeedback>
+                            {Object.keys(policy?.connections ?? {}).length > 0 ? (
+                                <Text>
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
+                                    <TextLink
+                                        style={[styles.textNormal, styles.link]}
+                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                                    >
+                                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                                    </TextLink>
+                                </Text>
+                            ) : (
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
+                            )}
                             <OfflineWithFeedback pendingAction={currentPolicyTag.pendingFields?.name}>
                                 <MenuItemWithTopDescription
                                     title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
