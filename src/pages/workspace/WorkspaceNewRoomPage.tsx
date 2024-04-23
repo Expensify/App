@@ -197,7 +197,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
             return errors;
         },
-        [reports],
+        [reports, policyID],
     );
 
     const writeCapabilityOptions = useMemo(
