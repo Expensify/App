@@ -2,4 +2,4 @@ type NavigationProperties = {
     path: string;
 };
 
-export type {NavigationProperties};
+export default NavigationProperties;

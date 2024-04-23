@@ -1,7 +1,7 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {UserMetadata} from '@src/types/onyx';
 import type {NavigationProperties} from './types';
-import { UserMetadata } from '@src/types/onyx';
 
 // Placeholder Browser API does not support Manual Page definition
 class FSPage {
@@ -65,7 +65,7 @@ const FS = {
      * If the metadata contains an accountID, the user identity is defined with it.
      */
     fsIdentify: (metadata: UserMetadata | null) => {
-        if (!metadata || !metadata.accountID) {
+        if (!metadata?.accountID) {
             // anonymize FullStory user identity metadata
             FS.anonymize();
         } else {

@@ -1,6 +1,6 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import { UserMetadata } from '@src/types/onyx';
+import type {UserMetadata} from '@src/types/onyx';
 
 /**
  * Fullstory React-Native lib adapter
@@ -36,7 +36,7 @@ const FS = {
      * If the metadata contains an accountID, the user identity is defined with it.
      */
     fsIdentify: (metadata: UserMetadata | null) => {
-        if (!metadata || !metadata.accountID) {
+        if (!metadata?.accountID) {
             // anonymize FullStory user identity metadata
             FullStory.anonymize();
         } else {
