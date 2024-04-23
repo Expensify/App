@@ -77,7 +77,7 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.REQUEST;
+    const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
@@ -85,7 +85,7 @@ function IOURequestStepConfirmation({
         if (isSharingTrackExpense) {
             return translate('iou.categorize');
         }
-        if (isRequestingFromTrackExpense) {
+        if (isSubmittingFromTrackExpense) {
             return translate('iou.submitExpense');
         }
         if (isCategorizingTrackExpense) {
@@ -94,14 +94,14 @@ function IOURequestStepConfirmation({
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.splitExpense');
         }
-        if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (iouType === CONST.IOU.TYPE.TRACK) {
             return translate('iou.trackExpense');
         }
-        if (iouType === CONST.IOU.TYPE.SEND) {
+        if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
-        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, report, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
+        return translate('iou.submitExpense');
+    }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
     const participants = useMemo(
         () =>
@@ -353,7 +353,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE || isCategorizingTrackExpense || isSharingTrackExpense) {
+            if (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense) {
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense) {
@@ -496,7 +496,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
