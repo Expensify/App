@@ -122,14 +122,14 @@ module.exports = {
                         },
                     },
                 ],
+                'no-restricted-imports': [
+                    'error',
+                    {
+                        paths: restrictedImportPaths,
+                        patterns: restrictedImportPatterns,
+                    },
+                ],
             },
-            'no-restricted-imports': [
-                'error',
-                {
-                    paths: restrictedImportPaths,
-                    patterns: restrictedImportPatterns,
-                },
-            ],
         },
         {
             files: ['*.js', '*.jsx'],
