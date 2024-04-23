@@ -433,6 +433,36 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[2].text).toBe('Captain America');
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
 
+        // When we don't include personal detail to the result
+        results = OptionsListUtils.getFilteredOptions(
+            [],
+            OPTIONS.personalDetails,
+            [],
+            '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        );
+
+        // Then no personal detail options will be returned
+        expect(results.personalDetails.length).toBe(0);
+
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'magneto');
 
@@ -2459,6 +2489,132 @@ describe('OptionsListUtils', () => {
         const unorderedTags3 = createTagObjects(unorderedTagNames3);
         const expectedOrder3 = createTagObjects(expectedOrderNames3);
         expect(OptionsListUtils.sortTags(unorderedTags3)).toStrictEqual(expectedOrder3);
+    });
+
+    it('getFilteredOptions() for taxRate', () => {
+        const search = 'rate';
+        const emptySearch = '';
+        const wrongSearch = 'bla bla';
+
+        const taxRatesWithDefault: TaxRatesWithDefault = {
+            name: 'Tax',
+            defaultExternalID: 'CODE1',
+            defaultValue: '0%',
+            foreignTaxDefault: 'CODE1',
+            taxes: {
+                CODE2: {
+                    name: 'Tax rate 2',
+                    value: '3%',
+                    code: 'CODE2',
+                    modifiedName: 'Tax rate 2 (3%)',
+                },
+                CODE3: {
+                    name: 'Tax option 3',
+                    value: '5%',
+                    code: 'CODE3',
+                    modifiedName: 'Tax option 3 (5%)',
+                },
+                CODE1: {
+                    name: 'Tax exempt 1',
+                    value: '0%',
+                    code: 'CODE1',
+                    modifiedName: 'Tax exempt 1 (0%) • Default',
+                },
+            },
+        };
+
+        const resultList: OptionsListUtils.CategorySection[] = [
+            {
+                title: '',
+                shouldShow: false,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        // Adds 'Default' title to default tax.
+                        // Adds value to tax name for more description.
+                        text: 'Tax exempt 1 (0%) • Default',
+                        keyForList: 'Tax exempt 1 (0%) • Default',
+                        searchText: 'Tax exempt 1 (0%) • Default',
+                        tooltipText: 'Tax exempt 1 (0%) • Default',
+                        isDisabled: undefined,
+                        // creates a data option.
+                        data: {
+                            name: 'Tax exempt 1',
+                            code: 'CODE1',
+                            modifiedName: 'Tax exempt 1 (0%) • Default',
+                            value: '0%',
+                        },
+                    },
+                    {
+                        text: 'Tax option 3 (5%)',
+                        keyForList: 'Tax option 3 (5%)',
+                        searchText: 'Tax option 3 (5%)',
+                        tooltipText: 'Tax option 3 (5%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax option 3',
+                            code: 'CODE3',
+                            modifiedName: 'Tax option 3 (5%)',
+                            value: '5%',
+                        },
+                    },
+                    {
+                        text: 'Tax rate 2 (3%)',
+                        keyForList: 'Tax rate 2 (3%)',
+                        searchText: 'Tax rate 2 (3%)',
+                        tooltipText: 'Tax rate 2 (3%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax rate 2',
+                            code: 'CODE2',
+                            modifiedName: 'Tax rate 2 (3%)',
+                            value: '3%',
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const searchResultList: OptionsListUtils.CategorySection[] = [
+            {
+                title: '',
+                shouldShow: true,
+                // data sorted alphabetically by name
+                data: [
+                    {
+                        text: 'Tax rate 2 (3%)',
+                        keyForList: 'Tax rate 2 (3%)',
+                        searchText: 'Tax rate 2 (3%)',
+                        tooltipText: 'Tax rate 2 (3%)',
+                        isDisabled: undefined,
+                        data: {
+                            name: 'Tax rate 2',
+                            code: 'CODE2',
+                            modifiedName: 'Tax rate 2 (3%)',
+                            value: '3%',
+                        },
+                    },
+                ],
+            },
+        ];
+
+        const wrongSearchResultList: OptionsListUtils.CategorySection[] = [
+            {
+                title: '',
+                shouldShow: true,
+                data: [],
+            },
+        ];
+
+        const result = OptionsListUtils.getFilteredOptions([], [], [], emptySearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+
+        expect(result.taxRatesOptions).toStrictEqual(resultList);
+
+        const searchResult = OptionsListUtils.getFilteredOptions([], [], [], search, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        expect(searchResult.taxRatesOptions).toStrictEqual(searchResultList);
+
+        const wrongSearchResult = OptionsListUtils.getFilteredOptions([], [], [], wrongSearch, [], [], false, false, false, {}, [], false, {}, [], false, false, true, taxRatesWithDefault);
+        expect(wrongSearchResult.taxRatesOptions).toStrictEqual(wrongSearchResultList);
     });
 
     it('getFilteredOptions() for taxRate', () => {
