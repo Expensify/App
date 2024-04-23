@@ -44,9 +44,9 @@ function isOnboardingFlowCompleted({onCompleted, onNotCompleted}: HasCompletedOn
 }
 
 /**
- * Check if onboarding object is not undefined so user can see onboarding modal
+ * Check if onboarding data is ready in order to check if the user has completed onboarding or not
  */
-function checkOnboardingReady() {
+function checkOnboardingDataReady() {
     if (onboarding === undefined) {
         return;
     }
@@ -57,7 +57,7 @@ function checkOnboardingReady() {
 /**
  * Check if user dismissed modal and if report data are loaded
  */
-function checkServerReady() {
+function checkServerDataReady() {
     if (isLoadingReportData || hasDismissedModal === undefined) {
         return;
     }
@@ -79,7 +79,7 @@ Onyx.connect({
 
         onboarding = value;
 
-        checkOnboardingReady();
+        checkOnboardingDataReady();
     },
 });
 
@@ -89,7 +89,7 @@ Onyx.connect({
     callback: (value) => {
         hasDismissedModal = value ?? false;
 
-        checkServerReady();
+        checkServerDataReady();
     },
 });
 
@@ -98,7 +98,7 @@ Onyx.connect({
     initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkServerReady();
+        checkServerDataReady();
     },
 });
 
