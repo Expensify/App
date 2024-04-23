@@ -197,7 +197,7 @@ function WorkspacesListRow({
                         />
                         <Text
                             numberOfLines={1}
-                            style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                            style={[styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
                         >
                             {title}
                         </Text>
