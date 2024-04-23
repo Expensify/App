@@ -255,7 +255,7 @@ function IOURequestStepDistance({
                         0,
                         transaction?.currency ?? 'USD',
                         transaction?.created ?? '',
-                        translate('iou.routePending'),
+                        translate('iou.fieldPending'),
                         currentUserPersonalDetails.login,
                         currentUserPersonalDetails.accountID,
                         participants[0],
