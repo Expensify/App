@@ -71,6 +71,7 @@ export default {
     fontSizeSignInHeroXSmall: 26,
     fontSizeSignInHeroSmall: 28,
     fontSizeSignInHeroBody: 20,
+    fontSizeUsernameEmoji: 25,
     lineHeightHero: 45,
     iconSizeXXXSmall: 4,
     iconSizeXXSmall: 8,

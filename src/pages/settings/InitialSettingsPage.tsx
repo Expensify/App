@@ -29,6 +29,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {splitTextWithEmojis} from '@libs/EmojiUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import shouldShowSubscriptionsMenu from '@libs/shouldShowSubscriptionsMenu';
 import * as UserUtils from '@libs/UserUtils';
@@ -360,6 +361,11 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
     const currentUserDetails = currentUserPersonalDetails;
     const avatarURL = currentUserDetails?.avatar ?? '';
     const accountID = currentUserDetails?.accountID ?? '';
+    const usernameContainEmojis = CONST.REGEX.EMOJIS.test(currentUserPersonalDetails?.displayName ?? '');
+    let processedTextArray: string[] = [];
+    if (usernameContainEmojis) {
+        processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName ?? '');
+    }
 
     const headerContent = (
         <View style={[styles.avatarSectionWrapperSettings, styles.justifyContentCenter, styles.ph5, styles.pb5]}>
@@ -430,12 +436,21 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                             editIconStyle={styles.smallEditIconAccount}
                         />
                     </OfflineWithFeedback>
-                    <Text
-                        style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
-                        numberOfLines={1}
-                    >
-                        {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
-                    </Text>
+                    {currentUserPersonalDetails?.displayName && usernameContainEmojis ? (
+                        <Text
+                            style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
+                            numberOfLines={1}
+                        >
+                            {processedTextArray.map((word: string) => (CONST.REGEX.EMOJIS.test(word) ? <Text style={styles.initialSettingsUsernameEmoji}>{word}</Text> : word))}
+                        </Text>
+                    ) : (
+                        <Text
+                            style={[styles.textHeadline, styles.pre, styles.textAlignCenter]}
+                            numberOfLines={1}
+                        >
+                            {currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : formatPhoneNumber(session?.email ?? '')}
+                        </Text>
+                    )}
                     {Boolean(currentUserPersonalDetails.displayName) && (
                         <Text
                             style={[styles.textLabelSupporting, styles.mt1, styles.w100, styles.textAlignCenter]}

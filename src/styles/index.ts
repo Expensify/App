@@ -1670,6 +1670,10 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightComment,
         },
 
+        initialSettingsUsernameEmoji: {
+            fontSize: variables.fontSizeUsernameEmoji,
+        },
+
         createMenuPositionSidebar: (windowHeight: number) =>
             ({
                 horizontal: 18,
