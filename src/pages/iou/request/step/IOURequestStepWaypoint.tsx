@@ -258,4 +258,5 @@ export default withWritableReportOrNotFound(
             },
         })(IOURequestStepWaypoint),
     ),
+    true,
 );
