@@ -115,7 +115,7 @@ function IOURequestStepDistance({
     if (shouldSkipConfirmation) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             buttonText = translate('iou.split');
-        } else if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+        } else if (iouType === CONST.IOU.TYPE.TRACK) {
             buttonText = translate('iou.trackExpense');
         } else {
             buttonText = translate('iou.submitExpense');
@@ -249,7 +249,7 @@ function IOURequestStepDistance({
                 }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.routePending'), false);
-                if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                if (iouType === CONST.IOU.TYPE.TRACK) {
                     IOU.trackExpense(
                         report,
                         0,

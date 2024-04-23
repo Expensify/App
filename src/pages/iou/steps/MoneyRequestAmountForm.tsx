@@ -321,7 +321,7 @@ function MoneyRequestAmountForm(
                 let text = translate('iou.submitAmount', {amount: currencyAmount});
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     text = translate('iou.splitAmount', {amount: currencyAmount});
-                } else if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                } else if (iouType === CONST.IOU.TYPE.TRACK) {
                     text = translate('iou.trackAmount', {amount: currencyAmount});
                 }
                 return text[0].toUpperCase() + text.slice(1);
@@ -330,7 +330,7 @@ function MoneyRequestAmountForm(
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 return translate('iou.splitExpense');
             }
-            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+            if (iouType === CONST.IOU.TYPE.TRACK) {
                 return translate('iou.trackExpense');
             }
             return translate('iou.submitExpense');

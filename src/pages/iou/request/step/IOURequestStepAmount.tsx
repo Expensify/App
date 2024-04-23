@@ -223,7 +223,7 @@ function IOURequestStepAmount({
                     );
                     return;
                 }
-                if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+                if (iouType === CONST.IOU.TYPE.TRACK) {
                     IOU.trackExpense(
                         report,
                         backendAmount,
