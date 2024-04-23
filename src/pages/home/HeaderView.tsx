@@ -67,7 +67,7 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     reportID: string;
 
     /** Whether we should display the header as in narrow layout */
-    isNarrowLayout?: boolean;
+    shouldUseNarrowLayout?: boolean;
 };
 
 function HeaderView({
@@ -80,7 +80,7 @@ function HeaderView({
     reportID,
     guideCalendarLink,
     onNavigationMenuButtonClicked,
-    isNarrowLayout = false,
+    shouldUseNarrowLayout = false,
 }: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const {windowWidth} = useWindowDimensions();
@@ -214,7 +214,7 @@ function HeaderView({
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !isNarrowLayout;
+    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
     const shouldUseGroupTitle = isGroupChat && !!report?.reportName;
     const isLoading = !report.reportID || !title;
@@ -224,13 +224,13 @@ function HeaderView({
             style={[shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeader, !isNarrowLayout && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !isNarrowLayout && !isLoading && styles.pl5]}>
+            <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <>
-                            {isNarrowLayout && (
+                            {shouldUseNarrowLayout && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
                                     style={styles.LHNToggle}
@@ -348,8 +348,8 @@ function HeaderView({
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !isNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
-                                    {canJoin && !isNarrowLayout && joinButton}
+                                    {isTaskReport && !shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                    {canJoin && !shouldUseNarrowLayout && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu
                                             anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -376,7 +376,7 @@ function HeaderView({
                     )}
                 </View>
             </View>
-            {!isLoading && canJoin && isNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }
