@@ -78,8 +78,7 @@ const FS = {
             FullStory('setIdentity', {
                 uid: String(session.accountID),
                 properties: {
-                    displayName: session.email,
-                    email: session.email,
+                    accountID: session.accountID,
                 },
             });
         }
