@@ -92,21 +92,17 @@ const translationCache = new Map<ValueOf<typeof CONST.LOCALES>, Map<TranslationP
  * @param language - The language of the translation.
  * @param phraseKey - The key of the phrase being translated.
  * @param count - The count used to determine the plural form as a string but numerical form (e.g. '5').
+ * @param phraseParameters - The parameters to pass to the translated phrase function.
  * @returns The pluralized form of the translation, or null if not found.
  */
 function getPluralTranslation<TKey extends TranslationPaths>(
     result: Record<Intl.LDMLPluralRule, Phrase<TKey>>,
     language: string,
     phraseKey: TKey,
-    phraseParams?: Record<string, unknown>,
+    count: number,
+    phraseParameters?: Record<string, unknown>,
 ): string | null {
     const pluralRules = new Intl.PluralRules(language);
-    const count = phraseParams?.count;
-
-    if (!count) {
-        return null;
-    }
-
     const pluralForm = pluralRules.select(Number(count));
 
     if (pluralForm in result) {
@@ -115,7 +111,7 @@ function getPluralTranslation<TKey extends TranslationPaths>(
             return translatedPluralForm;
         }
         if (typeof translatedPluralForm === 'function') {
-            return translatedPluralForm(phraseParams);
+            return translatedPluralForm(phraseParameters);
         }
     }
 
@@ -123,7 +119,7 @@ function getPluralTranslation<TKey extends TranslationPaths>(
 
     const otherForm = result.other;
     if (typeof otherForm === 'function') {
-        return otherForm(phraseParams);
+        return otherForm(phraseParameters);
     }
     if (typeof otherForm === 'string') {
         return otherForm;
@@ -174,8 +170,9 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(phraseParameters);
 
-            if (typeof result === 'object') {
-                return getPluralTranslation(result, language, phraseKey, phraseParameters);
+            if (phraseParameters && typeof result === 'object' && typeof phraseParameters.count === 'number') {
+                const count = phraseParameters.count;
+                return getPluralTranslation(result, language, phraseKey, count, phraseParameters);
             }
 
             return result;
