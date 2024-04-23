@@ -1167,6 +1167,7 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    getAllReportActions,
 };
 
 export type {LastVisibleMessage};
