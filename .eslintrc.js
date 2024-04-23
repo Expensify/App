@@ -4,9 +4,9 @@ const restrictedImportPaths = [
         importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text', 'ScrollView'],
         message: [
             '',
-            "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
-            "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
-            "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
+            "For 'useWindowDimensions', please use '@src/hooks/useWindowDimensions' instead.",
+            "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.",
+            "For 'StatusBar', please use '@src/libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
             "For 'ScrollView', please use '@components/ScrollView' instead.",
         ].join('\n'),
@@ -14,7 +14,7 @@ const restrictedImportPaths = [
     {
         name: 'react-native-gesture-handler',
         importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
-        message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
+        message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from '@components/Pressable' instead.",
     },
     {
         name: 'awesome-phonenumber',
@@ -24,7 +24,7 @@ const restrictedImportPaths = [
     {
         name: 'react-native-safe-area-context',
         importNames: ['useSafeAreaInsets', 'SafeAreaConsumer', 'SafeAreaInsetsContext'],
-        message: "Please use 'useSafeAreaInsets' from 'src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from 'src/components/SafeAreaConsumer' instead.",
+        message: "Please use 'useSafeAreaInsets' from '@src/hooks/useSafeAreaInset' and/or 'SafeAreaConsumer' from '@components/SafeAreaConsumer' instead.",
     },
     {
         name: 'react',
@@ -34,18 +34,18 @@ const restrictedImportPaths = [
     {
         name: '@styles/index',
         importNames: ['default', 'defaultStyles'],
-        message: 'Do not import styles directly. Please use the `useThemeStyles` hook or `withThemeStyles` HOC instead.',
+        message: 'Do not import styles directly. Please use the `useThemeStyles` hook instead.',
     },
     {
         name: '@styles/utils',
         importNames: ['default', 'DefaultStyleUtils'],
-        message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
+        message: 'Do not import StyleUtils directly. Please use the `useStyleUtils` hook instead.',
     },
     {
         name: '@styles/theme',
         importNames: ['default', 'defaultTheme'],
 
-        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+        message: 'Do not import themes directly. Please use the `useTheme` hook instead.',
     },
     {
         name: '@styles/theme/illustrations',
@@ -60,15 +60,15 @@ const restrictedImportPaths = [
 const restrictedImportPatterns = [
     {
         group: ['**/assets/animations/**/*.json'],
-        message: "Do not import animations directly. Please use the 'src/components/LottieAnimations' import instead.",
+        message: "Do not import animations directly. Please use the '@components/LottieAnimations' import instead.",
     },
     {
         group: ['@styles/theme/themes/**'],
-        message: 'Do not import themes directly. Please use the `useTheme` hook or `withTheme` HOC instead.',
+        message: 'Do not import themes directly. Please use the `useTheme` hook instead.',
     },
     {
         group: ['@styles/utils/**', '!@styles/utils/FontUtils', '!@styles/utils/types'],
-        message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook or `withStyleUtils` HOC instead.',
+        message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook instead.',
     },
     {
         group: ['@styles/theme/illustrations/themes/**'],
