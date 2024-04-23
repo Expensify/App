@@ -300,17 +300,16 @@ function FloatingActionButtonAndPopover(
                                   icon: Expensicons.DocumentPlus,
                                   text: translate('iou.trackExpense'),
                                   onSelected: () => {
-                                      if (!!hasSeenTrackTraining || isOffline) {
-                                          interceptAnonymousUser(() =>
-                                              IOU.startMoneyRequest(
-                                                  CONST.IOU.TYPE.TRACK,
-                                                  // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
-                                                  // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
-                                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                                  ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
-                                              ),
-                                          );
-                                      } else {
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest(
+                                              CONST.IOU.TYPE.TRACK,
+                                              // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
+                                              // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
+                                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                              ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
+                                          ),
+                                      );
+                                      if (!hasSeenTrackTraining && !isOffline) {
                                           Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
                                       }
                                   },
