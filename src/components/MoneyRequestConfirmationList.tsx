@@ -2,10 +2,14 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
-import {View} from 'react-native';
+import {type SectionListData, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import TableListItem from '@components/SelectionList/TableListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -21,6 +25,7 @@ import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
+import {PayeePersonalDetails} from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -47,6 +52,7 @@ import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
+import {ListItem, type Section} from './SelectionList/types';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -173,6 +179,13 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     action?: IOUAction;
 };
 
+type MemberSection = {
+    title: string | undefined;
+    shouldShow: boolean;
+    data: (PayeePersonalDetails | Participant | ReportUtils.OptionData)[];
+    isDisabled: boolean;
+};
+
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
     const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
     return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
@@ -219,6 +232,7 @@ function MoneyRequestConfirmationList({
     lastSelectedDistanceRates,
     action = CONST.IOU.ACTION.CREATE,
 }: MoneyRequestConfirmationListProps) {
+    console.log('ttuaj');
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -418,7 +432,7 @@ function MoneyRequestConfirmationList({
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
     const optionSelectorSections = useMemo(() => {
-        const sections = [];
+        const sections: MemberSection[] = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
@@ -448,6 +462,7 @@ function MoneyRequestConfirmationList({
                     title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
+                    isDisabled: false,
                 },
             );
         } else {
@@ -459,6 +474,7 @@ function MoneyRequestConfirmationList({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
                 shouldShow: true,
+                isDisabled: false,
             });
         }
         return sections;
@@ -951,53 +967,47 @@ function MoneyRequestConfirmationList({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
-    const receiptThumbnailContent = useMemo(
-        () =>
-            isLocalFile && Str.isPDF(receiptFilename) ? (
-                <PDFThumbnail
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    previewSourceURL={resolvedReceiptImage as string}
-                    style={styles.moneyRequestImage}
-                    // We don't support scaning password protected PDF receipt
-                    enabled={!isAttachmentInvalid}
-                    onPassword={() => setIsAttachmentInvalid(true)}
-                />
-            ) : (
-                <ReceiptImage
-                    style={styles.moneyRequestImage}
-                    isThumbnail={isThumbnail}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={resolvedThumbnail || resolvedReceiptImage || ''}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!!receiptThumbnail}
-                    fileExtension={fileExtension}
-                />
-            ),
-        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
-    );
+    const receiptThumbnailContent = useMemo(() => {
+        console.log('dupsko');
+
+        return isLocalFile && Str.isPDF(receiptFilename) ? (
+            <PDFThumbnail
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                previewSourceURL={resolvedReceiptImage as string}
+                style={styles.moneyRequestImage}
+                // We don't support scaning password protected PDF receipt
+                enabled={!isAttachmentInvalid}
+                onPassword={() => setIsAttachmentInvalid(true)}
+            />
+        ) : (
+            <ReceiptImage
+                style={styles.moneyRequestImage}
+                isThumbnail={isThumbnail}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                source={resolvedThumbnail || resolvedReceiptImage || ''}
+                // AuthToken is required when retrieving the image from the server
+                // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                // So if we have a thumbnail, it means we're retrieving the image from the server
+                isAuthTokenRequired={!!receiptThumbnail}
+                fileExtension={fileExtension}
+            />
+        );
+    }, [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension]);
+
+    console.log('uuu');
+    console.log(isAttachmentInvalid);
+    console.log(isDistanceRequest);
+    console.log(receiptImage);
+    console.log(receiptThumbnail);
 
     return (
-        // @ts-expect-error This component is deprecated and will not be migrated to TypeScript (context: https://expensify.slack.com/archives/C01GTK53T8Q/p1709232289899589?thread_ts=1709156803.359359&cid=C01GTK53T8Q)
-        <OptionsSelector
-            sections={optionSelectorSections}
-            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
-            onAddToSelection={selectParticipant}
-            onConfirmSelection={confirm}
-            selectedOptions={selectedOptions}
-            canSelectMultipleOptions={canModifyParticipants}
-            disableArrowKeysActions={!canModifyParticipants}
-            boldStyle
-            showTitleTooltip
-            shouldTextInputAppearBelowOptions
-            shouldShowTextInput={false}
-            shouldUseStyleForChildren={false}
-            optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={footerContent}
-            listStyles={listStyles}
-            shouldAllowScrollingChildren
-        >
+        <View style={listStyles}>
+            <SelectionList
+                canSelectMultiple={canModifyParticipants}
+                sections={optionSelectorSections}
+                ListItem={InviteMemberListItem}
+                onSelectRow={selectParticipant}
+            />
             {isDistanceRequest && (
                 <View style={styles.confirmationListMapItem}>
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
@@ -1036,7 +1046,27 @@ function MoneyRequestConfirmationList({
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
-        </OptionsSelector>
+            {footerContent}
+        </View>
+        // <OptionsSelector
+        //     sections={optionSelectorSections}
+        //     onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+        //     onAddToSelection={selectParticipant}
+        //     onConfirmSelection={confirm}
+        //     selectedOptions={selectedOptions}
+        //     canSelectMultipleOptions={canModifyParticipants}
+        //     disableArrowKeysActions={!canModifyParticipants}
+        //     boldStyle
+        //     showTitleTooltip
+        //     shouldTextInputAppearBelowOptions
+        //     shouldShowTextInput={false}
+        //     shouldUseStyleForChildren={false}
+        //     optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
+        //     footerContent={!isEditingSplitBill && footerContent}
+        //     listStyles={listStyles}
+        //     shouldAllowScrollingChildren
+        // >
+        // </OptionsSelector>
     );
 }
 
