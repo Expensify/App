@@ -36,6 +36,8 @@ describe('OnyxUpdateManager', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
+        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = undefined;
+        ApplyUpdates.mockValues.onApplyUpdates = undefined;
         OnyxUpdateManager.resetDeferralLogicVariables();
     });
 
