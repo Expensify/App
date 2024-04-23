@@ -48,8 +48,7 @@ const FS = {
             // define FullStory user identity
             FullStory.identify(String(session.accountID), {
                 properties: {
-                    displayName: session.email,
-                    email: session.email,
+                    accountID: session.accountID,
                 },
             });
         }
