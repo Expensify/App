@@ -2075,7 +2075,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
     Onyx.update(optimisticData);
 }
 
-function buildOptimisticPolicyCategories(policyID: string, categories: string[]) {
+function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
     const optimisticCategoryMap = categories.reduce(
         (acc, category) => ({
             ...acc,
