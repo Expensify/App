@@ -452,7 +452,7 @@ function MoneyRequestConfirmationList({
                 }
                 return {
                     ...participantOption,
-                    descriptiveText: amount ? CurrencyUtils.convertToDisplayString(amount) : '',
+                    descriptiveText: amount ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '',
                 };
             });
         }
