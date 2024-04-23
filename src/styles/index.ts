@@ -1093,9 +1093,14 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             height: '100%',
             backgroundColor: 'transparent',
+            overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-            overflow: 'hidden',
+        },
+
+        textInputContainerBorder: {
+            borderBottomWidth: 2,
+            borderColor: theme.border,
         },
 
         textInputLabel: {
@@ -2958,11 +2963,25 @@ const styles = (theme: ThemeColors) =>
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
                 color: theme.heading,
-                padding: 0,
                 lineHeight: undefined,
+                paddingHorizontal: 0,
+                paddingVertical: 0,
+                borderTopLeftRadius: 0,
+                borderBottomLeftRadius: 0,
+                borderTopRightRadius: 0,
+                borderBottomRightRadius: 0,
             },
             0,
         ),
+
+        iouAmountTextInputContainer: {
+            borderWidth: 0,
+            borderBottomWidth: 0,
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+        },
 
         moneyRequestConfirmationAmount: {
             ...headlineFont,

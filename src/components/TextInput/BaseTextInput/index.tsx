@@ -61,6 +61,8 @@ function BaseTextInput(
         prefixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
+        prefixContainerStyle = [],
+        prefixStyle = [],
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -234,8 +236,6 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
-    const getCharacterPadding = (prefix: string): number => prefix.length * 10;
-
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
@@ -283,6 +283,9 @@ function BaseTextInput(
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
+                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
+                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    onLayout={onLayout}
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
@@ -290,9 +293,6 @@ function BaseTextInput(
                     ]}
                 >
                     <View
-                        // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                        // or if multiline is not supplied we calculate the textinput height, using onLayout.
-                        onLayout={onLayout}
                         style={[
                             newTextInputContainerStyles,
 
@@ -326,10 +326,10 @@ function BaseTextInput(
                                 </View>
                             )}
                             {Boolean(prefixCharacter) && (
-                                <View style={styles.textInputPrefixWrapper}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {prefixCharacter}
@@ -359,7 +359,7 @@ function BaseTextInput(
                                     styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    !!prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
+                                    !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear

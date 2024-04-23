@@ -1,18 +1,26 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import type {MaybePhraseKey} from '@libs/Localize';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
-import type {SelectedTabRequest} from '@src/types/onyx';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 
-type MoneyRequestAmountFormProps = {
+type CurrentMoney = {amount: string; currency: string};
+
+type MoneyRequestAmountInputRef = {
+    setNewAmount: (amountValue: string) => void;
+    changeSelection: (newSelection: Selection) => void;
+    changeAmount: (newAmount: string) => void;
+    getAmount: () => string;
+    getSelection: () => Selection;
+};
+
+type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
 
@@ -22,15 +30,38 @@ type MoneyRequestAmountFormProps = {
     /** Whether the currency symbol is pressable */
     isCurrencyPressable?: boolean;
 
-    hideCurrencySymbol?: boolean;
-
-    prefixCharacter?: string;
-
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress?: () => void;
 
-    /** The current tab we have navigated to in the request modal. String that corresponds to the request type. */
-    selectedTab?: SelectedTabRequest;
+    /** Function to call when the amount changes */
+    onAmountChange?: (amount: string) => void;
+
+    /** Whether to update the selection */
+    shouldUpdateSelection?: boolean;
+
+    /** Style for the input */
+    inputStyle?: StyleProp<TextStyle>;
+
+    /** Style for the container */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Reference to moneyRequestAmountInputRef */
+    moneyRequestAmountInputRef?: ForwardedRef<MoneyRequestAmountInputRef>;
+
+    /** Character to be shown before the amount */
+    prefixCharacter?: string;
+
+    /** Whether to hide the currency symbol */
+    hideCurrencySymbol?: boolean;
+
+    /** Style for the prefix */
+    prefixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the prefix container */
+    prefixContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Style for the touchable input wrapper */
+    touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type Selection = {
@@ -46,29 +77,29 @@ const getNewSelection = (oldSelection: Selection, prevLength: number, newLength:
     return {start: cursorPosition, end: cursorPosition};
 };
 
-function MoneyRequestAmountTextInput(
+function MoneyRequestAmountInput(
     {
         amount = 0,
         currency = CONST.CURRENCY.USD,
         isCurrencyPressable = true,
         onCurrencyButtonPress,
-        prefixCharacter,
         onAmountChange,
-        hideCurrencySymbol,
-        inputStyle = null,
-        textInputContainerStyles = null,
-        selectedTab = CONST.TAB_REQUEST.MANUAL,
-    }: MoneyRequestAmountFormProps,
+        prefixCharacter = '',
+        hideCurrencySymbol = false,
+        shouldUpdateSelection = true,
+        moneyRequestAmountInputRef,
+        ...props
+    }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const {toLocaleDigit, numberFormat} = useLocalize();
+
     const textInput = useRef<BaseTextInputRef | null>(null);
 
     const decimals = CurrencyUtils.getCurrencyDecimals(currency);
     const selectedAmountAsString = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
-    const [formError, setFormError] = useState<MaybePhraseKey>('');
 
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
@@ -76,24 +107,6 @@ function MoneyRequestAmountTextInput(
     });
 
     const forwardDeletePressedRef = useRef(false);
-
-    const initializeAmount = useCallback((newAmount: number) => {
-        const frontendAmount = newAmount ? CurrencyUtils.convertToFrontendAmount(newAmount).toString() : '';
-        setCurrentAmount(frontendAmount);
-        setSelection({
-            start: frontendAmount.length,
-            end: frontendAmount.length,
-        });
-    }, []);
-
-    useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
-            return;
-        }
-        initializeAmount(amount);
-        // we want to re-initialize the state only when the amount changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
 
     /**
      * Sets the selection and the amount accordingly to the value passed to the input
@@ -110,9 +123,6 @@ function MoneyRequestAmountTextInput(
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
-            if (formError) {
-                setFormError('');
-            }
 
             // setCurrentAmount contains another setState(setSelection) making it error-prone since it is leading to setSelection being called twice for a single setCurrentAmount call. This solution introducing the hasSelectionBeenSet flag was chosen for its simplicity and lower risk of future errors https://github.com/Expensify/App/issues/23300#issuecomment-1766314724.
 
@@ -128,10 +138,40 @@ function MoneyRequestAmountTextInput(
                 return strippedAmount;
             });
         },
-        [decimals, formError, onAmountChange],
+        [decimals, onAmountChange],
     );
 
-    useEffect(() => {});
+    useImperativeHandle(moneyRequestAmountInputRef, () => ({
+        setNewAmount(amountValue: string) {
+            setNewAmount(amountValue);
+        },
+        changeSelection(newSelection: Selection) {
+            setSelection(newSelection);
+        },
+        changeAmount(newAmount: string) {
+            setCurrentAmount(newAmount);
+        },
+        getAmount() {
+            return currentAmount;
+        },
+        getSelection() {
+            return selection;
+        },
+    }));
+
+    useEffect(() => {
+        if (!currency || typeof amount !== 'number') {
+            return;
+        }
+        const frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+        setCurrentAmount(frontendAmount);
+        setSelection({
+            start: frontendAmount.length,
+            end: frontendAmount.length,
+        });
+        // we want to re-initialize the state only when the amount changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [amount]);
 
     // Modifies the amount to match the decimals for changed currency.
     useEffect(() => {
@@ -166,10 +206,6 @@ function MoneyRequestAmountTextInput(
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 
-    useEffect(() => {
-        setFormError('');
-    }, [selectedTab]);
-
     return (
         <TextInputWithCurrencySymbol
             formattedAmount={formattedAmount}
@@ -188,21 +224,28 @@ function MoneyRequestAmountTextInput(
             selectedCurrencyCode={currency}
             selection={selection}
             onSelectionChange={(e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+                if (!shouldUpdateSelection) {
+                    return;
+                }
                 const maxSelection = formattedAmount.length;
                 const start = Math.min(e.nativeEvent.selection.start, maxSelection);
                 const end = Math.min(e.nativeEvent.selection.end, maxSelection);
                 setSelection({start, end});
             }}
             onKeyPress={textInputKeyPress}
-            isCurrencyPressable={isCurrencyPressable}
             hideCurrencySymbol={hideCurrencySymbol}
             prefixCharacter={prefixCharacter}
-            inputStyle={inputStyle}
-            textInputContainerStyles={textInputContainerStyles}
+            isCurrencyPressable={isCurrencyPressable}
+            style={props.inputStyle}
+            containerStyle={props.containerStyle}
+            prefixStyle={props.prefixStyle}
+            prefixContainerStyle={props.prefixContainerStyle}
+            touchableInputWrapperStyle={props.touchableInputWrapperStyle}
         />
     );
 }
 
-MoneyRequestAmountTextInput.displayName = 'MoneyRequestAmountTextInput';
+MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
-export default React.forwardRef(MoneyRequestAmountTextInput);
+export default React.forwardRef(MoneyRequestAmountInput);
+export type {CurrentMoney, MoneyRequestAmountInputRef};
