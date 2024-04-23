@@ -185,8 +185,8 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport({
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
+                        currentUserLogin: currentUserPersonalDetails.login,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: backendAmount,
                         comment: '',
                         currency,
@@ -215,8 +215,8 @@ function IOURequestStepAmount({
                         currency,
                         transaction?.created ?? '',
                         '',
-                        currentUserPersonalDetails.login ?? '',
-                        currentUserPersonalDetails.accountID ?? 0,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
                         participants[0],
                         '',
                         {},
@@ -230,8 +230,8 @@ function IOURequestStepAmount({
                         currency ?? 'USD',
                         transaction?.created ?? '',
                         '',
-                        currentUserPersonalDetails.login ?? '',
-                        currentUserPersonalDetails.accountID ?? 0,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
                         participants[0],
                         '',
                     );

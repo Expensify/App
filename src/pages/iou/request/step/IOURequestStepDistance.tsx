@@ -233,8 +233,8 @@ function IOURequestStepDistance({
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport({
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
+                        currentUserLogin: currentUserPersonalDetails.login,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: 0,
                         comment: '',
                         currency: transaction?.currency ?? 'USD',
@@ -256,8 +256,8 @@ function IOURequestStepDistance({
                         transaction?.currency ?? 'USD',
                         transaction?.created ?? '',
                         translate('iou.routePending'),
-                        currentUserPersonalDetails.login ?? '',
-                        currentUserPersonalDetails.accountID ?? 0,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
                         participants[0],
                         '',
                         {},
