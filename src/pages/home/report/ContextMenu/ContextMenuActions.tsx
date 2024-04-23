@@ -30,13 +30,13 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Beta, Report as OnyxReport, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
-function getActionHtml(reportAction: OnyxEntry<OnyxTypes.ReportAction>): string {
+function getActionHtml(reportAction: OnyxEntry<ReportAction>): string {
     const message = reportAction?.message?.at(-1) ?? null;
     return message?.html ?? '';
 }
@@ -54,9 +54,9 @@ function setClipboardMessage(content: string) {
 
 type ShouldShow = (
     type: string,
-    reportAction: OnyxEntry<OnyxTypes.ReportAction>,
+    reportAction: OnyxEntry<ReportAction>,
     isArchivedRoom: boolean,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
+    betas: OnyxEntry<Beta[]>,
     menuTarget: MutableRefObject<ContextMenuAnchor> | undefined,
     isChronosReport: boolean,
     reportID: string,
@@ -67,8 +67,8 @@ type ShouldShow = (
 ) => boolean;
 
 type ContextMenuActionPayload = {
-    reportAction: OnyxTypes.ReportAction;
-    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+    reportAction: ReportAction;
+    transaction?: OnyxEntry<Transaction>;
     reportID: string;
     draftMessage: string;
     selection: string;
@@ -108,7 +108,7 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
     shouldPreventDefaultFocusOnPress?: boolean;
 };
 
-let allReports: OnyxCollection<OnyxTypes.Report>;
+let allReports: OnyxCollection<OnyxReport>;
 // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -120,7 +120,7 @@ Onyx.connect({
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
-        shouldShow: (type, reportAction): reportAction is OnyxTypes.ReportAction =>
+        shouldShow: (type, reportAction): reportAction is ReportAction =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !ReportActionsUtils.isMessageDeleted(reportAction),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
             const isMini = !closePopover;
@@ -136,7 +136,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 }
             };
 
-            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>) => {
+            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>) => {
                 Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
@@ -179,7 +179,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         icon: Expensicons.Download,
         successTextTranslateKey: 'common.download',
         successIcon: Expensicons.Download,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is OnyxTypes.ReportAction => {
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
             const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
             const messageHtml = getActionHtml(reportAction);
             return (
