@@ -1,3 +1,4 @@
+/* eslint-disable you-dont-need-lodash-underscore/every, you-dont-need-lodash-underscore/get, you-dont-need-lodash-underscore/some, you-dont-need-lodash-underscore/map, you-dont-need-lodash-underscore/values */
 import lodashEvery from 'lodash/every';
 import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
