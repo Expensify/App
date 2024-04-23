@@ -513,5 +513,17 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
 ];
 
+const restrictedReadOnlyActions = [
+    'common.download',
+    'reportActionContextMenu.replyInThread',
+    'reportActionContextMenu.editAction',
+    'reportActionContextMenu.joinThread',
+    'reportActionContextMenu.deleteAction',
+];
+
+// @ts-expect-error Not all actions have textTranslateKey
+const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter((action) => restrictedReadOnlyActions.includes(action.textTranslateKey));
+
+export {RestrictedReadOnlyContextMenuActions};
 export default ContextMenuActions;
 export type {ContextMenuActionPayload, ContextMenuAction};
