@@ -77,7 +77,7 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
             testID={WorkspaceProfileAddressPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.editor.addressInputLabel')}
+                title={translate('common.companyAddress')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />

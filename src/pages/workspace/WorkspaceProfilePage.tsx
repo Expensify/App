@@ -222,7 +222,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                                 <View>
                                     <MenuItemWithTopDescription
                                         title={formattedAddress}
-                                        description={translate('workspace.editor.addressInputLabel')}
+                                        description={translate('common.companyAddress')}
                                         shouldShowRightIcon={!readOnly}
                                         disabled={readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
