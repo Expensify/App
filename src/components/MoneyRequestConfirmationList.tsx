@@ -226,8 +226,8 @@ function MoneyRequestConfirmationList({
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
-    const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
+    const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
+    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
     const transactionID = transaction?.transactionID ?? '';
