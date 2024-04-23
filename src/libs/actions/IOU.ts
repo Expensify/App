@@ -5899,10 +5899,6 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
         .map((key: string): number => transaction?.splitShares?.[Number(key)]?.amount ?? 0)
         .reduce((prev: number, current: number): number => prev + current, 0);
 
-    if (!sumOfManualShares) {
-        return;
-    }
-
     const unModifiedSharesAccountIDs = Object.keys(transaction.splitShares ?? {})
         .filter((key: string) => !transaction?.splitShares?.[Number(key)]?.isModified)
         .map((key: string) => Number(key));
