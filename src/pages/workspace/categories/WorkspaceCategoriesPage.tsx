@@ -281,7 +281,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                         />
                         {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            {Object.keys(policy?.connections ?? {}).length ? (
+                            {Object.keys(policy?.connections ?? {}).length > 0 ? (
                                 <Text>
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
                                     <TextLink
