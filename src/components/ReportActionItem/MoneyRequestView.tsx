@@ -67,8 +67,8 @@ type MoneyRequestViewOnyxPropsWithoutTransaction = {
     /** The actions from the parent report */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
-    /** The rates for the policy */
-    rates: Record<string, MileageRate>;
+    /** The distance rates from the policy */
+    distanceRates: Record<string, MileageRate>;
 };
 
 type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutTransaction & {
@@ -95,7 +95,7 @@ function MoneyRequestView({
     policy,
     transactionViolations,
     shouldShowAnimatedBackground,
-    rates,
+    distanceRates,
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -103,8 +103,9 @@ function MoneyRequestView({
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate, toLocaleDigit} = useLocalize();
-    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
+    const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
+    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
@@ -150,7 +151,8 @@ function MoneyRequestView({
     const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
+    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
@@ -158,6 +160,11 @@ function MoneyRequestView({
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
+<<<<<<< HEAD
+=======
+    const iouType = isTrackExpense ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+
+>>>>>>> 7e5b436 (Merge pull request #40711 from koko57/feat/36985-create-new-rate-field-followups)
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -183,10 +190,11 @@ function MoneyRequestView({
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : rates[rateID as string] ?? {};
-    const {unit, rate} = mileageRate;
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID as string] ?? {};
+    const {unit} = mileageRate;
+    const rate = (transaction?.comment?.customUnit?.defaultP2PRate as number) ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.getDistanceFromMerchant(transactionMerchant, unit);
+    const distance = DistanceRequestUtils.convertToDistanceInMeters((transaction?.comment?.customUnit?.quantity as number) ?? 0, unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
 
@@ -280,7 +288,7 @@ function MoneyRequestView({
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
-                    title={distanceToDisplay}
+                    title={getPendingFieldAction('waypoints') ? translate('iou.fieldPending') : distanceToDisplay}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
@@ -289,6 +297,7 @@ function MoneyRequestView({
                     }
                 />
             </OfflineWithFeedback>
+            {/* TODO: correct the pending field action https://github.com/Expensify/App/issues/36987 */}
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
@@ -578,7 +587,7 @@ export default withOnyx<MoneyRequestViewPropsWithoutTransaction, MoneyRequestVie
         key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : '0'}`,
         canEvict: false,
     },
-    rates: {
+    distanceRates: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         selector: DistanceRequestUtils.getMileageRates,
     },
