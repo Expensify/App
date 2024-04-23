@@ -3072,6 +3072,7 @@ function trackExpense(
         }
     }
     if (action === CONST.IOU.ACTION.SHARE) {
+        Navigation.dismissModal();
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
     } else {
         Navigation.dismissModal(activeReportID);
