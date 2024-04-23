@@ -95,6 +95,7 @@ function ReportActionsListWrapper() {
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
                         parentReportAction={createRandomReportAction(1)}
+                        parentReportActionForTransactionThread={null}
                         sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                         report={LHNTestUtilsModule.getFakeReport()}
                         onLayout={mockOnLayout}
