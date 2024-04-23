@@ -1,3 +1,5 @@
+import type {StatsObject} from 'moize';
+import moize from 'moize';
 import React, {useCallback, useEffect, useState} from 'react';
 import DeviceInfo from 'react-native-device-info';
 import RNFS from 'react-native-fs';
@@ -25,6 +27,14 @@ type ProfilingToolMenuOnyxProps = {
 
 type ProfilingToolMenuProps = ProfilingToolMenuOnyxProps;
 
+function completeCacheStatsMonitoring() {
+    const stats = moize.getStats();
+    moize.clearStats();
+    moize.collectStats(false);
+
+    return stats;
+}
+
 function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) {
         return '0 Bytes';
@@ -45,6 +55,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
     const [sharePath, setSharePath] = useState('');
     const [totalMemory, setTotalMemory] = useState(0);
     const [usedMemory, setUsedMemory] = useState(0);
+    const [cacheStats, setCacheStats] = useState<StatsObject>();
     const {translate} = useLocalize();
 
     // eslint-disable-next-line @lwc/lwc/no-async-await
@@ -54,14 +65,18 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
 
         const amountOfTotalMemory = await DeviceInfo.getTotalMemory();
         const amountOfUsedMemory = await DeviceInfo.getUsedMemory();
+        const stats = completeCacheStatsMonitoring();
+
         setTotalMemory(amountOfTotalMemory);
         setUsedMemory(amountOfUsedMemory);
+        setCacheStats(stats);
     }, []);
 
     const onToggleProfiling = useCallback(() => {
         const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
             startProfiling();
+            moize.collectStats();
         } else {
             stop();
         }
@@ -79,8 +94,9 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
                 platform: getPlatform(),
                 totalMemory: formatBytes(totalMemory, 2),
                 usedMemory: formatBytes(usedMemory, 2),
+                cacheStats,
             }),
-        [totalMemory, usedMemory],
+        [cacheStats, totalMemory, usedMemory],
     );
 
     useEffect(() => {
