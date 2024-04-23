@@ -66,8 +66,6 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
   ```
     sudo gem install bundler:2.3.22
    ```
-
-    Password:
     Fetching bundler-2.3.22.gem
     Successfully installed bundler-2.3.22
     Parsing documentation for bundler-2.3.22
