@@ -1,4 +1,4 @@
-/* eslint-disable no-param-reassign, prefer-template */
+/* eslint-disable */
 // Google Tag Manager
 (function (w, d, s, l, i) {
     w[l] = w[l] || [];
