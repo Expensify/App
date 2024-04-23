@@ -185,7 +185,7 @@ function IOURequestStepAmount({
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport({
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login,
+                        currentUserLogin: currentUserPersonalDetails.login ?? '',
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: backendAmount,
                         comment: '',

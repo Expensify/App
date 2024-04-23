@@ -233,7 +233,7 @@ function IOURequestStepDistance({
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
                     IOU.splitBillAndOpenReport({
                         participants,
-                        currentUserLogin: currentUserPersonalDetails.login,
+                        currentUserLogin: currentUserPersonalDetails.login ?? '',
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: 0,
                         comment: '',
