@@ -1991,6 +1991,7 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+            importedFromAccountingSoftware: 'Categorías importadas desde',
         },
         moreFeatures: {
             spendSection: {
@@ -2131,6 +2132,7 @@ export default {
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         accounting: {
+            settings: 'configuración',
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
