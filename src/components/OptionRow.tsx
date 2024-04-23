@@ -139,7 +139,7 @@ function OptionRow({
         style,
         (option.alternateTextMaxLines ?? 1) === 1 ? styles.pre : styles.preWrap,
     ];
-    const contentContainerStyles = [styles.flex1];
+    const contentContainerStyles = [styles.flex1, styles.mr3];
     const sidebarInnerRowStyle = StyleSheet.flatten([styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter]);
     const flattenHoverStyle = StyleSheet.flatten(hoverStyle);
     const hoveredStyle = hoverStyle ? flattenHoverStyle : styles.sidebarLinkHover;
