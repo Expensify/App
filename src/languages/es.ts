@@ -313,7 +313,7 @@ export default {
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
-        businessName: 'Nombre del Negocio',
+        businessName: 'Nombre de la empresa',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
