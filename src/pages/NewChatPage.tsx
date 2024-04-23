@@ -69,8 +69,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             [],
             true,
         );
-        // We no longer limit the number of participants in a group chat
-        const maxParticipantsReached = false;
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
             filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
@@ -114,10 +112,20 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     const {insets} = useStyledSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions({
-            isGroupChat,
-        });
+    const {
+        headerMessage,
+        searchTerm,
+        debouncedSearchTerm,
+        setSearchTerm,
+        selectedOptions,
+        setSelectedOptions,
+        recentReports,
+        personalDetails,
+        userToInvite,
+        areOptionsInitialized,
+    } = useOptions({
+        isGroupChat,
+    });
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
@@ -129,6 +137,8 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         if (!firstKey) {
             firstKey = OptionsListUtils.getFirstKeyForList(formatResults.section.data);
         }
+
+       
 
         sectionsList.push({
             title: translate('common.recents'),
