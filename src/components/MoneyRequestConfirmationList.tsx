@@ -306,9 +306,10 @@ function MoneyRequestConfirmationList({
 
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
-    const navigateBack = () => {
-        Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-    };
+    const navigateBack = useCallback(
+        () => Navigation.goBack(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
+        [iouType, reportID, transactionID],
+    );
 
     const shouldDisplayFieldError: boolean = useMemo(() => {
         if (!isEditingSplitBill) {
