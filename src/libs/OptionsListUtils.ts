@@ -1350,15 +1350,15 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate & {isSelected?: boolean}>>): TaxRatesOption[] {
-    return taxRates.map((taxRate) => ({
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate & {isSelected: boolean}>>): TaxRatesOption[] {
+    return taxRates.map(({isSelected, ...taxRate}) => ({
         text: taxRate.modifiedName,
         keyForList: taxRate.modifiedName,
         searchText: taxRate.modifiedName,
         tooltipText: taxRate.modifiedName,
         isDisabled: taxRate.isDisabled,
         data: taxRate,
-        isSelected: !!taxRate.isSelected,
+        isSelected: !!isSelected,
     }));
 }
 

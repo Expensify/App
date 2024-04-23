@@ -2506,6 +2506,7 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Tax exempt 1 (0%) • Default',
                         searchText: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
+                        isSelected: false,
                         isDisabled: undefined,
                         // creates a data option.
                         data: {
@@ -2520,6 +2521,7 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Tax option 3 (5%)',
                         searchText: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
+                        isSelected: false,
                         isDisabled: undefined,
                         data: {
                             name: 'Tax option 3',
@@ -2534,6 +2536,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
+                        isSelected: false,
                         data: {
                             name: 'Tax rate 2',
                             code: 'CODE2',
@@ -2557,6 +2560,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
+                        isSelected: false,
                         data: {
                             name: 'Tax rate 2',
                             code: 'CODE2',
