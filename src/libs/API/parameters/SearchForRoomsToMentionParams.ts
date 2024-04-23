@@ -1,5 +1,5 @@
 type SearchForRoomsToMentionParams = {
-    searchInput: string;
+    query: string;
     policyID: string;
 };
 
