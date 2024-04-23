@@ -164,7 +164,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
      * @returns {Array}
      */
     const [sections, header] = useMemo(() => {
-        const requestMoneyOptions = chatOptions;
         const newSections = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, ''];
@@ -173,8 +172,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
             participants,
-            requestMoneyOptions.recentReports,
-            requestMoneyOptions.personalDetails,
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
             maxParticipantsReached,
             personalDetails,
             true,
@@ -188,22 +187,22 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
         newSections.push({
             title: translate('common.recents'),
-            data: requestMoneyOptions.recentReports,
-            shouldShow: requestMoneyOptions.recentReports.length > 0,
+            data: chatOptions.recentReports,
+            shouldShow: chatOptions.recentReports.length > 0,
         });
 
         if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action)) {
             newSections.push({
                 title: translate('common.contacts'),
-                data: requestMoneyOptions.personalDetails,
-                shouldShow: requestMoneyOptions.personalDetails.length > 0,
+                data: chatOptions.personalDetails,
+                shouldShow: chatOptions.personalDetails.length > 0,
             });
         }
 
-        if (requestMoneyOptions.userToInvite && !OptionsListUtils.isCurrentUser(requestMoneyOptions.userToInvite)) {
+        if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
                 title: undefined,
-                data: lodashMap([requestMoneyOptions.userToInvite], (participant) => {
+                data: lodashMap([chatOptions.userToInvite], (participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
@@ -212,8 +211,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         }
 
         const headerMessage = OptionsListUtils.getHeaderMessage(
-            lodashGet(requestMoneyOptions, 'personalDetails', []).length + lodashGet(requestMoneyOptions, 'recentReports', []).length !== 0,
-            Boolean(requestMoneyOptions.userToInvite),
+            lodashGet(chatOptions, 'personalDetails', []).length + lodashGet(chatOptions, 'recentReports', []).length !== 0,
+            Boolean(chatOptions.userToInvite),
             debouncedSearchTerm.trim(),
             maxParticipantsReached,
             lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),

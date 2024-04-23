@@ -1937,7 +1937,6 @@ function getOptions(
             parsedPhoneNumber,
         })
     ) {
-        // Generates an optimistic account ID for new users not yet saved in Onyx
         userToInvite = createOptimisticPersonalDetailOption(searchValue, {reportActions, showChatPreviewLine});
     }
 
