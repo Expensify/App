@@ -40,7 +40,12 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.4.64.2</string>
+	<string>1.4.64.4</string>
+	<key>FullStory</key>
+	<dict>
+		<key>OrgId</key>
+		<string>o-1WN56P-na1</string>
+	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>

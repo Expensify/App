@@ -1879,7 +1879,7 @@ function getUpdateMoneyRequestParams(
             ...updatedTransaction,
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedMerchant: Localize.translateLocal('iou.routePending'),
+            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -2161,7 +2161,7 @@ function getUpdateTrackExpenseParams(
             ...updatedTransaction,
             amount: CONST.IOU.DEFAULT_AMOUNT,
             modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedMerchant: Localize.translateLocal('iou.routePending'),
+            modifiedMerchant: Localize.translateLocal('iou.fieldPending'),
         };
 
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
@@ -3072,6 +3072,7 @@ function trackExpense(
         }
     }
     if (action === CONST.IOU.ACTION.SHARE) {
+        Navigation.dismissModal();
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
     } else {
         Navigation.dismissModal(activeReportID);
