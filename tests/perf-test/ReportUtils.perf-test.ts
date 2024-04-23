@@ -66,7 +66,7 @@ describe('ReportUtils', () => {
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
-        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT} as unknown as ReportAction;
+        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
 
         await waitForBatchedUpdates();
         await measureFunction(() => ReportUtils.canDeleteReportAction(reportAction, reportID));
@@ -160,7 +160,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportUtils.getMoneyRequestOptions(report, policy, reportParticipants));
+        await measureFunction(() => ReportUtils.temporary_getMoneyRequestOptions(report, policy, reportParticipants));
     });
 
     test('[ReportUtils] getWorkspaceAvatar on 1k policies', async () => {

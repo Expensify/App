@@ -122,7 +122,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -168,7 +168,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -219,7 +219,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -278,7 +278,7 @@ describe('Sidebar', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -342,7 +342,7 @@ describe('Sidebar', () => {
             };
             report3.iouReportID = iouReport.reportID;
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -409,7 +409,7 @@ describe('Sidebar', () => {
             };
             report3.iouReportID = expenseReport.reportID;
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -459,7 +459,7 @@ describe('Sidebar', () => {
             };
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -815,7 +815,7 @@ describe('Sidebar', () => {
             const report2 = LHNTestUtils.getFakeReport([3, 4]);
             const report3 = LHNTestUtils.getFakeReport([5, 6]);
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
@@ -1117,7 +1117,7 @@ describe('Sidebar', () => {
                 lastVisibleActionCreated,
             };
 
-            // Each report has at least one ADDCOMMENT action so should be rendered in the LNH
+            // Each report has at least one ADD_COMMENT action so should be rendered in the LNH
             Report.addComment(report1.reportID, 'Hi, this is a comment');
             Report.addComment(report2.reportID, 'Hi, this is a comment');
             Report.addComment(report3.reportID, 'Hi, this is a comment');
