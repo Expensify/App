@@ -124,11 +124,6 @@ module.exports = {
                 ],
             },
         },
-        // This helps disable the `prefer-alias` rule to be enabled for specific directories
-        {
-            files: ['tests/**/*.js', 'tests/**/*.ts', 'tests/**/*.jsx', 'assets/**/*.js', '.storybook/**/*.js'],
-            rules: {'@dword-design/import-alias/prefer-alias': ['off']},
-        },
         {
             files: ['*.js', '*.jsx'],
             settings: {
