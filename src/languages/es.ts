@@ -1339,7 +1339,7 @@ export default {
         },
     },
     featureTraining: {
-        doNotShowAgain: "Don't show me this again",
+        doNotShowAgain: 'No muestres esto otra vez',
     },
     personalDetails: {
         error: {
