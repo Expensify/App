@@ -156,6 +156,7 @@ function MoneyRequestView({
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isReceiptScanCompleted = hasReceipt && TransactionUtils.isReceiptScanCompleted(transaction);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
@@ -330,7 +331,7 @@ function MoneyRequestView({
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 <ReceiptAuditHeader
                     notes={noteTypeViolations}
-                    showAuditMessage={shouldShowNotesViolations}
+                    showAuditMessage={shouldShowNotesViolations && isReceiptScanCompleted}
                 />
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
