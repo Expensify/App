@@ -7,7 +7,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
 type DistanceRequestProps = {
-    /** The waypoints for the distance request */
+    /** The waypoints for the distance expense */
     waypoints?: WaypointCollection;
 
     /** The index of the item */
