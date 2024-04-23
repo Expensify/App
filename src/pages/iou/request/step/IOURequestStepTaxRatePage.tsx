@@ -17,6 +17,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 type IOURequestStepTaxRatePageOnyxProps = {
     policy: OnyxEntry<Policy>;
@@ -24,6 +25,7 @@ type IOURequestStepTaxRatePageOnyxProps = {
 
     /** Collection of tag list on a policy */
     policyTags: OnyxEntry<PolicyTagList>;
+    splitDraftTransaction: OnyxEntry<Transaction>;
 };
 
 type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
@@ -40,20 +42,25 @@ function getTaxAmount(taxRates: TaxRatesWithDefault, selectedTaxRate: string, am
 
 function IOURequestStepTaxRatePage({
     route: {
-        params: {action, backTo},
+        params: {action, backTo, iouType},
     },
     policy,
     transaction,
     report,
     policyCategories,
     policyTags,
+    splitDraftTransaction
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
+    const isEditingSplitBill = isEditing && isSplitBill;
+    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    console.log(currentTransaction);
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
+    const transactionDetails = ReportUtils.getTransactionDetails(currentTransaction);
     const transactionTaxCode = transactionDetails?.taxCode;
 
     const navigateBack = () => {
@@ -68,8 +75,17 @@ function IOURequestStepTaxRatePage({
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
+        const newTaxCode = taxes.data.code;
+        if (isEditingSplitBill) {
+            if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(currentTransaction)) {
+                navigateBack();
+                return;
+            }
+            IOU.setDraftSplitTransaction(transaction?.transactionID ?? '', {taxCode: newTaxCode})
+            navigateBack();
+            return;
+        }
         if (isEditing) {
-            const newTaxCode = taxes.data.code;
             if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 navigateBack();
                 return;
@@ -121,6 +137,12 @@ const IOURequestStepTaxRatePageWithOnyx = withOnyx<IOURequestStepTaxRatePageProp
     },
     policyTags: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+    },
+    splitDraftTransaction: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`;
+        },
     },
 })(IOURequestStepTaxRatePage);
 

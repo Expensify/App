@@ -293,7 +293,10 @@ function MoneyRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
-    const taxRateTitle = taxRates && transaction ? TransactionUtils.getDefaultTaxName(taxRates, transaction) : '';
+    const transactionTaxCode = transaction?.taxCode;
+    const taxRateTitle = taxRates && !transactionTaxCode
+        ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+        : transactionTaxCode && taxRates?.taxes && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode);
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
 
@@ -933,6 +936,8 @@ function MoneyRequestConfirmationList({
             isSupplementary: true,
         },
     ];
+
+    console.log(taxRates, taxRateTitle, transaction);
 
     const primaryFields = classifiedFields.filter((classifiedField) => classifiedField.shouldShow && !classifiedField.isSupplementary).map((primaryField) => primaryField.item);
 
