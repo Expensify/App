@@ -40,7 +40,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import ReportActionItemImage from './ReportActionItemImage';
 
@@ -105,8 +104,8 @@ function MoneyRequestView({
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate, toLocaleDigit} = useLocalize();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
-    const isExpenseTracking = (parentReportAction?.originalMessage as IOUMessage)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
-    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isExpenseTracking ? CONST.IOU.TYPE.TRACK : undefined);
+    const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
+    const {canUseViolations, canUseP2PDistanceRequests} = usePermissions(isTrackExpense ? CONST.IOU.TYPE.TRACK : undefined);
     const moneyRequestReport = parentReport;
     const {
         created: transactionDate,
@@ -152,7 +151,8 @@ function MoneyRequestView({
     const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
+    // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
+    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
@@ -160,7 +160,6 @@ function MoneyRequestView({
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
-    const isTrackExpense = ReportUtils.isTrackExpenseReport(report);
     const iouType = isTrackExpense ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
 
     // Flags for showing categories and tags
@@ -286,7 +285,7 @@ function MoneyRequestView({
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.distance')}
-                    title={distanceToDisplay}
+                    title={getPendingFieldAction('waypoints') ? translate('iou.fieldPending') : distanceToDisplay}
                     interactive={canEditDistance}
                     shouldShowRightIcon={canEditDistance}
                     titleStyle={styles.flex1}
