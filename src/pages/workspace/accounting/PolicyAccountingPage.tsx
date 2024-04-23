@@ -29,7 +29,7 @@ import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabl
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import type {AnchorPosition, ThemeStyles} from '@styles/index';
+import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,7 +60,6 @@ function accountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    styles: ThemeStyles,
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
 ): AccountingIntegration {
@@ -127,7 +126,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
-                const {title, icon, setupConnectionButton} = accountingIntegrationData(integration, policyID, translate, styles);
+                const {title, icon, setupConnectionButton} = accountingIntegrationData(integration, policyID, translate);
                 return {
                     icon,
                     iconType: CONST.ICON_TYPE_AVATAR,
@@ -143,7 +142,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
-        const {title, icon, onImportPagePress} = accountingIntegrationData(connectedIntegration, policyID, translate, styles);
+        const {title, icon, onImportPagePress} = accountingIntegrationData(connectedIntegration, policyID, translate);
         return [
             {
                 icon,
@@ -228,14 +227,14 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
         );
         return otherIntegrations.map((integration) => {
-            const {title, icon, setupConnectionButton} = accountingIntegrationData(integration, policyID, translate, styles);
+            const {title, icon, setupConnectionButton} = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
             return {
                 icon,
                 title,
                 rightComponent: setupConnectionButton,
             };
         });
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, styles, translate]);
+    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, translate]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
