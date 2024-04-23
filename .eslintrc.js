@@ -235,6 +235,18 @@ module.exports = {
             },
         ],
     },
+
+    // Remove once no JS files are left
+    overrides: [
+        {
+            files: ['*.js', '*.jsx'],
+            rules: {
+                '@typescript-eslint/prefer-nullish-coalescing': 'off',
+                '@typescript-eslint/no-unsafe-return': 'off',
+                '@typescript-eslint/unbound-method': 'off',
+                'jsdoc/no-types': 'off',
+                'react/jsx-filename-extension': 'off',
+                'rulesdir/no-default-props': 'off',
             },
         },
     ],
