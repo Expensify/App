@@ -10,12 +10,12 @@ import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/u
 import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
+import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import createOnyxMockUpdate from '../utils/createOnyxMockUpdate';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/App');
 jest.mock('@libs/actions/OnyxUpdateManager/utils');
@@ -129,9 +129,9 @@ describe('actions/OnyxUpdateManager', () => {
         await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
         await Onyx.set(ONYX_KEY, initialData);
 
+        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
         OnyxUpdateManagerExports.resetDeferralLogicVariables();
-        return waitForBatchedUpdates();
     });
 
     it('should trigger Onyx update gap handling', async () => {
@@ -182,16 +182,14 @@ describe('actions/OnyxUpdateManager', () => {
         });
 
         OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = () => {
+            // After the first GetMissingOnyxUpdates call has been resolved,
+            // we have to set the mocked results of for the second call.
+            App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate3, mockUpdate4];
             finishFirstCall();
             return Promise.resolve();
         };
 
         return firstGetMissingOnyxUpdatesCallFinished
-            .then(() => {
-                // After the first GetMissingOnyxUpdates call has been resolved,
-                // we have to set the mocked results of for the second call.
-                App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate3, mockUpdate4];
-            })
             .then(() => OnyxUpdateManagerExports.queryPromise)
             .then(() => {
                 const expectedResult: Record<string, Partial<OnyxTypes.ReportAction>> = {
@@ -222,5 +220,54 @@ describe('actions/OnyxUpdateManager', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {5: mockUpdate5});
             });
+    });
+
+    it('should pause SequentialQueue while missing updates are being fetched', async () => {
+        // Since we don't want to trigger actual GetMissingOnyxUpdates calls to the server/backend,
+        // we have to mock the results of these calls. By setting the missingOnyxUpdatesToBeApplied
+        // property on the mock, we can simulate the results of the GetMissingOnyxUpdates calls.
+        App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate1, mockUpdate2];
+
+        applyOnyxUpdatesReliably(mockUpdate3);
+        applyOnyxUpdatesReliably(mockUpdate5);
+
+        const assertAfterFirstGetMissingOnyxUpdates = () => {
+            // While the fetching of missing udpates and the validation and application of the deferred updaes is running,
+            // the SequentialQueue should be paused.
+            expect(SequentialQueue.isPaused()).toBeTruthy();
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+        };
+
+        const assertAfterSecondGetMissingOnyxUpdates = () => {
+            // The SequentialQueue should still be paused.
+            expect(SequentialQueue.isPaused()).toBeTruthy();
+            expect(SequentialQueue.isRunning()).toBeFalsy();
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+        };
+
+        let firstCallFinished = false;
+        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = () => {
+            if (firstCallFinished) {
+                assertAfterSecondGetMissingOnyxUpdates();
+                return Promise.resolve();
+            }
+
+            assertAfterFirstGetMissingOnyxUpdates();
+
+            // After the first GetMissingOnyxUpdates call has been resolved,
+            // we have to set the mocked results of for the second call.
+            App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate3, mockUpdate4];
+            firstCallFinished = true;
+            return Promise.resolve();
+        };
+
+        return OnyxUpdateManagerExports.queryPromise.then(() => {
+            // Once the OnyxUpdateManager has finished filling the gaps, the SequentialQueue should be unpaused again.
+            // It must not necessarily be running, because it might not have been flushed yet.
+            expect(SequentialQueue.isPaused()).toBeFalsy();
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+        });
     });
 });
