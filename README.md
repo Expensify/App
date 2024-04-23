@@ -66,21 +66,6 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-t
   ```
     sudo gem install bundler:2.3.22
    ```
-    Fetching bundler-2.3.22.gem
-    Successfully installed bundler-2.3.22
-    Parsing documentation for bundler-2.3.22
-    Installing ri documentation for bundler-2.3.22
-    Done installing documentation for bundler after 0 seconds
-    1 gem installed
-  
-     ```
-      bundle install
-       ```
-    Fetching gem metadata from https://rubygems.org/.......
-    Fetching rake 13.1.0
-    Installing rake 13.1.0
-    Using bundler 2.3.22
-
 
 * Before installing iOS dependencies, you need to obtain a token from Mapbox to download their SDKs. Please run `npm run configure-mapbox` and follow the instructions.
     * For help with MapBox token, you can see [this Slack thread](https://expensify.slack.com/archives/C01GTK53T8Q/p1692740856745279?thread_ts=1692322511.804599&cid=C01GTK53T8Q)
