@@ -50,7 +50,7 @@ import type {
 import type {Status} from '@src/types/onyx/PersonalDetails';
 import type {NotificationPreference, Participants, PendingChatMember, Participant as ReportParticipant} from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
-import type {Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -2415,6 +2415,13 @@ function getTransactionDetails(transaction: OnyxEntry<Transaction>, createdDateF
     };
 }
 
+function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
+    return {
+        ...transaction?.comment,
+        waypoints: TransactionUtils.getWaypoints(transaction),
+    };
+}
+
 /**
  * Can only edit if:
  *
@@ -2440,19 +2447,16 @@ function canEditMoneyRequest(reportAction: OnyxEntry<ReportAction>): boolean {
         return true;
     }
 
-    // TODO: Uncomment this line when BE starts working properly (Editing Track Expense)
-    // if (reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK) {
-    //     return true;
-    // }
+    const allowedReportActionType: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE];
 
-    if (reportAction.originalMessage.type !== CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+    if (!allowedReportActionType.includes(reportAction.originalMessage.type)) {
         return false;
     }
 
     const moneyRequestReportID = reportAction?.originalMessage?.IOUReportID ?? 0;
 
     if (!moneyRequestReportID) {
-        return false;
+        return reportAction.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
     }
 
     const moneyRequestReport = getReport(String(moneyRequestReportID));
@@ -3049,6 +3053,9 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     if (isChatThread(report)) {
         return '';
+    }
+    if (isSelfDM(report)) {
+        return Localize.translateLocal('reportActionsView.yourSpace');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -6085,16 +6092,20 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
 
     const linkedTrackedExpenseReportAction = Object.values(reportActions).find((action) => (action.originalMessage as IOUMessage)?.IOUTransactionID === transactionID);
 
-    const transactionAmount = Math.abs(transaction.amount);
-    const transactionCreated = format(new Date(transaction.created), CONST.DATE.FNS_FORMAT_STRING);
+    const {created, amount, currency, merchant, mccGroup} = getTransactionDetails(transaction) ?? {};
+    const comment = getTransactionCommentObject(transaction);
 
     IOU.createDraftTransaction({
         ...transaction,
         actionableWhisperReportActionID: reportActionID,
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID: reportID,
-        amount: transactionAmount,
-        created: transactionCreated,
+        created,
+        amount,
+        currency,
+        comment,
+        merchant,
+        mccGroup,
     } as Transaction);
 
     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
@@ -6109,8 +6120,9 @@ function getOutstandingChildRequest(iouReport: OnyxEntry<Report> | EmptyObject):
     }
 
     if (!isExpenseReport(iouReport)) {
+        const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
         return {
-            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && iouReport.total !== 0,
+            hasOutstandingChildRequest: iouReport.managerID === currentUserAccountID && reimbursableSpend !== 0,
         };
     }
 
