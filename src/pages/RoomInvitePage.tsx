@@ -69,7 +69,7 @@ function RoomInvitePage({
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized) {
-            return {};
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
         }
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers);
@@ -90,6 +90,11 @@ function RoomInvitePage({
             userToInvite: inviteOptions.userToInvite,
             personalDetails: inviteOptions.personalDetails,
             selectedOptions: newSelectedOptions,
+            recentReports: [],
+            currentUserOption: null,
+            categoryOptions: [],
+            tagOptions: [],
+            taxRatesOptions: [],
         };
     }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails, selectedOptions]);
 
@@ -97,8 +102,7 @@ function RoomInvitePage({
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-
-        const filteredOptions = OptionsListUtils.filterOptions({...defaultOptions, recentReports: []}, debouncedSearchTerm, {excludedUsers});
+        const filteredOptions = OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
 
         return filteredOptions;
     }, [debouncedSearchTerm, defaultOptions, excludedUsers]);
