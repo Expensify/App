@@ -623,7 +623,7 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
-        routePending: 'Pendiente...',
+        fieldPending: 'Pendiente...',
         defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
@@ -1330,7 +1330,7 @@ export default {
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
@@ -1991,6 +1991,7 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+            importedFromAccountingSoftware: 'Categorías importadas desde',
         },
         moreFeatures: {
             spendSection: {
@@ -2131,6 +2132,7 @@ export default {
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         accounting: {
+            settings: 'configuración',
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
