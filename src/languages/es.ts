@@ -1991,7 +1991,7 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
-            importedFromAccountingSoftware: 'Categorías importadas desde',
+            importedFromAccountingSoftware: 'Etiquetas importadas desde',
         },
         moreFeatures: {
             spendSection: {
@@ -2062,6 +2062,7 @@ export default {
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
+            importedFromAccountingSoftware: 'The tags below are imported from your',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
