@@ -33,6 +33,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
+import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
@@ -163,6 +164,7 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string | null>(null);
     const lastMessageTime = useRef<string | null>(null);
+    const {currentActiveSuggestionsRef} = useSuggestionsContext();
 
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -646,6 +648,18 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
+                    onScrollBeginDrag={() => {
+                        if (!currentActiveSuggestionsRef.current) {
+                            return;
+                        }
+                        currentActiveSuggestionsRef.current.resetSuggestions();
+                    }}
+                    onScrollEndDrag={() => {
+                        if (!currentActiveSuggestionsRef.current) {
+                            return;
+                        }
+                        currentActiveSuggestionsRef.current.updateShouldShowSuggestionMenuAfterScrolling();
+                    }}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
             </Animated.View>

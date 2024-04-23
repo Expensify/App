@@ -17,6 +17,7 @@ const lightTheme = {
     iconHovered: colors.productLight900,
     iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
+    iconDangerFill: colors.red,
     iconReversed: colors.productLight100,
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.productLight800,

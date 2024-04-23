@@ -198,6 +198,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require('../../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require('../../../../pages/settings/Preferences/PriorityModePage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require('../../../../pages/workspace/accounting/PolicyAccountingPage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require('../../../../pages/settings/Preferences/LanguagePage').default as React.ComponentType,
     [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require('../../../../pages/settings/Preferences/ThemePage').default as React.ComponentType,
     [SCREENS.SETTINGS.CLOSE]: () => require('../../../../pages/settings/Security/CloseAccountPage').default as React.ComponentType,
@@ -254,6 +255,22 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAXES_SETTINGS_CUSTOM_TAX_NAME]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsCustomTaxName').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsForeignCurrency').default as React.ComponentType,
     [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: () => require('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsWorkspaceCurrency').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportDateSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportInvoiceAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseEntitySelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksPreferredExporterConfigurationPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
     [SCREENS.GET_ASSISTANCE]: () => require('../../../../pages/GetAssistancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: () => require('../../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default as React.ComponentType,
@@ -262,13 +279,18 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyReasonPage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyResponsePage').default as React.ComponentType,
     [SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM]: () => require('../../../../pages/settings/ExitSurvey/ExitSurveyConfirmPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksImportPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_IMPORT]: () => require('../../../../pages/workspace/accounting/qbo/import/QuickbooksImportPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS]: () =>
-        require('../../../../pages/workspace/accounting/qbo/QuickbooksChartOfAccountsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksCustomersPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksTaxesPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksLocationsPage').default as React.ComponentType,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: () => require('../../../../pages/workspace/accounting/qbo/QuickbooksClassesPage').default as React.ComponentType,
+        require('../../../../pages/workspace/accounting/qbo/import/QuickbooksChartOfAccountsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CUSTOMERS]: () => require('../../../../pages/workspace/accounting/qbo/import/QuickbooksCustomersPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TAXES]: () => require('../../../../pages/workspace/accounting/qbo/import/QuickbooksTaxesPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_LOCATIONS]: () => require('../../../../pages/workspace/accounting/qbo/import/QuickbooksLocationsPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_CLASSES]: () => require('../../../../pages/workspace/accounting/qbo/import/QuickbooksClassesPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ADVANCED]: () => require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAdvancedPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR]: () =>
+        require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: () =>
+        require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksInvoiceAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
@@ -300,7 +322,6 @@ const FlagCommentStackNavigator = createModalStackNavigator<FlagCommentNavigator
 });
 
 const EditRequestStackNavigator = createModalStackNavigator<EditRequestNavigatorParamList>({
-    [SCREENS.EDIT_REQUEST.ROOT]: () => require('../../../../pages/EditRequestPage').default as React.ComponentType,
     [SCREENS.EDIT_REQUEST.REPORT_FIELD]: () => require('../../../../pages/EditReportFieldPage').default as React.ComponentType,
 });
 

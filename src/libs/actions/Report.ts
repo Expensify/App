@@ -34,6 +34,7 @@ import type {
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
+    SearchForRoomsToMentionParams,
     SetNameValuePairParams,
     TogglePinnedChatParams,
     UpdateCommentParams,
@@ -3426,7 +3427,7 @@ function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
-function searchForReports(searchInput: string) {
+function searchForReports(searchInput: string, policyID?: string) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isNetworkOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
@@ -3449,12 +3450,16 @@ function searchForReports(searchInput: string) {
         },
     ];
 
-    const parameters: SearchForReportsParams = {searchInput};
+    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID: policyID ?? ''};
+    const searchForReportsParams: SearchForReportsParams = {searchInput};
 
-    API.read(READ_COMMANDS.SEARCH_FOR_REPORTS, parameters, {successData, failureData});
+    API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : READ_COMMANDS.SEARCH_FOR_REPORTS, policyID ? searchForRoomToMentionParams : searchForReportsParams, {
+        successData,
+        failureData,
+    });
 }
 
-function searchInServer(searchInput: string) {
+function searchInServer(searchInput: string, policyID?: string) {
     if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
@@ -3464,7 +3469,7 @@ function searchInServer(searchInput: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(searchInput);
+    searchForReports(searchInput, policyID);
 }
 
 function updateLastVisitTime(reportID: string) {
