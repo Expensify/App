@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -77,7 +77,7 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
+    const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
@@ -85,23 +85,23 @@ function IOURequestStepConfirmation({
         if (isSharingTrackExpense) {
             return translate('iou.categorize');
         }
-        if (isRequestingFromTrackExpense) {
-            return translate('iou.request');
+        if (isSubmittingFromTrackExpense) {
+            return translate('iou.submitExpense');
         }
         if (isCategorizingTrackExpense) {
             return translate('iou.share');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
-            return translate('iou.split');
+            return translate('iou.splitExpense');
         }
-        if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (iouType === CONST.IOU.TYPE.TRACK) {
             return translate('iou.trackExpense');
         }
-        if (iouType === CONST.IOU.TYPE.SEND) {
-            return translate('common.send');
+        if (iouType === CONST.IOU.TYPE.PAY) {
+            return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
-        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
+        return translate('iou.submitExpense');
+    }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
     const participants = useMemo(
         () =>
@@ -254,7 +254,7 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
             if (!transaction) {
                 return;
             }
@@ -273,6 +273,7 @@ function IOURequestStepConfirmation({
                 policy,
                 policyTags,
                 policyCategories,
+                customUnitRateID,
             );
         },
         [policy, policyCategories, policyTags, report, transaction],
@@ -289,7 +290,7 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
-            // If we have a receipt let's start the split bill by creating only the action, the transaction, and the group DM if needed
+            // If we have a receipt let's start the split expense by creating only the action, the transaction, and the group DM if needed
             if (iouType === CONST.IOU.TYPE.SPLIT && receiptFile) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.startSplitBill({
@@ -331,7 +332,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            // If the request is created from the global create menu, we also navigate the user to the group report
+            // If the split expense is created from the global create menu, we also navigate the user to the group report
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBillAndOpenReport({
@@ -352,7 +353,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE || isCategorizingTrackExpense || isSharingTrackExpense) {
+            if (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense) {
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense) {
@@ -419,7 +420,8 @@ function IOURequestStepConfirmation({
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
+                const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
                 return;
             }
 
@@ -494,7 +496,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
