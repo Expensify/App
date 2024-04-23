@@ -113,9 +113,9 @@ function IOURequestStepParticipants({
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
 
         const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-        if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat) {
+        if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
             const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
-            IOU.setSplitShares(transactionID, participantAccountIDs, transaction?.amount ?? 0, transaction?.currency ?? CONST.CURRENCY.USD);
+            IOU.setSplitShares(transactionID, participantAccountIDs, transaction.amount, transaction.currency);
         }
 
         IOU.setMoneyRequestTag(transactionID, '');

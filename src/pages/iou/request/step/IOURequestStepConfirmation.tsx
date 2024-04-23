@@ -281,6 +281,15 @@ function IOURequestStepConfirmation({
 
     const createTransaction = useCallback(
         (selectedParticipants: Participant[]) => {
+            let splitParticipants = selectedParticipants;
+
+            // Filter out participants with $0 split share
+            if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
+                const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
+                    .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)].amount ?? 0) > 0)
+                    .map((accountID) => Number(accountID));
+                splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
+            }
             const trimmedComment = (transaction?.comment.comment ?? '').trim();
 
             // Don't let the form be submitted multiple times while the navigator is waiting to take the user to a different page
@@ -314,7 +323,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBill({
-                        participants: selectedParticipants,
+                        participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
@@ -337,7 +346,7 @@ function IOURequestStepConfirmation({
             if (iouType === CONST.IOU.TYPE.SPLIT) {
                 if (currentUserPersonalDetails.login && !!transaction) {
                     IOU.splitBillAndOpenReport({
-                        participants: selectedParticipants,
+                        participants: splitParticipants,
                         currentUserLogin: currentUserPersonalDetails.login,
                         currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: transaction.amount,
