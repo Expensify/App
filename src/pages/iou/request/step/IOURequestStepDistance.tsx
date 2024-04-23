@@ -105,7 +105,7 @@ function IOURequestStepDistance({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK) {
             return false;
         }
 
@@ -176,11 +176,37 @@ function IOURequestStepDistance({
     const navigateToWaypointEditPage = useCallback(
         (index: number) => {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.REQUEST, transactionID, report?.reportID, index.toString(), Navigation.getActiveRouteWithoutParams()),
+                ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, report?.reportID, index.toString(), Navigation.getActiveRouteWithoutParams()),
             );
         },
         [action, transactionID, report?.reportID],
     );
+
+    const navigateToParticipantPage = useCallback(() => {
+        switch (iouType) {
+            case CONST.IOU.TYPE.REQUEST:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
+            case CONST.IOU.TYPE.SEND:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
+                break;
+            default:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        }
+    }, [iouType, reportID, transactionID]);
+
+    const navigateToConfirmationPage = useCallback(() => {
+        switch (iouType) {
+            case CONST.IOU.TYPE.REQUEST:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
+            case CONST.IOU.TYPE.SEND:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+                break;
+            default:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        }
+    }, [iouType, reportID, transactionID]);
 
     const navigateToNextStep = useCallback(() => {
         if (backTo) {
@@ -233,14 +259,27 @@ function IOURequestStepDistance({
                 return;
             }
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+            navigateToConfirmationPage();
             return;
         }
 
         // If there was no reportID, then that means the user started this flow from the global menu
         // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
-    }, [report, iouType, reportID, transactionID, backTo, waypoints, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction, translate]);
+        navigateToParticipantPage();
+    }, [
+        report,
+        iouType,
+        transactionID,
+        backTo,
+        waypoints,
+        currentUserPersonalDetails,
+        personalDetails,
+        shouldSkipConfirmation,
+        transaction,
+        translate,
+        navigateToParticipantPage,
+        navigateToConfirmationPage,
+    ]);
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
@@ -398,7 +437,7 @@ const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOU
     transactionBackup: {
         key: ({route}) => {
             const transactionID = route.params.transactionID ?? 0;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`;
         },
     },
     policy: {
@@ -417,7 +456,7 @@ const IOURequestStepDistanceWithOnyx = withOnyx<IOURequestStepDistanceProps, IOU
 
 const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails);
+const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceWithWritableReportOrNotFound);
 

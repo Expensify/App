@@ -202,7 +202,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !isSmallScreenWidth;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
-
+    const shouldUseGroupTitle = isGroupChat && !!report?.reportName;
     const isLoading = !report.reportID || !title;
 
     return (
@@ -264,7 +264,7 @@ function HeaderView({report, personalDetails, parentReport, parentReportAction, 
                                             tooltipEnabled
                                             numberOfLines={1}
                                             textStyles={[styles.headerText, styles.pre]}
-                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || isGroupChat}
+                                            shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport || shouldUseGroupTitle}
                                             renderAdditionalText={renderAdditionalText}
                                         />
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
