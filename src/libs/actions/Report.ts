@@ -461,7 +461,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     if (text && file) {
         // When there is both text and a file, the text for the report comment needs to be parsed)
-        reportCommentText = ReportUtils.getParsedComment(text ?? '', undefined, reportID);
+        reportCommentText = ReportUtils.getParsedComment(text ?? '', {reportID});
 
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
@@ -1848,7 +1848,7 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
         return;
     }
 
-    const parsedDescription = ReportUtils.getParsedComment(newValue, undefined, reportID);
+    const parsedDescription = ReportUtils.getParsedComment(newValue, {reportID});
 
     const optimisticData: OnyxUpdate[] = [
         {

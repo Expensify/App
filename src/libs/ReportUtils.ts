@@ -467,6 +467,12 @@ type OutstandingChildRequest = {
     hasOutstandingChildRequest?: boolean;
 };
 
+type ParsingDetails = {
+    shouldEscapeText?: boolean;
+    reportID?: string;
+    policyID?: string;
+};
+
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
 let currentUserAccountID: number | undefined;
@@ -3161,14 +3167,14 @@ function addDomainToShortMention(mention: string): string | undefined {
  * For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
  * For longer comments, skip parsing, but still escape the text, and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
  */
-function getParsedComment(text: string, shouldEscapeText?: boolean, currentReportID?: string, policyID?: string): string {
+function getParsedComment(text: string, parsingDetails?: ParsingDetails): string {
     let isGroupPolicyReport = false;
-    if (currentReportID) {
-        const currentReport = getReport(currentReportID);
+    if (parsingDetails?.reportID) {
+        const currentReport = getReport(parsingDetails?.reportID);
         isGroupPolicyReport = currentReport && !isEmptyObject(currentReport) ? isGroupPolicy(currentReport) : false;
     }
-    if (policyID) {
-        const policyType = getPolicy(policyID).type;
+    if (parsingDetails?.policyID) {
+        const policyType = getPolicy(parsingDetails?.policyID).type;
         isGroupPolicyReport = policyType === CONST.POLICY.TYPE.CORPORATE || policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.FREE;
     }
 
@@ -3179,7 +3185,9 @@ function getParsedComment(text: string, shouldEscapeText?: boolean, currentRepor
         return mentionWithDomain ? `@${mentionWithDomain}` : match;
     });
 
-    return text.length <= CONST.MAX_MARKUP_LENGTH ? parser.replace(textWithMention, {shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']}) : lodashEscape(text);
+    return text.length <= CONST.MAX_MARKUP_LENGTH
+        ? parser.replace(textWithMention, {shouldEscapeText: parsingDetails?.shouldEscapeText, disabledRules: isGroupPolicyReport ? [] : ['reportMentions']})
+        : lodashEscape(text);
 }
 
 function getReportDescriptionText(report: Report): string {
@@ -3209,7 +3217,7 @@ function buildOptimisticAddCommentReportAction(
     reportID?: string,
 ): OptimisticReportAction {
     const parser = new ExpensiMark();
-    const commentText = getParsedComment(text ?? '', shouldEscapeText, reportID);
+    const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
     const isAttachmentOnly = file && !text;
     const isTextOnly = text && !file;
 
@@ -4931,8 +4939,8 @@ function getNewMarkerReportActionID(report: OnyxEntry<Report>, sortedAndFiltered
  * Used for compatibility with the backend auth validator for AddComment, and to account for MD in comments
  * @returns The comment's total length as seen from the backend
  */
-function getCommentLength(textComment: string, reportID?: string, policyID?: string): number {
-    return getParsedComment(textComment, undefined, reportID, policyID)
+function getCommentLength(textComment: string, parsingDetails?: ParsingDetails): number {
+    return getParsedComment(textComment, parsingDetails)
         .replace(/[^ -~]/g, '\\u????')
         .trim().length;
 }
