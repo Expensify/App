@@ -260,13 +260,7 @@ module.exports = {
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: [
-                            ...restrictedImportPaths,
-                            {
-                                name: 'underscore',
-                                message: 'Please use the corresponding method from lodash instead',
-                            },
-                        ],
+                        paths: restrictedImportPaths,
                         patterns: restrictedImportPatterns,
                     },
                 ],
