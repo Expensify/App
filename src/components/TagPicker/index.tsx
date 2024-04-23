@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/types/onyx';
@@ -14,7 +15,7 @@ import type {PolicyTag, PolicyTagList, PolicyTags, RecentlyUsedTags} from '@src/
 type SelectedTagOption = {
     name: string;
     enabled: boolean;
-    accountID: number | null;
+    accountID: number | undefined;
 };
 
 type TagPickerOnyxProps = {
@@ -31,14 +32,14 @@ type TagPickerProps = TagPickerOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string;
 
-    /** The selected tag of the money request */
+    /** The selected tag of the expense */
     selectedTag: string;
 
     /** The name of tag list we are getting tags for */
     tagListName: string;
 
     /** Callback to submit the selected tag */
-    onSubmit: () => void;
+    onSubmit: (selectedTag: Partial<ReportUtils.OptionData>) => void;
 
     /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
@@ -68,7 +69,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
             {
                 name: selectedTag,
                 enabled: true,
-                accountID: null,
+                accountID: undefined,
             },
         ];
     }, [selectedTag]);

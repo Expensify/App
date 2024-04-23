@@ -183,18 +183,19 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             if (!matchingRootRoute || isRHPScreenOpenedFromLHN) {
                 metainfo.isCentralPaneAndBottomTabMandatory = false;
                 metainfo.isFullScreenNavigatorMandatory = false;
-                matchingRootRoute = matchingRootRoute ?? createCentralPaneNavigator({name: SCREENS.REPORT});
+                // If matchingRootRoute is undefined and it's a narrow layout, don't add a report screen under the RHP.
+                matchingRootRoute = matchingRootRoute ?? (!isNarrowLayout ? createCentralPaneNavigator({name: SCREENS.REPORT}) : undefined);
             }
 
             // If the root route is type of FullScreenNavigator, the default bottom tab will be added.
-            const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: [matchingRootRoute]});
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState({routes: matchingRootRoute ? [matchingRootRoute] : []});
             routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
             // When we open a screen in RHP from FullScreenNavigator, we need to add the appropriate screen in CentralPane.
             // Then, when we close FullScreenNavigator, we will be redirected to the correct page in CentralPane.
-            if (matchingRootRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
+            if (matchingRootRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 routes.push(createCentralPaneNavigator({name: SCREENS.SETTINGS.WORKSPACES}));
             }
-            if (!isNarrowLayout || !isRHPScreenOpenedFromLHN) {
+            if (matchingRootRoute && (!isNarrowLayout || !isRHPScreenOpenedFromLHN)) {
                 routes.push(matchingRootRoute);
             }
         }
@@ -318,7 +319,9 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
         // Routes
         // - found bottom tab
         // - matching central pane on desktop layout
-        if (isNarrowLayout) {
+
+        // We want to make sure that the bottom tab search page is always pushed with matching central pane page. Even on the narrow layout.
+        if (isNarrowLayout && bottomTabNavigator.state?.routes[0].name !== SCREENS.SEARCH.BOTTOM_TAB) {
             return {
                 adaptedState: state,
                 metainfo,
