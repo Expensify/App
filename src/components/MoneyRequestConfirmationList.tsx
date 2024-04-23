@@ -449,7 +449,7 @@ function MoneyRequestConfirmationList({
             sections.push(
                 {
                     title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [formattedPayeeOption],
+                    data: [{...formattedPayeeOption, isSelected: true}],
                     shouldShow: true,
                     isDisabled: shouldDisablePaidBySection,
                 },
@@ -485,13 +485,6 @@ function MoneyRequestConfirmationList({
         shouldDisablePaidBySection,
         canModifyParticipants,
     ]);
-
-    const selectedOptions = useMemo(() => {
-        if (!hasMultipleParticipants) {
-            return [];
-        }
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
-    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
@@ -565,7 +558,7 @@ function MoneyRequestConfirmationList({
     /**
      * Navigate to report details or profile of selected user
      */
-    const navigateToReportOrUserDetail = (option: ReportUtils.OptionData) => {
+    const navigateToReportOrUserDetail = (option: Participant) => {
         const activeRoute = Navigation.getActiveRouteWithoutParams();
 
         if (option.isSelfDM) {
@@ -962,38 +955,40 @@ function MoneyRequestConfirmationList({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
-    const receiptThumbnailContent = useMemo(() => {
-        return isLocalFile && Str.isPDF(receiptFilename) ? (
-            <PDFThumbnail
-                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                previewSourceURL={resolvedReceiptImage as string}
-                style={styles.moneyRequestImage}
-                // We don't support scaning password protected PDF receipt
-                enabled={!isAttachmentInvalid}
-                onPassword={() => setIsAttachmentInvalid(true)}
-            />
-        ) : (
-            <ReceiptImage
-                style={styles.moneyRequestImage}
-                isThumbnail={isThumbnail}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                source={resolvedThumbnail || resolvedReceiptImage || ''}
-                // AuthToken is required when retrieving the image from the server
-                // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                // So if we have a thumbnail, it means we're retrieving the image from the server
-                isAuthTokenRequired={!!receiptThumbnail}
-                fileExtension={fileExtension}
-            />
-        );
-    }, [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension]);
+    const receiptThumbnailContent = useMemo(
+        () =>
+            isLocalFile && Str.isPDF(receiptFilename) ? (
+                <PDFThumbnail
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                    previewSourceURL={resolvedReceiptImage as string}
+                    style={styles.moneyRequestImage}
+                    // We don't support scaning password protected PDF receipt
+                    enabled={!isAttachmentInvalid}
+                    onPassword={() => setIsAttachmentInvalid(true)}
+                />
+            ) : (
+                <ReceiptImage
+                    style={styles.moneyRequestImage}
+                    isThumbnail={isThumbnail}
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    source={resolvedThumbnail || resolvedReceiptImage || ''}
+                    // AuthToken is required when retrieving the image from the server
+                    // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                    // So if we have a thumbnail, it means we're retrieving the image from the server
+                    isAuthTokenRequired={!!receiptThumbnail}
+                    fileExtension={fileExtension}
+                />
+            ),
+        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
+    );
 
     return (
-        <View>
+        <>
             <SelectionList
                 canSelectMultiple={canModifyParticipants}
                 sections={optionSelectorSections}
                 ListItem={InviteMemberListItem}
-                onSelectRow={selectParticipant}
+                onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
                 shouldShowTooltips
                 containerStyle={listStyles}
                 sectionTitleStyles={styles.sidebarLinkTextBold}
@@ -1038,26 +1033,7 @@ function MoneyRequestConfirmationList({
                 shouldShowCancelButton={false}
             />
             {footerContent}
-        </View>
-        // <OptionsSelector
-        //     sections={optionSelectorSections}
-        //     onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
-        //     onAddToSelection={selectParticipant}
-        //     onConfirmSelection={confirm}
-        //     selectedOptions={selectedOptions}
-        //     canSelectMultipleOptions={canModifyParticipants}
-        //     disableArrowKeysActions={!canModifyParticipants}
-        //     boldStyle
-        //     showTitleTooltip
-        //     shouldTextInputAppearBelowOptions
-        //     shouldShowTextInput={false}
-        //     shouldUseStyleForChildren={false}
-        //     optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-        //     footerContent={!isEditingSplitBill && footerContent}
-        //     listStyles={listStyles}
-        //     shouldAllowScrollingChildren
-        // >
-        // </OptionsSelector>
+        </>
     );
 }
 
