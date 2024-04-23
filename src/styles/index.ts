@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
+import lodashIsEmpty from 'lodash/isEmpty';
 import type {LineLayer} from 'react-map-gl';
 import type {AnimatableNumericValue, Animated, ImageStyle, TextStyle, ViewStyle} from 'react-native';
 import {StyleSheet} from 'react-native';
@@ -4285,7 +4286,9 @@ const styles = (theme: ThemeColors) =>
         },
 
         emojiStatusLHN: {
-            fontSize: 9,
+            fontSize:  Browser.isSafari() || lodashIsEmpty(Browser.getBrowser()) ? 9 : 12,
+            lineHeight: lodashIsEmpty(Browser.getBrowser()) ? undefined : 17,
+            marginLeft: 0.375,
         },
 
         onboardingVideoPlayer: {
