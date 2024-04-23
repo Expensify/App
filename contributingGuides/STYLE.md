@@ -68,14 +68,48 @@ export {
 }
 ```
 
-Using arrow functions is the preferred way to write an anonymous function such as a callback method.
+Using named functions is the preferred way to write a callback method.
 
 ```javascript
 // Bad
-someArray.map(function (item) {...});
+people.map(function (item) {/* Long and complex logic */});
+people.map((item) => {/* Long and complex logic with many inner loops*/});
+useEffect/useMemo/useCallback(() => {/* Long and complex logic */}, []);
 
 // Good
-someArray.map((item) => {...});
+function mappingPeople(person) {/* Long and complex logic */};
+people.map(mappingPeople);
+useEffect/useMemo/useCallback(function handlingConnection() {/* Long and complex logic */}, []);
+```
+
+You can still use arrow function for declarations or simple logics to keep them readable.
+
+```javascript
+// Bad
+randomList.push({
+     onSelected: Utils.checkIfAllowed(function checkTask() { return Utils.canTeamUp(people); }),
+});
+routeList.filter(function checkIsActive(route) { 
+    return route.isActive; 
+});
+
+// Good
+randomList.push({
+     onSelected: Utils.checkIfAllowed(() => Utils.canTeamUp(people)),
+});
+routeList.filter((route) => route.isActive);
+const myFunction = () => {...};
+const person = { getName: () => {} };
+Utils.connect({
+    callback: (val) => {},
+});
+useEffect(() => {
+    if (isFocused) {
+        return;
+    }
+    setError(null, {});
+}, [isFocused]);
+
 ```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
@@ -110,6 +144,35 @@ const array = [];
 if (someCondition) {
     array.push('addValue1');
 }
+```
+
+## Object / Array Methods
+
+We have standardized on using [underscore.js](https://underscorejs.org/) methods for objects and collections instead of the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods). This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
+
+```javascript
+// Bad
+myArray.forEach(item => doSomething(item));
+// Good
+_.each(myArray, item => doSomething(item));
+
+// Bad
+const myArray = Object.keys(someObject).map((key) => doSomething(someObject[key]));
+// Good
+const myArray = _.map(someObject, (value, key) => doSomething(value));
+
+// Bad
+myCollection.includes('item');
+// Good
+_.contains(myCollection, 'item');
+
+// Bad
+const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
+// Good
+const modifiedArray = _.chain(someArray)
+    .filter(filterFunc)
+    .map(mapFunc)
+    .value();
 ```
 
 ## Accessing Object Properties and Default Values
