@@ -44,8 +44,9 @@ function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNo
     const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
-    // If the feature is pending, we should not update the feature state.
-    // This is due to that during the creation of a workspace the feature state changes several times while we are waiting for a response from the backend, what unexpectedly causes 'Not Found' to be shown.
+    // We only update the feature state if it isn't pending.
+    // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
+    // Without this, we can have unexpectedly have 'Not Found' be shown.
     useEffect(() => {
         if (pendingField && !isOffline && !isFeatureEnabled) {
             return;

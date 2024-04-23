@@ -186,7 +186,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
-    // If features are pending, we should not update feature states.
+    // We only update feature states if they aren't pending.
     // These changes are made to synchronously change feature states along with FeatureEnabledAccessOrNotFoundComponent.
     useEffect(() => {
         setFeatureStates((currentFeatureStates) => {
