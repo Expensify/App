@@ -123,6 +123,13 @@ module.exports = {
                     },
                 ],
             },
+            'no-restricted-imports': [
+                'error',
+                {
+                    paths: restrictedImportPaths,
+                    patterns: restrictedImportPatterns,
+                },
+            ],
         },
         {
             files: ['*.js', '*.jsx'],
@@ -142,13 +149,6 @@ module.exports = {
                         jsx: 'never',
                         ts: 'never',
                         tsx: 'never',
-                    },
-                ],
-                'no-restricted-imports': [
-                    'error',
-                    {
-                        paths: restrictedImportPaths,
-                        patterns: restrictedImportPatterns,
                     },
                 ],
                 curly: 'error',
@@ -250,13 +250,6 @@ module.exports = {
                         object: 'Image',
                         property: 'getSize',
                         message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
-                    },
-                ],
-                'no-restricted-imports': [
-                    'error',
-                    {
-                        paths: restrictedImportPaths,
-                        patterns: restrictedImportPatterns,
                     },
                 ],
                 curly: 'error',
