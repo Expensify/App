@@ -5356,7 +5356,7 @@ function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report> | EmptyObj
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).some((action) => {
-        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`] ?? null;
+        const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`] ?? null;
         const policy = PolicyUtils.getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, chatReport, policy);
         return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
@@ -5372,7 +5372,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
     }
     const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
     const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`] ?? null;
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`] ?? null;
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -5498,7 +5498,7 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject, full
 
 function submitReport(expenseReport: OnyxTypes.Report) {
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.parentReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.parentReportID}`] ?? null;
     const policy = PolicyUtils.getPolicy(expenseReport.policyID);
     const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
     const isSubmitAndClosePolicy = PolicyUtils.isSubmitAndClose(policy);

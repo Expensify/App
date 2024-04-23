@@ -12,7 +12,7 @@ import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {Report as OnyxReport, OnyxUpdatesFromServer} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import PushNotification from './index';
 
@@ -27,7 +27,7 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<OnyxTypes.Report>;
+let allReports: OnyxCollection<OnyxReport>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -61,7 +61,7 @@ export default function subscribeToReportCommentPushNotifications() {
         }
 
         Log.info('[PushNotification] reliable onyx update received', false, {lastUpdateID, previousUpdateID, onyxDataCount: onyxData?.length ?? 0});
-        const updates: OnyxTypes.OnyxUpdatesFromServer = {
+        const updates: OnyxUpdatesFromServer = {
             type: CONST.ONYX_UPDATE_TYPES.AIRSHIP,
             lastUpdateID,
             previousUpdateID,
