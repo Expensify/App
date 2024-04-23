@@ -125,6 +125,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        from: 'From',
         to: 'To',
         optional: 'Optional',
         new: 'New',
@@ -324,6 +325,8 @@ export default {
             subtitleText3: 'button below.',
         },
         businessName: 'Business name',
+        type: 'Type',
+        action: 'Action',
     },
     location: {
         useCurrent: 'Use current location',
