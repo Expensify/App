@@ -141,6 +141,13 @@ describe('actions/OnyxUpdateManager', () => {
         App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate2, mockUpdate3];
 
         applyOnyxUpdatesReliably(mockUpdate2);
+
+        // Delay all later updates, so that the update 2 has time to be written to storage and for the
+        // ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT to be updated.
+        await new Promise((resolve) => {
+            setTimeout(resolve, 0);
+        });
+
         applyOnyxUpdatesReliably(mockUpdate4);
         applyOnyxUpdatesReliably(mockUpdate3);
 
