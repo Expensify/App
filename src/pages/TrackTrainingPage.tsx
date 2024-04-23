@@ -1,9 +1,6 @@
 import React, {useCallback} from 'react';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
 import useLocalize from '@hooks/useLocalize';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as IOU from '@userActions/IOU';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 
