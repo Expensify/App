@@ -37,7 +37,7 @@ type VideoLoadedEventType = {
 type VideoStatus = 'video' | 'animation';
 
 type FeatureTrainingModalProps = {
-    /** Animation to show when video is unavailable */
+    /** Animation to show when video is unavailable. Useful when app is offline */
     animation?: DotLottieAnimation;
 
     /** URL for the video */
