@@ -15,43 +15,25 @@ type DownloadItem = {
     options: Options;
 };
 
-/**
- * Creates a download queue.
- * @returns An object with methods to enqueue and dequeue download items from the queue.
- */
 const createDownloadQueue = () => {
-    let queue: ReturnType<typeof createQueue<DownloadItem>>;
-
-    const downloadItem = (item: DownloadItem): void => {
-        const newItem = {
-            ...item,
-            options: {
+    const downloadItem = (item: DownloadItem): Promise<void> =>
+        new Promise((resolve) => {
+            const options = {
                 ...item.options,
                 onStarted: () => {
                     item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
                 },
-                onCompleted: queue.processNextItem,
-                onCancel: queue.processNextItem,
-            },
-        };
+                onCompleted: () => resolve(),
+                onCancel: () => resolve(),
+            };
 
-        electronDownload(newItem.win, newItem.url, newItem.options);
-    };
+            electronDownload(item.win, item.url, options);
+        });
 
-    queue = createQueue<DownloadItem>(downloadItem);
+    const queue = createQueue<DownloadItem>(downloadItem);
 
-    /**
-     * Enqueues a download item to the queue and returns the new length of the queue.
-     * If the queue was empty before enqueuing the item, it will immediately start downloading the item.
-     * @param item The download item to be enqueued to the queue.
-     * @returns The new length of the queue after enqueuing the item.
-     */
-    const enqueueDownloadItem = (item: DownloadItem): number => {
+    const enqueueDownloadItem = (item: DownloadItem): void => {
         queue.enqueue(item);
-        if (queue.size() === 1) {
-            downloadItem(item);
-        }
-        return queue.size();
     };
     return {enqueueDownloadItem, dequeueDownloadItem: queue.dequeue};
 };

@@ -1,14 +1,10 @@
 import type Queue from './QueueType';
 
 // Function to create a new queue
-function createQueue<T>(processItem: (item: T) => void): Queue<T> {
+function createQueue<T>(processItem: (item: T) => Promise<void>): Queue<T> {
     // Array to hold the elements of the queue
     const elements: T[] = [];
-
-    // Function to add an item to the end of the queue
-    function enqueue(item: T): void {
-        elements.push(item);
-    }
+    let isProcessing = false;
 
     // Function to remove an item from the front of the queue
     function dequeue(): T | undefined {
@@ -18,6 +14,34 @@ function createQueue<T>(processItem: (item: T) => void): Queue<T> {
     // Function to check if the queue is empty
     function isEmpty(): boolean {
         return elements.length === 0;
+    }
+
+    // Initiates the processing of items in the queue.
+    // Continues to dequeue and process items as long as the queue is not empty.
+    // Sets the `isProcessing` flag to true at the start and resets it to false once all items have been processed.
+    function run(): Promise<void> {
+        return new Promise((resolve) => {
+            isProcessing = true;
+            function processNext() {
+                if (!isEmpty()) {
+                    const nextItem = dequeue();
+                    if (nextItem) {
+                        processItem(nextItem).then(processNext);
+                    }
+                } else {
+                    isProcessing = false;
+                    resolve();
+                }
+            }
+            processNext();
+        });
+    }
+    // Adds an item to the queue and initiates processing if not already in progress
+    function enqueue(item: T): void {
+        elements.push(item);
+        if (!isProcessing) {
+            run();
+        }
     }
 
     // Function to get the item at the front of the queue without removing it
@@ -30,31 +54,14 @@ function createQueue<T>(processItem: (item: T) => void): Queue<T> {
         return elements.length;
     }
 
-    /**
-     * Processes the next item in the queue.
-     * If the queue is not empty, it dequeues the next item and processes it.
-     * If the queue is empty, it does nothing.
-     */
-    function processNextItem(): void {
-        dequeue();
-        if (isEmpty()) {
-            return;
-        }
-
-        const nextItem = peek();
-        if (nextItem !== undefined) {
-            processItem(nextItem);
-        }
-    }
-
     // Return an object with the queue operations
     return {
+        run,
         enqueue,
         dequeue,
         isEmpty,
         peek,
         size,
-        processNextItem,
     };
 }
 
