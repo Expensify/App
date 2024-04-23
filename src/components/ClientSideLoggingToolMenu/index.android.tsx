@@ -38,6 +38,7 @@ function ClientSideLoggingToolMenu() {
             onEnableLogging={() => setFile(undefined)}
             onDisableLogging={createAndSaveFile}
             onShareLogs={shareLogs}
+            displayPath="/Downloads"
         />
     );
 }

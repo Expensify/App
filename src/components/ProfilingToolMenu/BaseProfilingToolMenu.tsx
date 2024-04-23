@@ -19,11 +19,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../package.json';
 
-type ProfilingToolMenuOnyxProps = {
+type BaseProfilingToolMenuOnyxProps = {
     isProfilingInProgress: OnyxEntry<boolean>;
 };
 
-type ProfilingToolMenuProps = ProfilingToolMenuOnyxProps;
+type BaseProfilingToolMenuProps = {
+    /** Path used to save the file */
+    pathToBeUsed: string;
+    /** Path used to display location of saved file */
+    displayPath: string;
+} & BaseProfilingToolMenuOnyxProps;
 
 function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) {
@@ -39,7 +44,7 @@ function formatBytes(bytes: number, decimals = 2) {
     return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
-function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuProps) {
+function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
     const styles = useThemeStyles();
     const [pathIOS, setPathIOS] = useState('');
     const [sharePath, setSharePath] = useState('');
@@ -83,6 +88,8 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
         [totalMemory, usedMemory],
     );
 
+    const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
+
     useEffect(() => {
         if (!pathIOS) {
             return;
@@ -90,8 +97,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
 
         // eslint-disable-next-line @lwc/lwc/no-async-await
         const rename = async () => {
-            const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
-            const newFilePath = `${RNFS.DocumentDirectoryPath}/${newFileName}`;
+            const newFilePath = `${pathToBeUsed}/${newFileName}`;
 
             try {
                 const fileExists = await RNFS.exists(newFilePath);
@@ -117,7 +123,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
         };
 
         rename();
-    }, [pathIOS]);
+    }, [pathIOS, newFileName, pathToBeUsed]);
 
     const onDownloadProfiling = useCallback(() => {
         // eslint-disable-next-line @lwc/lwc/no-async-await
@@ -153,7 +159,7 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
             </TestToolRow>
             {!!pathIOS && (
                 <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${pathIOS}`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${newFileName}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.profileTrace')}>
                         <Button
                             small
@@ -167,10 +173,10 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
     );
 }
 
-ProfilingToolMenu.displayName = 'ProfilingToolMenu';
+BaseProfilingToolMenu.displayName = 'BaseProfilingToolMenu';
 
-export default withOnyx<ProfilingToolMenuProps, ProfilingToolMenuOnyxProps>({
+export default withOnyx<BaseProfilingToolMenuProps, BaseProfilingToolMenuOnyxProps>({
     isProfilingInProgress: {
         key: ONYXKEYS.APP_PROFILING_IN_PROGRESS,
     },
-})(ProfilingToolMenu);
+})(BaseProfilingToolMenu);

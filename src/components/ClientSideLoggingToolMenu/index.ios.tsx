@@ -28,6 +28,7 @@ function ClientSideLoggingToolMenu() {
             onEnableLogging={() => setFile(undefined)}
             onDisableLogging={createFile}
             onShareLogs={shareLogs}
+            displayPath="/New Expensify"
         />
     );
 }
