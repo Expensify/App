@@ -40,7 +40,12 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.4.64.3</string>
+	<string>1.4.64.4</string>
+	<key>FullStory</key>
+	<dict>
+		<key>OrgId</key>
+		<string>o-1WN56P-na1</string>
+	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>
@@ -104,11 +109,6 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
-	<key>FullStory</key>
-	<dict>
-		<key>OrgId</key>
-		<string>o-1WN56P-na1</string>
-	</dict>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
