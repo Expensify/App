@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -24,11 +23,10 @@ import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
 
 const visibleReportActionItems: ReportActions = {};
-
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
-        if (!key || !actions) {
+        if (!actions || !key) {
             return;
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
@@ -44,6 +42,7 @@ Onyx.connect({
                 reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                 reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
+
         visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
     },
 });
@@ -84,7 +83,7 @@ function getOrderedReportIDs(
 
         const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`;
         const parentReportActions = allReportActions?.[parentReportActionsKey];
-        const reportActions = ReportActionsUtils.getAllReportActions(report.reportID);
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {};
         const parentReportAction = parentReportActions?.find((action) => action && action?.reportActionID === report.parentReportActionID);
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
@@ -93,9 +92,9 @@ function getOrderedReportIDs(
         );
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
-        const hasErrors = Object.keys(OptionsListUtils.getAllReportErrors(report, reportActions) ?? {}).length !== 0;
-        const hasBrickError = hasErrors || doesReportHaveViolations ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        const shouldOverrideHidden = hasBrickError || isFocused || report.isPinned;
+        const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
+        const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
+        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned;
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
@@ -321,7 +320,7 @@ function getOptionData({
     const lastAction = visibleReportActionItems[report.reportID];
 
     const isThreadMessage =
-        ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        ReportUtils.isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     if ((result.isChatRoom || result.isPolicyExpenseChat || result.isThread || result.isTaskReport || isThreadMessage) && !result.isArchivedRoom) {
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
@@ -330,14 +329,14 @@ function getOptionData({
         } else if (ReportActionsUtils.isTaskAction(lastAction)) {
             result.alternateText = ReportUtils.formatReportLastMessageText(TaskUtils.getTaskReportActionMessage(lastAction).text);
         } else if (
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.REMOVE_FROM_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM ||
-            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.REMOVE_FROM_ROOM
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.REMOVE_FROM_ROOM ||
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM ||
+            lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM
         ) {
             const targetAccountIDs = lastAction?.originalMessage?.targetAccountIDs ?? [];
             const verb =
-                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
                     ? Localize.translate(preferredLocale, 'workspace.invite.invited')
                     : Localize.translate(preferredLocale, 'workspace.invite.removed');
             const users = Localize.translate(preferredLocale, targetAccountIDs.length > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
@@ -346,12 +345,14 @@ function getOptionData({
             const roomName = lastAction?.originalMessage?.roomName ?? '';
             if (roomName) {
                 const preposition =
-                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG.INVITE_TO_ROOM
+                    lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
                         ? ` ${Localize.translate(preferredLocale, 'workspace.invite.to')}`
                         : ` ${Localize.translate(preferredLocale, 'workspace.invite.from')}`;
                 result.alternateText += `${preposition} ${roomName}`;
             }
-        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY) {
+            result.alternateText = Localize.translateLocal('workspace.invite.leftWorkspace');
+        } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             result.alternateText = `${lastActorDisplayName}: ${lastMessageText}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : ReportActionsUtils.getLastVisibleMessage(report.reportID, {}, lastAction)?.lastMessageText;
@@ -393,7 +394,7 @@ function getOptionData({
 
     result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result as Report);
 
-    if (ReportActionsUtils.isActionableJoinRequestPending(report.reportID)) {
+    if (ReportUtils.isJoinRequestInAdminRoom(report)) {
         result.isPinned = true;
         result.isUnread = true;
         result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;

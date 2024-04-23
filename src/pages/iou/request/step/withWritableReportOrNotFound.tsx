@@ -21,8 +21,13 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
+    | typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT
+    | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE
+    | typeof SCREENS.MONEY_REQUEST.CREATE
+    | typeof SCREENS.MONEY_REQUEST.START
     | typeof SCREENS.MONEY_REQUEST.STEP_TAG
     | typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS
     | typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT
@@ -35,11 +40,14 @@ type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWr
 
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+    shouldIncludeDeprecatedIOUType = false,
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const {report = {reportID: ''}, route} = props;
-        const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE).includes(route.params?.iouType);
+        const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
+            .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
+            .includes(route.params?.iouType);
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {

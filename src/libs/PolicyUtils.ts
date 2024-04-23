@@ -1,18 +1,29 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Policy, PolicyCategories, PolicyMembers, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
+import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
+
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -25,11 +36,10 @@ function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefin
 }
 
 /**
- * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
- * Data structure: {accountID: {role:'user', errors: []}, accountID2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
+ * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
-function hasPolicyMemberError(policyMembers: OnyxEntry<PolicyMembers>): boolean {
-    return Object.values(policyMembers ?? {}).some((member) => Object.keys(member?.errors ?? {}).length > 0);
+function hasEmployeeListError(policy: OnyxEntry<Policy>): boolean {
+    return Object.values(policy?.employeeList ?? {}).some((employee) => Object.keys(employee?.errors ?? {}).length > 0);
 }
 
 /**
@@ -90,9 +100,8 @@ function getUnitRateValue(toLocaleDigit: (arg: string) => string, customUnitRate
 /**
  * Get the brick road indicator status for a policy. The policy has an error status if there is a policy member error, a custom unit error or a field error.
  */
-function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, policyMembersCollection: OnyxCollection<PolicyMembers>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
-    const policyMembers = policyMembersCollection?.[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policy?.id}`] ?? {};
-    if (hasPolicyMemberError(policyMembers) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
+function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined {
+    if (hasEmployeeListError(policy) || hasCustomUnitsError(policy) || hasPolicyErrorFields(policy)) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     }
     return undefined;
@@ -128,25 +137,31 @@ const isPolicyAdmin = (policy: OnyxEntry<Policy> | EmptyObject): boolean => poli
  */
 const isFreeGroupPolicy = (policy: OnyxEntry<Policy> | EmptyObject): boolean => policy?.type === CONST.POLICY.TYPE.FREE;
 
-const isPolicyMember = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => policy?.id === policyID);
+
+/**
+ * Checks if the current user is an owner (creator) of the policy.
+ */
+const isPolicyOwner = (policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(policyMembers: OnyxEntry<PolicyMembers>, personalDetails: OnyxEntry<PersonalDetailsList>): MemberEmailsToAccountIDs {
+function getMemberAccountIDsForWorkspace(employeeList: PolicyEmployeeList | undefined): MemberEmailsToAccountIDs {
+    const members = employeeList ?? {};
     const memberEmailsToAccountIDs: MemberEmailsToAccountIDs = {};
-    Object.keys(policyMembers ?? {}).forEach((accountID) => {
-        const member = policyMembers?.[accountID];
+    Object.keys(members).forEach((email) => {
+        const member = members?.[email];
         if (Object.keys(member?.errors ?? {})?.length > 0) {
             return;
         }
-        const personalDetail = personalDetails?.[accountID];
+        const personalDetail = getPersonalDetailByEmail(email);
         if (!personalDetail?.login) {
             return;
         }
-        memberEmailsToAccountIDs[personalDetail.login] = Number(accountID);
+        memberEmailsToAccountIDs[email] = Number(personalDetail.accountID);
     });
     return memberEmailsToAccountIDs;
 }
@@ -154,19 +169,19 @@ function getMemberAccountIDsForWorkspace(policyMembers: OnyxEntry<PolicyMembers>
 /**
  * Get login list that we should not show in the workspace invite options
  */
-function getIneligibleInvitees(policyMembers: OnyxEntry<PolicyMembers>, personalDetails: OnyxEntry<PersonalDetailsList>): string[] {
+function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
+    const policyEmployeeList = employeeList ?? {};
     const memberEmailsToExclude: string[] = [...CONST.EXPENSIFY_EMAILS];
-    Object.keys(policyMembers ?? {}).forEach((accountID) => {
-        const policyMember = policyMembers?.[accountID];
+    Object.keys(policyEmployeeList).forEach((email) => {
+        const policyEmployee = policyEmployeeList?.[email];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
-        if (policyMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyMember?.errors ?? {}).length > 0) {
+        if (policyEmployee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policyEmployee?.errors ?? {}).length > 0) {
             return;
         }
-        const memberEmail = personalDetails?.[accountID]?.login;
-        if (!memberEmail) {
+        if (!email) {
             return;
         }
-        memberEmailsToExclude.push(memberEmail);
+        memberEmailsToExclude.push(email);
     });
 
     return memberEmailsToExclude;
@@ -274,12 +289,12 @@ function getPathWithoutPolicyID(path: string) {
     return path.replace(CONST.REGEX.PATH_WITHOUT_POLICY_ID, '/');
 }
 
-function getPolicyMembersByIdWithoutCurrentUser(policyMembers: OnyxCollection<PolicyMembers>, currentPolicyID?: string, currentUserAccountID?: number) {
-    return policyMembers
-        ? Object.keys(policyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${currentPolicyID}`] ?? {})
-              .map((policyMemberAccountID) => Number(policyMemberAccountID))
-              .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID)
-        : [];
+function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pick<Policy, 'employeeList'>>, currentPolicyID?: string, currentUserAccountID?: number) {
+    const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${currentPolicyID}`] ?? null;
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
+    return Object.values(policyMemberEmailsToAccountIDs)
+        .map((policyMemberAccountID) => Number(policyMemberAccountID))
+        .filter((policyMemberAccountID) => policyMemberAccountID !== currentUserAccountID);
 }
 
 function goBackFromInvalidPolicy() {
@@ -306,6 +321,10 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+function getPersonalPolicy() {
+    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
+}
+
 /**
  *  Get the currently selected policy ID stored in the navigation state.
  */
@@ -313,10 +332,24 @@ function getPolicyIDFromNavigationState() {
     return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
 }
 
+function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
+    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
+ * Returns the policy of the report
+ */
+function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+    if (!allPolicies || !policyID) {
+        return {};
+    }
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
-    hasPolicyMemberError,
+    hasEmployeeListError,
     hasPolicyError,
     hasPolicyErrorFields,
     hasCustomUnitsError,
@@ -340,17 +373,21 @@ export {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
     isPendingDeletePolicy,
-    isPolicyMember,
+    isPolicyEmployee,
+    isPolicyOwner,
     isPaidGroupPolicy,
     extractPolicyIDFromPath,
     getPathWithoutPolicyID,
-    getPolicyMembersByIdWithoutCurrentUser,
+    getPolicyEmployeeListByIdWithoutCurrentUser,
     goBackFromInvalidPolicy,
+    getPersonalPolicy,
     isPolicyFeatureEnabled,
     hasTaxRateError,
     getTaxByID,
     hasPolicyCategoriesError,
     getPolicyIDFromNavigationState,
+    getAdminEmployees,
+    getPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};

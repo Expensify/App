@@ -378,6 +378,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
         },
 
+        mutedNormalTextLabel: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textMicro: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -869,6 +875,14 @@ const styles = (theme: ThemeColors) =>
             minHeight: 28,
         },
 
+        badgeSmall: {
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+            paddingHorizontal: 6,
+            minHeight: 20,
+        },
+
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -1092,6 +1106,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
+            zIndex: 1,
         },
 
         textInputLabelBackground: {
@@ -2269,7 +2284,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         avatarInnerText: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeSmall,
             lineHeight: undefined,
             marginLeft: -3,
@@ -3196,6 +3211,20 @@ const styles = (theme: ThemeColors) =>
 
         workspaceTypeSectionTitle: {
             marginLeft: 3,
+        },
+
+        workspaceRightColumn: {
+            marginLeft: 124,
+        },
+
+        workspaceThreeDotMenu: {
+            marginLeft: 84,
+        },
+
+        workspaceListBadge: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 6,
         },
 
         autoGrowHeightMultilineInput: {
