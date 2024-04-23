@@ -260,7 +260,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     buttonRef={dropdownButtonRef}
                     style={[isSmallScreenWidth && styles.flexGrow1]}
                     wrapperStyle={styles.w100}
-                    isSplit={false}
+                    isSplitButton={false}
                 />
             )}
         </View>

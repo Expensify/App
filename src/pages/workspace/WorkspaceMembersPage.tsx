@@ -516,7 +516,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
                         buttonRef={dropdownButtonRef}
-                        isSplit={false}
+                        isSplitButton={false}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
                 ) : (

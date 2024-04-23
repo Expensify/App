@@ -225,7 +225,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
-                    isSplit={false}
+                    isSplitButton={false}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
                     options={options}

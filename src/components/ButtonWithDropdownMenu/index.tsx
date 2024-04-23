@@ -14,7 +14,7 @@ import type {ButtonWithDropdownMenuProps} from './types';
 
 function ButtonWithDropdownMenu<IValueType>({
     success = false,
-    isSplit = true,
+    isSplitButton = true,
     isLoading = false,
     isDisabled = false,
     pressOnEnter = false,
@@ -66,7 +66,7 @@ function ButtonWithDropdownMenu<IValueType>({
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
 
-    const getIconRightButton = useCallback(
+    const getIconRight = useCallback(
         () => (
             <Icon
                 medium={isButtonSizeLarge}
@@ -88,7 +88,7 @@ function ButtonWithDropdownMenu<IValueType>({
                         ref={(ref) => {
                             caretButton.current = ref;
                         }}
-                        onPress={(event) => (!isSplit ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
+                        onPress={(event) => (!isSplitButton ? setIsMenuVisible(!isMenuVisible) : onPress(event, selectedItem.value))}
                         text={customText ?? selectedItem.text}
                         isDisabled={isDisabled || !!selectedItem.disabled}
                         isLoading={isLoading}
@@ -96,13 +96,13 @@ function ButtonWithDropdownMenu<IValueType>({
                         style={[styles.flex1, styles.pr0]}
                         large={isButtonSizeLarge}
                         medium={!isButtonSizeLarge}
-                        innerStyles={[innerStyleDropButton, !isSplit && styles.dropDownButtonCartIconView]}
+                        innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        customRightIcon={getIconRightButton()}
-                        shouldShowRightIcon={!isSplit}
+                        customRightIcon={getIconRight()}
+                        shouldShowRightIcon={!isSplitButton}
                     />
 
-                    {isSplit && (
+                    {isSplitButton && (
                         <Button
                             ref={caretButton}
                             success={success}
