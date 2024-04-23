@@ -77,182 +77,164 @@ const restrictedImportPatterns = [
 ];
 
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-native-a11y/basic', 'plugin:@dword-design/import-alias/recommended', 'prettier'],
-    plugins: ['react-native-a11y'],
-    parser: 'babel-eslint',
+    extends: [
+        'expensify',
+        'airbnb-typescript',
+        'plugin:storybook/recommended',
+        'plugin:react-native-a11y/basic',
+        'plugin:@dword-design/import-alias/recommended',
+        'plugin:@typescript-eslint/recommended-type-checked',
+        'plugin:@typescript-eslint/stylistic-type-checked',
+        'plugin:you-dont-need-lodash-underscore/all',
+        'prettier',
+    ],
+    plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore', 'react-native-a11y', 'react'],
+    parser: '@typescript-eslint/parser',
+    parserOptions: {
+        project: './tsconfig.json',
+    },
     env: {
         jest: true,
     },
     globals: {
         __DEV__: 'readonly',
     },
-    overrides: [
-        {
-            files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
-            plugins: ['react'],
-            rules: {
-                'prefer-regex-literals': 'off',
-                'rulesdir/no-multiple-onyx-in-file': 'off',
-                'react-native-a11y/has-accessibility-hint': ['off'],
-                'react/jsx-no-constructed-context-values': 'error',
-                'react-native-a11y/has-valid-accessibility-descriptors': [
-                    'error',
-                    {
-                        touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
-                    },
-                ],
-                '@dword-design/import-alias/prefer-alias': [
-                    'warn',
-                    {
-                        alias: {
-                            '@assets': './assets',
-                            '@components': './src/components',
-                            '@hooks': './src/hooks',
-                            // This is needed up here, if not @libs/actions would take the priority
-                            '@userActions': './src/libs/actions',
-                            '@libs': './src/libs',
-                            '@navigation': './src/libs/Navigation',
-                            '@pages': './src/pages',
-                            '@styles': './src/styles',
-                            // This path is provide alias for files like `ONYXKEYS` and `CONST`.
-                            '@src': './src',
-                            '@desktop': './desktop',
-                            '@github': './.github',
-                        },
-                    },
-                ],
-                'no-restricted-imports': [
-                    'error',
-                    {
-                        paths: restrictedImportPaths,
-                        patterns: restrictedImportPatterns,
-                    },
-                ],
+    rules: {
+        // TODO: Remove the following rules after TypeScript migration is complete.
+        '@typescript-eslint/no-unsafe-argument': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+
+        // TypeScript specific rules
+        '@typescript-eslint/prefer-enum-initializers': 'error',
+        '@typescript-eslint/no-var-requires': 'off',
+        '@typescript-eslint/no-non-null-assertion': 'error',
+        '@typescript-eslint/switch-exhaustiveness-check': 'error',
+        '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/no-import-type-side-effects': 'error',
+        '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
+        '@typescript-eslint/naming-convention': [
+            'error',
+            {
+                selector: ['variable', 'property'],
+                format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
             },
-        },
-        {
-            files: ['*.js', '*.jsx'],
-            settings: {
-                'import/resolver': {
-                    node: {
-                        extensions: ['.js', '.website.js', '.desktop.js', '.native.js', '.ios.js', '.android.js', '.config.js', '.ts', '.tsx'],
-                    },
+            {
+                selector: 'function',
+                format: ['camelCase', 'PascalCase'],
+            },
+            {
+                selector: ['typeLike', 'enumMember'],
+                format: ['PascalCase'],
+            },
+            {
+                selector: ['parameter', 'method'],
+                format: ['camelCase', 'PascalCase'],
+                leadingUnderscore: 'allow',
+            },
+        ],
+        '@typescript-eslint/ban-types': [
+            'error',
+            {
+                types: {
+                    object: "Use 'Record<string, T>' instead.",
+                },
+                extendDefaults: true,
+            },
+        ],
+        '@typescript-eslint/consistent-type-imports': [
+            'error',
+            {
+                prefer: 'type-imports',
+                fixStyle: 'separate-type-imports',
+            },
+        ],
+        '@typescript-eslint/consistent-type-exports': [
+            'error',
+            {
+                fixMixedExportsWithInlineTypeSpecifier: false,
+            },
+        ],
+
+        // ESLint core rules
+        'es/no-nullish-coalescing-operators': 'off',
+        'es/no-optional-chaining': 'off',
+
+        // Import specific rules
+        'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+        'import/no-extraneous-dependencies': 'off',
+
+        // Rulesdir specific rules
+        'rulesdir/no-default-props': 'error',
+        'rulesdir/no-multiple-onyx-in-file': 'off',
+        'rulesdir/prefer-underscore-method': 'off',
+        'rulesdir/prefer-import-module-contents': 'off',
+
+        // React and React Native specific rules
+        'react-native-a11y/has-accessibility-hint': ['off'],
+        'react/require-default-props': 'off',
+        'react/prop-types': 'off',
+        'react/jsx-no-constructed-context-values': 'error',
+        'react-native-a11y/has-valid-accessibility-descriptors': [
+            'error',
+            {
+                touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
+            },
+        ],
+
+        // Disallow usage of certain functions and imports
+        'no-restricted-syntax': [
+            'error',
+            {
+                selector: 'TSEnumDeclaration',
+                message: "Please don't declare enums, use union types instead.",
+            },
+        ],
+        'no-restricted-properties': [
+            'error',
+            {
+                object: 'Image',
+                property: 'getSize',
+                message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+            },
+        ],
+        'no-restricted-imports': [
+            'error',
+            {
+                paths: restrictedImportPaths,
+                patterns: restrictedImportPatterns,
+            },
+        ],
+
+        // Other rules
+        curly: 'error',
+        'you-dont-need-lodash-underscore/throttle': 'off',
+        'prefer-regex-literals': 'off',
+        'valid-jsdoc': 'off',
+        'jsdoc/no-types': 'error',
+        '@dword-design/import-alias/prefer-alias': [
+            'warn',
+            {
+                alias: {
+                    '@assets': './assets',
+                    '@components': './src/components',
+                    '@hooks': './src/hooks',
+                    // This is needed up here, if not @libs/actions would take the priority
+                    '@userActions': './src/libs/actions',
+                    '@libs': './src/libs',
+                    '@navigation': './src/libs/Navigation',
+                    '@pages': './src/pages',
+                    '@styles': './src/styles',
+                    // This path is provide alias for files like `ONYXKEYS` and `CONST`.
+                    '@src': './src',
+                    '@desktop': './desktop',
+                    '@github': './.github',
                 },
             },
-            rules: {
-                'import/extensions': [
-                    'error',
-                    'ignorePackages',
-                    {
-                        js: 'never',
-                        jsx: 'never',
-                        ts: 'never',
-                        tsx: 'never',
-                    },
-                ],
-                curly: 'error',
-                'react/display-name': 'error',
-            },
-        },
-        {
-            files: ['*.ts', '*.tsx'],
-            extends: [
-                'airbnb-typescript',
-                'plugin:@typescript-eslint/recommended-type-checked',
-                'plugin:@typescript-eslint/stylistic-type-checked',
-                'plugin:you-dont-need-lodash-underscore/all',
-                'prettier',
-            ],
-            plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore'],
-            parser: '@typescript-eslint/parser',
-            parserOptions: {
-                project: './tsconfig.json',
-            },
-            rules: {
-                // TODO: Remove the following rules after TypeScript migration is complete.
-                '@typescript-eslint/no-unsafe-argument': 'off',
-                '@typescript-eslint/no-unsafe-call': 'off',
-                '@typescript-eslint/no-unsafe-member-access': 'off',
-                '@typescript-eslint/no-unsafe-assignment': 'off',
-
-                '@typescript-eslint/naming-convention': [
-                    'error',
-                    {
-                        selector: ['variable', 'property'],
-                        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
-                    },
-                    {
-                        selector: 'function',
-                        format: ['camelCase', 'PascalCase'],
-                    },
-                    {
-                        selector: ['typeLike', 'enumMember'],
-                        format: ['PascalCase'],
-                    },
-                    {
-                        selector: ['parameter', 'method'],
-                        format: ['camelCase', 'PascalCase'],
-                        leadingUnderscore: 'allow',
-                    },
-                ],
-                '@typescript-eslint/ban-types': [
-                    'error',
-                    {
-                        types: {
-                            object: "Use 'Record<string, T>' instead.",
-                        },
-                        extendDefaults: true,
-                    },
-                ],
-                '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
-                '@typescript-eslint/prefer-enum-initializers': 'error',
-                '@typescript-eslint/no-var-requires': 'off',
-                '@typescript-eslint/no-non-null-assertion': 'error',
-                '@typescript-eslint/switch-exhaustiveness-check': 'error',
-                '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
-                '@typescript-eslint/no-floating-promises': 'off',
-                '@typescript-eslint/consistent-type-imports': [
-                    'error',
-                    {
-                        prefer: 'type-imports',
-                        fixStyle: 'separate-type-imports',
-                    },
-                ],
-                '@typescript-eslint/no-import-type-side-effects': 'error',
-                '@typescript-eslint/consistent-type-exports': [
-                    'error',
-                    {
-                        fixMixedExportsWithInlineTypeSpecifier: false,
-                    },
-                ],
-                'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
-                'es/no-nullish-coalescing-operators': 'off',
-                'es/no-optional-chaining': 'off',
-                'valid-jsdoc': 'off',
-                'jsdoc/no-types': 'error',
-                'rulesdir/no-default-props': 'error',
-                'import/no-extraneous-dependencies': 'off',
-                'rulesdir/prefer-underscore-method': 'off',
-                'rulesdir/prefer-import-module-contents': 'off',
-                'react/require-default-props': 'off',
-                'react/prop-types': 'off',
-                'no-restricted-syntax': [
-                    'error',
-                    {
-                        selector: 'TSEnumDeclaration',
-                        message: "Please don't declare enums, use union types instead.",
-                    },
-                ],
-                'no-restricted-properties': [
-                    'error',
-                    {
-                        object: 'Image',
-                        property: 'getSize',
-                        message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
-                    },
-                ],
-                curly: 'error',
-                'you-dont-need-lodash-underscore/throttle': 'off',
+        ],
+    },
             },
         },
     ],
