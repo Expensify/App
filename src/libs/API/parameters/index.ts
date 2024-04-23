@@ -48,6 +48,7 @@ export type {default as RequestAccountValidationLinkParams} from './RequestAccou
 export type {default as ResolveActionableMentionWhisperParams} from './ResolveActionableMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
+export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SendPerformanceTimingParams} from './SendPerformanceTimingParams';
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';
@@ -207,6 +208,7 @@ export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrenc
 export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
+export type {default as CompleteGuidedSetupParams} from './CompleteGuidedSetupParams';
 export type {default as DismissTrackExpenseActionableWhisperParams} from './DismissTrackExpenseActionableWhisperParams';
 export type {default as ConvertTrackedExpenseToRequestParams} from './ConvertTrackedExpenseToRequestParams';
 export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpenseParams';
