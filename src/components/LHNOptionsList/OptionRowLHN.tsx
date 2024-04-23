@@ -2,7 +2,6 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -26,9 +25,8 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import * as ReportUtils from '@libs/ReportUtils';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {OptionRowLHNOnyxProps, OptionRowLHNProps} from './types';
+import type {OptionRowLHNProps} from './types';
 
 function OptionRowLHN({reportID, report, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -286,8 +284,4 @@ function OptionRowLHN({reportID, report, isFocused = false, onSelectRow = () => 
 
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default withOnyx<OptionRowLHNProps, OptionRowLHNOnyxProps>({
-    report: {
-        key: ({optionItem}) => `${ONYXKEYS.COLLECTION.REPORT}${optionItem?.reportID}`,
-    },
-})(React.memo(OptionRowLHN));
+export default React.memo(OptionRowLHN);

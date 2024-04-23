@@ -114,14 +114,12 @@ type OptionRowLHNDataProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type OptionRowLHNOnyxProps = {
-    /** Data of the report that the option is for */
-    report: OnyxEntry<Report>;
-};
-
-type OptionRowLHNProps = OptionRowLHNOnyxProps & {
+type OptionRowLHNProps = {
     /** The ID of the report that the option is for */
     reportID: string;
+
+    /** Data of the report that the option is for */
+    report: OnyxEntry<Report>;
 
     /** Whether this option is currently in focus so we can modify its style */
     isFocused?: boolean;
@@ -146,4 +144,4 @@ type OptionRowLHNProps = OptionRowLHNOnyxProps & {
 
 type RenderItemProps = {item: string};
 
-export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, OptionRowLHNOnyxProps, LHNOptionsListOnyxProps, RenderItemProps};
+export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, LHNOptionsListOnyxProps, RenderItemProps};
