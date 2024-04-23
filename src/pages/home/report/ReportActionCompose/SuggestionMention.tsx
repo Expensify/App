@@ -360,6 +360,10 @@ function SuggestionMention(
         });
     }, []);
 
+    const updateShouldShowSuggestionMenuAfterScrolling = useCallback(() => {
+        setSuggestionValues((prevState) => ({...prevState, shouldShowSuggestionMenu: !!prevState.suggestedMentions.length}));
+    }, []);
+
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
             shouldBlockCalc.current = shouldBlockSuggestionCalc;
@@ -377,8 +381,9 @@ function SuggestionMention(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            updateShouldShowSuggestionMenuAfterScrolling,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, updateShouldShowSuggestionMenuAfterScrolling],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
