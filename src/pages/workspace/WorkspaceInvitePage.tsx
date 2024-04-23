@@ -13,6 +13,7 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {Section} from '@components/SelectionList/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,7 +56,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
 function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy, isLoadingReportData = true}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
@@ -75,6 +76,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         return () => {
             Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [route.params.policyID]);
 
     useEffect(() => {
@@ -87,12 +89,29 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
 
     const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy?.employeeList), [policy?.employeeList]);
 
+    const defaultOptions = useMemo(() => {
+        if (!areOptionsInitialized) {
+            return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+        }
+
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], '', excludedUsers, true);
+
+        return {...inviteOptions, recentReports: [], currentUserOption: null, categoryOptions: [], tagOptions: [], taxRatesOptions: []};
+    }, [areOptionsInitialized, betas, excludedUsers, options.personalDetails]);
+
+    const inviteOptions = useMemo(() => {
+        if (debouncedSearchTerm.trim() === '') {
+            return defaultOptions;
+        }
+
+        return OptionsListUtils.filterOptions(defaultOptions, debouncedSearchTerm, {excludeLogins: excludedUsers});
+    }, [debouncedSearchTerm, defaultOptions, excludedUsers]);
+
     useEffect(() => {
         const newUsersToInviteDict: Record<number, OptionData> = {};
         const newPersonalDetailsDict: Record<number, OptionData> = {};
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, true);
         // Update selectedOptions with the latest personalDetails and policyEmployeeList information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
@@ -147,7 +166,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [options.personalDetails, policy?.employeeList, betas, searchTerm, excludedUsers]);
+    }, [options.personalDetails, policy?.employeeList, betas, excludedUsers, inviteOptions.personalDetails, inviteOptions.userToInvite, invitedEmailsToAccountIDsDraft]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
@@ -158,12 +177,12 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
 
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
-        if (searchTerm !== '') {
+        if (debouncedSearchTerm !== '') {
             filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
 
-                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(searchTerm);
+                const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
 
                 const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
@@ -200,7 +219,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
         });
 
         return sectionsArr;
-    }, [areOptionsInitialized, selectedOptions, searchTerm, personalDetails, translate, usersToInvite]);
+    }, [areOptionsInitialized, selectedOptions, debouncedSearchTerm, personalDetails, translate, usersToInvite]);
 
     const toggleOption = (option: MemberForList) => {
         Policy.clearErrors(route.params.policyID);
@@ -246,7 +265,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors) || !!policy?.alertMessage], [policy]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
         if (usersToInvite.length === 0 && CONST.EXPENSIFY_EMAILS.some((email) => email === searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
         }
@@ -261,7 +280,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
             return translate('messages.userIsAlreadyMember', {login: searchValue, name: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, usersToInvite.length > 0, searchValue);
-    }, [excludedUsers, translate, searchTerm, policyName, usersToInvite, personalDetails.length]);
+    }, [debouncedSearchTerm, usersToInvite.length, excludedUsers, personalDetails.length, translate, policyName]);
 
     const footerContent = useMemo(
         () => (
