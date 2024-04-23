@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import createProxyForValue from '@src/utils/createProxyForValue';
+import createProxyForObject from '@src/utils/createProxyForObject';
 
 let lastUpdateIDAppliedToClient = 0;
 Onyx.connect({
@@ -21,7 +21,7 @@ type ApplyUpdatesMock = {
 const mockValues: ApplyUpdatesMockValues = {
     onApplyUpdates: undefined,
 };
-const mockValuesProxy = createProxyForValue(mockValues);
+const mockValuesProxy = createProxyForObject(mockValues);
 
 const applyUpdates = jest.fn((updates: DeferredUpdatesDictionary) => {
     const lastUpdateIdFromUpdates = Math.max(...Object.keys(updates).map(Number));

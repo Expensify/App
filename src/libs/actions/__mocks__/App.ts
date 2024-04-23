@@ -3,7 +3,7 @@ import type * as AppImport from '@libs/actions/App';
 import type * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
-import createProxyForValue from '@src/utils/createProxyForValue';
+import createProxyForObject from '@src/utils/createProxyForObject';
 
 const AppImplementation: typeof AppImport = jest.requireActual('@libs/actions/App');
 const {
@@ -38,7 +38,7 @@ type AppActionsMock = typeof AppImport & {
 const mockValues: AppMockValues = {
     missingOnyxUpdatesToBeApplied: undefined,
 };
-const mockValuesProxy = createProxyForValue(mockValues);
+const mockValuesProxy = createProxyForObject(mockValues);
 
 const ApplyUpdatesImplementation: typeof ApplyUpdatesImport = jest.requireActual('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 const getMissingOnyxUpdates = jest.fn((_fromID: number, toID: number) => {
