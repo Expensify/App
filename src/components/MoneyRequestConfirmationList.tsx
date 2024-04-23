@@ -424,9 +424,20 @@ function MoneyRequestConfirmationList({
             setFormError(
                 `You entered ${CurrencyUtils.convertToDisplayString(sumOfShares, iouCurrencyCode)} but the total is ${CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode)}`,
             );
-        } else {
-            setFormError('');
+            return;
         }
+
+        const participantsWithAmount = Object.keys(transaction?.splitShares ?? {})
+            .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)].amount ?? 0) > 0)
+            .map((accountID) => Number(accountID));
+
+        // A split must have at least two participants with amounts bigger than 0
+        if (participantsWithAmount.length === 1) {
+            setFormError('At least two participants must have an amount set');
+            return;
+        }
+
+        setFormError('');
     }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError]);
 
     useEffect(() => {
