@@ -1263,6 +1263,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {};
     },
 
+    getIconColorStyle: (isSuccess: boolean, isError: boolean): string => {
+        if (isSuccess) {
+            return theme.iconSuccessFill;
+        }
+        if (isError) {
+            return theme.iconDangerFill;
+        }
+        return theme.icon;
+    },
+
+    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
+        if (isAdhoc) {
+            return styles.badgeAdHocSuccess;
+        }
+        if (isSuccess) {
+            return styles.badgeEnvironmentSuccess;
+        }
+        if (isError) {
+            return styles.badgeEnvironmentDanger;
+        }
+        return {};
+    },
+
     /**
      * Generate a style for the background color of the button, based on its current state.
      *

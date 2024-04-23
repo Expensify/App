@@ -211,8 +211,6 @@ function WorkspacesListRow({
                     >
                         <Badge
                             text={translate('workspace.common.requested')}
-                            textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
                             icon={Expensicons.Hourglass}
                         />
                     </View>
