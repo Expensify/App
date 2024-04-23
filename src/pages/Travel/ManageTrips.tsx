@@ -7,7 +7,9 @@ import LottieAnimations from '@components/LottieAnimations';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
+import ROUTES from '@src/ROUTES';
 
 const tripsFeatures: FeatureListItem[] = [
     {
@@ -34,7 +36,9 @@ function ManageTrips() {
                     subtitle={translate('travel.subtitle')}
                     ctaText={translate('travel.bookTravel')}
                     ctaAccessibilityLabel={translate('travel.bookTravel')}
-                    onCtaPress={() => {}}
+                    onCtaPress={() => {
+                        Navigation.navigate(ROUTES.TRAVEL_TCS);
+                    }}
                     illustration={LottieAnimations.Plane}
                     illustrationStyle={styles.travelIllustrationStyle}
                     illustrationBackgroundColor={colors.blue600}

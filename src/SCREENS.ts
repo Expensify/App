@@ -24,6 +24,7 @@ const SCREENS = {
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
+        TCS: 'Travel_TCS',
     },
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SETTINGS: {

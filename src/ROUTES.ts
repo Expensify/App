@@ -699,6 +699,7 @@ const ROUTES = {
     },
     PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
     TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_TCS: 'travel/terms',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
     ONBOARDING_PURPOSE: 'onboarding/purpose',

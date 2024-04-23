@@ -99,6 +99,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
 
 const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParamList>({
     [SCREENS.TRAVEL.MY_TRIPS]: () => require('../../../../pages/Travel/MyTripsPage').default as React.ComponentType,
+    [SCREENS.TRAVEL.TCS]: () => require('../../../../pages/Travel/TravelTerms').default as React.ComponentType,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
