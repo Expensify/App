@@ -1,7 +1,7 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {UserMetadata} from '@src/types/onyx';
-import NavigationProperties from './types';
+import type NavigationProperties from './types';
 
 // Placeholder Browser API does not support Manual Page definition
 class FSPage {
