@@ -217,7 +217,6 @@ function getMileageRates(policy: OnyxEntry<Policy>): Record<string, MileageRate>
  * @param currency
  * @returns The rate and unit in RateAndUnit object.
  */
-
 function getRateForP2P(currency: string): RateAndUnit {
     return CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency] ?? CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE.USD;
 }
@@ -243,7 +242,6 @@ function getDistanceRequestAmount(distance: number, unit: Unit, rate: number): n
  * @param unit - The unit of measurement for the distance.
  * @returns The distance in meters.
  */
-
 function convertToDistanceInMeters(distance: number, unit: Unit): number {
     if (unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS) {
         return distance / METERS_TO_KM;

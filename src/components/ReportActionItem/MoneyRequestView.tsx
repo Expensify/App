@@ -293,7 +293,7 @@ function MoneyRequestView({
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID ?? '', report.reportID))}
                 />
             </OfflineWithFeedback>
-            {/* TODO: correct the pending field action https://github.com/Expensify/App/issues/36988 (?) */}
+            {/* TODO: correct the pending field action https://github.com/Expensify/App/issues/36988 */}
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
