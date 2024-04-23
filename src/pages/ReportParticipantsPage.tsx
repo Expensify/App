@@ -98,6 +98,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
+                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
