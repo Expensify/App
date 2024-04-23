@@ -195,6 +195,10 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             if (matchingRootRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 routes.push(createCentralPaneNavigator({name: SCREENS.SETTINGS.WORKSPACES}));
             }
+            if (matchingRootRoute?.state?.routes[0]?.name === SCREENS.SEARCH.CENTRAL_PANE) {
+                const centralPaneRoute = matchingRootRoute?.state?.routes[0];
+                delete (centralPaneRoute?.params as Record<string, string | undefined>)?.reportID;
+            }
             if (matchingRootRoute && (!isNarrowLayout || !isRHPScreenOpenedFromLHN)) {
                 routes.push(matchingRootRoute);
             }
