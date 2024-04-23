@@ -92,6 +92,7 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
+        useNavigationState: () => {},
         createNavigationContainerRef: jest.fn(),
     } as typeof Navigation;
 });
