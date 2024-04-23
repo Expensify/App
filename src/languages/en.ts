@@ -1806,8 +1806,8 @@ export default {
     },
     travel: {
         header: 'Book travel',
-        title: 'Book and manage your trips',
-        subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
+        title: 'Travel smart',
+        subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in one place.',
         features: {
             saveMoney: 'Save money on your bookings',
             alerts: 'Get real time updates and alerts',
