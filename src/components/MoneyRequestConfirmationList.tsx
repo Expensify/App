@@ -40,13 +40,11 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
-import FixedFooter from './FixedFooter';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
-import ScrollView from './ScrollView';
 import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/InviteMemberListItem';
 import type {SectionListDataType} from './SelectionList/types';
@@ -415,7 +413,7 @@ function MoneyRequestConfirmationList({
     }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
 
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
-    const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
+    const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
@@ -996,15 +994,9 @@ function MoneyRequestConfirmationList({
         [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
     );
 
-    return (
-        <>
-            <ScrollView>
-                <SelectionList<MoneyRequestConfirmationListItem>
-                    sections={sections}
-                    ListItem={InviteMemberListItem}
-                    onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
-                    canSelectMultiple={canModifyParticipants}
-                />
+    const listFooterContent = useMemo(
+        () => (
+            <>
                 {isDistanceRequest && (
                     <View style={styles.confirmationListMapItem}>
                         <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
@@ -1043,9 +1035,40 @@ function MoneyRequestConfirmationList({
                     confirmText={translate('common.close')}
                     shouldShowCancelButton={false}
                 />
-            </ScrollView>
-            <FixedFooter style={[styles.mtAuto]}>{footerContent}</FixedFooter>
-        </>
+            </>
+        ),
+        [
+            iouType,
+            isAttachmentInvalid,
+            isDistanceRequest,
+            navigateBack,
+            policy,
+            primaryFields,
+            receiptImage,
+            receiptThumbnail,
+            receiptThumbnailContent,
+            reportID,
+            shouldShowAllFields,
+            styles.confirmationListMapItem,
+            styles.mb2,
+            styles.mb5,
+            styles.mt1,
+            supplementaryFields,
+            transaction,
+            transactionID,
+            translate,
+        ],
+    );
+
+    return (
+        <SelectionList<MoneyRequestConfirmationListItem>
+            sections={sections}
+            ListItem={InviteMemberListItem}
+            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+            canSelectMultiple={canModifyParticipants}
+            footerContent={footerContent}
+            listFooterContent={listFooterContent}
+        />
     );
 }
 
