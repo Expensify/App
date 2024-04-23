@@ -138,8 +138,6 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
             firstKey = OptionsListUtils.getFirstKeyForList(formatResults.section.data);
         }
 
-       
-
         sectionsList.push({
             title: translate('common.recents'),
             data: recentReports,
