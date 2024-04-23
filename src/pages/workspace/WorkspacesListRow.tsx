@@ -185,8 +185,8 @@ function WorkspacesListRow({
     return (
         <View style={[styles.flexRow, styles.highlightBG, rowStyles, style, isWide && styles.gap5, styles.br3, styles.pv5, styles.pl5]}>
             <View style={[isWide ? styles.flexRow : styles.flexColumn, styles.flex1, isWide && styles.gap5]}>
-                <View style={[styles.flexRow, styles.justifyContentBetween, isWide && styles.flex1, styles.gap3, isNarrow && styles.mb3, styles.alignItemsCenter]}>
-                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.flex1, styles.gap3, isNarrow && styles.mb3, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                         <Avatar
                             imageStyles={[styles.alignSelfCenter]}
                             size={CONST.AVATAR_SIZE.DEFAULT}
@@ -197,7 +197,7 @@ function WorkspacesListRow({
                         />
                         <Text
                             numberOfLines={1}
-                            style={[styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                            style={[styles.flex1, styles.flexGrow1, styles.textStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
                         >
                             {title}
                         </Text>
