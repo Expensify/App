@@ -1915,6 +1915,25 @@ export default {
             outOfPocketLocationEnabledError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
             outOfPocketLocationEnabledDescription:
                 'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations as Tags, this export option is unavailable.',
+            advancedConfig: {
+                advanced: 'Advanced',
+                autoSync: 'Auto-sync',
+                autoSyncDescription: 'Changes made in Quickbooks will automatically be reflected in Expensify.',
+                inviteEmployees: 'Invite employees',
+                inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite them to this workspace.',
+                createEntities: 'Automatically create entities',
+                createEntitiesDescription:
+                    'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks accounts below.',
+                qboAccount: 'Quickbooks account',
+                collectionAccount: 'Invoice collection account',
+                collectionAccountDescription: 'Once invoices have been paid, the payment will appear in the account configured below.',
+                accountSelectDescription:
+                    "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
+                invoiceAccountSelectDescription:
+                    'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
+            },
         },
         type: {
             free: 'Free',

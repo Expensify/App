@@ -1239,6 +1239,11 @@ const CONST = {
         EXPORT_ENTITY: 'exportEntity',
         EXPORT_ACCOUNT: 'exportAccount',
         EXPORT_COMPANY_CARD: 'exportCompanyCard',
+        AUTO_SYNC: 'autoSync',
+        SYNCE_PEOPLE: 'syncPeople',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT_ID: 'collectionAccountID',
     },
 
     QUICKBOOKS_EXPORT_ENTITY: {
