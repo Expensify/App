@@ -2,6 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Trashcan} from '@components/Icon/Expensicons';
@@ -24,19 +25,23 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Policy as PolicyType} from '@src/types/onyx';
+import withPolicyConnections from '../withPolicyConnections';
 
-type TagSettingsPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS> & WithPolicyConnectionsProps;
+type TagSettingsPageOnyxProps = {
+    /** All policy tags */
+    policy: OnyxEntry<PolicyType>;
+};
+
+type TagSettingsPageProps = TagSettingsPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_SETTINGS>;
 
 function TagSettingsPage({route, policy}: TagSettingsPageProps) {
-    const policyId = route.params.policyID ?? '';
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
@@ -53,24 +58,24 @@ function TagSettingsPage({route, policy}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        Policy.deletePolicyTags(policyId, [currentPolicyTag.name]);
+        Policy.deletePolicyTags(route.params.policyID, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
-        setWorkspaceTagEnabled(policyId, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}});
+        setWorkspaceTagEnabled(route.params.policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}});
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(policyId, currentPolicyTag.name));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, currentPolicyTag.name));
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyId}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyId}>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
                 <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyId}
+                    policyID={route.params.policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
                 >
                     <ScreenWrapper
@@ -107,7 +112,7 @@ function TagSettingsPage({route, policy}: TagSettingsPageProps) {
                                 errors={ErrorUtils.getLatestErrorMessageField(currentPolicyTag)}
                                 pendingAction={currentPolicyTag.pendingFields?.enabled}
                                 errorRowStyles={styles.mh5}
-                                onClose={() => Policy.clearPolicyTagErrors(policyId, route.params.tagName)}
+                                onClose={() => Policy.clearPolicyTagErrors(route.params.policyID, route.params.tagName)}
                             >
                                 <View style={[styles.mt2, styles.mh5]}>
                                     <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -125,7 +130,7 @@ function TagSettingsPage({route, policy}: TagSettingsPageProps) {
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
                                     <TextLink
                                         style={[styles.textNormal, styles.link]}
-                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(route.params.policyID)}`}
                                     >
                                         {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
                                     </TextLink>
