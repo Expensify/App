@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import createOnyxMockUpdate from 'tests/utils/createOnyxMockUpdate';
 import type {AppActionsMock} from '@libs/actions/__mocks__/App';
 import * as AppImport from '@libs/actions/App';
 import * as OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
@@ -7,7 +8,6 @@ import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/u
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/App');
@@ -18,34 +18,12 @@ const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
-const createMockUpdate = (lastUpdateID: number): OnyxUpdatesFromServer => ({
-    type: 'https',
-    lastUpdateID,
-    previousUpdateID: lastUpdateID - 1,
-    request: {
-        command: 'TestCommand',
-        successData: [],
-        failureData: [],
-        finallyData: [],
-        optimisticData: [],
-    },
-    response: {
-        lastUpdateID,
-        previousUpdateID: lastUpdateID - 1,
-    },
-    updates: [
-        {
-            eventType: 'test',
-            data: [],
-        },
-    ],
-});
-const mockUpdate3 = createMockUpdate(3);
-const mockUpdate4 = createMockUpdate(4);
-const mockUpdate5 = createMockUpdate(5);
-const mockUpdate6 = createMockUpdate(6);
-const mockUpdate7 = createMockUpdate(7);
-const mockUpdate8 = createMockUpdate(8);
+const mockUpdate3 = createOnyxMockUpdate(3);
+const mockUpdate4 = createOnyxMockUpdate(4);
+const mockUpdate5 = createOnyxMockUpdate(5);
+const mockUpdate6 = createOnyxMockUpdate(6);
+const mockUpdate7 = createOnyxMockUpdate(7);
+const mockUpdate8 = createOnyxMockUpdate(8);
 
 describe('OnyxUpdateManager', () => {
     let lastUpdateIDAppliedToClient = 1;

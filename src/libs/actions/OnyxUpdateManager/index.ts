@@ -39,8 +39,15 @@ Onyx.connect({
     },
 });
 
-// eslint-disable-next-line import/no-mutable-exports
 let queryPromise: Promise<Response | Response[] | void> | undefined;
+
+let resolveQueryPromiseWrapper: () => void;
+const createQueryPromiseWrapper = () =>
+    new Promise<void>((resolve) => {
+        resolveQueryPromiseWrapper = resolve;
+    });
+// eslint-disable-next-line import/no-mutable-exports
+let queryPromiseWrapper = createQueryPromiseWrapper();
 
 const resetDeferralLogicVariables = () => {
     queryPromise = undefined;
@@ -50,6 +57,10 @@ const resetDeferralLogicVariables = () => {
 // This function will reset the query variables, unpause the SequentialQueue and log an info to the user.
 function finalizeUpdatesAndResumeQueue() {
     console.debug('[OnyxUpdateManager] Done applying all updates');
+
+    resolveQueryPromiseWrapper();
+    queryPromiseWrapper = createQueryPromiseWrapper();
+
     resetDeferralLogicVariables();
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, null);
     SequentialQueue.unpause();
@@ -145,4 +156,4 @@ export default () => {
     });
 };
 
-export {handleOnyxUpdateGap, queryPromise, resetDeferralLogicVariables};
+export {handleOnyxUpdateGap, queryPromiseWrapper as queryPromise, resetDeferralLogicVariables};
