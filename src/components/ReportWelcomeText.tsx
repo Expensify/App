@@ -2,7 +2,6 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,6 +10,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -47,7 +47,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
     const additionalText = moneyRequestOptions
-        .filter((item): item is ValueOf<Omit<typeof CONST.IOU.TYPE, 'INVOICE'>> => item !== CONST.IOU.TYPE.INVOICE)
+        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
         .map((item) => translate(`reportActionsView.iouTypes.${item}`))
         .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
