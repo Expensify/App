@@ -106,7 +106,6 @@ function useViolations(
                             },
                         }));
                 }
-                return test;
             }
 
             // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
