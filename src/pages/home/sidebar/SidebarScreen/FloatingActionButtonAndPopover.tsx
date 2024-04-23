@@ -1,4 +1,4 @@
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused as useIsFocusedOriginal, useNavigationState} from '@react-navigation/native';
 import type {ImageContentFit} from 'expo-image';
 import type {ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -15,6 +15,7 @@ import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
@@ -26,9 +27,19 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+// On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
+// We need to take this in consideration when checking if the screen is focused.
+const useIsFocused = () => {
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const isFocused = useIsFocusedOriginal();
+    const topmostCentralPane = useNavigationState(getTopmostCentralPaneRoute);
+    return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
+};
 
 type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatar' | 'name'>;
 
@@ -162,37 +173,37 @@ function FloatingActionButtonAndPopover(
     const navigateToQuickAction = () => {
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
-                break;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
-                break;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.REQUEST, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
-                break;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
-                break;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
-                break;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
-                break;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SEND, quickAction?.chatReportID ?? '');
-                break;
+                IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID, quickActionReport, quickAction.targetAccountID ?? 0);
+                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID ?? '', quickActionReport, quickAction.targetAccountID ?? 0, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK_EXPENSE, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
                 break;
             default:
         }
@@ -263,6 +274,8 @@ function FloatingActionButtonAndPopover(
             showCreateMenu();
         }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const selfDMReportID = useMemo(() => ReportUtils.findSelfDMReportID(), [isLoading]);
 
     return (
         <View style={styles.flexGrow1}>
@@ -278,7 +291,7 @@ function FloatingActionButtonAndPopover(
                         text: translate('sidebarScreen.fabNewChat'),
                         onSelected: () => interceptAnonymousUser(Report.startNewChat),
                     },
-                    ...(canUseTrackExpense
+                    ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
                                   icon: Expensicons.DocumentPlus,
@@ -286,7 +299,7 @@ function FloatingActionButtonAndPopover(
                                   onSelected: () =>
                                       interceptAnonymousUser(() =>
                                           IOU.startMoneyRequest(
-                                              CONST.IOU.TYPE.TRACK_EXPENSE,
+                                              CONST.IOU.TYPE.TRACK,
                                               // When starting to create a track expense from the global FAB, we need to retrieve selfDM reportID.
                                               // If it doesn't exist, we generate a random optimistic reportID and use it for all of the routes in the creation flow.
                                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -302,8 +315,21 @@ function FloatingActionButtonAndPopover(
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 IOU.startMoneyRequest(
-                                    CONST.IOU.TYPE.REQUEST,
+                                    CONST.IOU.TYPE.SUBMIT,
                                     // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                    // for all of the routes in the creation flow.
+                                    ReportUtils.generateReportID(),
+                                ),
+                            ),
+                    },
+                    {
+                        icon: Expensicons.Transfer,
+                        text: translate('iou.splitExpense'),
+                        onSelected: () =>
+                            interceptAnonymousUser(() =>
+                                IOU.startMoneyRequest(
+                                    CONST.IOU.TYPE.SPLIT,
+                                    // When starting to create a money request from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                     // for all of the routes in the creation flow.
                                     ReportUtils.generateReportID(),
                                 ),
@@ -315,7 +341,7 @@ function FloatingActionButtonAndPopover(
                         onSelected: () =>
                             interceptAnonymousUser(() =>
                                 IOU.startMoneyRequest(
-                                    CONST.IOU.TYPE.SEND,
+                                    CONST.IOU.TYPE.PAY,
                                     // When starting to pay someone from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
                                     // for all of the routes in the creation flow.
                                     ReportUtils.generateReportID(),
