@@ -176,7 +176,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             newSections.push({
                 title: translate('common.contacts'),
                 data: requestMoneyOptions.personalDetails,
-                shouldShow:  requestMoneyOptions.personalDetails.length > 0,
+                shouldShow: requestMoneyOptions.personalDetails.length > 0,
             });
         }
 
