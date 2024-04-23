@@ -1,6 +1,8 @@
-!.*
+.*
+*.config.js
 **/node_modules/**
 **/dist/**
 android/**/build/**
 .github/actions/**/index.js
 docs/vendor/**
+docs/assets/**
