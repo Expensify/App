@@ -311,7 +311,6 @@ function IOURequestStepDistance({
         navigateToParticipantPage,
         navigateToConfirmationPage,
     ]);
->>>>>>> main
 
     const getError = () => {
         // Get route error if available else show the invalid number of waypoints error.
