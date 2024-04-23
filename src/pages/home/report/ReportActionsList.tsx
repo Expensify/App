@@ -327,14 +327,16 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
+            // If a new comment is added and it's from the current user scroll to the bottom
+            // otherwise leave the user positioned where they are now in the list.
+            // Additionally, since the first report action could be a whisper message (new WS) ->
+            // hasNewestReportAction will be false, check isWhisperAction is false before returning early.
+            if (!isFromCurrentUser || (!hasNewestReportActionRef.current && !ReportActionsUtils.isWhisperAction(sortedReportActions?.[0]))) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [reportScrollManager],
+        [sortedReportActions, reportScrollManager],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
