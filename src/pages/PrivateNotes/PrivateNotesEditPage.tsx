@@ -164,6 +164,7 @@ function PrivateNotesEditPage({route, personalDetailsList, report}: PrivateNotes
                             privateNotesInput.current = el;
                             updateMultilineInputRange(privateNotesInput.current);
                         }}
+                        isMarkdownEnabled
                     />
                 </OfflineWithFeedback>
             </FormProvider>
