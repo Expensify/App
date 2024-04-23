@@ -23,7 +23,6 @@ const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = Url.addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
 const USE_EXPENSIFY_URL = 'https://use.expensify.com';
-const NEW_HELP_URL = 'https://help.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
@@ -569,7 +568,7 @@ const CONST = {
     FEES_URL: `${USE_EXPENSIFY_URL}/fees`,
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
-    NEWHELP_URL: NEW_HELP_URL,
+    NEWHELP_URL: 'https://help.expensify.com',
     INTERNAL_DEV_EXPENSIFY_URL: 'https://www.expensify.com.dev',
     STAGING_EXPENSIFY_URL: 'https://staging.expensify.com',
     EXPENSIFY_URL: 'https://www.expensify.com',
@@ -3414,16 +3413,16 @@ const CONST = {
             SHARE_CODE: 'shareCode',
         },
         REVENUE: 250,
-        LEARN_MORE_LINK: `${NEW_HELP_URL}/articles/new-expensify/expenses/Referral-Program`,
+        LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
     },
 
     FEATURE_TRAINING: {
         CONTENT_TYPES: {
-            TRACK_EXPENSE: 'track-expense',
+            TRACK_EXPENSE: 'track-expenses',
         },
-        'track-expense': {
-            LEARN_MORE_LINK: `${NEW_HELP_URL}/articles/new-expensify/expenses/Request-Money`,
+        'track-expenses': {
+            LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
     },
 
