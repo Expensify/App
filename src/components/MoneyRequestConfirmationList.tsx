@@ -619,6 +619,10 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            if (formError) {
+                return;
+            }
+
             if (iouType === CONST.IOU.TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
@@ -661,6 +665,7 @@ function MoneyRequestConfirmationList({
             isDistanceRequestWithPendingRoute,
             iouAmount,
             isEditingSplitBill,
+            formError,
             setFormError,
             onConfirm,
         ],
