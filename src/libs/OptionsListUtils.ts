@@ -1743,9 +1743,6 @@ function getOptions(
 
     // Exclude the current user from the personal details list
     const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
-    if (!includeSelfDM) {
-        optionsToExclude.push({login: currentUserLogin});
-    }
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1824,6 +1821,7 @@ function getOptions(
     }
 
     if (includePersonalDetails) {
+        optionsToExclude.push({login: currentUserLogin});
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
             if (optionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
