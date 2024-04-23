@@ -17,6 +17,9 @@ type ReportActionsListItemRendererProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
 
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
+
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -62,6 +65,7 @@ function ReportActionsListItemRenderer({
     shouldDisplayNewMarker,
     linkedReportActionID = '',
     shouldDisplayReplyDivider,
+    parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -152,13 +156,14 @@ function ReportActionsListItemRenderer({
             report={report}
             parentReport={parentReport}
             transactionThreadReport={transactionThreadReport}
+            parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
             reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
-                (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
+                ReportUtils.isPolicyExpenseChat(report) &&
                 [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED].some(
                     (type) => type === reportAction.actionName,
                 )
