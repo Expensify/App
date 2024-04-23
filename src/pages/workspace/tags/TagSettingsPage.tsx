@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy as PolicyType} from '@src/types/onyx';
+import withPolicyConnections from '../withPolicyConnections';
 
 type TagSettingsPageOnyxProps = {
     /** All policy tags */
