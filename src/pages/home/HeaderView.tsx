@@ -67,7 +67,7 @@ type HeaderViewProps = HeaderViewOnyxProps & {
     reportID: string;
 
     /** Whether we should display the header as in narrow layout */
-    shouldUseNarrowLayout?: boolean;
+    isNarrowLayout?: boolean;
 };
 
 function HeaderView({
@@ -80,10 +80,10 @@ function HeaderView({
     reportID,
     guideCalendarLink,
     onNavigationMenuButtonClicked,
-    shouldUseNarrowLayout = false,
+    isNarrowLayout = false,
 }: HeaderViewProps) {
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -214,7 +214,7 @@ function HeaderView({
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
+    const shouldShowBorderBottom = !isTaskReport || !isNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
 
     const isLoading = !report.reportID || !title;
@@ -224,13 +224,13 @@ function HeaderView({
             style={[shouldShowBorderBottom && styles.borderBottom]}
             dataSet={{dragArea: true}}
         >
-            <View style={[styles.appContentHeader, !(isSmallScreenWidth || shouldUseNarrowLayout) && styles.headerBarDesktopHeight]}>
-                <View style={[styles.appContentHeaderTitle, !(isSmallScreenWidth || shouldUseNarrowLayout) && !isLoading && styles.pl5]}>
+            <View style={[styles.appContentHeader, !isNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeaderTitle, !isNarrowLayout && !isLoading && styles.pl5]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <>
-                            {(isSmallScreenWidth || shouldUseNarrowLayout) && (
+                            {isNarrowLayout && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
                                     style={styles.LHNToggle}
@@ -348,10 +348,8 @@ function HeaderView({
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                                    {isTaskReport && !(isSmallScreenWidth || shouldUseNarrowLayout) && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
-                                        <TaskHeaderActionButton report={report} />
-                                    )}
-                                    {canJoin && !(isSmallScreenWidth || shouldUseNarrowLayout) && joinButton}
+                                    {isTaskReport && !isNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
+                                    {canJoin && !isNarrowLayout && joinButton}
                                     {shouldShowThreeDotsButton && (
                                         <ThreeDotsMenu
                                             anchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
@@ -378,7 +376,7 @@ function HeaderView({
                     )}
                 </View>
             </View>
-            {!isLoading && canJoin && isSmallScreenWidth && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
+            {!isLoading && canJoin && isNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
         </View>
     );
 }

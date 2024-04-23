@@ -54,7 +54,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     transactionThreadReportID?: string | null;
 
     /** Whether we should display the header as in narrow layout */
-    shouldUseNarrowLayout?: boolean;
+    isNarrowLayout?: boolean;
 };
 
 function MoneyReportHeader({
@@ -65,12 +65,12 @@ function MoneyReportHeader({
     report: moneyRequestReport,
     transactionThreadReport,
     reportActions,
-    shouldUseNarrowLayout = false,
+    isNarrowLayout = false,
 }: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
     const {reimbursableSpend} = ReportUtils.getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const requestParentReportAction = useMemo(() => {
@@ -120,7 +120,7 @@ function MoneyReportHeader({
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isNarrowLayout);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -197,15 +197,15 @@ function MoneyReportHeader({
                 shouldShowPinButton={false}
                 report={moneyRequestReport}
                 policy={policy}
-                shouldShowBackButton={shouldUseNarrowLayout || isSmallScreenWidth}
+                shouldShowBackButton={isNarrowLayout}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
+                shouldShowBorderBottom={!(shouldShowAnyButton && isNarrowLayout) && !(shouldShowNextStep && !isNarrowLayout)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
             >
-                {shouldShowSettlementButton && !isSmallScreenWidth && (
+                {shouldShowSettlementButton && !isNarrowLayout && (
                     <View style={styles.pv2}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
@@ -225,7 +225,7 @@ function MoneyReportHeader({
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && !isSmallScreenWidth && (
+                {shouldShowSubmitButton && !isNarrowLayout && (
                     <View style={styles.pv2}>
                         <Button
                             medium
@@ -239,7 +239,7 @@ function MoneyReportHeader({
                 )}
             </HeaderWithBackButton>
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
-                {shouldShowSettlementButton && isSmallScreenWidth && (
+                {shouldShowSettlementButton && isNarrowLayout && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <SettlementButton
                             currency={moneyRequestReport.currency}
@@ -258,7 +258,7 @@ function MoneyReportHeader({
                         />
                     </View>
                 )}
-                {shouldShowSubmitButton && isSmallScreenWidth && (
+                {shouldShowSubmitButton && isNarrowLayout && (
                     <View style={[styles.ph5, styles.pb2]}>
                         <Button
                             medium
@@ -281,7 +281,7 @@ function MoneyReportHeader({
                     nonHeldAmount={!ReportUtils.hasOnlyHeldExpenses(moneyRequestReport.reportID) ? nonHeldAmount : undefined}
                     requestType={requestType}
                     fullAmount={fullAmount}
-                    isSmallScreenWidth={isSmallScreenWidth}
+                    isSmallScreenWidth={isNarrowLayout}
                     onClose={() => setIsHoldMenuVisible(false)}
                     isVisible={isHoldMenuVisible}
                     paymentType={paymentType}

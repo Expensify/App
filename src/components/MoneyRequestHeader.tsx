@@ -52,7 +52,7 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     parentReportAction: OnyxEntry<ReportAction>;
 
     /** Whether we should display the header as in narrow layout */
-    shouldUseNarrowLayout?: boolean;
+    isNarrowLayout?: boolean;
 };
 
 function MoneyRequestHeader({
@@ -63,7 +63,7 @@ function MoneyRequestHeader({
     transaction,
     shownHoldUseExplanation = false,
     policy,
-    shouldUseNarrowLayout = false,
+    isNarrowLayout = false,
 }: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -73,7 +73,7 @@ function MoneyRequestHeader({
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
@@ -156,14 +156,14 @@ function MoneyRequestHeader({
             return;
         }
 
-        if (isSmallScreenWidth) {
+        if (isNarrowLayout) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
+    }, [isNarrowLayout, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.setShownHoldUseExplanation();
@@ -192,7 +192,7 @@ function MoneyRequestHeader({
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    shouldShowBackButton={shouldUseNarrowLayout || isSmallScreenWidth}
+                    shouldShowBackButton={isNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
                 {isPending && (
@@ -221,7 +221,7 @@ function MoneyRequestHeader({
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {isSmallScreenWidth && shouldShowHoldMenu && (
+            {isNarrowLayout && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}
