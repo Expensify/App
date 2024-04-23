@@ -82,12 +82,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
-        /** Content to be added to the header */
-        headerContent?: ReactNode;
-
-        /** TestID of the component */
-        testID?: string;
-
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
     };
@@ -118,8 +112,6 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
-    headerContent,
-    testID,
     shouldShowNotFoundPage = false,
     isLoading: isPageLoading = false,
 }: WorkspacePageWithSectionsProps) {
@@ -168,7 +160,7 @@ function WorkspacePageWithSections({
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={testID ?? WorkspacePageWithSections.displayName}
+            testID={WorkspacePageWithSections.displayName}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
@@ -185,9 +177,7 @@ function WorkspacePageWithSections({
                     onBackButtonPress={() => Navigation.goBack(backButtonRoute)}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight}
-                >
-                    {headerContent}
-                </HeaderWithBackButton>
+                />
                 {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (

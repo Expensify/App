@@ -1,19 +1,22 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import CategoryPicker from '@components/CategoryPicker';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
+import * as PolicyActions from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, PolicyCategories, PolicyTagList, ReportActions, Session, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -77,6 +80,20 @@ function IOURequestStepCategory({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !shouldShowCategory || (isEditing && (isSplitBill ? !canEditSplitBill : !ReportUtils.canEditMoneyRequest(reportAction)));
 
+    const fetchData = () => {
+        if (policy && policyCategories) {
+            return;
+        }
+
+        PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
+    };
+    useNetwork({onReconnect: fetchData});
+
+    useEffect(() => {
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -102,6 +119,11 @@ function IOURequestStepCategory({
         }
 
         IOU.setMoneyRequestCategory(transactionID, updatedCategory);
+
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report?.reportID ?? ''));
+            return;
+        }
 
         navigateBack();
     };
