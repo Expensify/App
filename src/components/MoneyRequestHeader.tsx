@@ -55,16 +55,7 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
     isNarrowLayout?: boolean;
 };
 
-function MoneyRequestHeader({
-    session,
-    parentReport,
-    report,
-    parentReportAction,
-    transaction,
-    shownHoldUseExplanation = false,
-    policy,
-    isNarrowLayout = false,
-}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy, isNarrowLayout = false}: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);

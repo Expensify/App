@@ -57,16 +57,7 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
     isNarrowLayout?: boolean;
 };
 
-function MoneyReportHeader({
-    session,
-    policy,
-    chatReport,
-    nextStep,
-    report: moneyRequestReport,
-    transactionThreadReport,
-    reportActions,
-    isNarrowLayout = false,
-}: MoneyReportHeaderProps) {
+function MoneyReportHeader({session, policy, chatReport, nextStep, report: moneyRequestReport, transactionThreadReport, reportActions, isNarrowLayout = false}: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
