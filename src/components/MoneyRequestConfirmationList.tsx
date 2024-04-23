@@ -103,7 +103,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: IOUType;
+    iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
     /** IOU date */
     iouCreated?: string;
@@ -188,7 +188,7 @@ function MoneyRequestConfirmationList({
     onSendMoney,
     onConfirm,
     onSelectParticipant,
-    iouType = CONST.IOU.TYPE.REQUEST,
+    iouType = CONST.IOU.TYPE.SUBMIT,
     isScanRequest = false,
     iouAmount,
     policyCategories,
@@ -232,10 +232,10 @@ function MoneyRequestConfirmationList({
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
     const {isOffline} = useNetwork();
 
-    const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
+    const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
-    const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
+    const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
+    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
 
     const transactionID = transaction?.transactionID ?? '';
@@ -602,7 +602,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.SEND) {
+            if (iouType === CONST.IOU.TYPE.PAY) {
                 if (!paymentMethod) {
                     return;
                 }
@@ -653,7 +653,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
+        const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
         const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
@@ -1010,7 +1010,7 @@ function MoneyRequestConfirmationList({
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={!isEditingSplitBill && footerContent}
+            footerContent={footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
         >
@@ -1046,7 +1046,7 @@ function MoneyRequestConfirmationList({
                     : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
                       PolicyUtils.isPaidGroupPolicy(policy) &&
                       !isDistanceRequest &&
-                      iouType === CONST.IOU.TYPE.REQUEST && (
+                      iouType === CONST.IOU.TYPE.SUBMIT && (
                           <ReceiptEmptyState
                               onPress={() =>
                                   Navigation.navigate(

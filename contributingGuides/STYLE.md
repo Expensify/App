@@ -72,10 +72,10 @@ Using arrow functions is the preferred way to write an anonymous function such a
 
 ```javascript
 // Bad
-_.map(someArray, function (item) {...});
+someArray.map(function (item) {...});
 
 // Good
-_.map(someArray, (item) => {...});
+someArray.map((item) => {...});
 ```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
@@ -112,38 +112,9 @@ if (someCondition) {
 }
 ```
 
-## Object / Array Methods
-
-We have standardized on using [underscore.js](https://underscorejs.org/) methods for objects and collections instead of the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods). This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
-
-```javascript
-// Bad
-myArray.forEach(item => doSomething(item));
-// Good
-_.each(myArray, item => doSomething(item));
-
-// Bad
-const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
-// Good
-const myArray = _.map(someObject, (value, key) => doSomething(value));
-
-// Bad
-myCollection.includes('item');
-// Good
-_.contains(myCollection, 'item');
-
-// Bad
-const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
-// Good
-const modifiedArray = _.chain(someArray)
-    .filter(filterFunc)
-    .map(mapFunc)
-    .value();
-```
-
 ## Accessing Object Properties and Default Values
 
-Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type.
 
 ```javascript
 // Bad
@@ -448,7 +419,7 @@ const propTypes = {
 
 ### Important Note:
 
-In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `_.isEmpty()` instead.
+In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
 
 ```javascript
 // Bad! This will cause a breaking an error on native platforms
@@ -467,7 +438,7 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 {
     return (
         <View>
-            {!_.isEmpty(props.title)
+            {!!props.title
                 ? <View style={styles.title}>{props.title}</View>
                 : null}
             <View style={styles.body}>This is the body</View>

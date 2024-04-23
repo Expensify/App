@@ -67,9 +67,11 @@ function IOURequestStartPage({
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.SUBMIT]: translate('iou.submitExpense'),
         [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
-        [CONST.IOU.TYPE.TRACK_EXPENSE]: translate('iou.trackExpense'),
+        [CONST.IOU.TYPE.TRACK]: translate('iou.trackExpense'),
         [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
@@ -144,7 +146,7 @@ function IOURequestStartPage({
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
                             />
-                            {iouType !== CONST.IOU.TYPE.SEND ? (
+                            {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     onTabSelected={resetIOUTypeIfChanged}
