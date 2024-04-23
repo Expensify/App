@@ -18,7 +18,7 @@ const FS = {
     consent: (c: boolean) => FullStory.consent(c),
 
     /**
-     * Initializes the FullStory session with the provided session information.
+     * Initializes the FullStory metadata with the provided metadata information.
      */
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
         try {
@@ -31,9 +31,9 @@ const FS = {
     },
 
     /**
-     * Sets the FullStory user identity based on the provided session information.
-     * If the session is null or the email is 'undefined', the user identity is anonymized.
-     * If the session contains an accountID, the user identity is defined with it.
+     * Sets the FullStory user identity based on the provided metadata information.
+     * If the metadata is null or the email is 'undefined', the user identity is anonymized.
+     * If the metadata contains an accountID, the user identity is defined with it.
      */
     fsIdentify: (metadata: UserMetadata | null) => {
         if (!metadata || !metadata.accountID) {
