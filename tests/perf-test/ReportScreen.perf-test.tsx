@@ -92,13 +92,20 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
-        useNavigationState: () => {},
         createNavigationContainerRef: jest.fn(),
     } as typeof Navigation;
 });
 
 // mock PortalStateContext
 jest.mock('@gorhom/portal');
+
+jest.mock('@hooks/useResponsiveLayout', () =>
+    jest.fn(() => ({
+        shouldUseNarrowLayout: true,
+        isSmallScreenWidth: true,
+        isInModal: true,
+    })),
+);
 
 beforeAll(() =>
     Onyx.init({
