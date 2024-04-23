@@ -82,13 +82,13 @@ function FeatureTrainingModal({
     const [isModalVisible, setIsModalVisible] = useState(true);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
-    const [isvideoStatusLocked, setIsVideoStatusLocked] = useState(false);
+    const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
     useEffect(() => {
-        if (isvideoStatusLocked) {
+        if (isVideoStatusLocked) {
             return;
         }
 
@@ -98,7 +98,7 @@ function FeatureTrainingModal({
             setVideoStatus('video');
             setIsVideoStatusLocked(true);
         }
-    }, [isOffline, isvideoStatusLocked]);
+    }, [isOffline, isVideoStatusLocked]);
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -191,7 +191,7 @@ function FeatureTrainingModal({
                     <GestureHandlerRootView>
                         <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                             <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
-                            <View style={[shouldUseNarrowLayout ? [styles.mt5, styles.mh8] : [styles.mt5, styles.mh5]]}>
+                            <View style={[title && description ? styles.mt5 : styles.mt3, styles.mh5]}>
                                 {title && description && (
                                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{title}</Text>
@@ -202,7 +202,7 @@ function FeatureTrainingModal({
                                     <CheckboxWithLabel
                                         label={translate('featureTraining.doNotShowAgain')}
                                         accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                                        style={[styles.mv4]}
+                                        style={[styles.mb3]}
                                         isChecked={!willShowAgain}
                                         onInputChange={toggleWillShowAgain}
                                     />
@@ -210,7 +210,7 @@ function FeatureTrainingModal({
                                 {helpText && (
                                     <Button
                                         large
-                                        style={[styles.mb1]}
+                                        style={[styles.mb3]}
                                         onPress={onHelp}
                                         text={helpText}
                                     />
