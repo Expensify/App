@@ -160,11 +160,6 @@ function MoneyRequestView({
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
-<<<<<<< HEAD
-=======
-    const iouType = isTrackExpense ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-
->>>>>>> 7e5b436 (Merge pull request #40711 from koko57/feat/36985-create-new-rate-field-followups)
     // Flags for showing categories and tags
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
