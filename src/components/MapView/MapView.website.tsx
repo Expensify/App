@@ -179,16 +179,22 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         );
 
         const centerMap = useCallback(() => {
-            if (directionCoordinates && directionCoordinates.length > 1) {
-                const bounds = [
-                    [Math.min(...directionCoordinates.map((coord) => coord[0])), Math.min(...directionCoordinates.map((coord) => coord[1]))], // Southwest
-                    [Math.max(...directionCoordinates.map((coord) => coord[0])), Math.max(...directionCoordinates.map((coord) => coord[1]))], // Northeast
-                ];
-                mapRef?.fitBounds([bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]]);
+            if (!mapRef) {
                 return;
             }
-            mapRef?.easeTo({center: {lat: currentPosition?.latitude ?? 0, lon: currentPosition?.longitude ?? 0}, bearing: 0});
-        }, [directionCoordinates, currentPosition, mapRef]);
+            if (directionCoordinates && directionCoordinates.length > 1) {
+                const {northEast, southWest} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
+                const map = mapRef?.getMap();
+                map?.fitBounds([southWest, northEast], {padding: mapPadding, animate: true, duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME});
+                return;
+            }
+            mapRef?.easeTo({
+                center: {lat: currentPosition?.latitude ?? 0, lon: currentPosition?.longitude ?? 0},
+                bearing: 0,
+                animate: true,
+                duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            });
+        }, [directionCoordinates, currentPosition, mapRef, waypoints]);
 
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View
@@ -218,15 +224,13 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         }}
                     >
                         <Layer
-                            {...{
-                                id: 'point',
-                                type: 'circle',
-                                paint: {
-                                    /* eslint-disable @typescript-eslint/naming-convention */
-                                    'circle-radius': 8,
-                                    /* eslint-disable @typescript-eslint/naming-convention */
-                                    'circle-color': '#007bff',
-                                },
+                            id="point"
+                            type="circle"
+                            paint={{
+                                /* eslint-disable @typescript-eslint/naming-convention */
+                                'circle-radius': 8,
+                                /* eslint-disable @typescript-eslint/naming-convention */
+                                'circle-color': '#007bff',
                             }}
                         />
                     </Source>

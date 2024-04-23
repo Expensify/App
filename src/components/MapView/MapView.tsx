@@ -146,15 +146,16 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         };
         const centerMap = useCallback(() => {
             if (directionCoordinates && directionCoordinates.length > 1) {
-                const bounds = [
-                    [Math.min(...directionCoordinates.map((coord) => coord[0])), Math.min(...directionCoordinates.map((coord) => coord[1]))], // Southwest
-                    [Math.max(...directionCoordinates.map((coord) => coord[0])), Math.max(...directionCoordinates.map((coord) => coord[1]))], // Northeast
-                ];
-                cameraRef?.current?.fitBounds(bounds[0], bounds[1], undefined, 1000);
+                const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
+                cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
                 return;
             }
-            cameraRef?.current?.setCamera({heading: 0, centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]});
-        }, [directionCoordinates, currentPosition]);
+            cameraRef?.current?.setCamera({
+                heading: 0,
+                centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
+                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            });
+        }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View style={style}>
                 <Mapbox.MapView
