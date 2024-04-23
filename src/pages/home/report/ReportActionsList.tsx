@@ -4,7 +4,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {EmitterSubscription, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -307,8 +307,8 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        let unreadActionSubscriptionForTransactionThread = null;
-        let readNewestActionSubscriptionForTransactionThread = null;
+        let unreadActionSubscriptionForTransactionThread: EmitterSubscription | null = null;
+        let readNewestActionSubscriptionForTransactionThread: EmitterSubscription | null = null;
         if (transactionThreadReport?.reportID) {
             unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
                 resetUnreadMarker(newLastReadTime);
