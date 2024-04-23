@@ -80,6 +80,7 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
+import type SearchResults  from './SearchResults'
 
 export type {
     Account,
@@ -177,4 +178,5 @@ export type {
     Log,
     PolicyJoinMember,
     CapturedLogs,
+    SearchResults
 };

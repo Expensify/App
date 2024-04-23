@@ -356,6 +356,9 @@ const ONYXKEYS = {
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
+
+        // Search Page related
+        SEARCH: 'search_'
     },
 
     /** List of Form ids */
@@ -560,6 +563,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
+    [ONYXKEYS.COLLECTION.SEARCH]: OnyxTypes.SearchResults;
 };
 
 type OnyxValuesMapping = {
