@@ -1820,8 +1820,8 @@ function getOptions(
         }
     }
 
+    optionsToExclude.push({login: currentUserLogin});
     if (includePersonalDetails) {
-        optionsToExclude.push({login: currentUserLogin});
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
             if (optionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
