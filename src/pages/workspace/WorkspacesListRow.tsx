@@ -252,55 +252,8 @@ function WorkspacesListRow({
                     </View>
                 </View>
             </View>
-<<<<<<< HEAD
-            <View style={[isNarrow && styles.mr5]}>
-                {isJoinRequestPending && (
-                    <View
-                        style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1, styles.justifyContentEnd, !isNarrow && styles.pr4, isNarrow && styles.workspaceListBadge]}
-                    >
-                        <Badge
-                            text={translate('workspace.common.requested')}
-                            textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
-                            icon={Expensicons.Hourglass}
-                        />
-                    </View>
-                )}
-                {!isJoinRequestPending && (
-                    <>
-                        <View style={[styles.flexRow, styles.flex0, styles.gap2, isNarrow && styles.mr5, styles.alignItemsCenter]}>
-                            <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
-                        </View>
-                        <View
-                            ref={threeDotsMenuContainerRef}
-                            style={[styles.workspaceThreeDotMenu]}
-                        >
-                            <ThreeDotsMenu
-                                onIconPress={() => {
-                                    if (isSmallScreenWidth) {
-                                        return;
-                                    }
-                                    threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-                                        setThreeDotsMenuPosition({
-                                            horizontal: x + width,
-                                            vertical: y + height,
-                                        });
-                                    });
-                                }}
-                                menuItems={menuItems}
-                                anchorPosition={threeDotsMenuPosition}
-                                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                                shouldOverlay
-                                disabled={shouldDisableThreeDotsMenu}
-                            />
-                        </View>
-                    </>
-                )}
-            </View>
-=======
 
             {!isSmallScreenWidth && ThreeDotMenuOrPendingIcon}
->>>>>>> 109d0f0 (Merge pull request #40824 from getusha/fix-wt)
         </View>
     );
 }
