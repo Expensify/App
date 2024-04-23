@@ -39,4 +39,21 @@ function restoreOriginalTransactionFromBackup(transactionID: string, isDraft: bo
     });
 }
 
-export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup};
+function createDraftTransaction(transaction: OnyxEntry<Transaction>) {
+    if (!transaction) {
+        return;
+    }
+
+    const newTransaction = {
+        ...transaction,
+    };
+
+    // Use set so that it will always fully overwrite any backup transaction that could have existed before
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+}
+
+function removeDraftTransaction(transactionID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
+}
+
+export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction};
