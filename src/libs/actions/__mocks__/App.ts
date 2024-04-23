@@ -23,6 +23,10 @@ const {
     KEYS_TO_PRESERVE,
 } = AppImplementation;
 
+type AppActionsMock = typeof AppImport & {
+    getMissingOnyxUpdates: jest.Mock<Promise<void[]>>;
+};
+
 const getMissingOnyxUpdates = jest.fn((_fromID: number, toID: number) => {
     const promise = Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, toID);
     return promise;
@@ -51,3 +55,4 @@ export {
     updateLastVisitedPath,
     KEYS_TO_PRESERVE,
 };
+export type {AppActionsMock};

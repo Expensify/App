@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
+import type {AppActionsMock} from '@libs/actions/__mocks__/App';
 import * as AppImport from '@libs/actions/App';
 import * as OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@libs/actions/OnyxUpdateManager/types';
 import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
+import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
+import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
@@ -12,46 +14,9 @@ jest.mock('@libs/actions/App');
 jest.mock('@libs/actions/OnyxUpdateManager/utils');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
-type AppActionsMock = typeof AppImport & {
-    getMissingOnyxUpdates: jest.Mock<Promise<void[]>>;
-};
-
-type ApplyUpdatesMock = typeof ApplyUpdatesImport & {
-    applyUpdates: jest.Mock<Promise<[]>, [updates: DeferredUpdatesDictionary]>;
-};
-
-type OnyxUpdateManagerUtilsMock = typeof OnyxUpdateManagerUtilsImport & {
-    detectGapsAndSplit: jest.Mock<Promise<DetectGapAndSplitResult>, [updates: DeferredUpdatesDictionary, clientLastUpdateID?: number]>;
-    validateAndApplyDeferredUpdates: jest.Mock<Promise<void>, [clientLastUpdateID?: number]>;
-};
-
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
 const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
-
-let onApplyUpdates: ((updates: DeferredUpdatesDictionary) => Promise<void>) | undefined;
-ApplyUpdates.applyUpdates.mockImplementation((updates: DeferredUpdatesDictionary) => {
-    const ApplyUpdatesMock: ApplyUpdatesMock = jest.requireActual('@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates');
-
-    if (onApplyUpdates === undefined) {
-        return ApplyUpdatesMock.applyUpdates(updates).then(() => []);
-    }
-
-    return onApplyUpdates(updates)
-        .then(() => ApplyUpdatesMock.applyUpdates(updates))
-        .then(() => []);
-});
-
-let onValidateAndApplyDeferredUpdates: ((clientLastUpdateID?: number) => Promise<void>) | undefined;
-OnyxUpdateManagerUtils.validateAndApplyDeferredUpdates.mockImplementation((clientLastUpdateID?: number) => {
-    const UtilsMock: OnyxUpdateManagerUtilsMock = jest.requireActual('@libs/actions/OnyxUpdateManager/utils/__mocks__');
-
-    if (onValidateAndApplyDeferredUpdates === undefined) {
-        return UtilsMock.validateAndApplyDeferredUpdates(clientLastUpdateID);
-    }
-
-    return onValidateAndApplyDeferredUpdates(clientLastUpdateID).then(() => UtilsMock.validateAndApplyDeferredUpdates(clientLastUpdateID));
-});
 
 const createMockUpdate = (lastUpdateID: number): OnyxUpdatesFromServer => ({
     type: 'https',
@@ -131,12 +96,12 @@ describe('OnyxUpdateManager', () => {
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate5);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate6);
 
-        onValidateAndApplyDeferredUpdates = async () => {
+        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = async () => {
             // We manually update the lastUpdateIDAppliedToClient to 5, to simulate local updates being applied,
             // while we are waiting for the missing updates to be fetched.
             // Only the deferred updates after the lastUpdateIDAppliedToClient should be applied.
             await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
-            onValidateAndApplyDeferredUpdates = undefined;
+            OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = undefined;
         };
 
         return waitForBatchedUpdates()
@@ -231,13 +196,13 @@ describe('OnyxUpdateManager', () => {
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate6);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate7);
 
-        onApplyUpdates = async () => {
+        ApplyUpdates.mockValues.onApplyUpdates = async () => {
             // We manually update the lastUpdateIDAppliedToClient to 5, to simulate local updates being applied,
             // while the applicable updates have been applied.
             // When this happens, the OnyxUpdateManager should trigger another validation of the deferred updates,
             // without triggering another re-fetching of missing updates from the server.
             await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 5);
-            onApplyUpdates = undefined;
+            ApplyUpdates.mockValues.onApplyUpdates = undefined;
         };
 
         return waitForBatchedUpdates()
@@ -271,13 +236,13 @@ describe('OnyxUpdateManager', () => {
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate3);
         OnyxUpdateManager.handleOnyxUpdateGap(mockUpdate7);
 
-        onApplyUpdates = async () => {
+        ApplyUpdates.mockValues.onApplyUpdates = async () => {
             // We manually update the lastUpdateIDAppliedToClient to 4, to simulate local updates being applied,
             // while the applicable updates have been applied.
             // When this happens, the OnyxUpdateManager should trigger another validation of the deferred updates,
             // without triggering another re-fetching of missing updates from the server.
             await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 4);
-            onApplyUpdates = undefined;
+            ApplyUpdates.mockValues.onApplyUpdates = undefined;
         };
 
         return waitForBatchedUpdates()
