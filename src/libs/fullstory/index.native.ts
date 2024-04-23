@@ -1,6 +1,8 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {UserMetadata} from '@src/types/onyx';
+import * as Environment from '@src/libs/Environment/Environment';
+import CONST from '@src/CONST';
 
 /**
  * Fullstory React-Native lib adapter
@@ -22,9 +24,14 @@ const FS = {
      */
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
         try {
-            // set consent
-            FullStory.consent(true);
-            FS.fsIdentify(value);
+            Environment.getEnvironment().then((envName: string) => {
+                if(CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                    return;
+                }
+                // We only use FullStory in production environment
+                FullStory.consent(true);
+                FS.fsIdentify(value);
+            });
         } catch (e) {
             // error handler
         }
