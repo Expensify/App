@@ -29,22 +29,22 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
     const {exportEntity, exportAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const data: CardListItem[] = useMemo(() => {
-        let result: Account[] | [];
+        let accounts: Account[];
         switch (exportEntity) {
             case CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK:
-                result = bankAccounts ?? [];
+                accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL:
-                result = accountsPayable ?? [];
+                accounts = accountsPayable ?? [];
                 break;
             case CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY:
-                result = journalEntryAccounts ?? [];
+                accounts = journalEntryAccounts ?? [];
                 break;
             default:
-                result = [];
+                accounts = [];
         }
 
-        return result?.map((card) => ({
+        return accounts.map((card) => ({
             value: card.name,
             text: card.name,
             keyForList: card.name,
