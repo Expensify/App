@@ -27,14 +27,6 @@ type ProfilingToolMenuOnyxProps = {
 
 type ProfilingToolMenuProps = ProfilingToolMenuOnyxProps;
 
-function completeCacheStatsMonitoring() {
-    const stats = moize.getStats();
-    moize.clearStats();
-    moize.collectStats(false);
-
-    return stats;
-}
-
 function formatBytes(bytes: number, decimals = 2) {
     if (!+bytes) {
         return '0 Bytes';
@@ -65,7 +57,8 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
 
         const amountOfTotalMemory = await DeviceInfo.getTotalMemory();
         const amountOfUsedMemory = await DeviceInfo.getUsedMemory();
-        const stats = completeCacheStatsMonitoring();
+        const stats = moize.getStats();
+        moize.clearStats();
 
         setTotalMemory(amountOfTotalMemory);
         setUsedMemory(amountOfUsedMemory);
@@ -76,7 +69,6 @@ function ProfilingToolMenu({isProfilingInProgress = false}: ProfilingToolMenuPro
         const shouldProfiling = !isProfilingInProgress;
         if (shouldProfiling) {
             startProfiling();
-            moize.collectStats();
         } else {
             stop();
         }
