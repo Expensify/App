@@ -65,7 +65,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Workflows,
             titleTranslationKey: 'workspace.moreFeatures.workflows.title',
             subtitleTranslationKey: 'workspace.moreFeatures.workflows.subtitle',
-            isActive: policy?.areWorkflowsEnabled ?? false,
+            isActive: policy?.areWorkflowsEnabled ?? false || hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areWorkflowsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyWorkflows(policy?.id ?? '', isEnabled);
@@ -89,7 +89,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Tag,
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
-            isActive: policy?.areTagsEnabled ?? false,
+            isActive:(policy?.areTagsEnabled ?? false) || hasAccountingConnection,
             disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
@@ -114,7 +114,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Accounting,
             titleTranslationKey: 'workspace.moreFeatures.connections.title',
             subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
-            isActive: !!policy?.areConnectionsEnabled,
+            isActive: (policy?.areConnectionsEnabled ?? false) || hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areConnectionsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
