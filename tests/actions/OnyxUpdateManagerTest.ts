@@ -6,6 +6,8 @@ import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
 import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
+import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
 import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
 import CONST from '@src/CONST';
@@ -13,7 +15,6 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import createOnyxMockUpdate from '../utils/createOnyxMockUpdate';
-import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/App');
@@ -28,12 +29,13 @@ jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates', () => {
 
 const App = AppImport as AppActionsMock;
 const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
+const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
 
 const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
 const ONYX_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
 
-const exampleReportAction: Partial<OnyxTypes.ReportAction> = {
+const exampleReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
     actorAccountID: TEST_USER_ACCOUNT_ID,
     automatic: false,
@@ -41,10 +43,17 @@ const exampleReportAction: Partial<OnyxTypes.ReportAction> = {
     message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment', translationKey: ''}],
     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
     shouldShow: true,
-};
+} satisfies Partial<OnyxTypes.ReportAction>;
 
-const initialData = {report1: exampleReportAction, report2: exampleReportAction, report3: exampleReportAction} as OnyxTypes.ReportActions;
+const initialData = {report1: exampleReportAction, report2: exampleReportAction, report3: exampleReportAction} as unknown as OnyxTypes.ReportActions;
 
+const mockUpdate1 = createOnyxMockUpdate(1, [
+    {
+        onyxMethod: OnyxUtils.METHOD.SET,
+        key: ONYX_KEY,
+        value: initialData,
+    },
+]);
 const mockUpdate2 = createOnyxMockUpdate(2, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
@@ -55,21 +64,22 @@ const mockUpdate2 = createOnyxMockUpdate(2, [
     },
 ]);
 
-const report2PersonDiff = [
-    {type: 'TEXT', style: 'light', text: 'Other Test User'},
-    {type: 'TEXT', style: 'light', text: 'Other Test User 2'},
-];
+const report2PersonDiff = {
+    person: [
+        {type: 'TEXT', style: 'light', text: 'Other Test User'},
+        {type: 'TEXT', style: 'light', text: 'Other Test User 2'},
+    ],
+} satisfies Partial<OnyxTypes.ReportAction>;
+const report3AvatarDiff: Partial<OnyxTypes.ReportAction> = {
+    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png',
+};
 const mockUpdate3 = createOnyxMockUpdate(3, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
         value: {
-            report2: {
-                person: report2PersonDiff,
-            },
-            report3: {
-                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png',
-            },
+            report2: report2PersonDiff,
+            report3: report3AvatarDiff,
         },
     },
 ]);
@@ -79,6 +89,24 @@ const mockUpdate4 = createOnyxMockUpdate(4, [
         key: ONYX_KEY,
         value: {
             report3: null,
+        },
+    },
+]);
+
+const report2AvatarDiff = {
+    avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_6.png',
+} satisfies Partial<OnyxTypes.ReportAction>;
+const report4 = {
+    ...exampleReportAction,
+    automatic: true,
+} satisfies Partial<OnyxTypes.ReportAction>;
+const mockUpdate5 = createOnyxMockUpdate(5, [
+    {
+        onyxMethod: OnyxUtils.METHOD.MERGE,
+        key: ONYX_KEY,
+        value: {
+            report2: report2AvatarDiff,
+            report4,
         },
     },
 ]);
@@ -96,8 +124,6 @@ describe('actions/OnyxUpdateManager', () => {
     });
 
     beforeEach(async () => {
-        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-        global.fetch = TestHelper.getGlobalFetchMock();
         jest.clearAllMocks();
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
@@ -109,7 +135,10 @@ describe('actions/OnyxUpdateManager', () => {
     });
 
     it('should trigger Onyx update gap handling', async () => {
-        App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate3];
+        // Since we don't want to trigger actual GetMissingOnyxUpdates calls to the server/backend,
+        // we have to mock the results of these calls. By setting the missingOnyxUpdatesToBeApplied
+        // property on the mock, we can simulate the results of the GetMissingOnyxUpdates calls.
+        App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate2, mockUpdate3];
 
         applyOnyxUpdatesReliably(mockUpdate2);
         applyOnyxUpdatesReliably(mockUpdate4);
@@ -119,13 +148,79 @@ describe('actions/OnyxUpdateManager', () => {
             const expectedResult: Record<string, Partial<OnyxTypes.ReportAction>> = {
                 report2: {
                     ...exampleReportAction,
-                    person: report2PersonDiff,
+                    ...report2PersonDiff,
                 },
             };
 
             expect(reportActions).toEqual(expectedResult);
 
+            // GetMissingOnyxUpdates should have been called for the gap between update 2 and 4.
+            // Since we queued update 4 before update 3, there's a gap to resolve, before we apply the deferred updates.
+            expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
+            expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 2, 3);
+
+            // After the missing updates have been applied, the applicable updates after
+            // all locally applied updates should be applied. (4)
             expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(1);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {4: mockUpdate4});
         });
+    });
+
+    it('should trigger 2 GetMissingOnyxUpdates calls, because the deferred updates have gaps', async () => {
+        // Since we don't want to trigger actual GetMissingOnyxUpdates calls to the server/backend,
+        // we have to mock the results of these calls. By setting the missingOnyxUpdatesToBeApplied
+        // property on the mock, we can simulate the results of the GetMissingOnyxUpdates calls.
+        App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate1, mockUpdate2];
+
+        applyOnyxUpdatesReliably(mockUpdate3);
+        applyOnyxUpdatesReliably(mockUpdate5);
+
+        let finishFirstCall: () => void;
+        const firstGetMissingOnyxUpdatesCallFinished = new Promise<void>((resolve) => {
+            finishFirstCall = resolve;
+        });
+
+        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = () => {
+            finishFirstCall();
+            return Promise.resolve();
+        };
+
+        return firstGetMissingOnyxUpdatesCallFinished
+            .then(() => {
+                // After the first GetMissingOnyxUpdates call has been resolved,
+                // we have to set the mocked results of for the second call.
+                App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate3, mockUpdate4];
+            })
+            .then(() => OnyxUpdateManagerExports.queryPromise)
+            .then(() => {
+                const expectedResult: Record<string, Partial<OnyxTypes.ReportAction>> = {
+                    report2: {
+                        ...exampleReportAction,
+                        ...report2PersonDiff,
+                        ...report2AvatarDiff,
+                    },
+                    report4,
+                };
+
+                expect(reportActions).toEqual(expectedResult);
+
+                // GetMissingOnyxUpdates should have been called twice, once for the gap between update 1 and 3,
+                // and once for the gap between update 3 and 5.
+                // We always fetch missing updates from the lastUpdateIDAppliedToClient
+                // to previousUpdateID of the first deferred update. First 1-2, second 3-4
+                expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
+                expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
+                expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
+
+                // Since we have two GetMissingOnyxUpdates calls, there will be two sets of applicable updates.
+                // The first applicable update will be 3, after missing updates 1-2 have been applied.
+                // The second applicable update will be 5, after missing updates 3-4 have been applied.
+                expect(ApplyUpdates.applyUpdates).toHaveBeenCalledTimes(2);
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(1, {3: mockUpdate3});
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect(ApplyUpdates.applyUpdates).toHaveBeenNthCalledWith(2, {5: mockUpdate5});
+            });
     });
 });
