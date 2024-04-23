@@ -232,7 +232,7 @@ function IOURequestStepDistance({
                         amount: 0,
                         comment: '',
                         currency: transaction?.currency ?? 'USD',
-                        merchant: translate('iou.routePending'),
+                        merchant: translate('iou.fieldPending'),
                         created: transaction?.created ?? '',
                         category: '',
                         tag: '',
@@ -242,7 +242,7 @@ function IOURequestStepDistance({
                     return;
                 }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
-                IOU.setMoneyRequestMerchant(transactionID, translate('iou.routePending'), false);
+                IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
                 IOU.createDistanceRequest(
                     report,
                     participants[0],
@@ -252,7 +252,7 @@ function IOURequestStepDistance({
                     '',
                     0,
                     transaction?.currency ?? 'USD',
-                    translate('iou.routePending'),
+                    translate('iou.fieldPending'),
                     false,
                     TransactionUtils.getValidWaypoints(waypoints, true),
                 );
