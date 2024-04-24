@@ -327,12 +327,8 @@ function ReportActionsList({
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
             deletedReportActionSubscription.remove();
-            if (unreadActionSubscriptionForTransactionThread) {
-                unreadActionSubscriptionForTransactionThread.remove();
-            }
-            if (readNewestActionSubscriptionForTransactionThread) {
-                readNewestActionSubscriptionForTransactionThread.remove();
-            }
+            unreadActionSubscriptionForTransactionThread?.remove();
+            readNewestActionSubscriptionForTransactionThread?.remove();
         };
     }, [report.reportID, transactionThreadReport?.reportID]);
 
