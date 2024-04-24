@@ -68,14 +68,48 @@ export {
 }
 ```
 
-Using arrow functions is the preferred way to write an anonymous function such as a callback method.
+Using named functions is the preferred way to write a callback method.
 
 ```javascript
 // Bad
-_.map(someArray, function (item) {...});
+people.map(function (item) {/* Long and complex logic */});
+people.map((item) => {/* Long and complex logic with many inner loops*/});
+useEffect/useMemo/useCallback(() => {/* Long and complex logic */}, []);
 
 // Good
-_.map(someArray, (item) => {...});
+function mappingPeople(person) {/* Long and complex logic */};
+people.map(mappingPeople);
+useEffect/useMemo/useCallback(function handlingConnection() {/* Long and complex logic */}, []);
+```
+
+You can still use arrow function for declarations or simple logics to keep them readable.
+
+```javascript
+// Bad
+randomList.push({
+     onSelected: Utils.checkIfAllowed(function checkTask() { return Utils.canTeamUp(people); }),
+});
+routeList.filter(function checkIsActive(route) { 
+    return route.isActive; 
+});
+
+// Good
+randomList.push({
+     onSelected: Utils.checkIfAllowed(() => Utils.canTeamUp(people)),
+});
+routeList.filter((route) => route.isActive);
+const myFunction = () => {...};
+const person = { getName: () => {} };
+Utils.connect({
+    callback: (val) => {},
+});
+useEffect(() => {
+    if (isFocused) {
+        return;
+    }
+    setError(null, {});
+}, [isFocused]);
+
 ```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
@@ -123,7 +157,7 @@ myArray.forEach(item => doSomething(item));
 _.each(myArray, item => doSomething(item));
 
 // Bad
-const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
+const myArray = Object.keys(someObject).map((key) => doSomething(someObject[key]));
 // Good
 const myArray = _.map(someObject, (value, key) => doSomething(value));
 
@@ -143,7 +177,7 @@ const modifiedArray = _.chain(someArray)
 
 ## Accessing Object Properties and Default Values
 
-Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type.
 
 ```javascript
 // Bad
@@ -448,7 +482,7 @@ const propTypes = {
 
 ### Important Note:
 
-In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `_.isEmpty()` instead.
+In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
 
 ```javascript
 // Bad! This will cause a breaking an error on native platforms
@@ -467,7 +501,7 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 {
     return (
         <View>
-            {!_.isEmpty(props.title)
+            {!!props.title
                 ? <View style={styles.title}>{props.title}</View>
                 : null}
             <View style={styles.body}>This is the body</View>
