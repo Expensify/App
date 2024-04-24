@@ -21,10 +21,20 @@ asMutable(translations).default = {
             one: 'You have one item',
             other: 'You have many items',
         }),
+        ordinalExample: () => ({
+            one: 'st item',
+            two: 'nd item',
+            few: 'rd item',
+            other: 'th item',
+        }),
     }),
     [CONST.LOCALES.ES]: translations.flattenObject({
         testKey1: 'Spanish',
         testKey2: 'Spanish Word 2',
+        ordinalExample: () => ({
+            one: 'º elemento',
+            other: 'ª elemento',
+        }),
     }),
     [CONST.LOCALES.ES_ES]: translations.flattenObject({testKey1: 'Spanish ES'}),
 };
@@ -183,6 +193,33 @@ describe('plural translations', () => {
         const expectedTranslation = 'You have many items';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
+        expect(translation).toBe(expectedTranslation);
+    });
+
+    it('should return the correct pluralized form for "one" case in English', () => {
+        const phraseKey = 'ordinalExample' as TranslationPaths;
+        const phraseParameters = {count: 1};
+        const expectedTranslation = '1st item';
+
+        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
+        expect(translation).toBe(expectedTranslation);
+    });
+
+    it('should return the correct pluralized form for "other" case in English', () => {
+        const phraseKey = 'ordinalExample' as TranslationPaths;
+        const phraseParameters = {count: 11};
+        const expectedTranslation = '11th item';
+
+        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
+        expect(translation).toBe(expectedTranslation);
+    });
+
+    it('should return the correct pluralized form for Spanish', () => {
+        const phraseKey = 'ordinalExample' as TranslationPaths;
+        const phraseParameters = {count: 23};
+        const expectedTranslation = '23ª elemento';
+
+        const translation = Localize.translate(CONST.LOCALES.ES, phraseKey, phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 });

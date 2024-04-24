@@ -1,5 +1,4 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {
@@ -20,7 +19,6 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
-    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
@@ -263,7 +261,10 @@ export default {
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
-        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `You've selected the maximum number (${count}) of participants.`,
+        maxParticipantsReached: ({count}) => ({
+            one: `You've selected the maximum number (${count}) of participants.`,
+            other: `You've selected the maximum number (${count}) of participants.`,
+        }),
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
@@ -635,10 +636,10 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) =>
-            `${count} ${Str.pluralize('expense', 'expenses', count)}${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${
-                pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''
-            }`,
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}) => ({
+            one: `${count} expense${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+            other: `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
+        }),
         deleteExpense: 'Delete expense',
         deleteConfirmation: 'Are you sure that you want to delete this expense?',
         settledExpensify: 'Paid',
@@ -1826,7 +1827,10 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
-            selected: ({selectedNumber}) => `${selectedNumber} selected`,
+            selected: ({selectedNumber}) => ({
+                one: `${selectedNumber} selected`,
+                other: `${selectedNumber} selected`,
+            }),
             settlementFrequency: 'Settlement frequency',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             unavailable: 'Unavailable workspace',
@@ -2234,15 +2238,27 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
-            deleteRates: ({count}: DistanceRateOperationsParams) => `Delete ${Str.pluralize('rate', 'rates', count)}`,
-            enableRates: ({count}: DistanceRateOperationsParams) => `Enable ${Str.pluralize('rate', 'rates', count)}`,
-            disableRates: ({count}: DistanceRateOperationsParams) => `Disable ${Str.pluralize('rate', 'rates', count)}`,
+            deleteRates: ({count}) => ({
+                one: `Delete ${count} rate`,
+                other: `Delete ${count} rates`,
+            }),
+            enableRates: ({count}) => ({
+                one: `Enable ${count} rate`,
+                other: `Enable ${count} rates`,
+            }),
+            disableRates: ({count}) => ({
+                one: `Disable ${count} rate`,
+                other: `Disable ${count} rates`,
+            }),
+            areYouSureDelete: ({count}) => ({
+                one: `Are you sure you want to delete this ${count} rate?`,
+                other: `Are you sure you want to delete these ${count} rates?`,
+            }),
             enableRate: 'Enable rate',
             status: 'Status',
             unit: 'Unit',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
-            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
         },
         editor: {
             descriptionInputLabel: 'Description',
