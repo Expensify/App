@@ -37,7 +37,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
         <>
             <Button
                 onPress={() => {
-                    if (shouldDisconnectIntegrationBeforeConnecting && Boolean(integrationToDisconnect)) {
+                    if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -47,7 +47,7 @@ function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBefo
                 style={styles.justifyContentCenter}
                 small
             />
-            {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && Boolean(integrationToDisconnect) && (
+            {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     onConfirm={() => {

@@ -21,7 +21,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
         <>
             <Button
                 onPress={() => {
-                    if (shouldDisconnectIntegrationBeforeConnecting && Boolean(integrationToDisconnect)) {
+                    if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -31,7 +31,7 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                 style={styles.justifyContentCenter}
                 small
             />
-            {shouldDisconnectIntegrationBeforeConnecting && Boolean(integrationToDisconnect) && isDisconnectModalOpen && (
+            {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     isVisible={isDisconnectModalOpen}
