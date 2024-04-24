@@ -34,7 +34,7 @@ type ReportVirtualCardFraudPageProps = ReportVirtualCardFraudPageOnyxProps & Sta
 
 function ReportVirtualCardFraudPage({
     route: {
-        params: {domain = '', cardID = ''},
+        params: {cardID = ''},
     },
     cardList,
     formData,
@@ -56,7 +56,7 @@ function ReportVirtualCardFraudPage({
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
-    }, [cardID, domain, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
+    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
 
     if (isEmptyObject(virtualCard)) {
         return <NotFoundPage />;

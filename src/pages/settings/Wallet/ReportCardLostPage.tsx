@@ -75,7 +75,7 @@ function ReportCardLostPage({
     },
     cardList = {},
     route: {
-        params: {domain = '', cardID = ''},
+        params: {cardID = ''},
     },
     formData,
 }: ReportCardLostPageProps) {
@@ -100,7 +100,7 @@ function ReportCardLostPage({
         }
 
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
-    }, [domain, formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
+    }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {

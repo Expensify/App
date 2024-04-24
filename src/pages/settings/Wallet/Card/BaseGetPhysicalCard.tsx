@@ -127,7 +127,7 @@ function BaseGetPhysicalCard({
         // When there's no physical card or it exists but it doesn't have the required state for this flow,
         // redirect user to the espensify card page
         if (cardToBeIssued.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) {
-            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardToBeIssued.cardID.toString()));
+            Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardToBeIssued.cardID.toString()));
             return;
         }
 
@@ -152,7 +152,7 @@ function BaseGetPhysicalCard({
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx
             FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
-            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID.toString()));
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()));
             return;
         }
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
@@ -165,7 +165,7 @@ function BaseGetPhysicalCard({
         >
             <HeaderWithBackButton
                 title={title}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID.toString()))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()))}
             />
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
