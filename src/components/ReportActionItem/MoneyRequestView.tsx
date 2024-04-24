@@ -136,7 +136,7 @@ function MoneyRequestView({
 
     const defaultExternalID = taxRates?.defaultExternalID;
     const foreignTaxDefault = taxRates?.foreignTaxDefault;
-    const defaultTaxCode = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle =
