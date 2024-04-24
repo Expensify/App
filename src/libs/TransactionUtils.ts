@@ -640,22 +640,19 @@ function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
 }
 
 /**
- * Gets the default tax name
- */
-function getDefaultTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
-    const taxRates = policy?.taxRates;
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const defaultTaxName =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (defaultTaxCode && `${taxRates?.taxes[defaultTaxCode]?.name} (${taxRates?.taxes[defaultTaxCode]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ?? defaultTaxName;
-}
-
-/**
  * Gets the tax name
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName;
+}
+
+/**
+ * Gets the default tax name
+ */
+function getDefaultTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    const defaultTaxName = Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === defaultTaxCode)?.modifiedName;
+    return getTaxName(policy, transaction) ?? defaultTaxName;
 }
 
 function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
