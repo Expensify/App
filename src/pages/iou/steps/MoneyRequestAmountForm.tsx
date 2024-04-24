@@ -232,10 +232,22 @@ function MoneyRequestAmountForm(
         if (skipConfirmation) {
             if (currentAmount !== '') {
                 const currencyAmount = CurrencyUtils.convertToDisplayString(CurrencyUtils.convertToBackendAmount(Number.parseFloat(currentAmount)), currency) ?? '';
-                const text = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitAmount', {amount: currencyAmount}) : translate('iou.submitAmount', {amount: currencyAmount});
+                let text = translate('iou.submitAmount', {amount: currencyAmount});
+                if (iouType === CONST.IOU.TYPE.SPLIT) {
+                    text = translate('iou.splitAmount', {amount: currencyAmount});
+                } else if (iouType === CONST.IOU.TYPE.TRACK) {
+                    text = translate('iou.trackAmount', {amount: currencyAmount});
+                }
                 return text[0].toUpperCase() + text.slice(1);
             }
-            return iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.splitExpense') : translate('iou.submitExpense');
+
+            if (iouType === CONST.IOU.TYPE.SPLIT) {
+                return translate('iou.splitExpense');
+            }
+            if (iouType === CONST.IOU.TYPE.TRACK) {
+                return translate('iou.trackExpense');
+            }
+            return translate('iou.submitExpense');
         }
         return isEditing ? translate('common.save') : translate('common.next');
     }, [skipConfirmation, iouType, currency, isEditing, translate]);
@@ -298,41 +310,43 @@ function MoneyRequestAmountForm(
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
-                {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
-                    <SettlementButton
-                        pressOnEnter
-                        onPress={submitAndNavigateToNextPage}
-                        enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                        addBankAccountRoute={bankAccountRoute}
-                        addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                        currency={currency ?? CONST.CURRENCY.USD}
-                        policyID={policyID ?? ''}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                        kycWallAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                        paymentMethodDropdownAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                        shouldShowPersonalBankAccountOption
-                        enterKeyEventListenerPriority={1}
-                    />
-                ) : (
-                    <Button
-                        success
-                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        onPress={() => submitAndNavigateToNextPage()}
-                        text={buttonText}
-                    />
-                )}
+                <View style={styles.w100}>
+                    {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
+                        <SettlementButton
+                            pressOnEnter
+                            onPress={submitAndNavigateToNextPage}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={bankAccountRoute}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                            currency={currency ?? CONST.CURRENCY.USD}
+                            policyID={policyID ?? ''}
+                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            kycWallAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                            paymentMethodDropdownAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                            shouldShowPersonalBankAccountOption
+                            enterKeyEventListenerPriority={1}
+                        />
+                    ) : (
+                        <Button
+                            success
+                            // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
+                            allowBubble={!isEditing}
+                            pressOnEnter
+                            medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
+                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            onPress={() => submitAndNavigateToNextPage()}
+                            text={buttonText}
+                        />
+                    )}
+                </View>
             </View>
         </ScrollView>
     );

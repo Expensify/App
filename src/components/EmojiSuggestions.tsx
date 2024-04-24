@@ -9,7 +9,7 @@ import getStyledTextArray from '@libs/GetStyledTextArray';
 import AutoCompleteSuggestions from './AutoCompleteSuggestions';
 import Text from './Text';
 
-type MeasureParentContainerCallback = (x: number, y: number, width: number, height: number) => void;
+type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
 type EmojiSuggestionsProps = {
     /** The index of the highlighted emoji */
