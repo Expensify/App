@@ -4549,7 +4549,7 @@ const styles = (theme: ThemeColors) =>
             fontWeight: FontUtils.fontWeight.bold,
             color: theme.text,
         },
-        
+
         headerProgressBarContainer: {
             position: 'absolute',
             width: '100%',

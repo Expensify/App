@@ -34,8 +34,6 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import ReportDateIndicator from './ReportDateIndicator';
-import reportDateIndicatorMargin from './ReportDateIndicatorMargin';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
 
@@ -186,11 +184,6 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
-    const [dateIndicatorLabel, setDateIndicatorLabel] = useState('');
-    const [visibleItemIndex, setVisibleItemIndex] = useState(0);
-    const [listWidth, setListWidth] = useState(0);
-    const [contentWidth, setContentWidth] = useState(0);
-    const [scrollBarWidth, setScrollBarWidth] = useState(0);
 
     const sortedVisibleReportActions = useMemo(
         () =>
@@ -218,20 +211,13 @@ function ReportActionsList({
         opacity: opacity.value,
     }));
 
-    useEffect(() => {
-        if (visibleItemIndex === -1 || visibleItemIndex === sortedReportActions.length - 1) {
-            setDateIndicatorLabel('');
-        }
-        setDateIndicatorLabel(sortedReportActions[visibleItemIndex]);
-    }, [sortedReportActions, visibleItemIndex]);
-
     /**
      * Determines whether we should display the date indicator label in chat messages
      * @return {Boolean}
      */
     const shouldShowStaticDateIndicator = useCallback(
-        (index) => {
-            if (index === sortedReportActions.length - 1) {
+        (index: number) => {
+            if (index === sortedReportActions.length - 1 || index === sortedReportActions.length - 2) {
                 return true;
             }
 
@@ -244,20 +230,6 @@ function ReportActionsList({
             return false;
         },
         [sortedReportActions],
-    );
-
-    const onViewableItemsChanged = useCallback(
-        ({viewableItems}) => {
-            if (viewableItems.length <= 0) {
-                return null;
-            }
-
-            const {index, isViewable} = viewableItems[viewableItems.length - 1];
-            if (isViewable) {
-                setVisibleItemIndex(index);
-            }
-        },
-        [setVisibleItemIndex],
     );
 
     useEffect(() => {
@@ -635,7 +607,6 @@ function ReportActionsList({
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {
-            setListWidth(event.nativeEvent.layout.width);
             onLayout(event);
         },
         [onLayout],
@@ -661,13 +632,6 @@ function ReportActionsList({
         );
     }, [isLoadingNewerReportActions, canShowHeader]);
 
-    useEffect(() => {
-        if (listWidth - contentWidth < 0) {
-            return;
-        }
-        setScrollBarWidth(reportDateIndicatorMargin(listWidth, contentWidth));
-    }, [listWidth, contentWidth, scrollBarWidth]);
-
     // When performing comment linking, initially 25 items are added to the list. Subsequent fetches add 15 items from the cache or 50 items from the server.
     // This is to ensure that the user is able to see the 'scroll to newer comments' button when they do comment linking and have not reached the end of the list yet.
     const canScrollToNewerComments = !isLoadingInitialReportActions && !hasNewestReportAction && sortedReportActions.length > 25 && !isLastPendingActionIsDelete;
@@ -677,12 +641,6 @@ function ReportActionsList({
                 isActive={(isFloatingMessageCounterVisible && !!currentUnreadMarker) || canScrollToNewerComments}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-            {!isFloatingMessageCounterVisible && dateIndicatorLabel.reportActionTimestamp ? (
-                <ReportDateIndicator
-                    created={dateIndicatorLabel.reportActionTimestamp}
-                    style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.chatItemDateIndicatorWrapper, {marginRight: scrollBarWidth}]}
-                />
-            ) : null}
             <Animated.View style={[animatedStyles, styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}>
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
@@ -706,7 +664,6 @@ function ReportActionsList({
                     onScroll={trackVerticalScrolling}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
-                    onViewableItemsChanged={onViewableItemsChanged}
                     key={listID}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
