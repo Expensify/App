@@ -116,7 +116,6 @@ const SCREENS = {
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
-        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -304,12 +303,6 @@ const SCREENS = {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
         WORK: 'Onboarding_Work',
-    },
-
-    ONBOARD_ENGAGEMENT: {
-        ROOT: 'Onboard_Engagement_Root',
-        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
-        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
     },
 
     WELCOME_VIDEO: {

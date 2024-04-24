@@ -194,7 +194,7 @@ function FeatureTrainingModal({
                             <View style={[styles.m5]}>
                                 {title && description && (
                                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
-                                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{title}</Text>
+                                        <Text style={[styles.textHeadlineH1]}>{title}</Text>
                                         <Text style={styles.textSupporting}>{description}</Text>
                                     </View>
                                 )}
