@@ -193,13 +193,13 @@ function FloatingActionButtonAndPopover(
                 Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID ?? '', quickActionReport, quickAction.targetAccountID ?? 0, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
                 break;
             default:
         }

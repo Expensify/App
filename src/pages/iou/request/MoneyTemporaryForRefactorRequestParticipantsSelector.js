@@ -93,6 +93,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
+    const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -120,15 +121,22 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             {},
             [],
             false,
             {},
             [],
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            !isCategorizeOrShareAction,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -153,13 +161,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             shouldShow: chatOptions.recentReports.length > 0,
         });
 
-        if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action)) {
-            newSections.push({
-                title: translate('common.contacts'),
-                data: chatOptions.personalDetails,
-                shouldShow: chatOptions.personalDetails.length > 0,
-            });
-        }
+        newSections.push({
+            title: translate('common.contacts'),
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0,
+        });
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
@@ -188,6 +194,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         personalDetails,
         translate,
         didScreenTransitionEnd,
+        isCategorizeOrShareAction,
     ]);
 
     /**
@@ -352,13 +359,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     );
 
     const isAllSectionsEmpty = lodashEvery(sections, (section) => section.data.length === 0);
-    if (
-        [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) &&
-        isAllSectionsEmpty &&
-        didScreenTransitionEnd &&
-        debouncedSearchTerm.trim() === '' &&
-        areOptionsInitialized
-    ) {
+    if (isCategorizeOrShareAction && isAllSectionsEmpty && didScreenTransitionEnd && debouncedSearchTerm.trim() === '' && areOptionsInitialized) {
         return renderEmptyWorkspaceView();
     }
 

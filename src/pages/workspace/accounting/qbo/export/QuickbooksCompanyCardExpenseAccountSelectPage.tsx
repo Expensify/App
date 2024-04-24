@@ -13,8 +13,8 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -27,8 +27,6 @@ type Card = {name: string};
 function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
-
     const {exportCompanyCard, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
@@ -46,12 +44,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
         ],
         [translate],
     );
-    const cards = useMemo<Card[]>(() => {
-        if (creditCards?.length) {
-            return creditCards;
-        }
-        return isLocationEnabled ? defaultCards.slice(0, -1) : defaultCards;
-    }, [creditCards, isLocationEnabled, defaultCards]);
+    const cards = useMemo<Card[]>(() => (isLocationEnabled ? defaultCards.slice(0, -1) : defaultCards), [isLocationEnabled, defaultCards]);
 
     const data = useMemo<CardListItem[]>(
         () =>
@@ -106,4 +99,4 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
 
 QuickbooksCompanyCardExpenseAccountSelectPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectPage';
 
-export default withPolicy(QuickbooksCompanyCardExpenseAccountSelectPage);
+export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountSelectPage);
