@@ -208,11 +208,6 @@ const ROUTES = {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
     },
-    EDIT_REQUEST: {
-        route: 'r/:threadReportID/edit/:field/:tagIndex?',
-        getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${threadReportID}/edit/${field as string}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
-    },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
@@ -444,10 +439,6 @@ const ROUTES = {
     NEW_TASK_DETAILS: 'new/task/details',
     NEW_TASK_TITLE: 'new/task/title',
     NEW_TASK_DESCRIPTION: 'new/task/description',
-
-    ONBOARD: 'onboard',
-    ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
-    ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
 
     TEACHERS_UNITE: 'settings/teachersunite',
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
