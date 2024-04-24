@@ -5337,7 +5337,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
             return chatReport?.invoiceReceiver?.accountID === userAccountID;
         }
 
-        return getPolicy(chatReport?.invoiceReceiver?.policyID).role === CONST.POLICY.ROLE.ADMIN;
+        return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID).role === CONST.POLICY.ROLE.ADMIN;
     }
 
     const isPayer = ReportUtils.isPayer(

@@ -518,6 +518,7 @@ export default {
             split: 'split an expense',
             submit: 'submit an expense',
             track: 'track an expense',
+            invoice: 'invoice an expense',
         },
     },
     reportAction: {

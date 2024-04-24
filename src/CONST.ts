@@ -1454,7 +1454,6 @@ const CONST = {
             PAY: 'pay',
             SPLIT: 'split',
             REQUEST: 'request',
-            TRACK_EXPENSE: 'track-expense',
             INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',

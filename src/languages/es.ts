@@ -511,6 +511,7 @@ export default {
             split: 'dividir un gasto',
             submit: 'presentar un gasto',
             track: 'rastrear un gasto',
+            invoice: 'facturar un gasto',
         },
     },
     reportAction: {
