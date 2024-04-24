@@ -1328,20 +1328,20 @@ function getReportFieldOptionsSection(options: string[], recentlyUsedOptions: st
  * @param  policy - The policy which the user has access to and which the report is tied to.
  * @returns The transformed tax rates object.g
  */
-function transformedTaxRates(policy?: OnyxEntry<Policy>, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
+function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?: OnyxEntry<Transaction>): Record<string, TaxRate> {
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
-    const foreignTaxDefault = taxRates?.foreignTaxDefault;
-    const defaultTaxKey = () => {
+
+    const defaultTaxCode = () => {
         if (!transaction) {
             return defaultExternalID;
         }
 
-        return policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+        return policy && TransactionUtils.getDefaultTaxCode(policy, transaction);
     };
 
     const getModifiedName = (data: TaxRate, code: string) =>
-        `${data.name} (${data.value})${defaultTaxKey() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
+        `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
