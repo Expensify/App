@@ -134,11 +134,15 @@ function MoneyRequestView({
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
+    const defaultExternalID = taxRates?.defaultExternalID;
+    const foreignTaxDefault = taxRates?.foreignTaxDefault;
+    const defaultTaxKey = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle =
         taxRates &&
-        (transactionTaxCode === taxRates?.defaultExternalID
-            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+        (transactionTaxCode === defaultTaxKey
+            ? transaction && TransactionUtils.getDefaultTaxName(policy, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
     // Flags for allowing or disallowing editing an expense
