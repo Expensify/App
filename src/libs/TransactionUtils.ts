@@ -2,9 +2,11 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import * as OptionsListUtils from '@libs/OptionsListUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {IOURequestType} from './actions/IOU';
@@ -631,11 +633,14 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 /**
  * Gets the default tax name
  */
-function getDefaultTaxName(taxRates: TaxRatesWithDefault, transaction?: Transaction) {
-    const defaultTaxKey = taxRates.defaultExternalID;
+function getDefaultTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    const taxRates = policy?.taxRates;
+    const defaultExternalID = taxRates?.defaultExternalID;
+    const foreignTaxDefault = taxRates?.foreignTaxDefault;
+    const defaultTaxKey = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
     const defaultTaxName =
-        (defaultTaxKey && `${taxRates.taxes[defaultTaxKey]?.name} (${taxRates.taxes[defaultTaxKey]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
-    return transaction?.taxRate?.text ?? defaultTaxName;
+        (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey]?.name} (${taxRates?.taxes[defaultTaxKey]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
+    return Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ?? defaultTaxName;
 }
 
 /**
