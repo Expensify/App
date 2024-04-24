@@ -53,7 +53,7 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
                                 src={activeItem?.icon ?? Expensicons.All}
                                 fill={theme.icon}
                             />
-                            <Text style={[styles.searchFiltersButtonText]}>{activeItem?.title}</Text>
+                            <Text style={[styles.mh1, styles.textStrong]}>{activeItem?.title}</Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}
