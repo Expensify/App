@@ -578,12 +578,13 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Check if transaction is on hold
  */
-function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
-    if (!transaction) {
+function isOnHold(transactionOrID: OnyxEntry<Transaction> | string): boolean {
+    if (!transactionOrID) {
         return false;
     }
 
-    return !!transaction.comment?.hold;
+    const transaction = typeof transactionOrID === 'string' ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionOrID}`] : transactionOrID;
+    return !!transaction?.comment?.hold;
 }
 
 /**
