@@ -38,6 +38,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [hasConnectionsDataBeenFetched, props.policy, isOffline]);
 
+        // Check specifically whether hasConnectionsDataBeenFetched is false as it can be null when policy does not have connections enabled
         if (!props.policy || status === 'loading' || hasConnectionsDataBeenFetched === false) {
             return (
                 <FullPageOfflineBlockingView>
