@@ -6117,7 +6117,7 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         mccGroup,
     } as Transaction);
 
-    const filteredPolicies = Object.values(allPolicies).filter(
+    const filteredPolicies = Object.values(allPolicies ?? {}).filter(
         (policy) => policy?.type !== CONST.POLICY.TYPE.PERSONAL && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
 
