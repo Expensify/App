@@ -12,7 +12,7 @@ import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
-import * as OptionsListUtils from './OptionsListUtils';
+import {transformedTaxRates} from './OptionsListUtils';
 import {getCleanedTagName} from './PolicyUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
@@ -647,7 +647,7 @@ function getDefaultTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
     const defaultTaxName =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (defaultTaxCode && `${taxRates?.taxes[defaultTaxCode]?.name} (${taxRates?.taxes[defaultTaxCode]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
-    return Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ?? defaultTaxName;
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ?? defaultTaxName;
 }
 
 /**
