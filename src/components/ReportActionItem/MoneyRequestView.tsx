@@ -338,7 +338,10 @@ function MoneyRequestView({
                     >
                         <View style={styles.moneyRequestViewImage}>
                             {showMapAsImage ? (
-                                <ConfirmedRoute transaction={transaction} />
+                                <ConfirmedRoute
+                                    transaction={transaction}
+                                    interactive={false}
+                                />
                             ) : (
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
