@@ -34,7 +34,7 @@ const FS = {
                     return;
                 }
                 // Initialised via HEAD snippet
-                if (isInitialized()) {
+                if (!isInitialized()) {
                     init({orgId: ''}, resolve);
                 } else {
                     FullStory('observe', {type: 'start', callback: resolve});
