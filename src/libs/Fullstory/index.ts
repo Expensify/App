@@ -1,7 +1,9 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
-import type Session from '@src/types/onyx/Session';
-import type {NavigationProperties, UserSession} from './types';
+import CONST from '@src/CONST';
+import * as Environment from '@src/libs/Environment/Environment';
+import type {UserMetadata} from '@src/types/onyx';
+import type NavigationProperties from './types';
 
 // Placeholder Browser API does not support Manual Page definition
 class FSPage {
@@ -27,12 +29,17 @@ const FS = {
      */
     onReady: () =>
         new Promise((resolve) => {
-            // Initialised via HEAD snippet
-            if (isInitialized()) {
-                init({orgId: ''}, resolve);
-            } else {
-                FullStory('observe', {type: 'start', callback: resolve});
-            }
+            Environment.getEnvironment().then((envName: string) => {
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                    return;
+                }
+                // Initialised via HEAD snippet
+                if (!isInitialized()) {
+                    init({orgId: ''}, resolve);
+                } else {
+                    FullStory('observe', {type: 'start', callback: resolve});
+                }
+            });
         }),
 
     /**
@@ -46,18 +53,18 @@ const FS = {
     consent: (c: boolean) => FullStory('setIdentity', {consent: c}),
 
     /**
-     * Initializes the FullStory session with the provided session information.
+     * Initializes the FullStory metadata with the provided metadata information.
      */
-    consentAndIdentify: (value: OnyxEntry<Session>) => {
+    consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
         try {
-            FS.onReady().then(() => {
-                const session: UserSession = {
-                    email: value?.email,
-                    accountID: value?.accountID,
-                };
-                // set consent
-                FS.consent(true);
-                FS.fsIdentify(session);
+            Environment.getEnvironment().then((envName: string) => {
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                    return;
+                }
+                FS.onReady().then(() => {
+                    FS.consent(true);
+                    FS.fsIdentify(value);
+                });
             });
         } catch (e) {
             // error handler
@@ -65,22 +72,19 @@ const FS = {
     },
 
     /**
-     * Sets the FullStory user identity based on the provided session information.
-     * If the session does not contain an email, the user identity is anonymized.
-     * If the session contains an email, the user identity is defined with the email and account ID.
+     * Sets the FullStory user identity based on the provided metadata information.
+     * If the metadata does not contain an email, the user identity is anonymized.
+     * If the metadata contains an accountID, the user identity is defined with it.
      */
-    fsIdentify: (session: UserSession) => {
-        if (typeof session.email === 'undefined') {
-            // anonymize FullStory user identity session
+    fsIdentify: (metadata: UserMetadata | null) => {
+        if (!metadata?.accountID) {
+            // anonymize FullStory user identity metadata
             FS.anonymize();
         } else {
             // define FullStory user identity
             FullStory('setIdentity', {
-                uid: String(session.accountID),
-                properties: {
-                    displayName: session.email,
-                    email: session.email,
-                },
+                uid: String(metadata.accountID),
+                properties: metadata,
             });
         }
     },

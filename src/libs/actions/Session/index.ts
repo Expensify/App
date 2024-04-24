@@ -66,7 +66,7 @@ Onyx.connect({
 });
 
 Onyx.connect({
-    key: ONYXKEYS.SESSION,
+    key: ONYXKEYS.USER_METADATA,
     callback: Fullstory.consentAndIdentify,
 });
 
