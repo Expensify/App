@@ -60,15 +60,9 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
 
-    const moneyRequestSelectedTaxRate =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ||
-        (transaction && TransactionUtils.getDefaultTaxName(policy, transaction));
-    const editingSelectedTaxRate =
-        taxRates &&
-        (transactionTaxCode === defaultTaxCode
-            ? transaction && TransactionUtils.getDefaultTaxName(policy, transaction)
-            : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const moneyRequestSelectedTaxRate = TransactionUtils.getTaxName(policy, transaction) || TransactionUtils.getDefaultTaxName(policy, transaction);
+    const editingSelectedTaxRate = transactionTaxCode === defaultTaxCode ? TransactionUtils.getDefaultTaxName(policy, transaction) : TransactionUtils.getTaxName(policy, transaction);
 
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
         if (!transaction || !taxes.text || !taxRates) {
