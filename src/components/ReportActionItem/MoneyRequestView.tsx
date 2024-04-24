@@ -136,12 +136,12 @@ function MoneyRequestView({
 
     const defaultExternalID = taxRates?.defaultExternalID;
     const foreignTaxDefault = taxRates?.foreignTaxDefault;
-    const defaultTaxKey = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+    const defaultTaxCode = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
 
     const taxRatesDescription = taxRates?.name;
     const taxRateTitle =
         taxRates &&
-        (transactionTaxCode === defaultTaxKey
+        (transactionTaxCode === defaultTaxCode
             ? transaction && TransactionUtils.getDefaultTaxName(policy, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
 
