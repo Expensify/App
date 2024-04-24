@@ -136,10 +136,7 @@ function MoneyRequestView({
 
     const taxRatesDescription = taxRates?.name;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
-    const taxRateTitle =
-        transactionTaxCode === defaultTaxCode
-            ? transaction && TransactionUtils.getDefaultTaxName(policy, transaction)
-            : transactionTaxCode && TransactionUtils.getTaxName(policy, transaction);
+    const taxRateTitle = transactionTaxCode === defaultTaxCode ? TransactionUtils.getDefaultTaxName(policy, transaction) : TransactionUtils.getTaxName(policy, transaction);
 
     // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
