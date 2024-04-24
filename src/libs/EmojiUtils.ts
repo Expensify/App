@@ -577,39 +577,56 @@ function getSpacersIndexes(allEmojis: EmojiPickerList): number[] {
  */
 
 // Surrogate pairs (combined emojis)
-const highSurrogateStart = 0xd800;
-const highSurrogateEnd = 0xdbff;
-const lowSurrogateStart = 0xdc00;
-const zeroWidthJoiner = 0x200d;
+const HIGH_SURROGATE_START = 0xd800;
+const HIGH_SURROGATE_END = 0xdbff;
+const LOW_SURROGATE_START = 0xdc00;
+const ZERO_WIDTH_JOINER = 0x200d;
 
 // Regional indicator symbols (flags)
-const regionalIndicatorStart = 0x1f1e6; // 1st letter of a two-letter country code
-const regionalIndicatorEnd = 0x1f1ff; // Last letter of a two-letter country code
+const REGIONAL_INDICATOR_START = 0x1f1e6; // 1st letter of a two-letter country code
+const REGIONAL_INDICATOR_END = 0x1f1ff; // Last letter of a two-letter country code
 
 // Fitzpatrick scale modifiers (skin tone)
-const fitzpatrickScaleStart = 0x1f3fb; // Type 1 (represents light skin tone)
-const fitzpatrickScaleEnd = 0x1f3ff; // Type 6 (represents dark skin tone)
+const FITZPATRICK_SCALE_START = 0x1f3fb; // Type 1 (represents light skin tone)
+const FITZPATRICK_SCALE_END = 0x1f3ff; // Type 6 (represents dark skin tone)
 
 // Variation selectors (specific variations in the presentation of other characters)
-const variationModifierStart = 0xfe00; // Request text presentation of emoji
-const variationModifierEnd = 0xfe0f; // Indicate that the character should be displayed as an emoji
+const VARIATION_MODIFIER_START = 0xfe00; // Request text presentation of emoji
+const VARIATION_MODIFIER_END = 0xfe0f; // Indicate that the character should be displayed as an emoji
 
-const codePointFromSurrogatePair = (pair: string) => {
-    const highOffset = pair.charCodeAt(0) - highSurrogateStart;
-    const lowOffset = pair.charCodeAt(1) - lowSurrogateStart;
+function codePointFromSurrogatePair(pair: string) {
+    const highOffset = pair.charCodeAt(0) - HIGH_SURROGATE_START;
+    const lowOffset = pair.charCodeAt(1) - LOW_SURROGATE_START;
     // eslint-disable-next-line no-bitwise
     return (highOffset << 10) + lowOffset + 0x10000;
-};
+}
 
-const isZeroWidthJoiner = (text: string) => text?.charCodeAt(0) === zeroWidthJoiner;
-const isWithinInclusiveRange = (value: number, lower: number, upper: number) => value >= lower && value <= upper;
-const isFirstOfSurrogatePair = (text: string) => isWithinInclusiveRange(text?.[0].charCodeAt(0), highSurrogateStart, highSurrogateEnd);
-const isRegionalIndicator = (text: string) => isWithinInclusiveRange(codePointFromSurrogatePair(text), regionalIndicatorStart, regionalIndicatorEnd);
-const isFitzpatrickModifier = (text: string) => isWithinInclusiveRange(codePointFromSurrogatePair(text), fitzpatrickScaleStart, fitzpatrickScaleEnd);
-const isVariationSelector = (text: string) => isWithinInclusiveRange(text?.charCodeAt(0), variationModifierStart, variationModifierEnd);
+function isZeroWidthJoiner(text: string) {
+    return text?.charCodeAt(0) === ZERO_WIDTH_JOINER;
+}
+
+function isWithinInclusiveRange(value: number, lower: number, upper: number) {
+    return value >= lower && value <= upper;
+}
+
+function isFirstOfSurrogatePair(text: string) {
+    return isWithinInclusiveRange(text?.[0].charCodeAt(0), HIGH_SURROGATE_START, HIGH_SURROGATE_END);
+}
+
+function isRegionalIndicator(text: string) {
+    return isWithinInclusiveRange(codePointFromSurrogatePair(text), REGIONAL_INDICATOR_START, REGIONAL_INDICATOR_END);
+}
+
+function isFitzpatrickModifier(text: string) {
+    return isWithinInclusiveRange(codePointFromSurrogatePair(text), FITZPATRICK_SCALE_START, FITZPATRICK_SCALE_END);
+}
+
+function isVariationSelector(text: string) {
+    return isWithinInclusiveRange(text?.charCodeAt(0), VARIATION_MODIFIER_START, VARIATION_MODIFIER_END);
+}
 
 // Define how many code units make up the character
-const nextUnits = (i: number, text: string) => {
+function nextUnits(i: number, text: string) {
     const current = text[i];
     // If a value at index is not part of a surrogate pair, or it is at the end take value at i
     if (!isFirstOfSurrogatePair(current) || i === text.length - 1) {
@@ -627,9 +644,9 @@ const nextUnits = (i: number, text: string) => {
         return 4; // Skin tones
     }
     return 2; // Variations and non-BMP characters
-};
+}
 
-const splitTextWithEmojis = (text: string): string[] => {
+function splitTextWithEmojis(text: string): string[] {
     if (!text) {
         return [];
     }
@@ -681,7 +698,7 @@ const splitTextWithEmojis = (text: string): string[] => {
     }
     // remove empty characters from array
     return processedArray.filter((item) => item);
-};
+}
 
 export type {HeaderIndice, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
 
