@@ -338,13 +338,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             result.push({
@@ -373,7 +367,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
     }, [
-        StyleUtils,
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
@@ -387,10 +380,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         policyOwner,
         selectedEmployees,
         session?.accountID,
-        styles.activeItemBadge,
-        styles.badgeBordered,
-        styles.justifyContentCenter,
-        styles.textStrong,
         translate,
     ]);
 
