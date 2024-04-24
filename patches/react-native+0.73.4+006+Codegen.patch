@@ -8,9 +8,9 @@ index ba75b01..e5eaee8 100644
          current_headers = current_config["HEADER_SEARCH_PATHS"] != nil ? current_config["HEADER_SEARCH_PATHS"] : ""
 +        current_cpp_flags = current_config["OTHER_CPLUSPLUSFLAGS"] != nil ? current_config["OTHER_CPLUSPLUSFLAGS"] : ""
  
-         header_search_paths = ["\"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/Headers/Private/Yoga\""]
-         if ENV['USE_FRAMEWORKS']
-@@ -135,7 +136,7 @@ class NewArchitectureHelper
+         flags_to_add = new_arch_enabled ?
+             "#{@@folly_compiler_flags} -DRCT_NEW_ARCH_ENABLED=1" :
+@@ -139,7 +140,7 @@ class NewArchitectureHelper
          spec.dependency "glog"
  
          if new_arch_enabled
