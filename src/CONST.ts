@@ -3640,7 +3640,7 @@ const CONST = {
             message: 'Here are some essential tasks to keep your business spend in shape for tax season.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-business.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3680,7 +3680,7 @@ const CONST = {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3721,7 +3721,7 @@ const CONST = {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3804,7 +3804,7 @@ const CONST = {
             message: 'Here’s how to track your spend in a few clicks.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3831,7 +3831,7 @@ const CONST = {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-chat-split-bills.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
