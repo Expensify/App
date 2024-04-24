@@ -653,10 +653,8 @@ function getDefaultTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
 /**
  * Gets the tax name
  */
-function getTaxName(taxes: TaxRates, transactionTaxCode: string) {
-    const taxName = taxes[transactionTaxCode]?.name ?? '';
-    const taxValue = taxes[transactionTaxCode]?.value ?? '';
-    return transactionTaxCode && taxName && taxValue ? `${taxName} (${taxValue})` : '';
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName;
 }
 
 export {
