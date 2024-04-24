@@ -2,6 +2,7 @@ import type {NavigationProp, ParamListBase, RouteProp, RouterFactory, StackNavig
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type CommonProperties from '@src/types/utils/CommonProperties';
+import Subtract from '@src/types/utils/Substract';
 
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
@@ -9,8 +10,35 @@ type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNaviga
 // Common navigation options merged from both stack and native-stack navigations.
 type CommonStackNavigationOptions = CommonProperties<StackNavigationOptions, NativeStackNavigationOptions>;
 
+// Navigation properties that are only available in web or native stack navigations.
+type WebOnlyNavigationOptions = Partial<Subtract<StackNavigationOptions, CommonStackNavigationOptions>>;
+type NativeOnlyNavigationOptions = Partial<Subtract<NativeStackNavigationOptions, CommonStackNavigationOptions>>;
+
+// type CardOptions = {
+//     cardShadowEnabled?: StackNavigationOptions['cardShadowEnabled'];
+//     cardOverlayEnabled?: StackNavigationOptions['cardOverlayEnabled'];
+//     cardOverlay?: StackNavigationOptions['cardOverlay'];
+//     cardStyle?: StackNavigationOptions['cardStyle'];
+//     cardStyleInterpolator: StackNavigationOptions['cardStyleInterpolator'];
+// };
+
 // Expanded navigation options including possible custom properties for platform-specific implementations.
 type GeneralPlatformStackNavigationOptions = {
+    // // Unique to StackNavigationOptions
+    // detachPreviousScreen?: boolean;
+    // freezeOnBlur?: boolean;
+    webOnly?: WebOnlyNavigationOptions;
+
+    // // Unique to NativeStackNavigationOptions
+    // autoHideHomeIndicator?: boolean;
+    // contentStyle?: StyleProp<ViewStyle>;
+    // customAnimationOnGesture?: boolean;
+    // fullScreenGestureEnabled?: boolean;
+    // navigationBarColor?: string;
+    // navigationBarHidden?: boolean;
+    // orientation?: ScreenProps['screenOrientation'];
+    nativeOnly?: NativeOnlyNavigationOptions;
+
     keyboardHandlingEnabled?: boolean;
 
     // Stack
@@ -55,24 +83,6 @@ type GeneralPlatformStackNavigationOptions = {
     // gestureVelocityImpact?: number;
     // gestureDirection?: ScreenProps['swipeDirection'];
     gesture?: unknown;
-
-    // // Unique to StackNavigationOptions
-    // cardOverlay?: (props: { style: Animated.WithAnimatedValue<StyleProp<ViewStyle>> }) => React.ReactNode;
-    // cardOverlayEnabled?: boolean;
-    // cardShadowEnabled?: boolean;
-    // cardStyle?: StyleProp<ViewStyle>;
-    // detachPreviousScreen?: boolean;
-    // keyboardHandlingEnabled?: boolean;
-    // freezeOnBlur?: boolean;
-
-    // // Unique to NativeStackNavigationOptions
-    // autoHideHomeIndicator?: boolean;
-    // contentStyle?: StyleProp<ViewStyle>;
-    // customAnimationOnGesture?: boolean;
-    // fullScreenGestureEnabled?: boolean;
-    // navigationBarColor?: string;
-    // navigationBarHidden?: boolean;
-    // orientation?: ScreenProps['screenOrientation'];
 };
 
 // Combines common and general platform-specific options for PlatformStackNavigation.

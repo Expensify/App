@@ -1,7 +1,7 @@
 import type {EventMapBase, ParamListBase} from '@react-navigation/native';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import type {TransformStateProps} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/types';
 import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TransformStateProps} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';

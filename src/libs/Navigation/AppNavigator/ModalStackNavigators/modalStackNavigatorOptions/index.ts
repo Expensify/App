@@ -3,7 +3,9 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 
 const defaultSubRouteOptions: PlatformStackNavigationOptions = {
     headerShown: false,
-    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    webOnly: {
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    },
 };
 
 export default defaultSubRouteOptions;

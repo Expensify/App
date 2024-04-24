@@ -8,8 +8,10 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 const OnboardingModalNavigatorScreenOptions = (): PlatformStackNavigationOptions => ({
     headerShown: false,
     gestureDirection: 'horizontal',
-    cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
     presentation: 'transparentModal',
+    webOnly: {
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+    },
 });
 
 export default OnboardingModalNavigatorScreenOptions;

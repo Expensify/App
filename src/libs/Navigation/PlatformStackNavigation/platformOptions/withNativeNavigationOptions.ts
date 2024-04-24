@@ -13,6 +13,7 @@ import getCommonNavigationOptions from './utils';
 const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigationOptions | undefined): NativeStackNavigationOptions => ({
     ...withAnimation<NativeStackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, slideFromBottomAnimation, noAnimation),
     ...getCommonNavigationOptions(screenOptions),
+    ...screenOptions?.nativeOnly,
 });
 
 function withNativeNavigationOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(

@@ -1,8 +1,7 @@
 import type {EventMapBase, ParamListBase} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
 import navigationRef from '@libs/Navigation/navigationRef';
-import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.native';
-import type {OnWindowDimensionsChange} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/types';
+import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import type {
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,
@@ -10,6 +9,7 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import type {OnWindowDimensionsChange} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
 import getStateWithSearch from './getStateWithSearch';
 import RenderSearchRoute from './SearchRoute';
 

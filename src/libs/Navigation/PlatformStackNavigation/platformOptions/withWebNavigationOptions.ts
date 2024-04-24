@@ -14,6 +14,7 @@ const transformPlatformOptionsToWeb = (screenOptions: PlatformStackNavigationOpt
     keyboardHandlingEnabled: screenOptions?.keyboardHandlingEnabled,
     ...withAnimation<StackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, slideFromBottomAnimation, noAnimation),
     ...getCommonNavigationOptions(screenOptions),
+    ...screenOptions?.webOnly,
 });
 
 function withWebNavigationOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(

@@ -2,7 +2,6 @@ import type {EventMapBase, ParamListBase} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
 import React from 'react';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
-import type {TransformStateProps} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/types';
 import type {
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,
@@ -10,6 +9,7 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import type {TransformStateProps} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
 import type {NavigationStateRoute} from '@libs/Navigation/types';
 import SCREENS from '@src/SCREENS';
 import BottomTabBar from './BottomTabBar';

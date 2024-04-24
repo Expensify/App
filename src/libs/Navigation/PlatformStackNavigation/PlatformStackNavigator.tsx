@@ -1,4 +1,4 @@
-import createPlatformStackNavigatorComponent from './createPlatformStackNavigatorComponent/index.native';
+import createPlatformStackNavigatorComponent from './createPlatformStackNavigatorComponent';
 
 const PlatformStackNavigator = createPlatformStackNavigatorComponent('PlatformStackNavigator');
 

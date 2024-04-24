@@ -32,8 +32,10 @@ function BaseCentralPaneNavigator() {
         headerShown: false,
         title: 'New Expensify',
         animation: 'slide_from_left',
-        // Prevent unnecessary scrolling
-        cardStyle: styles.cardStyleNavigator,
+        webOnly: {
+            // Prevent unnecessary scrolling
+            cardStyle: styles.cardStyleNavigator,
+        },
     };
     return (
         <Stack.Navigator screenOptions={options}>
