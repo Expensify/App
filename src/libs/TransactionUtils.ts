@@ -2,8 +2,6 @@ import lodashHas from 'lodash/has';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, RecentWaypoint, Report, TaxRate, TaxRates, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -14,7 +12,9 @@ import {isCorporateCard, isExpensifyCard} from './CardUtils';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
+import * as OptionsListUtils from './OptionsListUtils';
 import {getCleanedTagName} from './PolicyUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -646,6 +646,7 @@ function getDefaultTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Tra
     const taxRates = policy?.taxRates;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const defaultTaxName =
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (defaultTaxCode && `${taxRates?.taxes[defaultTaxCode]?.name} (${taxRates?.taxes[defaultTaxCode]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
     return Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ?? defaultTaxName;
 }

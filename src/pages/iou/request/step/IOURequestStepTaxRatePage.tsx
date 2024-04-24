@@ -59,8 +59,9 @@ function IOURequestStepTaxRatePage({
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const moneyRequestSelectedTaxRate =
+     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ||
         (transaction && TransactionUtils.getDefaultTaxName(policy, transaction));
     const editingSelectedTaxRate =

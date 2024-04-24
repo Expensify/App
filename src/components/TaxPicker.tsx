@@ -48,7 +48,7 @@ type TaxPickerProps = TaxPickerOnyxProps & {
     action?: IOUAction;
 };
 
-function TaxPicker({selectedTaxRate = '', policy, transaction, transactionID, insets, onSubmit}: TaxPickerProps) {
+function TaxPicker({selectedTaxRate = '', policy, transaction, insets, onSubmit}: TaxPickerProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
