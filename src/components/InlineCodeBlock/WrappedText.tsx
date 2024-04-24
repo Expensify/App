@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
@@ -39,13 +40,6 @@ function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJI.test(text);
 }
 
-/**
- * Validates if the string is a single emoji
- */
-function isEmoji(text: string): boolean {
-    return CONST.REGEX.EMOJI.test(text) && text.length === 2;
-}
-
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
 
@@ -67,10 +61,14 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
                     key={`${colText}-${colIndex}`}
                     style={styles.codeWordWrapper}
                 >
-                    <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle, {height: 35, justifyContent:'center'}]}>
+                    <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
                         <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>
+                            {/* {colText} */}
                             {Array.from(colText).map((char, charIndex) => (
-                                isEmoji(char) ? <Text key={charIndex} style={[textStyles, styles.emojiDefaultStyles]}>{char}</Text> : char
+                                containsOnlyEmojis(char) ? <Text key={charIndex} style={[
+                                    textStyles, 
+                                    styles.emojiDefaultStyles
+                                ]}>{char}</Text> : char
                             ))}
                         </Text>
                     </View>
