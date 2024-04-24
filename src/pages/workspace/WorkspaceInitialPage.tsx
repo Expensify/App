@@ -262,6 +262,13 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
+    useEffect(() => {
+        if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
+            return;
+        }
+        PolicyUtils.goBackFromInvalidPolicy();
+    }, [policy, prevPolicy]);
+
     const policyAvatar = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
@@ -299,6 +306,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                         onClose={() => dismissError(policyID)}
                         errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
+                        shouldDisableStrikeThrough={false}
+                        shouldHideOnDelete={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
