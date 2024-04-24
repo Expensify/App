@@ -25,8 +25,8 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
                 <View style={styles.mb2}>
                     <Lottie
                         source={is2FARequired ? LottieAnimations.Safe : LottieAnimations.Abracadabra}
-                        style={styles.justSignedInModalAnimationHeight(is2FARequired)}
-                        webStyle={styles.justSignedInModalAnimationHeight(is2FARequired)}
+                        style={styles.justSignedInModalAnimation(is2FARequired)}
+                        webStyle={styles.justSignedInModalAnimation(is2FARequired)}
                         autoPlay
                         loop
                     />

@@ -4364,11 +4364,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 2,
         },
 
-        magicCodeAnimationWidth: {
+        magicCodeAnimation: {
             width: variables.modalTopIconWidth,
         },
 
-        justSignedInModalAnimationHeight: (is2FARequired: boolean) => ({
+        justSignedInModalAnimation: (is2FARequired: boolean) => ({
             height: is2FARequired ? variables.modalTopIconHeight : variables.modalTopBigIconHeight,
         }),
 

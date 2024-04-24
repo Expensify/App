@@ -40,8 +40,8 @@ function ValidateCodeModal({code, accountID, session = {}}: ValidateCodeModalPro
                 <View style={styles.mb2}>
                     <Lottie
                         source={LottieAnimations.MagicCode}
-                        style={styles.magicCodeAnimationWidth}
-                        webStyle={styles.magicCodeAnimationWidth}
+                        style={styles.magicCodeAnimation}
+                        webStyle={styles.magicCodeAnimation}
                         autoPlay
                         loop
                     />
