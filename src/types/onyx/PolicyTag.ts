@@ -13,6 +13,12 @@ type PolicyTag = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** A list of errors keyed by microtime */
     errors?: OnyxCommon.Errors | null;
+
+    rules?: {
+        parentTagsFilter?: string;
+    };
+
+    parentTagsFilter?: string;
 }>;
 
 type PolicyTags = Record<string, PolicyTag>;

@@ -1,8 +1,6 @@
 import {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
-import type {Policy, PolicyTagList, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {TransactionViolation, ViolationName} from '@src/types/onyx';
 
 /**
  * Names of Fields where violations can occur.
@@ -50,12 +48,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
-function useViolations(
-    violations: TransactionViolation[],
-    transaction: OnyxEntry<Transaction> = {} as Transaction,
-    policy: OnyxEntry<Policy> = {} as Policy,
-    policyTagList: OnyxEntry<PolicyTagList> = {},
-) {
+function useViolations(violations: TransactionViolation[]) {
     const violationsByField = useMemo((): ViolationsMap => {
         const filteredViolations = violations.filter((violation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION);
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
@@ -86,26 +79,9 @@ function useViolations(
                     }));
             }
 
-            // missingTag has special logic because if its data is null, we need to convert it to someTagLevelsRequired
-            if (firstViolation?.name === 'missingTag' && firstViolation?.data === null) {
-                const newViolations =
-                    Object.keys(policyTagList ?? {}).length === 1
-                        ? ViolationsUtils.getTagViolationsForSingleLevelTags(transaction ?? ({} as Transaction), violations, !!policy?.requiresTag, policyTagList ?? {})
-                        : ViolationsUtils.getTagViolationsForMultiLevelTags(transaction ?? ({} as Transaction), violations, !!policy?.requiresTag, policyTagList ?? {});
-                const newViolation = newViolations.find(
-                    (currentViolation) => currentViolation?.name === 'someTagLevelsRequired' && data?.tagListIndex !== undefined && Array.isArray(currentViolation?.data?.errorIndexes),
-                );
-                if (newViolation) {
-                    return newViolations
-                        .filter((currentViolation) => currentViolation.data?.errorIndexes?.includes(data?.tagListIndex ?? -1))
-                        .map((currentViolation) => ({
-                            ...currentViolation,
-                            data: {
-                                ...currentViolation.data,
-                                tagName: data?.tagListName,
-                            },
-                        }));
-                }
+            // missingTag has special logic because we have to take into account dependent tags
+            if (firstViolation?.data?.policyHasDependentTagLists && firstViolation?.name === 'missingTag' && firstViolation?.data?.tagName === data?.tagListName) {
+                return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
             }
 
             // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
@@ -115,7 +91,7 @@ function useViolations(
 
             return currentViolations;
         },
-        [policy?.requiresTag, policyTagList, transaction, violations, violationsByField],
+        [violationsByField],
     );
 
     return {

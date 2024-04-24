@@ -378,6 +378,13 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
 }
 
+function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
+    return (
+        !!policy?.hasMultipleTagLists &&
+        Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter))
+    );
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -421,6 +428,7 @@ export {
     getSubmitToAccountID,
     getAdminEmployees,
     getPolicy,
+    hasDependentTags,
 };
 
 export type {MemberEmailsToAccountIDs};

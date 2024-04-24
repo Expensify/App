@@ -765,7 +765,7 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {}, true);
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -1102,7 +1102,15 @@ function buildOnyxDataForTrackExpense(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        !!policy.requiresTag,
+        policyTagList ?? {},
+        !!policy.requiresCategory,
+        policyCategories ?? {},
+        PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
@@ -2054,6 +2062,7 @@ function getUpdateMoneyRequestParams(
                 policyTagList ?? {},
                 !!policy.requiresCategory,
                 policyCategories ?? {},
+                PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
             ),
         );
         failureData.push({
@@ -4375,6 +4384,7 @@ function editRegularMoneyRequest(
             policyTags,
             !!policy.requiresCategory,
             policyCategories,
+            PolicyUtils.hasDependentTags(policy, policyTags),
         );
         optimisticData.push(updatedViolationsOnyxData);
         failureData.push({

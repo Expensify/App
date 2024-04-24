@@ -56,6 +56,7 @@ function getTagViolationsForMultiLevelTags(
     transactionViolations: TransactionViolation[],
     policyRequiresTags: boolean,
     policyTagList: PolicyTagList,
+    hasDependentTags: boolean,
 ): TransactionViolation[] {
     const policyTagKeys = getSortedTagKeys(policyTagList);
     const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
@@ -63,6 +64,17 @@ function getTagViolationsForMultiLevelTags(
     newTransactionViolations = newTransactionViolations.filter(
         (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
     );
+
+    if (hasDependentTags && !updatedTransaction.tag) {
+        Object.values(policyTagList).forEach((tagList) => {
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.MISSING_TAG,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {tagName: tagList.name},
+            });
+        });
+        return newTransactionViolations;
+    }
 
     // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
@@ -110,8 +122,6 @@ function getTagViolationsForMultiLevelTags(
 }
 
 const ViolationsUtils = {
-    getTagViolationsForSingleLevelTags,
-    getTagViolationsForMultiLevelTags,
     /**
      * Checks a transaction for policy violations and returns an object with Onyx method, key and updated transaction
      * violations.
@@ -123,6 +133,7 @@ const ViolationsUtils = {
         policyTagList: PolicyTagList,
         policyRequiresCategories: boolean,
         policyCategories: PolicyCategories,
+        hasDependentTags: boolean,
     ): OnyxUpdate {
         const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
         if (isPartialTransaction) {
@@ -168,7 +179,7 @@ const ViolationsUtils = {
             newTransactionViolations =
                 Object.keys(policyTagList).length === 1
                     ? getTagViolationsForSingleLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList)
-                    : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList);
+                    : getTagViolationsForMultiLevelTags(updatedTransaction, newTransactionViolations, policyRequiresTags, policyTagList, hasDependentTags);
         }
 
         return {
