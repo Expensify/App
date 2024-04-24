@@ -52,7 +52,7 @@ type AvatarProps = {
     name?: string;
 
     /** Optional account id if it's user avatar or policy id if it's workspace avatar */
-    accountID?: number;
+    accountID?: number | string;
 };
 
 function Avatar({

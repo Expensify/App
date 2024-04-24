@@ -206,7 +206,6 @@ function ReportActionItemSingle({
                         name={icon.name}
                         accountID={icon.id}
                         fallbackIcon={fallbackIcon}
-                        accountID={icon.id}
                     />
                 </View>
             </UserDetailsTooltip>
