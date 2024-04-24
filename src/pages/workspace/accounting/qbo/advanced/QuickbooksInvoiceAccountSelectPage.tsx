@@ -22,23 +22,14 @@ type SelectorType = ListItem & {
     value: string;
 };
 
-// TODO: remove once UI is approved
-const DRAFT = [
-    {name: 'Croissant Co Payroll Account', id: 'Croissant Co Payroll Account'},
-    {name: 'Croissant Co Money in Clearing', id: 'Croissant Co Money in Clearing'},
-    {name: 'Croissant Co Debts and Loans', id: 'Croissant Co Debts and Loans'},
-];
-
 function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const selectedAccount = DRAFT[1].id; // selected
-
     const policyID = policy?.id ?? '';
     const {bankAccounts, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = useMemo(() => DRAFT || [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+    const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+    const {collectionAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -46,9 +37,9 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyProps) {
                 value: id,
                 text: name,
                 keyForList: id,
-                isSelected: selectedAccount === id,
+                isSelected: collectionAccountID === id,
             })),
-        [selectedAccount, accountOptions],
+        [collectionAccountID, accountOptions],
     );
 
     const listHeaderComponent = useMemo(

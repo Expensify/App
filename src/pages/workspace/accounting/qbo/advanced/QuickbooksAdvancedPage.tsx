@@ -31,9 +31,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
 
     const policyID = policy?.id ?? '';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, errorFields} = qboConfig ?? {};
+    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID, errorFields} = qboConfig ?? {};
+    const {bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const isSyncReimbursedSwitchOn = !!collectionAccountID;
-    const selectedAccount = '92345'; // TODO: use fake selected account temporarily.
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
@@ -119,7 +119,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                         policyID,
                                         CONST.POLICY.CONNECTIONS.NAME.QBO,
                                         CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-                                        isSyncReimbursedSwitchOn ? '' : selectedAccount,
+                                        isSyncReimbursedSwitchOn ? '' : bankAccounts?.[0].id,
                                     )
                                 }
                             />
@@ -129,7 +129,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                     <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
                                         <MenuItemWithTopDescription
                                             shouldShowRightIcon
-                                            title="Croissant Co Payroll Account" // TODO: set to the current selected value
+                                            title={reimbursementAccountID}
                                             description={translate('workspace.qbo.advancedConfig.qboAccount')}
                                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                             onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
@@ -154,7 +154,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                             interactive={false}
                                         />
                                         <MenuItemWithTopDescription
-                                            title="Croissant Co Money in Clearing" // TODO: set to the current selected value
+                                            title={collectionAccountID}
                                             shouldShowRightIcon
                                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                             onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
