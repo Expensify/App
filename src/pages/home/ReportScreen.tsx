@@ -27,7 +27,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -151,7 +150,6 @@ function ReportScreen({
 }: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const reportIDFromRoute = getReportID(route);
     const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
@@ -485,7 +483,7 @@ function ReportScreen({
         Report.openReport(report.reportID);
 
         // We don't want to run this useEffect every time `report` is changed
-        // Excluding isSmallScreenWidth from the dependency list to prevent re-triggering on screen resize events.
+        // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report.notificationPreference, isFocused]);
 
@@ -643,7 +641,7 @@ function ReportScreen({
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowLink={false}
                     >
