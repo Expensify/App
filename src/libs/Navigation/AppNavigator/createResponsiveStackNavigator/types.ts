@@ -1,12 +1,7 @@
 import type {DefaultNavigatorOptions, ParamListBase} from '@react-navigation/native';
-import type {
-    PlatformStackNavigationEventMap,
-    PlatformStackNavigationOptions,
-    PlatformStackNavigationRouterOptions,
-    PlatformStackNavigationState,
-} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
-type ResponsiveStackNavigatorRouterOptions = PlatformStackNavigationRouterOptions;
+type ResponsiveStackNavigatorRouterOptions = PlatformStackRouterOptions;
 
 type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, PlatformStackNavigationState<ParamListBase>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap>;
 
