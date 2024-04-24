@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
-import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -27,8 +27,6 @@ type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS>;
 
-type IOURef = IOUType | null;
-
 function IOURequestStepParticipants({
     route: {
         params: {iouType, reportID, transactionID, action},
@@ -45,7 +43,7 @@ function IOURequestStepParticipants({
         if (action === CONST.IOU.ACTION.CATEGORIZE) {
             return translate('iou.categorize');
         }
-        if (action === CONST.IOU.ACTION.REQUEST) {
+        if (action === CONST.IOU.ACTION.SUBMIT) {
             return translate('iou.submitExpense');
         }
         if (action === CONST.IOU.ACTION.SHARE) {
@@ -54,16 +52,15 @@ function IOURequestStepParticipants({
         if (isSplitRequest) {
             return translate('iou.splitExpense');
         }
-        if (iouType === CONST.IOU.TYPE.SEND) {
+        if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {});
         }
-        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, transaction, translate, isSplitRequest, action]);
+        return translate('iou.submitExpense');
+    }, [iouType, translate, isSplitRequest, action]);
 
     const receiptFilename = transaction?.filename;
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
-    const newIouType = useRef<IOURef>();
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the expense is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
@@ -77,19 +74,11 @@ function IOURequestStepParticipants({
     }, [receiptType, receiptPath, receiptFilename, iouRequestType, iouType, transactionID, reportID, action]);
 
     const addParticipant = useCallback(
-        (val: Participant[], selectedIouType: IOUType) => {
-            const isSplit = selectedIouType === CONST.IOU.TYPE.SPLIT;
-            // It's only possible to switch between REQUEST and SPLIT.
-            // We want to update the IOU type only if it's not updated yet to prevent unnecessary updates.
-            if (isSplit && iouType !== CONST.IOU.TYPE.SPLIT) {
-                newIouType.current = CONST.IOU.TYPE.SPLIT;
-            } else if (!isSplit && iouType === CONST.IOU.TYPE.SPLIT) {
-                // Non-split can be either REQUEST or SEND. Instead of checking whether
-                // the current IOU type is not a REQUEST (true for SEND), we check whether the current IOU type is a SPLIT.
-                newIouType.current = CONST.IOU.TYPE.REQUEST;
-            }
-
+        (val: Participant[]) => {
             IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+            const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
+            IOU.setCustomUnitRateID(transactionID, rateID);
+
             numberOfParticipants.current = val.length;
 
             // When multiple participants are selected, the reportID is generated at the end of the confirmation step.
@@ -102,7 +91,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             selectedReportID.current = val[0]?.reportID ?? reportID;
         },
-        [reportID, transactionID, iouType],
+        [reportID, transactionID],
     );
 
     const goToNextStep = useCallback(() => {

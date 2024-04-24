@@ -84,13 +84,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={translate('common.admin')} />;
             }
 
             result.push({
@@ -98,6 +92,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
+                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -115,7 +110,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles, StyleUtils, isGroupChat]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 

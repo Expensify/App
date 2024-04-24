@@ -15,11 +15,18 @@ function openPolicyAccountingPage(policyID: string) {
             value: false,
         },
     ];
-    const finallyData: OnyxUpdate[] = [
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: hasConnectionsDataBeenFetchedKey,
             value: true,
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: hasConnectionsDataBeenFetchedKey,
+            value: false,
         },
     ];
 
@@ -29,7 +36,8 @@ function openPolicyAccountingPage(policyID: string) {
 
     API.read(READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE, parameters, {
         optimisticData,
-        finallyData,
+        successData,
+        failureData,
     });
 }
 
