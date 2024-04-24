@@ -1,11 +1,8 @@
 import type {ParamListBase} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {
-    PlatformStackNavigationOptions,
-    PlatformStackScreenOptionsPropsWithoutNavigation,
-    PlatformStackScreenOptionsWithoutNavigation,
-} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isRouteBasedScreenOptions, PlatformStackScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types/ScreenOptions';
 import noAnimation from './animation/web/none';
 import slideFromBottomAnimation from './animation/web/slideFromBottom';
 import slideFromLeftAnimation from './animation/web/slideFromLeft';
@@ -20,11 +17,11 @@ const transformPlatformOptionsToWeb = (screenOptions: PlatformStackNavigationOpt
 });
 
 function withWebNavigationOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
-    screenOptions: PlatformStackScreenOptionsWithoutNavigation<ParamList, RouteName>,
+    screenOptions: PlatformStackScreenOptions<ParamList, RouteName>,
     defaultScreenOptions?: PlatformStackNavigationOptions,
 ) {
     return isRouteBasedScreenOptions(screenOptions)
-        ? (p: PlatformStackScreenOptionsPropsWithoutNavigation<ParamList, RouteName>) => {
+        ? (p: PlatformStackScreenProps<ParamList, RouteName>) => {
               const routeBasedScreenOptions = screenOptions(p);
               return transformPlatformOptionsToWeb({...defaultScreenOptions, ...routeBasedScreenOptions});
           }

@@ -1,29 +1,15 @@
-import type {
-    DefaultNavigatorOptions,
-    Descriptor,
-    EventMapBase,
-    NavigationHelpers,
-    NavigationProp,
-    ParamListBase,
-    RouteProp,
-    RouterFactory,
-    StackActionHelpers,
-    StackNavigationState,
-    StackRouterOptions,
-} from '@react-navigation/native';
+import type {NavigationProp, ParamListBase, RouteProp, RouterFactory, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
-import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
+import type CommonProperties from '@src/types/utils/CommonProperties';
 
+// Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
 
-type OmitNever<T extends Record<string, unknown>> = {
-    [K in keyof T as T[K] extends never ? never : K]: T[K];
-};
-type CommonProperties<A, B> = OmitNever<Pick<A & B, keyof A & keyof B>>;
-
+// Common navigation options merged from both stack and native-stack navigations.
 type CommonStackNavigationOptions = CommonProperties<StackNavigationOptions, NativeStackNavigationOptions>;
 
+// Expanded navigation options including possible custom properties for platform-specific implementations.
 type GeneralPlatformStackNavigationOptions = {
     keyboardHandlingEnabled?: boolean;
 
@@ -89,14 +75,25 @@ type GeneralPlatformStackNavigationOptions = {
     // orientation?: ScreenProps['screenOrientation'];
 };
 
+// Combines common and general platform-specific options for PlatformStackNavigation.
 type PlatformStackNavigationOptions = CommonStackNavigationOptions & GeneralPlatformStackNavigationOptions;
+
+// Used to represent platform-specific navigation options.
 type PlatformSpecificNavigationOptions = StackNavigationOptions | NativeStackNavigationOptions;
 
+// Common event map merged from both stack and native-stack navigations.
 type CommonStackNavigationEventMap = CommonProperties<StackNavigationEventMap, NativeStackNavigationEventMap>;
+
+// Represents the event map that can be used in the PlatformStackNavigation (only common events).
 type PlatformStackNavigationEventMap = CommonStackNavigationEventMap;
+
+// Used to represent platform-specific event maps.
 type PlatformSpecificEventMap = StackNavigationOptions | NativeStackNavigationOptions;
 
+// Router options used in the PlatformStackNavigation
 type PlatformStackRouterOptions = StackRouterOptions;
+
+// Factory function type for creating a router specific to the PlatformStackNavigation
 type PlatformStackRouterFactory<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = RouterFactory<
     PlatformStackNavigationState<ParamList>,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -104,36 +101,7 @@ type PlatformStackRouterFactory<ParamList extends ParamListBase, RouterOptions e
     RouterOptions
 >;
 
-type PlatformNavigationBuilderNavigation<
-    EventMap extends PlatformSpecificEventMap & EventMapBase,
-    ParamList extends ParamListBase = ParamListBase,
-    ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
-> = NavigationHelpers<ParamList, EventMap> & ActionHelpers;
-
-type PlatformStackNavigationDescriptor<
-    NavigationOptions extends PlatformSpecificNavigationOptions,
-    EventMap extends PlatformSpecificEventMap & EventMapBase,
-    ParamList extends ParamListBase = ParamListBase,
-> = Descriptor<
-    NavigationOptions,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    NavigationProp<ParamList, keyof ParamList, any, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap>,
-    RouteProp<ParamList, keyof ParamList>
->;
-type PlatformStackNavigationDescriptors<
-    NavigationOptions extends PlatformSpecificNavigationOptions,
-    EventMap extends PlatformSpecificEventMap & EventMapBase,
-    ParamList extends ParamListBase = ParamListBase,
-> = Record<string, PlatformStackNavigationDescriptor<NavigationOptions, EventMap, ParamList>>;
-
-type PlatformStackNavigatorProps<
-    ParamList extends ParamListBase,
-    RouteName extends keyof ParamList = keyof ParamList,
-    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
-    RouterOptions &
-    StackNavigationConfig;
-
+// Represents the navigation prop for passed to screens and "screenOptions" factory functions using the types from PlatformStackNavigation
 type PlatformStackNavigationProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = NavigationProp<
     ParamList,
     RouteName,
@@ -142,33 +110,21 @@ type PlatformStackNavigationProp<ParamList extends ParamListBase, RouteName exte
     PlatformStackNavigationOptions,
     PlatformStackNavigationEventMap
 >;
+
+// Represents the route prop for passed to screens and "screenOptions" factory functions using the types from PlatformStackNavigation
 type PlatformStackRouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = RouteProp<ParamList, RouteName>;
 
-type PlatformStackScreenOptionsProps<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = {
+type PlatformStackScreenProps<
+    ParamList extends ParamListBase,
+    RouteName extends keyof ParamList = keyof ParamList,
+    NavigatorID extends string | undefined = undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-redundant-type-constituents
+    NavigationProp extends PlatformStackNavigationProp<ParamList, RouteName, NavigatorID> | any = PlatformStackNavigationProp<ParamList, RouteName, NavigatorID>,
+> = {
     route: PlatformStackRouteProp<ParamList, RouteName>;
-    navigation: PlatformStackNavigationProp<ParamList, RouteName, NavigatorID>;
+    navigation: NavigationProp;
 };
 
-type PlatformStackScreenOptionsPropsWithoutNavigation<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = {
-    route: PlatformStackRouteProp<ParamList, RouteName>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigation: any;
-};
-
-type PlatformStackScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = PlatformStackNavigatorProps<ParamList, RouteName>['screenOptions'];
-
-type PlatformStackScreenOptionsWithoutNavigation<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> =
-    | PlatformStackNavigationOptions
-    | ((props: PlatformStackScreenOptionsPropsWithoutNavigation<ParamList, RouteName>) => PlatformStackNavigationOptions)
-    | undefined;
-
-function isRouteBasedScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
-    screenOptions: PlatformStackScreenOptions<ParamList, RouteName>,
-): screenOptions is (props: PlatformStackScreenOptionsPropsWithoutNavigation<ParamList, RouteName>) => PlatformStackNavigationOptions {
-    return typeof screenOptions === 'function';
-}
-
-export {isRouteBasedScreenOptions};
 export type {
     CommonStackNavigationOptions,
     CommonStackNavigationEventMap,
@@ -179,14 +135,7 @@ export type {
     PlatformSpecificEventMap,
     PlatformStackRouterOptions,
     PlatformStackRouterFactory,
-    PlatformNavigationBuilderNavigation,
-    PlatformStackNavigationDescriptor,
-    PlatformStackNavigationDescriptors,
     PlatformStackNavigationProp,
     PlatformStackRouteProp,
-    PlatformStackScreenOptions,
-    PlatformStackScreenOptionsWithoutNavigation,
-    PlatformStackScreenOptionsProps,
-    PlatformStackScreenOptionsPropsWithoutNavigation,
-    PlatformStackNavigatorProps,
+    PlatformStackScreenProps,
 };

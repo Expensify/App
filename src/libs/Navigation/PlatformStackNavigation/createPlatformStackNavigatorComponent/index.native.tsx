@@ -6,18 +6,14 @@ import {useEffect, useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
-import type {
-    PlatformStackNavigationOptions,
-    PlatformStackNavigationState,
-    PlatformStackNavigatorProps,
-    PlatformStackRouterOptions,
-    PlatformStackScreenOptionsWithoutNavigation,
-} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {CreatePlaformStackNavigatorOptions, CustomCodePropsWithTransformedState, PlatformNavigationBuilderOptions} from './types';
+import type {PlatformStackNavigationOptions, PlatformStackNavigationState, PlatformStackRouterOptions, PlatformStackScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformNavigationBuilderOptions} from '@libs/Navigation/PlatformStackNavigation/types/NavigationBuilder';
+import type {CreatePlatformStackNavigatorComponentOptions, CustomCodeProps, CustomCodePropsWithTransformedState} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
+import type PlatformStackNavigatorProps from '@libs/Navigation/PlatformStackNavigation/types/PlatformStackNavigator';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
-    options?: CreatePlaformStackNavigatorOptions<RouterOptions>,
+    options?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>,
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
     const transformState = options?.transformState;
@@ -31,9 +27,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
 
         const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
 
-        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(
-            screenOptionsToTransform: PlatformStackScreenOptionsWithoutNavigation<ParamList2, RouteName>,
-        ) => withNativeNavigationOptions<ParamList2, RouteName>(screenOptionsToTransform);
+        const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(screenOptionsToTransform: PlatformStackScreenOptions<ParamList2, RouteName>) =>
+            withNativeNavigationOptions<ParamList2, RouteName>(screenOptionsToTransform);
 
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
@@ -54,7 +49,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             transformScreenProps,
         );
 
-        const customCodeProps = useMemo<CustomCodePropsWithTransformedState<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
+        const customCodeProps = useMemo<CustomCodeProps<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
             () => ({
                 state,
                 navigation,
