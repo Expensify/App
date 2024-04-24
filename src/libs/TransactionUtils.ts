@@ -578,13 +578,23 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
 /**
  * Check if transaction is on hold
  */
-function isOnHold(transactionOrID: OnyxEntry<Transaction> | string): boolean {
-    if (!transactionOrID) {
+function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
         return false;
     }
 
-    const transaction = typeof transactionOrID === 'string' ? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionOrID}`] : transactionOrID;
-    return !!transaction?.comment?.hold;
+    return !!transaction.comment?.hold;
+}
+
+/**
+ * Check if transaction is on hold
+ */
+function isOnHoldByTransactionID(transactionID: string): boolean {
+    if (!transactionID) {
+        return false;
+    }
+
+    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null);
 }
 
 /**
@@ -689,6 +699,7 @@ export {
     isPending,
     isPosted,
     isOnHold,
+    isOnHoldByTransactionID,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,

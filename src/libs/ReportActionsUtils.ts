@@ -1112,7 +1112,7 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
  * Check if the linked transaction is on hold
  */
 function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
-    return TransactionUtils.isOnHold(getLinkedTransactionID(reportActionID, reportID));
+    return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
 }
 
 export {
