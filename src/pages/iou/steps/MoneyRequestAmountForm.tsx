@@ -310,41 +310,43 @@ function MoneyRequestAmountForm(
                         longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
                 ) : null}
-                {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
-                    <SettlementButton
-                        pressOnEnter
-                        onPress={submitAndNavigateToNextPage}
-                        enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                        addBankAccountRoute={bankAccountRoute}
-                        addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                        currency={currency ?? CONST.CURRENCY.USD}
-                        policyID={policyID ?? ''}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
-                        kycWallAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                        paymentMethodDropdownAnchorAlignment={{
-                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                        }}
-                        shouldShowPersonalBankAccountOption
-                        enterKeyEventListenerPriority={1}
-                    />
-                ) : (
-                    <Button
-                        success
-                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
-                        onPress={() => submitAndNavigateToNextPage()}
-                        text={buttonText}
-                    />
-                )}
+                <View style={styles.w100}>
+                    {iouType === CONST.IOU.TYPE.PAY && skipConfirmation ? (
+                        <SettlementButton
+                            pressOnEnter
+                            onPress={submitAndNavigateToNextPage}
+                            enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
+                            addBankAccountRoute={bankAccountRoute}
+                            addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
+                            currency={currency ?? CONST.CURRENCY.USD}
+                            policyID={policyID ?? ''}
+                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                            kycWallAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                            paymentMethodDropdownAnchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                            shouldShowPersonalBankAccountOption
+                            enterKeyEventListenerPriority={1}
+                        />
+                    ) : (
+                        <Button
+                            success
+                            // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
+                            allowBubble={!isEditing}
+                            pressOnEnter
+                            medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
+                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
+                            onPress={() => submitAndNavigateToNextPage()}
+                            text={buttonText}
+                        />
+                    )}
+                </View>
             </View>
         </ScrollView>
     );
