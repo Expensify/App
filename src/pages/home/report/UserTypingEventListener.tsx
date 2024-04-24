@@ -1,9 +1,9 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +23,7 @@ function UserTypingEventListener({report, lastVisitedPath}: UserTypingEventListe
     const didSubscribeToReportTypingEvents = useRef(false);
     const reportID = report.reportID;
     const isFocused = useIsFocused();
-    const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     useEffect(() => {
         // Ensures any optimistic report that is being created (ex: a thread report) gets created and initialized successfully before subscribing
         if (route?.params?.reportID !== reportID) {

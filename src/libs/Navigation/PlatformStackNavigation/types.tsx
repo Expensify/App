@@ -92,6 +92,16 @@ type PlatformStackNavigatorProps<
     RouterOptions &
     StackNavigationConfig;
 
+type PlatformStackNavigationProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = NavigationProp<
+    ParamList,
+    RouteName,
+    NavigatorID,
+    PlatformStackNavigationState<ParamList>,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationEventMap
+>;
+type PlatformStackRouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList> = RouteProp<ParamList, RouteName>;
+
 type PlatformStackScreenOptionsProps<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = {
     route: PlatformStackRouteProp<ParamList, RouteName>;
     navigation: PlatformStackNavigationProp<ParamList, RouteName, NavigatorID>;
@@ -109,16 +119,6 @@ type PlatformStackScreenOptionsWithoutNavigation<ParamList extends ParamListBase
     | PlatformStackNavigationOptions
     | ((props: PlatformStackScreenOptionsPropsWithoutNavigation<ParamList, RouteName>) => PlatformStackNavigationOptions)
     | undefined;
-
-type PlatformStackNavigationProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = NavigationProp<
-    ParamList,
-    RouteName,
-    NavigatorID,
-    PlatformStackNavigationState<ParamList>,
-    PlatformStackNavigationOptions,
-    PlatformStackNavigationEventMap
->;
-type PlatformStackRouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList> = RouteProp<ParamList, RouteName>;
 
 function isRouteBasedScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
     screenOptions: PlatformStackScreenOptions<ParamList, RouteName>,

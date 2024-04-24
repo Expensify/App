@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import Str from 'expensify-common/lib/str';
 import lodashPick from 'lodash/pick';
 import React, {useEffect, useRef, useState} from 'react';
@@ -18,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackRouteProp, PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
@@ -84,7 +83,7 @@ const ROUTE_NAMES = {
  * We can pass stepToOpen in the URL to force which step to show.
  * Mainly needed when user finished the flow in verifying state, and Ops ask them to modify some fields from a specific step.
  */
-function getStepToOpenFromRouteParams(route: RouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): TBankAccountStep | '' {
+function getStepToOpenFromRouteParams(route: PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ROOT>): TBankAccountStep | '' {
     switch (route.params.stepToOpen) {
         case ROUTE_NAMES.NEW:
             return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;

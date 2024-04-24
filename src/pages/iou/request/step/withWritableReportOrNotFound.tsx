@@ -1,10 +1,10 @@
-import type {RouteProp} from '@react-navigation/core';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -34,17 +34,20 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN;
 
-type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
+type Route<T extends MoneyRequestRouteName> = PlatformStackRouteProp<MoneyRequestNavigatorParamList, T>;
 
 type WithWritableReportOrNotFoundProps<T extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & {route: Route<T>};
 
 export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyRequestRouteName>, TRef>(
     WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
+    shouldIncludeDeprecatedIOUType = false,
 ): React.ComponentType<Omit<TProps & RefAttributes<TRef>, keyof WithWritableReportOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: TProps, ref: ForwardedRef<TRef>) {
         const {report = {reportID: ''}, route} = props;
-        const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE).includes(route.params?.iouType);
+        const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
+            .filter((type) => shouldIncludeDeprecatedIOUType || (type !== CONST.IOU.TYPE.REQUEST && type !== CONST.IOU.TYPE.SEND))
+            .includes(route.params?.iouType);
         const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
 
         if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {

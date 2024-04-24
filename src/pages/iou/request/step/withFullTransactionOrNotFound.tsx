@@ -1,4 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
@@ -7,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import * as IOUUtils from '@libs/IOUUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,7 +35,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY;
 
-type Route<T extends MoneyRequestRouteName> = RouteProp<MoneyRequestNavigatorParamList, T>;
+type Route<T extends MoneyRequestRouteName> = PlatformStackRouteProp<MoneyRequestNavigatorParamList, T>;
 
 type WithFullTransactionOrNotFoundProps<T extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps & {route: Route<T>};
 

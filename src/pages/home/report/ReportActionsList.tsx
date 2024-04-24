@@ -1,6 +1,5 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
@@ -19,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
@@ -33,6 +33,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
+import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
@@ -49,6 +50,9 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
 
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
@@ -148,17 +152,19 @@ function ReportActionsList({
     listID,
     onContentSizeChange,
     shouldEnableAutoScrollToTopThreshold,
+    parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const {isOffline} = useNetwork();
-    const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
+    const route = useRoute<PlatformStackRouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     const opacity = useSharedValue(0);
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string | null>(null);
     const lastMessageTime = useRef<string | null>(null);
+    const {currentActiveSuggestionsRef} = useSuggestionsContext();
 
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -321,14 +327,16 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
+            // If a new comment is added and it's from the current user scroll to the bottom
+            // otherwise leave the user positioned where they are now in the list.
+            // Additionally, since the first report action could be a whisper message (new WS) ->
+            // hasNewestReportAction will be false, check isWhisperAction is false before returning early.
+            if (!isFromCurrentUser || (!hasNewestReportActionRef.current && !ReportActionsUtils.isWhisperAction(sortedReportActions?.[0]))) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [reportScrollManager],
+        [sortedReportActions, reportScrollManager],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -522,6 +530,7 @@ function ReportActionsList({
                 reportAction={reportAction}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 index={index}
                 report={report}
                 transactionThreadReport={transactionThreadReport}
@@ -544,6 +553,7 @@ function ReportActionsList({
             parentReportAction,
             reportActions,
             transactionThreadReport,
+            parentReportActionForTransactionThread,
         ],
     );
 
@@ -640,6 +650,18 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
+                    onScrollBeginDrag={() => {
+                        if (!currentActiveSuggestionsRef.current) {
+                            return;
+                        }
+                        currentActiveSuggestionsRef.current.resetSuggestions();
+                    }}
+                    onScrollEndDrag={() => {
+                        if (!currentActiveSuggestionsRef.current) {
+                            return;
+                        }
+                        currentActiveSuggestionsRef.current.updateShouldShowSuggestionMenuAfterScrolling();
+                    }}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
             </Animated.View>

@@ -1,5 +1,4 @@
 /* eslint-disable es/no-optional-chaining */
-import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -22,6 +21,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
@@ -91,7 +91,7 @@ function useOptions() {
 
 function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
-    const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
+    const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
