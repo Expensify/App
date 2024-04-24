@@ -86,7 +86,7 @@ describe('DateUtils', () => {
         expect(DateUtils.datetimeToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).toString();
-        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, false, undefined, true)).toBe('today at 2:32 PM');
+        expect(DateUtils.datetimeToCalendarTime(LOCALE, todayLowercaseDate, undefined, true)).toBe('today at 2:32 PM');
     });
 
     it('should update timezone if automatic and selected timezone do not match', () => {
