@@ -5673,7 +5673,7 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
     );
 }
 
-function isParentGroupChat(report: OnyxEntry<Report>): boolean {
+function isRootGroupChat(report: OnyxEntry<Report>): boolean {
     return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report));
 }
 
@@ -6091,7 +6091,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
         return false;
     }
 
-    if (isParentGroupChat(report)) {
+    if (isRootGroupChat(report)) {
         return false;
     }
 
@@ -6102,7 +6102,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
  * Whether the user can leave a report
  */
 function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    if (isSelfDM(report) || isParentGroupChat(report)) {
+    if (isSelfDM(report) || isRootGroupChat(report)) {
         return false;
     }
 
@@ -6366,7 +6366,7 @@ export {
     isDM,
     isDefaultRoom,
     isDeprecatedGroupDM,
-    isParentGroupChat,
+    isRootGroupChat,
     isExpenseReport,
     isExpenseRequest,
     isExpensifyOnlyParticipantInReport,
