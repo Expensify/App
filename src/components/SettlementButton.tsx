@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ButtonSizeValue} from '@src/styles/utils/types';
-import type {LastPaymentMethod, Report} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
@@ -33,6 +33,9 @@ type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEN
 type SettlementButtonOnyxProps = {
     /** The last payment method used per policy */
     nvpLastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
+
+    /** The policy of the report */
+    policy: OnyxEntry<Policy>;
 };
 
 type SettlementButtonProps = SettlementButtonOnyxProps & {
@@ -135,6 +138,7 @@ function SettlementButton({
     shouldShowPersonalBankAccountOption = false,
     enterKeyEventListenerPriority = 0,
     confirmApproval,
+    policy,
 }: SettlementButtonProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -143,10 +147,9 @@ function SettlementButton({
         PaymentMethods.openWalletPage();
     }, []);
 
-    const policy = ReportUtils.getPolicy(policyID);
     const session = useSession();
     const chatReport = ReportUtils.getReport(chatReportID);
-    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport as OnyxEntry<Report>);
+    const isPaidGroupPolicy = ReportUtils.isPaidGroupPolicyExpenseChat(chatReport);
     const shouldShowPaywithExpensifyOption = !isPaidGroupPolicy || (!shouldHidePaymentOptions && ReportUtils.isPayer(session, iouReport as OnyxEntry<Report>));
     const shouldShowPayElsewhereOption = !isPaidGroupPolicy || policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
     const paymentButtonOptions = useMemo(() => {
@@ -177,13 +180,13 @@ function SettlementButton({
         };
         const canUseWallet = !isExpenseReport && currency === CONST.CURRENCY.USD;
 
-        // Only show the Approve button if the user cannot pay the request
+        // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
             return [approveButtonOption];
         }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
-        // If the user has previously chosen a specific payment option or paid for some request or expense,
+        // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
         if (canUseWallet) {
@@ -271,5 +274,8 @@ export default withOnyx<SettlementButtonProps, SettlementButtonOnyxProps>({
     nvpLastPaymentMethod: {
         key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
         selector: (paymentMethod) => paymentMethod ?? {},
+    },
+    policy: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
 })(SettlementButton);

@@ -12,17 +12,27 @@ import Avatar from './Avatar';
 import Text from './Text';
 
 type Mention = {
-    /** Display name of the user */
+    /**
+     * Main display text of the mention
+     * always visible right after icon (if present)
+     */
     text: string;
 
-    /** The formatted email/phone number of the user */
+    /**
+     * Additional text for the mention
+     * visible if it's value is different than Mention.text value
+     * rendered after Mention.text
+     */
     alternateText: string;
 
-    /** Email/phone number of the user */
-    login?: string;
+    /**
+     * Handle of the mention
+     * used as a value for the mention (e.g. in for the filtering or putting the mention in the message)
+     */
+    handle?: string;
 
-    /** Array of icons of the user. We use the first element of this array */
-    icons: Icon[];
+    /** Array of icons of the mention. If present, we use the first element of this array. For room suggestions, the icons are not used */
+    icons?: Icon[];
 };
 
 type MentionSuggestionsProps = {
@@ -67,16 +77,18 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
 
             return (
                 <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
-                    <View style={styles.mentionSuggestionsAvatarContainer}>
-                        <Avatar
-                            source={item.icons[0].source}
-                            size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
-                            name={item.icons[0].name}
-                            type={item.icons[0].type}
-                            fill={isIcon ? theme.success : undefined}
-                            fallbackIcon={item.icons[0].fallbackIcon}
-                        />
-                    </View>
+                    {item.icons && !!item.icons.length && (
+                        <View style={styles.mentionSuggestionsAvatarContainer}>
+                            <Avatar
+                                source={item.icons[0].source}
+                                size={isIcon ? CONST.AVATAR_SIZE.MENTION_ICON : CONST.AVATAR_SIZE.SMALLER}
+                                name={item.icons[0].name}
+                                type={item.icons[0].type}
+                                fill={isIcon ? theme.success : undefined}
+                                fallbackIcon={item.icons[0].fallbackIcon}
+                            />
+                        </View>
+                    )}
                     <Text
                         style={[styles.mentionSuggestionsText, styles.flexShrink1]}
                         numberOfLines={1}

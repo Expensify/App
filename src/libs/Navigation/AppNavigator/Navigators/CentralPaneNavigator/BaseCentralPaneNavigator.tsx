@@ -4,6 +4,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ReportScreenWrapper from '@libs/Navigation/AppNavigator/ReportScreenWrapper';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import SearchPage from '@pages/Search/SearchPage';
 import SCREENS from '@src/SCREENS';
 
 const Stack = createStackNavigator<CentralPaneNavigatorParamList>();
@@ -20,6 +21,8 @@ const settingsScreens = {
     [SCREENS.SETTINGS.PROFILE.ROOT]: () => require('../../../../../pages/settings/Profile/ProfilePage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.ROOT]: () => require('../../../../../pages/settings/Wallet/WalletPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ABOUT]: () => require('../../../../../pages/settings/AboutPage/AboutPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.TROUBLESHOOT]: () => require('../../../../../pages/settings/Troubleshoot/TroubleshootPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.SAVE_THE_WORLD]: () => require('../../../../../pages/TeachersUnite/SaveTheWorldPage').default as React.ComponentType,
 } satisfies Screens;
 
 function BaseCentralPaneNavigator() {
@@ -39,6 +42,12 @@ function BaseCentralPaneNavigator() {
                 initialParams={{openOnAdminRoom: openOnAdminRoom === 'true' || undefined}}
                 component={ReportScreenWrapper}
             />
+            <Stack.Screen
+                name={SCREENS.SEARCH.CENTRAL_PANE}
+                // We do it this way to avoid adding the url params to url
+                component={SearchPage}
+            />
+
             {Object.entries(settingsScreens).map(([screenName, componentGetter]) => (
                 <Stack.Screen
                     key={screenName}

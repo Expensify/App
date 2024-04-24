@@ -1,4 +1,5 @@
 import AddReaction from '@assets/images/add-reaction.svg';
+import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
@@ -84,6 +85,8 @@ import Hourglass from '@assets/images/hourglass.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
+import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
+import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
@@ -163,6 +166,7 @@ export {
     ActiveRoomAvatar,
     AddReaction,
     AdminRoomAvatar,
+    All,
     Android,
     AnnounceRoomAvatar,
     Apple,
@@ -280,6 +284,7 @@ export {
     Plus,
     Printer,
     Profile,
+    QBOSquare,
     QrCode,
     QuestionMark,
     Receipt,
@@ -308,6 +313,7 @@ export {
     Wallet,
     Workflows,
     Workspace,
+    XeroSquare,
     Zoom,
     Twitter,
     Youtube,

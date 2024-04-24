@@ -1,6 +1,6 @@
 import isEqual from 'lodash/isEqual';
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import * as IOU from '@src/libs/actions/IOU';
@@ -190,7 +190,7 @@ describe('actions/IOU', () => {
                                         // The transaction should be attached to the IOU report
                                         expect(transaction?.reportID).toBe(iouReportID);
 
-                                        // Its amount should match the amount of the request
+                                        // Its amount should match the amount of the expense
                                         expect(transaction?.amount).toBe(amount);
 
                                         // The comment should be correct
@@ -355,7 +355,7 @@ describe('actions/IOU', () => {
                                         // The transaction should be attached to the IOU report
                                         expect(transaction?.reportID).toBe(iouReportID);
 
-                                        // Its amount should match the amount of the request
+                                        // Its amount should match the amount of the expense
                                         expect(transaction?.amount).toBe(amount);
 
                                         // The comment should be correct
@@ -397,7 +397,6 @@ describe('actions/IOU', () => {
                             new Promise<void>((resolve) => {
                                 const connectionID = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-                                    waitForCollectionCallback: true,
                                     callback: (transaction) => {
                                         Onyx.disconnect(connectionID);
                                         expect(transaction?.pendingAction).toBeFalsy();
@@ -922,7 +921,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('split bill', () => {
+    describe('split expense', () => {
         it('creates and updates new chats and IOUs as needed', () => {
             jest.setTimeout(10 * 1000);
             /*
@@ -1073,20 +1072,22 @@ describe('actions/IOU', () => {
                         fetch.pause();
                         IOU.splitBill(
                             // TODO: Migrate after the backend accepts accountIDs
-                            [
-                                [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
-                                [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
-                                [VIT_EMAIL, String(VIT_ACCOUNT_ID)],
-                            ].map(([email, accountID]) => ({login: email, accountID: Number(accountID)})),
-                            RORY_EMAIL,
-                            RORY_ACCOUNT_ID,
-                            amount,
-                            comment,
-                            CONST.CURRENCY.USD,
-                            merchant,
-                            '',
-                            '',
-                            '',
+                            {
+                                participants: [
+                                    [CARLOS_EMAIL, String(CARLOS_ACCOUNT_ID)],
+                                    [JULES_EMAIL, String(JULES_ACCOUNT_ID)],
+                                    [VIT_EMAIL, String(VIT_ACCOUNT_ID)],
+                                ].map(([email, accountID]) => ({login: email, accountID: Number(accountID)})),
+                                currentUserLogin: RORY_EMAIL,
+                                currentUserAccountID: RORY_ACCOUNT_ID,
+                                amount,
+                                comment,
+                                currency: CONST.CURRENCY.USD,
+                                merchant,
+                                created: '',
+                                tag: '',
+                                existingSplitChatReportID: '',
+                            },
                         );
                         return waitForBatchedUpdates();
                     })
@@ -1595,7 +1596,7 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('edit money request', () => {
+    describe('edit expense', () => {
         const amount = 10000;
         const comment = '💸💸💸💸';
         const merchant = 'NASDAQ';
@@ -1739,8 +1740,8 @@ describe('actions/IOU', () => {
                                         expect.objectContaining({
                                             total: 20000,
                                             cachedTotal: '$200.00',
-                                            lastMessageHtml: 'requested $200.00',
-                                            lastMessageText: 'requested $200.00',
+                                            lastMessageHtml: 'submitted $200.00',
+                                            lastMessageText: 'submitted $200.00',
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
@@ -1893,8 +1894,8 @@ describe('actions/IOU', () => {
                                         expect.objectContaining({
                                             total: 10000,
                                             cachedTotal: '$100.00',
-                                            lastMessageHtml: `requested $${amount / 100}.00 for ${comment}`,
-                                            lastMessageText: `requested $${amount / 100}.00 for ${comment}`,
+                                            lastMessageHtml: `submitted $${amount / 100}.00 for ${comment}`,
+                                            lastMessageText: `submitted $${amount / 100}.00 for ${comment}`,
                                         }),
                                     );
                                     expect(updatedChatReport).toEqual(
@@ -2120,7 +2121,7 @@ describe('actions/IOU', () => {
         let IOU_REPORT_ID: string;
         let reportActionID;
         const REPORT_ACTION: OnyxEntry<OnyxTypes.ReportAction> = {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -2148,7 +2149,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 
-            // When an IOU request for money is made
+            // When a submit IOU expense is made
             IOU.requestMoney({reportID: ''}, amount, CONST.CURRENCY.USD, '', '', TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID}, comment, {});
             await waitForBatchedUpdates();
 
@@ -2231,13 +2232,13 @@ describe('actions/IOU', () => {
 
         afterEach(PusherHelper.teardown);
 
-        it('delete a money request (IOU Action and transaction) successfully', async () => {
-            // Given the fetch operations are paused and a money request is initiated
+        it('delete an expense (IOU Action and transaction) successfully', async () => {
+            // Given the fetch operations are paused and an expense is initiated
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
 
             if (transaction && createIOUAction) {
-                // When the money request is deleted
+                // When the expense is deleted
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
             }
             await waitForBatchedUpdates();
@@ -2313,7 +2314,7 @@ describe('actions/IOU', () => {
             fetch.pause();
 
             if (transaction && createIOUAction) {
-                // When the IOU money request is deleted
+                // When the IOU expense is deleted
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, true);
             }
             await waitForBatchedUpdates();
@@ -2348,7 +2349,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            // Then the report should be falsy so that there is no trace of the money request.
+            // Then the report should be falsy so that there is no trace of the expense.
             expect(report).toBeFalsy();
         });
 
@@ -2369,7 +2370,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then verify that the comment is correctly added
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
@@ -2385,7 +2386,7 @@ describe('actions/IOU', () => {
             const resultActionAfterUpdate = reportActions?.[reportActionID];
             expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
-            // When we attempt to delete a money request from the IOU report
+            // When we attempt to delete an expense from the IOU report
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             if (transaction && createIOUAction) {
@@ -2482,7 +2483,7 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
 
             if (transaction && createIOUAction) {
-                // When Deleting a money request
+                // When Deleting an expense
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
@@ -2518,7 +2519,7 @@ describe('actions/IOU', () => {
             expect(report).toBeFalsy();
         });
 
-        it('delete the transaction thread if there are only changelogs (i.e. MODIFIEDEXPENSE actions) in the thread', async () => {
+        it('delete the transaction thread if there are only changelogs (i.e. MODIFIED_EXPENSE actions) in the thread', async () => {
             // Given all promises are resolved
             await waitForBatchedUpdates();
             jest.advanceTimersByTime(10);
@@ -2597,7 +2598,7 @@ describe('actions/IOU', () => {
             });
 
             if (transaction && createIOUAction) {
-                // When Deleting a money request
+                // When Deleting an expense
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
@@ -2640,7 +2641,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
@@ -2656,7 +2656,7 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
 
             // Then comment details should match the expected report action
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
             expect(resultAction?.person).toEqual(REPORT_ACTION.person);
@@ -2672,7 +2672,7 @@ describe('actions/IOU', () => {
             fetch.pause();
 
             if (transaction && createIOUAction) {
-                // When deleting money request
+                // When deleting expense
                 IOU.deleteMoneyRequest(transaction?.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
@@ -2697,7 +2697,6 @@ describe('actions/IOU', () => {
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
-                    waitForCollectionCallback: true,
                     callback: (report) => {
                         Onyx.disconnect(connectionID);
                         expect(report).toBeTruthy();
@@ -2707,7 +2706,7 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('update the moneyRequestPreview to show [Deleted request] when appropriate', async () => {
+        it('update the moneyRequestPreview to show [Deleted expense] when appropriate', async () => {
             await waitForBatchedUpdates();
 
             // Given a thread report
@@ -2767,7 +2766,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            let resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            let resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
@@ -2799,7 +2798,7 @@ describe('actions/IOU', () => {
             Report.addComment(IOU_REPORT_ID, 'Testing a comment');
             await waitForBatchedUpdates();
 
-            resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID ?? '';
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
@@ -2819,12 +2818,12 @@ describe('actions/IOU', () => {
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             if (transaction && createIOUAction) {
-                // When we delete the money request
+                // When we delete the expense
                 IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             await waitForBatchedUpdates();
 
-            // Then we expect the moneyRequestPreview to show [Deleted request]
+            // Then we expect the moneyRequestPreview to show [Deleted expense]
 
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2833,7 +2832,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0].isDeletedParentAction).toBeTruthy();
+                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });
@@ -2843,7 +2842,7 @@ describe('actions/IOU', () => {
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.resume();
 
-            // Then we expect the moneyRequestPreview to show [Deleted request]
+            // Then we expect the moneyRequestPreview to show [Deleted expense]
 
             await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
@@ -2852,7 +2851,7 @@ describe('actions/IOU', () => {
                     callback: (reportActionsForReport) => {
                         Onyx.disconnect(connectionID);
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) ?? null;
-                        expect(createIOUAction?.message?.[0].isDeletedParentAction).toBeTruthy();
+                        expect(createIOUAction?.message?.[0]?.isDeletedParentAction).toBeTruthy();
                         resolve();
                     },
                 });
@@ -2867,7 +2866,7 @@ describe('actions/IOU', () => {
             });
             await waitForBatchedUpdates();
 
-            // Given a second money request in addition to the first one
+            // Given a second expense in addition to the first one
 
             jest.advanceTimersByTime(10);
             const amount2 = 20000;
@@ -2887,9 +2886,9 @@ describe('actions/IOU', () => {
 
             const ioupreview = ReportActionsUtils.getReportPreviewAction(chatReport?.reportID ?? '', iouReport?.reportID ?? '');
             expect(ioupreview).toBeTruthy();
-            expect(ioupreview?.message?.[0].text).toBe('rory@expensifail.com owes $300.00');
+            expect(ioupreview?.message?.[0]?.text).toBe('rory@expensifail.com owes $300.00');
 
-            // When we delete the first money request
+            // When we delete the first expense
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             jest.advanceTimersByTime(10);
@@ -2932,7 +2931,7 @@ describe('actions/IOU', () => {
             Report.addComment(IOU_REPORT_ID, 'Testing a comment');
             await waitForBatchedUpdates();
 
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT);
+            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
             reportActionID = resultAction?.reportActionID;
 
             expect(resultAction?.message).toEqual(REPORT_ACTION.message);
@@ -2980,7 +2979,7 @@ describe('actions/IOU', () => {
 
             await waitForBatchedUpdates();
 
-            // When we delete the money request in SingleTransactionView and we should not delete the IOU report
+            // When we delete the expense in SingleTransactionView and we should not delete the IOU report
 
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
@@ -3034,7 +3033,7 @@ describe('actions/IOU', () => {
 
         it('navigate the user correctly to the chat Report when appropriate', () => {
             if (transaction && createIOUAction) {
-                // When we delete the money request and we should delete the IOU report
+                // When we delete the expense and we should delete the IOU report
                 IOU.deleteMoneyRequest(transaction.transactionID, createIOUAction, false);
             }
             // Then we expect to navigate to the chat report
@@ -3044,6 +3043,114 @@ describe('actions/IOU', () => {
 
     describe('submitReport', () => {
         it('correctly submits a report', () => {
+            const amount = 10000;
+            const comment = '💸💸💸💸';
+            const merchant = 'NASDAQ';
+            let expenseReport: OnyxEntry<OnyxTypes.Report>;
+            let chatReport: OnyxEntry<OnyxTypes.Report>;
+            return waitForBatchedUpdates()
+                .then(() => {
+                    const policyID = PolicyActions.generatePolicyID();
+                    PolicyActions.createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace", policyID);
+
+                    // Change the approval mode for the policy since default is Submit and Close
+                    PolicyActions.setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT) ?? null;
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (chatReport) {
+                        IOU.requestMoney(
+                            chatReport,
+                            amount,
+                            CONST.CURRENCY.USD,
+                            '',
+                            merchant,
+                            RORY_EMAIL,
+                            RORY_ACCOUNT_ID,
+                            {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                            comment,
+                            {},
+                        );
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE) ?? null;
+                                    Onyx.merge(`report_${expenseReport?.reportID}`, {
+                                        statusNum: 0,
+                                        stateNum: 0,
+                                    });
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE) ?? null;
+
+                                    // Verify report is a draft
+                                    expect(expenseReport?.stateNum).toBe(0);
+                                    expect(expenseReport?.statusNum).toBe(0);
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (expenseReport) {
+                        IOU.submitReport(expenseReport);
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connectionID = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connectionID);
+                                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE) ?? null;
+
+                                    // Report was submitted correctly
+                                    expect(expenseReport?.stateNum).toBe(1);
+                                    expect(expenseReport?.statusNum).toBe(1);
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+        it('correctly submits a report with Submit and Close approval mode', () => {
             const amount = 10000;
             const comment = '💸💸💸💸';
             const merchant = 'NASDAQ';
@@ -3138,9 +3245,9 @@ describe('actions/IOU', () => {
                                     Onyx.disconnect(connectionID);
                                     expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE) ?? null;
 
-                                    // Report was submitted correctly
-                                    expect(expenseReport?.stateNum).toBe(1);
-                                    expect(expenseReport?.statusNum).toBe(1);
+                                    // Report is closed since the default policy settings is Submit and Close
+                                    expect(expenseReport?.stateNum).toBe(2);
+                                    expect(expenseReport?.statusNum).toBe(2);
                                     resolve();
                                 },
                             });

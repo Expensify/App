@@ -24,7 +24,7 @@ type PendingChatMember = {
 };
 
 type Participant = {
-    hidden: boolean;
+    hidden?: boolean;
     role?: 'admin' | 'member';
 };
 
@@ -38,7 +38,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
-        /** Whether the report has a child that is an outstanding money request that is awaiting action from the current user */
+        /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
         hasOutstandingChildRequest?: boolean;
 
         /** List of icons for report participants */
@@ -132,7 +132,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         parentReportID?: string;
         parentReportActionID?: string;
         isOptimisticReport?: boolean;
-        hasDraft?: boolean;
         managerID?: number;
         lastVisibleActionLastModified?: string;
         displayName?: string;

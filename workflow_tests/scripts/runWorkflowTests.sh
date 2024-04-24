@@ -60,4 +60,4 @@ info 'ACT_BINARY environment variable set to an Act executable'
 success 'Environment setup properly - running tests'
 
 # Run tests
-npm test -- --config=workflow_tests/jest.config.js --runInBand "$@"
+npm test -- --config=workflow_tests/jest.config.ts --runInBand "$@"

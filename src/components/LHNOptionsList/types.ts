@@ -74,6 +74,9 @@ type OptionRowLHNDataProps = {
     /** The full data of the report */
     fullReport: OnyxEntry<Report>;
 
+    /** The transaction thread report associated with the current report – applicable only for one-transaction money reports */
+    transactionThreadReport: OnyxEntry<Report>;
+
     /** The policy which the user has access to and which the report could be tied to */
     policy?: OnyxEntry<Policy>;
 
@@ -86,8 +89,8 @@ type OptionRowLHNDataProps = {
     /** The transaction linked to the report's last action */
     lastReportActionTransaction?: OnyxEntry<Transaction | EmptyObject>;
 
-    /** Comment added to report */
-    comment: string;
+    /** Whether a report contains a draft */
+    hasDraftComment: boolean;
 
     /** The receipt transaction from the parent report action */
     receiptTransactions: OnyxCollection<Transaction>;
@@ -132,6 +135,9 @@ type OptionRowLHNProps = {
 
     /** The item that should be rendered */
     optionItem?: OptionData;
+
+    /** Whether a report contains a draft */
+    hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
 };

@@ -14,11 +14,12 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Beta, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
@@ -31,6 +32,9 @@ type BaseReportActionContextMenuOnyxProps = {
 
     /** All of the actions of the report */
     reportActions: OnyxEntry<ReportActions>;
+
+    /** The transaction linked to the report action this context menu is attached to. */
+    transaction: OnyxEntry<Transaction>;
 };
 
 type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
@@ -44,6 +48,9 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     // originalReportID is used in withOnyx to get the reportActions for the original report
     // eslint-disable-next-line react/no-unused-prop-types
     originalReportID: string;
+
+    /** The ID of transaction thread report associated with the current report, if any */
+    transactionThreadReportID: string;
 
     /**
      * If true, this component will be a small, row-oriented menu that displays icons but not text.
@@ -106,12 +113,14 @@ function BaseReportActionContextMenu({
     selection = '',
     draftMessage = '',
     reportActionID,
+    transaction,
     reportID,
     betas,
     reportActions,
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
+    transactionThreadReportID,
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -240,6 +249,7 @@ function BaseReportActionContextMenu({
                         interceptAnonymousUser,
                         openOverflowMenu,
                         setIsEmojiPickerActive,
+                        transactionThreadReportID,
                     };
 
                     if ('renderContent' in contextAction) {
@@ -252,6 +262,7 @@ function BaseReportActionContextMenu({
                         textTranslateKey === 'reportActionContextMenu.deleteAction' ||
                         textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
                     const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
+                    const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyToClipboard' && transaction && {transaction};
                     const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
 
                     return (
@@ -268,7 +279,7 @@ function BaseReportActionContextMenu({
                             key={contextAction.textTranslateKey}
                             onPress={(event) =>
                                 interceptAnonymousUser(
-                                    () => contextAction.onPress?.(closePopup, {...payload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
+                                    () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
                                     contextAction.isAnonymousAction,
                                 )
                             }
@@ -276,6 +287,7 @@ function BaseReportActionContextMenu({
                             isAnonymousAction={contextAction.isAnonymousAction}
                             isFocused={focusedIndex === index}
                             shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
+                            onFocus={() => setFocusedIndex(index)}
                         />
                     );
                 })}
@@ -291,6 +303,12 @@ export default withOnyx<BaseReportActionContextMenuProps, BaseReportActionContex
     reportActions: {
         key: ({originalReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
         canEvict: false,
+    },
+    transaction: {
+        key: ({reportActions, reportActionID}) => {
+            const reportAction = reportActions?.[reportActionID];
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${(reportAction && ReportActionsUtils.getLinkedTransactionID(reportAction)) ?? 0}`;
+        },
     },
 })(
     memo(BaseReportActionContextMenu, (prevProps, nextProps) => {
