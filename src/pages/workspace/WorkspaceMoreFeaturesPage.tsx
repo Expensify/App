@@ -21,7 +21,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from './PaidPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withPolicyConnections from './withPolicyConnections';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
 
 type WorkspaceMoreFeaturesPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MORE_FEATURES>;
@@ -119,7 +119,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
-            disabled: !hasAccountingConnection,
+            disabled: hasAccountingConnection,
         },
     ];
 
@@ -220,4 +220,4 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
 WorkspaceMoreFeaturesPage.displayName = 'WorkspaceMoreFeaturesPage';
 
-export default withPolicyAndFullscreenLoading(WorkspaceMoreFeaturesPage);
+export default withPolicyConnections(WorkspaceMoreFeaturesPage);
