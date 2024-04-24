@@ -103,7 +103,7 @@ const getRootNavigatorScreenOptions: GetRootNavigatorScreenOptions = (isSmallScr
             ...commonScreenOptions,
             ...hideKeyboardOnSwipe,
             title: CONFIG.SITE_TITLE,
-            animation: isSmallScreenWidth ? 'none' : undefined,
+            animation: isSmallScreenWidth ? undefined : 'none',
             cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator(isSmallScreenWidth, true, false, props),
             cardStyle: {
                 ...StyleUtils.getNavigationModalCardStyle(),
