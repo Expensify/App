@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,13 +16,12 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-function QuickbooksLocationsPage({policy}: WithPolicyProps) {
+function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isReportFieldsSelected = syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+    const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isSwitchOn = Boolean(enableNewCategories && enableNewCategories !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -34,25 +32,25 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     shouldEnableMaxHeight
-                    testID={QuickbooksLocationsPage.displayName}
+                    testID={QuickbooksChartOfAccountsPage.displayName}
                 >
-                    <HeaderWithBackButton title={translate('workspace.qbo.locations')} />
+                    <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
                     <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.locationsDescription')}</Text>
-                        <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
+                        <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <View style={styles.flex1}>
-                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
+                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.syncLocations}>
+                            <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
                                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                     <Switch
-                                        accessibilityLabel={translate('workspace.qbo.locations')}
+                                        accessibilityLabel={translate('workspace.qbo.accounts')}
                                         isOn={isSwitchOn}
                                         onToggle={() =>
                                             Connections.updatePolicyConnectionConfig(
                                                 policyID,
                                                 CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICKBOOKS_IMPORTS.SYNC_LOCATIONS,
+                                                CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
@@ -60,18 +58,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                 </View>
                             </OfflineWithFeedback>
                         </View>
-                        {isSwitchOn && (
-                            <OfflineWithFeedback>
-                                <MenuItemWithTopDescription
-                                    interactive={false}
-                                    title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
-                                    description={translate('workspace.qbo.displayedAs')}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                />
-                            </OfflineWithFeedback>
-                        )}
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt1]}>
-                            <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.locationsAdditionalDescription')}</Text>
+                        <View style={styles.flex1}>
+                            <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
                         </View>
                     </ScrollView>
                 </ScreenWrapper>
@@ -80,6 +68,6 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksLocationsPage.displayName = 'QuickbooksLocationsPage';
+QuickbooksChartOfAccountsPage.displayName = 'QuickbooksChartOfAccountsPage';
 
-export default withPolicy(QuickbooksLocationsPage);
+export default withPolicy(QuickbooksChartOfAccountsPage);
