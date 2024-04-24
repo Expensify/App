@@ -1,8 +1,14 @@
+import lodashEvery from 'lodash/every';
 import lodashGet from 'lodash/get';
+import lodashIsEqual from 'lodash/isEqual';
+import lodashMap from 'lodash/map';
+import lodashPick from 'lodash/pick';
+import lodashReject from 'lodash/reject';
+import lodashSome from 'lodash/some';
+import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -49,13 +55,13 @@ const propTypes = {
     ),
 
     /** The type of IOU report, i.e. split, request, send, track */
-    iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
+    iouType: PropTypes.oneOf(lodashValues(CONST.IOU.TYPE)).isRequired,
 
     /** The expense type, ie. manual, scan, distance */
-    iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
+    iouRequestType: PropTypes.oneOf(lodashValues(CONST.IOU.REQUEST_TYPE)).isRequired,
 
     /** The action of the IOU, i.e. create, split, move */
-    action: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
+    action: PropTypes.oneOf(lodashValues(CONST.IOU.ACTION)),
 };
 
 const defaultProps = {
@@ -84,6 +90,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
+    const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -111,15 +118,22 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             {},
             [],
             false,
             {},
             [],
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            !isCategorizeOrShareAction,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -141,21 +155,19 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         newSections.push({
             title: translate('common.recents'),
             data: chatOptions.recentReports,
-            shouldShow: !_.isEmpty(chatOptions.recentReports),
+            shouldShow: chatOptions.recentReports.length > 0,
         });
 
-        if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action)) {
-            newSections.push({
-                title: translate('common.contacts'),
-                data: chatOptions.personalDetails,
-                shouldShow: !_.isEmpty(chatOptions.personalDetails),
-            });
-        }
+        newSections.push({
+            title: translate('common.contacts'),
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0,
+        });
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
                 title: undefined,
-                data: _.map([chatOptions.userToInvite], (participant) => {
+                data: lodashMap([chatOptions.userToInvite], (participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
@@ -179,6 +191,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         personalDetails,
         translate,
         didScreenTransitionEnd,
+        isCategorizeOrShareAction,
     ]);
 
     /**
@@ -190,7 +203,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         (option) => {
             onParticipantsAdded([
                 {
-                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
                     iouType,
                 },
@@ -218,11 +231,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
                 return false;
             };
-            const isOptionInList = _.some(participants, isOptionSelected);
+            const isOptionInList = lodashSome(participants, isOptionSelected);
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(participants, isOptionSelected);
+                newSelectedOptions = lodashReject(participants, isOptionSelected);
             } else {
                 newSelectedOptions = [
                     ...participants,
@@ -247,11 +260,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
+                lodashGet(newChatOptions, 'personalDetails', []).length + lodashGet(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+                lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
         [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
@@ -259,7 +272,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     // Right now you can't split an expense with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
-    const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
+    const hasPolicyExpenseChatParticipant = lodashSome(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
@@ -342,14 +355,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         </>
     );
 
-    const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
-    if (
-        [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) &&
-        isAllSectionsEmpty &&
-        didScreenTransitionEnd &&
-        debouncedSearchTerm.trim() === '' &&
-        areOptionsInitialized
-    ) {
+    const isAllSectionsEmpty = lodashEvery(sections, (section) => section.data.length === 0);
+    if (isCategorizeOrShareAction && isAllSectionsEmpty && didScreenTransitionEnd && debouncedSearchTerm.trim() === '' && areOptionsInitialized) {
         return renderEmptyWorkspaceView();
     }
 
@@ -379,8 +386,8 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTempora
 export default memo(
     MoneyTemporaryForRefactorRequestParticipantsSelector,
     (prevProps, nextProps) =>
-        _.isEqual(prevProps.participants, nextProps.participants) &&
+        lodashIsEqual(prevProps.participants, nextProps.participants) &&
         prevProps.iouRequestType === nextProps.iouRequestType &&
         prevProps.iouType === nextProps.iouType &&
-        _.isEqual(prevProps.betas, nextProps.betas),
+        lodashIsEqual(prevProps.betas, nextProps.betas),
 );

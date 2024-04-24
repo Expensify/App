@@ -13,6 +13,11 @@ import * as Expensicons from './Icon/Expensicons';
 import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
+// Cache for the dimensions of the thumbnails to avoid flickering incorrect size when the
+// image has already been loaded once. This caches the dimensions based on the URL of
+// the image.
+const thumbnailDimensionsCache = new Map<string, {width: number; height: number}>();
+
 type ThumbnailImageProps = {
     /** Source URL for the preview image */
     previewSourceURL: string | ImageSourcePropType;
@@ -62,7 +67,8 @@ function ThumbnailImage({
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const [failedToLoad, setFailedToLoad] = useState(false);
-    const [imageDimensions, setImageDimensions] = useState({width: imageWidth, height: imageHeight});
+    const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
+    const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
 
     useEffect(() => {
@@ -75,12 +81,21 @@ function ThumbnailImage({
      */
     const updateImageSize = useCallback(
         ({width, height}: UpdateImageSizeParams) => {
-            if (!shouldDynamicallyResize) {
+            if (
+                !shouldDynamicallyResize ||
+                // If the provided dimensions are good avoid caching them and updating state.
+                (imageDimensions.width === width && imageDimensions.height === height)
+            ) {
                 return;
             }
+
+            if (typeof previewSourceURL === 'string') {
+                thumbnailDimensionsCache.set(previewSourceURL, {width, height});
+            }
+
             setImageDimensions({width, height});
         },
-        [shouldDynamicallyResize],
+        [previewSourceURL, imageDimensions, shouldDynamicallyResize],
     );
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
