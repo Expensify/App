@@ -11,8 +11,6 @@ import type {ListItem, Section} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -46,8 +44,6 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
     const policyName = policy?.name ?? '';
     const [searchTerm, setSearchTerm] = useState('');
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
 
     const isDeletedPolicyEmployee = useCallback(
         (policyEmployee: PolicyEmployee) => !isOffline && policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyEmployee.errors),
@@ -78,13 +74,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
 
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             const formattedMember = {
@@ -114,7 +104,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
             }
         });
         return [policyMemberDetails, approverDetails];
-    }, [personalDetails, translate, policy?.approver, StyleUtils, isDeletedPolicyEmployee, policy?.owner, styles, policy?.employeeList]);
+    }, [personalDetails, translate, policy?.approver, isDeletedPolicyEmployee, policy?.owner, policy?.employeeList]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
