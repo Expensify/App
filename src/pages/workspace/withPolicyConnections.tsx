@@ -39,7 +39,11 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
             openPolicyAccountingPage(policy.id);
         }, [hasConnectionsDataBeenFetched, policy, isOffline]);
 
+<<<<<<< HEAD
         if (!policy || status === 'loading' || !hasConnectionsDataBeenFetched) {
+=======
+        if (props.policy?.areConnectionsEnabled && (!props.policy || status === 'loading' || hasConnectionsDataBeenFetched === false)) {
+>>>>>>> cd3966e (Merge pull request #40893 from Expensify/hayata-fix-infinite-loading-screen-when-fetching-connections-data)
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />
