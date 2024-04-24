@@ -9,8 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -102,4 +102,4 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
 
 QuickbooksImportPage.displayName = 'PolicyQuickbooksImportPage';
 
-export default withPolicy(QuickbooksImportPage);
+export default withPolicyConnections(QuickbooksImportPage);
