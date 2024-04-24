@@ -91,12 +91,12 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             testID={HoldReasonPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('iou.holdRequest')}
+                title={translate('iou.holdExpense')}
                 onBackButtonPress={navigateBack}
             />
             <FormProvider
                 formID="moneyHoldReasonForm"
-                submitButtonText={translate('iou.holdRequest')}
+                submitButtonText={translate('iou.holdExpense')}
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
