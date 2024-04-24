@@ -37,7 +37,7 @@ function ValidateLoginPage({
         }
         Session.initAutoAuthState(autoAuthState);
 
-        if (!shouldStartSignInWithValidateCode) {
+        if (shouldStartSignInWithValidateCode) {
             if (exitTo) {
                 Session.handleExitToNavigation(exitTo);
             }
