@@ -110,16 +110,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
     const tenants = policy?.connections?.xero?.data?.tenants ?? [];
-    console.log('Testy4', policy.connections?.xero);
-    console.log('Testy', tenants, policy.connections?.xero);
-    const currentXeroOrganization =
-        tenants?.length === 1
-            ? tenants[0]
-            : tenants.find((tenant) => {
-                  console.log('testy3', tenant.id, policy.connections?.xero.config?.tenantID);
-                  return tenant.id === policy?.connections?.xero.config.tenantID;
-              });
-    console.log('testy2', currentXeroOrganization);
+    const currentXeroOrganization = tenants?.length === 1 ? tenants[0] : tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -196,9 +187,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                       {
                           description: translate('workspace.xero.organization'),
                           iconRight: Expensicons.ArrowRight,
-                          shouldShowRightIcon: true,
                           title: currentXeroOrganization?.name,
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          shouldShowRightIcon: tenants.length > 1,
                           shouldShowDescriptionOnTop: true,
                           onPress: () => {
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
@@ -238,8 +229,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     }, [
         connectedIntegration,
         connectionSyncProgress?.stageInProgress,
-        currentXeroOrganization?.id,
-        currentXeroOrganization?.name,
+        currentXeroOrganization,
+        tenants,
         isSyncInProgress,
         overflowMenu,
         policy?.connections,
