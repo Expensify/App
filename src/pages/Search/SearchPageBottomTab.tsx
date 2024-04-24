@@ -11,6 +11,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+// import EmptySearchView from './EmptySearchView';
+
 type SearchMenuItem = {
     title: string;
     icon: IconAsset;
@@ -59,6 +61,7 @@ function SearchPageBottomTab() {
                     />
                 ))}
             </View>
+            {/* <EmptySearchView /> */}
         </ScreenWrapper>
     );
 }
