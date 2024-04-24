@@ -14,6 +14,7 @@ import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import {transformedTaxRates} from './OptionsListUtils';
 import {getCleanedTagName} from './PolicyUtils';
+import {getTransactionDetails} from './ReportUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -657,12 +658,19 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName;
 }
 
+function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    const {taxCode: transactionTaxCode} = getTransactionDetails(transaction) ?? {};
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    return transactionTaxCode === defaultTaxCode ? getDefaultTaxName(policy, transaction) : getTaxName(policy, transaction);
+}
+
 export {
     buildOptimisticTransaction,
     calculateTaxAmount,
     getTaxName,
     getDefaultTaxCode,
     getDefaultTaxName,
+    getTaxRateTitle,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getDescription,
