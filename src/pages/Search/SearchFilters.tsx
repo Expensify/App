@@ -33,6 +33,16 @@ function SearchFilters() {
             icon: Expensicons.All,
             route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
         },
+        {
+            title: 'Drafts',
+            icon: Expensicons.Send,
+            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS),
+        },
+        {
+            title: 'Shared',
+            icon: Expensicons.Mail,
+            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SHARED),
+        },
     ];
 
     const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
