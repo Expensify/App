@@ -60,3 +60,5 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
 }
 
 export default withPolicyConnections;
+
+export type {WithPolicyConnectionsProps};

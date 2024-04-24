@@ -12,19 +12,10 @@ import {getAdminEmployees} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-// TODO - should be removed after API fully working
-const draft = [
-    {name: '+14153166423@expensify.sms', currency: 'USD', id: '94', email: '+14153166423@expensify.sms'},
-    {name: 'Account Maintenance Fee', currency: 'USD', id: '141', email: 'alberto@expensify213.com'},
-    {name: 'Admin Test', currency: 'USD', id: '119', email: 'admin@qbocard.com'},
-    {name: 'Alberto Gonzalez-Cela', currency: 'USD', id: '104', email: 'alberto@expensify.com'},
-    {name: 'Aldo test QBO2 QBO2 Last name', currency: 'USD', id: '140', email: 'admin@qbo.com'},
-];
 
 type CardListItem = ListItem & {
     value: string;
@@ -35,12 +26,11 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {exporter} = policy?.connections?.quickbooksOnline?.config ?? {};
     const exporters = getAdminEmployees(policy);
-    const result = exporters?.length ? exporters : draft;
 
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
-            result.reduce<CardListItem[]>((vendors, vendor) => {
+            exporters?.reduce<CardListItem[]>((vendors, vendor) => {
                 if (vendor.email) {
                     vendors.push({
                         value: vendor.email,
@@ -51,7 +41,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
                 }
                 return vendors;
             }, []),
-        [result, exporter],
+        [exporter, exporters],
     );
 
     const onSelectRow = useCallback(
@@ -92,4 +82,4 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
 
 QuickBooksExportPreferredExporterPage.displayName = 'QuickBooksExportPreferredExporterPage';
 
-export default withPolicy(QuickBooksExportPreferredExporterPage);
+export default withPolicyConnections(QuickBooksExportPreferredExporterPage);
