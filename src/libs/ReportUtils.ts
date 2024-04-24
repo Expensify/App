@@ -6122,15 +6122,17 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         return;
     }
 
-    const {expenseChatReportID, policyID} = PolicyActions.createWorkspace();
+    const {expenseChatReportID, policyID, policyName} = PolicyActions.createWorkspace();
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
 
     IOU.setMoneyRequestParticipants(transactionID, [
         {
+            selected: true,
             accountID: 0,
             isPolicyExpenseChat: true,
             reportID: expenseChatReportID,
             policyID,
+            searchText: policyName,
         },
     ]);
     const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
