@@ -337,6 +337,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         }
         const {policyID, expenseChatReportID} = Policy.createWorkspace();
         return addSingleParticipant({
+            accountID: 0,
             isPolicyExpenseChat: true,
             reportID: expenseChatReportID,
             policyID,
