@@ -631,15 +631,22 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 }
 
 /**
+ * Gets the default tax code based on selected currency
+ */
+function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+    const defaultExternalID = policy?.taxRates?.defaultExternalID;
+    const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
+    return policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+}
+
+/**
  * Gets the default tax name
  */
 function getDefaultTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const taxRates = policy?.taxRates;
-    const defaultExternalID = taxRates?.defaultExternalID;
-    const foreignTaxDefault = taxRates?.foreignTaxDefault;
-    const defaultTaxKey = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const defaultTaxName =
-        (defaultTaxKey && `${taxRates?.taxes[defaultTaxKey]?.name} (${taxRates?.taxes[defaultTaxKey]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
+        (defaultTaxCode && `${taxRates?.taxes[defaultTaxCode]?.name} (${taxRates?.taxes[defaultTaxCode]?.value}) ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}`) || '';
     return Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ?? defaultTaxName;
 }
 
@@ -656,6 +663,7 @@ export {
     buildOptimisticTransaction,
     calculateTaxAmount,
     getTaxName,
+    getDefaultTaxCode,
     getDefaultTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
