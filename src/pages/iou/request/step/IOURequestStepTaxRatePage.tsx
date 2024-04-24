@@ -31,8 +31,8 @@ type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(taxRates: TaxRatesWithDefault, selectedTaxRate: string, amount: number): number | undefined {
-    const percentage = Object.values(OptionsListUtils.transformedTaxRates(taxRates)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
+function getTaxAmount(policy: OnyxEntry<Policy>, selectedTaxRate: string, amount: number): number | undefined {
+    const percentage = Object.values(OptionsListUtils.transformedTaxRates(policy)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
     if (percentage) {
         return TransactionUtils.calculateTaxAmount(percentage, amount);
     }
@@ -72,7 +72,7 @@ function IOURequestStepTaxRatePage({
             Navigation.goBack(backTo);
             return;
         }
-        const taxAmount = getTaxAmount(taxRates, taxes.text, TransactionUtils.getAmount(transaction, false, true));
+        const taxAmount = getTaxAmount(policy, taxes.text, TransactionUtils.getAmount(transaction, false, true));
 
         if (isEditing) {
             const newTaxCode = taxes.data.code;
@@ -114,7 +114,9 @@ function IOURequestStepTaxRatePage({
             <TaxPicker
                 selectedTaxRate={isEditing ? editingSelectedTaxRate ?? '' : moneyRequestSelectedTaxRate}
                 policyID={report?.policyID}
+                transactionID={transaction?.transactionID}
                 onSubmit={updateTaxRates}
+                action={action}
             />
         </StepScreenWrapper>
     );
