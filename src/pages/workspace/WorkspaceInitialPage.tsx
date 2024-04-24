@@ -20,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import getTopmostWorkspacesCentralPaneName from '@libs/Navigation/getTopmostWorkspacesCentralPaneName';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {FullScreenNavigatorParamList} from '@navigation/types';
@@ -71,7 +71,7 @@ type WorkspaceInitialPageOnyxProps = {
 
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInitialPageOnyxProps &
-    PlatformStackScreenOptionsProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
+    PlatformStackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
 function dismissError(policyID: string) {
     PolicyUtils.goBackFromInvalidPolicy();

@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as SessionUtils from '@libs/SessionUtils';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
@@ -24,7 +24,7 @@ type LogOutPreviousUserPageOnyxProps = {
     isAccountLoading: boolean;
 };
 
-type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & PlatformStackScreenOptionsProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type LogOutPreviousUserPageProps = LogOutPreviousUserPageOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 // This page is responsible for handling transitions from OldDot. Specifically, it logs the current user
 // out if the transition is for another user.

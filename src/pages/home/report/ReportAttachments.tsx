@@ -3,13 +3,13 @@ import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportAttachmentsProps = PlatformStackScreenOptionsProps<AuthScreensParamList, typeof SCREENS.REPORT_ATTACHMENTS>;
+type ReportAttachmentsProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_ATTACHMENTS>;
 
 function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;

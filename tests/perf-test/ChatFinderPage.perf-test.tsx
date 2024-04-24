@@ -9,7 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OptionListContextProvider, {OptionsListContext} from '@components/OptionListContextProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootStackParamList} from '@libs/Navigation/types';
 import {createOptionList} from '@libs/OptionsListUtils';
 import ChatFinderPage from '@pages/ChatFinderPage';
@@ -123,7 +123,7 @@ afterEach(() => {
     Onyx.clear();
 });
 
-type ChatFinderPageProps = PlatformStackScreenOptionsProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT> & {
+type ChatFinderPageProps = PlatformStackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT> & {
     betas: OnyxEntry<Beta[]>;
     reports: OnyxCollection<Report>;
     isSearchingForReports: OnyxEntry<boolean>;

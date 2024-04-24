@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -36,7 +36,7 @@ type NewTaskPageOnyxProps = {
     reports: OnyxCollection<Report>;
 };
 
-type NewTaskPageProps = NewTaskPageOnyxProps & PlatformStackScreenOptionsProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
+type NewTaskPageProps = NewTaskPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.ROOT>;
 
 function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const styles = useThemeStyles();

@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import type {TransactionChanges} from '@libs/TransactionUtils';
@@ -32,7 +32,7 @@ type EditSplitBillOnyxProps = {
     draftTransaction: OnyxEntry<Transaction>;
 };
 
-type EditSplitBillProps = EditSplitBillOnyxProps & PlatformStackScreenOptionsProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
+type EditSplitBillProps = EditSplitBillOnyxProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.EDIT_REQUEST>;
 
 function EditSplitBillPage({route, transaction, draftTransaction, report}: EditSplitBillProps) {
     const {field: fieldToEdit, reportID, reportActionID, tagIndex} = route.params;

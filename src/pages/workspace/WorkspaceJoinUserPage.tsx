@@ -5,7 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
 import navigateAfterJoinRequest from '@libs/navigateAfterJoinRequest';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {AuthScreensParamList} from '@navigation/types';
 import * as PolicyAction from '@userActions/Policy';
@@ -20,7 +20,7 @@ type WorkspaceJoinUserPageOnyxProps = {
     policy: OnyxEntry<Policy>;
 };
 
-type WorkspaceJoinUserPageRoute = {route: PlatformStackScreenOptionsProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
+type WorkspaceJoinUserPageRoute = {route: PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.WORKSPACE_JOIN_USER>['route']};
 type WorkspaceJoinUserPageProps = WorkspaceJoinUserPageRoute & WorkspaceJoinUserPageOnyxProps;
 
 let isJoinLinkUsed = false;

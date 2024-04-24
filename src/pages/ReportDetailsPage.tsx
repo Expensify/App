@@ -23,7 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -58,7 +58,7 @@ type ReportDetailsPageOnyxProps = {
     /** Session info for the currently logged in user. */
     session: OnyxEntry<OnyxTypes.Session>;
 };
-type ReportDetailsPageProps = ReportDetailsPageOnyxProps & WithReportOrNotFoundProps & PlatformStackScreenOptionsProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
+type ReportDetailsPageProps = ReportDetailsPageOnyxProps & WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
 
 function ReportDetailsPage({policies, report, session, personalDetails}: ReportDetailsPageProps) {
     const {translate} = useLocalize();

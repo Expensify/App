@@ -13,7 +13,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
@@ -30,7 +30,7 @@ type FlagCommentPageWithOnyxProps = {
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 };
 
-type FlagCommentPageNavigationProps = PlatformStackScreenOptionsProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
+type FlagCommentPageNavigationProps = PlatformStackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
 
 type FlagCommentPageProps = FlagCommentPageNavigationProps & WithReportAndReportActionOrNotFoundProps & FlagCommentPageWithOnyxProps;
 

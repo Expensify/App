@@ -14,7 +14,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TaskActions from '@userActions/Task';
@@ -30,7 +30,7 @@ type NewTaskDetailsPageOnyxProps = {
     task: OnyxEntry<Task>;
 };
 
-type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & PlatformStackScreenOptionsProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
+type NewTaskDetailsPageProps = NewTaskDetailsPageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.DETAILS>;
 
 const parser = new ExpensiMark();
 

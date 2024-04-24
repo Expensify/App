@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -27,7 +27,7 @@ type NewTaskTitlePageOnyxProps = {
     /** Task Creation Data */
     task: OnyxEntry<Task>;
 };
-type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & PlatformStackScreenOptionsProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
+type NewTaskTitlePageProps = NewTaskTitlePageOnyxProps & PlatformStackScreenProps<NewTaskNavigatorParamList, typeof SCREENS.NEW_TASK.TITLE>;
 
 function NewTaskTitlePage({task}: NewTaskTitlePageProps) {
     const styles = useThemeStyles();

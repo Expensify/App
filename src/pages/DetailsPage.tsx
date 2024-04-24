@@ -19,7 +19,7 @@ import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -40,7 +40,7 @@ type DetailsPageOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-type DetailsPageProps = DetailsPageOnyxProps & PlatformStackScreenOptionsProps<DetailsNavigatorParamList, typeof SCREENS.DETAILS_ROOT>;
+type DetailsPageProps = DetailsPageOnyxProps & PlatformStackScreenProps<DetailsNavigatorParamList, typeof SCREENS.DETAILS_ROOT>;
 
 /**
  * Gets the phone number to display for SMS logins

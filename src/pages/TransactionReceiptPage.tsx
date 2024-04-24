@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenOptionsProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
@@ -23,7 +23,7 @@ type TransactionReceiptOnyxProps = {
     reportMetadata: OnyxEntry<ReportMetadata>;
 };
 
-type TransactionReceiptProps = TransactionReceiptOnyxProps & PlatformStackScreenOptionsProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
+type TransactionReceiptProps = TransactionReceiptOnyxProps & PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.TRANSACTION_RECEIPT>;
 
 function TransactionReceipt({transaction, report, reportMetadata = {isLoadingInitialReportActions: true}, route}: TransactionReceiptProps) {
     const receiptURIs = ReceiptUtils.getThumbnailAndImageURIs(transaction);
