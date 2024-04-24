@@ -2,6 +2,7 @@ import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import {StackView} from '@react-navigation/stack';
+import {useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import withWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withWebNavigationOptions';
@@ -12,15 +13,16 @@ import type {
     PlatformStackRouterOptions,
     PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import type {CreatePlaformNavigatorOptions, PlatformNavigationBuilderOptions} from './types';
+import type {CreatePlaformStackNavigatorOptions, CustomComponentProps, PlatformNavigationBuilderOptions} from './types';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
-    options?: CreatePlaformNavigatorOptions<StackNavigationOptions, StackNavigationEventMap, ParamListBase, RouterOptions>,
+    options?: CreatePlaformStackNavigatorOptions<RouterOptions>,
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
     const transformState = options?.transformState;
-    const renderExtraContent = options?.renderExtraContent;
+    const ExtraContent = options?.ExtraContent;
+    const NavigationContentWrapper = options?.NavigationContentWrapper;
 
     function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
         const styles = useThemeStyles();
@@ -51,21 +53,40 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             transformScreenProps,
         );
 
-        const {stateToRender, searchRoute} = transformState?.({state, styles, windowDimensions, descriptors}) ?? {stateToRender: state, undefined};
+        const {stateToRender, searchRoute} = transformState?.({state, displayName, styles, windowDimensions, descriptors}) ?? {stateToRender: state, undefined};
 
-        return (
-            <NavigationContent>
-                <StackView
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    state={stateToRender}
-                    descriptors={descriptors}
-                    navigation={navigation}
-                />
-
-                {renderExtraContent?.({searchRoute, styles, windowDimensions, descriptors})}
-            </NavigationContent>
+        const customComponentProps = useMemo<CustomComponentProps<StackNavigationOptions, StackNavigationEventMap>>(
+            () => ({
+                state,
+                displayName,
+                searchRoute,
+                descriptors,
+            }),
+            [state, searchRoute, descriptors],
         );
+
+        const Content = useMemo(
+            () => (
+                <NavigationContent>
+                    <StackView
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                        state={stateToRender}
+                        descriptors={descriptors}
+                        navigation={navigation}
+                    />
+
+                    {ExtraContent && (
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        <ExtraContent {...customComponentProps} />
+                    )}
+                </NavigationContent>
+            ),
+            [NavigationContent, customComponentProps, descriptors, navigation, props, stateToRender],
+        );
+
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customComponentProps}>{Content}</NavigationContentWrapper>;
     }
     PlatformNavigator.displayName = displayName;
 
