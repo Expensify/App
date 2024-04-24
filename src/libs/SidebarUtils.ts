@@ -235,7 +235,7 @@ function getOptionData({
         isDeletedParentAction: false,
     };
 
-    let participantAccountIDs = report.participantAccountIDs ?? [];
+    let participantAccountIDs = Object.keys(report.participants ?? {}).map(Number);
 
     // Currently, currentUser is not included in participantAccountIDs, so for selfDM we need to add the currentUser(report owner) as participants.
     if (ReportUtils.isSelfDM(report)) {
@@ -270,7 +270,6 @@ function getOptionData({
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
     result.keyForList = String(report.reportID);
-    result.tooltipText = ReportUtils.getReportParticipantsTitle(report.visibleChatMemberAccountIDs ?? []);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID ?? '';
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
@@ -279,6 +278,12 @@ function getOptionData({
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
+
+    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+        .filter(([_, participant]) => participant && !participant.hidden)
+        .map(([accountID]) => Number(accountID));
+
+    result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
