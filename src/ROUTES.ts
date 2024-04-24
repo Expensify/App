@@ -310,14 +310,6 @@ const ROUTES = {
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
             `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
     },
-    MONEY_REQUEST_MERCHANT: {
-        route: ':iouType/new/merchant/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
-    },
-    MONEY_REQUEST_RECEIPT: {
-        route: ':iouType/new/receipt/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
-    },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const,
