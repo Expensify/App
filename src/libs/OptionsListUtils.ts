@@ -2008,6 +2008,7 @@ function getFilteredOptions(
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
+    includePersonalDetails = true,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2016,7 +2017,7 @@ function getFilteredOptions(
             searchInputValue: searchValue.trim(),
             selectedOptions,
             includeRecentReports: true,
-            includePersonalDetails: true,
+            includePersonalDetails,
             maxRecentReportsToShow: 5,
             excludeLogins,
             includeOwnedWorkspaceChats,
