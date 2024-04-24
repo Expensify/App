@@ -476,4 +476,5 @@ export type {
     PolicyConnectionSyncProgress,
     Connections,
     ConnectionName,
+    Account,
 };
