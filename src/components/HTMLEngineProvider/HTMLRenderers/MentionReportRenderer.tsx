@@ -10,7 +10,6 @@ import Text from '@components/Text';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +35,7 @@ const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEnt
     if (!isEmpty(htmlAttributeReportID)) {
         const report = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${htmlAttributeReportID}`];
 
-        reportID = report?.reportID ?? undefined;
+        reportID = report?.reportID ?? htmlAttributeReportID;
         mentionDisplayText = removeLeadingLTRAndHash(report?.reportName ?? report?.displayName ?? htmlAttributeReportID);
         // Get mention details from name inside tnode
     } else if ('data' in tnode && !isEmptyObject(tnode.data)) {
@@ -60,9 +59,11 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const StyleUtils = useStyleUtils();
     const htmlAttributeReportID = tnode.attributes.reportid;
 
-    const currentReportIDValue = useCurrentReportID();
-    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue?.currentReportID}`] ?? null;
-    const isGroupPolicyReport = useMemo(() => (currentReport && !isEmptyObject(currentReport) ? ReportUtils.isGroupPolicy(currentReport) : false), [currentReport]);
+    const currentReportID = useCurrentReportID();
+    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`] ?? null;
+
+    // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
+    const isGroupPolicyReport = useMemo(() => currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE, [currentReport]);
 
     const mentionDetails = getMentionDetails(htmlAttributeReportID, currentReport, reports, tnode);
     if (!mentionDetails) {
@@ -71,7 +72,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, reports, ...defa
     const {reportID, mentionDisplayText} = mentionDetails;
 
     const navigationRoute = reportID ? ROUTES.REPORT_WITH_ID.getRoute(reportID) : undefined;
-    const isCurrentRoomMention = reportID === currentReportIDValue?.currentReportID;
+    const isCurrentRoomMention = reportID === currentReportID?.currentReportID;
 
     const flattenStyle = StyleSheet.flatten(style as TextStyle);
     const {color, ...styleWithoutColor} = flattenStyle;

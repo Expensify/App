@@ -96,6 +96,11 @@ function OptionRowLHN({reportID, report, isFocused = false, onSelectRow = () => 
             false,
             optionItem.isPinned,
             !!optionItem.isUnread,
+            [],
+            false,
+            () => {},
+            false,
+            optionItem.transactionThreadReportID,
         );
     };
 

@@ -52,6 +52,9 @@ type BaseReportActionContextMenuProps = BaseReportActionContextMenuOnyxProps & {
     // eslint-disable-next-line react/no-unused-prop-types
     originalReportID: string;
 
+    /** The ID of transaction thread report associated with the current report, if any */
+    transactionThreadReportID: string;
+
     /**
      * If true, this component will be a small, row-oriented menu that displays icons but not text.
      * If false, this component will be a larger, column-oriented menu that displays icons alongside text in each row.
@@ -121,6 +124,7 @@ function BaseReportActionContextMenu({
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
+    transactionThreadReportID,
 }: BaseReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -247,6 +251,7 @@ function BaseReportActionContextMenu({
                         interceptAnonymousUser,
                         openOverflowMenu,
                         setIsEmojiPickerActive,
+                        transactionThreadReportID,
                     };
 
                     if ('renderContent' in contextAction) {
