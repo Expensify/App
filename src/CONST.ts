@@ -3889,13 +3889,6 @@ const CONST = {
         [onboardingChoices.LOOKING_AROUND]: {
             message:
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
-            video: {
-                url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
-                duration: 55,
-                width: 1280,
-                height: 960,
-            },
             tasks: [],
         },
     },

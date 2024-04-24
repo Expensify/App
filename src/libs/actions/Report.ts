@@ -3038,14 +3038,17 @@ function completeOnboarding(
         reportComment: textComment.commentText,
     };
 
-    // Video message
-    const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
-    const videoCommentAction: OptimisticAddCommentReportAction = videoComment.reportAction;
-    const videoMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: videoCommentAction.reportActionID,
-        reportComment: videoComment.commentText,
-    };
+    let videoCommentAction: OptimisticAddCommentReportAction | null = null;
+    let videoMessage: AddCommentOrAttachementParams | null = null;
+    if (data.video) {
+        const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
+        videoCommentAction = videoComment.reportAction;
+        videoMessage = {
+            reportID: targetChatReportID,
+            reportActionID: videoCommentAction.reportActionID,
+            reportComment: videoComment.commentText,
+        };
+    }
 
     const tasksData = data.tasks.map((task, index) => {
         const currentTask = ReportUtils.buildOptimisticTaskReport(
@@ -3235,7 +3238,6 @@ function completeOnboarding(
             value: {
                 [mentionCommentAction.reportActionID]: mentionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
             },
         },
         {
@@ -3251,7 +3253,6 @@ function completeOnboarding(
             value: {
                 [mentionCommentAction.reportActionID]: {pendingAction: null},
                 [textCommentAction.reportActionID]: {pendingAction: null},
-                [videoCommentAction.reportActionID]: {pendingAction: null},
             },
         },
     ];
@@ -3259,9 +3260,29 @@ function completeOnboarding(
     const guidedSetupData: GuidedSetupData = [
         {type: 'message', ...mentionMessage},
         {type: 'message', ...textMessage},
-        {type: 'video', ...data.video, ...videoMessage},
-        ...tasksForParameters,
     ];
+
+    if (data.video && videoCommentAction && videoMessage) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {pendingAction: null},
+            },
+        });
+
+        guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
+    }
+
+    guidedSetupData.push(...tasksForParameters);
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
