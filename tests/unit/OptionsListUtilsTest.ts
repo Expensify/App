@@ -452,6 +452,7 @@ describe('OptionsListUtils', () => {
             undefined,
             undefined,
             undefined,
+            0,
             undefined,
             undefined,
             undefined,

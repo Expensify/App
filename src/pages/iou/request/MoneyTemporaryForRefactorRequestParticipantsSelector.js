@@ -237,7 +237,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         );
 
         return [newSections, headerMessage];
-    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, action, maxParticipantsReached, personalDetails, translate]);
+    }, [debouncedSearchTerm, chatOptions, areOptionsInitialized, didScreenTransitionEnd, participants, maxParticipantsReached, personalDetails, translate]);
 
     /**
      * Adds a single participant to the expense
