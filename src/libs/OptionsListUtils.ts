@@ -1388,8 +1388,10 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
     const enabledTaxRatesNames = enabledTaxRates.map((tax) => tax.modifiedName);
+    const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.includes(tax.modifiedName));
     const selectedTaxRateWithDisabledState: Tax[] = [];
     const numberOfTaxRates = enabledTaxRates.length;
 
@@ -1414,13 +1416,15 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
     }
 
     if (searchInputValue) {
-        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const selectedSearchTags = selectedTaxRateWithDisabledState.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const taxesForSearch = [...selectedSearchTags, ...enabledSearchTaxRates];
 
         policyRatesSections.push({
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTaxRatesOptions(searchTaxRates),
+            data: getTaxRatesOptions(taxesForSearch),
         });
 
         return policyRatesSections;
@@ -1431,14 +1435,11 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTaxRatesOptions(enabledTaxRates),
+            data: getTaxRatesOptions([...selectedTaxRateWithDisabledState, ...enabledTaxRatesWithoutSelectedOptions]),
         });
 
         return policyRatesSections;
     }
-
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
-    const filteredTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName && !selectedOptionNames.includes(taxRate.modifiedName));
 
     if (selectedOptions.length > 0) {
         policyRatesSections.push({
@@ -1453,7 +1454,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
         // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
-        data: getTaxRatesOptions(filteredTaxRates),
+        data: getTaxRatesOptions(enabledTaxRatesWithoutSelectedOptions),
     });
 
     return policyRatesSections;
