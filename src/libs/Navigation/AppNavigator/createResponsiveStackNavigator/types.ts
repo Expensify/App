@@ -6,13 +6,8 @@ import type {
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 
-type ResponsiveStackNavigatorConfig = {
-    isSmallScreenWidth: boolean;
-};
-
 type ResponsiveStackNavigatorRouterOptions = PlatformStackNavigationRouterOptions;
 
-type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, PlatformStackNavigationState<ParamListBase>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap> &
-    ResponsiveStackNavigatorConfig;
+type ResponsiveStackNavigatorProps = DefaultNavigatorOptions<ParamListBase, PlatformStackNavigationState<ParamListBase>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap>;
 
-export type {ResponsiveStackNavigatorRouterOptions, ResponsiveStackNavigatorProps, ResponsiveStackNavigatorConfig};
+export type {ResponsiveStackNavigatorRouterOptions, ResponsiveStackNavigatorProps};

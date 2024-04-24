@@ -269,7 +269,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     return (
         <OptionsListContextProvider>
             <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
-                <RootStack.Navigator isSmallScreenWidth={isSmallScreenWidth}>
+                <RootStack.Navigator>
                     <RootStack.Screen
                         name={NAVIGATORS.BOTTOM_TAB_NAVIGATOR}
                         options={screenOptions.bottomTab}
