@@ -51,11 +51,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             transformScreenProps,
         );
 
-        const {stateToRender, searchRoute} = transformState?.(state, {
-            styles,
-            windowDimensions,
-            descriptors,
-        }) ?? {stateToRender: state, undefined};
+        const {stateToRender, searchRoute} = transformState?.({state, styles, windowDimensions, descriptors}) ?? {stateToRender: state, undefined};
 
         return (
             <NavigationContent>
