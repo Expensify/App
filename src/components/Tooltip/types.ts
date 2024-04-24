@@ -30,6 +30,7 @@ type SharedTooltipProps = {
     /** Whether to left align the tooltip relative to wrapped component */
     shouldForceRenderingLeft?: boolean;
 
+    /** Whether to display tooltip below the wrapped component */
     shouldForceRenderingBelow?: boolean;
 
     /** Additional styles for tooltip wrapper view */

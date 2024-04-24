@@ -34,6 +34,7 @@ function BaseGenericTooltip({
     // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
     const [contentMeasuredWidth, setContentMeasuredWidth] = useState<number>();
+
     // The height of tooltip's wrapper.
     const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
     const textContentRef = useRef<RNText>(null);
@@ -42,6 +43,7 @@ function BaseGenericTooltip({
 
     const StyleUtils = useStyleUtils();
 
+    // Measure content width
     useEffect(() => {
         if (!textContentRef.current && !viewContentRef.current) {
             return;

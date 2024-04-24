@@ -10,6 +10,7 @@ import type TooltipProps from '@components/Tooltip/types';
 function BaseEducationalTooltip({children, ...props}: TooltipProps) {
     const hideTooltipRef = useRef<() => void>();
 
+    // Automatically hide tooltip after 5 seconds
     useEffect(() => {
         if (!hideTooltipRef.current) {
             return;

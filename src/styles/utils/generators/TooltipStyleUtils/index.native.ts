@@ -35,6 +35,7 @@ const POINTER_WIDTH = 12;
  *                                         and a negative value shifts it to the left.
  * @param [manualShiftVertical] - Any additional amount to manually shift the tooltip up or down.
  *                                       A positive value shifts it down, and a negative value shifts it up.
+ * @param [shouldForceRenderingBelow] - Should display tooltip below the wrapped component.
  * @param [shouldForceRenderingLeft] - Align the tooltip left relative to the wrapped component instead of horizontally align center.
  * @param [wrapperStyle] - Any additional styles for the root wrapper.
  */

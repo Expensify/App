@@ -35,12 +35,16 @@ function GenericTooltip({
 
     // Is tooltip already rendered on the page's body? happens once.
     const [isRendered, setIsRendered] = useState(false);
+
     // Is the tooltip currently visible?
     const [isVisible, setIsVisible] = useState(false);
+
     // The distance between the left side of the wrapper view and the left side of the window
     const [xOffset, setXOffset] = useState(0);
+
     // The distance between the top of the wrapper view and the top of the window
     const [yOffset, setYOffset] = useState(0);
+
     // The width and height of the wrapper view
     const [wrapperWidth, setWrapperWidth] = useState(0);
     const [wrapperHeight, setWrapperHeight] = useState(0);
