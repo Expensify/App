@@ -11,8 +11,8 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -25,27 +25,17 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {exportInvoice} = policy?.connections?.quickbooksOnline?.config ?? {};
-    // TODO - should be removed after API fully working
-    const draft = [
-        {
-            name: translate(`workspace.qbo.receivable`),
-        },
-        {
-            name: translate(`workspace.qbo.archive`),
-        },
-    ];
-    const result = accountsReceivable?.length ? accountsReceivable : draft;
 
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
-            result?.map((account) => ({
+            accountsReceivable?.map((account) => ({
                 value: account.name,
                 text: account.name,
                 keyForList: account.name,
                 isSelected: account.name === exportInvoice,
-            })),
-        [exportInvoice, result],
+            })) ?? [],
+        [exportInvoice, accountsReceivable],
     );
 
     const onSelectRow = useCallback(
@@ -81,4 +71,4 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
 
 QuickbooksExportInvoiceAccountSelectPage.displayName = 'QuickbooksExportInvoiceAccountSelectPage';
 
-export default withPolicy(QuickbooksExportInvoiceAccountSelectPage);
+export default withPolicyConnections(QuickbooksExportInvoiceAccountSelectPage);

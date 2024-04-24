@@ -85,12 +85,12 @@ function IOURequestStepAmount({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !(ReportUtils.isArchivedRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    }, [report, skipConfirmation, iouType]);
+    }, [report, skipConfirmation]);
 
     useFocusEffect(
         useCallback(() => {
@@ -186,7 +186,7 @@ function IOURequestStepAmount({
                     IOU.splitBillAndOpenReport({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: backendAmount,
                         comment: '',
                         currency,
@@ -215,11 +215,25 @@ function IOURequestStepAmount({
                         currency,
                         transaction?.created ?? '',
                         '',
-                        currentUserPersonalDetails.login ?? '',
-                        currentUserPersonalDetails.accountID ?? 0,
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
                         participants[0],
                         '',
                         {},
+                    );
+                    return;
+                }
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    IOU.trackExpense(
+                        report,
+                        backendAmount,
+                        currency ?? 'USD',
+                        transaction?.created ?? '',
+                        '',
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        participants[0],
+                        '',
                     );
                     return;
                 }
