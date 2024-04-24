@@ -1132,6 +1132,12 @@ const CONST = {
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
     },
+    ATTACHMENT_TYPE: {
+        REPORT: 'r',
+        REPORT_ACTION: 'a',
+        NOTE: 'n',
+        SINGLE: 's',
+    },
 
     FILE_TYPE_REGEX: {
         // Image MimeTypes allowed by iOS photos app.

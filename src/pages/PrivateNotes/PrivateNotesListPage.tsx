@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {AttachmentContext} from '@components/AttachmentContext';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,6 +30,7 @@ type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     };
 
 type NoteListItem = {
+    id: string;
     title: string;
     action: () => void;
     brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
@@ -45,18 +47,20 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
      */
     function getMenuItem(item: NoteListItem) {
         return (
-            <MenuItemWithTopDescription
-                key={item.title}
-                description={item.title}
-                title={item.note}
-                onPress={item.action}
-                shouldShowRightIcon={!item.disabled}
-                numberOfLinesTitle={0}
-                shouldRenderAsHTML
-                brickRoadIndicator={item.brickRoadIndicator}
-                disabled={item.disabled}
-                shouldGreyOutWhenDisabled={false}
-            />
+            <AttachmentContext.Provider value={{id: item.id, type: CONST.ATTACHMENT_TYPE.NOTE}}>
+                <MenuItemWithTopDescription
+                    key={item.title}
+                    description={item.title}
+                    title={item.note}
+                    onPress={item.action}
+                    shouldShowRightIcon={!item.disabled}
+                    numberOfLinesTitle={0}
+                    shouldRenderAsHTML
+                    brickRoadIndicator={item.brickRoadIndicator}
+                    disabled={item.disabled}
+                    shouldGreyOutWhenDisabled={false}
+                />
+            </AttachmentContext.Provider>
         );
     }
 

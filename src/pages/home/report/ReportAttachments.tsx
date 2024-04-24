@@ -6,13 +6,14 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ReportAttachmentsProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.REPORT_ATTACHMENTS>;
+type ReportAttachmentsProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
 
 function ReportAttachments({route}: ReportAttachmentsProps) {
-    const reportID = route.params.reportID;
+    const reportID = route.params.id;
     const report = ReportUtils.getReport(reportID);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
@@ -20,7 +21,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute(reportID, String(attachment.source));
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(reportID, CONST.ATTACHMENT_TYPE.REPORT, String(attachment.source));
             Navigation.navigate(routeToNavigate);
         },
         [reportID],

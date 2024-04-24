@@ -5,6 +5,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostNestedRHPRoute from '@libs/Navigation/getTopmostNestedRHPRoute';
 import type {BottomTabName, CentralPaneName, FullScreenName, NavigationPartialRoute, RootStackParamList} from '@libs/Navigation/types';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import CENTRAL_PANE_TO_RHP_MAPPING from './CENTRAL_PANE_TO_RHP_MAPPING';
@@ -159,7 +160,8 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const lhpNavigator = state.routes.find((route) => route.name === NAVIGATORS.LEFT_MODAL_NAVIGATOR);
     const onboardingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR);
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
-    const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
+    const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
+    console.log('9999999999', state.routes);
 
     if (isNarrowLayout) {
         metainfo.isFullScreenNavigatorMandatory = false;
@@ -293,25 +295,27 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             metainfo,
         };
     }
-    if (reportAttachmentsScreen) {
+    if (attachmentsScreen) {
         // Routes
         // - matching bottom tab
         // - central pane (report screen) of the attachment
         // - found report attachments
         const routes = [];
-        const reportAttachments = reportAttachmentsScreen as Route<'ReportAttachments', RootStackParamList['ReportAttachments']>;
+        const reportAttachments = attachmentsScreen as Route<'Attachments', RootStackParamList['Attachments']>;
 
-        const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
-        routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
-        if (!isNarrowLayout) {
-            routes.push(createCentralPaneNavigator({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.reportID ?? ''}}));
+        if (reportAttachments.params?.type === CONST.ATTACHMENT_TYPE.REPORT) {
+            const matchingBottomTabRoute = getMatchingBottomTabRouteForState(state);
+            routes.push(createBottomTabNavigator(matchingBottomTabRoute, policyID));
+            if (!isNarrowLayout) {
+                routes.push(createCentralPaneNavigator({name: SCREENS.REPORT, params: {reportID: reportAttachments.params?.id ?? ''}}));
+            }
+            routes.push(reportAttachments);
+
+            return {
+                adaptedState: getRoutesWithIndex(routes),
+                metainfo,
+            };
         }
-        routes.push(reportAttachments);
-
-        return {
-            adaptedState: getRoutesWithIndex(routes),
-            metainfo,
-        };
     }
 
     // We need to make sure that this if only handles states where we deeplink to the bottom tab directly

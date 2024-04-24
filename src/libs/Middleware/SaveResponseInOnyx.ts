@@ -33,6 +33,7 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
         OnyxUpdates.saveUpdateInformation(responseToApply);
 
         // Ensure the queue is paused while the client resolves the gap in onyx updates so that updates are guaranteed to happen in a specific order.
+        console.log("**********************", {command: request.command})
         return Promise.resolve({
             ...response,
             shouldPauseQueue: true,
