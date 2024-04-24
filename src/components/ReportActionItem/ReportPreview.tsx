@@ -168,7 +168,7 @@ function ReportPreview({
             return translate('iou.receiptScanning');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
-            return translate('iou.pending');
+            return translate('iou.fieldPending');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")

@@ -626,6 +626,7 @@ export default {
         pendingMatchWithCreditCard: 'Recibo pendiente de conciliar con la tarjeta de crédito.',
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de conciliar con tarjeta de crédito. Marcar como efectivo para ignorar y solicitar pago.',
         routePending: 'Ruta pendiente...',
+        fieldPending: 'Pendiente...',
         defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
         receiptScanInProgress: 'Escaneo en curso…',
@@ -650,6 +651,7 @@ export default {
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -1995,6 +1997,7 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+            importedFromAccountingSoftware: 'Categorías importadas desde',
         },
         moreFeatures: {
             spendSection: {
@@ -2135,6 +2138,7 @@ export default {
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         accounting: {
+            settings: 'configuración',
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
@@ -3234,28 +3238,6 @@ export default {
             body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
-    },
-    purposeForExpensify: {
-        [CONST.INTRO_CHOICES.TRACK]: 'Seguimiento de los gastos de empresa para fines fiscales',
-        [CONST.INTRO_CHOICES.SUBMIT]: 'Reclamar gastos a mi empleador',
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
-        welcomeMessage: 'Bienvenido a Expensify',
-        welcomeSubtitle: '¿Qué te gustaría hacer?',
-    },
-    manageTeams: {
-        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
-        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación personalizada de gastos',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Seguimiento de tarjetas corporativas',
-        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Integraciones de contaduría',
-        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Aplicación de reglas',
-        title: '¿Necesitas alguna de las siguientes funciones?',
-    },
-    expensifyClassic: {
-        title: 'Expensify Classic tiene todo lo que necesitas',
-        firstDescription: 'Aunque estamos ocupados trabajando en el Nuevo Expensify, actualmente no soporta algunas de las funciones que estás buscando.',
-        secondDescription: 'No te preocupes, Expensify Classic tiene todo lo que necesitas.',
-        buttonText: 'Llévame a Expensify Classic',
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
