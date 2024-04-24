@@ -103,7 +103,7 @@ function getPluralTranslation<TKey extends TranslationPaths>(
     phraseParameters?: Record<string, unknown>,
 ): string | null {
     const pluralRules = new Intl.PluralRules(language);
-    const pluralForm = pluralRules.select(Number(count));
+    const pluralForm = pluralRules.select(count);
 
     if (pluralForm in result) {
         const translatedPluralForm = result[pluralForm];
