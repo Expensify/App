@@ -472,10 +472,6 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backTo: Routes;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT]: {
-        iouType: string;
-        reportID: string;
-    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
