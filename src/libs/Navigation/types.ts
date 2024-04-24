@@ -119,20 +119,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
-        /** domain of selected card */
-        domain: string;
         /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
-        /** domain of selected card */
-        domain: string;
         /** cardID of selected card */
         cardID: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
-        /** domain of selected card */
-        domain: string;
         /** cardID of selected card */
         cardID: string;
     };
@@ -309,8 +303,6 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
-        /** domain of selected card */
-        domain: string;
         /** cardID of selected card */
         cardID: string;
     };
