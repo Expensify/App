@@ -138,6 +138,27 @@ PODS:
     - GoogleUtilities/Environment (~> 7.7)
     - "GoogleUtilities/NSData+zlib (~> 7.7)"
   - fmt (6.2.1)
+  - FullStory (1.43.1)
+  - fullstory_react-native (1.4.2):
+    - FullStory (~> 1.14)
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - glog (0.3.5)
   - GoogleAppMeasurement (8.8.0):
     - GoogleAppMeasurement/AdIdSupport (= 8.8.0)
@@ -2176,6 +2197,7 @@ SPEC REPOS:
     - FirebasePerformance
     - FirebaseRemoteConfig
     - fmt
+    - FullStory
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleSignIn
@@ -2224,6 +2246,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
+  fullstory_react-native:
+    :path: "../node_modules/@fullstory/react-native"
+  FBReactNativeSpec:
+    :path: "../node_modules/react-native/React/FBReactNativeSpec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   hermes-engine:
@@ -2439,6 +2465,8 @@ SPEC CHECKSUMS:
   FirebasePerformance: 0c01a7a496657d7cea86d40c0b1725259d164c6c
   FirebaseRemoteConfig: 2d6e2cfdb49af79535c8af8a80a4a5009038ec2b
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
+  FullStory: e035758fef275fb59c6471f61b179652aeca452b
+  fullstory_react-native: a56e2bb52753b69f01aab3ae876087db08488034
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a

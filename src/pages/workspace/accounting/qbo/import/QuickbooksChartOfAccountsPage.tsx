@@ -11,8 +11,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -70,4 +70,4 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
 
 QuickbooksChartOfAccountsPage.displayName = 'QuickbooksChartOfAccountsPage';
 
-export default withPolicy(QuickbooksChartOfAccountsPage);
+export default withPolicyConnections(QuickbooksChartOfAccountsPage);

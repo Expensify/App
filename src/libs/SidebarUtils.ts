@@ -20,7 +20,6 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
-import * as UserUtils from './UserUtils';
 
 const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
@@ -412,7 +411,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail?.avatar ?? {}, personalDetail?.accountID), '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
