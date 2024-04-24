@@ -6,10 +6,10 @@ type DragAndDropParams = {
     shouldAcceptDrop?: (event: DragEvent) => boolean;
 };
 
-type DragAndDropOptions = {
+type DragAndDropResult = {
     isDraggingOver: boolean;
 };
 
-type UseDragAndDrop = (params: DragAndDropParams) => DragAndDropOptions;
+type UseDragAndDrop = (params: DragAndDropParams) => DragAndDropResult;
 
 export default UseDragAndDrop;
