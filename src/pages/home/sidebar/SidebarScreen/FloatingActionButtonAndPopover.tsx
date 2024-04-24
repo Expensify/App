@@ -100,7 +100,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
-            return getIconForAction(CONST.IOU.TYPE.TRACK_EXPENSE);
+            return getIconForAction(CONST.IOU.TYPE.TRACK);
         default:
             return Expensicons.MoneyCircle;
     }
@@ -295,7 +295,7 @@ function FloatingActionButtonAndPopover(
                     ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
-                                  icon: getIconForAction(CONST.IOU.TYPE.TRACK_EXPENSE),
+                                  icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                                   text: translate('iou.trackExpense'),
                                   onSelected: () =>
                                       interceptAnonymousUser(() =>

@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 const getIconForAction = (actionType: ValueOf<typeof CONST.IOU.TYPE>) => {
     switch (actionType) {
-        case CONST.IOU.TYPE.TRACK_EXPENSE:
+        case CONST.IOU.TYPE.TRACK:
             return Expensicons.Coins;
         case CONST.IOU.TYPE.REQUEST:
             return Expensicons.Receipt;
