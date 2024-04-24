@@ -12,6 +12,8 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 - The primary focus is on testing business cases rather than small, reusable parts that typically don't introduce regressions, although some tests in that area are still necessary.
 - To achieve this goal, it's recommended to stay relatively high up in the React tree, targeting whole screens to recreate real-life scenarios that users may encounter.
 - For example, consider scenarios where an additional `useMemo` call could impact performance negatively.
+- Please note that high-complexity components, such as `ReportScreen` for example, may have many external dependencies (as well as their child components), which may cause tests to be flaky. Therefore, it is not recommended to add detailed tests to these types of components. Instead, add a test for those lower in the React tree (e.g. `Composer`).
+- Make sure all additional dependencies are mocked correctly (navigation, contexts, external libraries, API etc.).
 
 ## `measureFunction` API approach
 
