@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -32,8 +32,18 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID, errorFields} = qboConfig ?? {};
-    const {bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
+
+    const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
+    const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+
     const isSyncReimbursedSwitchOn = !!collectionAccountID;
+
+    const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
+    const selectedInvoiceCollectionAccountName = useMemo(
+        () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
+        [invoiceAccountCollectionOptions, collectionAccountID],
+    );
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
@@ -129,7 +139,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                     <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
                                         <MenuItemWithTopDescription
                                             shouldShowRightIcon
-                                            title={reimbursementAccountID}
+                                            title={selectedQboAccountName}
                                             description={translate('workspace.qbo.advancedConfig.qboAccount')}
                                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                             onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
@@ -154,7 +164,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyProps) {
                                             interactive={false}
                                         />
                                         <MenuItemWithTopDescription
-                                            title={collectionAccountID}
+                                            title={selectedInvoiceCollectionAccountName}
                                             shouldShowRightIcon
                                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                                             onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
