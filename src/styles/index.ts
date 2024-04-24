@@ -544,7 +544,6 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: theme.border,
         },
 
         button: {
@@ -4313,6 +4312,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            backgroundColor: theme.border,
             marginRight: 12,
         },
 
