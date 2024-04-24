@@ -68,7 +68,7 @@ function AddressStep({onNext, isEditing}: SubStepProps) {
             style={[styles.mh5, styles.flexGrow1]}
         >
             <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.enterYourAddress')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('personalInfoStep.whatsYourAddress')}</Text>
                 <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
                 <AddressFormFields
                     inputKeys={INPUT_KEYS}
