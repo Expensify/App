@@ -14,23 +14,6 @@ const defaultPlugins = [
     // source code transformation as we do not use class property assignment.
     'transform-class-properties',
 
-    /* Fullstory */
-    [
-        '@fullstory/react-native',
-        {
-            version: '1.4.0',
-            org: 'o-1WN56P-na1',
-            enabledVariants: 'all',
-        },
-    ],
-    [
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            native: true,
-            setFSTagName: true,
-        },
-    ],
-
     // Keep it last
     'react-native-reanimated/plugin',
 ];
