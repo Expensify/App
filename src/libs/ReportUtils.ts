@@ -6117,16 +6117,22 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         mccGroup,
     } as Transaction);
 
-    if (allPolicies && Object.values(allPolicies).filter((p) => p?.type !== 'personal').length > 0) {
+    if (allPolicies && Object.values(allPolicies).filter((policy) => policy?.type !== CONST.POLICY.TYPE.PERSONAL).length > 0) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
         return;
     }
 
-    const {expenseChatReportID} = PolicyActions.createWorkspace();
+    const {expenseChatReportID, policyID} = PolicyActions.createWorkspace();
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
 
-    IOU.setMoneyRequestTag(transactionID, '');
-    IOU.setMoneyRequestCategory(transactionID, '');
+    IOU.setMoneyRequestParticipants(transactionID, [
+        {
+            accountID: 0,
+            isPolicyExpenseChat: true,
+            reportID: expenseChatReportID,
+            policyID,
+        },
+    ]);
     const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
     if (isCategorizing) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, iouConfirmationPageRoute));
