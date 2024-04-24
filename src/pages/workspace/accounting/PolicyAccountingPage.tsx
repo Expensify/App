@@ -89,7 +89,7 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                onImportPagePress: () => {},
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
             };
     }
 }
@@ -106,6 +106,20 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
+
+    const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
+
+    const tenants = policy?.connections?.xero?.data?.tenants ?? [];
+    console.log('Testy4', policy.connections?.xero);
+    console.log('Testy', tenants, policy.connections?.xero);
+    const currentXeroOrganization =
+        tenants?.length === 1
+            ? tenants[0]
+            : tenants.find((tenant) => {
+                  console.log('testy3', tenant.id, policy.connections?.xero.config?.tenantID);
+                  return tenant.id === policy?.connections?.xero.config.tenantID;
+              });
+    console.log('testy2', currentXeroOrganization);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -177,6 +191,21 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
+            ...(policyConnectedToXero
+                ? [
+                      {
+                          description: translate('workspace.xero.organization'),
+                          iconRight: Expensicons.ArrowRight,
+                          shouldShowRightIcon: true,
+                          title: currentXeroOrganization?.name,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          shouldShowDescriptionOnTop: true,
+                          onPress: () => {
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
+                          },
+                      },
+                  ]
+                : []),
             ...(isEmptyObject(policy?.connections)
                 ? []
                 : [
@@ -209,9 +238,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     }, [
         connectedIntegration,
         connectionSyncProgress?.stageInProgress,
+        currentXeroOrganization?.id,
+        currentXeroOrganization?.name,
         isSyncInProgress,
         overflowMenu,
         policy?.connections,
+        policyConnectedToXero,
         policyID,
         styles,
         theme.spinner,

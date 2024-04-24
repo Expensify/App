@@ -4,7 +4,7 @@ import type {IOUType} from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
 
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ALL);
+    return true;
 }
 
 function canUseChronos(betas: OnyxEntry<Beta[]>): boolean {
@@ -37,7 +37,7 @@ function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
 }
 
 function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.ACCOUNTING_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+    return true;
 }
 
 /**

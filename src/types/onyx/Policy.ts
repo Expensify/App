@@ -183,6 +183,65 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportCompanyCard: string;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
+
+type Tenant = {
+    id: string;
+    name: string;
+    value: string;
+};
+
+type XeroConnectionData = {
+    bankAccounts: unknown[];
+    countryCode: string;
+    organisationID: string;
+    revenueAccounts: Array<{
+        id: string;
+        name: string;
+    }>;
+    tenants: Tenant[];
+    trackingCategories: unknown[];
+};
+
+/**
+ * User configuration for the Xero accounting integration.
+ */
+type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    autoSync: {
+        enabled: boolean;
+        jobID: string;
+    };
+    enableNewCategories: boolean;
+    export: {
+        billDate: string;
+        billStatus: {
+            purchase: string;
+            sales: string;
+        };
+        billable: string;
+        exporter: string;
+        nonReimbursable: string;
+        nonReimbursableAccount: string;
+        reimbursable: string;
+    };
+    importCustomers: boolean;
+    importTaxRates: boolean;
+    importTrackingCategories: boolean;
+    isConfigured: boolean;
+    mappings: {
+        customer: string;
+    };
+    sync: {
+        hasChosenAutoSyncOption: boolean;
+        hasChosenSyncReimbursedReportsOption: boolean;
+        invoiceCollectionsAccountID: string;
+        reimbursementAccountID: string;
+        syncReimbursedReports: boolean;
+    };
+    tenantID: string;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -191,7 +250,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
-    xero: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
 
 type ConnectionName = keyof Connections;
@@ -476,4 +535,5 @@ export type {
     PolicyConnectionSyncProgress,
     Connections,
     ConnectionName,
+    Tenant,
 };

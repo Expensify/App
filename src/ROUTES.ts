@@ -749,6 +749,14 @@ const ROUTES = {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
     },
+    POLICY_ACCOUNTING_XERO_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,
+    },
+    POLICY_ACCOUNTING_XERO_ORGANIZATION: {
+        route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
+        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,

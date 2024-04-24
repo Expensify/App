@@ -291,6 +291,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR]: () =>
         require('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksInvoiceAccountSelectPage').default as React.ComponentType,
+
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require('../../../../pages/workspace/accounting/xero/XeroImportPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,
