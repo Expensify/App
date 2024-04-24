@@ -262,6 +262,22 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_WORKSPACE: OnyxCollection<Report> = {
+        ...REPORTS,
+        '15': {
+            lastReadTime: '2021-01-14 11:25:39.295',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.015',
+            isPinned: false,
+            isChatRoom: false,
+            reportID: '15',
+            participantAccountIDs: [2, 1],
+            visibleChatMemberAccountIDs: [2, 1],
+            reportName: 'Test Workspace',
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        },
+    };
+
     const REPORTS_WITH_CHAT_ROOM = {
         ...REPORTS,
         15: {
@@ -354,14 +370,16 @@ describe('OptionsListUtils', () => {
     let OPTIONS_WITH_CONCIERGE: OptionsListUtils.OptionList;
     let OPTIONS_WITH_CHRONOS: OptionsListUtils.OptionList;
     let OPTIONS_WITH_RECEIPTS: OptionsListUtils.OptionList;
-    let OPTIONS_WITH_WORKSPACES: OptionsListUtils.OptionList;
+    let OPTIONS_WITH_WORKSPACE_ROOM: OptionsListUtils.OptionList;
+    let OPTIONS_WITH_WORKSPACE: OptionsListUtils.OptionList;
 
     beforeEach(() => {
         OPTIONS = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS);
         OPTIONS_WITH_CONCIERGE = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, REPORTS_WITH_CONCIERGE);
         OPTIONS_WITH_CHRONOS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, REPORTS_WITH_CHRONOS);
         OPTIONS_WITH_RECEIPTS = OptionsListUtils.createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACES = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_WORKSPACE_ROOM = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_WORKSPACE = OptionsListUtils.createOptionList(PERSONAL_DETAILS, REPORTS_WITH_WORKSPACE);
     });
 
     it('getSearchOptions()', () => {
@@ -712,7 +730,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(1);
 
         // Filter current REPORTS_WITH_WORKSPACE_ROOMS as we do in the component, before getting share destination options
-        const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACES.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
+        const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionsListUtils.OptionList['reports']>((filtered, option) => {
             const report = option.item;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (ReportUtils.canUserPerformWriteAction(report) || ReportUtils.isExpensifyOnlyParticipantInReport(report)) {
@@ -725,7 +743,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], '');
         // Then we should expect the DMS, the group chats and the workspace room to show
         // We should expect all the recent reports to show, excluding the archived rooms
-        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACES.reports).length - 1);
+        expect(results.recentReports.length).toBe(Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).length - 1);
 
         // When we search for a workspace room
         results = OptionsListUtils.getShareDestinationOptions(filteredReportsWithWorkspaceRooms, OPTIONS.personalDetails, [], 'Avengers Room');
@@ -2707,9 +2725,9 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports[0].login).toBe('barry.allen@expensify.com');
         });
 
-        it('should include workspaces in the search results', () => {
+        it('should include workspace rooms in the search results', () => {
             const searchText = 'avengers';
-            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACES, '', [CONST.BETAS.ALL]);
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE_ROOM, '', [CONST.BETAS.ALL]);
 
             const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
 
@@ -2747,6 +2765,52 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
             expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic');
+        });
+
+        it('should return the user to invite when the search value is a valid, non-existent email', () => {
+            const searchText = 'test@email.com';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            expect(filteredOptions.userToInvite?.login).toBe(searchText);
+        });
+
+        it('should not return any results if the search value is on an exluded logins list', () => {
+            const searchText = 'admin@expensify.com';
+
+            const options = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], searchText, [], CONST.EXPENSIFY_EMAILS);
+            const filterOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+            expect(filterOptions.recentReports.length).toBe(0);
+        });
+
+        it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
+            const searchText = 'test@email.com';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {excludeLogins: CONST.EXPENSIFY_EMAILS});
+
+            expect(filteredOptions.userToInvite?.login).toBe(searchText);
+        });
+
+        it('should return the workspaces that match the participant login', () => {
+            const searchText = 'reedrichards@expensify.com';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS_WITH_WORKSPACE, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText);
+
+            const recentReportsNames = filteredOptions.recentReports.map((option) => option.text);
+
+            expect(recentReportsNames).toContain('Test Workspace');
+        });
+
+        it('should return limited amount of recent reports if the limit is set', () => {
+            const searchText = '';
+
+            const options = OptionsListUtils.getSearchOptions(OPTIONS, '');
+            const filteredOptions = OptionsListUtils.filterOptions(options, searchText, {maxRecentReportsToShow: 2});
+
+            expect(filteredOptions.recentReports.length).toBe(2);
         });
     });
 
