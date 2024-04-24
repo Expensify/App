@@ -16,12 +16,11 @@ import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 const POLICY_ACCESS_VARIANTS = {
-    PAID: (policy: OnyxEntry<OnyxTypes.Policy>) => !PolicyUtils.isPaidGroupPolicy(policy) || !policy?.isPolicyExpenseChatEnabled,
-    ADMIN: (policy: OnyxEntry<OnyxTypes.Policy>) => !PolicyUtils.isPolicyAdmin(policy),
+    PAID: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy) && !!policy?.isPolicyExpenseChatEnabled,
+    ADMIN: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPolicyAdmin(policy),
 } as const satisfies Record<string, (policy: OnyxTypes.Policy) => boolean>;
 
 type PolicyAccessVariant = keyof typeof POLICY_ACCESS_VARIANTS;
-
 type AccessOrNotFoundWrapperOnyxProps = {
     /** The report currently being looked at */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -44,10 +43,10 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
     featureName?: PolicyFeatureName;
 };
 
-type PageNotFoundFallackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID'> & {showFullScreenFallback: boolean};
+type PageNotFoundFallackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID'> & {shouldShowFullScreenFallback: boolean};
 
-function PageNotFoundFallback({policyID, showFullScreenFallback}: PageNotFoundFallackProps) {
-    return showFullScreenFallback ? (
+function PageNotFoundFallback({policyID, shouldShowFullScreenFallback}: PageNotFoundFallackProps) {
+    return shouldShowFullScreenFallback ? (
         <FullPageNotFoundView
             shouldShow
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
@@ -76,12 +75,13 @@ function AccessOrNotFoundWrapper({accessVariants = [], ...props}: AccessOrNotFou
     const shouldShowFullScreenLoadingIndicator = isLoadingReportData !== false && (!Object.entries(policy ?? {}).length || !policy?.id);
 
     const isFeatureEnabled = featureName ? PolicyUtils.isPolicyFeatureEnabled(policy, featureName) : true;
-    const pageUnaccessible = accessVariants.reduce((acc, variant) => {
-        const accessFunction = POLICY_ACCESS_VARIANTS[variant];
-        return acc || accessFunction(policy);
-    }, false);
 
-    const shouldShowNotFoundPage = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id || pageUnaccessible || !isFeatureEnabled;
+    const isPageAccessible = accessVariants.reduce((acc, variant) => {
+        const accessFunction = POLICY_ACCESS_VARIANTS[variant];
+        return acc && accessFunction(policy);
+    }, true);
+
+    const shouldShowNotFoundPage = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id || !isPageAccessible || !isFeatureEnabled;
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
@@ -91,7 +91,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], ...props}: AccessOrNotFou
         return (
             <PageNotFoundFallback
                 policyID={policyID}
-                showFullScreenFallback={!isFeatureEnabled}
+                shouldShowFullScreenFallback={!isFeatureEnabled}
             />
         );
     }
