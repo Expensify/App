@@ -219,6 +219,7 @@ function PopoverMenu({
                         disabled={item.disabled}
                         onFocus={() => setFocusedIndex(menuIndex)}
                         success={item.success}
+                        containerStyle={item.containerStyle}
                     />
                 ))}
             </View>

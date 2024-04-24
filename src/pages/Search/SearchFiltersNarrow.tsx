@@ -38,6 +38,7 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
         iconRight: Expensicons.Checkmark,
         shouldShowRightIcon: index === activeItemIndex,
         success: index === activeItemIndex,
+        containerStyle: index === activeItemIndex ? [styles.buttonHoveredBG] : undefined,
     }));
 
     return (
