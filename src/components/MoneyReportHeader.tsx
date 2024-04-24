@@ -89,7 +89,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const isDraft = ReportUtils.isOpenExpenseReport(moneyRequestReport);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
-    const transactionIDs = TransactionUtils.getAllReportTransactions(chatReport?.reportID).map((transaction) => transaction.transactionID);
+    const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((transaction) => transaction.transactionID);
     const haveAllPendingRTERViolation = TransactionUtils.haveAllPendingRTERViolation(transactionIDs);
 
     const cancelPayment = useCallback(() => {

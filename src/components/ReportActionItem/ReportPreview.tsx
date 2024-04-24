@@ -213,7 +213,7 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = (shouldShowPayButton || shouldShowApproveButton) && !showRTERViolationMessage;
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
@@ -238,9 +238,6 @@ function ReportPreview({
             const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
             return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : ''};
         }
-        // if (true) {
-        //     return {isSupportTextHtml: false, supportText: 'ABC'};
-        // }
         return {
             isSupportTextHtml: false,
             supportText: translate('iou.expenseCount', {

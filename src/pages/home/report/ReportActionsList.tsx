@@ -27,6 +27,7 @@ import type {CentralPaneNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -191,7 +192,19 @@ function ReportActionsList({
     const hasFooterRendered = useRef(false);
     const lastVisibleActionCreatedRef = useRef(report.lastVisibleActionCreated);
     const lastReadTimeRef = useRef(report.lastReadTime);
-    Onyx.merge('transactions_8811441407757684730', {cardID: 1, merchant: 'Google', hasEReceipt: true, status: 'Pending'});
+    //Single MoneyRequest
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}6196867412357270168`, {cardID: 1, merchant: 'single MoneyRequest test'});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6196867412357270168`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
+    //Multiple MoneyRequests test
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1304796714991934480`, {cardID: 1, merchant: 'multiple MoneyRequests test 1'});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1304796714991934480`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}6286508495235425496`, {cardID: 1, merchant: 'multiple MoneyRequests test 2'});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}6286508495235425496`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2150079702326626524`, {cardID: 1, merchant: 'multiple MoneyRequests test 3'});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2150079702326626524`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
+    //One-Expense Chat test
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}2438117170083649063`, {cardID: 1, merchant: 'One-Expense Chat test'});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}2438117170083649063`, [{type: 'test', name: CONST.VIOLATIONS.RTER, data: {pendingPattern: true}}]);
 
     const sortedVisibleReportActions = useMemo(
         () =>
