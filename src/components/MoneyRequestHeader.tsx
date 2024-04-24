@@ -199,9 +199,9 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 {isOnHold && (
                     <MoneyRequestHeaderStatusBar
                         title={translate('iou.hold')}
-                        description={translate('iou.requestOnHold')}
+                        description={translate('iou.expenseOnHold')}
                         shouldShowBorderBottom
-                        danger
+                        error
                     />
                 )}
             </View>
