@@ -46,6 +46,12 @@ type SuggestionProps = {
 
     /** The height of the composer */
     composerHeight?: number;
+
+    /** If current composer is connected with report from group policy */
+    isGroupPolicyReport: boolean;
+
+    /** The policyID of the report connected to current composer */
+    policyID?: string;
 };
 
 /**
@@ -66,6 +72,8 @@ function Suggestions(
         measureParentContainer,
         isAutoSuggestionPickerLarge = true,
         isComposerFocused,
+        isGroupPolicyReport,
+        policyID,
     }: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
@@ -119,6 +127,11 @@ function Suggestions(
         suggestionMentionRef.current?.updateShouldShowSuggestionMenuToFalse();
     }, []);
 
+    const updateShouldShowSuggestionMenuAfterScrolling = useCallback(() => {
+        suggestionEmojiRef.current?.updateShouldShowSuggestionMenuAfterScrolling();
+        suggestionMentionRef.current?.updateShouldShowSuggestionMenuAfterScrolling();
+    }, []);
+
     const setShouldBlockSuggestionCalc = useCallback((shouldBlock: boolean) => {
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
@@ -133,8 +146,17 @@ function Suggestions(
             updateShouldShowSuggestionMenuToFalse,
             setShouldBlockSuggestionCalc,
             getSuggestions,
+            updateShouldShowSuggestionMenuAfterScrolling,
         }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [
+            onSelectionChange,
+            resetSuggestions,
+            setShouldBlockSuggestionCalc,
+            triggerHotkeyActions,
+            updateShouldShowSuggestionMenuToFalse,
+            getSuggestions,
+            updateShouldShowSuggestionMenuAfterScrolling,
+        ],
     );
 
     useEffect(() => {
@@ -155,6 +177,8 @@ function Suggestions(
         isAutoSuggestionPickerLarge,
         measureParentContainer,
         isComposerFocused,
+        isGroupPolicyReport,
+        policyID,
     };
 
     return (

@@ -8,11 +8,15 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import RNMarkdownTextInput from '@components/RNMarkdownTextInput';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import useLocalize from '@hooks/useLocalize';
+import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,13 +58,19 @@ function BaseTextInput(
         autoCorrect = true,
         prefixCharacter = '',
         inputID,
+        isMarkdownEnabled = false,
+        prefixContainerStyle = [],
+        prefixStyle = [],
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
+    const InputComponent = isMarkdownEnabled ? RNMarkdownTextInput : RNTextInput;
+
     const inputProps = {shouldSaveDraft: false, shouldUseDefaultValue: false, ...props};
     const theme = useTheme();
     const styles = useThemeStyles();
+    const markdownStyle = useMarkdownStyle();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
@@ -229,21 +239,6 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
-    // When adding a new prefix character, adjust this method to add expected character width.
-    // This is because character width isn't known before it's rendered to the screen, and once it's rendered,
-    // it's too late to calculate it's width because the change in padding would cause a visible jump.
-    // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
-    // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
-    // this method will produce reliable results.
-    const getCharacterPadding = (prefix: string): number => {
-        switch (prefix) {
-            case CONST.POLICY.ROOM_PREFIX:
-                return 10;
-            default:
-                throw new Error(`Prefix ${prefix} has no padding assigned.`);
-        }
-    };
-
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
@@ -267,6 +262,9 @@ function BaseTextInput(
                     role={CONST.ROLE.PRESENTATION}
                     onPress={onPress}
                     tabIndex={-1}
+                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
+                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    onLayout={onLayout}
                     accessibilityLabel={label}
                     style={[
                         autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
@@ -275,9 +273,6 @@ function BaseTextInput(
                     ]}
                 >
                     <View
-                        // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                        // or if multiline is not supplied we calculate the textinput height, using onLayout.
-                        onLayout={onLayout}
                         style={[
                             newTextInputContainerStyles,
 
@@ -311,23 +306,24 @@ function BaseTextInput(
                                 </View>
                             )}
                             {!!prefixCharacter && (
-                                <View style={styles.textInputPrefixWrapper}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {prefixCharacter}
                                     </Text>
                                 </View>
                             )}
-                            <RNTextInput
-                                ref={(element) => {
+                            <InputComponent
+                                ref={(element: AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                    const baseTextInputRef = element as BaseTextInputRef | null;
                                     if (typeof ref === 'function') {
-                                        ref(element);
+                                        ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
                                         // eslint-disable-next-line no-param-reassign
-                                        ref.current = element;
+                                        ref.current = baseTextInputRef;
                                     }
 
                                     input.current = element;
@@ -343,7 +339,7 @@ function BaseTextInput(
                                     styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    !!prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
+                                    !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     !isMultiline && {height, lineHeight: undefined},
@@ -370,6 +366,7 @@ function BaseTextInput(
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
+                                markdownStyle={markdownStyle}
                             />
                             {inputProps.isLoading && (
                                 <ActivityIndicator
