@@ -53,6 +53,8 @@ function IOURequestStepTaxRatePage({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
+    const foreignTaxDefault = taxRates?.foreignTaxDefault;
+    const defaultTaxKey = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
     const transactionTaxCode = transactionDetails?.taxCode;
 
@@ -60,11 +62,13 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const moneyRequestSelectedTaxRate = transaction?.taxRate?.keyForList || (taxRates && TransactionUtils.getDefaultTaxName(taxRates));
+    const moneyRequestSelectedTaxRate =
+        Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ||
+        (transaction && TransactionUtils.getDefaultTaxName(policy, transaction));
     const editingSelectedTaxRate =
         taxRates &&
-        (transactionTaxCode === defaultExternalID
-            ? transaction && TransactionUtils.getDefaultTaxName(taxRates, transaction)
+        (transactionTaxCode === defaultTaxKey
+            ? transaction && TransactionUtils.getDefaultTaxName(policy, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
@@ -98,7 +102,7 @@ function IOURequestStepTaxRatePage({
             return;
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
-        IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes);
+        IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes?.data?.code ?? '');
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
 
         Navigation.goBack(backTo);
@@ -112,7 +116,7 @@ function IOURequestStepTaxRatePage({
             testID={IOURequestStepTaxRatePage.displayName}
         >
             <TaxPicker
-                selectedTaxRate={isEditing ? editingSelectedTaxRate ?? '' : moneyRequestSelectedTaxRate}
+                selectedTaxRate={isEditing ? editingSelectedTaxRate ?? '' : moneyRequestSelectedTaxRate ?? ''}
                 policyID={report?.policyID}
                 transactionID={transaction?.transactionID}
                 onSubmit={updateTaxRates}
