@@ -10,8 +10,8 @@ import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigatio
 import type {
     PlatformStackNavigationEventMap,
     PlatformStackNavigationOptions,
-    PlatformStackNavigationRouterOptions,
     PlatformStackNavigationState,
+    PlatformStackRouterOptions,
     PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
 import BottomTabBar from './BottomTabBar';
@@ -26,7 +26,7 @@ function CustomBottomTabNavigator({id, initialRouteName, children, screenOptions
 
     const {state, navigation, descriptors, NavigationContent} = useNavigationBuilder<
         PlatformStackNavigationState<ParamListBase>,
-        PlatformStackNavigationRouterOptions,
+        PlatformStackRouterOptions,
         StackActionHelpers<ParamListBase>,
         PlatformStackNavigationOptions,
         NativeStackNavigationEventMap,
