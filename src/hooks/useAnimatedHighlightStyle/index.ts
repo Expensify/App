@@ -1,6 +1,7 @@
 import React from 'react';
 import {InteractionManager} from 'react-native';
 import {Easing, interpolate, interpolateColor, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming} from 'react-native-reanimated';
+import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useTheme from '@hooks/useTheme';
 import CONST from '@src/CONST';
 
@@ -49,6 +50,7 @@ export default function useAnimatedHighlightStyle({
 }: Props) {
     const repeatableProgress = useSharedValue(0);
     const nonRepeatableProgress = useSharedValue(shouldHighlight ? 0 : 1);
+    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const theme = useTheme();
 
     const highlightBackgroundStyle = useAnimatedStyle(() => ({
@@ -59,7 +61,7 @@ export default function useAnimatedHighlightStyle({
     }));
 
     React.useEffect(() => {
-        if (!shouldHighlight) {
+        if (!shouldHighlight || !didScreenTransitionEnd) {
             return;
         }
 
@@ -80,7 +82,18 @@ export default function useAnimatedHighlightStyle({
                 );
             })();
         });
-    }, [shouldHighlight, itemEnterDelay, itemEnterDuration, highlightStartDelay, highlightStartDuration, highlightEndDelay, highlightEndDuration, repeatableProgress, nonRepeatableProgress]);
+    }, [
+        didScreenTransitionEnd,
+        shouldHighlight,
+        itemEnterDelay,
+        itemEnterDuration,
+        highlightStartDelay,
+        highlightStartDuration,
+        highlightEndDelay,
+        highlightEndDuration,
+        repeatableProgress,
+        nonRepeatableProgress,
+    ]);
 
     return highlightBackgroundStyle;
 }
