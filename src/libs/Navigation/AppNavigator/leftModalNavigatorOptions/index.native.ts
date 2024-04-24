@@ -2,7 +2,9 @@ import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStac
 
 const leftModalNavigatorOptions: PlatformStackNavigationOptions = {
     animation: 'slide_from_left',
-    customAnimationOnGesture: true,
+    nativeOnly: {
+        customAnimationOnGesture: true,
+    },
 };
 
 export default leftModalNavigatorOptions;
