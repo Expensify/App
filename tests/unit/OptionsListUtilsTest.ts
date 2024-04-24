@@ -433,6 +433,36 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[2].text).toBe('Captain America');
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
 
+        // When we don't include personal detail to the result
+        results = OptionsListUtils.getFilteredOptions(
+            [],
+            OPTIONS.personalDetails,
+            [],
+            '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        );
+
+        // Then no personal detail options will be returned
+        expect(results.personalDetails.length).toBe(0);
+
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'magneto');
 
