@@ -1,23 +1,46 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
-import {ValueOf} from 'type-fest';
+import React from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import ExpenseListItem from '@components/SelectionList/ExpenseListItem';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
-import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import SearchTableHeader from './SearchTableHeader';
 import useCustomBackHandler from './useCustomBackHandler';
 
 type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {isSmallScreenWidth} = useWindowDimensions();
     useCustomBackHandler();
+
+    const getListHeader = () => {
+        // const showMerchantColumn = ReportUtils.shouldShowMerchantColumn(data);
+        const showMerchantColumn = isSmallScreenWidth && true;
+
+        return (
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
+                {/* <Text style={styles.searchInputStyle}>{translate('common.receipt')}</Text> */}
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.date')}</Text>
+                {showMerchantColumn && <Text style={[styles.searchInputStyle]}>{translate('common.merchant')}</Text>}
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.description')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.from')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.to')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.category')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.tag')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex1, styles.textAlignRight]}>{translate('common.total')}</Text>
+            </View>
+        );
+    };
 
     return (
         <ScreenWrapper testID={SearchPage.displayName}>
@@ -28,12 +51,14 @@ function SearchPage({route}: SearchPageProps) {
             />
             <SelectionList
                 canSelectMultiple
-                headerContent={<SearchTableHeader />}
-                ListItem={UserListItem}
+                customListHeader={getListHeader()}
+                ListItem={ExpenseListItem}
                 onSelectRow={() => {}}
-                sections={[]}
+                onSelectAll={() => {}}
+                sections={[{data: [], isDisabled: false}]}
                 onCheckboxPress={() => {}}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             />
         </ScreenWrapper>
     );

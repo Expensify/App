@@ -7,6 +7,7 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type ExpenseListItem from './ExpenseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
@@ -180,7 +181,9 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
+type ExpenseListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof ExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -373,6 +376,7 @@ export type {
     RadioListItemProps,
     TableListItemProps,
     InviteMemberListItemProps,
+    ExpenseListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,
