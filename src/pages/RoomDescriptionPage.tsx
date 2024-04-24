@@ -85,7 +85,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
-                            maxAutoGrowHeight={variables.maxAutoGrowHeight}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!el) {

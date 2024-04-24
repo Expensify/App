@@ -177,7 +177,7 @@ function IOURequestStepDescription({
                             updateMultilineInputRange(inputRef.current);
                         }}
                         autoGrowHeight
-                        maxAutoGrowHeight={variables.maxAutoGrowHeight}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
                         isMarkdownEnabled
                     />

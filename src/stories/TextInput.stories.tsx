@@ -143,7 +143,7 @@ AutoGrowHeightInput.args = {
     name: 'AutoGrowHeight',
     placeholder: 'My placeholder text',
     autoGrowHeight: true,
-    maxAutoGrowHeight: variables.maxAutoGrowHeight,
+    maxAutoGrowHeight: variables.textInputAutoGrowMaxHeight,
 };
 
 export default story;

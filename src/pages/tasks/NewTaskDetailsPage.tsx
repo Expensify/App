@@ -131,7 +131,7 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         label={translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
-                        maxAutoGrowHeight={variables.maxAutoGrowHeight}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
                         defaultValue={parser.htmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}

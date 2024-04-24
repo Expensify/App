@@ -199,7 +199,7 @@ function WorkspaceInviteMessagePage({
                             autoCompleteType="off"
                             autoCorrect={false}
                             autoGrowHeight
-                            maxAutoGrowHeight={variables.maxAutoGrowHeight}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             defaultValue={getDefaultWelcomeNote()}
                             value={welcomeNote}
                             onChangeText={(text: string) => {

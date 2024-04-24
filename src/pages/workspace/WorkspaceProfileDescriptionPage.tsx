@@ -100,7 +100,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                         autoFocus
                         onChangeText={setDescription}
                         autoGrowHeight
-                        maxAutoGrowHeight={variables.maxAutoGrowHeight}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         isMarkdownEnabled
                         ref={(el: BaseTextInputRef | null): void => {
                             updateMultilineInputRange(el);

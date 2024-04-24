@@ -102,7 +102,7 @@ function CloseAccountPage({session}: CloseAccountPageProps) {
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.REASON_FOR_LEAVING}
                         autoGrowHeight
-                        maxAutoGrowHeight={variables.maxAutoGrowHeight}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         label={translate('closeAccountPage.enterMessageHere')}
                         aria-label={translate('closeAccountPage.enterMessageHere')}
                         role={CONST.ROLE.PRESENTATION}

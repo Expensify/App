@@ -88,7 +88,7 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                                 updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
-                            maxAutoGrowHeight={variables.maxAutoGrowHeight}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
                             isMarkdownEnabled
                         />
