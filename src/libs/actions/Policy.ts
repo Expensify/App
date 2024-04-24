@@ -714,6 +714,10 @@ function clearPolicyErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
+function clearQBOErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
+}
+
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
     const policy = getPolicy(policyID);
 
@@ -5059,6 +5063,7 @@ export {
     createPolicyTag,
     renamePolicyTag,
     clearPolicyTagErrors,
+    clearQBOErrorField,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
     deletePolicyTags,
