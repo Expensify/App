@@ -113,6 +113,12 @@ type CustomBaseTextInputProps = {
 
     /** Callback to handle clear the value on Form when input is used in the Form component. */
     onClearInput?: (value: string | undefined) => void;
+
+    /** Style for the prefix */
+    prefixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the prefix container */
+    prefixContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

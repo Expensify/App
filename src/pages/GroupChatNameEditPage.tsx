@@ -65,15 +65,18 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
     const editName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
             if (isUpdatingExistingReport) {
-                Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
+                if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
+                    Report.updateGroupChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '');
+                }
                 Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(reportID));
                 return;
             }
-
-            Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
+            if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
+                Report.setGroupDraft({reportName: values[INPUT_IDS.NEW_CHAT_NAME]});
+            }
             Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM);
         },
-        [isUpdatingExistingReport, reportID],
+        [isUpdatingExistingReport, reportID, currentChatName],
     );
 
     return (
