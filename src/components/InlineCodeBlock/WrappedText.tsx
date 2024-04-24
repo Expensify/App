@@ -63,7 +63,6 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
                 >
                     <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
                         <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>
-                            {/* {colText} */}
                             {Array.from(colText).map((char, charIndex) => (
                                 containsOnlyEmojis(char) ? <Text key={charIndex} style={[
                                     textStyles, 
