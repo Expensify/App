@@ -1921,6 +1921,19 @@ export default {
             optionBelow: 'Elija una opción a continuación:',
             creditCard: 'Tarjeta de crédito',
             vendorBill: 'Factura del proveedor',
+            account: 'Cuenta',
+            vendor: 'Proveedor',
+            defaultVendor: 'Proveedor predeterminado',
+            defaultVendorDescription: 'Establezca un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de la exportación.',
+            debitCardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
+            creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
+            vendorBillAccountDescription: 'Seleccione el proveedor aplicado a todas las transacciones con tarjeta de crédito.',
+            debitCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante en la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos una 'Tarjeta de débito miscelánea'. vendedor para asociación.",
+            creditCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante en la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos una 'Tarjeta de crédito miscelánea'. vendedor para asociación.",
+            vendorBillDescription:
+                'Crearemos una única factura de proveedor detallada para cada informe de Expensify, con la fecha del último gasto en el informe. Si este período está cerrado, publicaremos en el día 1 del próximo período abierto. Puede agregar la factura del proveedor a la cuenta A/P de su elección (a continuación).',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
             companyCardsLocationEnabledDescription:

@@ -62,9 +62,9 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbo.exportCompany'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: exportCompanyCard,
+            title: exportCompanyCard ? translate(`workspace.qbo.${exportCompanyCard}`) : undefined,
             pendingAction: pendingFields?.exportCompanyCard,
             error: errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined,
         },

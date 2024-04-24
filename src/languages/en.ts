@@ -1895,6 +1895,18 @@ export default {
             creditCard: 'Credit Card',
             debitCard: 'Debit Card',
             vendorBill: 'Vendor Bill',
+            vendor: 'Vendor',
+            defaultVendor: 'Default Vendor',
+            defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
+            debitCardDescription:
+                "We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.",
+            creditCardDescription:
+                "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
+            vendorBillDescription:
+                "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
+            debitCardAccountDescription: 'Debit card transactions will export to the bank account below.”',
+            creditCardAccountDescription: 'Credit card transactions will export to the bank account below.',
+            vendorBillAccountDescription: 'Select the vendor applied to all credit card transactions.',
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
@@ -1902,6 +1914,7 @@ export default {
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
             check: 'Check',
             accountsPayable: 'Accounts Payable',
+            account: 'Account',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
             journalEntry: 'Journal Entry',
             optionBelow: 'Choose an option below:',
