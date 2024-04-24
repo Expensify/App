@@ -6087,6 +6087,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
         return false;
     }
 
+    // If the notification preference of the chat is not hidden that means we have already joined the chat
     if (report?.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
         return false;
     }
