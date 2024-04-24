@@ -33,6 +33,7 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
     const popoverMenuItems = filterItems.map((item) => ({
         text: item.title,
         onSelected: singleExecution(() => Navigation.navigate(item.route)),
+        icon: item.icon,
     }));
 
     return (
