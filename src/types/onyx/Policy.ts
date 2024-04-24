@@ -159,6 +159,8 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     reimbursableExpensesExportDestination: IntegrationEntityMap;
     nonReimbursableExpensesExportDestination: IntegrationEntityMap;
 
+    collectionAccountID?: string;
+    reimbursementAccountID?: string;
     reimbursableExpensesAccount?: string;
     nonReimbursableExpensesAccount?: string;
     autoCreateVendor: boolean;
@@ -168,15 +170,18 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncLocations: IntegrationEntityMap;
     syncAccounts: IntegrationEntityMap;
     syncTaxes: IntegrationEntityMap;
-    exportDate: string;
     lastConfigurationTime: number;
     syncTax: boolean;
     enableNewCategories: IntegrationEntityMap;
     errors?: OnyxCommon.Errors;
+    exporter: string;
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+    outOfPocketExpenses: string;
+    exportInvoice: string;
+    exportAccount: string;
+    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
+    exportCompanyCard: string;
     errorFields?: OnyxCommon.ErrorFields;
-    export: {
-        exporter: string;
-    };
 }>;
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
@@ -187,6 +192,8 @@ type Connection<ConnectionData, ConnectionConfig> = {
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
+
+type ConnectionName = keyof Connections;
 
 type ACHAccount = {
     bankAccountID: number;
@@ -331,7 +338,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: OnyxTypes.PolicyMembers | [];
+        employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
@@ -444,7 +451,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 type PolicyConnectionSyncProgress = {
-    status: ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STATUS>;
     stageInProgress: PolicyConnectionSyncStage;
     connectionName: PolicyConnectionName;
 };
@@ -464,6 +470,10 @@ export type {
     IntegrationEntityMap,
     PolicyFeatureName,
     PendingJoinRequestPolicy,
+    PolicyConnectionName,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
+    Connections,
+    ConnectionName,
+    Account,
 };

@@ -44,25 +44,42 @@ Onyx.connect({
 });
 
 function updatePronouns(pronouns: string) {
-    if (currentUserAccountID) {
-        const parameters: UpdatePronounsParams = {pronouns};
-
-        API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            pronouns,
-                        },
-                    },
-                },
-            ],
-        });
+    if (!currentUserAccountID) {
+        return;
     }
 
-    Navigation.goBack();
+    const parameters: UpdatePronounsParams = {pronouns};
+
+    API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        pronouns,
+                    },
+                },
+            },
+        ],
+    });
+}
+
+function setDisplayName(firstName: string, lastName: string) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [currentUserAccountID]: {
+            firstName,
+            lastName,
+            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                firstName,
+                lastName,
+            }),
+        },
+    });
 }
 
 function updateDisplayName(firstName: string, lastName: string) {
@@ -411,6 +428,7 @@ export {
     updateAutomaticTimezone,
     updateAvatar,
     updateDateOfBirth,
+    setDisplayName,
     updateDisplayName,
     updateLegalName,
     updatePronouns,
