@@ -165,32 +165,6 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
     },
     {
-        isAnonymousAction: true,
-        textTranslateKey: 'common.download',
-        icon: Expensicons.Download,
-        successTextTranslateKey: 'common.download',
-        successIcon: Expensicons.Download,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
-            const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
-            const messageHtml = getActionHtml(reportAction);
-            return (
-                isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction?.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
-            );
-        },
-        onPress: (closePopover, {reportAction}) => {
-            const html = getActionHtml(reportAction);
-            const {originalFileName, sourceURL} = getAttachmentDetails(html);
-            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
-            const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
-            Download.setDownload(sourceID, true);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID, false));
-            if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
-            }
-        },
-        getDescription: () => {},
-    },
-    {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubbleReply,
@@ -214,40 +188,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             Report.navigateToAndOpenChildReport(reportAction?.childReportID ?? '0', reportAction, originalReportID);
-        },
-        getDescription: () => {},
-    },
-    {
-        isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.editAction',
-        icon: Expensicons.Pencil,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
-            if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
-                hideContextMenu(false);
-                const childReportID = reportAction?.childReportID ?? '0';
-                Report.openReport(childReportID);
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
-                return;
-            }
-            const editAction = () => {
-                if (!draftMessage) {
-                    const parser = new ExpensiMark();
-                    Report.saveReportActionDraft(reportID, reportAction, parser.htmlToMarkdown(getActionHtml(reportAction)));
-                } else {
-                    Report.deleteReportActionDraft(reportID, reportAction);
-                }
-            };
-
-            if (closePopover) {
-                // Hide popover, then call editAction
-                hideContextMenu(false, editAction);
-                return;
-            }
-
-            // No popover to hide, call editAction immediately
-            editAction();
         },
         getDescription: () => {},
     },
@@ -282,6 +222,40 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.editAction',
+        icon: Expensicons.Pencil,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
+            if (ReportActionsUtils.isMoneyRequestAction(reportAction)) {
+                hideContextMenu(false);
+                const childReportID = reportAction?.childReportID ?? '0';
+                Report.openReport(childReportID);
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+                return;
+            }
+            const editAction = () => {
+                if (!draftMessage) {
+                    const parser = new ExpensiMark();
+                    Report.saveReportActionDraft(reportID, reportAction, parser.htmlToMarkdown(getActionHtml(reportAction)));
+                } else {
+                    Report.deleteReportActionDraft(reportID, reportAction);
+                }
+            };
+
+            if (closePopover) {
+                // Hide popover, then call editAction
+                hideContextMenu(false, editAction);
+                return;
+            }
+
+            // No popover to hide, call editAction immediately
+            editAction();
         },
         getDescription: () => {},
     },
@@ -436,29 +410,6 @@ const ContextMenuActions: ContextMenuAction[] = [
     },
     {
         isAnonymousAction: false,
-        textTranslateKey: 'reportActionContextMenu.deleteAction',
-        icon: Expensicons.Trashcan,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
-            // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
-            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
-            ReportUtils.canDeleteReportAction(reportAction, reportID) &&
-            !isArchivedRoom &&
-            !isChronosReport &&
-            !ReportActionsUtils.isMessageDeleted(reportAction),
-        onPress: (closePopover, {reportID, reportAction}) => {
-            if (closePopover) {
-                // Hide popover, then call showDeleteConfirmModal
-                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
-                return;
-            }
-
-            // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteModal(reportID, reportAction);
-        },
-        getDescription: () => {},
-    },
-    {
-        isAnonymousAction: false,
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
@@ -500,6 +451,55 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
 
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID));
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: true,
+        textTranslateKey: 'common.download',
+        icon: Expensicons.Download,
+        successTextTranslateKey: 'common.download',
+        successIcon: Expensicons.Download,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat, isOffline): reportAction is ReportAction => {
+            const isAttachment = ReportActionsUtils.isReportActionAttachment(reportAction);
+            const messageHtml = getActionHtml(reportAction);
+            return (
+                isAttachment && messageHtml !== CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML && !!reportAction?.reportActionID && !ReportActionsUtils.isMessageDeleted(reportAction) && !isOffline
+            );
+        },
+        onPress: (closePopover, {reportAction}) => {
+            const html = getActionHtml(reportAction);
+            const {originalFileName, sourceURL} = getAttachmentDetails(html);
+            const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
+            const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+            Download.setDownload(sourceID, true);
+            fileDownload(sourceURLWithAuth, originalFileName ?? '').then(() => Download.setDownload(sourceID, false));
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.deleteAction',
+        icon: Expensicons.Trashcan,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
+            // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
+            type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            ReportUtils.canDeleteReportAction(reportAction, reportID) &&
+            !isArchivedRoom &&
+            !isChronosReport &&
+            !ReportActionsUtils.isMessageDeleted(reportAction),
+        onPress: (closePopover, {reportID, reportAction}) => {
+            if (closePopover) {
+                // Hide popover, then call showDeleteConfirmModal
+                hideContextMenu(false, () => showDeleteModal(reportID, reportAction));
+                return;
+            }
+
+            // No popover to hide, call showDeleteConfirmModal immediately
+            showDeleteModal(reportID, reportAction);
         },
         getDescription: () => {},
     },

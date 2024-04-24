@@ -204,7 +204,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 keyForList: String(accountID),
                 accountID,
                 isSelected: selectedMembers.includes(accountID),
-                isDisabled: accountID === session?.accountID,
+                isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
