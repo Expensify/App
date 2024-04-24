@@ -31,6 +31,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         useEffect(() => {
             // When the accounting feature is not enabled, or if the connections data already exists,
             // there is no need to fetch the connections data.
+            console.debug('!props.policy: ', !props.policy, ' || !props.policy.areConnectionsEnabled: ', !props?.policy?.areConnectionsEnabled, '!!hasConnectionsDataBeenFetched: ', !!hasConnectionsDataBeenFetched, ' !!props.policy.connections: ', !!props.policy.connections);
             if (!props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections) {
                 return;
             }
@@ -38,7 +39,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [hasConnectionsDataBeenFetched, props.policy, isOffline]);
 
-        if (!props.policy || status === 'loading' || !hasConnectionsDataBeenFetched) {
+        if (!props.policy || status === 'loading' || hasConnectionsDataBeenFetched === false) {
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />

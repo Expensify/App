@@ -63,12 +63,12 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID ?? '';
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const policyID = route.params.policyID ?? '';
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const fetchCategories = useCallback(() => {
-        Policy.openPolicyCategoriesPage(policyId);
-    }, [policyId]);
+        Policy.openPolicyCategoriesPage(policyID);
+    }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
 
@@ -128,26 +128,26 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, category.keyForList));
     };
 
     const navigateToCategoriesSettings = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyID));
     };
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
+        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyID));
     };
 
     const dismissError = (item: PolicyOption) => {
-        Policy.clearCategoryErrors(policyId, item.keyForList);
+        Policy.clearCategoryErrors(policyID, item.keyForList);
     };
 
     const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
 
     const handleDeleteCategories = () => {
         setSelectedCategories({});
-        deleteWorkspaceCategories(policyId, selectedCategoriesArray);
+        deleteWorkspaceCategories(policyID, selectedCategoriesArray);
         setDeleteCategoriesConfirmModalVisible(false);
     };
 
@@ -180,7 +180,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedCategories({});
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
+                        setWorkspaceCategoryEnabled(policyID, categoriesToDisable);
                     },
                 });
             }
@@ -202,7 +202,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                     value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedCategories({});
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
+                        setWorkspaceCategoryEnabled(policyID, categoriesToEnable);
                     },
                 });
             }
@@ -249,10 +249,10 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
     const shouldShowEmptyState = !categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) && !isLoading;
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyId}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyId}>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyId}
+                    policyID={policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
                 >
                     <ScreenWrapper
@@ -286,7 +286,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
                                     <TextLink
                                         style={[styles.textNormal, styles.link]}
-                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
+                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
                                     >
                                         {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
                                     </TextLink>
