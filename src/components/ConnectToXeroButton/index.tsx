@@ -10,7 +10,7 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {ConnectToXeroButtonProps} from './types';
 
-function ConnectToXeroButton({policyID, disconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps) {
+function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -21,7 +21,7 @@ function ConnectToXeroButton({policyID, disconnectIntegrationBeforeConnecting, i
         <>
             <Button
                 onPress={() => {
-                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+                    if (shouldDisconnectIntegrationBeforeConnecting && Boolean(integrationToDisconnect)) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -31,7 +31,7 @@ function ConnectToXeroButton({policyID, disconnectIntegrationBeforeConnecting, i
                 style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
+            {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && Boolean(integrationToDisconnect) && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     isVisible

@@ -2,7 +2,7 @@ import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 
 type ConnectToXeroButtonProps = {
     policyID: string;
-    disconnectIntegrationBeforeConnecting?: boolean;
+    shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: PolicyConnectionName;
 };
 

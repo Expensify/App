@@ -55,6 +55,8 @@ type AccountingIntegration = {
     icon: IconAsset;
     setupConnectionButton: React.ReactNode;
     onImportPagePress: () => void;
+    onExportPagePress: () => void;
+    onAdvancedPagePress: () => void;
 };
 function accountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -62,8 +64,7 @@ function accountingIntegrationData(
     translate: LocaleContextProps['translate'],
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
-): AccountingIntegration {
-    // eslint-disable-next-line default-case
+): AccountingIntegration | undefined {
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
@@ -72,11 +73,13 @@ function accountingIntegrationData(
                 setupConnectionButton: (
                     <ConnectToQuickbooksOnlineButton
                         policyID={policyID}
-                        disconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
@@ -85,12 +88,16 @@ function accountingIntegrationData(
                 setupConnectionButton: (
                     <ConnectToXeroButton
                         policyID={policyID}
-                        disconnectIntegrationBeforeConnecting={isConnectedToIntegration}
+                        shouldDisconnectIntegrationBeforeConnecting={isConnectedToIntegration}
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
                 onImportPagePress: () => {},
+                onExportPagePress: () => {},
+                onAdvancedPagePress: () => {},
             };
+        default:
+            return undefined;
     }
 }
 
@@ -126,15 +133,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
-                const {title, icon, setupConnectionButton} = accountingIntegrationData(integration, policyID, translate);
+                const integrationData = accountingIntegrationData(integration, policyID, translate);
+                const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
                 return {
-                    icon,
-                    iconType: CONST.ICON_TYPE_AVATAR,
+                    ...iconProps,
                     interactive: false,
                     wrapperStyle: [styles.sectionMenuItemTopDescription],
                     shouldShowRightComponent: true,
-                    title,
-                    rightComponent: setupConnectionButton,
+                    title: integrationData?.title,
+                    rightComponent: integrationData?.setupConnectionButton,
                 };
             });
         }
@@ -142,15 +149,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
-        const {title, icon, onImportPagePress} = accountingIntegrationData(connectedIntegration, policyID, translate);
+        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
+        const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
-                icon,
-                iconType: CONST.ICON_TYPE_AVATAR,
+                ...iconProps,
                 interactive: false,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
-                title,
+                title: integrationData?.title,
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
                     : translate('workspace.accounting.lastSync'),
@@ -186,7 +193,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           shouldShowRightIcon: true,
                           title: translate('workspace.accounting.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
-                          onPress: onImportPagePress,
+                          onPress: integrationData?.onImportPagePress,
                       },
                       {
                           icon: Expensicons.Send,
@@ -227,11 +234,11 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             (integration) => (isSyncInProgress && integration !== connectionSyncProgress?.connectionName) || integration !== connectedIntegration,
         );
         return otherIntegrations.map((integration) => {
-            const {title, icon, setupConnectionButton} = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
+            const integrationData = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
             return {
-                icon,
-                title,
-                rightComponent: setupConnectionButton,
+                icon: integrationData?.icon,
+                title: integrationData?.title,
+                rightComponent: integrationData?.setupConnectionButton,
             };
         });
     }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, translate]);
@@ -285,23 +292,33 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                                         menuItems={connectionsMenuItems}
                                         shouldUseSingleExecution
                                     />
-                                    {!!otherIntegrationsItems?.length && otherIntegrationsItems?.length > 0 && (
+                                    {otherIntegrationsItems && otherIntegrationsItems?.length > 0 && (
                                         <CollapsibleSection
                                             title={translate('workspace.accounting.other')}
                                             wrapperStyle={styles.pr3}
                                             titleStyle={[styles.textNormal, styles.colorMuted]}
                                         >
-                                            {otherIntegrationsItems.map((integration) => (
-                                                <MenuItem
-                                                    icon={integration.icon}
-                                                    iconType={CONST.ICON_TYPE_AVATAR}
-                                                    interactive={false}
-                                                    shouldShowRightComponent
-                                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                    title={integration.title}
-                                                    rightComponent={integration.rightComponent}
-                                                />
-                                            ))}
+                                            {otherIntegrationsItems.map((integration) =>
+                                                integration?.icon ? (
+                                                    <MenuItem
+                                                        icon={integration?.icon}
+                                                        iconType={CONST.ICON_TYPE_AVATAR}
+                                                        interactive={false}
+                                                        shouldShowRightComponent
+                                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                        title={integration.title}
+                                                        rightComponent={integration.rightComponent}
+                                                    />
+                                                ) : (
+                                                    <MenuItem
+                                                        interactive={false}
+                                                        shouldShowRightComponent
+                                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                        title={integration.title}
+                                                        rightComponent={integration.rightComponent}
+                                                    />
+                                                ),
+                                            )}
                                         </CollapsibleSection>
                                     )}
                                 </Section>

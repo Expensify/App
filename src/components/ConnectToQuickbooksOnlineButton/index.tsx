@@ -10,7 +10,7 @@ import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
 
-function ConnectToQuickbooksOnlineButton({policyID, disconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToQuickbooksOnlineButtonProps) {
+function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToQuickbooksOnlineButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -21,7 +21,7 @@ function ConnectToQuickbooksOnlineButton({policyID, disconnectIntegrationBeforeC
         <>
             <Button
                 onPress={() => {
-                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+                    if (shouldDisconnectIntegrationBeforeConnecting && Boolean(integrationToDisconnect)) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -31,7 +31,7 @@ function ConnectToQuickbooksOnlineButton({policyID, disconnectIntegrationBeforeC
                 style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && integrationToDisconnect && (
+            {shouldDisconnectIntegrationBeforeConnecting && Boolean(integrationToDisconnect) && isDisconnectModalOpen && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     isVisible={isDisconnectModalOpen}

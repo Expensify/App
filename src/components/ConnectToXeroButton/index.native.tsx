@@ -1,7 +1,7 @@
 import React, {useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import WebView from 'react-native-webview';
+import {WebView} from 'react-native-webview';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -22,7 +22,7 @@ type ConnectToXeroButtonOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
-function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps & ConnectToXeroButtonOnyxProps) {
+function ConnectToXeroButton({policyID, session, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps & ConnectToXeroButtonOnyxProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
@@ -37,7 +37,7 @@ function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConn
         <>
             <Button
                 onPress={() => {
-                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+                    if (shouldDisconnectIntegrationBeforeConnecting && Boolean(integrationToDisconnect)) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
@@ -47,7 +47,7 @@ function ConnectToXeroButton({policyID, session, disconnectIntegrationBeforeConn
                 style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
+            {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && Boolean(integrationToDisconnect) && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     onConfirm={() => {

@@ -39,7 +39,7 @@ function withPolicyConnections(WrappedComponent: ComponentType<WithPolicyConnect
             openPolicyAccountingPage(policy.id);
         }, [hasConnectionsDataBeenFetched, policy, isOffline]);
 
-        if (!policy || status === 'loading' || (hasConnectionsDataBeenFetched && !hasConnectionsDataBeenFetched)) {
+        if (!policy || status === 'loading' || (hasConnectionsDataBeenFetched !== null && !hasConnectionsDataBeenFetched)) {
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />
