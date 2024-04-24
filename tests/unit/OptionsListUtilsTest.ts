@@ -433,6 +433,36 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[2].text).toBe('Captain America');
         expect(results.personalDetails[3].text).toBe('Invisible Woman');
 
+        // When we don't include personal detail to the result
+        results = OptionsListUtils.getFilteredOptions(
+            [],
+            OPTIONS.personalDetails,
+            [],
+            '',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            false,
+        );
+
+        // Then no personal detail options will be returned
+        expect(results.personalDetails.length).toBe(0);
+
         // When we provide a search value that does not match any personal details
         results = OptionsListUtils.getFilteredOptions(OPTIONS.reports, OPTIONS.personalDetails, [], 'magneto');
 
@@ -812,12 +842,14 @@ describe('OptionsListUtils', () => {
                         isSelected: false,
                     },
                 ],
+                indexOffset: 3,
             },
         ];
         const smallSearchResultList: OptionsListUtils.CategoryTreeSection[] = [
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 2,
                 data: [
                     {
                         text: 'Food',
@@ -842,6 +874,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -977,6 +1010,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',
@@ -991,6 +1025,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'Recent',
                 shouldShow: true,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Restaurant',
@@ -1005,6 +1040,7 @@ describe('OptionsListUtils', () => {
             {
                 title: 'All',
                 shouldShow: true,
+                indexOffset: 11,
                 data: [
                     {
                         text: 'Cars',
@@ -1101,6 +1137,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 3,
                 data: [
                     {
                         text: 'Food',
@@ -1133,6 +1170,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: true,
+                indexOffset: 0,
                 data: [],
             },
         ];
@@ -1141,6 +1179,7 @@ describe('OptionsListUtils', () => {
             {
                 title: '',
                 shouldShow: false,
+                indexOffset: 1,
                 data: [
                     {
                         text: 'Medical',

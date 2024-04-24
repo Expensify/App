@@ -67,7 +67,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const route = useRoute();
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
@@ -82,6 +82,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
     const participants = useMemo(() => {
         if (isGroupChat) {
             return ReportUtils.getParticipantAccountIDs(report.reportID ?? '');
@@ -137,9 +138,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
         if (
             (isGroupChat ||
-                (isDefaultRoom && isChatThread && isPolicyMember) ||
+                (isDefaultRoom && isChatThread && isPolicyEmployee) ||
                 (!isUserCreatedPolicyRoom && participants.length) ||
-                (isUserCreatedPolicyRoom && (isPolicyMember || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
+                (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
             !ReportUtils.isConciergeChatReport(report)
         ) {
             items.push({
@@ -157,8 +158,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 },
             });
         } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyMember)
+            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
+            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
@@ -201,7 +202,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         isMoneyRequestReport,
         report,
         isGroupDMChat,
-        isPolicyMember,
+        isPolicyEmployee,
         isUserCreatedPolicyRoom,
         session,
         isSelfDM,
@@ -227,29 +228,33 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
-    const renderAvatar = isGroupChat ? (
-        <AvatarWithImagePicker
-            source={icons[0].source}
-            isUsingDefaultAvatar={!report.avatarUrl}
-            size={CONST.AVATAR_SIZE.XLARGE}
-            avatarStyle={styles.avatarXLarge}
-            shouldDisableViewPhoto
-            onImageRemoved={() => {
-                // Calling this without a file will remove the avatar
-                Report.updateGroupChatAvatar(report.reportID ?? '');
-            }}
-            onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
-            editIcon={Expensicons.Camera}
-            editIconStyle={styles.smallEditIconAccount}
-        />
-    ) : (
-        <RoomHeaderAvatars
-            icons={icons}
-            reportID={report?.reportID}
-        />
-    );
+    const renderAvatar =
+        isGroupChat && !isThread ? (
+            <AvatarWithImagePicker
+                source={icons[0].source}
+                isUsingDefaultAvatar={!report.avatarUrl}
+                size={CONST.AVATAR_SIZE.XLARGE}
+                avatarStyle={styles.avatarXLarge}
+                shouldDisableViewPhoto
+                onImageRemoved={() => {
+                    // Calling this without a file will remove the avatar
+                    Report.updateGroupChatAvatar(report.reportID ?? '');
+                }}
+                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
+                editIcon={Expensicons.Camera}
+                editIconStyle={styles.smallEditIconAccount}
+            />
+        ) : (
+            <RoomHeaderAvatars
+                icons={icons}
+                reportID={report?.reportID}
+            />
+        );
 
-    const reportName = useMemo(() => (isGroupChat ? ReportUtils.getGroupChatName(undefined, true, report.reportID ?? '') : ReportUtils.getReportName(report)), [report, isGroupChat]);
+    const reportName =
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
+            : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>

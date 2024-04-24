@@ -1,4 +1,5 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -58,6 +59,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
     const currentUserAccountID = Number(session?.accountID);
     const isCurrentUserAdmin = ReportUtils.isGroupChatAdmin(report, currentUserAccountID);
     const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedMembers([]);
+    }, [isFocused]);
 
     const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
@@ -75,13 +84,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={translate('common.admin')} />;
             }
 
             result.push({
@@ -89,6 +92,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
+                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
@@ -106,7 +110,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles, StyleUtils, isGroupChat]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -300,7 +304,6 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
-            shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton
