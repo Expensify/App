@@ -11,7 +11,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import type {SearchMenuFilterItem} from './SearchFilters';
-import colors from '@styles/theme/colors';
 
 type SearchFiltersNarrowProps = {
     filterItems: SearchMenuFilterItem[];
