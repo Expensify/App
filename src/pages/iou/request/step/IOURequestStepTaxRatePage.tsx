@@ -52,17 +52,12 @@ function IOURequestStepTaxRatePage({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const taxRates = policy?.taxRates;
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
-    const transactionDetails = ReportUtils.getTransactionDetails(transaction);
-    const transactionTaxCode = transactionDetails?.taxCode;
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const moneyRequestSelectedTaxRate = TransactionUtils.getTaxName(policy, transaction) || TransactionUtils.getDefaultTaxName(policy, transaction);
-    const editingSelectedTaxRate = TransactionUtils.getTaxRateTitle(policy, transaction);
+    const taxRateTitle = TransactionUtils.getTaxRateTitle(policy, transaction);
 
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
         if (!transaction || !taxes.text || !taxRates) {
@@ -109,7 +104,7 @@ function IOURequestStepTaxRatePage({
             testID={IOURequestStepTaxRatePage.displayName}
         >
             <TaxPicker
-                selectedTaxRate={isEditing ? editingSelectedTaxRate ?? '' : moneyRequestSelectedTaxRate ?? ''}
+                selectedTaxRate={taxRateTitle}
                 policyID={report?.policyID}
                 transactionID={transaction?.transactionID}
                 onSubmit={updateTaxRates}
