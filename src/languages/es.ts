@@ -120,6 +120,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
         next: 'Siguiente',
@@ -314,7 +315,7 @@ export default {
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
-        businessName: 'Nombre del Negocio',
+        businessName: 'Nombre de la empresa',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -544,7 +545,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Busca algo...',
+        buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',
@@ -1319,8 +1320,7 @@ export default {
     onboarding: {
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
-            description: 'Cobrar es tan fácil como enviar un mensaje.',
-            button: 'Vámonos',
+            description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
         },
         whatsYourName: '¿Cómo te llamas?',
         whereYouWork: '¿Dónde trabajas?',
