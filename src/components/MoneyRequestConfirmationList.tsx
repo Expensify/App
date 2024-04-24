@@ -577,9 +577,8 @@ function MoneyRequestConfirmationList({
             if (selectedParticipants.length === 0) {
                 return;
             }
-            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))) {
+            if (isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null)))) {
                 setMerchantError(true);
-                return;
             }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 setFormError('iou.error.invalidCategoryLength');
