@@ -2138,7 +2138,15 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
     return onyxData;
 }
 
-function createDraftWorkspaceForTrackExpenseCategorization(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
+/**
+ * Optimistically creates a new workspace and default workspace chats
+ *
+ * @param [policyOwnerEmail] the email of the account to make the owner of the policy
+ * @param [makeMeAdmin] leave the calling account as an admin on the policy
+ * @param [policyName] custom policy name we will use for created workspace
+ * @param [policyID] custom policy id we will use for created workspace
+ */
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
@@ -2159,143 +2167,6 @@ function createDraftWorkspaceForTrackExpenseCategorization(policyOwnerEmail = ''
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                id: policyID,
-                type: CONST.POLICY.TYPE.TEAM,
-                name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
-                owner: sessionEmail,
-                ownerAccountID: sessionAccountID,
-                isPolicyExpenseChatEnabled: true,
-                outputCurrency,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                autoReporting: true,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-                harvesting: {
-                    enabled: true,
-                },
-                customUnits,
-                areCategoriesEnabled: true,
-                areTagsEnabled: false,
-                areDistanceRatesEnabled: false,
-                areWorkflowsEnabled: false,
-                areReportFieldsEnabled: false,
-                areConnectionsEnabled: false,
-                employeeList: {
-                    [sessionEmail]: {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        errors: {},
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...announceChatData,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
-            value: announceReportActionData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...adminsChatData,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
-            value: adminsReportActionData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
-            value: {
-                pendingFields: {
-                    addWorkspaceRoom: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-                ...expenseChatData,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
-            value: expenseReportActionData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
-            value: null,
-        },
-    ];
-
-    if (optimisticCategoriesData.optimisticData) {
-        optimisticData.push(...optimisticCategoriesData.optimisticData);
-    }
-
-    Onyx.update(optimisticData);
-
-    return {
-        policyID,
-        announceChatReportID,
-        adminsChatReportID,
-        expenseChatReportID,
-        ownerEmail: policyOwnerEmail,
-        makeMeAdmin,
-        policyName: workspaceName,
-        type: CONST.POLICY.TYPE.TEAM,
-        announceCreatedReportActionID,
-        adminsCreatedReportActionID,
-        expenseCreatedReportActionID,
-        customUnitID,
-        customUnitRateID,
-    };
-}
-
-/**
- * Optimistically creates a new workspace and default workspace chats
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
- */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): string {
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-
-    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
-
-    const {
-        announceChatReportID,
-        announceChatData,
-        announceReportActionData,
-        announceCreatedReportActionID,
-        adminsChatReportID,
-        adminsChatData,
-        adminsReportActionData,
-        adminsCreatedReportActionID,
-        expenseChatReportID,
-        expenseChatData,
-        expenseReportActionData,
-        expenseCreatedReportActionID,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2487,6 +2358,18 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         },
     ];
 
+    if (optimisticCategoriesData.optimisticData) {
+        optimisticData.push(...optimisticCategoriesData.optimisticData);
+    }
+
+    if (optimisticCategoriesData.failureData) {
+        failureData.push(...optimisticCategoriesData.failureData);
+    }
+
+    if (optimisticCategoriesData.successData) {
+        successData.push(...optimisticCategoriesData.successData);
+    }
+
     const params: CreateWorkspaceParams = {
         policyID,
         announceChatReportID,
@@ -2505,7 +2388,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
-    return adminsChatReportID;
+    return params;
 }
 
 function openWorkspaceReimburseView(policyID: string) {
@@ -5181,7 +5064,6 @@ export {
     buildOptimisticPolicyRecentlyUsedCategories,
     buildOptimisticPolicyRecentlyUsedTags,
     createDraftInitialWorkspace,
-    createDraftWorkspaceForTrackExpenseCategorization,
     setWorkspaceInviteMessageDraft,
     setWorkspaceAutoReporting,
     setWorkspaceApprovalMode,
