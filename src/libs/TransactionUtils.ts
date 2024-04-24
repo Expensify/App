@@ -587,7 +587,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
- * Check if transaction is on hold by transactionID
+ * Check if transaction is on hold for the given transactionID
  */
 function isOnHoldByTransactionID(transactionID: string): boolean {
     if (!transactionID) {
