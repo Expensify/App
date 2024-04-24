@@ -1,17 +1,17 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import * as SearchActions from '@libs/actions/Search';
 import * as SearchUtils from '@libs/SearchUtils';
+import EmptySearchView from '@pages/Search/EmptySearchView';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import Text from './Text';
+import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 /**
- * For testing run this code in browser console to insert fake data:
- *
- * Onyx.set(`${ONYXKEYS.COLLECTION.SEARCH}${query}`, {
+ * For testing purposes run this code in browser console to insert fake data:
+ * query is the param from URL, by default it will be "all"
+ * Onyx.set(`search_${query}`, {
  *             search: {
  *                 offset: 0,
  *                 type: 'transaction',
@@ -58,20 +58,25 @@ function Search({query}: SearchProps) {
     const shouldShowEmptyState = isEmptyObject(searchResults);
     const shouldShowResults = !isEmptyObject(searchResults);
 
-    const ListItem = SearchUtils.getListItem();
+    let resultsToDisplay = null;
+
+    if (shouldShowResults) {
+        const ListItem = SearchUtils.getListItem();
+
+        resultsToDisplay = SearchUtils.getTransactionsSections(searchResults.data).map((item) => (
+            <ListItem
+                key={item.transactionID}
+                item={item}
+            />
+        ));
+    }
 
     return (
-        <View>
-            {isLoading && <Text>Loading data...</Text>}
-            {shouldShowEmptyState && <Text>Empty skeleton goes here</Text>}
-            {shouldShowResults &&
-                SearchUtils.getTransactionsSections(searchResults?.data).map((item) => (
-                    <ListItem
-                        key={item.transactionID}
-                        item={item}
-                    />
-                ))}
-        </View>
+        <>
+            {isLoading && <TableListItemSkeleton shouldAnimate />}
+            {shouldShowEmptyState && <EmptySearchView />}
+            {shouldShowResults && resultsToDisplay}
+        </>
     );
 }
 
