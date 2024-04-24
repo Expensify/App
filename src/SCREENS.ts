@@ -116,7 +116,6 @@ const SCREENS = {
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
-        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -223,6 +222,9 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Account_Select',
+            QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
+            QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
+            QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
@@ -279,7 +281,6 @@ const SCREENS = {
     },
 
     EDIT_REQUEST: {
-        ROOT: 'EditRequest_Root',
         CURRENCY: 'EditRequest_Currency',
         REPORT_FIELD: 'EditRequest_ReportField',
     },
@@ -302,12 +303,6 @@ const SCREENS = {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
         WORK: 'Onboarding_Work',
-    },
-
-    ONBOARD_ENGAGEMENT: {
-        ROOT: 'Onboard_Engagement_Root',
-        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
-        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
     },
 
     WELCOME_VIDEO: {

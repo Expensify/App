@@ -12,19 +12,18 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-function QuickbooksClassesPage({policy}: WithPolicyProps) {
+function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncClasses, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncClasses && syncClasses !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isReportFieldsSelected = syncClasses === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
-
+    const {syncCustomers, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isSwitchOn = Boolean(syncCustomers && syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isReportFieldsSelected = syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <FeatureEnabledAccessOrNotFoundWrapper
@@ -34,25 +33,25 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                 <ScreenWrapper
                     includeSafeAreaPaddingBottom={false}
                     shouldEnableMaxHeight
-                    testID={QuickbooksClassesPage.displayName}
+                    testID={QuickbooksCustomersPage.displayName}
                 >
-                    <HeaderWithBackButton title={translate('workspace.qbo.classes')} />
+                    <HeaderWithBackButton title={translate('workspace.qbo.customers')} />
                     <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.classesDescription')}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.qbo.customersDescription')}</Text>
                         <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <View style={styles.flex1}>
                                 <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
                             </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.syncClasses}>
+                            <OfflineWithFeedback pendingAction={pendingFields?.syncCustomers}>
                                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                     <Switch
-                                        accessibilityLabel={translate('workspace.qbo.classes')}
+                                        accessibilityLabel={translate('workspace.qbo.customers')}
                                         isOn={isSwitchOn}
                                         onToggle={() =>
                                             Connections.updatePolicyConnectionConfig(
                                                 policyID,
                                                 CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICK_BOOKS_CONFIG.SYNC_CLASSES,
+                                                CONST.QUICK_BOOKS_CONFIG.SYNC_CUSTOMERS,
                                                 isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                             )
                                         }
@@ -77,6 +76,6 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
     );
 }
 
-QuickbooksClassesPage.displayName = 'QuickbooksClassesPage';
+QuickbooksCustomersPage.displayName = 'QuickbooksCustomersPage';
 
-export default withPolicy(QuickbooksClassesPage);
+export default withPolicyConnections(QuickbooksCustomersPage);

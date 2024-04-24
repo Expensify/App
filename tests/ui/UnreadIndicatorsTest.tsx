@@ -82,7 +82,6 @@ const createAddListenerMock = (): ListenerMock => {
             transitionEndListeners.push(callback);
         }
         return () => {
-            // eslint-disable-next-line rulesdir/prefer-underscore-method
             transitionEndListeners.filter((cb) => cb !== callback);
         };
     });

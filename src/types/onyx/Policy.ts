@@ -159,6 +159,8 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     reimbursableExpensesExportDestination: IntegrationEntityMap;
     nonReimbursableExpensesExportDestination: IntegrationEntityMap;
 
+    collectionAccountID?: string;
+    reimbursementAccountID?: string;
     reimbursableExpensesAccount?: string;
     nonReimbursableExpensesAccount?: string;
     autoCreateVendor: boolean;
@@ -473,4 +475,5 @@ export type {
     PolicyConnectionSyncProgress,
     Connections,
     ConnectionName,
+    Account,
 };

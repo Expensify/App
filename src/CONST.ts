@@ -1239,6 +1239,11 @@ const CONST = {
         EXPORT_ENTITY: 'exportEntity',
         EXPORT_ACCOUNT: 'exportAccount',
         EXPORT_COMPANY_CARD: 'exportCompanyCard',
+        AUTO_SYNC: 'autoSync',
+        SYNCE_PEOPLE: 'syncPeople',
+        AUTO_CREATE_VENDOR: 'autoCreateVendor',
+        REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
+        COLLECTION_ACCOUNT_ID: 'collectionAccountID',
     },
 
     QUICKBOOKS_EXPORT_ENTITY: {
@@ -3881,9 +3886,6 @@ const CONST = {
         },
         [onboardingChoices.LOOKING_AROUND]: {
             message:
-                '# Welcome to Expensify!\n' +
-                "Hi there, I'm Concierge. Chat with me here for anything you need.\n" +
-                '\n' +
                 "Expensify is best known for expense and corporate card management, but we do a lot more than that. Let me know what you're interested in and I'll help get you started.",
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
