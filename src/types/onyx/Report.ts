@@ -26,8 +26,7 @@ type PendingChatMember = {
 type Participant = {
     hidden?: boolean;
     role?: 'admin' | 'member';
-    pendingFields?: { [key: string]: OnyxCommon.PendingAction };
-    errorFields?: OnyxCommon.ErrorFields
+    pendingFields?: Record<string, OnyxCommon.PendingAction>;
 };
 
 type Participants = Record<number, Participant>;

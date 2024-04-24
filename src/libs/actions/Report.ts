@@ -2709,9 +2709,6 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
                         pendingFields: {
                             role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
-                        errorFields: {
-                            role: null,
-                        },
                     };
                     return acc;
                 }, {} as Participants),
@@ -2727,9 +2724,6 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
                 participants: Object.keys(participants).reduce((acc, accountID) => {
                     acc[Number(accountID)] = {
                         pendingFields: {
-                            role: null,
-                        },
-                        errorFields: {
                             role: null,
                         },
                     };
