@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 // TODO: uncomment at the end of the refactor https://github.com/Expensify/App/issues/36648
-import * as BankAccounts from '@userActions/BankAccounts';
+// import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';

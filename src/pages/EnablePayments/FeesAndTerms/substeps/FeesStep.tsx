@@ -5,7 +5,7 @@ import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import LongTermsForm from '@pages/EnablePayments/TermsPage/LongTermsForm';
 import ShortTermsForm from '@pages/EnablePayments/TermsPage/ShortTermsForm';
