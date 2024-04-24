@@ -4616,7 +4616,7 @@ function buildOptimisticMoneyRequestEntities(
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
 
-// Check if the report is empty report
+// Check if the report is empty, meaning it has no visible messages (i.e. only a "created" report action).
 function isEmptyReport(report: OnyxEntry<Report>): boolean {
     if (!report) {
         return true;
