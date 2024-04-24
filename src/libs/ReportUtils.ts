@@ -440,6 +440,7 @@ type OptionData = {
     reportID?: string;
     enabled?: boolean;
     data?: Partial<TaxRate>;
+    transactionThreadReportID?: string | null;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
