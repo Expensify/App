@@ -1,16 +1,16 @@
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React from 'react';
 import Checkbox from '@components/Checkbox';
 import type {CheckboxProps} from '@components/Checkbox';
 
-type CheckboxStory = ComponentStory<typeof Checkbox>;
+type CheckboxStory = StoryFn<typeof Checkbox>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof Checkbox> = {
+const story: Meta<typeof Checkbox> = {
     title: 'Components/Checkbox',
     component: Checkbox,
 };

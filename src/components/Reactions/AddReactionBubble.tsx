@@ -32,7 +32,7 @@ type AddReactionBubbleProps = {
     /**
      * Will get called the moment before the picker opens.
      */
-    onWillShowPicker?: (callback: CloseContextMenuCallback) => void;
+    onWillShowPicker?: (callback?: CloseContextMenuCallback) => void;
 
     /**
      * Called when the user selects an emoji.

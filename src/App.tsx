@@ -16,7 +16,6 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import OnyxProvider from './components/OnyxProvider';
-import OptionsListContextProvider from './components/OptionListContextProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
@@ -34,6 +33,7 @@ import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
+import {SuggestionsContextProvider} from './pages/home/report/ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
 
@@ -80,10 +80,10 @@ function App({url}: AppProps) {
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
                         PlaybackContextProvider,
+                        SuggestionsContextProvider,
                         FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
-                        OptionsListContextProvider,
                     ]}
                 >
                     <CustomStatusBarAndBackground />

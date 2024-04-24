@@ -96,7 +96,7 @@ If you need to enable direct debits from your verified bank account, your bank w
 
 If using Expensify to process Bill payments, you'll also need to whitelist the ACH IDs from our partner [Stripe](https://support.stripe.com/questions/ach-direct-debit-company-ids-for-stripe?):
 - The ACH CompanyIDs (1800948598 and 4270465600)
-- The ACH Originator Name (Stripe Payments company)
+- The ACH Originator Name (expensify.com)
 
 If using Expensify to process international reimbursements from your USD bank account, you'll also need to whitelist the ACH IDs from our partner CorPay:
 - The ACH CompanyIDs (1522304924 and 2522304924)

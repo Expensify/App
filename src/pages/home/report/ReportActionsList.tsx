@@ -33,6 +33,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
+import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
@@ -49,6 +50,9 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
 
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
@@ -148,6 +152,7 @@ function ReportActionsList({
     listID,
     onContentSizeChange,
     shouldEnableAutoScrollToTopThreshold,
+    parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
@@ -159,6 +164,7 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string | null>(null);
     const lastMessageTime = useRef<string | null>(null);
+    const {currentActiveSuggestionsRef} = useSuggestionsContext();
 
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -197,7 +203,8 @@ function ReportActionsList({
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
-
+    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -341,16 +348,17 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportAction) {
+            // If a new comment is added and it's from the current user scroll to the bottom
+            // otherwise leave the user positioned where they are now in the list.
+            // Additionally, since the first report action could be a whisper message (new WS) ->
+            // hasNewestReportAction will be false, check isWhisperAction is false before returning early.
+            if (!isFromCurrentUser || (!hasNewestReportActionRef.current && !ReportActionsUtils.isWhisperAction(sortedReportActions?.[0]))) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [hasNewestReportAction, reportScrollManager],
+        [sortedReportActions, reportScrollManager],
     );
-
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -369,12 +377,10 @@ function ReportActionsList({
         const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
-            if (unsubscribe) {
-                unsubscribe();
+            if (!unsubscribe) {
+                return;
             }
-            InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(report.reportID);
-            });
+            unsubscribe();
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
@@ -453,7 +459,7 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
                     shouldDisplay =
                         (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
                         isWithinVisibleThreshold;
@@ -485,10 +491,10 @@ function ReportActionsList({
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
-        if (!markerFound) {
+        if (!markerFound && !linkedReportActionID) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker, linkedReportActionID]);
 
     useEffect(() => {
         calculateUnreadMarker();
@@ -545,6 +551,7 @@ function ReportActionsList({
                 reportAction={reportAction}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 index={index}
                 report={report}
                 transactionThreadReport={transactionThreadReport}
@@ -569,6 +576,7 @@ function ReportActionsList({
             shouldDisplayNewMarker,
             sortedReportActions.length,
             shouldShowStaticDateIndicator,
+            parentReportActionForTransactionThread,
         ],
     );
 
@@ -665,6 +673,18 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
+                    onScrollBeginDrag={() => {
+                        if (!currentActiveSuggestionsRef.current) {
+                            return;
+                        }
+                        currentActiveSuggestionsRef.current.resetSuggestions();
+                    }}
+                    onScrollEndDrag={() => {
+                        if (!currentActiveSuggestionsRef.current) {
+                            return;
+                        }
+                        currentActiveSuggestionsRef.current.updateShouldShowSuggestionMenuAfterScrolling();
+                    }}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
             </Animated.View>
