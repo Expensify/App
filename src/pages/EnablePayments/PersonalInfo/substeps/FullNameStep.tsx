@@ -59,28 +59,26 @@ function FullNameStep({onNext, isEditing}: SubStepProps) {
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('personalInfoStep.whatsYourLegalName')}</Text>
-                <View style={[styles.mb6]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
-                        label={translate('personalInfoStep.legalFirstName')}
-                        aria-label={translate('personalInfoStep.legalFirstName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={defaultValues.firstName}
-                        shouldSaveDraft={!isEditing}
-                    />
-                </View>
-                <View style={[styles.mb6]}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
-                        label={translate('personalInfoStep.legalLastName')}
-                        aria-label={translate('personalInfoStep.legalLastName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={defaultValues.lastName}
-                        shouldSaveDraft={!isEditing}
-                    />
-                </View>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
+                    label={translate('common.firstName')}
+                    aria-label={translate('common.firstName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={defaultValues.firstName}
+                    shouldSaveDraft={!isEditing}
+                    containerStyles={[styles.mb6]}
+                />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
+                    label={translate('common.lastName')}
+                    aria-label={translate('common.lastName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={defaultValues.lastName}
+                    shouldSaveDraft={!isEditing}
+                    containerStyles={[styles.mb6]}
+                />
                 <HelpLinks />
             </View>
         </FormProvider>
