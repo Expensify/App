@@ -1318,8 +1318,7 @@ export default {
     onboarding: {
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
-            description: 'Cobrar es tan fácil como enviar un mensaje.',
-            button: 'Vámonos',
+            description: 'Una aplicación para gestionar todos tus gastos empresariales y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
         },
         whatsYourName: '¿Cómo te llamas?',
         whereYouWork: '¿Dónde trabajas?',

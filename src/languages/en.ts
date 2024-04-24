@@ -1319,8 +1319,7 @@ export default {
     onboarding: {
         welcomeVideo: {
             title: 'Welcome to Expensify',
-            description: 'Getting paid is as easy as sending a message.',
-            button: "Let's go",
+            description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
