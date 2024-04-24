@@ -11,6 +11,7 @@ import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -94,6 +95,8 @@ function ReportCardLostPage({
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
+    const {paddingBottom} = useStyledSafeAreaInsets();
+
     const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? {});
 
     useEffect(() => {
@@ -161,11 +164,11 @@ function ReportCardLostPage({
                 title={translate('reportCardLostOrDamaged.screenTitle')}
                 onBackButtonPress={handleBackButtonPress}
             />
-            <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3]}>
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.pt3, styles.mh5, !paddingBottom ? styles.pb5 : null]}>
                 {isReasonConfirmed ? (
                     <>
                         <View>
-                            <Text style={[styles.textHeadline, styles.mb3, styles.mh5]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
+                            <Text style={[styles.textHeadline, styles.mb3]}>{translate('reportCardLostOrDamaged.confirmAddressTitle')}</Text>
                             <MenuItemWithTopDescription
                                 title={formattedAddress}
                                 description={translate('reportCardLostOrDamaged.address')}
@@ -174,9 +177,9 @@ function ReportCardLostPage({
                                 numberOfLinesTitle={2}
                             />
                             {isDamaged ? (
-                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
+                                <Text style={[styles.mt3]}>{translate('reportCardLostOrDamaged.cardDamagedInfo')}</Text>
                             ) : (
-                                <Text style={[styles.mt3, styles.mh5]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
+                                <Text style={[styles.mt3]}>{translate('reportCardLostOrDamaged.cardLostOrStolenInfo')}</Text>
                             )}
                         </View>
                         <FormAlertWithSubmitButton
@@ -189,7 +192,7 @@ function ReportCardLostPage({
                     </>
                 ) : (
                     <>
-                        <View style={styles.mh5}>
+                        <View>
                             <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                             <SingleOptionSelector
                                 options={OPTIONS}
