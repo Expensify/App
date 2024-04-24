@@ -1,5 +1,7 @@
 import {FullStory, init, isInitialized} from '@fullstory/browser';
 import type {OnyxEntry} from 'react-native-onyx';
+import CONST from '@src/CONST';
+import * as Environment from '@src/libs/Environment/Environment';
 import type {UserMetadata} from '@src/types/onyx';
 import type NavigationProperties from './types';
 
@@ -27,12 +29,17 @@ const FS = {
      */
     onReady: () =>
         new Promise((resolve) => {
-            // Initialised via HEAD snippet
-            if (isInitialized()) {
-                init({orgId: ''}, resolve);
-            } else {
-                FullStory('observe', {type: 'start', callback: resolve});
-            }
+            Environment.getEnvironment().then((envName: string) => {
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                    return;
+                }
+                // Initialised via HEAD snippet
+                if (isInitialized()) {
+                    init({orgId: ''}, resolve);
+                } else {
+                    FullStory('observe', {type: 'start', callback: resolve});
+                }
+            });
         }),
 
     /**
@@ -50,9 +57,14 @@ const FS = {
      */
     consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
         try {
-            FS.onReady().then(() => {
-                FS.consent(true);
-                FS.fsIdentify(value);
+            Environment.getEnvironment().then((envName: string) => {
+                if (CONST.ENVIRONMENT.PRODUCTION !== envName) {
+                    return;
+                }
+                FS.onReady().then(() => {
+                    FS.consent(true);
+                    FS.fsIdentify(value);
+                });
             });
         } catch (e) {
             // error handler
