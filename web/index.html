@@ -122,9 +122,9 @@
         <!-- polyfill.io is only needed on Web to support older browsers. It should not be loaded for desktop -->
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default%2CResizeObserver&flags=gated"></script>
         <% if (htmlWebpackPlugin.options.isProduction) { %>
-            <!-- Google Tag Manager -->
-            <script async="" src="gtm.js"></script>
-            <!-- End Google Tag Manager -->
+            <!-- Third party scripts -->
+            <script async="" src="thirdPartyScripts.js"></script>
+            <!-- End Third party scripts -->
         <% } %>
     <% } %>
     <link rel="manifest" href="/manifest.json" />
