@@ -293,7 +293,7 @@ function MoneyRequestConfirmationList({
               isDistanceRequest ? currency : iouCurrencyCode,
           );
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transaction?.taxAmount, iouCurrencyCode);
-    const taxRateTitle = taxRates && transaction ? TransactionUtils.getDefaultTaxName(taxRates, transaction) : '';
+    const taxRateTitle = transaction ? TransactionUtils.getDefaultTaxName(policy, transaction) : '';
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
 
