@@ -5,6 +5,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -19,30 +20,20 @@ type SearchMenuFilterItem = {
     route: Route;
 };
 
-const filterItems: SearchMenuFilterItem[] = [
-    {
-        title: 'All',
-        icon: Expensicons.All,
-        route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
-    },
-    // More tabs prepared for final version but in v1 we support only "All"
-    // {
-    //     title: 'Sent',
-    //     icon: Expensicons.Send,
-    //     route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SENT),
-    // },
-    // {
-    //     title: 'Drafts',
-    //     icon: Expensicons.Pencil,
-    //     route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS),
-    // },
-];
-
 function SearchFilters() {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const activeRoute = useActiveRoute();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+
+    const filterItems: SearchMenuFilterItem[] = [
+        {
+            title: translate('common.all'),
+            icon: Expensicons.All,
+            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
+        },
+    ];
 
     const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
 
