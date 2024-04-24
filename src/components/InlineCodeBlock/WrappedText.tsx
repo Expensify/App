@@ -39,6 +39,13 @@ function containsEmoji(text: string): boolean {
     return CONST.REGEX.EMOJI.test(text);
 }
 
+/**
+ * Validates if the string is a single emoji
+ */
+function isEmoji(text: string): boolean {
+    return CONST.REGEX.EMOJI.test(text) && text.length === 2;
+}
+
 function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
     const styles = useThemeStyles();
 
@@ -60,8 +67,12 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
                     key={`${colText}-${colIndex}`}
                     style={styles.codeWordWrapper}
                 >
-                    <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
-                        <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>{colText}</Text>
+                    <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle, {height: 35, justifyContent:'center'}]}>
+                        <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>
+                            {Array.from(colText).map((char, charIndex) => (
+                                isEmoji(char) ? <Text key={charIndex} style={[textStyles, styles.emojiDefaultStyles]}>{char}</Text> : char
+                            ))}
+                        </Text>
                     </View>
                 </View>
             ))}
