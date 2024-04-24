@@ -10,7 +10,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import {useSuggestionsContext} from '@pages/home/report/ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
@@ -45,14 +44,12 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     suggestions,
     isSuggestionPickerLarge,
     keyExtractor,
-    shouldBeDisplayedBelowParentContainer = false,
 }: AutoCompleteSuggestionsProps<TSuggestion>) {
     const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const scrollRef = useRef<FlashList<TSuggestion>>(null);
-    const {activeID} = useSuggestionsContext();
     /**
      * Render a suggestion menu item component.
      */
@@ -74,7 +71,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
-    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, shouldBeDisplayedBelowParentContainer, Boolean(activeID)));
+    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value));
     const estimatedListSize = useMemo(
         () => ({
             height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,
