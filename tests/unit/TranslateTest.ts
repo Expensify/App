@@ -152,7 +152,7 @@ describe('flattenObject', () => {
 describe('plural translations', () => {
     it('should return the correct pluralized form for "one" case', () => {
         const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: '1'};
+        const phraseParameters = {count: 1};
         const expectedTranslation = 'You have one item';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
@@ -161,7 +161,7 @@ describe('plural translations', () => {
 
     it('should return the correct pluralized form for "other" case', () => {
         const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: '5'};
+        const phraseParameters = {count: 5};
         const expectedTranslation = 'You have many items';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
@@ -170,7 +170,7 @@ describe('plural translations', () => {
 
     it('should return the "other" form if the specific plural form is not found', () => {
         const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: '2'};
+        const phraseParameters = {count: 2};
         const expectedTranslation = 'You have many items';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
@@ -179,7 +179,7 @@ describe('plural translations', () => {
 
     it('should handle plural translations with variables', () => {
         const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: '3', itemName: 'books'};
+        const phraseParameters = {count: 3, itemName: 'books'};
         const expectedTranslation = 'You have many items';
 
         const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
