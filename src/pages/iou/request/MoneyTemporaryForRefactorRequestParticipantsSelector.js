@@ -1,4 +1,3 @@
-import lodashEvery from 'lodash/every';
 import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashMap from 'lodash/map';
@@ -25,7 +24,6 @@ import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionSt
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -327,22 +325,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             </>
         );
     }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
-
-    const isAllSectionsEmpty = lodashEvery(sections, (section) => section.data.length === 0);
-    const categorizeOptionWithNoParticipants = isCategorizeOrShareAction && isAllSectionsEmpty && didScreenTransitionEnd && debouncedSearchTerm.trim() === '' && areOptionsInitialized;
-
-    useEffect(() => {
-        if (!categorizeOptionWithNoParticipants) {
-            return;
-        }
-        const {policyID, expenseChatReportID} = Policy.createWorkspace();
-        return addSingleParticipant({
-            accountID: 0,
-            isPolicyExpenseChat: true,
-            reportID: expenseChatReportID,
-            policyID,
-        });
-    }, [categorizeOptionWithNoParticipants, addSingleParticipant]);
 
     return (
         <SelectionList

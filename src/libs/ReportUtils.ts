@@ -55,6 +55,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as IOU from './actions/IOU';
+import * as PolicyActions from './actions/Policy';
 import * as store from './actions/ReimbursementAccount/store';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -6114,7 +6115,21 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         mccGroup,
     } as Transaction);
 
-    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+    if (allPolicies && Object.values(allPolicies).length > 0) {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+    }
+
+    const {expenseChatReportID} = PolicyActions.createWorkspace();
+    const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
+
+    IOU.setMoneyRequestTag(transactionID, '');
+    IOU.setMoneyRequestCategory(transactionID, '');
+    const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
+    if (isCategorizing) {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, iouConfirmationPageRoute));
+    } else {
+        Navigation.navigate(iouConfirmationPageRoute);
+    }
 }
 
 /**
