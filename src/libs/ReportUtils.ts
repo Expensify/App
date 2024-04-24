@@ -6091,7 +6091,7 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
         return false;
     }
 
-    if (isRootGroupChat(report)) {
+    if (isRootGroupChat(report) || isSelfDM(report)) {
         return false;
     }
 
