@@ -5825,10 +5825,6 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     return participants;
 }
 
-function setMoneyRequestId(id: string) {
-    Onyx.merge(ONYXKEYS.IOU, {id});
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRatesOption) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
@@ -6025,7 +6021,6 @@ export {
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
-    setMoneyRequestId,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,

@@ -39,9 +39,6 @@ const ONYXKEYS = {
     CREDENTIALS: 'credentials',
     STASHED_CREDENTIALS: 'stashedCredentials',
 
-    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & MoneyRequestPreview Components)
-    IOU: 'iou',
-
     /** Keeps track if there is modal currently visible or not */
     MODAL: 'modal',
 
@@ -577,7 +574,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
-    [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
