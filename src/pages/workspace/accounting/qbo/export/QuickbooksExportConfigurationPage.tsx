@@ -13,8 +13,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -125,4 +125,4 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
 
 QuickbooksExportConfigurationPage.displayName = 'QuickbooksExportConfigurationPage';
 
-export default withPolicy(QuickbooksExportConfigurationPage);
+export default withPolicyConnections(QuickbooksExportConfigurationPage);
