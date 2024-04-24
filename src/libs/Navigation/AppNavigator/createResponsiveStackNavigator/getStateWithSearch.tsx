@@ -27,11 +27,7 @@ function reduceCentralPaneRoutes(routes: Routes): Routes {
     return result.reverse();
 }
 
-function getStateWithSearch<
-    NavigationOptions extends PlatformSpecificNavigationOptions,
-    EventMap extends PlatformSpecificEventMap & EventMapBase,
-    ParamList extends ParamListBase = ParamListBase,
->({state, windowDimensions}: TransformStateProps<NavigationOptions, EventMap, ParamList>) {
+function getStateWithSearch({state, windowDimensions}: TransformStateProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamListBase>) {
     const routes = reduceCentralPaneRoutes(state.routes);
 
     const lastRoute = routes[routes.length - 1];

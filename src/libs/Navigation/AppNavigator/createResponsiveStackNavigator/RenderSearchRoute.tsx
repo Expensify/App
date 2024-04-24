@@ -1,13 +1,9 @@
 import type {EventMapBase} from '@react-navigation/native';
 import {View} from 'react-native';
-import type {RenderExtraContentProps} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/types';
+import type {CustomComponentProps} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/types';
 import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
-function RenderSearchRoute<EventMap extends PlatformSpecificEventMap & EventMapBase>({
-    searchRoute,
-    styles,
-    descriptors,
-}: RenderExtraContentProps<PlatformSpecificNavigationOptions, EventMap>) {
+function RenderSearchRoute({searchRoute, styles, descriptors}: CustomComponentProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase>) {
     if (!searchRoute) {
         return null;
     }
