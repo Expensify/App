@@ -125,7 +125,7 @@ function AttachmentPickerWithMenuItems({
     const moneyRequestOptions = useMemo(() => {
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
-                icon: Expensicons.Receipt,
+                icon: Expensicons.Transfer,
                 text: translate('iou.splitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
