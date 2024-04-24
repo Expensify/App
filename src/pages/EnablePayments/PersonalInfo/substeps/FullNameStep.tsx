@@ -59,7 +59,7 @@ function FullNameStep({onNext, isEditing}: SubStepProps) {
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('personalInfoStep.whatsYourLegalName')}</Text>
-                <View style={[styles.flex2, styles.mb6]}>
+                <View style={[styles.mb6]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}
@@ -70,7 +70,7 @@ function FullNameStep({onNext, isEditing}: SubStepProps) {
                         shouldSaveDraft={!isEditing}
                     />
                 </View>
-                <View style={[styles.flex2, styles.mb6]}>
+                <View style={[styles.mb6]}>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={PERSONAL_INFO_STEP_KEY.LAST_NAME}
