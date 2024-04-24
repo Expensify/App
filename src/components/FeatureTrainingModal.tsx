@@ -191,7 +191,7 @@ function FeatureTrainingModal({
                     <GestureHandlerRootView>
                         <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                             <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
-                            <View style={[styles.m5]}>
+                            <View style={[styles.mt5, styles.mh5]}>
                                 {title && description && (
                                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1]}>{title}</Text>
