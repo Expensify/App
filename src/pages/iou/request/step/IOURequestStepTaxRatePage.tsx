@@ -52,9 +52,7 @@ function IOURequestStepTaxRatePage({
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const taxRates = policy?.taxRates;
-    const defaultExternalID = taxRates?.defaultExternalID;
-    const foreignTaxDefault = taxRates?.foreignTaxDefault;
-    const defaultTaxCode = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
     const transactionTaxCode = transactionDetails?.taxCode;
 
