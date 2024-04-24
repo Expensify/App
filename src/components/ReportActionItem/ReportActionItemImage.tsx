@@ -81,6 +81,7 @@ function ReportActionItemImage({
             source: thumbnailSource,
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
+            isAuthTokenRequired: true,
         };
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
@@ -88,6 +89,8 @@ function ReportActionItemImage({
         propsObj = {
             isThumbnail,
             ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
+            shouldUseThumbnailImage: true,
+            isAuthTokenRequired: false,
             source: thumbnail ?? image ?? '',
         };
     }
