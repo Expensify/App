@@ -62,7 +62,7 @@ function IOURequestStepTaxRatePage({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const moneyRequestSelectedTaxRate = TransactionUtils.getTaxName(policy, transaction) || TransactionUtils.getDefaultTaxName(policy, transaction);
-    const editingSelectedTaxRate = transactionTaxCode === defaultTaxCode ? TransactionUtils.getDefaultTaxName(policy, transaction) : TransactionUtils.getTaxName(policy, transaction);
+    const editingSelectedTaxRate = TransactionUtils.getTaxRateTitle(policy, transaction);
 
     const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
         if (!transaction || !taxes.text || !taxRates) {
