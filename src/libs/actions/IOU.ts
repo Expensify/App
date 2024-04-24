@@ -835,29 +835,31 @@ function buildOnyxDataForTrackExpense(
     } else if (isDistanceRequest) {
         newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE;
     }
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.SET,
-        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-        value: {
-            action: newQuickAction,
-            chatReportID: chatReport?.reportID,
-            isFirstQuickAction: isEmptyObject(quickAction),
-        },
-    });
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
     if (chatReport) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                ...chatReport,
-                lastMessageText: iouAction.message?.[0]?.text,
-                lastMessageHtml: iouAction.message?.[0]?.html,
-                lastReadTime: DateUtils.getDBTime(),
-                iouReportID: iouReport?.reportID,
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    ...chatReport,
+                    lastMessageText: iouAction.message?.[0]?.text,
+                    lastMessageHtml: iouAction.message?.[0]?.html,
+                    lastReadTime: DateUtils.getDBTime(),
+                    iouReportID: iouReport?.reportID,
+                },
             },
-        });
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                value: {
+                    action: newQuickAction,
+                    chatReportID: chatReport.reportID,
+                    isFirstQuickAction: isEmptyObject(quickAction),
+                },
+            },
+        );
     }
 
     if (iouReport) {
