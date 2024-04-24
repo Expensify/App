@@ -1171,6 +1171,7 @@ function getTagListSections(
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
     const enabledTags = sortedTags.filter((tag) => tag.enabled);
     const enabledTagsNames = enabledTags.map((tag) => tag.name);
+    const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
     const selectedTagsWithDisabledState: SelectedTagOption[] = [];
     const numberOfTags = enabledTags.length;
 
@@ -1195,7 +1196,7 @@ function getTagListSections(
     }
 
     if (searchInputValue) {
-        const enabledSearchTags = enabledTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
         const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
         const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
 
@@ -1214,7 +1215,7 @@ function getTagListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTagsOptions(enabledTags, selectedOptions),
+            data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
         });
 
         return tagSections;
@@ -1226,7 +1227,6 @@ function getTagListSections(
             return !!tagObject?.enabled && !selectedOptionNames.includes(recentlyUsedTag);
         })
         .map((tag) => ({name: tag, enabled: true}));
-    const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
     if (selectedOptions.length) {
         tagSections.push({
@@ -1252,7 +1252,7 @@ function getTagListSections(
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        data: getTagsOptions(filteredTags, selectedOptions),
+        data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
 
     return tagSections;
