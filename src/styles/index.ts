@@ -19,6 +19,7 @@ import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
+import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
@@ -256,6 +257,7 @@ const styles = (theme: ThemeColors) =>
         ...objectFit,
         ...textDecorationLine,
         editedLabelStyles,
+        emojiDefaultStyles,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -278,13 +280,6 @@ const styles = (theme: ThemeColors) =>
         rtlTextRenderForSafari: {
             textAlign: 'left',
             ...writingDirection.ltr,
-        },
-
-        emojiDefault: {
-            fontStyle: 'normal',
-            fontWeight: 'normal',
-            textDecorationLine: 'none',
-            ...display.dInlineFlex,
         },
 
         emojiSuggestionsEmoji: {
