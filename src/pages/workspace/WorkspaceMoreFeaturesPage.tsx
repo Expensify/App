@@ -47,7 +47,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
-    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
+    const hasAccountingConnection = !!policy?.areConnectionsEnabled && Object.keys(policy?.connections ?? {}).length > 0;
     const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax;
 
     const spendItems: Item[] = [
@@ -119,6 +119,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
+            disabled: !hasAccountingConnection,
         },
     ];
 
