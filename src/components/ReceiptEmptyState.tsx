@@ -27,6 +27,7 @@ function ReceiptEmptyState({hasError = false, onPress = () => {}, disabled = fal
             accessibilityLabel={translate('receipt.upload')}
             onPress={onPress}
             disabled={disabled}
+            disabledStyle={styles.cursorDefault}
             style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.moneyRequestViewImage, styles.moneyRequestAttachReceipt, hasError && styles.borderColorDanger]}
         >
             <Icon
