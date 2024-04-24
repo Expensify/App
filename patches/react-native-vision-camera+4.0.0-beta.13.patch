@@ -609,8 +609,7 @@ index 0000000..56a6c3d
 +include ':VisionCamera'
 diff --git a/node_modules/react-native-vision-camera/android/src/main/.DS_Store b/node_modules/react-native-vision-camera/android/src/main/.DS_Store
 new file mode 100644
-index 0000000..63b728b
-Binary files /dev/null and b/node_modules/react-native-vision-camera/android/src/main/.DS_Store differ
+index 0000000..e69de29
 diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt
 index a7c8358..a935ef6 100644
 --- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt
@@ -685,8 +684,69 @@ index 25e1f55..33b9dd3 100644
 +    }
 +  }
  }
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraView.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraView.kt
+index cb9c159..b68a74d 100644
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraView.kt
++++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraView.kt
+@@ -12,8 +12,6 @@ import com.mrousavy.camera.core.CameraConfiguration
+ import com.mrousavy.camera.core.CameraSession
+ import com.mrousavy.camera.core.CodeScannerFrame
+ import com.mrousavy.camera.extensions.installHierarchyFitter
+-import com.mrousavy.camera.frameprocessor.Frame
+-import com.mrousavy.camera.frameprocessor.FrameProcessor
+ import com.mrousavy.camera.types.CameraDeviceFormat
+ import com.mrousavy.camera.types.CodeScannerOptions
+ import com.mrousavy.camera.types.Orientation
+@@ -56,7 +54,6 @@ class CameraView(context: Context) :
+   var photo = false
+   var video = false
+   var audio = false
+-  var enableFrameProcessor = false
+   var pixelFormat: PixelFormat = PixelFormat.NATIVE
+   var enableLocation = false
+ 
+@@ -106,7 +103,6 @@ class CameraView(context: Context) :
+ 
+   // session
+   internal val cameraSession: CameraSession
+-  internal var frameProcessor: FrameProcessor? = null
+   internal val previewView: PreviewView
+   private var currentConfigureCall: Long = System.currentTimeMillis()
+ 
+@@ -175,18 +171,14 @@ class CameraView(context: Context) :
+         }
+ 
+         // Video
+-        if (video || enableFrameProcessor) {
++        if (video) {
+           config.video = CameraConfiguration.Output.Enabled.create(CameraConfiguration.Video(videoHdr, pixelFormat))
+         } else {
+           config.video = CameraConfiguration.Output.Disabled.create()
+         }
+ 
+-        // Frame Processor
+-        if (enableFrameProcessor) {
+-          config.frameProcessor = CameraConfiguration.Output.Enabled.create(CameraConfiguration.FrameProcessor(Unit))
+-        } else {
+           config.frameProcessor = CameraConfiguration.Output.Disabled.create()
+-        }
++        
+ 
+         // Audio
+         if (audio) {
+@@ -269,9 +261,7 @@ class CameraView(context: Context) :
+     }
+   }
+ 
+-  override fun onFrame(frame: Frame) {
+-    frameProcessor?.call(frame)
+-
++  override fun onFrame() {
+     fpsGraph?.onTick()
+   }
+ 
 diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt
-index f2b284c..e348e5c 100644
+index f2b284c..f3b0886 100644
 --- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt
 +++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewManager.kt
 @@ -4,7 +4,10 @@ import com.facebook.react.bridge.ReadableMap
@@ -721,7 +781,7 @@ index f2b284c..e348e5c 100644
    public override fun createViewInstance(context: ThemedReactContext): CameraView = CameraView(context)
  
    override fun onAfterUpdateTransaction(view: CameraView) {
-@@ -46,37 +58,37 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -46,37 +58,36 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "cameraId")
@@ -756,8 +816,8 @@ index f2b284c..e348e5c 100644
  
    @ReactProp(name = "enableFrameProcessor")
 -  fun setEnableFrameProcessor(view: CameraView, enableFrameProcessor: Boolean) {
+-    view.enableFrameProcessor = enableFrameProcessor
 +  override fun setEnableFrameProcessor(view: CameraView, enableFrameProcessor: Boolean) {
-     view.enableFrameProcessor = enableFrameProcessor
    }
  
    @ReactProp(name = "pixelFormat")
@@ -766,7 +826,7 @@ index f2b284c..e348e5c 100644
      if (pixelFormat != null) {
        val newPixelFormat = PixelFormat.fromUnionValue(pixelFormat)
        view.pixelFormat = newPixelFormat
-@@ -86,27 +98,27 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -86,27 +97,27 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "enableDepthData")
@@ -799,7 +859,7 @@ index f2b284c..e348e5c 100644
      if (videoStabilizationMode != null) {
        val newMode = VideoStabilizationMode.fromUnionValue(videoStabilizationMode)
        view.videoStabilizationMode = newMode
-@@ -116,12 +128,12 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -116,12 +127,12 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "enablePortraitEffectsMatteDelivery")
@@ -814,7 +874,7 @@ index f2b284c..e348e5c 100644
      if (format != null) {
        val newFormat = CameraDeviceFormat.fromJSValue(format)
        view.format = newFormat
-@@ -131,7 +143,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -131,7 +142,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "resizeMode")
@@ -823,7 +883,7 @@ index f2b284c..e348e5c 100644
      if (resizeMode != null) {
        val newMode = ResizeMode.fromUnionValue(resizeMode)
        view.resizeMode = newMode
-@@ -141,7 +153,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -141,7 +152,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "androidPreviewViewType")
@@ -832,7 +892,7 @@ index f2b284c..e348e5c 100644
      if (androidPreviewViewType != null) {
        val newMode = PreviewViewType.fromUnionValue(androidPreviewViewType)
        view.androidPreviewViewType = newMode
-@@ -154,17 +166,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -154,17 +165,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    // We're treating -1 as "null" here, because when I make the fps parameter
    // of type "Int?" the react bridge throws an error.
    @ReactProp(name = "fps", defaultInt = -1)
@@ -853,7 +913,7 @@ index f2b284c..e348e5c 100644
      if (photoQualityBalance != null) {
        val newMode = QualityBalance.fromUnionValue(photoQualityBalance)
        view.photoQualityBalance = newMode
-@@ -174,22 +186,22 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -174,22 +185,22 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "videoHdr")
@@ -880,7 +940,7 @@ index f2b284c..e348e5c 100644
      if (torch != null) {
        val newMode = Torch.fromUnionValue(torch)
        view.torch = newMode
-@@ -199,17 +211,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -199,17 +210,17 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "zoom")
@@ -901,7 +961,7 @@ index f2b284c..e348e5c 100644
      if (orientation != null) {
        val newMode = Orientation.fromUnionValue(orientation)
        view.orientation = newMode
-@@ -219,7 +231,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -219,7 +230,7 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
    }
  
    @ReactProp(name = "codeScannerOptions")
@@ -910,7 +970,7 @@ index f2b284c..e348e5c 100644
      if (codeScannerOptions != null) {
        val newCodeScannerOptions = CodeScannerOptions.fromJSValue(codeScannerOptions)
        view.codeScannerOptions = newCodeScannerOptions
-@@ -227,4 +239,8 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
+@@ -227,4 +238,8 @@ class CameraViewManager : ViewGroupManager<CameraView>() {
        view.codeScannerOptions = null
      }
    }
@@ -919,6 +979,620 @@ index f2b284c..e348e5c 100644
 +    // ios only
 +  }
  }
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewModule.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewModule.kt
+index 373ecc6..2897d54 100644
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewModule.kt
++++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraViewModule.kt
+@@ -13,8 +13,6 @@ import com.facebook.react.uimanager.common.UIManagerType
+ import com.mrousavy.camera.core.CameraError
+ import com.mrousavy.camera.core.CameraQueues
+ import com.mrousavy.camera.core.ViewNotFoundError
+-import com.mrousavy.camera.frameprocessor.VisionCameraInstaller
+-import com.mrousavy.camera.frameprocessor.VisionCameraProxy
+ import com.mrousavy.camera.types.*
+ import com.mrousavy.camera.utils.*
+ import kotlinx.coroutines.*
+@@ -32,7 +30,6 @@ class CameraViewModule(reactContext: ReactApplicationContext) : ReactContextBase
+         // Includes the OpenGL VideoPipeline, as well as Frame Processor JSI bindings
+         System.loadLibrary("VisionCamera")
+       } catch (e: UnsatisfiedLinkError) {
+-        Log.e(VisionCameraProxy.TAG, "Failed to load VisionCamera C++ library!", e)
+         throw e
+       }
+     }
+@@ -62,17 +59,6 @@ class CameraViewModule(reactContext: ReactApplicationContext) : ReactContextBase
+       return@runOnUiThreadAndWait view
+     }
+ 
+-  @ReactMethod(isBlockingSynchronousMethod = true)
+-  fun installFrameProcessorBindings(): Boolean =
+-    try {
+-      val proxy = VisionCameraProxy(reactApplicationContext)
+-      VisionCameraInstaller.install(proxy)
+-      true
+-    } catch (e: Error) {
+-      Log.e(TAG, "Failed to install Frame Processor JSI Bindings!", e)
+-      false
+-    }
+-
+   @ReactMethod
+   fun takePhoto(viewTag: Int, options: ReadableMap, promise: Promise) {
+     backgroundCoroutineScope.launch {
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
+index 0c315f1..03fd648 100644
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
++++ b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/CameraSession.kt
+@@ -50,7 +50,6 @@ import com.mrousavy.camera.extensions.isSDR
+ import com.mrousavy.camera.extensions.takePicture
+ import com.mrousavy.camera.extensions.toCameraError
+ import com.mrousavy.camera.extensions.withExtension
+-import com.mrousavy.camera.frameprocessor.Frame
+ import com.mrousavy.camera.types.CameraDeviceFormat
+ import com.mrousavy.camera.types.Flash
+ import com.mrousavy.camera.types.Orientation
+@@ -331,24 +330,8 @@ class CameraSession(private val context: Context, private val callback: Callback
+     }
+ 
+     // 4. Frame Processor
+-    val frameProcessorConfig = configuration.frameProcessor as? CameraConfiguration.Output.Enabled<CameraConfiguration.FrameProcessor>
+-    if (frameProcessorConfig != null) {
+-      Log.i(TAG, "Creating Frame Processor output...")
+-      val analyzer = ImageAnalysis.Builder().also { analysis ->
+-        analysis.setBackpressureStrategy(ImageAnalysis.STRATEGY_BLOCK_PRODUCER)
+-        analysis.setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_YUV_420_888)
+-        if (format != null) {
+-          Log.i(TAG, "Frame Processor size: ${format.videoSize}")
+-          val resolutionSelector = ResolutionSelector.Builder().forSize(format.videoSize)
+-          analysis.setResolutionSelector(resolutionSelector.build())
+-        }
+-      }.build()
+-      val pipeline = FrameProcessorPipeline(callback)
+-      analyzer.setAnalyzer(CameraQueues.videoQueue.executor, pipeline)
+-      frameProcessorOutput = analyzer
+-    } else {
+-      frameProcessorOutput = null
+-    }
++    frameProcessorOutput = null
++  
+ 
+     // 5. Code Scanner
+     val codeScannerConfig = configuration.codeScanner as? CameraConfiguration.Output.Enabled<CameraConfiguration.CodeScanner>
+@@ -626,7 +609,7 @@ class CameraSession(private val context: Context, private val callback: Callback
+ 
+   interface Callback {
+     fun onError(error: Throwable)
+-    fun onFrame(frame: Frame)
++    fun onFrame()
+     fun onInitialized()
+     fun onStarted()
+     fun onStopped()
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/FrameProcessorPipeline.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/FrameProcessorPipeline.kt
+deleted file mode 100644
+index e0a9a86..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/core/FrameProcessorPipeline.kt
++++ /dev/null
+@@ -1,24 +0,0 @@
+-package com.mrousavy.camera.core
+-
+-import androidx.annotation.OptIn
+-import androidx.camera.core.ExperimentalGetImage
+-import androidx.camera.core.ImageAnalysis.Analyzer
+-import androidx.camera.core.ImageProxy
+-import com.mrousavy.camera.frameprocessor.Frame
+-import com.mrousavy.camera.types.Orientation
+-
+-class FrameProcessorPipeline(private val callback: CameraSession.Callback) : Analyzer {
+-  @OptIn(ExperimentalGetImage::class)
+-  override fun analyze(imageProxy: ImageProxy) {
+-    val orientation = Orientation.fromRotationDegrees(imageProxy.imageInfo.rotationDegrees)
+-    // TODO: Get isMirrored from transformation matrix?
+-    val isMirrored = false
+-    val frame = Frame(imageProxy.image, imageProxy.imageInfo.timestamp, orientation, isMirrored)
+-    try {
+-      frame.incrementRefCount()
+-      callback.onFrame(frame)
+-    } finally {
+-      frame.decrementRefCount()
+-    }
+-  }
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/Frame.java b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/Frame.java
+deleted file mode 100644
+index c8f6ecf..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/Frame.java
++++ /dev/null
+@@ -1,146 +0,0 @@
+-package com.mrousavy.camera.frameprocessor;
+-
+-import android.hardware.HardwareBuffer;
+-import android.media.Image;
+-import android.os.Build;
+-import com.facebook.proguard.annotations.DoNotStrip;
+-import com.mrousavy.camera.core.FrameInvalidError;
+-import com.mrousavy.camera.core.HardwareBuffersNotAvailableError;
+-import com.mrousavy.camera.types.PixelFormat;
+-import com.mrousavy.camera.types.Orientation;
+-import java.lang.IllegalStateException;
+-
+-public class Frame {
+-    private final Image image;
+-    private final boolean isMirrored;
+-    private final long timestamp;
+-    private final Orientation orientation;
+-    private int refCount = 0;
+-
+-    public Frame(Image image, long timestamp, Orientation orientation, boolean isMirrored) {
+-        this.image = image;
+-        this.timestamp = timestamp;
+-        this.orientation = orientation;
+-        this.isMirrored = isMirrored;
+-    }
+-
+-    private void assertIsValid() throws FrameInvalidError {
+-        if (!getIsImageValid(image)) {
+-            throw new FrameInvalidError();
+-        }
+-    }
+-
+-    private synchronized boolean getIsImageValid(Image image) {
+-        if (refCount <= 0) return false;
+-        try {
+-            // will throw an exception if the image is already closed
+-            image.getFormat();
+-            // no exception thrown, image must still be valid.
+-            return true;
+-        } catch (IllegalStateException e) {
+-            // exception thrown, image has already been closed.
+-            return false;
+-        }
+-    }
+-
+-    public synchronized Image getImage() {
+-        return image;
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized int getWidth() throws FrameInvalidError {
+-        assertIsValid();
+-        return image.getWidth();
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized int getHeight() throws FrameInvalidError {
+-        assertIsValid();
+-        return image.getHeight();
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized boolean getIsValid() throws FrameInvalidError {
+-        assertIsValid();
+-        return getIsImageValid(image);
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized boolean getIsMirrored() throws FrameInvalidError {
+-        assertIsValid();
+-        return isMirrored;
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized long getTimestamp() throws FrameInvalidError {
+-        assertIsValid();
+-        return timestamp;
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized Orientation getOrientation() throws FrameInvalidError {
+-        assertIsValid();
+-        return orientation;
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized PixelFormat getPixelFormat() throws FrameInvalidError {
+-        assertIsValid();
+-        return PixelFormat.Companion.fromImageFormat(image.getFormat());
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized int getPlanesCount() throws FrameInvalidError {
+-        assertIsValid();
+-        return image.getPlanes().length;
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized int getBytesPerRow() throws FrameInvalidError {
+-        assertIsValid();
+-        return image.getPlanes()[0].getRowStride();
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    private Object getHardwareBufferBoxed() throws HardwareBuffersNotAvailableError, FrameInvalidError {
+-        return getHardwareBuffer();
+-    }
+-
+-    public synchronized HardwareBuffer getHardwareBuffer() throws HardwareBuffersNotAvailableError, FrameInvalidError {
+-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+-            throw new HardwareBuffersNotAvailableError();
+-        }
+-        assertIsValid();
+-        return image.getHardwareBuffer();
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized void incrementRefCount() {
+-        refCount++;
+-    }
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    public synchronized void decrementRefCount() {
+-        refCount--;
+-        if (refCount <= 0) {
+-            // If no reference is held on this Image, close it.
+-            close();
+-        }
+-    }
+-
+-    private synchronized void close() {
+-        image.close();
+-    }
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessor.java b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessor.java
+deleted file mode 100644
+index ccee00a..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessor.java
++++ /dev/null
+@@ -1,33 +0,0 @@
+-package com.mrousavy.camera.frameprocessor;
+-
+-import androidx.annotation.Keep;
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-
+-import com.facebook.jni.HybridData;
+-import com.facebook.proguard.annotations.DoNotStrip;
+-
+-import dalvik.annotation.optimization.FastNative;
+-
+-/**
+- * Represents a JS Frame Processor
+- * @noinspection JavaJniMissingFunction
+- */
+-public final class FrameProcessor {
+-    /**
+-     * Call the JS Frame Processor function with the given Frame
+-     */
+-    @FastNative
+-    public native void call(Frame frame);
+-
+-    /** @noinspection FieldCanBeLocal, unused */
+-    @DoNotStrip
+-    @Keep
+-    private final HybridData mHybridData;
+-
+-    @DoNotStrip
+-    @Keep
+-    public FrameProcessor(HybridData hybridData) {
+-        mHybridData = hybridData;
+-    }
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessorPlugin.java b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessorPlugin.java
+deleted file mode 100644
+index b933b4b..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessorPlugin.java
++++ /dev/null
+@@ -1,42 +0,0 @@
+-package com.mrousavy.camera.frameprocessor;
+-
+-import androidx.annotation.Keep;
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-import com.facebook.proguard.annotations.DoNotStrip;
+-import java.util.Map;
+-
+-/**
+- * The base class of a native Frame Processor Plugin.
+- * <p></p>
+- * Subclass this to create a custom Frame Processor Plugin, which can be called from a JS Frame Processor.
+- * Once subclassed, it needs to be registered in the VisionCamera Frame Processor
+- * runtime via <code>FrameProcessorPluginRegistry.addFrameProcessorPlugin</code> - ideally at app startup.
+-
+- * See: <a href="https://react-native-vision-camera.com/docs/guides/frame-processors-plugins-android">Creating Frame Processor Plugins (Android)</a>
+- * for more information
+- */
+-@DoNotStrip
+-@Keep
+-public abstract class FrameProcessorPlugin {
+-    /**
+-     * The initializer of this Frame Processor Plugin.
+-     * This is called everytime this Frame Processor Plugin is loaded from the JS side (`initFrameProcessorPlugin(..)`).
+-     * Optionally override this method to implement custom initialization logic.
+-     */
+-    public FrameProcessorPlugin() { }
+-
+-    /**
+-     * The actual Frame Processor Plugin's implementation that runs when `plugin.call(..)` is called in the JS Frame Processor.
+-     * Implement your Frame Processing here, and keep in mind that this is a hot-path so optimize as good as possible.
+-     * See: <a href="https://react-native-vision-camera.com/docs/guides/frame-processors-tips#fast-frame-processor-plugins">Performance Tips</a>
+-     *
+-     * @param frame The Frame from the Camera. Don't call .close() on this, as VisionCamera handles that.
+-     * @return You can return any primitive, map or array you want.
+-     *         See the <a href="https://react-native-vision-camera.com/docs/guides/frame-processors-plugins-overview#types">Types</a>
+-     *         table for a list of supported types.
+-     */
+-    @DoNotStrip
+-    @Keep
+-    public abstract @Nullable Object callback(@NonNull Frame frame, @Nullable Map<String, Object> params);
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessorPluginRegistry.java b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessorPluginRegistry.java
+deleted file mode 100644
+index 1448ed2..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/FrameProcessorPluginRegistry.java
++++ /dev/null
+@@ -1,53 +0,0 @@
+-package com.mrousavy.camera.frameprocessor;
+-
+-import android.util.Log;
+-import androidx.annotation.Keep;
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-import com.facebook.proguard.annotations.DoNotStrip;
+-import java.util.Map;
+-import java.util.HashMap;
+-
+-@DoNotStrip
+-@Keep
+-public class FrameProcessorPluginRegistry {
+-    private static final Map<String, PluginInitializer> Plugins = new HashMap<>();
+-    private static final String TAG = "FrameProcessorPluginRegistry";
+-
+-    /**
+-     * Adds the given Plugin to the Frame Processor Plugin Registry.
+-     * The given Plugin might then be initialized later from JavaScript, through the <code>VisionCameraProxy</code>.
+-     * The returned Plugin will be deallocated once the value is no longer used in JavaScript.
+-     * <p></p>
+-     * This function can be called from any Thread, and should be called as soon as possible - ideally on app start
+-     * or in a static initializer.
+-     *
+-     * @param name The name of the plugin which will be used to find the plugin from the JS side.
+-     * @param pluginInitializer An initializer function to create instances of this Plugin.
+-     */
+-    @DoNotStrip
+-    @Keep
+-    public static void addFrameProcessorPlugin(String name, PluginInitializer pluginInitializer) {
+-        assert !Plugins.containsKey(name) : "Tried to add a Frame Processor Plugin with a name that already exists! " +
+-                "Either choose unique names, or remove the unused plugin. Name: " + name;
+-        Plugins.put(name, pluginInitializer);
+-        Log.i(TAG, "Successfully registered Frame Processor Plugin \"" + name + "\"!");
+-    }
+-
+-    @DoNotStrip
+-    @Keep
+-    public static @Nullable FrameProcessorPlugin getPlugin(String name, VisionCameraProxy proxy, Map<String, Object> options) {
+-        Log.i(TAG, "Looking up Frame Processor Plugin \"" + name + "\"...");
+-        PluginInitializer initializer = Plugins.get(name);
+-        if (initializer == null) {
+-            Log.i(TAG, "Frame Processor Plugin \"" + name + "\" does not exist!");
+-            return null;
+-        }
+-        Log.i(TAG, "Frame Processor Plugin \"" + name + "\" found! Initializing...");
+-        return initializer.initializePlugin(proxy, options);
+-    }
+-
+-    public interface PluginInitializer {
+-        @NonNull FrameProcessorPlugin initializePlugin(@NonNull VisionCameraProxy proxy, @Nullable Map<String, Object> options);
+-    }
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/SharedArray.java b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/SharedArray.java
+deleted file mode 100644
+index cb1c529..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/SharedArray.java
++++ /dev/null
+@@ -1,65 +0,0 @@
+-package com.mrousavy.camera.frameprocessor;
+-
+-import androidx.annotation.Keep;
+-
+-import com.facebook.jni.HybridData;
+-import com.facebook.proguard.annotations.DoNotStrip;
+-
+-import java.nio.ByteBuffer;
+-
+-import dalvik.annotation.optimization.FastNative;
+-
+-/**
+- * A JSI TypedArray/ArrayBuffer implementation used for passing buffers between JS and Native without copying data.
+- * ByteBuffers are used for efficient data transfer.
+- *
+- * @noinspection JavaJniMissingFunction
+- */
+-public final class SharedArray {
+-    /** @noinspection FieldCanBeLocal, unused */
+-    @DoNotStrip
+-    @Keep
+-    private final HybridData mHybridData;
+-
+-    /** @noinspection unused */
+-    @DoNotStrip
+-    @Keep
+-    private SharedArray(HybridData hybridData) {
+-        mHybridData = hybridData;
+-    }
+-
+-    /**
+-     * Allocate a new SharedArray with the given size. Use `getByteBuffer` to obtain a reference to the direct ByteBuffer for writing.
+-     * @param proxy The VisionCamera Proxy from the Frame Processor Plugin's initializer.
+-     * @param size The size of the ArrayBuffer.
+-     */
+-    public SharedArray(VisionCameraProxy proxy, int size) {
+-        mHybridData = initHybrid(proxy, size);
+-    }
+-
+-    /**
+-     * Wraps the given ByteBuffer in a SharedArray without copying. Using `getByteBuffer` will return the same instance which can be used for writing.
+-     * @param proxy The VisionCamera Proxy from the Frame Processor Plugin's initializer.
+-     * @param byteBuffer The ByteBuffer to wrap.
+-     */
+-    public SharedArray(VisionCameraProxy proxy, ByteBuffer byteBuffer) {
+-        mHybridData = initHybrid(proxy, byteBuffer);
+-    }
+-
+-    /**
+-     * Gets the direct ByteBuffer that can be used to directly update the JSI ArrayBuffer.
+-     */
+-    @FastNative
+-    public native ByteBuffer getByteBuffer();
+-
+-    /**
+-     * Gets the size of the ByteBuffer.
+-     */
+-    @FastNative
+-    public native int getSize();
+-
+-    @FastNative
+-    private native HybridData initHybrid(VisionCameraProxy proxy, int size);
+-    @FastNative
+-    private native HybridData initHybrid(VisionCameraProxy proxy, ByteBuffer byteBuffer);
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraInstaller.java b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraInstaller.java
+deleted file mode 100644
+index 23833c3..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraInstaller.java
++++ /dev/null
+@@ -1,6 +0,0 @@
+-package com.mrousavy.camera.frameprocessor;
+-
+-@SuppressWarnings("JavaJniMissingFunction") // we use fbjni
+-public class VisionCameraInstaller {
+-    public static native void install(VisionCameraProxy proxy);
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
+deleted file mode 100644
+index b9d3f67..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraProxy.kt
++++ /dev/null
+@@ -1,76 +0,0 @@
+-package com.mrousavy.camera.frameprocessor
+-
+-import android.util.Log
+-import androidx.annotation.Keep
+-import androidx.annotation.UiThread
+-import com.facebook.jni.HybridData
+-import com.facebook.proguard.annotations.DoNotStrip
+-import com.facebook.react.bridge.ReactApplicationContext
+-import com.facebook.react.bridge.UiThreadUtil
+-import com.facebook.react.turbomodule.core.CallInvokerHolderImpl
+-import com.facebook.react.uimanager.UIManagerHelper
+-import com.mrousavy.camera.CameraView
+-import com.mrousavy.camera.core.ViewNotFoundError
+-import java.lang.ref.WeakReference
+-
+-@Suppress("KotlinJniMissingFunction") // we use fbjni.
+-class VisionCameraProxy(private val reactContext: ReactApplicationContext) {
+-  companion object {
+-    const val TAG = "VisionCameraProxy"
+-  }
+-
+-  @DoNotStrip
+-  @Keep
+-  private var mHybridData: HybridData
+-  private var mContext: WeakReference<ReactApplicationContext>
+-  private var mScheduler: VisionCameraScheduler
+-  val context: ReactApplicationContext
+-    get() = reactContext
+-
+-  init {
+-    val jsCallInvokerHolder = context.catalystInstance.jsCallInvokerHolder as CallInvokerHolderImpl
+-    val jsRuntimeHolder =
+-      context.javaScriptContextHolder?.get() ?: throw Error("JSI Runtime is null! VisionCamera does not yet support bridgeless mode..")
+-    mScheduler = VisionCameraScheduler()
+-    mContext = WeakReference(context)
+-    mHybridData = initHybrid(jsRuntimeHolder, jsCallInvokerHolder, mScheduler)
+-  }
+-
+-  @UiThread
+-  private fun findCameraViewById(viewId: Int): CameraView {
+-    Log.d(TAG, "Finding view $viewId...")
+-    val ctx = mContext.get()
+-    val view = if (ctx != null) UIManagerHelper.getUIManager(ctx, viewId)?.resolveView(viewId) as CameraView? else null
+-    Log.d(TAG, if (view != null) "Found view $viewId!" else "Couldn't find view $viewId!")
+-    return view ?: throw ViewNotFoundError(viewId)
+-  }
+-
+-  @Suppress("unused")
+-  @DoNotStrip
+-  @Keep
+-  fun setFrameProcessor(viewId: Int, frameProcessor: FrameProcessor) {
+-    UiThreadUtil.runOnUiThread {
+-      val view = findCameraViewById(viewId)
+-      view.frameProcessor = frameProcessor
+-    }
+-  }
+-
+-  @Suppress("unused")
+-  @DoNotStrip
+-  @Keep
+-  fun removeFrameProcessor(viewId: Int) {
+-    UiThreadUtil.runOnUiThread {
+-      val view = findCameraViewById(viewId)
+-      view.frameProcessor = null
+-    }
+-  }
+-
+-  @Suppress("unused")
+-  @DoNotStrip
+-  @Keep
+-  fun initFrameProcessorPlugin(name: String, options: Map<String, Any>): FrameProcessorPlugin? =
+-    FrameProcessorPluginRegistry.getPlugin(name, this, options)
+-
+-  // private C++ funcs
+-  private external fun initHybrid(jsContext: Long, jsCallInvokerHolder: CallInvokerHolderImpl, scheduler: VisionCameraScheduler): HybridData
+-}
+diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraScheduler.java b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraScheduler.java
+deleted file mode 100644
+index 11249e9..0000000
+--- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/frameprocessor/VisionCameraScheduler.java
++++ /dev/null
+@@ -1,28 +0,0 @@
+-package com.mrousavy.camera.frameprocessor;
+-
+-import androidx.annotation.Keep;
+-import com.facebook.jni.HybridData;
+-import com.facebook.proguard.annotations.DoNotStrip;
+-import com.mrousavy.camera.core.CameraQueues;
+-
+-@SuppressWarnings("JavaJniMissingFunction") // using fbjni here
+-public class VisionCameraScheduler {
+-    @SuppressWarnings({"unused", "FieldCanBeLocal"})
+-    @DoNotStrip
+-    @Keep
+-    private final HybridData mHybridData;
+-
+-    public VisionCameraScheduler() {
+-        mHybridData = initHybrid();
+-    }
+-
+-    private native HybridData initHybrid();
+-    private native void trigger();
+-
+-    @SuppressWarnings("unused")
+-    @DoNotStrip
+-    private void scheduleTrigger() {
+-        CameraQueues.CameraQueue videoQueue = CameraQueues.Companion.getVideoQueue();
+-        videoQueue.getHandler().post(this::trigger);
+-    }
+-}
 diff --git a/node_modules/react-native-vision-camera/ios/.swift-version b/node_modules/react-native-vision-camera/ios/.swift-version
 new file mode 100644
 index 0000000..ef425ca
@@ -1939,25 +2613,6 @@ index 0000000..e47e42f
 @@ -0,0 +1 @@
 +{"version":3,"file":"CameraViewNativeComponent.d.ts","sourceRoot":"","sources":["../../../src/specs/CameraViewNativeComponent.ts"],"names":[],"mappings":";;AACA,OAAO,KAAK,EAAE,aAAa,EAAE,SAAS,EAAE,MAAM,cAAc,CAAC;AAC7D,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,EAAE,KAAK,EAAE,MAAM,2CAA2C,CAAC;AAGnG,MAAM,MAAM,yBAAyB,GAAG,aAAa,CAAC,WAAW,CAAC,CAAC;AAEnE,MAAM,WAAW,WAAY,SAAQ,SAAS;IAC5C,gBAAgB,EAAE,OAAO,CAAC;IAC1B,sBAAsB,CAAC,EAAE,MAAM,CAAC;IAChC,QAAQ,EAAE,MAAM,CAAC;IACjB,oBAAoB,EAAE,OAAO,CAAC;IAC9B,cAAc,EAAE,OAAO,CAAC;IACxB,uBAAuB,EAAE,OAAO,CAAC;IACjC,mBAAmB,EAAE,MAAM,CAAC;IAC5B,QAAQ,EAAE,OAAO,CAAC;IAClB,KAAK,CAAC,EAAE,OAAO,CAAC;IAChB,KAAK,CAAC,EAAE,OAAO,CAAC;IAChB,KAAK,CAAC,EAAE,OAAO,CAAC;IAChB,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,IAAI,CAAC,EAAE,MAAM,CAAC;IACd,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,iBAAiB,CAAC,EAAE,OAAO,CAAC;IAC5B,cAAc,CAAC,EAAE,OAAO,CAAC;IACzB,UAAU,CAAC,EAAE,MAAM,CAAC;IACpB,MAAM,CAAC,EAAE,QAAQ,CAAC;QAChB,oBAAoB,CAAC,EAAE,OAAO,CAAC;QAC/B,WAAW,EAAE,MAAM,CAAC;QACpB,UAAU,EAAE,MAAM,CAAC;QACnB,WAAW,EAAE,MAAM,CAAC;QACpB,UAAU,EAAE,MAAM,CAAC;QACnB,MAAM,EAAE,MAAM,CAAC;QACf,MAAM,EAAE,MAAM,CAAC;QACf,MAAM,EAAE,MAAM,CAAC;QACf,MAAM,EAAE,MAAM,CAAC;QACf,WAAW,EAAE,MAAM,CAAC;QACpB,gBAAgB,EAAE,OAAO,CAAC;QAC1B,gBAAgB,EAAE,OAAO,CAAC;QAC1B,eAAe,EAAE,MAAM,CAAC;QACxB,uBAAuB,EAAE,MAAM,EAAE,CAAC;QAClC,YAAY,EAAE,MAAM,EAAE,CAAC;KACxB,CAAC,CAAC;IACH,WAAW,EAAE,MAAM,CAAC;IACpB,GAAG,CAAC,EAAE,KAAK,CAAC;IACZ,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,QAAQ,CAAC,EAAE,OAAO,CAAC;IACnB,aAAa,CAAC,EAAE,OAAO,CAAC;IACxB,sBAAsB,CAAC,EAAE,MAAM,CAAC;IAChC,eAAe,CAAC,EAAE,OAAO,CAAC;IAC1B,kCAAkC,CAAC,EAAE,OAAO,CAAC;IAC7C,WAAW,CAAC,EAAE,MAAM,CAAC;IACrB,kBAAkB,CAAC,EAAE,QAAQ,CAAC;QAC5B,SAAS,CAAC,EAAE,MAAM,EAAE,CAAC;QACrB,QAAQ,CAAC,EAAE,MAAM,CAAC;QAClB,gBAAgB,CAAC,EAAE,QAAQ,CAAC;YAC1B,CAAC,CAAC,EAAE,MAAM,CAAC;YACX,CAAC,CAAC,EAAE,MAAM,CAAC;YACX,KAAK,CAAC,EAAE,MAAM,CAAC;YACf,MAAM,CAAC,EAAE,MAAM,CAAC;SACjB,CAAC,CAAC;KACJ,CAAC,CAAC;IACH,aAAa,CAAC,EAAE,kBAAkB,CAChC,QAAQ,CAAC;QACP,KAAK,CAAC,EAAE,QAAQ,CAAC;YACf,IAAI,CAAC,EAAE,MAAM,CAAC;YACd,KAAK,CAAC,EAAE,MAAM,CAAC;YACf,KAAK,CAAC,EAAE,QAAQ,CAAC;gBAAE,CAAC,EAAE,MAAM,CAAC;gBAAC,CAAC,EAAE,MAAM,CAAC;gBAAC,KAAK,EAAE,MAAM,CAAC;gBAAC,MAAM,EAAE,MAAM,CAAA;aAAC,CAAC,CAAC;SAC1E,CAAC,CAAC;QACH,KAAK,CAAC,EAAE,QAAQ,CAAC;YAAE,KAAK,EAAE,KAAK,CAAC;YAAC,MAAM,EAAE,KAAK,CAAA;SAAE,CAAC,CAAC;QAClD,OAAO,CAAC,EAAE,QAAQ,CAAC;YAAE,CAAC,EAAE,MAAM,CAAC;YAAC,CAAC,EAAE,MAAM,CAAA;SAAE,CAAC,CAAC;KAC9C,CAAC,CACH,CAAC;IACF,SAAS,CAAC,EAAE,kBAAkB,CAC5B,QAAQ,CAAC;QACP,IAAI,EAAE,MAAM,CAAC;KACd,CAAC,CACH,CAAC;IACF,SAAS,CAAC,EAAE,kBAAkB,CAAC,QAAQ,CAAC,EAAE,CAAC,CAAC,CAAC;IAC7C,SAAS,CAAC,EAAE,kBAAkB,CAAC,QAAQ,CAAC,EAAE,CAAC,CAAC,CAAC;IAC7C,aAAa,CAAC,EAAE,kBAAkB,CAAC,QAAQ,CAAC,EAAE,CAAC,CAAC,CAAC;IACjD,OAAO,CAAC,EAAE,kBAAkB,CAC1B,QAAQ,CAAC;QACP,IAAI,EAAE,MAAM,CAAC;QACb,OAAO,EAAE,MAAM,CAAC;QAChB,KAAK,EAAE,QAAQ,CAAC;YAAE,IAAI,EAAE,MAAM,CAAC;YAAC,MAAM,EAAE,MAAM,CAAC;YAAC,OAAO,EAAE,MAAM,CAAC;YAAC,OAAO,EAAE,MAAM,CAAA;SAAE,CAAC,CAAC;KACrF,CAAC,CACH,CAAC;IACF,WAAW,EAAE,kBAAkB,CAAC,QAAQ,CAAC,EAAE,CAAC,CAAC,CAAC;CAC/C;;AAED,wBAAiE"}
 \ No newline at end of file
-diff --git a/node_modules/react-native-vision-camera/package.json b/node_modules/react-native-vision-camera/package.json
-index 86352fa..7af9577 100644
---- a/node_modules/react-native-vision-camera/package.json
-+++ b/node_modules/react-native-vision-camera/package.json
-@@ -166,5 +166,13 @@
-       ]
-     ]
-   },
--  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
-+  "codegenConfig": {
-+    "name": "RNVisioncameraSpec",
-+    "type": "all",
-+    "jsSrcsDir": "./src/specs",
-+    "android": {
-+      "javaPackageName": "com.mrousavy.camera"
-+    }
-+  },
-+  "packageManager": "yarn@1.22.19"
- }
 diff --git a/node_modules/react-native-vision-camera/src/Camera.tsx b/node_modules/react-native-vision-camera/src/Camera.tsx
 index 18733ba..1668322 100644
 --- a/node_modules/react-native-vision-camera/src/Camera.tsx
