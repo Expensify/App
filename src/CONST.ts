@@ -3422,6 +3422,7 @@ const CONST = {
             TRACK_EXPENSE: 'track-expenses',
         },
         'track-expenses': {
+            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
     },

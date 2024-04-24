@@ -17,7 +17,7 @@ function TrackTrainingPage() {
             confirmText={translate('common.buttonConfirm')}
             helpText={translate('common.learnMore')}
             onHelp={onHelp}
-            videoURL={CONST.WELCOME_VIDEO_URL}
+            videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
         />
     );
 }

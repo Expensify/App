@@ -191,7 +191,7 @@ function FeatureTrainingModal({
                     <GestureHandlerRootView>
                         <View style={[styles.mh100, shouldUseNarrowLayout && styles.welcomeVideoNarrowLayout, safeAreaPaddingBottomStyle]}>
                             <View style={shouldUseNarrowLayout ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}}>{renderIllustration()}</View>
-                            <View style={[title && description ? styles.mt5 : styles.mt3, styles.mh5]}>
+                            <View style={[styles.m5]}>
                                 {title && description && (
                                     <View style={[shouldUseNarrowLayout ? [styles.gap1, styles.mb8] : [styles.mb10]]}>
                                         <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{title}</Text>
@@ -202,7 +202,7 @@ function FeatureTrainingModal({
                                     <CheckboxWithLabel
                                         label={translate('featureTraining.doNotShowAgain')}
                                         accessibilityLabel={translate('featureTraining.doNotShowAgain')}
-                                        style={[styles.mb3]}
+                                        style={[styles.mb5]}
                                         isChecked={!willShowAgain}
                                         onInputChange={toggleWillShowAgain}
                                     />
