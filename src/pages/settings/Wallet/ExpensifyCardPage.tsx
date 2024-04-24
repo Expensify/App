@@ -78,13 +78,14 @@ function ExpensifyCardPage({
     privatePersonalDetails,
     loginList,
     route: {
-        params: {domain = '', cardID = ''},
+        params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy;
+    const domain = cardList?.[cardID].domainName ?? '';
     const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
 
     const [isNotFound, setIsNotFound] = useState(false);
@@ -249,7 +250,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(domain, String(card.cardID)))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
                                         />
                                     </>
                                 ))}
@@ -269,7 +270,7 @@ function ExpensifyCardPage({
                                                 title={translate('reportCardLostOrDamaged.report')}
                                                 icon={Expensicons.Flag}
                                                 shouldShowRightIcon
-                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(domain, String(card.cardID)))}
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(card.cardID)))}
                                             />
                                         </>
                                     );
@@ -284,10 +285,7 @@ function ExpensifyCardPage({
                             style={[styles.w100, styles.p5]}
                             onPress={() =>
                                 Navigation.navigate(
-                                    ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(
-                                        domain,
-                                        String(physicalCards?.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED)?.cardID),
-                                    ),
+                                    ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(physicalCards?.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED)?.cardID)),
                                 )
                             }
                             text={translate('activateCardPage.activatePhysicalCard')}

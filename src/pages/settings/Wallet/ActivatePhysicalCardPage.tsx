@@ -15,7 +15,6 @@ import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as CardUtils from '@libs/CardUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,7 +41,7 @@ const MAGIC_INPUT_MIN_HEIGHT = 86;
 function ActivatePhysicalCardPage({
     cardList,
     route: {
-        params: {domain = '', cardID = ''},
+        params: {cardID = ''},
     },
 }: ActivatePhysicalCardPageProps) {
     const theme = useTheme();
@@ -55,8 +54,7 @@ function ActivatePhysicalCardPage({
     const [lastFourDigits, setLastFourDigits] = useState('');
     const [lastPressedDigit, setLastPressedDigit] = useState('');
 
-    const domainCards = CardUtils.getDomainCards(cardList)[domain] ?? [];
-    const inactiveCard = domainCards.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED);
+    const inactiveCard = cardList?.[cardID];
     const cardError = ErrorUtils.getLatestErrorMessage(inactiveCard ?? {});
 
     const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
@@ -69,8 +67,8 @@ function ActivatePhysicalCardPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID));
-    }, [cardID, cardList, domain, inactiveCard?.isLoading, inactiveCard?.state]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+    }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state]);
 
     useEffect(
         () => () => {
@@ -124,7 +122,7 @@ function ActivatePhysicalCardPage({
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain, cardID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID))}
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}
