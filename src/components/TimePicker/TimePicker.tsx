@@ -112,6 +112,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [isError, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).hour);
@@ -129,8 +130,17 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
 
     const validate = useCallback(
         (time: string) => {
-            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString: time || `${hours}:${minutes} ${amPmValue}`, dateTimeString: defaultValue});
+            const timeString = time || `${hours}:${minutes} ${amPmValue}`;
+            const [hourStr] = timeString.split(/[:\s]+/);
+            const hour = parseInt(hourStr, 10);
+            if (hour === 0) {
+                setError(true);
+                setErrorMessage('common.error.invalidTimeRange');
+                return false;
+            }
+            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString, dateTimeString: defaultValue});
             setError(!isValid);
+            setErrorMessage('common.error.invalidTimeShouldBeFuture');
             return isValid;
         },
         [hours, minutes, amPmValue, defaultValue],
@@ -523,7 +533,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
-                    message="common.error.invalidTimeShouldBeFuture"
+                    message={errorMessage}
                     style={styles.pl5}
                 />
             ) : (
