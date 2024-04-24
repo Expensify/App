@@ -22,8 +22,8 @@ export default function closeRHPFlow(navigationRef: NavigationContainerRef<RootS
 
     let target = state.key;
 
-    const hasLastRouteMoreThanOneRoute = lastRoute?.state?.routes?.length && lastRoute.state.routes.length > 1;
-    if (lastRoute?.state?.key && hasLastRouteMoreThanOneRoute) {
+    const hasMoreThanOneRoute = lastRoute?.state?.routes?.length && lastRoute.state.routes.length > 1;
+    if (lastRoute?.state?.key && hasMoreThanOneRoute) {
         target = lastRoute.state.key;
     }
     navigationRef.dispatch({...StackActions.pop(), target});
