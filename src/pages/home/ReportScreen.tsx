@@ -134,7 +134,7 @@ function ReportScreen({
     betas = [],
     route,
     report: reportProp,
-    parentReport,
+    parentReport: parentReportProp,
     sortedAllReportActions,
     reportMetadata = {
         isLoadingInitialReportActions: true,
@@ -250,6 +250,16 @@ function ReportScreen({
             reportProp?.lastMentionedTime,
             reportProp?.avatarUrl,
         ],
+    );
+
+    const parentReport = useMemo(
+        (): OnyxTypes.Report => ({
+            type: parentReportProp?.type,
+            reportID: parentReportProp?.reportID ?? '',
+            parentReportID: parentReportProp?.parentReportID,
+            parentReportActionID: parentReportProp?.parentReportActionID,
+        }),
+        [parentReportProp?.type, parentReportProp?.reportID, parentReportProp?.parentReportID, parentReportProp?.parentReportActionID],
     );
 
     const parentReportAction = useMemo(() => getParentReportAction(parentReportActions, report?.parentReportActionID), [parentReportActions, report.parentReportActionID]);
