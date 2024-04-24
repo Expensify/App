@@ -107,6 +107,12 @@ type CustomBaseTextInputProps = {
 
     /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
     isMarkdownEnabled?: boolean;
+
+    /** Style for the prefix */
+    prefixStyle?: StyleProp<TextStyle>;
+
+    /** Style for the prefix container */
+    prefixContainerStyle?: StyleProp<ViewStyle>;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

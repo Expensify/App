@@ -862,17 +862,18 @@ const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldBeDisplayedBelowParentContainer: boolean, isEditComposer: boolean): ViewStyle {
     'worklet';
 
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
+    const suggestionsPadding = isEditComposer ? CONST.AUTO_COMPLETE_SUGGESTER.EDIT_SUGGESTER_PADDING : CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + (shouldPreventScroll ? 0 : borderWidth)),
+        top: -(height + (shouldBeDisplayedBelowParentContainer ? -2 : 1) * (suggestionsPadding + (shouldPreventScroll ? 0 : borderWidth))),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
@@ -1262,6 +1263,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {};
     },
 
+    getIconColorStyle: (isSuccess: boolean, isError: boolean): string => {
+        if (isSuccess) {
+            return theme.iconSuccessFill;
+        }
+        if (isError) {
+            return theme.iconDangerFill;
+        }
+        return theme.icon;
+    },
+
+    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
+        if (isAdhoc) {
+            return styles.badgeAdHocSuccess;
+        }
+        if (isSuccess) {
+            return styles.badgeEnvironmentSuccess;
+        }
+        if (isError) {
+            return styles.badgeEnvironmentDanger;
+        }
+        return {};
+    },
+
     /**
      * Generate a style for the background color of the button, based on its current state.
      *
@@ -1566,6 +1590,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isDisabled && styles.cursorDisabled),
         ...(isDisabled && styles.buttonOpacityDisabled),
     }),
+
+    /**
+     * When adding a new prefix character, adjust this method to add expected character width.
+     * This is because character width isn't known before it's rendered to the screen, and once it's rendered,
+     * it's too late to calculate it's width because the change in padding would cause a visible jump.
+     * Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
+     * also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
+     * this method will produce reliable results.
+     */
+    getCharacterPadding: (prefix: string): number => prefix.length * 10,
 
     // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
