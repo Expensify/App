@@ -29,7 +29,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         });
 
         useEffect(() => {
-            // When the accounting feature is not enabled, or if the connections data already exists,
+            // When the accounting feature is not enabled, if the connections data already exists, or if the connection data was already attempted to be fetched,
             // there is no need to fetch the connections data.
             if (!props.policy || !props.policy.areConnectionsEnabled || !!hasConnectionsDataBeenFetched || !!props.policy.connections) {
                 return;
@@ -38,7 +38,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
             openPolicyAccountingPage(props.policy.id);
         }, [hasConnectionsDataBeenFetched, props.policy, isOffline]);
 
-        if (!props.policy || status === 'loading' || !hasConnectionsDataBeenFetched) {
+        if (props.policy?.areConnectionsEnabled && (!props.policy || status === 'loading' || !hasConnectionsDataBeenFetched)) {
             return (
                 <FullPageOfflineBlockingView>
                     <FullScreenLoadingIndicator />
