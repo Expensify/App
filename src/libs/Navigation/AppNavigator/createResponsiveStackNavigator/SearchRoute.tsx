@@ -1,9 +1,12 @@
 import type {EventMapBase} from '@react-navigation/native';
 import {View} from 'react-native';
-import type {CustomComponentProps} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/types';
+import useThemeStyles from '@hooks/useThemeStyles';
+import type {CustomCodePropsWithTransformedState} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/types';
 import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
-function RenderSearchRoute({searchRoute, styles, descriptors}: CustomComponentProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase>) {
+function SearchRoute({searchRoute, descriptors}: CustomCodePropsWithTransformedState<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase>) {
+    const styles = useThemeStyles();
+
     if (!searchRoute) {
         return null;
     }
@@ -18,4 +21,4 @@ function RenderSearchRoute({searchRoute, styles, descriptors}: CustomComponentPr
     return <View style={styles.dNone}>{descriptor.render()}</View>;
 }
 
-export default RenderSearchRoute;
+export default SearchRoute;

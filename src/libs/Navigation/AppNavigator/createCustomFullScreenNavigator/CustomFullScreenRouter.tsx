@@ -1,9 +1,8 @@
 import type {ParamListBase, PartialState, Router, RouterConfigOptions} from '@react-navigation/native';
 import {StackRouter} from '@react-navigation/native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import SCREENS from '@src/SCREENS';
-import type {FullScreenNavigatorRouterOptions} from './types';
 
 type StackState = PlatformStackNavigationState<ParamListBase> | PartialState<PlatformStackNavigationState<ParamListBase>>;
 
@@ -62,7 +61,7 @@ function adaptStateIfNecessary(state: StackState) {
     }
 }
 
-function CustomFullScreenRouter(options: FullScreenNavigatorRouterOptions) {
+function CustomFullScreenRouter(options: PlatformStackRouterOptions) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const stackRouter = StackRouter(options) as Router<PlatformStackNavigationState<ParamListBase>, any>;
 

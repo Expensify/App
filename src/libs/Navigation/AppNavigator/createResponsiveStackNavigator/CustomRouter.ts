@@ -6,10 +6,10 @@ import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute'
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import linkingConfig from '@libs/Navigation/linkingConfig';
 import getAdaptedStateFromPath from '@libs/Navigation/linkingConfig/getAdaptedStateFromPath';
+import type {PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute, RootStackParamList, State} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {ResponsiveStackNavigatorRouterOptions} from './types';
 
 function insertRootRoute(state: State<RootStackParamList>, routeToInsert: NavigationPartialRoute) {
     const nonModalRoutes = state.routes.filter((route) => route.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR && route.name !== NAVIGATORS.LEFT_MODAL_NAVIGATOR);
@@ -96,7 +96,7 @@ function compareAndAdaptState(state: StackNavigationState<RootStackParamList>) {
     }
 }
 
-function CustomRouter(options: ResponsiveStackNavigatorRouterOptions) {
+function CustomRouter(options: PlatformStackRouterOptions) {
     const stackRouter = StackRouter(options);
 
     return {
