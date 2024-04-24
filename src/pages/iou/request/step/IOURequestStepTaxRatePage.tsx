@@ -5,8 +5,7 @@ import TaxPicker from '@components/TaxPicker';
 import useLocalize from '@hooks/useLocalize';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import type {TaxRatesOption} from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -32,7 +31,7 @@ type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
     };
 
 function getTaxAmount(policy: OnyxEntry<Policy>, selectedTaxRate: string, amount: number): number | undefined {
-    const percentage = Object.values(OptionsListUtils.transformedTaxRates(policy)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
+    const percentage = Object.values(TransactionUtils.transformedTaxRates(policy)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
     if (percentage) {
         return TransactionUtils.calculateTaxAmount(percentage, amount);
     }
@@ -59,7 +58,7 @@ function IOURequestStepTaxRatePage({
 
     const taxRateTitle = TransactionUtils.getTaxRateTitle(policy, transaction);
 
-    const updateTaxRates = (taxes: OptionsListUtils.TaxRatesOption) => {
+    const updateTaxRates = (taxes: TaxRatesOption) => {
         if (!transaction || !taxes.text || !taxRates) {
             Navigation.goBack(backTo);
             return;
