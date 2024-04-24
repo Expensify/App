@@ -102,7 +102,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue, {sortByReportTypeInSearch: true});
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, Boolean(newOptions.userToInvite), debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, !!newOptions.userToInvite, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,

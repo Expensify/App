@@ -142,7 +142,19 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         );
 
         return optionList;
-    }, [action, areOptionsInitialized, betas, canUseP2PDistanceRequests, didScreenTransitionEnd, iouRequestType, iouType, isCategorizeOrShareAction, options.personalDetails, options.reports, participants]);
+    }, [
+        action,
+        areOptionsInitialized,
+        betas,
+        canUseP2PDistanceRequests,
+        didScreenTransitionEnd,
+        iouRequestType,
+        iouType,
+        isCategorizeOrShareAction,
+        options.personalDetails,
+        options.reports,
+        participants,
+    ]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -166,6 +178,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         });
         return newOptions;
     }, [areOptionsInitialized, betas, defaultOptions, debouncedSearchTerm, participants]);
+
     /**
      * Returns the sections needed for the OptionsSelector
      * @returns {Array}

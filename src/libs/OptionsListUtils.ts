@@ -1,6 +1,5 @@
-import type {ParsedPhoneNumber} from 'awesome-phonenumber';
-
 /* eslint-disable no-continue */
+import type {ParsedPhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
@@ -1922,7 +1921,6 @@ function getOptions(
         currentUserOption = undefined;
     }
 
-    // TODO: creating user to invite can be removed once we implement filtering in all search pages. This logic will be handled in filtering instead.
     let userToInvite: ReportUtils.OptionData | null = null;
     if (
         canCreateOptimisticPersonalDetailOption({
@@ -2056,7 +2054,7 @@ function getFilteredOptions(
     canInviteUser = true,
     includeSelectedOptions = false,
     includeTaxRates = false,
-    maxRecentReportsToShow = 5,
+    maxRecentReportsToShow = CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     taxRates: TaxRatesWithDefault = {} as TaxRatesWithDefault,
     includeSelfDM = false,
     includePolicyReportFieldOptions = false,
