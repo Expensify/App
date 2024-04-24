@@ -14,7 +14,6 @@ import * as Localize from './Localize';
 import * as NumberUtils from './NumberUtils';
 import * as OptionsListUtils from './OptionsListUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import * as TransactionUtils from './TransactionUtils';
 
 let allTransactions: OnyxCollection<Transaction> = {};
 
@@ -636,7 +635,7 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
-    return policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+    return policy?.outputCurrency === getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
 }
 
 /**

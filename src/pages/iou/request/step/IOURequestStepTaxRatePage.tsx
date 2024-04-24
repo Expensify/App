@@ -12,7 +12,7 @@ import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, PolicyCategories, PolicyTagList, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagList, Transaction} from '@src/types/onyx';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -61,7 +61,7 @@ function IOURequestStepTaxRatePage({
     };
 
     const moneyRequestSelectedTaxRate =
-     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         Object.values(OptionsListUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === transaction?.taxCode)?.modifiedName ||
         (transaction && TransactionUtils.getDefaultTaxName(policy, transaction));
     const editingSelectedTaxRate =
