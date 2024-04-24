@@ -1,4 +1,14 @@
-import type {DefaultNavigatorOptions, NavigationProp, ParamListBase, RouteProp, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
+import type {
+    DefaultNavigatorOptions,
+    Descriptor,
+    EventMapBase,
+    NavigationProp,
+    ParamListBase,
+    RouteProp,
+    RouterFactory,
+    StackNavigationState,
+    StackRouterOptions,
+} from '@react-navigation/native';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type {StackNavigationConfig} from '@react-navigation/stack/lib/typescript/src/types';
@@ -78,16 +88,40 @@ type GeneralPlatformStackNavigationOptions = {
 };
 
 type PlatformStackNavigationOptions = CommonStackNavigationOptions & GeneralPlatformStackNavigationOptions;
+type PlatformSpecificNavigationOptions = StackNavigationOptions | NativeStackNavigationOptions;
 
 type CommonStackNavigationEventMap = CommonProperties<StackNavigationEventMap, NativeStackNavigationEventMap>;
 type PlatformStackNavigationEventMap = CommonStackNavigationEventMap;
+type PlatformSpecificEventMap = StackNavigationOptions | NativeStackNavigationOptions;
 
-type PlatformStackNavigationRouterOptions = StackRouterOptions;
+type PlatformStackRouterOptions = StackRouterOptions;
+type PlatformStackRouterFactory<ParamList extends ParamListBase, RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions> = RouterFactory<
+    PlatformStackNavigationState<ParamList>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    any,
+    RouterOptions
+>;
+
+type PlatformStackNavigationDescriptor<
+    NavigationOptions extends PlatformSpecificNavigationOptions,
+    EventMap extends PlatformSpecificEventMap & EventMapBase,
+    ParamList extends ParamListBase = ParamListBase,
+> = Descriptor<
+    NavigationOptions,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    NavigationProp<ParamList, keyof ParamList, any, PlatformStackNavigationState<ParamList>, NavigationOptions, EventMap>,
+    RouteProp<ParamList, keyof ParamList>
+>;
+type PlatformStackNavigationDescriptors<
+    NavigationOptions extends PlatformSpecificNavigationOptions,
+    EventMap extends PlatformSpecificEventMap & EventMapBase,
+    ParamList extends ParamListBase = ParamListBase,
+> = Record<string, PlatformStackNavigationDescriptor<NavigationOptions, EventMap, ParamList>>;
 
 type PlatformStackNavigatorProps<
     ParamList extends ParamListBase,
     RouteName extends keyof ParamList = keyof ParamList,
-    RouterOptions extends PlatformStackNavigationRouterOptions = PlatformStackNavigationRouterOptions,
+    RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
 > = DefaultNavigatorOptions<ParamList, PlatformStackNavigationState<ParamList>, PlatformStackNavigationOptions, PlatformStackNavigationEventMap, RouteName> &
     RouterOptions &
     StackNavigationConfig;
@@ -100,7 +134,7 @@ type PlatformStackNavigationProp<ParamList extends ParamListBase, RouteName exte
     PlatformStackNavigationOptions,
     PlatformStackNavigationEventMap
 >;
-type PlatformStackRouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList> = RouteProp<ParamList, RouteName>;
+type PlatformStackRouteProp<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList> = RouteProp<ParamList, RouteName>;
 
 type PlatformStackScreenOptionsProps<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList, NavigatorID extends string | undefined = undefined> = {
     route: PlatformStackRouteProp<ParamList, RouteName>;
@@ -132,8 +166,13 @@ export type {
     CommonStackNavigationEventMap,
     PlatformStackNavigationState,
     PlatformStackNavigationOptions,
+    PlatformSpecificNavigationOptions,
     PlatformStackNavigationEventMap,
-    PlatformStackNavigationRouterOptions,
+    PlatformSpecificEventMap,
+    PlatformStackRouterOptions,
+    PlatformStackRouterFactory,
+    PlatformStackNavigationDescriptor,
+    PlatformStackNavigationDescriptors,
     PlatformStackNavigationProp,
     PlatformStackRouteProp,
     PlatformStackScreenOptions,
