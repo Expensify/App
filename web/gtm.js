@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign, prefer-template, @typescript-eslint/naming-convention */
 (function (w, d, s, l, i) {
     w[l] = w[l] || [];
     w[l].push({'gtm.start': new Date().getTime(), event: 'gtm.js'});
