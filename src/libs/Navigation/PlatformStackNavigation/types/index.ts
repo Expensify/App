@@ -2,7 +2,7 @@ import type {NavigationProp, ParamListBase, RouteProp, RouterFactory, StackNavig
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type CommonProperties from '@src/types/utils/CommonProperties';
-import Subtract from '@src/types/utils/Substract';
+import type Subtract from '@src/types/utils/Substract';
 
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
@@ -129,10 +129,10 @@ type PlatformStackScreenProps<
     RouteName extends keyof ParamList = keyof ParamList,
     NavigatorID extends string | undefined = undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-redundant-type-constituents
-    NavigationProp extends PlatformStackNavigationProp<ParamList, RouteName, NavigatorID> | any = PlatformStackNavigationProp<ParamList, RouteName, NavigatorID>,
+    NavigationPropType extends PlatformStackNavigationProp<ParamList, RouteName, NavigatorID> | any = PlatformStackNavigationProp<ParamList, RouteName, NavigatorID>,
 > = {
     route: PlatformStackRouteProp<ParamList, RouteName>;
-    navigation: NavigationProp;
+    navigation: NavigationPropType;
 };
 
 export type {

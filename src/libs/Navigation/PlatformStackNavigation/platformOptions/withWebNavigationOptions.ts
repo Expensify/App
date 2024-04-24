@@ -1,8 +1,8 @@
 import type {ParamListBase} from '@react-navigation/native';
 import type {StackNavigationOptions} from '@react-navigation/stack';
-import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {isRouteBasedScreenOptions, PlatformStackScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types/ScreenOptions';
+import type {PlatformStackNavigationOptions, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types/ScreenOptions';
+import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types/ScreenOptions';
 import noAnimation from './animation/web/none';
 import slideFromBottomAnimation from './animation/web/slideFromBottom';
 import slideFromLeftAnimation from './animation/web/slideFromLeft';

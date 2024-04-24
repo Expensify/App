@@ -1,6 +1,5 @@
 import type {ParamListBase} from '@react-navigation/native';
-import type {PlatformStackNavigationOptions} from '.';
-import type {PlatformStackScreenProps} from '.';
+import type {PlatformStackNavigationOptions, PlatformStackScreenProps} from '.';
 import type PlatformStackNavigatorProps from './PlatformStackNavigator';
 
 // The "screenOptions" and "defaultScreenOptions" can either be an object of configuration settings or
