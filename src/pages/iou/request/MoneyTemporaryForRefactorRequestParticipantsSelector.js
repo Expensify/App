@@ -335,8 +335,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         if (!categorizeOptionWithNoParticipants) {
             return;
         }
-        const {policyID, expenseChatReportID} = Policy.createWorkspace();
+        const {policyID, expenseChatReportID} = Policy.createDraftWorkspaceForTrackExpenseCategorization();
         return addSingleParticipant({
+            accountID: 0,
             isPolicyExpenseChat: true,
             reportID: expenseChatReportID,
             policyID,
