@@ -25,7 +25,6 @@ const FS = {
             // We only use FullStory in production environment
             FullStory.consent(true);
             FS.fsIdentify(value);
-            
         } catch (e) {
             // error handler
         }
