@@ -54,7 +54,7 @@ function IOURequestStepTaxRatePage({
     const taxRates = policy?.taxRates;
     const defaultExternalID = taxRates?.defaultExternalID;
     const foreignTaxDefault = taxRates?.foreignTaxDefault;
-    const defaultTaxKey = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
+    const defaultTaxCode = policy?.outputCurrency === TransactionUtils.getCurrency(transaction) ? defaultExternalID : foreignTaxDefault;
     const transactionDetails = ReportUtils.getTransactionDetails(transaction);
     const transactionTaxCode = transactionDetails?.taxCode;
 
@@ -67,7 +67,7 @@ function IOURequestStepTaxRatePage({
         (transaction && TransactionUtils.getDefaultTaxName(policy, transaction));
     const editingSelectedTaxRate =
         taxRates &&
-        (transactionTaxCode === defaultTaxKey
+        (transactionTaxCode === defaultTaxCode
             ? transaction && TransactionUtils.getDefaultTaxName(policy, transaction)
             : transactionTaxCode && TransactionUtils.getTaxName(taxRates.taxes, transactionTaxCode));
 
