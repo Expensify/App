@@ -6117,8 +6117,9 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         mccGroup,
     } as Transaction);
 
-    if (allPolicies && Object.values(allPolicies).length > 0) {
+    if (allPolicies && Object.values(allPolicies).filter((p) => p?.type !== 'personal').length > 0) {
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+        return;
     }
 
     const {expenseChatReportID} = PolicyActions.createWorkspace();
