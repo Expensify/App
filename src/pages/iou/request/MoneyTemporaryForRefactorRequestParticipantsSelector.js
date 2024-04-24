@@ -1,3 +1,5 @@
+// TODO: This file is temporary file to refactor the MoneyRequestParticipantsSelector component - issue tracked https://github.com/Expensify/App/issues/29107
+
 /* eslint-disable you-dont-need-lodash-underscore/every, you-dont-need-lodash-underscore/get, you-dont-need-lodash-underscore/some, you-dont-need-lodash-underscore/map, you-dont-need-lodash-underscore/values */
 import lodashEvery from 'lodash/every';
 import lodashGet from 'lodash/get';
