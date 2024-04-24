@@ -82,7 +82,7 @@ function compareResults(compareEntries: Metric | string, baselineEntries: Metric
 
 export default (main: Metric | string, delta: Metric | string, outputFile: string, outputFormat = 'all') => {
     // IMPORTANT NOTE: make sure you are passing the delta/compare results first, then the main/baseline results:
-    const outputData = compareResults(main, main);
+    const outputData = compareResults(delta, main);
 
     if (outputFormat === 'console' || outputFormat === 'all') {
         printToConsole(outputData);
