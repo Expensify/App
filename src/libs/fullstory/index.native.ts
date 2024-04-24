@@ -1,6 +1,7 @@
 import FullStory, {FSPage} from '@fullstory/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {UserMetadata} from '@src/types/onyx';
+import type Session from '@src/types/onyx/Session';
+import type {UserSession} from './types';
 
 /**
  * Fullstory React-Native lib adapter
@@ -18,31 +19,37 @@ const FS = {
     consent: (c: boolean) => FullStory.consent(c),
 
     /**
-     * Initializes the FullStory metadata with the provided metadata information.
+     * Initializes the FullStory session with the provided session information.
      */
-    consentAndIdentify: (value: OnyxEntry<UserMetadata>) => {
+    consentAndIdentify: (value: OnyxEntry<Session>) => {
         try {
-            // We only use FullStory in production environment
+            const session: UserSession = {
+                email: value?.email,
+                accountID: value?.accountID,
+            };
+            // set consent
             FullStory.consent(true);
-            FS.fsIdentify(value);
+            FS.fsIdentify(session);
         } catch (e) {
             // error handler
         }
     },
 
     /**
-     * Sets the FullStory user identity based on the provided metadata information.
-     * If the metadata is null or the email is 'undefined', the user identity is anonymized.
-     * If the metadata contains an accountID, the user identity is defined with it.
+     * Sets the FullStory user identity based on the provided session information.
+     * If the session is null or the email is 'undefined', the user identity is anonymized.
+     * If the session contains an email, the user identity is defined with the email and account ID.
      */
-    fsIdentify: (metadata: UserMetadata | null) => {
-        if (!metadata?.accountID) {
-            // anonymize FullStory user identity metadata
+    fsIdentify: (session: UserSession) => {
+        if (!session || session.email === 'undefined') {
+            // anonymize FullStory user identity session
             FullStory.anonymize();
         } else {
             // define FullStory user identity
-            FullStory.identify(String(metadata.accountID), {
-                properties: metadata,
+            FullStory.identify(String(session.accountID), {
+                properties: {
+                    accountID: session.accountID,
+                },
             });
         }
     },

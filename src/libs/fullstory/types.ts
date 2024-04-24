@@ -1,5 +1,10 @@
+type UserSession = {
+    email: string | undefined;
+    accountID: number | undefined;
+};
+
 type NavigationProperties = {
     path: string;
 };
 
-export default NavigationProperties;
+export type {UserSession, NavigationProperties};
