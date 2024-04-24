@@ -7,7 +7,7 @@ import type {View} from 'react-native';
  * When the user navigates through the app using the arrows and then the tab button, the focus on the element and the native focus of the browser differs.
  * To maintain consistency when an element is focused in the app, the focus() method is additionally called on the focused element to eliminate the difference between native browser focus and application focus.
  */
-const useSyncFocus = (ref: RefObject<HTMLDivElement | View>, isFocused: boolean) => {
+const useSyncFocus = (ref: RefObject<View>, isFocused: boolean) => {
     useLayoutEffect(() => {
         if (!isFocused) {
             return;
