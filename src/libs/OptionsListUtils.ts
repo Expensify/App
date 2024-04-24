@@ -1,5 +1,4 @@
 /* eslint-disable no-continue */
-import type {ParsedPhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import lodashGet from 'lodash/get';
@@ -1557,7 +1556,6 @@ function canCreateOptimisticPersonalDetailOption({
     excludeUnknownUsers,
     betas,
     optionsToExclude,
-    parsedPhoneNumber,
 }: {
     searchValue: string;
     recentReportOptions: ReportUtils.OptionData[];
@@ -1567,8 +1565,8 @@ function canCreateOptimisticPersonalDetailOption({
     excludeUnknownUsers: boolean;
     betas: OnyxEntry<Beta[]>;
     optionsToExclude: string[];
-    parsedPhoneNumber: ParsedPhoneNumber;
 }) {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
@@ -1580,7 +1578,7 @@ function canCreateOptimisticPersonalDetailOption({
         !isCurrentUser({login: searchValue} as PersonalDetails) &&
         selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
+            (parsedPhoneNumber?.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
         !optionsToExclude.find((optionToExclude) => optionToExclude === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
         !excludeUnknownUsers
@@ -1932,7 +1930,6 @@ function getOptions(
             excludeUnknownUsers,
             betas,
             optionsToExclude: optionsToExclude.map(({login}) => login ?? ''),
-            parsedPhoneNumber,
         })
     ) {
         userToInvite = createOptimisticPersonalDetailOption(searchValue, {reportActions, showChatPreviewLine});
@@ -2415,7 +2412,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 excludeUnknownUsers,
                 betas,
                 optionsToExclude: excludeLogins,
-                parsedPhoneNumber,
             })
         ) {
             userToInvite = createOptimisticPersonalDetailOption(searchValue, {});
@@ -2471,6 +2467,8 @@ export {
     getReportOption,
     getTaxRatesSection,
     getFirstKeyForList,
+    canCreateOptimisticPersonalDetailOption,
+    createOptimisticPersonalDetailOption,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option, OptionTree};
