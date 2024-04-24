@@ -180,14 +180,10 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 }
 
 /**
- * Formats datetime to selected format type
- *
- * eg.
- *
- * Dec 14, 2023
+ * Formats timestamp to selected format type
  */
-function formatDate(datetime: string, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
-    const date = new Date(datetime);
+function formatTimestampToDate(timestamp: number, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
+    const date = new Date(timestamp);
     return format(date, formatString);
 }
 
@@ -199,8 +195,8 @@ function formatDate(datetime: string, formatString: string = CONST.DATE.MONTH_DA
  * Jan 20           within current year
  * Jan 20, 2019     anything before current year
  */
-function datetimeToCalendarTime(locale: Locale, timestamp: string, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
-    const timestampToDate = formatDate(timestamp);
+function datetimeToCalendarTime(locale: Locale, timestamp: number, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
+    const timestampToDate = formatTimestampToDate(timestamp, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     const date = getLocalDateFromDatetime(locale, timestampToDate, currentSelectedTimezone);
 
     let today = Localize.translate(locale, 'common.today');
@@ -849,7 +845,7 @@ const DateUtils = {
     formatToSupportedTimezone,
     enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
-    formatDate,
+    formatDate: formatTimestampToDate,
 };
 
 export default DateUtils;

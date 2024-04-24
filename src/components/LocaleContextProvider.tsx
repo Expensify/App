@@ -38,7 +38,7 @@ type LocaleContextProps = {
     datetimeToRelative: (datetime: string) => string;
 
     /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: (timestamp: string, isLowercase?: boolean) => string;
+    datetimeToCalendarTime: (timestamp: number, isLowercase?: boolean) => string;
 
     /** Formats a datetime to local time string */
     datetimeToLocalString: (datetime: string, includeTimezone: boolean) => string;
@@ -95,8 +95,8 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const datetimeToCalendarTime = useMemo<LocaleContextProps['datetimeToCalendarTime']>(
         () =>
-            (datetime, isLowercase = false) =>
-                DateUtils.datetimeToCalendarTime(locale, datetime, selectedTimezone, isLowercase),
+            (timestamp, isLowercase = false) =>
+                DateUtils.datetimeToCalendarTime(locale, timestamp, selectedTimezone, isLowercase),
         [locale, selectedTimezone],
     );
 

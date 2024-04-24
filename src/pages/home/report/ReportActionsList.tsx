@@ -232,7 +232,7 @@ function ReportActionsList({
             const nextItem = sortedReportActions[index + 1];
 
             if (nextItem.reportActionTimestamp && currentItem.reportActionTimestamp) {
-                return DateUtils.formatDate(currentItem.reportActionTimestamp.toString()) !== DateUtils.formatDate(nextItem.reportActionTimestamp.toString());
+                return DateUtils.formatDate(currentItem.reportActionTimestamp) !== DateUtils.formatDate(nextItem.reportActionTimestamp);
             }
             return false;
         },
