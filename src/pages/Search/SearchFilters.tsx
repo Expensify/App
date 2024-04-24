@@ -2,10 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import useActiveRoute from '@hooks/useActiveRoute';
+import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -32,16 +32,6 @@ function SearchFilters() {
             title: translate('common.all'),
             icon: Expensicons.All,
             route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
-        },
-        {
-            title: 'Drafts',
-            icon: Expensicons.Send,
-            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS),
-        },
-        {
-            title: 'Shared',
-            icon: Expensicons.Mail,
-            route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SHARED),
         },
     ];
 
