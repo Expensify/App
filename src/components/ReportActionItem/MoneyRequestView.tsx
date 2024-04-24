@@ -134,8 +134,6 @@ function MoneyRequestView({
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
-    const defaultExternalID = taxRates?.defaultExternalID;
-    const foreignTaxDefault = taxRates?.foreignTaxDefault;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
 
     const taxRatesDescription = taxRates?.name;
