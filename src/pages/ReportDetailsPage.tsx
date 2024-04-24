@@ -70,6 +70,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
+    const isTaskReport = useMemo(() => ReportUtils.isTaskReport(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
     const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
@@ -77,6 +78,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
+    const shouldDisableRename = useMemo(() => {
+        if (!policy) {
+            return false;
+        }
+        return ReportUtils.shouldDisableRename(report, policy);
+    }, [report, policy]);
+    const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
+    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report) && !isTaskReport && !isDeprecatedGroupDM;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -264,7 +273,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     shouldNavigateToTopMostReport={!(route.params && 'backTo' in route.params)}
                 />
                 <ScrollView style={[styles.flex1]}>
-                    <View style={styles.reportDetailsTitleContainer}>
+                    <View style={[styles.reportDetailsTitleContainer, !shouldShowRoomName && styles.mb5]}>
                         <View style={styles.mb3}>
                             {isMoneyRequestReport ? (
                                 <MultipleAvatars
@@ -276,32 +285,35 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             )}
                         </View>
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
-                            <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
-                                <DisplayNames
-                                    fullTitle={reportName ?? ''}
-                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled
-                                    numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
-                                    shouldUseFullTitle={shouldUseFullTitle}
-                                />
-                            </View>
-                            {isPolicyAdmin ? (
-                                <PressableWithoutFeedback
-                                    style={[styles.w100]}
-                                    disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-                                    role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={chatRoomSubtitle ?? ''}
-                                    accessible
-                                    onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
-                                    }}
-                                >
-                                    {chatRoomSubtitleText}
-                                </PressableWithoutFeedback>
-                            ) : (
-                                chatRoomSubtitleText
+                            {!shouldShowRoomName && (
+                                <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
+                                    <DisplayNames
+                                        fullTitle={reportName ?? ''}
+                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                        tooltipEnabled
+                                        numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
+                                        textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
+                                        shouldUseFullTitle={shouldUseFullTitle}
+                                    />
+                                </View>
                             )}
+                            {!shouldShowRoomName &&
+                                (isPolicyAdmin ? (
+                                    <PressableWithoutFeedback
+                                        style={[styles.w100]}
+                                        disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                                        role={CONST.ROLE.BUTTON}
+                                        accessibilityLabel={chatRoomSubtitle ?? ''}
+                                        accessible
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(report?.policyID ?? ''));
+                                        }}
+                                    >
+                                        {chatRoomSubtitleText}
+                                    </PressableWithoutFeedback>
+                                ) : (
+                                    chatRoomSubtitleText
+                                ))}
                             {!isEmptyObject(parentNavigationSubtitleData) && isMoneyRequestReport && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
@@ -312,6 +324,24 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             )}
                         </View>
                     </View>
+                    {shouldShowRoomName && (
+                        <View style={[styles.flex1, styles.mt3, isGroupChat && styles.mb5]}>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon={!shouldDisableRename}
+                                interactive={!shouldDisableRename}
+                                title={report?.reportName === '' ? reportName : report?.reportName}
+                                titleStyle={styles.newKansasLarge}
+                                shouldCheckActionAllowedOnPress={false}
+                                description={isGroupChat ? translate('groupConfirmPage.groupName') : translate('newRoomPage.roomName')}
+                                underTitle={chatRoomSubtitle && !isGroupChat ? `${translate('threads.in')} ${chatRoomSubtitle}` : ''} // "in Workspace X"
+                                onPress={() =>
+                                    isGroupChat
+                                        ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
+                                        : Navigation.navigate(ROUTES.REPORT_SETTINGS_ROOM_NAME.getRoute(report.reportID))
+                                }
+                            />
+                        </View>
+                    )}
                     {shouldShowReportDescription && (
                         <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
                             <MenuItemWithTopDescription
