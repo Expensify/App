@@ -90,7 +90,7 @@ type Styles = Record<
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
-const lineHeightBadge: Pick<ViewStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -844,16 +844,41 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        defaultBadge: {
+            backgroundColor: theme.transparent,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.buttonHoveredBG,
+            paddingHorizontal: 12,
+            minHeight: 28,
+            height: variables.iconSizeNormal,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        environmentBadge: {
+            minHeight: 12,
+            borderRadius: 14,
+            paddingHorizontal: 7,
+            minWidth: 22,
+            borderWidth: 0,
+        },
+
         badgeSuccess: {
+            borderColor: theme.success,
+        },
+
+        badgeEnvironmentSuccess: {
             backgroundColor: theme.success,
         },
 
         badgeSuccessPressed: {
-            backgroundColor: theme.successHover,
+            borderColor: theme.successHover,
         },
 
         badgeAdHocSuccess: {
             backgroundColor: theme.badgeAdHoc,
+            minWidth: 28,
         },
 
         badgeAdHocSuccessPressed: {
@@ -861,11 +886,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         badgeDanger: {
+            borderColor: theme.danger,
+        },
+
+        badgeEnvironmentDanger: {
             backgroundColor: theme.danger,
         },
 
         badgeDangerPressed: {
-            backgroundColor: theme.dangerPressed,
+            borderColor: theme.dangerPressed,
         },
 
         badgeBordered: {
@@ -1095,9 +1124,14 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             height: '100%',
             backgroundColor: 'transparent',
+            overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-            overflow: 'hidden',
+        },
+
+        textInputContainerBorder: {
+            borderBottomWidth: 2,
+            borderColor: theme.border,
         },
 
         textInputLabel: {
@@ -2960,11 +2994,25 @@ const styles = (theme: ThemeColors) =>
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
                 color: theme.heading,
-                padding: 0,
                 lineHeight: undefined,
+                paddingHorizontal: 0,
+                paddingVertical: 0,
+                borderTopLeftRadius: 0,
+                borderBottomLeftRadius: 0,
+                borderTopRightRadius: 0,
+                borderBottomRightRadius: 0,
             },
             0,
         ),
+
+        iouAmountTextInputContainer: {
+            borderWidth: 0,
+            borderBottomWidth: 0,
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+        },
 
         moneyRequestConfirmationAmount: {
             ...headlineFont,
@@ -3983,6 +4031,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: 7,
             fontWeight: FontUtils.fontWeight.bold,
             lineHeight: undefined,
+            color: theme.textLight,
         },
 
         expensifyQrLogo: {
