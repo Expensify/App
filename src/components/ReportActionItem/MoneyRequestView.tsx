@@ -134,14 +134,12 @@ function MoneyRequestView({
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
-    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
-
     const taxRatesDescription = taxRates?.name;
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
     const taxRateTitle =
-        taxRates &&
-        (transactionTaxCode === defaultTaxCode
+        transactionTaxCode === defaultTaxCode
             ? transaction && TransactionUtils.getDefaultTaxName(policy, transaction)
-            : transactionTaxCode && TransactionUtils.getTaxName(taxRates?.taxes, transactionTaxCode));
+            : transactionTaxCode && TransactionUtils.getTaxName(policy, transaction);
 
     // Flags for allowing or disallowing editing an expense
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
