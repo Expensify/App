@@ -309,8 +309,8 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
-        let unreadActionSubscriptionForTransactionThread: EmitterSubscription | null = null;
-        let readNewestActionSubscriptionForTransactionThread: EmitterSubscription | null = null;
+        let unreadActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
+        let readNewestActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
         if (transactionThreadReport?.reportID) {
             unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
                 resetUnreadMarker(newLastReadTime);
