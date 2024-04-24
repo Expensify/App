@@ -2343,7 +2343,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
         return keys;
     };
-    const matchResults = searchTerms.reduce((items, term) => {
+    const matchResults = searchTerms.reduceRight((items, term) => {
         const recentReports = filterArrayByMatch(items.recentReports, term, (item) => {
             let values: string[] = [];
             if (item.text) {
