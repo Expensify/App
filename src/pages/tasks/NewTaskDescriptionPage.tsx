@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewTaskForm';
 import type {Task} from '@src/types/onyx';
+import variables from '@styles/variables';
 
 type NewTaskDescriptionPageOnyxProps = {
     /** Task Creation Data */
@@ -87,8 +88,8 @@ function NewTaskDescriptionPage({task}: NewTaskDescriptionPageProps) {
                                 updateMultilineInputRange(el);
                             }}
                             autoGrowHeight
+                            maxAutoGrowHeight={variables.maxAutoGrowHeight}
                             shouldSubmitForm
-                            containerStyles={styles.autoGrowHeightMultilineInput}
                             isMarkdownEnabled
                         />
                     </View>

@@ -3275,10 +3275,6 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
-        autoGrowHeightMultilineInput: {
-            maxHeight: 115,
-        },
-
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
