@@ -2,7 +2,7 @@ import type {ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {NativeStackView} from '@react-navigation/native-stack';
 import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '@react-navigation/native-stack';
-import {useMemo} from 'react';
+import {useEffect, useMemo} from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import withNativeNavigationOptions from '@libs/Navigation/PlatformStackNavigation/platformOptions/withNativeNavigationOptions';
@@ -13,7 +13,7 @@ import type {
     PlatformStackRouterOptions,
     PlatformStackScreenOptionsWithoutNavigation,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import type {CreatePlaformStackNavigatorOptions, CustomComponentProps, PlatformNavigationBuilderOptions} from './types';
+import type {CreatePlaformStackNavigatorOptions, CustomCodePropsWithTransformedState, PlatformNavigationBuilderOptions} from './types';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -23,6 +23,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const transformState = options?.transformState;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
+    const onIsSmallScreenWidthChange = options?.onWindowDimensionsChange;
 
     function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
         const styles = useThemeStyles();
@@ -53,16 +54,27 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             transformScreenProps,
         );
 
-        const {stateToRender, searchRoute} = transformState?.({state, displayName, styles, windowDimensions, descriptors}) ?? {stateToRender: state, undefined};
-
-        const customComponentProps = useMemo<CustomComponentProps<NativeStackNavigationOptions, NativeStackNavigationEventMap>>(
+        const customCodeProps = useMemo<CustomCodePropsWithTransformedState<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>>(
             () => ({
                 state,
-                displayName,
-                searchRoute,
+                navigation,
                 descriptors,
+                displayName,
             }),
-            [state, searchRoute, descriptors],
+            [state, navigation, descriptors],
+        );
+
+        const {stateToRender, searchRoute} = transformState?.({...customCodeProps, styles, windowDimensions}) ?? {stateToRender: state, undefined};
+
+        const customCodePropsWithTransformedState = useMemo<
+            CustomCodePropsWithTransformedState<NativeStackNavigationOptions, NativeStackNavigationEventMap, ParamListBase, StackActionHelpers<ParamListBase>>
+        >(
+            () => ({
+                ...customCodeProps,
+                searchRoute,
+                stateToRender,
+            }),
+            [customCodeProps, searchRoute, stateToRender],
         );
 
         const Content = useMemo(
@@ -78,15 +90,19 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
 
                     {ExtraContent && (
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        <ExtraContent {...customComponentProps} />
+                        <ExtraContent {...customCodePropsWithTransformedState} />
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customComponentProps, descriptors, navigation, props, stateToRender],
+            [NavigationContent, customCodePropsWithTransformedState, descriptors, navigation, props, stateToRender],
         );
 
+        useEffect(() => {
+            onIsSmallScreenWidthChange?.({...customCodePropsWithTransformedState, windowDimensions});
+        }, [customCodePropsWithTransformedState, windowDimensions]);
+
         // eslint-disable-next-line react/jsx-props-no-spreading
-        return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customComponentProps}>{Content}</NavigationContentWrapper>;
+        return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithTransformedState}>{Content}</NavigationContentWrapper>;
     }
     PlatformNavigator.displayName = displayName;
 

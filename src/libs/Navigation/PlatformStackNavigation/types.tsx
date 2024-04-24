@@ -2,10 +2,12 @@ import type {
     DefaultNavigatorOptions,
     Descriptor,
     EventMapBase,
+    NavigationHelpers,
     NavigationProp,
     ParamListBase,
     RouteProp,
     RouterFactory,
+    StackActionHelpers,
     StackNavigationState,
     StackRouterOptions,
 } from '@react-navigation/native';
@@ -102,6 +104,12 @@ type PlatformStackRouterFactory<ParamList extends ParamListBase, RouterOptions e
     RouterOptions
 >;
 
+type PlatformNavigationBuilderNavigation<
+    EventMap extends PlatformSpecificEventMap & EventMapBase,
+    ParamList extends ParamListBase = ParamListBase,
+    ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
+> = NavigationHelpers<ParamList, EventMap> & ActionHelpers;
+
 type PlatformStackNavigationDescriptor<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
@@ -171,6 +179,7 @@ export type {
     PlatformSpecificEventMap,
     PlatformStackRouterOptions,
     PlatformStackRouterFactory,
+    PlatformNavigationBuilderNavigation,
     PlatformStackNavigationDescriptor,
     PlatformStackNavigationDescriptors,
     PlatformStackNavigationProp,

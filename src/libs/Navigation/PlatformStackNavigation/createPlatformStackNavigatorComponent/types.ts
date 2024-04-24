@@ -1,6 +1,7 @@
 import type {DefaultNavigatorOptions, EventMapBase, NavigationBuilderOptions, ParamListBase, StackActionHelpers, useNavigationBuilder} from '@react-navigation/native';
 import type WindowDimensions from '@hooks/useWindowDimensions/types';
 import type {
+    PlatformNavigationBuilderNavigation,
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,
     PlatformStackNavigationDescriptor,
@@ -24,18 +25,27 @@ type PlatformNavigationBuilderResult<
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
     RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions,
-> = ReturnType<
-    typeof useNavigationBuilder<PlatformStackNavigationState<ParamList>, RouterOptions, StackActionHelpers<ParamList>, PlatformStackNavigationOptions, EventMap, NavigationOptions>
->;
+    ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
+> = ReturnType<typeof useNavigationBuilder<PlatformStackNavigationState<ParamList>, RouterOptions, ActionHelpers, PlatformStackNavigationOptions, EventMap, NavigationOptions>>;
 
 type CustomCodeProps<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
+    ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
 > = {
+    state: PlatformStackNavigationState<ParamListBase>;
+    navigation: PlatformNavigationBuilderNavigation<EventMap, ParamList, ActionHelpers>;
     descriptors: PlatformStackNavigationDescriptors<NavigationOptions, EventMap, ParamList>;
     displayName: string;
 };
+
+type CustomCodePropsWithTransformedState<
+    NavigationOptions extends PlatformSpecificNavigationOptions,
+    EventMap extends PlatformSpecificEventMap & EventMapBase,
+    ParamList extends ParamListBase = ParamListBase,
+    ActionHelpers extends StackActionHelpers<ParamList> = StackActionHelpers<ParamList>,
+> = CustomCodeProps<NavigationOptions, EventMap, ParamList, ActionHelpers> & TransformStateExtraResult;
 
 type SearchRoute = PlatformStackNavigationState<ParamListBase>['routes'][number];
 
@@ -48,10 +58,7 @@ type TransformStateProps<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
-> = CustomCodeProps<NavigationOptions, EventMap, ParamList> &
-    CustomCodeDisplayProps & {
-        state: PlatformStackNavigationState<ParamListBase>;
-    };
+> = CustomCodeProps<NavigationOptions, EventMap, ParamList> & CustomCodeDisplayProps;
 type TransformStateExtraResult = {
     searchRoute?: SearchRoute;
 };
@@ -63,21 +70,29 @@ type TransformState<
     stateToRender: PlatformStackNavigationState<ParamListBase>;
 };
 
-type CustomComponentProps<
+type OnWindowDimensionsChangeProps<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
-> = CustomCodeProps<NavigationOptions, EventMap, ParamList> & TransformStateExtraResult;
+> = CustomCodeProps<NavigationOptions, EventMap, ParamList> & {
+    windowDimensions: WindowDimensions;
+};
+
+type OnWindowDimensionsChange<
+    NavigationOptions extends PlatformSpecificNavigationOptions,
+    EventMap extends PlatformSpecificEventMap & EventMapBase,
+    ParamList extends ParamListBase = ParamListBase,
+> = (props: OnWindowDimensionsChangeProps<NavigationOptions, EventMap, ParamList>) => void;
 
 type ExtraContent<NavigationOptions extends PlatformSpecificNavigationOptions, EventMap extends PlatformSpecificEventMap & EventMapBase, ParamList extends ParamListBase = ParamListBase> = (
-    props: CustomComponentProps<NavigationOptions, EventMap, ParamList>,
+    props: CustomCodePropsWithTransformedState<NavigationOptions, EventMap, ParamList>,
 ) => React.ReactElement | null;
 
 type NavigationContentWrapperProps<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
-> = React.PropsWithChildren<CustomComponentProps<NavigationOptions, EventMap, ParamList>>;
+> = React.PropsWithChildren<CustomCodePropsWithTransformedState<NavigationOptions, EventMap, ParamList>>;
 type NavigationContentWrapper<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
@@ -93,6 +108,7 @@ type CreatePlaformStackNavigatorOptions<
     createRouter?: PlatformStackRouterFactory<ParamList, RouterOptions>;
     defaultScreenOptions?: NavigationOptions;
     transformState?: TransformState<NavigationOptions, EventMap, ParamList>;
+    onWindowDimensionsChange?: OnWindowDimensionsChange<NavigationOptions, EventMap, ParamList>;
     ExtraContent?: ExtraContent<NavigationOptions, EventMap, ParamList>;
     NavigationContentWrapper?: NavigationContentWrapper<NavigationOptions, EventMap, ParamList>;
 };
@@ -104,7 +120,9 @@ export type {
     TransformStateExtraResult,
     TransformStateProps,
     TransformState,
-    CustomComponentProps,
+    OnWindowDimensionsChangeProps,
+    OnWindowDimensionsChange,
+    CustomCodePropsWithTransformedState,
     ExtraContent,
     NavigationContentWrapperProps,
     NavigationContentWrapper,
