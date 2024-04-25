@@ -108,7 +108,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
-            isActive: true,
+            isActive: isSyncReimbursedSwitchOn,
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(
                     policyID,
