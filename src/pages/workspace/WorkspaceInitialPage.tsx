@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -33,6 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -71,6 +73,8 @@ type WorkspaceInitialPageOnyxProps = {
 
 type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & WorkspaceInitialPageOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
+type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
+
 function dismissError(policyID: string) {
     PolicyUtils.goBackFromInvalidPolicy();
     Policy.removeWorkspace(policyID);
@@ -86,6 +90,20 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const activeRoute = useNavigationState(getTopmostWorkspacesCentralPaneName);
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
+    const {isOffline} = useNetwork();
+
+    const prevPendingFields = usePrevious(policy?.pendingFields);
+    const policyFeatureStates = useMemo(
+        () => ({
+            [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]: policy?.areWorkflowsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
+            [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: policy?.areConnectionsEnabled,
+        }),
+        [policy],
+    ) as PolicyFeatureStates;
 
     const policyID = policy?.id ?? '';
     const policyName = policy?.name ?? '';
@@ -122,6 +140,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
+    const [featureStates, setFeatureStates] = useState(policyFeatureStates);
 
     const protectedFreePolicyMenuItems: WorkspaceMenuItem[] = [
         {
@@ -167,7 +186,24 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
 
-    if (policy?.areDistanceRatesEnabled) {
+    // We only update feature states if they aren't pending.
+    // These changes are made to synchronously change feature states along with FeatureEnabledAccessOrNotFoundComponent.
+    useEffect(() => {
+        setFeatureStates((currentFeatureStates) => {
+            const newFeatureStates = {} as PolicyFeatureStates;
+            (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
+                const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
+                newFeatureStates[key] =
+                    prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
+            });
+            return {
+                ...policyFeatureStates,
+                ...newFeatureStates,
+            };
+        });
+    }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
+
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.distanceRates',
             icon: Expensicons.Car,
@@ -176,7 +212,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (policy?.areWorkflowsEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.workflows',
             icon: Expensicons.Workflows,
@@ -186,7 +222,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (policy?.areCategoriesEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.categories',
             icon: Expensicons.Folder,
@@ -196,7 +232,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (policy?.areTagsEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.tags',
             icon: Expensicons.Tag,
@@ -205,7 +241,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (policy?.tax?.trackingEnabled) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.taxes',
             icon: Expensicons.Tax,
@@ -215,7 +251,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         });
     }
 
-    if (policy?.areConnectionsEnabled && canUseAccountingIntegrations) {
+    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] && canUseAccountingIntegrations) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.accounting',
             icon: Expensicons.Sync,
@@ -262,19 +298,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         // We check isPendingDelete for both policy and prevPolicy to prevent the NotFound view from showing right after we delete the workspace
         (PolicyUtils.isPendingDeletePolicy(policy) && PolicyUtils.isPendingDeletePolicy(prevPolicy));
 
-    // We are checking if the user can access the route.
-    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
-    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
-
     useEffect(() => {
-        if (!shouldShowNotFoundPage && canAccessRoute) {
+        if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
             return;
         }
-        // We are dismissing any modals that are open when the NotFound view is shown
-        Navigation.isNavigationReady().then(() => {
-            Navigation.dismissRHP();
-        });
-    }, [canAccessRoute, policy, shouldShowNotFoundPage]);
+        PolicyUtils.goBackFromInvalidPolicy();
+    }, [policy, prevPolicy]);
 
     const policyAvatar = useMemo(() => {
         if (!policy) {
@@ -313,6 +342,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                         onClose={() => dismissError(policyID)}
                         errors={policy?.errors}
                         errorRowStyles={[styles.ph5, styles.pv2]}
+                        shouldDisableStrikeThrough={false}
+                        shouldHideOnDelete={false}
                     >
                         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                             {/*
