@@ -16,10 +16,10 @@ import type InlineCodeBlockProps from './types';
  * with the appropriate styles and adds it to the elements array. If it's not, it adds the child's
  * 'data' property to the elements array. The function then returns the elements array.
  *
- * @param {TDefaultRendererProps<TTextOrTPhrasing>} defaultRendererProps - The default renderer props.
- * @param {StyleProp<TextStyle>} textStyles - The text styles.
- * @param {ThemeStyles} styles - The theme styles.
- * @returns {Array<string | React.JSX.Element>} The array of elements to be rendered.
+ * @param defaultRendererProps - The default renderer props.
+ * @param textStyles - The text styles.
+ * @param styles - The theme styles.
+ * @returns The array of elements to be rendered.
  */
 function renderElements(defaultRendererProps: TDefaultRendererProps<TTextOrTPhrasing>, textStyles: StyleProp<TextStyle>, styles: ThemeStyles) {
     const elements: Array<string | React.JSX.Element> = [];
