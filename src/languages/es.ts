@@ -1927,7 +1927,7 @@ export default {
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             debitCardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
             creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
-            vendorBillAccountDescription: 'Seleccione el proveedor aplicado a todas las transacciones con tarjeta de crédito.',
+            vendorBillAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
             debitCardDescription:
                 "Automáticamente relacionaremos el nombre del comerciante en la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos una 'Tarjeta de débito miscelánea'. vendedor para asociación.",
             creditCardDescription:
