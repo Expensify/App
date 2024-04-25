@@ -1894,7 +1894,7 @@ export default {
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             creditCard: 'Credit card',
             debitCard: 'Debit card',
-            vendorBill: 'Vendor Bill',
+            vendorBill: 'Vendor bill',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
