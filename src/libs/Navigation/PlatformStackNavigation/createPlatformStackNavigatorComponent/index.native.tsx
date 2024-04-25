@@ -20,7 +20,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const transformState = options?.transformState;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
-    const onIsSmallScreenWidthChange = options?.onWindowDimensionsChange;
+    const onIsSmallScreenWidthChange = options?.onIsSmallScreenWidthChange;
 
     function PlatformNavigator({id, initialRouteName, screenOptions, screenListeners, children, ...props}: PlatformStackNavigatorProps<ParamListBase>) {
         const styles = useThemeStyles();
@@ -95,7 +95,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
 
         useEffect(() => {
             onIsSmallScreenWidthChange?.({...customCodePropsWithTransformedState, windowDimensions});
-        }, [customCodePropsWithTransformedState, windowDimensions]);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [windowDimensions.isSmallScreenWidth]);
 
         // eslint-disable-next-line react/jsx-props-no-spreading
         return NavigationContentWrapper === undefined ? Content : <NavigationContentWrapper {...customCodePropsWithTransformedState}>{Content}</NavigationContentWrapper>;

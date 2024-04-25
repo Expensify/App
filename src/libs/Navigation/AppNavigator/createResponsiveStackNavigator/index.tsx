@@ -9,11 +9,11 @@ import type {
     PlatformStackNavigationOptions,
     PlatformStackNavigationState,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import type {OnWindowDimensionsChange} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
+import type {OnIsSmallScreenWidthChange} from '@libs/Navigation/PlatformStackNavigation/types/NavigatorComponent';
 import getStateWithSearch from './getStateWithSearch';
 import RenderSearchRoute from './SearchRoute';
 
-const handleWindowDimensionsChange: OnWindowDimensionsChange<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamListBase> = ({navigation}) => {
+const handleIsSmallScreenWidthChange: OnIsSmallScreenWidthChange<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamListBase> = ({navigation}) => {
     if (!navigationRef.isReady()) {
         return;
     }
@@ -25,7 +25,7 @@ const handleWindowDimensionsChange: OnWindowDimensionsChange<PlatformSpecificNav
 const ResponsiveStackNavigator = createPlatformStackNavigatorComponent('ResponsiveStackNavigator', {
     transformState: getStateWithSearch,
     ExtraContent: RenderSearchRoute,
-    onWindowDimensionsChange: handleWindowDimensionsChange,
+    onIsSmallScreenWidthChange: handleIsSmallScreenWidthChange,
 });
 
 function createResponsiveStackNavigator<ParamList extends ParamListBase>() {

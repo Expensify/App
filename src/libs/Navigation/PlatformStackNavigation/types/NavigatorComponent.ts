@@ -57,7 +57,7 @@ type TransformState<
 > = (props: TransformStateProps<NavigationOptions, EventMap, ParamList>) => TransformStateResult<ParamList>;
 
 // Props that are passed to the "onWindowDimensionsChange" callback.
-type OnWindowDimensionsChangeProps<
+type OnIsSmallScreenWidthChangeProps<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
@@ -66,11 +66,11 @@ type OnWindowDimensionsChangeProps<
 };
 
 // Defines a function type for handling changes in window dimensions within a navigation context.
-type OnWindowDimensionsChange<
+type OnIsSmallScreenWidthChange<
     NavigationOptions extends PlatformSpecificNavigationOptions,
     EventMap extends PlatformSpecificEventMap & EventMapBase,
     ParamList extends ParamListBase = ParamListBase,
-> = (props: OnWindowDimensionsChangeProps<NavigationOptions, EventMap, ParamList>) => void;
+> = (props: OnIsSmallScreenWidthChangeProps<NavigationOptions, EventMap, ParamList>) => void;
 
 // A React component that renders extra content within the navigator, like a header or footer.
 type ExtraContent<NavigationOptions extends PlatformSpecificNavigationOptions, EventMap extends PlatformSpecificEventMap & EventMapBase, ParamList extends ParamListBase = ParamListBase> = (
@@ -101,7 +101,7 @@ type CreatePlatformStackNavigatorComponentOptions<
     createRouter?: PlatformStackRouterFactory<ParamList, RouterOptions>;
     defaultScreenOptions?: NavigationOptions;
     transformState?: TransformState<NavigationOptions, EventMap, ParamList>;
-    onWindowDimensionsChange?: OnWindowDimensionsChange<NavigationOptions, EventMap, ParamList>;
+    onIsSmallScreenWidthChange?: OnIsSmallScreenWidthChange<NavigationOptions, EventMap, ParamList>;
     ExtraContent?: ExtraContent<NavigationOptions, EventMap, ParamList>;
     NavigationContentWrapper?: NavigationContentWrapper<NavigationOptions, EventMap, ParamList>;
 };
@@ -110,8 +110,8 @@ export type {
     TransformStateResult as TransformStateExtraResult,
     TransformStateProps,
     TransformState,
-    OnWindowDimensionsChangeProps,
-    OnWindowDimensionsChange,
+    OnIsSmallScreenWidthChangeProps,
+    OnIsSmallScreenWidthChange,
     CustomCodeProps,
     CustomCodePropsWithTransformedState,
     ExtraContent,
