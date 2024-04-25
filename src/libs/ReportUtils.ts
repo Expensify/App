@@ -1173,7 +1173,6 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- *
  * Checks if report is in read-only mode.
  */
 function isReadOnly(report: OnyxEntry<Report>): boolean {
