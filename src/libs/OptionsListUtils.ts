@@ -2239,7 +2239,7 @@ function getFirstKeyForList(data?: Option[] | null) {
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string, betas: Beta[]): Options {
+function filterOptions(options: Options, searchInputValue: string, betas: OnyxEntry<Beta[]> = []): Options {
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
@@ -2315,7 +2315,7 @@ function filterOptions(options: Options, searchInputValue: string, betas: Beta[]
     /**
      * We create a new user option if the following conditions are satisfied:
      * - there's no match recent report and personal detail option
-     * - The searchValue is a valid email or phone number 
+     * - The searchValue is a valid email or phone number
      * - The searchValue isn't the current personal detail login
      * - We can use chronos or the search value is not the chronos email
      */
