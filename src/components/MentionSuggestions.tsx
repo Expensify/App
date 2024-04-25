@@ -86,6 +86,7 @@ function MentionSuggestions({prefix, mentions, highlightedMentionIndex = 0, onSe
                                 type={item.icons[0].type}
                                 fill={isIcon ? theme.success : undefined}
                                 fallbackIcon={item.icons[0].fallbackIcon}
+                                accountID={item.icons[0].id}
                             />
                         </View>
                     )}
