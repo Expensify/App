@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -34,8 +33,7 @@ function IOURequestStepParticipants({
     },
     transaction,
 }: IOURequestStepParticipantsProps) {
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const participants = transaction?.participants?.filter((participant) => participant.accountID !== currentUserPersonalDetails.accountID);
+    const participants = transaction?.participants;
     const {translate} = useLocalize();
     const selectedReportID = useRef<string>(reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);

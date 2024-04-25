@@ -382,15 +382,9 @@ function MoneyRequestConfirmationList({
      * Returns the participants with amount
      */
     const getParticipantsWithAmount = useCallback(
-        (participantsList: Participant[], payerAccountID: number) => {
-            const amount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '');
-            const payerAmount = IOUUtils.calculateAmount(participantsList.length - 1, iouAmount, iouCurrencyCode ?? '', true);
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(
-                participantsList,
-                amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '',
-                payerAmount > 0 ? CurrencyUtils.convertToDisplayString(payerAmount, iouCurrencyCode) : '',
-                payerAccountID,
-            );
+        (participantsList: Participant[]) => {
+            const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
         },
         [iouAmount, iouCurrencyCode],
     );
@@ -438,11 +432,12 @@ function MoneyRequestConfirmationList({
         },
     ];
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
+    const shouldDisablePaidBySection = canModifyParticipants;
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants, payeePersonalDetails.accountID);
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
 
             if (!canModifyParticipants) {
@@ -452,11 +447,26 @@ function MoneyRequestConfirmationList({
                 }));
             }
 
-            sections.push({
-                title: translate('moneyRequestConfirmationList.splitAmounts'),
-                data: formattedParticipantsList,
-                shouldShow: true,
-            });
+            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
+
+            const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
+                payeePersonalDetails,
+                iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
+            );
+
+            sections.push(
+                {
+                    title: translate('moneyRequestConfirmationList.paidBy'),
+                    data: [formattedPayeeOption],
+                    shouldShow: true,
+                    isDisabled: shouldDisablePaidBySection,
+                },
+                {
+                    title: translate('moneyRequestConfirmationList.splitWith'),
+                    data: formattedParticipantsList,
+                    shouldShow: true,
+                },
+            );
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
@@ -469,14 +479,25 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, selectedParticipantsProp, hasMultipleParticipants, getParticipantsWithAmount, translate, canModifyParticipants, payeePersonalDetails.accountID]);
+    }, [
+        selectedParticipants,
+        selectedParticipantsProp,
+        hasMultipleParticipants,
+        iouAmount,
+        iouCurrencyCode,
+        getParticipantsWithAmount,
+        payeePersonalDetails,
+        translate,
+        shouldDisablePaidBySection,
+        canModifyParticipants,
+    ]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipants];
-    }, [selectedParticipants, hasMultipleParticipants]);
+        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
+    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
@@ -539,12 +560,12 @@ function MoneyRequestConfirmationList({
     const selectParticipant = useCallback(
         (option: Participant) => {
             // Return early if selected option is currently logged in user.
-            if (option.accountID === session?.accountID || option.accountID === payeePersonalDetails.accountID) {
+            if (option.accountID === session?.accountID) {
                 return;
             }
             onSelectParticipant?.(option);
         },
-        [session?.accountID, onSelectParticipant, payeePersonalDetails.accountID],
+        [session?.accountID, onSelectParticipant],
     );
 
     /**
@@ -607,7 +628,7 @@ function MoneyRequestConfirmationList({
 
                 playSound(SOUNDS.DONE);
                 setDidConfirm(true);
-                onConfirm?.(selectedParticipants.filter((participant) => participant.accountID !== currentUserPersonalDetails.accountID));
+                onConfirm?.(selectedParticipants);
             }
         },
         [
@@ -625,7 +646,6 @@ function MoneyRequestConfirmationList({
             iouAmount,
             isEditingSplitBill,
             onConfirm,
-            currentUserPersonalDetails.accountID,
         ],
     );
 
@@ -635,7 +655,7 @@ function MoneyRequestConfirmationList({
         }
 
         const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
-        const shouldDisableButton = isTypeSplit ? selectedParticipants.length === 1 : selectedParticipants.length === 0;
+        const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
             <SettlementButton
@@ -683,7 +703,7 @@ function MoneyRequestConfirmationList({
                 {button}
             </>
         );
-    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2, isTypeSplit]);
+    }, [isReadOnly, iouType, selectedParticipants.length, confirm, bankAccountRoute, iouCurrencyCode, policyID, splitOrRequestOptions, formError, styles.ph1, styles.mb2]);
 
     // An intermediate structure that helps us classify the fields as "primary" and "supplementary".
     // The primary fields are always shown to the user, while an extra action is needed to reveal the supplementary ones.

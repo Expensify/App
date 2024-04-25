@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -35,9 +36,21 @@ function IOURequestStepSplitPayer({
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const currentUserOption = useMemo(
+        () => ({
+            accountID: currentUserPersonalDetails.accountID,
+            searchText: currentUserPersonalDetails.login,
+            selected: true,
+        }),
+        [currentUserPersonalDetails],
+    );
+
     const sections = useMemo(() => {
+        const participants = transaction?.participants ?? [];
         const participantOptions =
-            transaction?.participants
+            [currentUserOption, ...participants]
                 ?.filter((participant) => Boolean(participant.accountID))
                 ?.map((participant) => {
                     const participantAccountID = participant.accountID ?? 0;
@@ -52,7 +65,7 @@ function IOURequestStepSplitPayer({
                 })),
             },
         ];
-    }, [transaction?.participants, personalDetails, transaction?.splitPayerAccountIDs]);
+    }, [transaction?.participants, personalDetails, transaction?.splitPayerAccountIDs, currentUserOption]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

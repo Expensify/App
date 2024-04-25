@@ -130,18 +130,6 @@ function IOURequestStepConfirmation({
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
-        if (transaction?.participants?.findIndex((participant) => participant.accountID === transaction?.splitPayerAccountIDs?.[0]) !== -1 || iouType !== CONST.IOU.TYPE.SPLIT) {
-            return;
-        }
-
-        const payeeParticipant: Participant = {accountID: transaction?.splitPayerAccountIDs?.[0], selected: true};
-        IOU.setMoneyRequestParticipants(transaction.transactionID, [payeeParticipant, ...(transaction?.participants ?? [])]);
-
-        // We only want to run it when the component is mounted
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
