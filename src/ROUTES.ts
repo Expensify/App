@@ -467,17 +467,29 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/company-card-expense-account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/company-card-expense-account-select` as const,
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/preferred-exporter` as const,
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/export/quickbooks-online/preferred-exporter` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',

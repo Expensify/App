@@ -1921,6 +1921,19 @@ export default {
             optionBelow: 'Elija una opción a continuación:',
             creditCard: 'Tarjeta de crédito',
             vendorBill: 'Factura del proveedor',
+            account: 'Cuenta',
+            vendor: 'Proveedor',
+            defaultVendor: 'Proveedor predeterminado',
+            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
+            debitCardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
+            creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
+            vendorBillAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+            debitCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
+            creditCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
+            vendorBillDescription:
+                'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
             companyCardsLocationEnabledDescription:
@@ -1953,10 +1966,9 @@ export default {
                     'Expensify creará automáticamente un proveedor en Quickbooks, si no existe. Expensify también creará automáticamente un cliente al exportar facturas.',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
-                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el pago de la factura correspondiente en las cuentas de Quickbooks indicadas a continuación.',
-                qboAccount: 'Cuenta Quickbooks',
-                collectionAccount: 'Cuenta de cobro de facturas',
-                collectionAccountDescription: 'Una vez abonadas las facturas, el pago aparecerá en la cuenta configurada a continuación.',
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks indicadas a continuación.',
+                qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
+                qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
                 accountSelectDescription:
                     'Como has activado la sincronización de los informes de reembolso, tendrás que seleccionar la cuenta bancaria de la que saldrán tus reembolsos y crearemos el pago en QuickBooks.',
                 invoiceAccountSelectDescription:

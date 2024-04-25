@@ -27,7 +27,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
     const styles = useThemeStyles();
     const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const shouldShowResetModal = reimbursementAccount.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat();
+    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
 
     return (
         <ScrollView style={[styles.flex1]}>
