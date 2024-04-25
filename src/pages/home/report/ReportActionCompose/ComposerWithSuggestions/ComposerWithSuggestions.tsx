@@ -52,6 +52,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import variables from '@styles/variables';
 
 type SyncSelection = {
     position: number;
@@ -730,6 +731,11 @@ function ComposerWithSuggestions(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const isOnlyEmojiLineHeight = useMemo(() => {
+        const isOnlyEmoji = EmojiUtils.containsOnlyEmojis(value);
+        return isOnlyEmoji ? {lineHeight: variables.fontSizeOnlyEmojisHeight} : {};
+    }, [value]);
+
     return (
         <>
             <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
@@ -743,7 +749,7 @@ function ComposerWithSuggestions(
                     onChangeText={onChangeText}
                     onKeyPress={triggerHotkeyActions}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, isOnlyEmojiLineHeight]}
                     maxLines={maxComposerLines}
                     onFocus={onFocus}
                     onBlur={onBlur}
