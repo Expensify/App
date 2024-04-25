@@ -107,7 +107,7 @@ type TaxRatesOption = {
     tooltipText?: string;
     isDisabled?: boolean;
     keyForList?: string;
-    data: Partial<TaxRate>;
+    isSelected?: boolean;
 };
 
 type TaxSection = {
@@ -1333,14 +1333,15 @@ function sortTaxRates(taxRates: TaxRates): TaxRate[] {
 /**
  * Builds the options for taxRates
  */
-function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[] {
-    return taxRates.map((taxRate) => ({
-        text: taxRate.modifiedName,
-        keyForList: taxRate.modifiedName,
-        searchText: taxRate.modifiedName,
-        tooltipText: taxRate.modifiedName,
-        isDisabled: taxRate.isDisabled,
-        data: taxRate,
+function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>, transactionTaxCode?: string): TaxRatesOption[] {
+    return taxRates.map(({code, modifiedName, isDisabled}) => ({
+        code,
+        text: modifiedName,
+        keyForList: modifiedName,
+        searchText: modifiedName,
+        tooltipText: modifiedName,
+        isDisabled,
+        isSelected: code === transactionTaxCode,
     }));
 }
 
@@ -1367,7 +1368,7 @@ function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptio
             // "Selected" sectiong
             title: '',
             shouldShow: false,
-            data: getTaxRatesOptions(selectedTaxRateOptions),
+            data: getTaxRatesOptions(selectedTaxRateOptions, transaction?.taxCode),
         });
 
         return policyRatesSections;
@@ -1380,7 +1381,7 @@ function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptio
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTaxRatesOptions(searchTaxRates),
+            data: getTaxRatesOptions(searchTaxRates, transaction?.taxCode),
         });
 
         return policyRatesSections;
@@ -1391,7 +1392,7 @@ function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptio
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTaxRatesOptions(enabledTaxRates),
+            data: getTaxRatesOptions(enabledTaxRates, transaction?.taxCode),
         });
 
         return policyRatesSections;
@@ -1422,7 +1423,7 @@ function getTaxRatesSection(policy: OnyxEntry<Policy> | undefined, selectedOptio
         // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
-        data: getTaxRatesOptions(filteredTaxRates),
+        data: getTaxRatesOptions(filteredTaxRates, transaction?.taxCode),
     });
 
     return policyRatesSections;
