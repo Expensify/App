@@ -662,7 +662,6 @@ function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: st
 const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeString?: string; dateTimeString: string}): boolean => {
     let dateToCheck = dateTimeString;
     if (timeString) {
-        //  return false;
         dateToCheck = combineDateAndTime(timeString, dateTimeString);
     }
 
