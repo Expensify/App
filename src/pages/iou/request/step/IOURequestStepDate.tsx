@@ -38,7 +38,7 @@ type IOURequestStepDateOnyxProps = {
 
 type IOURequestStepDateProps = IOURequestStepDateOnyxProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT> & {
-        /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+        /** Holds data related to Expense view state, rather than the underlying Expense data. */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
 
@@ -94,7 +94,7 @@ function IOURequestStepDate({
         <StepScreenWrapper
             headerTitle={translate('common.date')}
             onBackButtonPress={navigateBack}
-            shouldShowNotFoundPage={!IOUUtils.isValidMoneyRequestType(iouType)}
+            shouldShowNotFoundPage={!IOUUtils.isValidMoneyRequestType(iouType)} // TODO: Check why is this even here
             shouldShowWrapper
             testID={IOURequestStepDate.displayName}
         >

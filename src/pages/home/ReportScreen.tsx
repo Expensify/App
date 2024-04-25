@@ -28,6 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
@@ -514,7 +515,7 @@ function ReportScreen({
                 Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
-                // Prevent navigation to the Money Request Report if it is pending deletion.
+                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
                 const parentReport = ReportUtils.getReport(prevReport.parentReportID);
                 if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
                     return;
@@ -624,6 +625,18 @@ function ReportScreen({
             />
         );
     }
+
+    Log.client(
+        `[ReportScreen] Debug render state - ${JSON.stringify({
+            reportMetadata,
+            shouldShowReportActionList,
+            isLoading,
+            shouldShowSkeleton,
+            isCurrentReportLoadedFromOnyx,
+            reportID: report.reportID,
+            reportIDFromRoute,
+        })}`,
+    );
 
     return (
         <ActionListContext.Provider value={actionListValue}>

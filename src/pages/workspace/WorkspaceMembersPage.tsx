@@ -7,13 +7,17 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
+import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -33,7 +37,6 @@ import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/typ
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as UserUtils from '@libs/UserUtils';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +47,6 @@ import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceMembersPageOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -57,6 +59,7 @@ type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
     WorkspaceMembersPageOnyxProps &
     StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+
 /**
  * Inverts an object, equivalent of _.invert
  */
@@ -68,7 +71,7 @@ function invertObject(object: Record<string, string>): Record<string, string> {
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
     const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -336,13 +339,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
             }
 
             result.push({
@@ -356,7 +353,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        source: details.avatar ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -371,7 +368,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
     }, [
-        StyleUtils,
         currentUserLogin,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
@@ -385,10 +381,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
         policyOwner,
         selectedEmployees,
         session?.accountID,
-        styles.activeItemBadge,
-        styles.badgeBordered,
-        styles.justifyContentCenter,
-        styles.textStrong,
         translate,
     ]);
 
@@ -451,7 +443,10 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             return;
         }
 
-        const accountIDsToUpdate = selectedEmployees.filter((id) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[id]]?.role !== role);
+        const accountIDsToUpdate = selectedEmployees.filter((accountID) => {
+            const email = personalDetails?.[accountID]?.login ?? '';
+            return policy?.employeeList?.[email]?.role !== role;
+        });
 
         Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
@@ -467,24 +462,30 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
             },
         ];
 
-        if (PolicyUtils.isPaidGroupPolicy(policy)) {
-            if (selectedEmployees.find((employeeEmail) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employeeEmail]]?.role === CONST.POLICY.ROLE.ADMIN)) {
-                options.push({
-                    text: translate('workspace.people.makeMember'),
-                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                    icon: Expensicons.User,
-                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-                });
-            }
+        if (!PolicyUtils.isPaidGroupPolicy(policy)) {
+            return options;
+        }
 
-            if (selectedEmployees.find((employeeEmail) => policy?.employeeList?.[policyMemberEmailsToAccountIDs[employeeEmail]]?.role === CONST.POLICY.ROLE.USER)) {
-                options.push({
-                    text: translate('workspace.people.makeAdmin'),
-                    value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                    icon: Expensicons.MakeAdmin,
-                    onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-                });
-            }
+        const selectedEmployeesRoles = selectedEmployees.map((accountID) => {
+            const email = personalDetails?.[accountID]?.login ?? '';
+            return policy?.employeeList?.[email]?.role;
+        });
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.ADMIN)) {
+            options.push({
+                text: translate('workspace.people.makeMember'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+                icon: Expensicons.User,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+            });
+        }
+
+        if (selectedEmployeesRoles.find((role) => role === CONST.POLICY.ROLE.USER)) {
+            options.push({
+                text: translate('workspace.people.makeAdmin'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+                icon: Expensicons.MakeAdmin,
+                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+            });
         }
         return options;
     };
@@ -522,63 +523,71 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     };
 
     return (
-        <WorkspacePageWithSections
-            headerText={translate('workspace.common.members')}
-            route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-            headerContent={!isSmallScreenWidth && getHeaderButtons()}
-            icon={Illustrations.ReceiptWrangler}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            style={[styles.defaultModalContainer]}
             testID={WorkspaceMembersPage.displayName}
-            shouldShowLoading={false}
             shouldShowOfflineIndicatorInWideScreen
-            shouldShowNonAdmin
         >
-            {() => (
-                <>
-                    {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                    <ConfirmModal
-                        danger
-                        title={translate('workspace.people.removeMembersTitle')}
-                        isVisible={removeMembersConfirmModalVisible}
-                        onConfirm={removeUsers}
-                        onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                        prompt={translate('workspace.people.removeMembersPrompt')}
-                        confirmText={translate('common.remove')}
-                        cancelText={translate('common.cancel')}
-                        onModalHide={() => {
-                            InteractionManager.runAfterInteractions(() => {
-                                if (!textInputRef.current) {
-                                    return;
-                                }
-                                textInputRef.current.focus();
-                            });
-                        }}
+            <FullPageNotFoundView
+                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.common.members')}
+                    icon={Illustrations.ReceiptWrangler}
+                    onBackButtonPress={() => {
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                >
+                    {!isSmallScreenWidth && getHeaderButtons()}
+                </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                <ConfirmModal
+                    danger
+                    title={translate('workspace.people.removeMembersTitle')}
+                    isVisible={removeMembersConfirmModalVisible}
+                    onConfirm={removeUsers}
+                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
+                    prompt={translate('workspace.people.removeMembersPrompt')}
+                    confirmText={translate('common.remove')}
+                    cancelText={translate('common.cancel')}
+                    onModalHide={() => {
+                        InteractionManager.runAfterInteractions(() => {
+                            if (!textInputRef.current) {
+                                return;
+                            }
+                            textInputRef.current.focus();
+                        });
+                    }}
+                />
+                <View style={[styles.w100, styles.flex1]}>
+                    <SelectionList
+                        ref={selectionListRef}
+                        canSelectMultiple={isPolicyAdmin}
+                        sections={[{data, isDisabled: false}]}
+                        ListItem={TableListItem}
+                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                        headerMessage={getHeaderMessage()}
+                        headerContent={getHeaderContent()}
+                        onSelectRow={openMemberDetails}
+                        onCheckboxPress={(item) => toggleUser(item.accountID)}
+                        onSelectAll={() => toggleAllUsers(data)}
+                        onDismissError={dismissError}
+                        showLoadingPlaceholder={isLoading}
+                        showScrollIndicator
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        textInputRef={textInputRef}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
-
-                    <View style={[styles.w100, styles.flex1]}>
-                        <SelectionList
-                            ref={selectionListRef}
-                            canSelectMultiple={isPolicyAdmin}
-                            sections={[{data, isDisabled: false}]}
-                            ListItem={TableListItem}
-                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                            headerMessage={getHeaderMessage()}
-                            headerContent={getHeaderContent()}
-                            onSelectRow={openMemberDetails}
-                            onCheckboxPress={(item) => toggleUser(item.accountID)}
-                            onSelectAll={() => toggleAllUsers(data)}
-                            onDismissError={dismissError}
-                            showLoadingPlaceholder={isLoading}
-                            showScrollIndicator
-                            shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                            textInputRef={textInputRef}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        />
-                    </View>
-                </>
-            )}
-        </WorkspacePageWithSections>
+                </View>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 

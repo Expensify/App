@@ -1,17 +1,27 @@
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Navigation from './Navigation/Navigation';
-import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
+
+let allPolicies: OnyxCollection<Policy>;
+
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
 
 /**
  * Filter out the active policies, which will exclude policies with pending deletion
@@ -309,44 +319,98 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+
+    return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
+function getDefaultApprover(policy: OnyxEntry<Policy> | EmptyObject): string {
+    return policy?.approver ?? policy?.owner ?? '';
+}
+
+/**
+ * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
+ */
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | EmptyObject, employeeAccountID: number): number {
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
+    const defaultApprover = getDefaultApprover(policy);
+
+    // For policy using the optional or basic workflow, the manager is the policy default approver.
+    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
+        return getAccountIDsByLogins([defaultApprover])[0];
+    }
+
+    const employee = policy?.employeeList?.[employeeLogin];
+    if (!employee) {
+        return -1;
+    }
+
+    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+}
+
+function getPersonalPolicy() {
+    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
+}
+
+function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
+    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
+ * Returns the policy of the report
+ */
+function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+    if (!allPolicies || !policyID) {
+        return {};
+    }
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
+
 export {
-    getActivePolicies,
-    hasAccountingConnections,
-    hasEmployeeListError,
-    hasPolicyError,
-    hasPolicyErrorFields,
-    hasCustomUnitsError,
-    getNumericValue,
-    getUnitRateValue,
-    getPolicyBrickRoadIndicatorStatus,
-    shouldShowPolicy,
-    isExpensifyTeam,
-    isInstantSubmitEnabled,
-    isFreeGroupPolicy,
-    isPolicyAdmin,
-    isTaxTrackingEnabled,
-    isSubmitAndClose,
-    getMemberAccountIDsForWorkspace,
-    getIneligibleInvitees,
-    getTagLists,
-    getTagListName,
-    getSortedTagKeys,
     canEditTaxRate,
-    getTagList,
+    extractPolicyIDFromPath,
+    getActivePolicies,
+    getAdminEmployees,
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    isPendingDeletePolicy,
-    isPolicyEmployee,
-    isPolicyOwner,
-    isPaidGroupPolicy,
-    extractPolicyIDFromPath,
+    getIneligibleInvitees,
+    getMemberAccountIDsForWorkspace,
+    getNumericValue,
     getPathWithoutPolicyID,
+    getPersonalPolicy,
+    getPolicy,
+    getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
-    goBackFromInvalidPolicy,
-    isPolicyFeatureEnabled,
-    hasTaxRateError,
+    getSortedTagKeys,
+    getSubmitToAccountID,
+    getTagList,
+    getTagListName,
+    getTagLists,
     getTaxByID,
+    getUnitRateValue,
+    goBackFromInvalidPolicy,
+    hasAccountingConnections,
+    hasCustomUnitsError,
+    hasEmployeeListError,
     hasPolicyCategoriesError,
+    hasPolicyError,
+    hasPolicyErrorFields,
+    hasTaxRateError,
+    isExpensifyTeam,
+    isFreeGroupPolicy,
+    isInstantSubmitEnabled,
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPolicyAdmin,
+    isPolicyEmployee,
+    isPolicyFeatureEnabled,
+    isPolicyOwner,
+    isSubmitAndClose,
+    isTaxTrackingEnabled,
+    shouldShowPolicy,
 };
 
 export type {MemberEmailsToAccountIDs};

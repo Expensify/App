@@ -137,18 +137,29 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether the default focus should be prevented on row selection */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
+    /** Prevent the submission of the list item when enter key is pressed */
+    shouldPreventEnterKeySubmit?: boolean;
+
     /** Key used internally by React */
     keyForList?: string;
+
+    /**
+     * Whether the focus on the element should be synchronized. For example it should be set to false when the text input above list items is currently focused.
+     * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
+     */
+    shouldSyncFocus?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+    shouldPreventEnterKeySubmit?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
     children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+    shouldSyncFocus?: boolean;
     hoverStyle?: StyleProp<ViewStyle>;
 };
 
