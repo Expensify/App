@@ -91,7 +91,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
             isActive: policy?.areTagsEnabled ?? false,
-            // disabled: hasAccountingConnection,
+            disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTags(policy?.id ?? '', isEnabled);

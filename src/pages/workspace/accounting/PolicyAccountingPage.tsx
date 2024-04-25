@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {PolicyConnectionName, Tenant} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -109,8 +109,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
-    const tenants = policy?.connections?.xero?.data?.tenants ?? [];
-    const currentXeroOrganization = tenants?.length === 1 ? tenants[0] : tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
+    const tenants = useMemo<Tenant[]>(() => policy?.connections?.xero?.data?.tenants ?? [], [policy?.connections?.xero.data.tenants]);
+    const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -192,6 +192,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           shouldShowRightIcon: tenants.length > 1,
                           shouldShowDescriptionOnTop: true,
                           onPress: () => {
+                              if (!(tenants.length > 1)) {
+                                  return;
+                              }
                               Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
                           },
                       },

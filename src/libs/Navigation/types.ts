@@ -294,6 +294,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {
         policyID: string;
+        organizationID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

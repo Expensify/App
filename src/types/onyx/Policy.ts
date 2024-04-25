@@ -184,6 +184,12 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
+type BillStatusValues = 'DRAFT' | 'AWT_APPROVAL' | 'AWT_PAYMENT';
+
+type ExpenseTypesValues = 'BILL' | 'BANK_TRANSACTION' | 'SALES_INVOICE' | 'NOTHING';
+
+type BillDateValues = 'REPORT_SUBMITTED' | 'REPORT_EXPORTED' | 'LAST_EXPENSE';
+
 type Tenant = {
     id: string;
     name: string;
@@ -212,16 +218,16 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
     enableNewCategories: boolean;
     export: {
-        billDate: string;
+        billDate: BillDateValues;
         billStatus: {
-            purchase: string;
-            sales: string;
+            purchase: BillStatusValues;
+            sales: BillStatusValues;
         };
-        billable: string;
+        billable: ExpenseTypesValues;
         exporter: string;
-        nonReimbursable: string;
+        nonReimbursable: ExpenseTypesValues;
         nonReimbursableAccount: string;
-        reimbursable: string;
+        reimbursable: ExpenseTypesValues;
     };
     importCustomers: boolean;
     importTaxRates: boolean;

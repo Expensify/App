@@ -1,3 +1,4 @@
+import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,25 +10,31 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyConnectionConfig} from '@libs/actions/connections';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
+import type SCREENS from '@src/SCREENS';
 
-type XeroOrganizationConfigurationPageProps = WithPolicyProps;
-function XeroOrganizationConfigurationPage({policy}: XeroOrganizationConfigurationPageProps) {
+type XeroOrganizationConfigurationPageProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION>;
+function XeroOrganizationConfigurationPage({
+    policy,
+    route: {
+        params: {organizationID},
+    },
+}: XeroOrganizationConfigurationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const policyID = policy?.id ?? '';
-    const currentOrganizationID = policy?.connections?.xero.config.tenantID ?? '';
 
     const sections =
         policy?.connections?.xero.data.tenants.map((tenant) => ({
             text: tenant.name,
             keyForList: tenant.id,
-            isSelected: tenant.id === currentOrganizationID,
+            isSelected: tenant.id === organizationID,
         })) ?? [];
 
     const saveSelection = ({keyForList}: ListItem) => {
@@ -35,7 +42,7 @@ function XeroOrganizationConfigurationPage({policy}: XeroOrganizationConfigurati
             return;
         }
 
-        updatePolicyConnectionConfig(policyID, 'xero', 'tenantID', keyForList);
+        updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, 'tenantID', keyForList);
     };
 
     return (
@@ -56,7 +63,7 @@ function XeroOrganizationConfigurationPage({policy}: XeroOrganizationConfigurati
                             ListItem={RadioListItem}
                             onSelectRow={saveSelection}
                             sections={[{data: sections}]}
-                            initiallyFocusedOptionKey={currentOrganizationID}
+                            initiallyFocusedOptionKey={organizationID}
                         />
                     </ScrollView>
                 </ScreenWrapper>
