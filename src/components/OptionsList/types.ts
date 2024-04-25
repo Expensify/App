@@ -26,7 +26,7 @@ type Section = {
     actionButtonTitle?: string;
 
     /** Callback of the action button */
-    onActionButtonPress: () => void;
+    onActionButtonPress?: () => void;
 };
 
 type SectionWithIndexOffset = Section & {
