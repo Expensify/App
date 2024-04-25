@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {usePlaybackContext} from './PlaybackContext';
 import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
+import { AVPlaybackSourceObject } from 'expo-av';
 
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
@@ -33,7 +34,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (playerRef.current === null) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL(playerRef.current.props.source?.uri);
+        const sourceURI = addEncryptedAuthTokenToURL((playerRef.current.props.source as AVPlaybackSourceObject).uri);
         fileDownload(sourceURI);
     }, [playerRef]);
 
