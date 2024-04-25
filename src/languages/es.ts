@@ -1933,7 +1933,7 @@ export default {
             creditCardDescription:
                 "Automáticamente relacionaremos el nombre del comerciante en la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos una 'Tarjeta de crédito miscelánea'. vendedor para asociación.",
             vendorBillDescription:
-                'Crearemos una única factura de proveedor detallada para cada informe de Expensify, con la fecha del último gasto en el informe. Si este período está cerrado, publicaremos en el día 1 del próximo período abierto. Puede agregar la factura del proveedor a la cuenta A/P de su elección (a continuación).',
+                'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
             companyCardsLocationEnabledDescription:
