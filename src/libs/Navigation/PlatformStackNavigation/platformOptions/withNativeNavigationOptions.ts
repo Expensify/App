@@ -11,6 +11,7 @@ import withAnimation from './animation/withAnimation';
 import getCommonNavigationOptions from './utils';
 
 const transformPlatformOptionsToNative = (screenOptions: PlatformStackNavigationOptions | undefined): NativeStackNavigationOptions => ({
+    keyboardHandlingEnabled: screenOptions?.keyboardHandlingEnabled,
     ...withAnimation<NativeStackNavigationOptions>(screenOptions, slideFromLeftAnimation, slideFromRightAnimation, slideFromBottomAnimation, noAnimation),
     ...getCommonNavigationOptions(screenOptions),
     ...screenOptions?.nativeOnly,
