@@ -7,6 +7,7 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -44,7 +45,6 @@ import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList, Session} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -523,17 +523,17 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper
-            shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(policy)}
-            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-            policyID={policyID}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            style={[styles.defaultModalContainer]}
+            testID={WorkspaceMembersPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
-                testID={WorkspaceMembersPage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
+            <FullPageNotFoundView
+                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || PolicyUtils.isPendingDeletePolicy(policy)}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
+                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.members')}
@@ -586,8 +586,8 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     />
                 </View>
-            </ScreenWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 
