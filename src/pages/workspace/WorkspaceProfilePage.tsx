@@ -1,9 +1,9 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import React, { useCallback, useState } from 'react';
-import type { ImageStyle, StyleProp } from 'react-native';
-import { Image, StyleSheet, View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
+import React, {useCallback, useState} from 'react';
+import type {ImageStyle, StyleProp} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
@@ -30,11 +30,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import withPolicy from './withPolicy';
-import type { WithPolicyProps } from './withPolicy';
-import WorkspacePageWithSections from './WorkspacePageWithSections';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import withPolicy from './withPolicy';
+import type {WithPolicyProps} from './withPolicy';
+import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkSpaceProfilePageOnyxProps = {
     /** Constant, list of available currencies */
@@ -45,12 +45,12 @@ type WorkSpaceProfilePageProps = WithPolicyProps & WorkSpaceProfilePageOnyxProps
 
 const parser = new ExpensiMark();
 
-function WorkspaceProfilePage({ policy, currencyList = {}, route }: WorkSpaceProfilePageProps) {
+function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfilePageProps) {
     const styles = useThemeStyles();
-    const { translate } = useLocalize();
-    const { isSmallScreenWidth } = useWindowDimensions();
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const illustrations = useThemeIllustrations();
-    const { activeWorkspaceID, setActiveWorkspaceID } = useActiveWorkspace();
+    const {activeWorkspaceID, setActiveWorkspaceID} = useActiveWorkspace();
 
     const outputCurrency = policy?.outputCurrency ?? '';
     const currencySymbol = currencyList?.[outputCurrency]?.symbol ?? '';
@@ -103,7 +103,7 @@ function WorkspaceProfilePage({ policy, currencyList = {}, route }: WorkSpacePro
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view
         if (activeWorkspaceID === policy?.id) {
             setActiveWorkspaceID(undefined);
-            Navigation.navigateWithSwitchPolicyID({ policyID: undefined });
+            Navigation.navigateWithSwitchPolicyID({policyID: undefined});
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
     return (
@@ -254,6 +254,6 @@ WorkspaceProfilePage.displayName = 'WorkspaceProfilePage';
 
 export default withPolicy(
     withOnyx<WorkSpaceProfilePageProps, WorkSpaceProfilePageOnyxProps>({
-        currencyList: { key: ONYXKEYS.CURRENCY_LIST },
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     })(WorkspaceProfilePage),
 );

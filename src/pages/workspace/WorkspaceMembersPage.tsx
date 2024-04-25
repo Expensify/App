@@ -1,15 +1,15 @@
-import { useIsFocused } from '@react-navigation/native';
-import type { StackScreenProps } from '@react-navigation/stack';
+import {useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import lodashIsEqual from 'lodash/isEqual';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { TextInput } from 'react-native';
-import { InteractionManager, View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
-import { withOnyx } from 'react-native-onyx';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {TextInput} from 'react-native';
+import {InteractionManager, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type { DropdownOption, WorkspaceMemberBulkActionType } from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,9 +18,9 @@ import MessagesRow from '@components/MessagesRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
-import type { ListItem, SelectionListHandle } from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import type { WithCurrentUserPersonalDetailsProps } from '@components/withCurrentUserPersonalDetails';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -31,7 +31,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type { WorkspacesCentralPaneNavigatorParamList } from '@libs/Navigation/types';
+import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -41,12 +41,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type { InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList, Session } from '@src/types/onyx';
-import type { Errors, PendingAction } from '@src/types/onyx/OnyxCommon';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
-import type { WithPolicyAndFullscreenLoadingProps } from './withPolicyAndFullscreenLoading';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import type {InvitedEmailsToAccountIDs, PersonalDetailsList, PolicyEmployee, PolicyEmployeeList, Session} from '@src/types/onyx';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceMembersPageOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -69,24 +69,24 @@ function invertObject(object: Record<string, string>): Record<string, string> {
     return inverted;
 }
 
-type MemberOption = Omit<ListItem, 'accountID'> & { accountID: number };
+type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({ personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true }: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
     const policyMemberEmailsToAccountIDs = useMemo(() => PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList), [policy?.employeeList]);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
-    const { isOffline } = useNetwork();
+    const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
-    const { translate, formatPhoneNumber, preferredLocale } = useLocalize();
-    const { isSmallScreenWidth } = useWindowDimensions();
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const dropdownButtonRef = useRef(null);
     const isPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const isLoading = useMemo(
@@ -413,7 +413,7 @@ function WorkspaceMembersPage({ personalDetails, invitedEmailsToAccountIDsDraft,
                 <MessagesRow
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{ 0: 'workspace.people.addedWithPrimary' }}
+                    messages={{0: 'workspace.people.addedWithPrimary'}}
                     containerStyles={[styles.pb5, styles.ph5]}
                     onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
@@ -500,7 +500,7 @@ function WorkspaceMembersPage({ personalDetails, invitedEmailsToAccountIDsDraft,
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', { selectedNumber: selectedEmployees.length })}
+                        customText={translate('workspace.common.selected', {selectedNumber: selectedEmployees.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
@@ -569,7 +569,7 @@ function WorkspaceMembersPage({ personalDetails, invitedEmailsToAccountIDsDraft,
                     <SelectionList
                         ref={selectionListRef}
                         canSelectMultiple={isPolicyAdmin}
-                        sections={[{ data, isDisabled: false }]}
+                        sections={[{data, isDisabled: false}]}
                         ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
@@ -597,7 +597,7 @@ export default withCurrentUserPersonalDetails(
     withPolicyAndFullscreenLoading(
         withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
             invitedEmailsToAccountIDsDraft: {
-                key: ({ route }) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
+                key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
             },
             session: {
                 key: ONYXKEYS.SESSION,

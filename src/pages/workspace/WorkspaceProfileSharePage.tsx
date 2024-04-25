@@ -1,13 +1,13 @@
-import React, { useRef } from 'react';
-import { View } from 'react-native';
-import type { ImageSourcePropType } from 'react-native';
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import { useSession } from '@components/OnyxProvider';
+import {useSession} from '@components/OnyxProvider';
 import QRShare from '@components/QRShare';
-import type { QRShareHandle } from '@components/QRShare/types';
+import type {QRShareHandle} from '@components/QRShare/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useEnvironment from '@hooks/useEnvironment';
@@ -19,16 +19,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import withPolicy from './withPolicy';
-import type { WithPolicyProps } from './withPolicy';
 import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import withPolicy from './withPolicy';
+import type {WithPolicyProps} from './withPolicy';
 
-function WorkspaceProfileSharePage({ policy }: WithPolicyProps) {
+function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const themeStyles = useThemeStyles();
-    const { translate } = useLocalize();
-    const { environmentURL } = useEnvironment();
+    const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
     const qrCodeRef = useRef<QRShareHandle>(null);
-    const { isSmallScreenWidth } = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const session = useSession();
 
     const policyName = policy?.name ?? '';
