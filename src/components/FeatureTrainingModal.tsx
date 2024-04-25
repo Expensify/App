@@ -86,7 +86,7 @@ function FeatureTrainingModal({
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
-    const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp || VIDEO_ASPECT_RATIO);
+    const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp ?? VIDEO_ASPECT_RATIO);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
