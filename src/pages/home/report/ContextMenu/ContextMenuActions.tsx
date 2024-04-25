@@ -525,8 +525,9 @@ const restrictedReadOnlyActions = [
     'reportActionContextMenu.deleteAction',
 ];
 
-// @ts-expect-error Not all actions have textTranslateKey
-const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter((action) => restrictedReadOnlyActions.includes(action.textTranslateKey));
+const RestrictedReadOnlyContextMenuActions: ContextMenuAction[] = ContextMenuActions.filter(
+    (action) => 'textTranslateKey' in action && restrictedReadOnlyActions.includes(action.textTranslateKey),
+);
 
 export {RestrictedReadOnlyContextMenuActions};
 export default ContextMenuActions;
