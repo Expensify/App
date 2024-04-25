@@ -113,7 +113,9 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 </PressableWithFeedback>
             </Tooltip>
             <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
-            <BottomTabBarFloatingActionButton />
+            <View style={[styles.flex1, styles.bottomTabBarItem]}>
+                <BottomTabBarFloatingActionButton />
+            </View>
         </View>
     );
 }

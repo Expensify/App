@@ -92,17 +92,6 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     onPress={() => Session.invalidateCredentials()}
                 />
             </TestToolRow>
-
-            {/* Navigate to the new Search Page. This button is temporary and should be removed after passing QA tests. */}
-            <TestToolRow title="New Search Page">
-                <Button
-                    small
-                    text="Navigate"
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
-                    }}
-                />
-            </TestToolRow>
         </>
     );
 }
