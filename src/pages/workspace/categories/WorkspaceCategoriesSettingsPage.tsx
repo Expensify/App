@@ -13,6 +13,7 @@ import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccess
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -53,6 +54,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                                 disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
                                 wrapperStyle={[styles.mt2, styles.mh4]}
                                 errors={policy?.errorFields?.requiresCategory ?? undefined}
+                                onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'requiresCategory')}
                             />
                         </View>
                     </ScreenWrapper>
