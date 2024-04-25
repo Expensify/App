@@ -3331,7 +3331,7 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
-        SENT: 'sent',
+        SHARED: 'shared',
         DRAFTS: 'drafts',
         WAITING_ON_YOU: 'waitingOnYou',
         FINISHED: 'finished',
