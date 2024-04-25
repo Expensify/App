@@ -86,6 +86,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.FEATURE_TRAINING_ROOT]: {
+                    path: ROUTES.TRACK_TRAINING_MODAL,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.WELCOME_VIDEO.ROOT]: {

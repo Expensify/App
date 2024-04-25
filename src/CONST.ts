@@ -3417,6 +3417,16 @@ const CONST = {
         LINK: 'https://join.my.expensify.com',
     },
 
+    FEATURE_TRAINING: {
+        CONTENT_TYPES: {
+            TRACK_EXPENSE: 'track-expenses',
+        },
+        'track-expenses': {
+            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business.mp4`,
+            LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
+        },
+    },
+
     /**
      * native IDs for close buttons in Overlay component
      */

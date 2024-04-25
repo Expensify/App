@@ -738,6 +738,7 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
+    TRACK_TRAINING_MODAL: 'track-training',
     PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
