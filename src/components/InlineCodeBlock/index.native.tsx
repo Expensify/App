@@ -1,9 +1,9 @@
 import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getCurrentData from './getCurrentData';
 import type InlineCodeBlockProps from './types';
 import type {TTextOrTPhrasing} from './types';
 import WrappedText from './WrappedText';
-import getCurrentData from './getCurrentData';
 
 function InlineCodeBlock<TComponent extends TTextOrTPhrasing>({TDefaultRenderer, defaultRendererProps, textStyle, boxModelStyle}: InlineCodeBlockProps<TComponent>) {
     const styles = useThemeStyles();
