@@ -112,7 +112,6 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<v
                 const newLastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
                 deferredUpdatesProxy.deferredUpdates = {...deferredUpdatesProxy.deferredUpdates, ...updatesAfterGaps};
-                // updateDeferredUpdates(newDeferredUpdates);
 
                 // If lastUpdateIDAppliedToClient got updated in the meantime, we will just retrigger the validation and application of the current deferred updates.
                 if (latestMissingUpdateID <= newLastUpdateIDFromClient) {
