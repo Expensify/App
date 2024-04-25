@@ -378,6 +378,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
         },
 
+        mutedNormalTextLabel: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textMicro: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -3205,6 +3211,20 @@ const styles = (theme: ThemeColors) =>
 
         workspaceTypeSectionTitle: {
             marginLeft: 3,
+        },
+
+        workspaceRightColumn: {
+            marginLeft: 124,
+        },
+
+        workspaceThreeDotMenu: {
+            marginLeft: 84,
+        },
+
+        workspaceListBadge: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 6,
         },
 
         autoGrowHeightMultilineInput: {
