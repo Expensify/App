@@ -5888,8 +5888,13 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
  * E.g. if total bill is $100 and split between 3 participants, when the user changes the first share to $50, the remaining unmodified shares will become $25 each.
  */
 function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transaction>) {
-    const sumOfManualShares = Object.keys(transaction.splitShares ?? {})
-        .filter((key: string) => transaction?.splitShares?.[Number(key)]?.isModified)
+    const modifiedShares = Object.keys(transaction.splitShares ?? {}).filter((key: string) => transaction?.splitShares?.[Number(key)]?.isModified);
+
+    if (!modifiedShares.length) {
+        return;
+    }
+
+    const sumOfManualShares = modifiedShares
         .map((key: string): number => transaction?.splitShares?.[Number(key)]?.amount ?? 0)
         .reduce((prev: number, current: number): number => prev + current, 0);
 
