@@ -1892,7 +1892,7 @@ export default {
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
-            creditCard: 'Credit Card',
+            creditCard: 'Credit card',
             debitCard: 'Debit Card',
             vendorBill: 'Vendor Bill',
             vendor: 'Vendor',
