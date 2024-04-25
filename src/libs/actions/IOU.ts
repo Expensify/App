@@ -3577,6 +3577,7 @@ function splitBillAndOpenReport({
     tag = '',
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    splitPayerAccountIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -3593,6 +3594,7 @@ function splitBillAndOpenReport({
         '',
         billable,
         iouRequestType,
+        splitPayerAccountIDs,
     );
 
     const parameters: SplitBillParams = {
