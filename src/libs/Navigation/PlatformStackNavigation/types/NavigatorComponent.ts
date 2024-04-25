@@ -1,7 +1,14 @@
 import type {EventMapBase, ParamListBase, StackActionHelpers} from '@react-navigation/native';
 import type WindowDimensions from '@hooks/useWindowDimensions/types';
 import type {ThemeStyles} from '@styles/index';
-import type {PlatformSpecificEventMap, PlatformSpecificNavigationOptions, PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '.';
+import type {
+    PlatformSpecificEventMap,
+    PlatformSpecificNavigationOptions,
+    PlatformStackNavigationOptions,
+    PlatformStackNavigationState,
+    PlatformStackRouterFactory,
+    PlatformStackRouterOptions,
+} from '.';
 import type {PlatformNavigationBuilderDescriptors, PlatformNavigationBuilderNavigation} from './NavigationBuilder';
 
 // Props that custom code receives when passed to the createPlatformStackNavigatorComponent generator function.
@@ -99,7 +106,7 @@ type CreatePlatformStackNavigatorComponentOptions<
     ParamList extends ParamListBase = ParamListBase,
 > = {
     createRouter?: PlatformStackRouterFactory<ParamList, RouterOptions>;
-    defaultScreenOptions?: NavigationOptions;
+    defaultScreenOptions?: PlatformStackNavigationOptions;
     transformState?: TransformState<NavigationOptions, EventMap, ParamList>;
     onIsSmallScreenWidthChange?: OnIsSmallScreenWidthChange<NavigationOptions, EventMap, ParamList>;
     ExtraContent?: ExtraContent<NavigationOptions, EventMap, ParamList>;
