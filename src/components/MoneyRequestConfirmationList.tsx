@@ -408,8 +408,9 @@ function MoneyRequestConfirmationList({
             }
             const amountInCents = CurrencyUtils.convertToBackendAmount(value);
             IOU.setIndividualShare(transaction?.transactionID, accountID, amountInCents);
+            IOU.adjustRemainingSplitShares(transaction);
         },
-        [transaction?.transactionID],
+        [transaction],
     );
 
     useEffect(() => {
@@ -418,7 +419,7 @@ function MoneyRequestConfirmationList({
         }
 
         const splitSharesMap: SplitShares = transaction.splitShares;
-        const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare.amount);
+        const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare?.amount ?? 0);
         const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
         if (sumOfShares !== iouAmount) {
             setFormError(
@@ -428,7 +429,7 @@ function MoneyRequestConfirmationList({
         }
 
         const participantsWithAmount = Object.keys(transaction?.splitShares ?? {})
-            .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)].amount ?? 0) > 0)
+            .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
             .map((accountID) => Number(accountID));
 
         // A split must have at least two participants with amounts bigger than 0
@@ -439,13 +440,6 @@ function MoneyRequestConfirmationList({
 
         setFormError('');
     }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError]);
-
-    useEffect(() => {
-        if (!isTypeSplit || !transaction?.splitShares) {
-            return;
-        }
-        IOU.adjustRemainingSplitShares(transaction);
-    }, [isTypeSplit, transaction]);
 
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);

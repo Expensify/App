@@ -3296,7 +3296,7 @@ function createSplitsAndOnyxData(
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const currentUserAmount = isOwnPolicyExpenseChat ? IOUUtils.calculateAmount(participants.length, amount, currency, true) : splitShares[currentUserAccountID].amount;
+    const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, true);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount}];
 
@@ -3304,7 +3304,7 @@ function createSplitsAndOnyxData(
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
-        const splitAmount = isPolicyExpenseChat ? IOUUtils.calculateAmount(participants.length, amount, currency, false) : splitShares[participant.accountID ?? 0].amount;
+        const splitAmount = splitShares?.[participant.accountID ?? -1]?.amount ?? IOUUtils.calculateAmount(participants.length, amount, currency, false);
 
         // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
         // We can input '0' next to someone we want to exclude.
@@ -5831,11 +5831,25 @@ function setShownHoldUseExplanation() {
 /**
  * Sets the `splitShares` map that holds individual shares of a split bill
  */
-function setSplitShares(transactionID: string, participantAccountIDs: number[], amount: number, currency: string) {
-    const participantAccountIDsWithoutCurrentUser = participantAccountIDs.filter((accountID) => accountID !== userAccountID);
-    const splitShares: SplitShares = [userAccountID, ...participantAccountIDsWithoutCurrentUser].reduce((result: SplitShares, accountID): SplitShares => {
+function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[]) {
+    if (!transaction) {
+        return;
+    }
+    const oldAccountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
+    const participantAccountIDsWithoutCurrentUser = newAccountIDs.filter((accountID) => accountID !== userAccountID);
+    const accountIDs = [...new Set<number>([userAccountID, ...participantAccountIDsWithoutCurrentUser, ...oldAccountIDs])];
+
+    const splitShares: SplitShares = accountIDs.reduce((result: SplitShares, accountID): SplitShares => {
+        if (!newAccountIDs.includes(accountID) && accountID !== userAccountID) {
+            return {
+                ...result,
+                [accountID]: null,
+            };
+        }
+
         const isPayer = accountID === userAccountID;
         const splitAmount = IOUUtils.calculateAmount(participantAccountIDsWithoutCurrentUser.length, amount, currency, isPayer);
+        console.log(accountID, isPayer, 'amount:' + splitAmount);
         return {
             ...result,
             [accountID]: {
@@ -5845,10 +5859,7 @@ function setSplitShares(transactionID: string, participantAccountIDs: number[], 
         };
     }, {});
 
-    // TODO: figure out why this needs `then`
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares: null}).then(() => {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitShares});
-    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
 }
 
 function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string) {
@@ -5859,7 +5870,7 @@ function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmou
     if (!accountIDs) {
         return;
     }
-    setSplitShares(transaction.transactionID, accountIDs, newAmount ?? transaction.amount, currency ?? transaction.currency);
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs);
 }
 
 /**

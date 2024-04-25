@@ -100,7 +100,7 @@ function IOURequestStepParticipants({
         const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && transaction?.amount && transaction?.currency) {
             const participantAccountIDs = participants?.map((participant) => participant.accountID) as number[];
-            IOU.setSplitShares(transactionID, participantAccountIDs, transaction.amount, transaction.currency);
+            IOU.setSplitShares(transaction, transaction.amount, transaction.currency, participantAccountIDs);
         }
 
         IOU.setMoneyRequestTag(transactionID, '');
@@ -111,7 +111,7 @@ function IOURequestStepParticipants({
         } else {
             Navigation.navigate(iouConfirmationPageRoute);
         }
-    }, [iouType, transactionID, reportID, action, participants, transaction?.amount, transaction?.currency]);
+    }, [iouType, transactionID, transaction, reportID, action, participants]);
 
     const navigateBack = useCallback(() => {
         IOUUtils.navigateToStartMoneyRequestStep(iouRequestType, iouType, transactionID, reportID, action);

@@ -244,7 +244,7 @@ function IOURequestStepAmount({
             IOU.setMoneyRequestParticipantsFromReport(transactionID, report);
             if (isSplitBill && !report.isOwnPolicyExpenseChat && report.participants) {
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-                IOU.setSplitShares(transactionID, participantAccountIDs, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD);
+                IOU.setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
             navigateToConfirmationPage();
             return;
