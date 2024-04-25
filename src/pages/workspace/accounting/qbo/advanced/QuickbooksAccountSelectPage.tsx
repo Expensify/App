@@ -71,7 +71,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
                         includeSafeAreaPaddingBottom={false}
                         testID={QuickbooksAccountSelectPage.displayName}
                     >
-                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboAccount')} />
+                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount')} />
 
                         <SelectionList
                             sections={[{data: qboOnlineSelectorOptions}]}
