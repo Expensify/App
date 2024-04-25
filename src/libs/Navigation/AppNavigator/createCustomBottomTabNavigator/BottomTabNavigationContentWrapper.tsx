@@ -1,4 +1,5 @@
 import type {EventMapBase, ParamListBase} from '@react-navigation/native';
+import React from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
