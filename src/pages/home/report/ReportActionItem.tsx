@@ -44,6 +44,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
+import onyxSubscribe from '@libs/onyxSubscribe';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
@@ -204,6 +205,21 @@ function ReportActionItem({
     const transactionCurrency = TransactionUtils.getCurrency(transaction);
     const reportScrollManager = useReportScrollManager();
 
+    // A performance improvement. Put this in withOnyx would increase rerender count massively.
+    const [originalReport, setOriginalReport] = useState<OnyxEntry<OnyxTypes.Report>>(report);
+    useEffect(() => {
+        if (!originalReportID || originalReportID === report.reportID) {
+            return;
+        }
+        const unsubscribeOnyx = onyxSubscribe({
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
+            callback: (val) => {
+                setOriginalReport(val);
+            },
+        });
+        return unsubscribeOnyx;
+    }, [originalReportID, report.reportID]);
+
     const highlightedBackgroundColorIfNeeded = useMemo(
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
@@ -338,8 +354,8 @@ function ReportActionItem({
                 draftMessage ?? '',
                 () => setIsContextMenuActive(true),
                 toggleContextMenuFromActiveReportAction,
-                ReportUtils.isArchivedRoom(originalReportID ?? ''),
-                ReportUtils.chatIncludesChronos(originalReportID ?? ''),
+                ReportUtils.isArchivedRoom(originalReport),
+                ReportUtils.chatIncludesChronos(originalReport),
                 false,
                 false,
                 [],
@@ -347,7 +363,7 @@ function ReportActionItem({
                 setIsEmojiPickerActive as () => void,
             );
         },
-        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReportID],
+        [draftMessage, action, report.reportID, toggleContextMenuFromActiveReportAction, originalReport, originalReportID],
     );
 
     // Handles manual scrolling to the bottom of the chat when the last message is an actionable whisper and it's resolved.
@@ -919,7 +935,7 @@ function ReportActionItem({
                             displayAsGroup={displayAsGroup}
                             isVisible={hovered && draftMessage === undefined && !hasErrors}
                             draftMessage={draftMessage}
-                            isChronosReport={ReportUtils.chatIncludesChronos(originalReportID ?? '')}
+                            isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                             transactionThreadReportID={transactionThreadReport?.reportID ?? '0'}
