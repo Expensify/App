@@ -39,6 +39,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
@@ -580,6 +581,9 @@ function ReportActionItem({
         } else if (ReportActionsUtils.isOldDotReportAction(action)) {
             // This handles all historical actions from OldDot that we just want to display the message text
             children = <ReportActionItemBasicMessage message={ReportActionsUtils.getMessageOfOldDotReportAction(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+            const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(report.total), report.currency);
+            children = <ReportActionItemBasicMessage message={translate('iou.submittedAmount', {formattedAmount})} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
