@@ -168,8 +168,7 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
             navigation={navigation}
         >
             <HeaderWithBackButton
-                // ASK: What text do we want to use for the title?
-                title={translate('common.search')}
+                title={translate('common.find')}
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList<OptionData>
