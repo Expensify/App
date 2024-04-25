@@ -74,19 +74,19 @@ describe('DateUtils', () => {
 
     it('should return the date in calendar time when calling datetimeToCalendarTime', () => {
         const today = setMinutes(setHours(new Date(), 14), 32).getTime();
-        expect(DateUtils.timestampToCalendarTime(LOCALE, today)).toBe('Today at 2:32 PM');
+        expect(DateUtils.timestampToCalendarTime(LOCALE, today)).toBe('Today');
 
         const tomorrow = addDays(setMinutes(setHours(new Date(), 14), 32), 1).getTime();
-        expect(DateUtils.timestampToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow at 2:32 PM');
+        expect(DateUtils.timestampToCalendarTime(LOCALE, tomorrow)).toBe('Tomorrow');
 
         const yesterday = setMinutes(setHours(subDays(new Date(), 1), 7), 43).getTime();
-        expect(DateUtils.timestampToCalendarTime(LOCALE, yesterday)).toBe('Yesterday at 7:43 AM');
+        expect(DateUtils.timestampToCalendarTime(LOCALE, yesterday)).toBe('Yesterday');
 
         const date = setMinutes(setHours(new Date('2022-11-05'), 10), 17).getTime();
-        expect(DateUtils.timestampToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022 at 10:17 AM');
+        expect(DateUtils.timestampToCalendarTime(LOCALE, date)).toBe('Nov 5, 2022');
 
         const todayLowercaseDate = setMinutes(setHours(new Date(), 14), 32).getTime();
-        expect(DateUtils.timestampToCalendarTime(LOCALE, todayLowercaseDate, undefined, true)).toBe('today at 2:32 PM');
+        expect(DateUtils.timestampToCalendarTime(LOCALE, todayLowercaseDate, undefined, true)).toBe('today');
     });
 
     it('should update timezone if automatic and selected timezone do not match', () => {
