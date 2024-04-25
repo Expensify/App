@@ -3443,6 +3443,7 @@ function createSplitsAndOnyxData(
         const individualSplit = {
             email,
             accountID,
+            isOptimisticAccount: ReportUtils.isOptimisticPersonalDetail(accountID),
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,

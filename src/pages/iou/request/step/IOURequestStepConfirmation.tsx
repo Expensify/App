@@ -89,7 +89,7 @@ function IOURequestStepConfirmation({
         return {
             login: participant?.login ?? '',
             accountID: participant?.accountID ?? -1,
-            avatar: UserUtils.getDefaultAvatarURL(participant?.accountID ?? -1),
+            avatar: Expensicons.FallbackAvatar,
             displayName: participant?.login ?? '',
             isOptimisticPersonalDetail: true,
         };
@@ -136,7 +136,7 @@ function IOURequestStepConfirmation({
         }
 
         const payeeParticipant: Participant = {accountID: transaction?.splitPayerAccountIDs?.[0], selected: true};
-        IOU.setMoneyRequestParticipants_temporaryForRefactor(transaction.transactionID, [payeeParticipant, ...(transaction?.participants ?? [])]);
+        IOU.setMoneyRequestParticipants(transaction.transactionID, [payeeParticipant, ...(transaction?.participants ?? [])]);
 
         // We only want to run it when the component is mounted
         // eslint-disable-next-line react-hooks/exhaustive-deps
