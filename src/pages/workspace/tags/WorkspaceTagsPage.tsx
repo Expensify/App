@@ -1,10 +1,8 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -29,16 +27,15 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -57,12 +54,7 @@ type PolicyOption = ListItem & {
     keyForList: string;
 };
 
-type WorkspaceTagsOnyxProps = {
-    /** Collection of tags attached to a policy */
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
-};
-
-type WorkspaceTagsPageProps = WorkspaceTagsOnyxProps & StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
+type WorkspaceTagsPageProps = WithPolicyConnectionsProps;
 
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -334,4 +326,4 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
 WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
 
-export default withPolicyConnections(TagSettingsPage);
+export default withPolicyConnections(WorkspaceTagsPage);
