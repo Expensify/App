@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as HeaderUtils from '@libs/HeaderUtils';
@@ -73,8 +72,6 @@ function MoneyRequestHeader({
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
-    const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const {windowWidth} = useWindowDimensions();
 
