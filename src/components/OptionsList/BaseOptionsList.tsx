@@ -3,7 +3,6 @@ import type {ForwardedRef} from 'react';
 import React, {forwardRef, memo, useEffect, useMemo, useRef} from 'react';
 import type {SectionListRenderItem} from 'react-native';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import OptionRow from '@components/OptionRow';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -207,7 +206,7 @@ function BaseOptionsList(
     /**
      * Function which renders a section header component
      */
-    const renderSectionHeader = ({section: {title, shouldShow, onSectionButtonPress}}: {section: OptionsListDataWithIndexOffset}) => {
+    const renderSectionHeader = ({section: {title, shouldShow, shouldShowActionButton, onActionButtonPress, actionButtonTitle}}: {section: OptionsListDataWithIndexOffset}) => {
         if (!title && shouldShow && !hideSectionHeaders && sectionHeaderStyle) {
             return <View style={sectionHeaderStyle} />;
         }
@@ -220,9 +219,13 @@ function BaseOptionsList(
                 // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
                 <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween, sectionHeaderStyle]}>
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
-                    {onSectionButtonPress && (
-                        <PressableWithFeedback onPress={() => onSectionButtonPress()}>
-                            <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>Reset</Text>
+                    {shouldShowActionButton && (
+                        <PressableWithFeedback
+                            onPress={onActionButtonPress}
+                            accessibilityLabel={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.BUTTON}
+                        >
+                            <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{actionButtonTitle}</Text>
                         </PressableWithFeedback>
                     )}
                 </View>

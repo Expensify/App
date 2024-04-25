@@ -451,9 +451,10 @@ function MoneyRequestConfirmationList({
 
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
+    const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
     const getParticipantOptions = useCallback(() => {
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
-        if (isPolicyExpenseChat || isReadOnly || TransactionUtils.isScanRequest(transaction)) {
+        if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
                 const isPayer = participantOption.accountID === payeeOption.accountID;
                 let amount: number | undefined = 0;
@@ -480,14 +481,26 @@ function MoneyRequestConfirmationList({
                 prefixCharacter: currencySymbol,
                 isCurrencyPressable: false,
                 hideCurrencySymbol: true,
-                inputStyle: [StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol) + styles.pl1.paddingLeft)],
+                inputStyle: [StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol ?? '') + styles.pl1.paddingLeft)],
                 touchableInputWrapperStyle: [{minWidth: 60}, styles.alignItemsEnd, styles.textInputContainerBorder],
                 prefixContainerStyle: [styles.pv0],
                 containerStyle: [styles.iouAmountTextInputContainer],
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, isReadOnly, StyleUtils, styles]);
+    }, [
+        transaction,
+        iouCurrencyCode,
+        isPolicyExpenseChat,
+        onSplitShareChange,
+        payeePersonalDetails,
+        selectedParticipants,
+        currencyList,
+        iouAmount,
+        shouldShowReadOnlySplits,
+        StyleUtils,
+        styles,
+    ]);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -497,7 +510,9 @@ function MoneyRequestConfirmationList({
                 title: translate('moneyRequestConfirmationList.splitWith'),
                 data: formattedParticipantsList,
                 shouldShow: true,
-                onSectionButtonPress: () => IOU.resetSplitShares(transaction),
+                shouldShowActionButton: !shouldShowReadOnlySplits,
+                onActionButtonPress: () => IOU.resetSplitShares(transaction),
+                actionButtonTitle: translate('common.reset'),
             });
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
@@ -511,7 +526,7 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, hasMultipleParticipants, translate, getParticipantOptions, transaction]);
+    }, [selectedParticipants, hasMultipleParticipants, translate, getParticipantOptions, transaction, shouldShowReadOnlySplits]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
