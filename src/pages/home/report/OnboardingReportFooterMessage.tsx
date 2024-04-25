@@ -16,7 +16,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, Report} from '@src/types/onyx';
 
-// TODO: Use a proper choice type
 type OnboardingReportFooterMessageOnyxProps = {choice: OnyxEntry<OnboardingPurposeType>; reports: OnyxCollection<Report>; policies: OnyxCollection<PolicyType>};
 type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps;
 
