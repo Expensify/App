@@ -69,7 +69,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     const policyID = route.params.policyID ?? '';
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
-    const isAccountingConnected = Object.keys(policy?.connections ?? {}).length > 0;
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
@@ -288,7 +288,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                         />
                         {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            {isAccountingConnected ? (
+                            {isConnectedToAccounting ? (
                                 <Text>
                                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
                                     <TextLink
