@@ -4,7 +4,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {EmitterSubscription, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -33,7 +33,6 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
-import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 
 type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
@@ -164,7 +163,6 @@ function ReportActionsList({
     const reportScrollManager = useReportScrollManager();
     const userActiveSince = useRef<string | null>(null);
     const lastMessageTime = useRef<string | null>(null);
-    const {currentActiveSuggestionsRef} = useSuggestionsContext();
 
     const [isVisible, setIsVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -202,7 +200,8 @@ function ReportActionsList({
     );
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
+    const hasNewestReportAction =
+        sortedReportActions?.[0].created === report.lastVisibleActionCreated || sortedReportActions?.[0].created === transactionThreadReport?.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -308,12 +307,28 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
+        let unreadActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
+        let readNewestActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
+        if (transactionThreadReport?.reportID) {
+            unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(new Date().getTime());
+            });
+
+            readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(0);
+            });
+        }
+
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
             deletedReportActionSubscription.remove();
+            unreadActionSubscriptionForTransactionThread?.remove();
+            readNewestActionSubscriptionForTransactionThread?.remove();
         };
-    }, [report.reportID]);
+    }, [report.reportID, transactionThreadReport?.reportID]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -401,6 +416,9 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
+        if (transactionThreadReport?.reportID) {
+            Report.readNewestAction(transactionThreadReport?.reportID);
+        }
     };
 
     /**
@@ -650,18 +668,6 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    onScrollBeginDrag={() => {
-                        if (!currentActiveSuggestionsRef.current) {
-                            return;
-                        }
-                        currentActiveSuggestionsRef.current.resetSuggestions();
-                    }}
-                    onScrollEndDrag={() => {
-                        if (!currentActiveSuggestionsRef.current) {
-                            return;
-                        }
-                        currentActiveSuggestionsRef.current.updateShouldShowSuggestionMenuAfterScrolling();
-                    }}
                     shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
                 />
             </Animated.View>
