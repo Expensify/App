@@ -198,7 +198,7 @@ function MoneyRequestPreviewContent({
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
-            return translate('iou.routePending');
+            return translate('iou.fieldPending');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
