@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,6 +96,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                             inputID="description"
                             label={translate('workspace.editor.descriptionInputLabel')}
                             accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             value={description}
                             maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                             spellCheck={false}
@@ -105,7 +107,6 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                             ref={(el: BaseTextInputRef | null): void => {
                                 updateMultilineInputRange(el);
                             }}
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
                 </FormProvider>
