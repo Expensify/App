@@ -641,22 +641,22 @@ type Foo = {
   export someVariable
   ```
 
-- [1.23](#ref-types) **Ref types**: Avoid using HTML elements while declaring refs. Please use React Native components where possible. React Native Web handles the references on its own. It also extends React Native components [with Interaction API](https://necolas.github.io/react-native-web/docs/interactions/) which should be used to handle Pointers and Mouse events. Exception of this rule is when we explicitly need to use functions available only in DOM and not in React Native, e.g. `getBoundingClientRect`. Then please declare ref type as `union` of React Native component and HTML element. When passing it to React Native component cast it as soon as possible using utility methods declared in `src/types/utils`
+- [1.23](#ref-types) **Ref types**: Avoid using HTML elements while declaring refs. Please use React Native components where possible. React Native Web handles the references on its own. It also extends React Native components with [Interaction API](https://necolas.github.io/react-native-web/docs/interactions/) which should be used to handle Pointer and Mouse events. Exception of this rule is when we explicitly need to use functions available only in DOM and not in React Native, e.g. `getBoundingClientRect`. Then please declare ref type as `union` of React Native component and HTML element. When passing it to React Native component assert it as soon as possible using utility methods declared in `src/types/utils`.
 
 Normal usage: 
-```ts
+```tsx
 const ref = useRef<View>();
 
 <View ref={ref} onPointerDown={e => {#DO SOMETHING}}>
 ```
 
 Exceptional usage where DOM methods are necessary:
-```ts
+```tsx
 import viewRef from '@src/types/utils/viewRef';
 
 const ref = useRef<View | HTMLDivElement>();
 
-if (ref.current && 'getBoundingClientRect' in ref.current ){
+if (ref.current && 'getBoundingClientRect' in ref.current ) {
   ref.current.getBoundingClientRect();
 }
 
