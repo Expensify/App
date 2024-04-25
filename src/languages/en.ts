@@ -2036,6 +2036,7 @@ export default {
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
+            importedFromAccountingSoftware: 'The tags below are imported from your',
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
