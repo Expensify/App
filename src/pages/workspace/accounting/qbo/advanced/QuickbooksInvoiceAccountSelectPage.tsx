@@ -72,7 +72,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
                         includeSafeAreaPaddingBottom={false}
                         testID={QuickbooksInvoiceAccountSelectPage.displayName}
                     >
-                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.collectionAccount')} />
+                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')} />
 
                         <SelectionList
                             sections={[{data: qboOnlineSelectorOptions}]}
