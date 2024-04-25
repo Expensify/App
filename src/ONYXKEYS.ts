@@ -39,9 +39,6 @@ const ONYXKEYS = {
     CREDENTIALS: 'credentials',
     STASHED_CREDENTIALS: 'stashedCredentials',
 
-    // Contains loading data for the IOU feature (MoneyRequestModal, IOUDetail, & MoneyRequestPreview Components)
-    IOU: 'iou',
-
     /** Keeps track if there is modal currently visible or not */
     MODAL: 'modal',
 
@@ -187,9 +184,6 @@ const ONYXKEYS = {
 
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
-
-    /** User's metadata that will be used to segmentation */
-    USER_METADATA: 'userMetadata',
 
     /** Object containing Onfido SDK Token + applicantID */
     WALLET_ONFIDO: 'walletOnfido',
@@ -580,7 +574,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CURRENT_DATE]: string;
     [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.STASHED_CREDENTIALS]: OnyxTypes.Credentials;
-    [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
@@ -600,7 +593,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
-    [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;

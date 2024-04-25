@@ -327,7 +327,6 @@ function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false) {
     clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
     switch (requestType) {
@@ -345,18 +344,15 @@ function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: st
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string, isEditing = false) {
+function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false) {
     const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
 }
@@ -381,13 +377,11 @@ function setMoneyRequestTag(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestBillable_temporaryForRefactor(transactionID: string, billable: boolean) {
+function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants: Participant[] = []) {
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = []) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
 }
 
@@ -409,29 +403,6 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string) {
 function updateDistanceRequestRate(transactionID: string, rateID: string, policyID: string) {
     Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policyID]: rateID});
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitRateID: rateID}}});
-}
-
-/** Reset expense info from the store with its initial value */
-function resetMoneyRequestInfo(id = '') {
-    // Disabling this line since currentDate can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const created = currentDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-    Onyx.merge(ONYXKEYS.IOU, {
-        id,
-        amount: 0,
-        currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-        comment: '',
-        participants: [],
-        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        category: '',
-        tag: '',
-        created,
-        receiptPath: '',
-        receiptFilename: '',
-        transactionID: '',
-        billable: null,
-        isSplitRequest: false,
-    });
 }
 
 /** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
@@ -2899,7 +2870,6 @@ function requestMoney(
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
-            resetMoneyRequestInfo();
         }
     }
 
@@ -3068,7 +3038,6 @@ function trackExpense(
             };
 
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
-            resetMoneyRequestInfo();
         }
     }
     if (action === CONST.IOU.ACTION.SHARE) {
@@ -3571,7 +3540,6 @@ function splitBill({
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
-    resetMoneyRequestInfo();
     Navigation.dismissModal(existingSplitChatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
@@ -3630,7 +3598,6 @@ function splitBillAndOpenReport({
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
 
-    resetMoneyRequestInfo();
     Navigation.dismissModal(splitData.chatReportID);
     Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
@@ -3930,7 +3897,6 @@ function startSplitBill({
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
-    resetMoneyRequestInfo();
     Navigation.dismissModalWithReport(splitChatReport);
     Report.notifyNewAction(splitChatReport.chatReportID ?? '', currentUserAccountID);
 }
@@ -5274,7 +5240,6 @@ function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number,
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
@@ -5288,7 +5253,6 @@ function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
     Report.notifyNewAction(params.chatReportID, managerID);
 }
@@ -5612,7 +5576,7 @@ function submitReport(expenseReport: OnyxTypes.Report) {
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: policy.submitsTo ?? expenseReport.managerID,
+        managerAccountID: PolicyUtils.getSubmitToAccountID(policy, expenseReport.ownerAccountID ?? -1) ?? expenseReport.managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
@@ -5820,28 +5784,12 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
     return participants;
 }
 
-function setMoneyRequestId(id: string) {
-    Onyx.merge(ONYXKEYS.IOU, {id});
-}
-
-function setMoneyRequestCurrency(currency: string) {
-    Onyx.merge(ONYXKEYS.IOU, {currency});
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRatesOption) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
 }
 
 function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxAmount});
-}
-
-function setMoneyRequestBillable(billable: boolean) {
-    Onyx.merge(ONYXKEYS.IOU, {billable});
-}
-
-function setMoneyRequestParticipants(participants: Participant[], isSplitRequest?: boolean) {
-    Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
 }
 
 function setShownHoldUseExplanation() {
@@ -6020,7 +5968,6 @@ export {
     putOnHold,
     replaceReceipt,
     requestMoney,
-    resetMoneyRequestInfo,
     savePreferredPaymentMethod,
     sendMoneyElsewhere,
     sendMoneyWithWallet,
@@ -6028,17 +5975,13 @@ export {
     setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
-    setMoneyRequestBillable_temporaryForRefactor,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestCurrency,
-    setMoneyRequestCurrency_temporaryForRefactor,
     setMoneyRequestDescription,
-    setMoneyRequestId,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestParticipants_temporaryForRefactor,
     setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
     setMoneyRequestTag,

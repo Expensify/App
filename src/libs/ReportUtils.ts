@@ -3484,9 +3484,10 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 
-    // The account defined in the policy submitsTo field is the approver/ manager for this report
-    if (policy?.submitsTo) {
-        expenseReport.managerID = policy.submitsTo;
+    // Get the approver/manager for this report to properly display the optimistic data
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, payeeAccountID);
+    if (submitToAccountID) {
+        expenseReport.managerID = submitToAccountID;
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
@@ -6028,9 +6029,9 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
     const policy = getPolicy(report?.policyID);
-    const {submitsTo} = policy;
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? -1);
 
-    return isAllowedToApproveExpenseReport(report, submitsTo);
+    return isAllowedToApproveExpenseReport(report, submitToAccountID);
 }
 
 /**
