@@ -6085,6 +6085,8 @@ function canLeavePolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<
  * Whether the user can join a report
  */
 function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>): boolean {
+    // We disabled thread functions for whisper action in this PR https://github.com/Expensify/App/pull/31676
+    // So we should not show join option for existing thread on whisper message that has already been left, or manually leave it
     if (ReportActionsUtils.isWhisperAction(parentReportAction)) {
         return false;
     }
