@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -43,7 +44,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     );
 
     const syncReimbursedSubMenuItems = () => (
-        <>
+        <View style={[styles.mt3]}>
             <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
@@ -58,16 +59,16 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
             <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
                 <MenuItemWithTopDescription
+                    shouldShowRightIcon
                     title={selectedInvoiceCollectionAccountName}
                     description={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')}
-                    shouldShowRightIcon
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
                     error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
                     brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
-        </>
+        </View>
     );
 
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
@@ -82,6 +83,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: pendingFields?.autoSync,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC),
+            wrapperStyle: styles.mv3,
         },
         {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
@@ -91,6 +93,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: pendingFields?.syncPeople,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
+            wrapperStyle: styles.mv3,
         },
         {
             title: translate('workspace.qbo.advancedConfig.createEntities'),
@@ -100,6 +103,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: pendingFields?.autoCreateVendor,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
+            wrapperStyle: styles.mv3,
         },
         {
             title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
@@ -116,6 +120,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
             subMenuItems: syncReimbursedSubMenuItems(),
+            wrapperStyle: styles.mv3,
         },
     ];
 
@@ -142,7 +147,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                     title={item.title}
                                     subtitle={item.subtitle}
                                     shouldPlaceSubtitleBelowSwitch
-                                    wrapperStyle={styles.mv3}
+                                    wrapperStyle={item.wrapperStyle}
                                     isActive={item.isActive}
                                     onToggle={item.onToggle}
                                     pendingAction={item.pendingAction}
