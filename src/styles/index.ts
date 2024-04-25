@@ -3279,10 +3279,6 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
-        autoGrowHeightMultilineInput: {
-            maxHeight: 115,
-        },
-
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
@@ -4877,6 +4873,12 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
+        },
+
+        searchFiltersButtonText: {
+            marginLeft: 4,
+            marginRight: 4,
+            fontWeight: 'bold',
         },
     } satisfies Styles);
 
