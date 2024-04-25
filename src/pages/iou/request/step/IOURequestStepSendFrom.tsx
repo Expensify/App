@@ -74,7 +74,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
             selected: false,
         });
 
-        IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
+        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
         navigateBack();
     };
 

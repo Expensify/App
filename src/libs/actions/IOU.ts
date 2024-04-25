@@ -43,6 +43,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticInviteReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+import * as UserUtils from '@libs/UserUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -3375,7 +3376,6 @@ function sendInvoice(
 
     API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
 
-    resetMoneyRequestInfo();
     Navigation.dismissModal(invoiceRoomReportID);
     Report.notifyNewAction(invoiceRoomReportID, receiver.accountID);
 }
