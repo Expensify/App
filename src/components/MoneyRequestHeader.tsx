@@ -63,7 +63,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isOnHold = TransactionUtils.isOnHold(transaction);
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
 
-    // Only the requestor can take delete the request, admins can only edit it.
+    // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
@@ -96,8 +96,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);
         } else {
+            if (!policy?.type) {
+                return;
+            }
+
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? '', iouTransactionID, report?.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy.type, iouTransactionID, report?.reportID, activeRoute));
         }
     };
 
@@ -118,14 +122,14 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
-                text: translate('iou.unholdRequest'),
+                text: translate('iou.unholdExpense'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
         if (!isOnHold && (isRequestIOU || canModifyStatus)) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
-                text: translate('iou.holdRequest'),
+                text: translate('iou.holdExpense'),
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
@@ -196,7 +200,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 {isOnHold && <HoldBanner />}
             </View>
             <ConfirmModal
-                title={translate('iou.deleteRequest')}
+                title={translate('iou.deleteExpense')}
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteModalVisible(false)}
@@ -222,7 +226,7 @@ const MoneyRequestHeaderWithTransaction = withOnyx<MoneyRequestHeaderProps, Pick
     transaction: {
         key: ({report, parentReportActions}) => {
             const parentReportAction = (report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : {}) as ReportAction & OriginalMessageIOU;
-            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction.originalMessage.IOUTransactionID ?? 0}`;
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${parentReportAction?.originalMessage?.IOUTransactionID ?? 0}`;
         },
     },
     shownHoldUseExplanation: {

@@ -1,7 +1,7 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
-import type {ForwardedRef, ReactElement, ReactNode} from 'react';
-import React, {forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import type {ReactElement, ReactNode} from 'react';
+import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
@@ -32,6 +32,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
@@ -70,6 +71,9 @@ type MenuItemBaseProps = {
 
     /** Used to apply offline styles to child text components */
     style?: StyleProp<ViewStyle>;
+
+    /** Outer wrapper styles */
+    outerWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Any additional styles to apply */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -252,6 +256,9 @@ type MenuItemBaseProps = {
 
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -263,6 +270,7 @@ function MenuItem(
         badgeText,
         style,
         wrapperStyle,
+        outerWrapperStyle,
         containerStyle,
         titleStyle,
         hoverAndPressStyle,
@@ -325,16 +333,15 @@ function MenuItem(
         contentFit = 'cover',
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
+        onFocus,
     }: MenuItemProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
-    const [html, setHtml] = useState('');
-    const titleRef = useRef('');
     const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
@@ -362,26 +369,25 @@ function MenuItem(
         isDeleted ? styles.offlineFeedback.deleted : {},
     ]);
 
-    useEffect(() => {
-        if (!title || (titleRef.current.length && titleRef.current === title) || !shouldParseTitle) {
-            return;
+    const html = useMemo(() => {
+        if (!title || !shouldParseTitle) {
+            return '';
         }
         const parser = new ExpensiMark();
-        setHtml(parser.replace(title));
-        titleRef.current = title;
+        return parser.replace(title);
     }, [title, shouldParseTitle]);
 
-    const getProcessedTitle = useMemo(() => {
-        let processedTitle = '';
+    const processedTitle = useMemo(() => {
+        let titleToWrap = '';
         if (shouldRenderAsHTML) {
-            processedTitle = title ? convertToLTR(title) : '';
+            titleToWrap = title ? convertToLTR(title) : '';
         }
 
         if (shouldParseTitle) {
-            processedTitle = html;
+            titleToWrap = html;
         }
 
-        return processedTitle ? `<comment>${processedTitle}</comment>` : '';
+        return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
     }, [title, shouldRenderAsHTML, shouldParseTitle, html]);
 
     const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
@@ -437,6 +443,7 @@ function MenuItem(
                         onPressIn={() => shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={ControlSelection.unblock}
                         onSecondaryInteraction={onSecondaryInteraction}
+                        wrapperStyle={outerWrapperStyle}
                         style={({pressed}) =>
                             [
                                 containerStyle,
@@ -444,8 +451,8 @@ function MenuItem(
                                 combinedStyle,
                                 !interactive && styles.cursorDefault,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
-                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                                !focused && (isHovered || pressed) && hoverAndPressStyle,
                                 shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                             ] as StyleProp<ViewStyle>
                         }
@@ -455,6 +462,7 @@ function MenuItem(
                         role={CONST.ROLE.MENUITEM}
                         accessibilityLabel={title ? title.toString() : ''}
                         accessible
+                        onFocus={onFocus}
                     >
                         {({pressed}) => (
                             <>
@@ -544,7 +552,7 @@ function MenuItem(
                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                     <View style={styles.renderHTMLTitle}>
-                                                        <RenderHTML html={getProcessedTitle} />
+                                                        <RenderHTML html={processedTitle} />
                                                     </View>
                                                 )}
                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
@@ -604,14 +612,7 @@ function MenuItem(
                                     {badgeText && (
                                         <Badge
                                             text={badgeText}
-                                            textStyles={styles.textStrong}
-                                            badgeStyles={[
-                                                styles.alignSelfCenter,
-                                                styles.badgeBordered,
-                                                brickRoadIndicator ? styles.mr2 : undefined,
-                                                focused || isHovered || pressed ? styles.activeItemBadge : {},
-                                                badgeStyle,
-                                            ]}
+                                            badgeStyles={badgeStyle}
                                         />
                                     )}
                                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -685,5 +686,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {IconProps, AvatarProps, NoIcon, MenuItemBaseProps, MenuItemProps};
+export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
 export default forwardRef(MenuItem);

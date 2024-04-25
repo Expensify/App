@@ -86,10 +86,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT}
-                        component={ModalStackNavigators.OnboardEngagementModalStackNavigator}
-                    />
-                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
                         component={ModalStackNavigators.NewTeachersUniteNavigator}
                     />

@@ -38,11 +38,11 @@ import type {
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
+    SVGAvatarColorStyle,
     TextColorStyle,
-    WorkspaceColorStyle,
 } from './types';
 
-const workspaceColorOptions: WorkspaceColorStyle[] = [
+const workspaceColorOptions: SVGAvatarColorStyle[] = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
     {backgroundColor: colors.blue400, fill: colors.blue800},
     {backgroundColor: colors.blue700, fill: colors.blue200},
@@ -274,6 +274,13 @@ function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
     const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
+}
+
+/**
+ * Helper method to return formatted backgroundColor and fill styles
+ */
+function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAvatarColorStyle {
+    return {backgroundColor, fill};
 }
 
 /**
@@ -818,21 +825,18 @@ function getLineHeightStyle(lineHeight: number): TextStyle {
 /**
  * Gets the correct size for the empty state container based on screen dimensions
  */
-function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false): ViewStyle {
+function getReportWelcomeContainerStyle(isSmallScreenWidth: boolean, isMoneyOrTaskReport = false, shouldShowAnimatedBackground = true): ViewStyle {
     const emptyStateBackground = isMoneyOrTaskReport ? CONST.EMPTY_STATE_BACKGROUND.MONEY_OR_TASK_REPORT : CONST.EMPTY_STATE_BACKGROUND;
-    if (isSmallScreenWidth) {
-        return {
-            minHeight: emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT,
-            display: 'flex',
-            justifyContent: 'space-between',
-        };
-    }
-
-    return {
-        minHeight: emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT,
+    const baseStyles: ViewStyle = {
         display: 'flex',
         justifyContent: 'space-between',
     };
+
+    if (shouldShowAnimatedBackground) {
+        baseStyles.minHeight = isSmallScreenWidth ? emptyStateBackground.SMALL_SCREEN.CONTAINER_MINHEIGHT : emptyStateBackground.WIDE_SCREEN.CONTAINER_MINHEIGHT;
+    }
+
+    return baseStyles;
 }
 
 type GetBaseAutoCompleteSuggestionContainerStyleParams = {
@@ -1126,6 +1130,7 @@ const staticStyleUtils = {
     getComposeTextAreaPadding,
     getColorStyle,
     getDefaultWorkspaceAvatarColor,
+    getBackgroundColorAndFill,
     getDirectionStyle,
     getDropDownButtonHeight,
     getEmojiPickerListHeight,
@@ -1231,7 +1236,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             height: avatarSize,
             width: avatarSize,
             borderRadius: avatarSize,
-            backgroundColor: theme.offline,
+            backgroundColor: theme.border,
         };
     },
 
@@ -1253,6 +1258,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             // TODO: Remove this "eslint-disable-next" once the theme switching migration is done and styles are fully typed (GH Issue: https://github.com/Expensify/App/issues/27337)
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+        }
+        return {};
+    },
+
+    getIconColorStyle: (isSuccess: boolean, isError: boolean): string => {
+        if (isSuccess) {
+            return theme.iconSuccessFill;
+        }
+        if (isError) {
+            return theme.iconDangerFill;
+        }
+        return theme.icon;
+    },
+
+    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
+        if (isAdhoc) {
+            return styles.badgeAdHocSuccess;
+        }
+        if (isSuccess) {
+            return styles.badgeEnvironmentSuccess;
+        }
+        if (isError) {
+            return styles.badgeEnvironmentDanger;
         }
         return {};
     },
@@ -1561,6 +1589,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isDisabled && styles.cursorDisabled),
         ...(isDisabled && styles.buttonOpacityDisabled),
     }),
+
+    /**
+     * When adding a new prefix character, adjust this method to add expected character width.
+     * This is because character width isn't known before it's rendered to the screen, and once it's rendered,
+     * it's too late to calculate it's width because the change in padding would cause a visible jump.
+     * Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
+     * also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
+     * this method will produce reliable results.
+     */
+    getCharacterPadding: (prefix: string): number => prefix.length * 10,
 
     // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({

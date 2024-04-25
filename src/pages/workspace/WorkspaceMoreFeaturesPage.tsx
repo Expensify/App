@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -30,6 +31,7 @@ type Item = {
     titleTranslationKey: TranslationPaths;
     subtitleTranslationKey: TranslationPaths;
     isActive: boolean;
+    disabled?: boolean;
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
 };
@@ -45,6 +47,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
+    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax;
 
     const spendItems: Item[] = [
         {
@@ -75,6 +79,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
             isActive: policy?.areCategoriesEnabled ?? false,
+            disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
@@ -85,6 +90,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
             isActive: policy?.areTagsEnabled ?? false,
+            disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
@@ -94,7 +100,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Coins,
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
-            isActive: policy?.tax?.trackingEnabled ?? false,
+            isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
+            disabled: isSyncTaxEnabled,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
@@ -149,6 +156,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
+                    disabled={item.disabled}
                 />
             </View>
         ),
@@ -175,16 +183,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         [isSmallScreenWidth, styles, renderItem, translate],
     );
 
-    function fetchFeatures() {
+    const fetchFeatures = useCallback(() => {
         Policy.openPolicyMoreFeaturesPage(route.params.policyID);
-    }
+    }, [route.params.policyID]);
 
     useNetwork({onReconnect: fetchFeatures});
 
-    useEffect(() => {
-        fetchFeatures();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchFeatures();
+        }, [fetchFeatures]),
+    );
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
