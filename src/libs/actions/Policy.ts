@@ -4253,8 +4253,6 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 }
 
 function renamePolicyTaglist(policyID: string, policyTagListName: {oldName: string; newName: string}, policyTags: OnyxEntry<PolicyTagList>) {
-    
-    console.log("!234");
     const newName = policyTagListName.newName;
     const oldName = policyTagListName.oldName;
     const oldPolicyTags = policyTags?.[oldName] ?? {};
