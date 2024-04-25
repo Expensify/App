@@ -15,6 +15,7 @@ import Section from '@components/Section';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -31,7 +32,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
-import useNetwork from '@hooks/useNetwork';
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -62,7 +62,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 icon: Expensicons.Sync,
                 text: translate('workspace.accounting.syncNow'),
                 onSelected: () => syncConnection(policyID),
-                disabled: isOffline
+                disabled: isOffline,
             },
             {
                 icon: Expensicons.Trashcan,
