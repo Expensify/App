@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -21,7 +20,6 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
-import * as UserUtils from './UserUtils';
 
 const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
@@ -191,6 +189,7 @@ function getOptionData({
     policy,
     parentReportAction,
     hasViolations,
+    transactionThreadReport,
 }: {
     report: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
@@ -199,6 +198,7 @@ function getOptionData({
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
     hasViolations: boolean;
+    transactionThreadReport: OnyxEntry<Report>;
 }): ReportUtils.OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -235,6 +235,7 @@ function getOptionData({
         isWaitingOnBankAccount: false,
         isAllowedToComment: true,
         isDeletedParentAction: false,
+        transactionThreadReportID: transactionThreadReport?.reportID,
     };
 
     let participantAccountIDs = report.participantAccountIDs ?? [];
@@ -267,7 +268,7 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibileActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = ReportUtils.isUnread(report) && !!report.lastActorAccountID;
+    result.isUnread = (ReportUtils.isUnread(report) && !!report.lastActorAccountID) || (ReportUtils.isUnread(transactionThreadReport) && !!transactionThreadReport?.lastActorAccountID);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -413,7 +414,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail?.avatar ?? {}, personalDetail?.accountID), '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
