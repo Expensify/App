@@ -1,6 +1,5 @@
 import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -58,14 +57,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             </OfflineWithFeedback>
 
             <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
-                <MenuItem
-                    title={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')}
-                    shouldShowBasicTitle
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    interactive={false}
-                />
                 <MenuItemWithTopDescription
                     title={selectedInvoiceCollectionAccountName}
+                    description={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')}
                     shouldShowRightIcon
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
