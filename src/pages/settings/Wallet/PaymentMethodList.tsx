@@ -97,6 +97,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     /** Whether the empty list message should be shown when the list is empty */
     shouldShowEmptyListMessage?: boolean;
 
+    /** Whether the right icon should be shown in PaymentMethodItem */
+    shouldShowRightIcon?: boolean;
+
     /** What to do when a menu item is pressed */
     onPress: (
         event?: GestureResponderEvent | KeyboardEvent,
@@ -186,6 +189,7 @@ function PaymentMethodList({
     shouldEnableScroll = true,
     style = {},
     listItemStyle = {},
+    shouldShowRightIcon = true,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -265,12 +269,26 @@ function PaymentMethodList({
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: Expensicons.ThreeDots,
-                shouldShowRightIcon: true,
+                shouldShowRightIcon,
             };
         });
 
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
+    }, [
+        shouldShowAssignedCards,
+        fundList,
+        bankAccountList,
+        styles,
+        filterType,
+        isOffline,
+        cardList,
+        translate,
+        actionPaymentMethodType,
+        activePaymentMethodID,
+        StyleUtils,
+        shouldShowRightIcon,
+        onPress,
+    ]);
 
     /**
      * Render placeholder when there are no payments methods

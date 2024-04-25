@@ -18,10 +18,10 @@ type CollapsibleSectionProps = ChildrenProps & {
     /** Style of title of the collapsible section */
     titleStyle?: StyleProp<TextStyle>;
 
-    /** Any additional styles to apply */
+    /** Style for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Whether or not to show border between section title and exandable items */
+    /** Whether or not to show border between section title and expandable items */
     shouldShowSectionBorder?: boolean;
 };
 

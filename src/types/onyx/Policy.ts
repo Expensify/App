@@ -542,4 +542,5 @@ export type {
     Connections,
     ConnectionName,
     Tenant,
+    Account,
 };

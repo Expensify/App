@@ -9,7 +9,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
 import CONST from '@src/CONST';
@@ -22,20 +21,19 @@ type ConnectToQuickbooksOnlineButtonOnyxProps = {
     session: OnyxEntry<Session>;
 };
 
+const renderLoading = () => <FullScreenLoadingIndicator />;
+
 function ConnectToQuickbooksOnlineButton({
     policyID,
     session,
-    disconnectIntegrationBeforeConnecting,
+    shouldDisconnectIntegrationBeforeConnecting,
     integrationToDisconnect,
 }: ConnectToQuickbooksOnlineButtonProps & ConnectToQuickbooksOnlineButtonOnyxProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
     const webViewRef = useRef<WebView>(null);
     const [isWebViewOpen, setWebViewOpen] = useState(false);
 
     const authToken = session?.authToken ?? null;
-
-    const renderLoading = () => <FullScreenLoadingIndicator />;
 
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
@@ -43,17 +41,16 @@ function ConnectToQuickbooksOnlineButton({
         <>
             <Button
                 onPress={() => {
-                    if (disconnectIntegrationBeforeConnecting && integrationToDisconnect) {
+                    if (shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect) {
                         setIsDisconnectModalOpen(true);
                         return;
                     }
                     setWebViewOpen(true);
                 }}
                 text={translate('workspace.accounting.setup')}
-                style={styles.justifyContentCenter}
                 small
             />
-            {disconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
+            {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
                 <ConfirmModal
                     title={translate('workspace.accounting.disconnectTitle')}
                     onConfirm={() => {
@@ -89,7 +86,7 @@ function ConnectToQuickbooksOnlineButton({
                                     Cookie: `authToken=${authToken}`,
                                 },
                             }}
-                            incognito
+                            incognito // 'incognito' prop required for Android, issue here https://github.com/react-native-webview/react-native-webview/issues/1352
                             startInLoadingState
                             renderLoading={renderLoading}
                         />
