@@ -57,7 +57,6 @@ function DateOfBirthStep({onNext, isEditing}: SubStepProps) {
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
-            submitButtonStyles={[styles.mb0]}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('personalInfoStep.whatsYourDOB')}</Text>
             <InputWrapper
