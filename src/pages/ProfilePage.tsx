@@ -25,7 +25,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import type {ProfileNavigatorParamList} from '@navigation/types';
 import * as PersonalDetailsActions from '@userActions/PersonalDetails';
@@ -96,8 +95,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const details: PersonalDetails | EmptyObject = personalDetails?.[accountID] ?? (ValidationUtils.isValidAccountRoute(accountID) ? {} : {accountID: 0, avatar: ''});
 
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const avatar = details?.avatar || UserUtils.getDefaultAvatar(); // we can have an empty string and in this case, we need to show the default avatar
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -130,7 +127,8 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const navigateBackTo = route?.params?.backTo;
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference =
+        !isEmptyObject(report) && !isCurrentUser && !!report.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
         : '';
@@ -163,9 +161,10 @@ function ProfilePage({route}: ProfilePageProps) {
                                         <Avatar
                                             containerStyles={[styles.avatarXLarge, styles.mb3]}
                                             imageStyles={[styles.avatarXLarge]}
-                                            source={UserUtils.getAvatar(avatar, accountID)}
+                                            source={details.avatar}
                                             size={CONST.AVATAR_SIZE.XLARGE}
                                             fallbackIcon={fallbackIcon}
+                                            accountID={accountID}
                                         />
                                     </OfflineWithFeedback>
                                 </PressableWithoutFocus>
@@ -236,7 +235,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!isEmptyObject(report) && !isCurrentUser && (
+                            {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
                                 <MenuItem
                                     title={`${translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}

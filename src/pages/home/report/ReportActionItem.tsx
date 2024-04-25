@@ -121,6 +121,11 @@ type ReportActionItemProps = {
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
+    /** The transaction thread report's parentReportAction */
+    /** It's used by withOnyx HOC */
+    // eslint-disable-next-line react/no-unused-prop-types
+    parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
+
     /** All the data of the action item */
     action: OnyxTypes.ReportAction;
 
@@ -396,7 +401,7 @@ function ReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.REQUEST, action.reportActionID);
+                        ReportUtils.createDraftTransactionAndNavigateToParticipantSelector(transactionID, report.reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
                     },
                     isMediumSized: true,
                 },
@@ -921,6 +926,7 @@ function ReportActionItem({
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
+                            transactionThreadReportID={transactionThreadReport?.reportID ?? '0'}
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined, !!onPress)}>
                             <OfflineWithFeedback
@@ -995,10 +1001,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
         key: ONYXKEYS.USER_WALLET,
     },
     transaction: {
-        key: ({transactionThreadReport, reportActions}) => {
-            const parentReportActionID = isEmptyObject(transactionThreadReport) ? '0' : transactionThreadReport.parentReportActionID;
-            const action = reportActions?.find((reportAction) => reportAction.reportActionID === parentReportActionID);
-            const transactionID = (action as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID ? (action as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID : 0;
+        key: ({parentReportActionForTransactionThread}) => {
+            const transactionID = (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU)?.originalMessage.IOUTransactionID
+                ? (parentReportActionForTransactionThread as OnyxTypes.OriginalMessageIOU).originalMessage.IOUTransactionID
+                : 0;
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
