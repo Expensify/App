@@ -1,12 +1,10 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -45,6 +43,40 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         [invoiceAccountCollectionOptions, collectionAccountID],
     );
 
+    const syncReimbursedSubMenuItems = () => (
+        <>
+            <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={selectedQboAccountName}
+                    description={translate('workspace.qbo.advancedConfig.qboAccount')}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                    error={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
+                    brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+
+            <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
+                <MenuItem
+                    title={translate('workspace.qbo.advancedConfig.collectionAccount')}
+                    description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
+                    shouldShowBasicTitle
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    interactive={false}
+                />
+                <MenuItemWithTopDescription
+                    title={selectedInvoiceCollectionAccountName}
+                    shouldShowRightIcon
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
+                    error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
+                    brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
+        </>
+    );
+
     const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
         {
             title: translate('workspace.qbo.advancedConfig.autoSync'),
@@ -79,7 +111,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
         {
             title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
             subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
-            isActive: isSyncReimbursedSwitchOn,
+            isActive: true,
             onToggle: () =>
                 Connections.updatePolicyConnectionConfig(
                     policyID,
@@ -90,6 +122,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             pendingAction: pendingFields?.collectionAccountID,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+            subMenuItems: syncReimbursedSubMenuItems(),
         },
     ];
 
@@ -120,42 +153,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                     isActive={item.isActive}
                                     onToggle={item.onToggle}
                                     pendingAction={item.pendingAction}
+                                    subMenuItems={item.subMenuItems}
                                 />
                             ))}
-
-                            {!!collectionAccountID && (
-                                <>
-                                    <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
-                                        <MenuItemWithTopDescription
-                                            shouldShowRightIcon
-                                            title={selectedQboAccountName}
-                                            description={translate('workspace.qbo.advancedConfig.qboAccount')}
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                            onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                            error={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
-                                            brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        />
-                                    </OfflineWithFeedback>
-
-                                    <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
-                                        <MenuItem
-                                            title={translate('workspace.qbo.advancedConfig.collectionAccount')}
-                                            description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
-                                            shouldShowBasicTitle
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                            interactive={false}
-                                        />
-                                        <MenuItemWithTopDescription
-                                            title={selectedInvoiceCollectionAccountName}
-                                            shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                            onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                                            error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
-                                            brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        />
-                                    </OfflineWithFeedback>
-                                </>
-                            )}
                         </ScrollView>
                     </ScreenWrapper>
                 </FeatureEnabledAccessOrNotFoundWrapper>
