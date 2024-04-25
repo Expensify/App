@@ -2239,9 +2239,10 @@ function getFirstKeyForList(data?: Option[] | null) {
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string): Options {
+function filterOptions(options: Options, searchInputValue: string, betas: Beta[]): Options {
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
@@ -2309,10 +2310,54 @@ function filterOptions(options: Options, searchInputValue: string): Options {
 
     const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
 
+    let userToInvite: ReportUtils.OptionData | null = null;
+
+    /**
+     * We create a new user option if the following conditions are satisfied:
+     * - there's no match recent report and personal detail option
+     * - The searchValue is a valid email or phone number 
+     * - The searchValue isn't the current personal detail login
+     * - We can use chronos or the search value is not the chronos email
+     */
+    if (
+        searchValue &&
+        recentReports.length === 0 &&
+        !isCurrentUser({login: searchValue} as PersonalDetails) &&
+        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
+            (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
+        (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
+    ) {
+        // Generates an optimistic account ID for new users not yet saved in Onyx
+        const optimisticAccountID = UserUtils.generateAccountID(searchValue);
+        const personalDetailsExtended = {
+            ...allPersonalDetails,
+            [optimisticAccountID]: {
+                accountID: optimisticAccountID,
+                login: searchValue,
+            },
+        };
+        userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, {});
+        userToInvite.isOptimisticAccount = true;
+        userToInvite.login = searchValue;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        userToInvite.text = userToInvite.text || searchValue;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        userToInvite.alternateText = userToInvite.alternateText || searchValue;
+
+        // If user doesn't exist, use a fallback avatar
+        userToInvite.icons = [
+            {
+                source: FallbackAvatar,
+                name: searchValue,
+                type: CONST.ICON_TYPE_AVATAR,
+            },
+        ];
+    }
+
     return {
         personalDetails: [],
         recentReports: orderOptions(recentReports, searchValue),
-        userToInvite: null,
+        userToInvite,
         currentUserOption: null,
         categoryOptions: [],
         tagOptions: [],

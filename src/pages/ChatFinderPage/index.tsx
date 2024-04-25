@@ -102,11 +102,11 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
         }
 
         const newOptions = OptionsListUtils.filterOptions(searchOptions, debouncedSearchValue);
-        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length > 0, false, debouncedSearchValue);
+        const header = OptionsListUtils.getHeaderMessage(newOptions.recentReports.length + Number(!!newOptions.userToInvite) > 0, false, debouncedSearchValue);
         return {
             recentReports: newOptions.recentReports,
             personalDetails: newOptions.personalDetails,
-            userToInvite: null,
+            userToInvite: newOptions.userToInvite,
             headerMessage: header,
         };
     }, [debouncedSearchValue, searchOptions]);
