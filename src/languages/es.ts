@@ -3236,11 +3236,11 @@ export default {
     },
     onboardingBottomMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chatea con tu especialista en configuración en ',
-            phrase2: ' por ayuda',
+            phrase1: 'Chatea con tu especialista asignado en ',
+            phrase2: ' para obtener ayuda',
         },
         default: {
-            phrase1: 'Mensaje ',
+            phrase1: 'Envía un email a ',
             phrase2: ' para obtener ayuda con la configuración',
         },
     },
