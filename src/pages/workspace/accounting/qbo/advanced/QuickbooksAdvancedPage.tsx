@@ -123,13 +123,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                 />
                             ))}
 
-                            <View style={styles.mv3}>
-                                <SpacerView
-                                    shouldShow
-                                    style={[styles.chatItemComposeBoxColor]}
-                                />
-                            </View>
-
                             {!!collectionAccountID && (
                                 <>
                                     <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
@@ -143,13 +136,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                             brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         />
                                     </OfflineWithFeedback>
-
-                                    <View style={styles.mv3}>
-                                        <SpacerView
-                                            shouldShow
-                                            style={[styles.chatItemComposeBoxColor]}
-                                        />
-                                    </View>
 
                                     <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
                                         <MenuItem
