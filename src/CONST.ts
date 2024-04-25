@@ -3640,7 +3640,7 @@ const CONST = {
             message: 'Here are some essential tasks to keep your business spend in shape for tax season.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-business.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3650,24 +3650,24 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
+                    subtitle: '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.',
                     message:
                         'Here’s how to create a workspace:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
                         '2. Click <strong>Workspaces</strong> > <strong>New workspace</strong>.\n' +
                         '\n' +
-                        'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
+                        '<strong>Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.</strong>',
                 },
                 {
                     type: 'trackExpense',
                     autoCompleted: false,
                     title: 'Track an expense',
-                    subtitle: 'Track an expense in any currency, in just a few clicks.',
+                    subtitle: '<strong>Track an expense</strong> in any currency, in just a few clicks.',
                     message:
                         'Here’s how to track an expense:\n' +
                         '\n' +
-                        '1. Click the green + button.\n' +
+                        '1. Click the green <strong>+</strong> button.\n' +
                         '2. Choose <strong>Track expense</strong>.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Click <strong>Track</strong>.\n' +
@@ -3680,7 +3680,7 @@ const CONST = {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-get-paid-back.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3690,11 +3690,11 @@ const CONST = {
                     type: 'submitExpense',
                     autoCompleted: false,
                     title: 'Submit an expense',
-                    subtitle: 'Submit an expense by entering an amount or scanning a receipt.',
+                    subtitle: '<strong>Submit an expense</strong> by entering an amount or scanning a receipt.',
                     message:
                         'Here’s how to submit an expense:\n' +
                         '\n' +
-                        '1. Click the green + button.\n' +
+                        '1. Click the green <strong>+</strong> button.\n' +
                         '2. Choose <strong>Submit expense</strong>.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
@@ -3705,7 +3705,7 @@ const CONST = {
                     type: 'enableWallet',
                     autoCompleted: false,
                     title: 'Enable your wallet',
-                    subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
+                    subtitle: 'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!',
                     message:
                         'Here’s how to set up your wallet:\n' +
                         '\n' +
@@ -3721,7 +3721,7 @@ const CONST = {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-manage-team.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3731,14 +3731,14 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    subtitle: 'Create a workspace to track expenses, scan receipts, chat, and more.',
+                    subtitle: '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.',
                     message:
                         'Here’s how to create a workspace:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
                         '2. Click <strong>Workspaces<strong> > <strong>New workspace<strong>.\n' +
                         '\n' +
-                        'Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.',
+                        '<strong>Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.</strong>',
                 },
                 {
                     type: 'meetGuide',
@@ -3754,7 +3754,7 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    subtitle: 'Set up categories so your team can code expenses for easy reporting.',
+                    subtitle: '<strong>Set up categories</strong> so your team can code expenses for easy reporting.',
                     message:
                         'Here’s how to set up categories:\n' +
                         '\n' +
@@ -3764,21 +3764,21 @@ const CONST = {
                         '4. Enable and disable default categories.\n' +
                         '5. Click <strong>Add categories</strong> to make your own.\n' +
                         '\n' +
-                        'For more controls like requiring a category for every expense, click Settings.',
+                        'For more controls like requiring a category for every expense, click <strong>Settings</strong>.',
                 },
                 {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    subtitle: 'Add expense approvals to review your team’s spend and keep it under control.',
+                    subtitle: '<strong>Add expense approvals</strong> to review your team’s spend and keep it under control.',
                     message:
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to Workspaces > [your workspace].\n' +
+                        '2. Go to <strong>Workspaces</strong> > [your workspace].\n' +
                         '3. Click <strong>More features</strong>.\n' +
                         '4. Enable <strong>Workflows</strong>.\n' +
-                        '5. In Workflows, enable <strong>Add approvals</strong>.\n' +
+                        '5. In <strong>Workflows</strong>, enable <strong>Add approvals</strong>.\n' +
                         '\n' +
                         'You’ll be set as the expense approver. You can change this to any admin once you invite your team.',
                 },
@@ -3786,7 +3786,7 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    subtitle: 'Invite your team to Expensify so they can start tracking expenses today.',
+                    subtitle: '<strong>Invite your team</strong> to Expensify so they can start tracking expenses today.',
                     message:
                         'Here’s how to invite your team:\n' +
                         '\n' +
@@ -3804,7 +3804,7 @@ const CONST = {
             message: 'Here’s how to track your spend in a few clicks.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-personal.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3814,14 +3814,14 @@ const CONST = {
                     type: 'trackExpense',
                     autoCompleted: false,
                     title: 'Track an expense',
-                    subtitle: 'Track an expense in any currency, whether you have a receipt or not.',
+                    subtitle: '<strong>Track an expense</strong> in any currency, whether you have a receipt or not.',
                     message:
                         'Here’s how to track an expense:\n' +
                         '\n' +
-                        '1. Click the green + button.\n' +
+                        '1. Click the green <strong>+</strong> button.\n' +
                         '2. Choose <strong>Track expense</strong>.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
-                        '4. Click Track.\n' +
+                        '4. Click <strong>Track</strong>.\n' +
                         '\n' +
                         'And you’re done! Yep, it’s that easy.',
                 },
@@ -3831,7 +3831,7 @@ const CONST = {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             video: {
                 url: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/expensify__favicon.png`,
+                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-chat-split-bills.jpg`,
                 duration: 55,
                 width: 1280,
                 height: 960,
@@ -3841,15 +3841,15 @@ const CONST = {
                     type: 'startChat',
                     autoCompleted: false,
                     title: 'Start a chat',
-                    subtitle: 'Start a chat with a friend or group using their email or phone number.',
+                    subtitle: '<strong>Start a chat</strong> with a friend or group using their email or phone number.',
                     message:
                         'Here’s how to start a chat:\n' +
                         '\n' +
-                        '1. Click the green + button.\n' +
+                        '1. Click the green <strong>+</strong> button.\n' +
                         '2. Choose <strong>Start chat</strong>.\n' +
                         '3. Enter emails or phone numbers.\n' +
                         '\n' +
-                        'If any of your friends aren’t using Expensify already, they’ll be invited automatically. \n' +
+                        'If any of your friends aren’t using Expensify already, they’ll be invited automatically.\n' +
                         '\n' +
                         'Every chat will also turn into an email or text that they can respond to directly.',
                 },
@@ -3857,11 +3857,11 @@ const CONST = {
                     type: 'splitExpense',
                     autoCompleted: false,
                     title: 'Split an expense',
-                    subtitle: 'Split an expense right in your chat with one or more friends.',
+                    subtitle: '<strong>Split an expense</strong> right in your chat with one or more friends.',
                     message:
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Click the green + button.\n' +
+                        '1. Click the green <strong>+</strong> button.\n' +
                         '2. Choose <strong>Split expense</strong>.\n' +
                         '3. Scan a receipt or enter an amount.\n' +
                         '4. Add your friend(s) to the request.\n' +
@@ -3872,7 +3872,7 @@ const CONST = {
                     type: 'enableWallet',
                     autoCompleted: false,
                     title: 'Enable your wallet',
-                    subtitle: 'You’ll need to enable your Expensify Wallet to get paid back. Don’t worry, it’s easy!',
+                    subtitle: 'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!',
                     message:
                         'Here’s how to enable your wallet:\n' +
                         '\n' +
