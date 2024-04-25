@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import { useOnyx } from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useWindowDimensions from './useWindowDimensions';
 
@@ -21,7 +21,7 @@ type ResponsiveLayoutResult = {
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();
-    
+
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const willAlertModalBecomeVisible = modal?.willAlertModalBecomeVisible ?? false;
 
