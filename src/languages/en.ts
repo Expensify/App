@@ -129,6 +129,7 @@ export default {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
@@ -550,7 +551,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Search for something...',
+        buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
@@ -630,7 +631,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Pending...',
+        fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
         receiptMissingDetails: 'Receipt missing details',
@@ -653,6 +654,7 @@ export default {
         nextStep: 'Next Steps',
         finished: 'Finished',
         submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
+        trackAmount: ({amount}: RequestAmountParams) => `track ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -1318,8 +1320,7 @@ export default {
     onboarding: {
         welcomeVideo: {
             title: 'Welcome to Expensify',
-            description: 'Getting paid is as easy as sending a message.',
-            button: "Let's go",
+            description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
@@ -1964,6 +1965,7 @@ export default {
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
+            importedFromAccountingSoftware: 'The categories below are imported from your',
         },
         moreFeatures: {
             spendSection: {
@@ -2136,6 +2138,7 @@ export default {
             lowRateError: 'Rate must be greater than 0',
         },
         accounting: {
+            settings: 'settings',
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
             qbo: 'Quickbooks Online',
@@ -2737,28 +2740,6 @@ export default {
             body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
         },
         copyReferralLink: 'Copy invite link',
-    },
-    purposeForExpensify: {
-        [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
-        [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
-        welcomeMessage: 'Welcome to Expensify',
-        welcomeSubtitle: 'What would you like to do?',
-    },
-    manageTeams: {
-        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
-        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
-        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
-        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
-        title: 'Do you require any of the following features?',
-    },
-    expensifyClassic: {
-        title: "Expensify Classic has everything you'll need",
-        firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
-        secondDescription: "Don't worry, Expensify Classic has everything you need.",
-        buttonText: 'Take me to Expensify Classic',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
