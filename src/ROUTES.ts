@@ -272,11 +272,6 @@ const ROUTES = {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
     },
-    EDIT_SPLIT_BILL: {
-        route: `r/:reportID/split/:reportActionID/edit/:field/:tagIndex?`,
-        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${reportID}/split/${reportActionID}/edit/${field as string}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
-    },
     TASK_TITLE: {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title` as const,
@@ -309,14 +304,6 @@ const ROUTES = {
         route: ':type/edit/reason/:transactionID?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
             `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
-    },
-    MONEY_REQUEST_MERCHANT: {
-        route: ':iouType/new/merchant/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
-    },
-    MONEY_REQUEST_RECEIPT: {
-        route: ':iouType/new/receipt/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
     },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
