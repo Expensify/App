@@ -76,6 +76,21 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
             onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR),
         },
+        {
+            title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
+            subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
+            isActive: isSyncReimbursedSwitchOn,
+            onToggle: () =>
+                Connections.updatePolicyConnectionConfig(
+                    policyID,
+                    CONST.POLICY.CONNECTIONS.NAME.QBO,
+                    CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
+                    isSyncReimbursedSwitchOn ? '' : bankAccounts?.[0].id,
+                ),
+            pendingAction: pendingFields?.collectionAccountID,
+            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
+        },
     ];
 
     return (
@@ -114,25 +129,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                                     style={[styles.chatItemComposeBoxColor]}
                                 />
                             </View>
-
-                            <ToggleSettingOptionRow
-                                title={translate('workspace.qbo.advancedConfig.reimbursedReports')}
-                                errors={ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
-                                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID)}
-                                subtitle={translate('workspace.qbo.advancedConfig.reimbursedReportsDescription')}
-                                shouldPlaceSubtitleBelowSwitch
-                                wrapperStyle={styles.mv3}
-                                pendingAction={pendingFields?.collectionAccountID}
-                                isActive={isSyncReimbursedSwitchOn}
-                                onToggle={() =>
-                                    Connections.updatePolicyConnectionConfig(
-                                        policyID,
-                                        CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                        CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-                                        isSyncReimbursedSwitchOn ? '' : bankAccounts?.[0].id,
-                                    )
-                                }
-                            />
 
                             {!!collectionAccountID && (
                                 <>
