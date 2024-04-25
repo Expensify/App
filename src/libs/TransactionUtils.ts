@@ -656,7 +656,7 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
     };
 
     const getModifiedName = (data: TaxRate, code: string) =>
-        `${data.name} (${data.value})${defaultTaxCode() === code ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
+        `${data.name} (${data.value})${defaultTaxCode() === code && transaction ? ` ${CONST.DOT_SEPARATOR} ${Localize.translateLocal('common.default')}` : ''}`;
     const taxes = Object.fromEntries(Object.entries(taxRates?.taxes ?? {}).map(([code, data]) => [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}]));
     return taxes;
 }
