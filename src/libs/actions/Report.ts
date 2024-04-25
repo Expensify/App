@@ -738,7 +738,7 @@ function openReport(
     if (ReportUtils.isGroupChat(newReportObject)) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
-        parameters.optimisticAccountIDList = Object.keys(newReportObject.participants ?? []).join(',');
+        parameters.optimisticAccountIDList = Object.keys(newReportObject.participants ?? {}).join(',');
         parameters.reportName = newReportObject.reportName ?? '';
 
         // If we have an avatar then include it with the parameters
