@@ -63,7 +63,7 @@ export default {
     fontSizeXLarge: 22,
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: 32,
-    fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
+    fontSizeNormalHeight: getValueUsingPixelRatio(21, 28),
     fontSizeEReceiptLarge: 44,
     fontSizeSignInHeroLarge: 48,
     fontSizeSignInHeroMedium: 38,
@@ -203,7 +203,7 @@ export default {
     sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    welcomeVideoDelay: 500,
+    welcomeVideoDelay: 1000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -229,4 +229,5 @@ export default {
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
+    textInputAutoGrowMaxHeight: 115,
 } as const;
