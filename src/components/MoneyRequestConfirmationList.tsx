@@ -975,7 +975,18 @@ function MoneyRequestConfirmationList({
                 )}
             </View>
         ),
-        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
+        [
+            isLocalFile,
+            receiptFilename,
+            resolvedThumbnail,
+            styles.moneyRequestImage,
+            isAttachmentInvalid,
+            isThumbnail,
+            resolvedReceiptImage,
+            receiptThumbnail,
+            fileExtension,
+            isDistanceRequest,
+        ],
     );
 
     return (
