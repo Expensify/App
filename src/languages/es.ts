@@ -3236,12 +3236,12 @@ export default {
     },
     onboardingBottomMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
-            phrase1: 'Chat with your setup specialist in ',
-            phrase2: ' for help',
+            phrase1: 'Chatea con tu especialista en configuración en ',
+            phrase2: ' por ayuda',
         },
         default: {
-            phrase1: 'Message ',
-            phrase2: ' for help with setup',
+            phrase1: 'Mensaje ',
+            phrase2: ' para obtener ayuda con la configuración',
         },
     },
     violations: {
