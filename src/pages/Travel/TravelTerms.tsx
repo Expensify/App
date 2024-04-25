@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import * as Travel from '@userActions/Travel';
 
 function TravelTerms() {
     const styles = useThemeStyles();
@@ -85,8 +86,8 @@ function TravelTerms() {
                                 setError(true);
                                 return;
                             }
-
-                            // API call for AcceptSpontanaTerms when backend gets implemented
+                            console.log('SUBMIT');
+                            Travel.acceptSpotnanaTerms();
                             setError(false);
                             Navigation.navigate();
                         }}
