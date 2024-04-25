@@ -25,6 +25,7 @@ const SCREENS = {
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
+        REPORT_RHP: 'Search_Report_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },
     SETTINGS: {
@@ -130,6 +131,7 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        SEARCH_REPORT: 'SearchReport',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',

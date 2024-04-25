@@ -132,7 +132,11 @@ function getMatchingRootRouteForRHPRoute(
     // Check for CentralPaneNavigator
     for (const [centralPaneName, RHPNames] of Object.entries(CENTRAL_PANE_TO_RHP_MAPPING)) {
         if (RHPNames.includes(route.name)) {
-            return createCentralPaneNavigator({name: centralPaneName as CentralPaneName, params: route.params});
+            const params = {...route.params};
+            if (centralPaneName === SCREENS.SEARCH.CENTRAL_PANE) {
+                delete (params as Record<string, string | undefined>)?.reportID;
+            }
+            return createCentralPaneNavigator({name: centralPaneName as CentralPaneName, params});
         }
     }
 
@@ -195,6 +199,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
             if (matchingRootRoute?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
                 routes.push(createCentralPaneNavigator({name: SCREENS.SETTINGS.WORKSPACES}));
             }
+
             if (matchingRootRoute && (!isNarrowLayout || !isRHPScreenOpenedFromLHN)) {
                 routes.push(matchingRootRoute);
             }
