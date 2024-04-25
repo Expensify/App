@@ -283,10 +283,10 @@ function IOURequestStepConfirmation({
         (selectedParticipants: Participant[]) => {
             let splitParticipants = selectedParticipants;
 
-            // Filter out participants with $0 split share
+            // Filter out participants with an amount equal to O
             if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.splitShares) {
                 const participantsWithAmount = Object.keys(transaction.splitShares ?? {})
-                    .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)].amount ?? 0) > 0)
+                    .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
                     .map((accountID) => Number(accountID));
                 splitParticipants = selectedParticipants.filter((participant) => participantsWithAmount.includes(participant.accountID ?? -1));
             }
