@@ -2,7 +2,6 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -19,7 +18,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
@@ -28,7 +26,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -44,7 +41,7 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     WorkspacePolicyOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
-function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -57,14 +54,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
 
-    const member = policyMembers?.[accountID];
+    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const member = policy?.employeeList?.[memberLogin];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const isCurrentUserAdmin = policyMembers?.[currentUserPersonalDetails?.accountID]?.role === CONST.POLICY.ROLE.ADMIN;
+    const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
 
     const roleItems: ListItemType[] = useMemo(
@@ -78,7 +75,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
             {
                 value: CONST.POLICY.ROLE.USER,
                 text: translate('common.member'),
-                isSelected: member?.role === CONST.POLICY.ROLE.USER,
+                isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
                 keyForList: CONST.POLICY.ROLE.USER,
             },
         ],
@@ -143,9 +140,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
                                 <Avatar
                                     containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                                     imageStyles={[styles.avatarXLarge]}
-                                    source={UserUtils.getAvatar(avatar, accountID)}
+                                    source={details.avatar}
                                     size={CONST.AVATAR_SIZE.XLARGE}
                                     fallbackIcon={fallbackIcon}
+                                    accountID={accountID}
                                 />
                             </OfflineWithFeedback>
                             {Boolean(details.displayName ?? '') && (
@@ -218,10 +216,4 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
 
 WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceMemberDetailsPageProps, WorkspacePolicyOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(WorkspaceMemberDetailsPage),
-);
+export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsPage);
