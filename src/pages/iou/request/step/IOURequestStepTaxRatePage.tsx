@@ -66,7 +66,7 @@ function IOURequestStepTaxRatePage({
         const taxAmount = getTaxAmount(policy, taxes.text, TransactionUtils.getAmount(transaction, false, true));
 
         if (isEditing) {
-            const newTaxCode = taxes.data.code;
+            const newTaxCode = taxes.code;
             if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 navigateBack();
                 return;
@@ -89,7 +89,7 @@ function IOURequestStepTaxRatePage({
             return;
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
-        IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes?.data?.code ?? '');
+        IOU.setMoneyRequestTaxRate(transaction?.transactionID, taxes?.code ?? '');
         IOU.setMoneyRequestTaxAmount(transaction.transactionID, amountInSmallestCurrencyUnits, true);
 
         Navigation.goBack(backTo);

@@ -36,7 +36,7 @@ function WorkspaceTaxesSettingsForeignCurrency({
     const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
 
     const submit = (taxes: OptionsListUtils.TaxRatesOption) => {
-        setForeignCurrencyDefault(policyID, taxes.data.code ?? '');
+        setForeignCurrencyDefault(policyID, taxes.code ?? '');
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
