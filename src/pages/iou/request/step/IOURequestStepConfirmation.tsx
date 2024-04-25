@@ -82,13 +82,13 @@ function IOURequestStepConfirmation({
     const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
-        if (isSharingTrackExpense) {
+        if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
         }
         if (isSubmittingFromTrackExpense) {
             return translate('iou.submitExpense');
         }
-        if (isCategorizingTrackExpense) {
+        if (isSharingTrackExpense) {
             return translate('iou.share');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {

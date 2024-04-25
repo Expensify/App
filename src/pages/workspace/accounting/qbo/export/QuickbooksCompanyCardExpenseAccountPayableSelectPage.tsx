@@ -20,32 +20,32 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
+function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const {exportInvoice} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {accountsPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {exportAccountPayable} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
-            accountsReceivable?.map((account) => ({
+            accountsPayable?.map((account) => ({
                 value: account.name,
                 text: account.name,
                 keyForList: account.name,
-                isSelected: account.name === exportInvoice,
+                isSelected: account.name === exportAccountPayable,
             })) ?? [],
-        [exportInvoice, accountsReceivable],
+        [exportAccountPayable, accountsPayable],
     );
 
-    const selectExportInvoice = useCallback(
+    const selectAccountPayable = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportInvoice) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_INVOICE, row.value);
+            if (row.value !== exportAccountPayable) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT_PAYABLE, row.value);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [exportInvoice, policyID],
+        [exportAccountPayable, policyID],
     );
 
     return (
@@ -54,13 +54,13 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
                 policyID={policyID}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             >
-                <ScreenWrapper testID={QuickbooksExportInvoiceAccountSelectPage.displayName}>
-                    <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
+                <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountPayableSelectPage.displayName}>
+                    <HeaderWithBackButton title={translate('workspace.qbo.accountsPayable')} />
                     <SelectionList
-                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
+                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
                         sections={[{data}]}
                         ListItem={RadioListItem}
-                        onSelectRow={selectExportInvoice}
+                        onSelectRow={selectAccountPayable}
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     />
                 </ScreenWrapper>
@@ -69,6 +69,6 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     );
 }
 
-QuickbooksExportInvoiceAccountSelectPage.displayName = 'QuickbooksExportInvoiceAccountSelectPage';
+QuickbooksCompanyCardExpenseAccountPayableSelectPage.displayName = 'QuickbooksCompanyCardExpenseAccountPayableSelectPage';
 
-export default withPolicyConnections(QuickbooksExportInvoiceAccountSelectPage);
+export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountPayableSelectPage);

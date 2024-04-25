@@ -39,7 +39,17 @@ function CurrentReportIDContextProvider(props: CurrentReportIDContextProviderPro
      */
     const updateCurrentReportID = useCallback(
         (state: NavigationState) => {
-            setCurrentReportID(Navigation.getTopmostReportId(state) ?? '');
+            const reportID = Navigation.getTopmostReportId(state) ?? '';
+
+            /*
+             * Make sure we don't make the reportID undefined when switching between the chat list and settings tab.
+             * This helps prevent unnecessary re-renders.
+             */
+            const params = state?.routes?.[state.index]?.params;
+            if (params && 'screen' in params && typeof params.screen === 'string' && params.screen.indexOf('Settings_') !== -1) {
+                return;
+            }
+            setCurrentReportID(reportID);
         },
         [setCurrentReportID],
     );
