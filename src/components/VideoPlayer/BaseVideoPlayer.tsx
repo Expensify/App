@@ -299,7 +299,7 @@ function BaseVideoPlayer({
                                     }
                                     togglePlayCurrentVideo();
                                 }}
-                                style={styles.flex1}
+                                style={[styles.flex1, styles.noSelect]}
                             >
                                 {shouldUseSharedVideoElement ? (
                                     <>
