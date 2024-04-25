@@ -14,7 +14,7 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -25,7 +25,7 @@ type CardListItem = ListItem & {
 type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
 type Card = {name: string; id: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>};
 
-function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
@@ -64,7 +64,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyP
 
     const sections = useMemo<CardsSection[]>(() => [{data}], [data]);
 
-    const onSelectRow = useCallback(
+    const selectExportCompanyCard = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportCompanyCard) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD, row.value);
@@ -89,7 +89,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyP
                             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
                             sections={sections}
                             ListItem={RadioListItem}
-                            onSelectRow={onSelectRow}
+                            onSelectRow={selectExportCompanyCard}
                             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                             footerContent={
                                 isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>

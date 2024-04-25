@@ -11,7 +11,7 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -20,7 +20,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountsPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -38,7 +38,7 @@ function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPoli
         [exportAccountPayable, accountsPayable],
     );
 
-    const onSelectRow = useCallback(
+    const selectAccountPayable = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportAccountPayable) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT_PAYABLE, row.value);
@@ -60,7 +60,7 @@ function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPoli
                         headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
                         sections={[{data}]}
                         ListItem={RadioListItem}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={selectAccountPayable}
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     />
                 </ScreenWrapper>

@@ -11,7 +11,7 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
@@ -53,7 +53,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
         }));
     }, [exportCompanyCardAccount, creditCards, bankAccounts, exportCompanyCard, vendors]);
 
-    const onSelectRow = useCallback(
+    const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportAccount) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT, row.value);
@@ -77,7 +77,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
                         headerContent={exportCompanyCard ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.${exportCompanyCard}AccountDescription`)}</Text> : null}
                         sections={[{data}]}
                         ListItem={RadioListItem}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={selectExportAccount}
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     />
                 </ScreenWrapper>

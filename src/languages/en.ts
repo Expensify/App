@@ -1913,10 +1913,10 @@ export default {
             exportVendorBillDescription:
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
             check: 'Check',
-            accountsPayable: 'Accounts Payable',
+            accountsPayable: 'Accounts payable',
             account: 'Account',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
-            journalEntry: 'Journal Entry',
+            journalEntry: 'Journal entry',
             optionBelow: 'Choose an option below:',
             vendorBillError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
             checkError: 'Check is not available when locations are enabled. Please select a different export option.',

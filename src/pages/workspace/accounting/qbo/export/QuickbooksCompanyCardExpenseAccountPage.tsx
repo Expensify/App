@@ -1,11 +1,9 @@
 import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,13 +11,13 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import variables from '@styles/variables';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
@@ -44,7 +42,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyProps) {
                                 description={translate('workspace.qbo.exportCompany')}
                                 error={errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
-                                brickRoadIndicator={exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                brickRoadIndicator={errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 shouldShowRightIcon
                             />
                         </OfflineWithFeedback>
@@ -59,27 +57,21 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyProps) {
                                         description={translate('workspace.qbo.accountsPayable')}
                                         error={errorFields?.exportAccountPayable ? translate('common.genericErrorMessage') : undefined}
                                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT.getRoute(policyID))}
-                                        brickRoadIndicator={exportAccountPayable ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                        brickRoadIndicator={errorFields?.exportAccountPayable ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                         shouldShowRightIcon
                                     />
                                 </OfflineWithFeedback>
-                                <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb3]}>{translate('workspace.qbo.defaultVendorDescription')}</Text>
-                                <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5]}>
-                                    <View style={styles.flex1}>
-                                        <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.defaultVendor')}</Text>
-                                    </View>
-                                    <OfflineWithFeedback pendingAction={pendingFields?.autoCreateVendor}>
-                                        <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                                            <Switch
-                                                accessibilityLabel={translate('workspace.qbo.defaultVendor')}
-                                                isOn={Boolean(autoCreateVendor)}
-                                                onToggle={(isOn) =>
-                                                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, isOn)
-                                                }
-                                            />
-                                        </View>
-                                    </OfflineWithFeedback>
-                                </View>
+                                <ToggleSettingOptionRow
+                                    subtitle={translate('workspace.qbo.defaultVendorDescription')}
+                                    errors={errorFields?.autoCreateVendor ?? undefined}
+                                    title={translate('workspace.qbo.defaultVendor')}
+                                    wrapperStyle={[styles.ph5, styles.mb3]}
+                                    isActive={Boolean(autoCreateVendor)}
+                                    onToggle={(isOn) =>
+                                        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, isOn)
+                                    }
+                                    pendingAction={pendingFields?.autoCreateVendor}
+                                />
                             </>
                         )}
                         <OfflineWithFeedback pendingAction={pendingFields?.exportCompanyCardAccount}>
