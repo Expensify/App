@@ -11,7 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
-* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
+* [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
@@ -60,6 +60,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
+    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
 * Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
@@ -81,6 +82,16 @@ If you want to run the app on an actual physical iOS device, please follow the i
 
 ## Running the MacOS desktop app 🖥
 * To run the **Development app**, run: `npm run desktop`, this will start a new Electron process running on your MacOS desktop in the `dist/Mac` folder.
+
+## Receiving Notifications
+To receive notifications on development build of the app while hitting the Staging or Production API, you need to use the production airship config.
+### Android
+1. Copy the [production config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/main/assets/airshipconfig.properties#L1-L7) to the [development config](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/android/app/src/development/assets/airshipconfig.properties#L1-L8).
+2. Rebuild the app.
+
+### iOS
+1. Replace the [development key and secret](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L7-L10) with the [production values](https://github.com/Expensify/App/blob/d7c1256f952c0020344d809ee7299b49a4c70db2/ios/AirshipConfig.plist#L11-L14).
+2. Rebuild the app.
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)

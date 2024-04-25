@@ -1247,6 +1247,29 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return {};
     },
 
+    getIconColorStyle: (isSuccess: boolean, isError: boolean): string => {
+        if (isSuccess) {
+            return theme.iconSuccessFill;
+        }
+        if (isError) {
+            return theme.iconDangerFill;
+        }
+        return theme.icon;
+    },
+
+    getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {
+        if (isAdhoc) {
+            return styles.badgeAdHocSuccess;
+        }
+        if (isSuccess) {
+            return styles.badgeEnvironmentSuccess;
+        }
+        if (isError) {
+            return styles.badgeEnvironmentDanger;
+        }
+        return {};
+    },
+
     /**
      * Generate a style for the background color of the button, based on its current state.
      *
@@ -1551,6 +1574,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isDisabled && styles.cursorDisabled),
         ...(isDisabled && styles.buttonOpacityDisabled),
     }),
+
+    /**
+     * When adding a new prefix character, adjust this method to add expected character width.
+     * This is because character width isn't known before it's rendered to the screen, and once it's rendered,
+     * it's too late to calculate it's width because the change in padding would cause a visible jump.
+     * Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
+     * also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
+     * this method will produce reliable results.
+     */
+    getCharacterPadding: (prefix: string): number => prefix.length * 10,
 
     // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({

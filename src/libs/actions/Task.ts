@@ -5,7 +5,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
@@ -15,7 +14,6 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -67,16 +65,16 @@ Onyx.connect({
     },
 });
 
-const allReportActions: OnyxCollection<ReportActions> = {};
+let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
 
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        allReportActions[reportID] = actions;
+        allReportActions = actions;
     },
 });
 
@@ -90,8 +88,12 @@ Onyx.connect({
 /**
  * Clears out the task info from the store
  */
-function clearOutTaskInfo() {
-    Onyx.set(ONYXKEYS.TASK, null);
+function clearOutTaskInfo(skipConfirmation = false) {
+    if (skipConfirmation) {
+        Onyx.set(ONYXKEYS.TASK, {skipConfirmation: true});
+    } else {
+        Onyx.set(ONYXKEYS.TASK, null);
+    }
 }
 
 /**
@@ -298,7 +300,7 @@ function createTaskAndNavigate(
 function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     const taskReportID = taskReport?.reportID ?? '';
     const message = `marked as complete`;
-    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
+    const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED, message);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -365,7 +367,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 function reopenTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
     const taskReportID = taskReport?.reportID ?? '';
     const message = `marked as incomplete`;
-    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
+    const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED, message);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -682,7 +684,7 @@ function setAssigneeValue(
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
                 accountID: assigneeAccountID,
-                avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
+                avatar: allPersonalDetails?.[assigneeAccountID]?.avatar,
                 displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeEmail,
                 login: assigneeEmail,
             };
@@ -725,8 +727,8 @@ function setParentReportID(parentReportID: string) {
 /**
  * Clears out the task info from the store and navigates to the NewTaskDetails page
  */
-function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<OnyxTypes.Report>, accountID = 0) {
-    clearOutTaskInfo();
+function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<OnyxTypes.Report>, accountID = 0, skipConfirmation = false) {
+    clearOutTaskInfo(skipConfirmation);
     if (reportID && reportID !== '0') {
         setParentReportID(reportID);
     }
@@ -795,7 +797,7 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): ReportActio
     if (!report?.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return allReportActions?.[report.parentReportID]?.[report.parentReportActionID] ?? {};
+    return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID] ?? {};
 }
 
 /**
@@ -816,7 +818,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
         return;
     }
     const message = `deleted task: ${report.reportName}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID ?? '', CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
     const parentReportAction = getParentReportAction(report);
     const parentReport = getParentReport(report);
@@ -957,7 +959,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
  * Closes the current open task modal and clears out the task info from the store.
  */
 function dismissModalAndClearOutTaskInfo() {
-    Navigation.dismissModal();
+    Navigation.closeRHPFlow();
     clearOutTaskInfo();
 }
 

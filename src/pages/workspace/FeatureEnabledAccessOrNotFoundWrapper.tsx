@@ -1,9 +1,10 @@
 /* eslint-disable rulesdir/no-negated-variables */
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useNetwork from '@hooks/useNetwork';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
@@ -33,9 +34,25 @@ type FeatureEnabledAccessOrNotFoundComponentProps = FeatureEnabledAccessOrNotFou
 };
 
 function FeatureEnabledAccessOrNotFoundComponent(props: FeatureEnabledAccessOrNotFoundComponentProps) {
+    const pendingField = props.policy?.pendingFields?.[props.featureName];
     const isPolicyIDInRoute = !!props.policyID?.length;
+    const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+
+    const [isPolicyFeatureEnabled, setIsPolicyFeatureEnabled] = useState(isFeatureEnabled);
+    const {isOffline} = useNetwork();
+
+    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !isPolicyFeatureEnabled;
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
-    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyFeatureEnabled(props.policy, props.featureName);
+
+    // We only update the feature state if it isn't pending.
+    // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
+    // Without this, we can have unexpectedly have 'Not Found' be shown.
+    useEffect(() => {
+        if (pendingField && !isOffline && !isFeatureEnabled) {
+            return;
+        }
+        setIsPolicyFeatureEnabled(isFeatureEnabled);
+    }, [pendingField, isOffline, isFeatureEnabled]);
 
     useEffect(() => {
         if (!isPolicyIDInRoute || !isEmptyObject(props.policy)) {
