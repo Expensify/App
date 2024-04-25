@@ -248,8 +248,9 @@ function SettlementButton({
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (
             (iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
-            iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
-            iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) && !hasBankAccount
+                iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
+                iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) &&
+            !hasBankAccount
         ) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
