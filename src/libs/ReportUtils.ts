@@ -444,7 +444,7 @@ type OptionData = {
     data?: Partial<TaxRate>;
     transactionThreadReportID?: string | null;
     shouldShowAmountInput?: boolean;
-    amountInputProps: MoneyRequestAmountInputProps;
+    amountInputProps?: MoneyRequestAmountInputProps;
     tabIndex?: 0 | -1;
 } & Report;
 
