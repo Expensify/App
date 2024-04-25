@@ -114,7 +114,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     policyID,
                     CONST.POLICY.CONNECTIONS.NAME.QBO,
                     CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-                    isSyncReimbursedSwitchOn ? '' : bankAccounts?.[0].id,
+                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
                 ),
             pendingAction: pendingFields?.collectionAccountID,
             errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
