@@ -119,6 +119,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
         next: 'Siguiente',
@@ -313,7 +314,7 @@ export default {
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
-        businessName: 'Nombre del Negocio',
+        businessName: 'Nombre de la empresa',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -543,7 +544,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Busca algo...',
+        buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',
@@ -623,7 +624,7 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
-        routePending: 'Pendiente...',
+        fieldPending: 'Pendiente...',
         defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
@@ -646,6 +647,7 @@ export default {
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -1317,8 +1319,7 @@ export default {
     onboarding: {
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
-            description: 'Cobrar es tan fácil como enviar un mensaje.',
-            button: 'Vámonos',
+            description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
         },
         whatsYourName: '¿Cómo te llamas?',
         whereYouWork: '¿Dónde trabajas?',
@@ -1330,7 +1331,7 @@ export default {
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
@@ -1991,6 +1992,7 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+            importedFromAccountingSoftware: 'Categorías importadas desde',
         },
         moreFeatures: {
             spendSection: {
@@ -2131,6 +2133,7 @@ export default {
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         accounting: {
+            settings: 'configuración',
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
@@ -3230,28 +3233,6 @@ export default {
             body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
-    },
-    purposeForExpensify: {
-        [CONST.INTRO_CHOICES.TRACK]: 'Seguimiento de los gastos de empresa para fines fiscales',
-        [CONST.INTRO_CHOICES.SUBMIT]: 'Reclamar gastos a mi empleador',
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
-        welcomeMessage: 'Bienvenido a Expensify',
-        welcomeSubtitle: '¿Qué te gustaría hacer?',
-    },
-    manageTeams: {
-        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
-        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación personalizada de gastos',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Seguimiento de tarjetas corporativas',
-        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Integraciones de contaduría',
-        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Aplicación de reglas',
-        title: '¿Necesitas alguna de las siguientes funciones?',
-    },
-    expensifyClassic: {
-        title: 'Expensify Classic tiene todo lo que necesitas',
-        firstDescription: 'Aunque estamos ocupados trabajando en el Nuevo Expensify, actualmente no soporta algunas de las funciones que estás buscando.',
-        secondDescription: 'No te preocupes, Expensify Classic tiene todo lo que necesitas.',
-        buttonText: 'Llévame a Expensify Classic',
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
