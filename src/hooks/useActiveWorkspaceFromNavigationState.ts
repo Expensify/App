@@ -5,6 +5,10 @@ import SCREENS from '@src/SCREENS';
 
 /**
  *  Get the currently selected policy ID stored in the navigation state. This hook should only be called only from screens in BottomTab.
+ *  Differences between this hook and useActiveWorkspace:
+ *  - useActiveWorkspaceFromNavigationState reads the active workspace id directly from the navigation state, it's a bit slower than useActiveWorkspace and it can be called only from BottomTabScreens.
+ *    It allows to read a value of policyID immediately after the update.
+ *  - useActiveWorkspace allows to read the current policyID anywhere, it's faster because it doesn't require searching in the navigation state.
  */
 function useActiveWorkspaceFromNavigationState() {
     // The last policyID value is always stored in the last route in BottomTabNavigator.
