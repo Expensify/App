@@ -320,8 +320,7 @@ function MoneyRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const shouldDisplayMerchantError =
-        (isMerchantRequired || (isEditingSplitBill && isScanRequest)) && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
+    const shouldDisplayMerchantError = (isMerchantRequired || isEditingSplitBill) && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
     const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
 
