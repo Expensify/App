@@ -4752,6 +4752,14 @@ function hasViolations(reportID: string, transactionViolations: OnyxCollection<T
 }
 
 /**
+ * Checks to see if a report contains a violation of type `warning`
+ */
+function hasWarnings(reportID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    const transactions = TransactionUtils.getAllReportTransactions(reportID);
+    return transactions.some((transaction) => TransactionUtils.hasWarning(transaction.transactionID, transactionViolations));
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -6304,6 +6312,7 @@ export {
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,
+    hasWarnings,
     isActionCreator,
     isAdminRoom,
     isAdminsOnlyPostingRoom,
