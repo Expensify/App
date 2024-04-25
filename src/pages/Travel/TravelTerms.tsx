@@ -86,10 +86,10 @@ function TravelTerms() {
                                 setError(true);
                                 return;
                             }
-                            console.log('SUBMIT');
+
                             Travel.acceptSpotnanaTerms();
                             setError(false);
-                            Navigation.navigate();
+                            Navigation.resetToHome();
                         }}
                         message={errorMessage}
                         isAlertVisible={error || Boolean(errorMessage)}
