@@ -112,6 +112,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
@@ -1338,6 +1339,9 @@ export default {
             requiredFirstName: 'Introduce tu nombre para continuar',
             requiredLastName: 'Introduce tu apellido para continuar',
         },
+    },
+    featureTraining: {
+        doNotShowAgain: 'No muestres esto otra vez',
     },
     personalDetails: {
         error: {
