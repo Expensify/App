@@ -2075,6 +2075,69 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
     Onyx.update(optimisticData);
 }
 
+function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
+    const optimisticCategoryMap = categories.reduce(
+        (acc, category) => ({
+            ...acc,
+            [category]: {
+                name: category,
+                enabled: true,
+                errors: null,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        }),
+        {},
+    );
+
+    const successCategoryMap = categories.reduce(
+        (acc, category) => ({
+            ...acc,
+            [category]: {
+                errors: null,
+                pendingAction: null,
+            },
+        }),
+        {},
+    );
+
+    const failureCategoryMap = categories.reduce(
+        (acc, category) => ({
+            ...acc,
+            [category]: {
+                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
+                pendingAction: null,
+            },
+        }),
+        {},
+    );
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategoryMap,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: successCategoryMap,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: failureCategoryMap,
+            },
+        ],
+    };
+
+    return onyxData;
+}
+
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
@@ -2083,7 +2146,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): string {
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
@@ -2102,6 +2165,8 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         expenseReportActionData,
         expenseCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+
+    const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2293,6 +2358,18 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         },
     ];
 
+    if (optimisticCategoriesData.optimisticData) {
+        optimisticData.push(...optimisticCategoriesData.optimisticData);
+    }
+
+    if (optimisticCategoriesData.failureData) {
+        failureData.push(...optimisticCategoriesData.failureData);
+    }
+
+    if (optimisticCategoriesData.successData) {
+        successData.push(...optimisticCategoriesData.successData);
+    }
+
     const params: CreateWorkspaceParams = {
         policyID,
         announceChatReportID,
@@ -2311,7 +2388,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
-    return adminsChatReportID;
+    return params;
 }
 
 function openWorkspaceReimburseView(policyID: string) {
@@ -3085,46 +3162,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
 }
 
 function createPolicyCategory(policyID: string, categoryName: string) {
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        name: categoryName,
-                        enabled: true,
-                        errors: null,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        errors: null,
-                        pendingAction: null,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
-                        pendingAction: null,
-                    },
-                },
-            },
-        ],
-    };
+    const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
 
     const parameters = {
         policyID,
