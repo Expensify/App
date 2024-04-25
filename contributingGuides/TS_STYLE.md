@@ -656,7 +656,7 @@ import viewRef from '@src/types/utils/viewRef';
 
 const ref = useRef<View | HTMLDivElement>();
 
-if (ref.current && 'getBoundingClientRect' in ref.current ) {
+if (ref.current && 'getBoundingClientRect' in ref.current) {
   ref.current.getBoundingClientRect();
 }
 
