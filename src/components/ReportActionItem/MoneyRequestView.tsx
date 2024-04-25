@@ -384,6 +384,7 @@ function MoneyRequestView({
                         }
                     />
                 )}
+                {!(!hasReceipt && (canEditReceipt || isAdmin || isApprover)) && !(showMapAsImage || hasReceipt) && <View style={{marginVertical: 6}} />}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={noteTypeViolations} />}
                 <ViolationMessages violations={getViolationsForField('receipt')} />
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
