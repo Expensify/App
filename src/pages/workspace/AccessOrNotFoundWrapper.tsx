@@ -43,9 +43,9 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
     featureName?: PolicyFeatureName;
 };
 
-type PageNotFoundFallackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID'> & {shouldShowFullScreenFallback: boolean};
+type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID'> & {shouldShowFullScreenFallback: boolean};
 
-function PageNotFoundFallback({policyID, shouldShowFullScreenFallback}: PageNotFoundFallackProps) {
+function PageNotFoundFallback({policyID, shouldShowFullScreenFallback}: PageNotFoundFallbackProps) {
     return shouldShowFullScreenFallback ? (
         <FullPageNotFoundView
             shouldShow
