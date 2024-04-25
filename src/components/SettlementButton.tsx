@@ -187,17 +187,17 @@ function SettlementButton({
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]: {
-                text: translate('iou.settlePersonalBank', {formattedAmount, available: hasBankAccount && hasPaymentMethod}),
+                text: translate('iou.settlePersonalBank', {formattedAmount}),
                 icon: Expensicons.Bank,
                 value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
             },
             [CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]: {
-                text: translate('iou.settleBusinessBank', {formattedAmount, available: hasBankAccount && hasPaymentMethod}),
+                text: translate('iou.settleBusinessBank', {formattedAmount}),
                 icon: Expensicons.Bank,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             },
             [CONST.PAYMENT_METHODS.DEBIT_CARD]: {
-                text: translate('iou.settleDebitCard', {formattedAmount, available: hasPaymentMethod}),
+                text: translate('iou.settleDebitCard', {formattedAmount}),
                 icon: Expensicons.CreditCard,
                 value: CONST.PAYMENT_METHODS.DEBIT_CARD,
             },
@@ -247,11 +247,7 @@ function SettlementButton({
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (
-            iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ||
-            iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
-            iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
-            iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ||
-            iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD
+            !hasBankAccount || !hasPaymentMethod
         ) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);

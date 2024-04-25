@@ -652,24 +652,9 @@ export default {
         settledElsewhere: 'Paid elsewhere',
         settleExpensify: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} with Expensify` : `Pay with Expensify`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
-        settlePersonalBank: ({formattedAmount, available}: SettleExpensifyCardParams) => {
-            if (!available) {
-                return `Add personal bank account`;
-            }
-            return formattedAmount ? `Pay ${formattedAmount} with personal bank account` : `Pay with personal bank account`;
-        },
-        settleBusinessBank: ({formattedAmount, available}: SettleExpensifyCardParams) => {
-            if (!available) {
-                return `Add business bank account`;
-            }
-            return formattedAmount ? `Pay ${formattedAmount} with business bank account` : `Pay with business bank account`;
-        },
-        settleDebitCard: ({formattedAmount, available}: SettleExpensifyCardParams) => {
-            if (!available) {
-                return `Add debit card`;
-            }
-            return formattedAmount ? `Pay ${formattedAmount} with debit card` : `Pay with debit card`;
-        },
+        settlePersonalBank: ({formattedAmount}: SettleExpensifyCardParams) => formattedAmount ? `Pay ${formattedAmount} with personal bank account` : `Pay with personal bank account`,
+        settleBusinessBank: ({formattedAmount}: SettleExpensifyCardParams) => formattedAmount ? `Pay ${formattedAmount} with business bank account` : `Pay with business bank account`,
+        settleDebitCard: ({formattedAmount}: SettleExpensifyCardParams) => formattedAmount ? `Pay ${formattedAmount} with debit card` : `Pay with debit card`,
         nextStep: 'Next Steps',
         finished: 'Finished',
         requestAmount: ({amount}: RequestAmountParams) => `request ${amount}`,
