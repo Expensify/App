@@ -1127,9 +1127,11 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        textInputContainerBorder: {
-            borderBottomWidth: 2,
+        amountInputWithPrefix: {
+            alignItems: 'flex-end',
+            minWidth: 60,
             borderColor: theme.border,
+            borderBottomWidth: 2,
         },
 
         textInputLabel: {

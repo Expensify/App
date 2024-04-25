@@ -253,7 +253,18 @@ function OptionRow({
                                         <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {option.amountInputOptions ? <MoneyRequestAmountInput {...option.amountInputOptions} /> : null}
+                                {option.shouldShowAmountInput ? (
+                                    <MoneyRequestAmountInput
+                                        touchableInputWrapperStyle={[styles.amountInputWithPrefix]}
+                                        prefixContainerStyle={[styles.pv0]}
+                                        inputStyle={[
+                                            StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
+                                        ]}
+                                        containerStyle={[styles.iouAmountTextInputContainer]}
+                                        // eslint-disable-next-line react/jsx-props-no-spreading
+                                        {...option.amountInputProps}
+                                    />
+                                ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
@@ -348,7 +359,7 @@ export default React.memo(
         prevProps.option.pendingAction === nextProps.option.pendingAction &&
         prevProps.option.customIcon === nextProps.option.customIcon &&
         prevProps.option.tabIndex === nextProps.option.tabIndex &&
-        lodashIsEqual(prevProps.option.amountInputOptions, nextProps.option.amountInputOptions),
+        lodashIsEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
 );
 
 export type {OptionRowProps};

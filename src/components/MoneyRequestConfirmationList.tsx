@@ -475,32 +475,17 @@ function MoneyRequestConfirmationList({
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
             tabIndex: -1,
-            amountInputOptions: {
+            shouldShowAmountInput: true,
+            amountInputProps: {
                 amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
                 currency: iouCurrencyCode,
                 prefixCharacter: currencySymbol,
                 isCurrencyPressable: false,
                 hideCurrencySymbol: true,
-                inputStyle: [StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol ?? '') + styles.pl1.paddingLeft)],
-                touchableInputWrapperStyle: [{minWidth: 60}, styles.alignItemsEnd, styles.textInputContainerBorder],
-                prefixContainerStyle: [styles.pv0],
-                containerStyle: [styles.iouAmountTextInputContainer],
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [
-        transaction,
-        iouCurrencyCode,
-        isPolicyExpenseChat,
-        onSplitShareChange,
-        payeePersonalDetails,
-        selectedParticipants,
-        currencyList,
-        iouAmount,
-        shouldShowReadOnlySplits,
-        StyleUtils,
-        styles,
-    ]);
+    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits]);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];

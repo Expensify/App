@@ -248,4 +248,4 @@ function MoneyRequestAmountInput(
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default React.forwardRef(MoneyRequestAmountInput);
-export type {CurrentMoney, MoneyRequestAmountInputRef};
+export type {CurrentMoney, MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
