@@ -229,6 +229,7 @@ export default {
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
             enterDate: 'Introduce una fecha',
+            invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
