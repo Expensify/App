@@ -82,6 +82,7 @@ import Heart from '@assets/images/heart.svg';
 import History from '@assets/images/history.svg';
 import Home from '@assets/images/home.svg';
 import Hourglass from '@assets/images/hourglass.svg';
+import Inbox from '@assets/images/inbox.svg';
 import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
@@ -103,6 +104,7 @@ import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
+import MoneySearch from '@assets/images/money-search.svg';
 import MoneyWaving from '@assets/images/money-waving.svg';
 import Monitor from '@assets/images/monitor.svg';
 import Mute from '@assets/images/mute.svg';
@@ -245,6 +247,7 @@ export {
     History,
     Home,
     Hourglass,
+    Inbox,
     ImageCropCircleMask,
     ImageCropSquareMask,
     Info,
@@ -264,6 +267,7 @@ export {
     Megaphone,
     MoneyBag,
     MoneyCircle,
+    MoneySearch,
     MoneyWaving,
     Monitor,
     Mute,
