@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
@@ -35,6 +34,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -283,15 +283,15 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     }, [policy]);
 
     return (
-        <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+        <AdminPolicyAccessOrNotFoundWrapper
+            shouldShow={shouldShowNotFoundPage}
+            onLinkPress={Navigation.resetToHome}
+            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            policyID={policy?.id ?? ''}
         >
-            <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
-                shouldShow={shouldShowNotFoundPage}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            <ScreenWrapper
+                testID={WorkspaceInitialPage.displayName}
+                includeSafeAreaPaddingBottom={false}
             >
                 <HeaderWithBackButton
                     title={policyName}
@@ -343,8 +343,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
                     cancelText={translate('common.cancel')}
                     danger
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

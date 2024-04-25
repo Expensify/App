@@ -1,10 +1,9 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import type { ReactNode } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { View } from 'react-native';
+import type { OnyxEntry } from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -19,12 +18,13 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import * as BankAccounts from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
-import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type { Route } from '@src/ROUTES';
+import type { Policy, ReimbursementAccount, User } from '@src/types/onyx';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+import type { WithPolicyAndFullscreenLoadingProps } from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 
 type WorkspacePageWithSectionsOnyxProps = {
     /** From Onyx */
@@ -117,7 +117,7 @@ function WorkspacePageWithSections({
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID ?? '';
-    useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
+    useNetwork({ onReconnect: () => fetchData(policyID, shouldSkipVBBACall) });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
@@ -125,7 +125,7 @@ function WorkspacePageWithSections({
     const isUsingECard = user?.isUsingExpensifyCard ?? false;
     const hasVBA = achState === BankAccount.STATE.OPEN;
     const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const { isSmallScreenWidth } = useWindowDimensions();
     const firstRender = useRef(true);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
@@ -156,20 +156,19 @@ function WorkspacePageWithSections({
     }, [policy, shouldShowNonAdmin]);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            testID={WorkspacePageWithSections.displayName}
-            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
+        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID ?? ''}
+            onLinkPress={Navigation.resetToHome}
+            shouldShow={shouldShow}
+            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
         >
-            <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
-                shouldShow={shouldShow}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                shouldForceFullScreen
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+                testID={WorkspacePageWithSections.displayName}
+                shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
             >
+
                 <HeaderWithBackButton
                     title={headerText}
                     guidesCallTaskID={guidesCallTaskID}
@@ -195,8 +194,8 @@ function WorkspacePageWithSections({
                         {footer}
                     </>
                 )}
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

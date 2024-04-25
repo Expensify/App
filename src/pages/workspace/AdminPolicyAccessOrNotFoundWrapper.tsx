@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Policy from '@userActions/Policy';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -28,6 +29,15 @@ type AdminPolicyAccessOrNotFoundComponentProps = AdminAccessOrNotFoundOnyxProps 
 
     /** The report currently being looked at */
     policyID: string;
+
+    /** Function to call when pressing the navigation link */
+    onLinkPress?: () => void;
+
+    /** The key in the translations file to use for the subtitle */
+    subtitleKey?: TranslationPaths;
+
+    /** If true, child components are replaced with a blocking "not found" view */
+    shouldShow?: boolean;
 };
 
 function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFoundComponentProps) {
@@ -58,9 +68,11 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
             return (
                 <ScreenWrapper testID={AdminPolicyAccessOrNotFoundComponent.displayName}>
                     <FullPageNotFoundView
-                        shouldShow
+                        shouldShow={props.shouldShow ?? true}
                         shouldForceFullScreen
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                        onLinkPress={props.onLinkPress}
+                        subtitleKey={props.subtitleKey}
                     />
                 </ScreenWrapper>
             );
