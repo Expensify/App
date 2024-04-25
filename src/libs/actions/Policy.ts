@@ -54,6 +54,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
+import type {AddressData, UpdatePolicyAddressParams} from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1821,8 +1822,32 @@ function hideWorkspaceAlertMessage(policyID: string) {
 }
 
 function updateAddress(policyID: string, newAddress: CompanyAddress) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        address: newAddress,
+    const {street, street2, city, state, zip, country} = newAddress;
+
+    const data: AddressData = {
+        addressStreet: `${street}\n${street2}`,
+        city,
+        country,
+        state,
+        zipCode: zip,
+    };
+
+    const parameters: UpdatePolicyAddressParams = {
+        policyID,
+        data: [data],
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                address: newAddress,
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
+        optimisticData,
     });
 }
 
