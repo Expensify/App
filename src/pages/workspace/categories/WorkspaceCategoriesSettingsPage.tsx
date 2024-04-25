@@ -50,7 +50,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                                 isActive={policy?.requiresCategory ?? false}
                                 onToggle={updateWorkspaceRequiresCategory}
                                 pendingAction={policy?.pendingFields?.requiresCategory}
-                                disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions}
+                                disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
                                 wrapperStyle={[styles.mt2, styles.mh4]}
                                 errors={policy?.errorFields?.requiresCategory ?? undefined}
                             />
