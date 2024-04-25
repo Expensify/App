@@ -28,6 +28,7 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
                 includePaddingTop={false}
