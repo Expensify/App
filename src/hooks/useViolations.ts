@@ -80,8 +80,16 @@ function useViolations(violations: TransactionViolation[]) {
             }
 
             // missingTag has special logic because we have to take into account dependent tags
-            if (firstViolation?.data?.policyHasDependentTagLists && firstViolation?.name === 'missingTag' && firstViolation?.data?.tagName === data?.tagListName) {
-                return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
+            if (data?.policyHasDependentTagLists && firstViolation?.name === 'missingTag' && data?.tagListName) {
+                return [
+                    {
+                        ...firstViolation,
+                        data: {
+                            ...firstViolation.data,
+                            tagName: data?.tagListName,
+                        },
+                    },
+                ];
             }
 
             // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
