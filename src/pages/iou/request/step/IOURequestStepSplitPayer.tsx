@@ -52,10 +52,7 @@ function IOURequestStepSplitPayer({
         const participantOptions =
             [currentUserOption, ...participants]
                 ?.filter((participant) => Boolean(participant.accountID))
-                ?.map((participant) => {
-                    const participantAccountID = participant.accountID ?? 0;
-                    return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
-                }) ?? [];
+                ?.map((participant) => OptionsListUtils.getParticipantsOption(participant, personalDetails)) ?? [];
         return [
             {
                 title: '',
