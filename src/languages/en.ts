@@ -1896,7 +1896,7 @@ export default {
             debitCard: 'Debit Card',
             vendorBill: 'Vendor Bill',
             vendor: 'Vendor',
-            defaultVendor: 'Default Vendor',
+            defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
             debitCardDescription:
                 "We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.",
