@@ -82,13 +82,13 @@ function IOURequestStepConfirmation({
     const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
-        if (isSharingTrackExpense) {
+        if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
         }
         if (isSubmittingFromTrackExpense) {
             return translate('iou.submitExpense');
         }
-        if (isCategorizingTrackExpense) {
+        if (isSharingTrackExpense) {
             return translate('iou.share');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
@@ -123,7 +123,7 @@ function IOURequestStepConfirmation({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
+        IOU.setMoneyRequestBillable(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
@@ -489,11 +489,11 @@ function IOURequestStepConfirmation({
             }
             return participant;
         });
-        IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
+        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
     };
 
     const setBillable = (billable: boolean) => {
-        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
+        IOU.setMoneyRequestBillable(transactionID, billable);
     };
 
     return (
