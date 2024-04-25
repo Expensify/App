@@ -118,7 +118,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         if (!state) {
             return;
         }
-
         const activeWorkspaceID = getPolicyIDFromState(state as NavigationState<RootStackParamList>);
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
