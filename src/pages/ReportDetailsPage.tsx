@@ -204,7 +204,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isAnonymousAction: true,
                 shouldShowRightIcon: false,
                 action: () => {
-                    if (Object.keys(report?.participants ?? {}).length === 1) {
+                    if (Object.keys(report?.participants ?? {}).length === 1 && isGroupChat) {
                         setIsLastMemberLeavingGroupModalVisible(true);
                         return;
                     }
@@ -370,7 +370,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     isVisible={isLastMemberLeavingGroupModalVisible}
                     onConfirm={() => {
                         setIsLastMemberLeavingGroupModalVisible(false);
-                        leaveChat();
+                        Report.leaveGroupChat(report.reportID);
                     }}
                     onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
                     prompt={translate('groupChat.lastMemberWarning')}
