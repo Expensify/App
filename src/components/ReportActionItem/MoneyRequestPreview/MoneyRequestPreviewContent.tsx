@@ -1,9 +1,11 @@
+import {useRoute} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import Button from '@components/Button';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -33,6 +35,7 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -63,6 +66,7 @@ function MoneyRequestPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const route = useRoute();
     const parser = new ExpensiMark();
 
     const sessionAccountID = session?.accountID;
@@ -97,6 +101,7 @@ function MoneyRequestPreviewContent({
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowRBR =
         hasViolations || hasFieldErrors || (!(isSettled && !isSettlementOrApprovalPartial) && !(ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial) && isOnHold);
+    const isReviewDuplicateTransaction = route.path === `/${ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(route.params?.threadReportID)}`;
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -345,6 +350,14 @@ function MoneyRequestPreviewContent({
             ]}
         >
             {childContainer}
+            {isReviewDuplicateTransaction && (
+                <Button
+                    text="Keep this one"
+                    success
+                    medium
+                    style={[styles.p2]}
+                />
+            )}
         </PressableWithoutFeedback>
     );
 }

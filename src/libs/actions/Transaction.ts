@@ -1,16 +1,16 @@
 import {isEqual} from 'lodash';
 import lodashClone from 'lodash/clone';
 import lodashHas from 'lodash/has';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {GetRouteParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import type {DismissViolationParams, GetRouteParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Transaction} from '@src/types/onyx';
+import type {RecentWaypoint, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -29,6 +29,18 @@ Onyx.connect({
         }
         const transactionID = CollectionUtils.extractCollectionItemID(key);
         allTransactions[transactionID] = transaction;
+    },
+});
+
+const allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    callback: (transactionViolation, key) => {
+        if (!key || !transactionViolation) {
+            return;
+        }
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        allTransactionViolation[transactionID] = transactionViolation;
     },
 });
 
@@ -260,8 +272,29 @@ function updateWaypoints(transactionID: string, waypoints: WaypointCollection, i
     });
 }
 
+function dismissDuplicateTransactionViolation(transactionID: string, transactionIDs: string[]) {
+    const currentTransactionViolations = allTransactionViolation?.[transactionID] ?? [];
+    const optimisticTransactionViolation = currentTransactionViolations.filter((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+    const transactionIDList = transactionIDs.join(',');
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: optimisticTransactionViolation,
+        },
+    ];
+
+    const params: DismissViolationParams = {
+        transactionViolationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+        transactionIDList,
+    };
+
+    API.write(WRITE_COMMANDS.DISMISS_VIOLATION, params, {optimisticData});
+}
+
 function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError};
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, dismissDuplicateTransactionViolation};
