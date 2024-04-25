@@ -20,6 +20,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
@@ -726,7 +727,7 @@ function getReportAction(reportID: string, reportActionID: string): OnyxEntry<Re
 
 function getMostRecentReportActionLastModified(): string {
     // Start with the oldest date possible
-    let mostRecentReportActionLastModified = new Date(0).toISOString();
+    let mostRecentReportActionLastModified = DateUtils.getDBTime(0);
 
     // Flatten all the actions
     // Loop over them all to find the one that is the most recent
