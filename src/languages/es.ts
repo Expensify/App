@@ -1929,7 +1929,7 @@ export default {
             creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
             vendorBillAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
             debitCardDescription:
-                "Automáticamente relacionaremos el nombre del comerciante en la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos una 'Tarjeta de débito miscelánea'. vendedor para asociación.",
+                "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
             creditCardDescription:
                 "Automáticamente relacionaremos el nombre del comerciante en la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos una 'Tarjeta de crédito miscelánea'. vendedor para asociación.",
             vendorBillDescription:
