@@ -422,23 +422,26 @@ function MoneyRequestConfirmationList({
         const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
         if (sumOfShares !== iouAmount) {
             setFormError(
-                `You entered ${CurrencyUtils.convertToDisplayString(sumOfShares, iouCurrencyCode)} but the total is ${CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode)}`,
+                translate('iou.error.invalidSplit', {
+                    invalidAmount: CurrencyUtils.convertToDisplayString(sumOfShares, iouCurrencyCode),
+                    correctAmount: CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode),
+                }),
             );
             return;
         }
 
         const participantsWithAmount = Object.keys(transaction?.splitShares ?? {})
-            .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)].amount ?? 0) > 0)
+            .filter((accountID: string): boolean => (transaction?.splitShares?.[Number(accountID)]?.amount ?? 0) > 0)
             .map((accountID) => Number(accountID));
 
         // A split must have at least two participants with amounts bigger than 0
         if (participantsWithAmount.length === 1) {
-            setFormError('At least two participants must have an amount set');
+            setFormError(translate('iou.error.invalidSplitParticipants'));
             return;
         }
 
         setFormError('');
-    }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError]);
+    }, [isTypeSplit, transaction?.splitShares, iouAmount, iouCurrencyCode, setFormError, translate]);
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares) {

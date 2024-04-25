@@ -116,7 +116,7 @@ type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: string};
+type UserSplitParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
@@ -302,12 +302,14 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
+type InvalidSplitTotalParams = {invalidAmount: string; correctAmount: string};
+
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
     AddressLineParams,
     AlreadySignedInParams,
-    AmountEachParams,
+    UserSplitParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -407,4 +409,5 @@ export type {
     HeldRequestParams,
     PaySomeoneParams,
     ReimbursementRateParams,
+    InvalidSplitTotalParams,
 };
