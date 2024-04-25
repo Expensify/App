@@ -38,7 +38,7 @@ type LocaleContextProps = {
     datetimeToRelative: (datetime: string) => string;
 
     /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: (timestamp: number, isLowercase?: boolean) => string;
+    timestampToCalendarTime: (timestamp: number, isLowercase?: boolean) => string;
 
     /** Formats a datetime to local time string */
     datetimeToLocalString: (datetime: string, includeTimezone: boolean) => string;
@@ -67,7 +67,7 @@ const LocaleContext = createContext<LocaleContextProps>({
     translate: () => '',
     numberFormat: () => '',
     datetimeToRelative: () => '',
-    datetimeToCalendarTime: () => '',
+    timestampToCalendarTime: () => '',
     datetimeToLocalString: () => '',
     updateLocale: () => '',
     formatPhoneNumber: () => '',
@@ -93,10 +93,10 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const datetimeToRelative = useMemo<LocaleContextProps['datetimeToRelative']>(() => (datetime) => DateUtils.datetimeToRelative(locale, datetime), [locale]);
 
-    const datetimeToCalendarTime = useMemo<LocaleContextProps['datetimeToCalendarTime']>(
+    const timestampToCalendarTime = useMemo<LocaleContextProps['timestampToCalendarTime']>(
         () =>
             (timestamp, isLowercase = false) =>
-                DateUtils.datetimeToCalendarTime(locale, timestamp, selectedTimezone, isLowercase),
+                DateUtils.timestampToCalendarTime(locale, timestamp, selectedTimezone, isLowercase),
         [locale, selectedTimezone],
     );
 
@@ -120,7 +120,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
             translate,
             numberFormat,
             datetimeToRelative,
-            datetimeToCalendarTime,
+            timestampToCalendarTime,
             datetimeToLocalString,
             updateLocale,
             formatPhoneNumber,
@@ -133,7 +133,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
             translate,
             numberFormat,
             datetimeToRelative,
-            datetimeToCalendarTime,
+            timestampToCalendarTime,
             datetimeToLocalString,
             updateLocale,
             formatPhoneNumber,

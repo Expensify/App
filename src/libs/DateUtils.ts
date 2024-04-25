@@ -188,14 +188,14 @@ function formatTimestampToDate(timestamp: number, formatString: string = CONST.D
 }
 
 /**
- * Formats an ISO-formatted datetime string to local date
+ * Formats timestamp to local date
  *
  * e.g.
  *
  * Jan 20           within current year
  * Jan 20, 2019     anything before current year
  */
-function datetimeToCalendarTime(locale: Locale, timestamp: number, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
+function timestampToCalendarTime(locale: Locale, timestamp: number, currentSelectedTimezone: SelectedTimezone = timezone.selected, isLowercase = false): string {
     const timestampToDate = formatTimestampToDate(timestamp, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
     const date = getLocalDateFromDatetime(locale, timestampToDate, currentSelectedTimezone);
 
@@ -803,7 +803,7 @@ const DateUtils = {
     formatToLocalTime,
     getZoneAbbreviation,
     datetimeToRelative,
-    datetimeToCalendarTime,
+    timestampToCalendarTime,
     datetimeToLocalString,
     startCurrentDateUpdater,
     getLocalDateFromDatetime,

@@ -11,13 +11,13 @@ type ReportDateIndicatorProps = {
 };
 
 function ReportDateIndicator({style = {}, created}: ReportDateIndicatorProps) {
-    const {datetimeToCalendarTime} = useLocalize();
+    const {timestampToCalendarTime} = useLocalize();
     const styles = useThemeStyles();
 
     return (
         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.pv2, styles.cursorDefault, style]}>
             <View style={[styles.pv2, styles.chatItemDateIndicator]}>
-                <Text style={styles.chatItemDateIndicatorText}>{datetimeToCalendarTime(created, false)}</Text>
+                <Text style={styles.chatItemDateIndicatorText}>{timestampToCalendarTime(created, false)}</Text>
             </View>
         </View>
     );

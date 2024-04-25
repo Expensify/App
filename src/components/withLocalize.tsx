@@ -16,7 +16,7 @@ const withLocalizePropTypes = {
     datetimeToRelative: PropTypes.func.isRequired,
 
     /** Formats a datetime to local date */
-    datetimeToCalendarTime: PropTypes.func.isRequired,
+    timestampToCalendarTime: PropTypes.func.isRequired,
 
     /** Formats a datetime to local time string */
     datetimeToLocalString: PropTypes.func.isRequired,
