@@ -18,6 +18,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
 ) {
     const createRouter = options?.createRouter ?? StackRouter;
     const transformState = options?.transformState;
+    const defaultScreenOptions = options?.defaultScreenOptions;
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
     const onIsSmallScreenWidthChange = options?.onIsSmallScreenWidthChange;
@@ -26,10 +27,10 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         const styles = useThemeStyles();
         const windowDimensions = useWindowDimensions();
 
-        const nativeScreenOptions = withNativeNavigationOptions(screenOptions);
+        const nativeScreenOptions = withNativeNavigationOptions(screenOptions, defaultScreenOptions);
 
         const transformScreenProps = <ParamList2 extends ParamListBase, RouteName extends keyof ParamList2>(screenOptionsToTransform: PlatformStackScreenOptions<ParamList2, RouteName>) =>
-            withNativeNavigationOptions<ParamList2, RouteName>(screenOptionsToTransform);
+            withNativeNavigationOptions<ParamList2, RouteName>(screenOptionsToTransform, defaultScreenOptions);
 
         const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder<
             PlatformStackNavigationState<ParamListBase>,
