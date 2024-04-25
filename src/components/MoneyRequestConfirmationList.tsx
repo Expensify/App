@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -219,6 +220,7 @@ function MoneyRequestConfirmationList({
 }: MoneyRequestConfirmationListProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
@@ -478,11 +480,14 @@ function MoneyRequestConfirmationList({
                 prefixCharacter: currencySymbol,
                 isCurrencyPressable: false,
                 hideCurrencySymbol: true,
-                textInputContainerStyles: [{minWidth: 50}],
+                inputStyle: [StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(currencySymbol) + styles.pl1.paddingLeft)],
+                touchableInputWrapperStyle: [{minWidth: 60}, styles.alignItemsEnd, styles.textInputContainerBorder],
+                prefixContainerStyle: [styles.pv0],
+                containerStyle: [styles.iouAmountTextInputContainer],
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, isReadOnly]);
+    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, isReadOnly, StyleUtils, styles]);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
