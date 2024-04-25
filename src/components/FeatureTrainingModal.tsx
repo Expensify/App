@@ -43,6 +43,8 @@ type FeatureTrainingModalProps = {
     /** URL for the video */
     videoURL: string;
 
+    videoAspectRatio?: number;
+
     /** Title for the modal */
     title?: string;
 
@@ -68,6 +70,7 @@ type FeatureTrainingModalProps = {
 function FeatureTrainingModal({
     animation,
     videoURL,
+    videoAspectRatio: videoAspectRatioProp,
     title = '',
     description = '',
     shouldShowDismissModalOption = false,
@@ -83,7 +86,7 @@ function FeatureTrainingModal({
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
     const [isVideoStatusLocked, setIsVideoStatusLocked] = useState(false);
-    const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
+    const [videoAspectRatio, setVideoAspectRatio] = useState(videoAspectRatioProp || VIDEO_ASPECT_RATIO);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {isOffline} = useNetwork();
 
@@ -131,7 +134,7 @@ function FeatureTrainingModal({
                         url={videoURL}
                         videoPlayerStyle={[styles.onboardingVideoPlayer, {aspectRatio}]}
                         onVideoLoaded={setAspectRatio}
-                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.VOLUME_ONLY}
+                        controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW}
                         shouldUseControlsBottomMargin={false}
                         shouldPlay
                         isLooping

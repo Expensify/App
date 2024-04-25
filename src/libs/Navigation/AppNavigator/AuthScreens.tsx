@@ -370,7 +370,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     />
                     <RootStack.Screen
                         name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
-                        options={onboardingScreenOptions}
+                        options={onboardingModalScreenOptions}
                         component={FeatureTrainingModalNavigator}
                     />
                     <RootStack.Screen

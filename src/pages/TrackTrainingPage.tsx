@@ -4,6 +4,8 @@ import useLocalize from '@hooks/useLocalize';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 
+const VIDEO_ASPECT_RATIO = 1560 / 1280;
+
 function TrackTrainingPage() {
     const {translate} = useLocalize();
 
@@ -18,6 +20,7 @@ function TrackTrainingPage() {
             helpText={translate('common.learnMore')}
             onHelp={onHelp}
             videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
+            videoAspectRatio={VIDEO_ASPECT_RATIO}
         />
     );
 }
