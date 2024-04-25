@@ -1924,7 +1924,7 @@ export default {
             account: 'Cuenta',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
-            defaultVendorDescription: 'Establezca un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de la exportación.',
+            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
             debitCardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
             creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
             vendorBillAccountDescription: 'Seleccione el proveedor aplicado a todas las transacciones con tarjeta de crédito.',
