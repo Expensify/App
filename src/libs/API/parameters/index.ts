@@ -48,6 +48,7 @@ export type {default as RequestAccountValidationLinkParams} from './RequestAccou
 export type {default as ResolveActionableMentionWhisperParams} from './ResolveActionableMentionWhisperParams';
 export type {default as RevealExpensifyCardDetailsParams} from './RevealExpensifyCardDetailsParams';
 export type {default as SearchForReportsParams} from './SearchForReportsParams';
+export type {default as SearchForRoomsToMentionParams} from './SearchForRoomsToMentionParams';
 export type {default as SendPerformanceTimingParams} from './SendPerformanceTimingParams';
 export type {default as SetContactMethodAsDefaultParams} from './SetContactMethodAsDefaultParams';
 export type {default as SignInUserWithLinkParams} from './SignInUserWithLinkParams';

@@ -78,7 +78,7 @@ function IOURequestStepParticipants({
 
     const addParticipant = useCallback(
         (val: Participant[]) => {
-            IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, val);
+            IOU.setMoneyRequestParticipants(transactionID, val);
             const rateID = DistanceRequestUtils.getCustomUnitRateID(val[0]?.reportID ?? '');
             IOU.setCustomUnitRateID(transactionID, rateID);
 

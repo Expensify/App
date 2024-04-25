@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,11 +100,11 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                         autoFocus
                         onChangeText={setDescription}
                         autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         isMarkdownEnabled
                         ref={(el: BaseTextInputRef | null): void => {
                             updateMultilineInputRange(el);
                         }}
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                     />
                 </View>
             </FormProvider>

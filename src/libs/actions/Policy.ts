@@ -3820,7 +3820,9 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     new Promise<void>((resolve) => {
         resolve();
     }).then(() => {
-        Navigation.navigate(featureRoute);
+        requestAnimationFrame(() => {
+            Navigation.navigate(featureRoute);
+        });
     });
 }
 
