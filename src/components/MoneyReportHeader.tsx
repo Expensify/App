@@ -22,7 +22,6 @@ import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
-import PaymentWaitingBanner from './PaymentWaitingBanner';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import SettlementButton from './SettlementButton';
 
@@ -100,10 +99,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
 
     const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
 
-    const shouldShowWaitingNote = ReportUtils.isInvoiceAwaitingPayment(moneyRequestReport);
-
-    const invoicePayerName = ReportUtils.getInvoicePayerName(chatReport);
-
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
@@ -113,7 +108,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
     const formattedAmount = CurrencyUtils.convertToDisplayString(reimbursableSpend, moneyRequestReport.currency);
     const [nonHeldAmount, fullAmount] = ReportUtils.getNonHeldAndFullAmount(moneyRequestReport, policy);
     const displayedAmount = ReportUtils.hasHeldExpenses(moneyRequestReport.reportID) && canAllowSettlement ? nonHeldAmount : formattedAmount;
-    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth) || shouldShowWaitingNote;
+    const isMoreContentShown = shouldShowNextStep || (shouldShowAnyButton && isSmallScreenWidth);
 
     const confirmPayment = (type?: PaymentMethodType | undefined) => {
         if (!type) {
@@ -193,7 +188,7 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 shouldShowBackButton={isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 // Shows border if no buttons or next steps are showing below the header
-                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth) && !shouldShowWaitingNote}
+                shouldShowBorderBottom={!(shouldShowAnyButton && isSmallScreenWidth) && !(shouldShowNextStep && !isSmallScreenWidth)}
                 shouldShowThreeDotsButton
                 threeDotsMenuItems={threeDotsMenuItems}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
@@ -266,11 +261,6 @@ function MoneyReportHeader({session, policy, chatReport, nextStep, report: money
                 {shouldShowNextStep && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <MoneyReportHeaderStatusBar nextStep={nextStep} />
-                    </View>
-                )}
-                {shouldShowWaitingNote && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <PaymentWaitingBanner payerName={invoicePayerName} />
                     </View>
                 )}
             </View>

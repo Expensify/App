@@ -8,7 +8,6 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PaymentWaitingBanner from '@components/PaymentWaitingBanner';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
@@ -216,10 +215,6 @@ function ReportPreview({
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
 
-    const shouldShowWaitingNote = ReportUtils.isInvoiceAwaitingPayment(iouReport);
-
-    const invoicePayerName = ReportUtils.getInvoicePayerName(chatReport);
-
     /*
      Show subtitle if at least one of the expenses is not being smart scanned, and either:
      - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
@@ -357,7 +352,6 @@ function ReportPreview({
                                         isDisabled={shouldDisableSubmitButton}
                                     />
                                 )}
-                                {shouldShowWaitingNote && <PaymentWaitingBanner payerName={invoicePayerName} />}
                             </View>
                         </View>
                     </View>

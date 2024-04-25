@@ -6286,13 +6286,6 @@ function canReportBeMentionedWithinPolicy(report: OnyxEntry<Report>, policyID: s
     return isChatRoom(report) && !isThread(report);
 }
 
-/**
- * Check if a invoice report is awaiting for payment
- */
-function isInvoiceAwaitingPayment(report: OnyxEntry<Report>): boolean {
-    return !isSettled(report?.reportID ?? '') && isInvoiceReport(report);
-}
-
 export {
     addDomainToShortMention,
     areAllRequestsBeingSmartScanned,
@@ -6519,7 +6512,6 @@ export {
     isInvoiceRoom,
     isInvoiceReport,
     isOpenInvoiceReport,
-    isInvoiceAwaitingPayment,
     navigateToDetailsPage,
     navigateToPrivateNotes,
     parseReportRouteParams,
