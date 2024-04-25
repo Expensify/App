@@ -25,6 +25,7 @@ type OnboardingReportFooterMessageOnyxProps = {
     /** The list of this user's policies */
     policies: OnyxCollection<PolicyType>;
 };
+
 type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps;
 
 function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingReportFooterMessageProps) {
