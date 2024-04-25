@@ -148,7 +148,7 @@ function OnboardingWelcomeVideo() {
                                     success
                                     pressOnEnter
                                     onPress={closeModal}
-                                    text={translate('onboarding.welcomeVideo.button')}
+                                    text={translate('footer.getStarted')}
                                 />
                             </View>
                         </View>
