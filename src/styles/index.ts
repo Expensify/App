@@ -4870,12 +4870,6 @@ const styles = (theme: ThemeColors) =>
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
-
-        searchFiltersButtonText: {
-            marginLeft: 4,
-            marginRight: 4,
-            fontWeight: 'bold',
-        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

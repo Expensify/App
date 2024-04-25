@@ -11,7 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
-* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
+* [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
