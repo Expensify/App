@@ -116,8 +116,8 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Boolean whether to display the right icon */
     shouldShowRightIcon?: boolean;
 
-    /** The custom icon to display to the right of the text */
-    customRightIcon?: React.ReactNode;
+    /** Whether the button should use split style or not */
+    isSplitButton?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority'>;
@@ -201,7 +201,7 @@ function Button(
 
         id = '',
         accessibilityLabel = '',
-        customRightIcon,
+        isSplitButton = false,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View | HTMLDivElement>,
@@ -209,7 +209,7 @@ function Button(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-
+    
     const renderContent = () => {
         if ('children' in rest) {
             return rest.children;
@@ -257,7 +257,14 @@ function Button(
                     </View>
                     {shouldShowRightIcon && (
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
-                            {customRightIcon ?? (
+                            {!isSplitButton ? (
+                                <Icon
+                                    src={iconRight}
+                                    fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}
+                                    small={medium}
+                                    medium={large}
+                                />
+                            ) : (
                                 <Icon
                                     src={iconRight}
                                     fill={iconFill ?? (success || danger ? theme.textLight : theme.icon)}

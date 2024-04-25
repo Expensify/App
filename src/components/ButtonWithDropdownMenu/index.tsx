@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -65,19 +65,6 @@ function ButtonWithDropdownMenu<IValueType>({
             });
         }
     }, [windowWidth, windowHeight, isMenuVisible, anchorAlignment.vertical]);
-
-    const getIconRight = useCallback(
-        () => (
-            <Icon
-                medium={isButtonSizeLarge}
-                small={!isButtonSizeLarge}
-                src={Expensicons.DownArrow}
-                fill={success ? theme.buttonSuccessText : theme.icon}
-            />
-        ),
-        [isButtonSizeLarge, success, theme.buttonSuccessText, theme.icon],
-    );
-
     return (
         <View style={wrapperStyle}>
             {shouldAlwaysShowDropdownMenu || options.length > 1 ? (
@@ -98,8 +85,9 @@ function ButtonWithDropdownMenu<IValueType>({
                         medium={!isButtonSizeLarge}
                         innerStyles={[innerStyleDropButton, !isSplitButton && styles.dropDownButtonCartIconView]}
                         enterKeyEventListenerPriority={enterKeyEventListenerPriority}
-                        customRightIcon={getIconRight()}
+                        iconRight={Expensicons.DownArrow}
                         shouldShowRightIcon={!isSplitButton}
+                        isSplitButton={isSplitButton}
                     />
 
                     {isSplitButton && (
