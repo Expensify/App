@@ -631,7 +631,6 @@ function ReportActionItem({
                             action={action}
                             draftMessage={draftMessage}
                             reportID={report.reportID}
-                            isGroupPolicyReport={ReportUtils.isGroupPolicy(report)}
                             index={index}
                             ref={textInputRef}
                             // Avoid defining within component due to an existing Onyx bug
@@ -920,6 +919,7 @@ function ReportActionItem({
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
+                            transactionThreadReportID={transactionThreadReport?.reportID ?? '0'}
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined, !!onPress)}>
                             <OfflineWithFeedback

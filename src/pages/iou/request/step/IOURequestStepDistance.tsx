@@ -231,7 +231,7 @@ function IOURequestStepDistance({
             });
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport({
+                    IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -244,6 +244,7 @@ function IOURequestStepDistance({
                         tag: '',
                         billable: false,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        existingSplitChatReportID: report?.reportID,
                     });
                     return;
                 }
