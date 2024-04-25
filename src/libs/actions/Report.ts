@@ -82,7 +82,6 @@ import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
-    PersonalDetails,
     PersonalDetailsList,
     PolicyReportField,
     QuickAction,
