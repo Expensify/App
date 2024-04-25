@@ -13,8 +13,8 @@ type AttachmentCarouselCellRendererProps = {
 function AttachmentCarouselCellRenderer(props: AttachmentCarouselCellRendererProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const modalStyles = styles.centeredModalStyles(shouldUseNarrowLayout, true);
     const style = [props.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
     return (

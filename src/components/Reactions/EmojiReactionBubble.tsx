@@ -49,7 +49,7 @@ function EmojiReactionBubble(
 ) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <PressableWithSecondaryInteraction
@@ -68,7 +68,7 @@ function EmojiReactionBubble(
             }}
             onSecondaryInteraction={onReactionListOpen}
             ref={ref}
-            enableLongPressWithHover={isSmallScreenWidth}
+            enableLongPressWithHover={shouldUseNarrowLayout}
             onMouseDown={(event) => {
                 // Allow text input blur when emoji reaction is right clicked
                 if (event?.button === 2) {

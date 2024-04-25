@@ -39,7 +39,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const [successToLoadPDF, setSuccessToLoadPDF] = useState(false);
     const [password, setPassword] = useState('');
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
@@ -124,7 +124,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             pdfStyles.push(themeStyles.invisible);
         }
 
-        const containerStyles = shouldRequestPassword && isSmallScreenWidth ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
+        const containerStyles = shouldRequestPassword && shouldUseNarrowLayout ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
 
         return (
             <View style={containerStyles}>

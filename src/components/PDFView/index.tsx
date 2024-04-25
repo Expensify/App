@@ -24,7 +24,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
@@ -35,13 +35,13 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
      */
     const toggleKeyboardOnSmallScreens = useCallback(
         (isKBOpen: boolean) => {
-            if (!isSmallScreenWidth) {
+            if (!shouldUseNarrowLayout) {
                 return;
             }
             setIsKeyboardOpen(isKBOpen);
             onToggleKeyboard?.(isKBOpen);
         },
-        [isSmallScreenWidth, onToggleKeyboard],
+        [shouldUseNarrowLayout, onToggleKeyboard],
     );
 
     /**
@@ -93,7 +93,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, err
                     contentContainerStyle={style as CSSProperties}
                     file={sourceURL}
                     pageMaxWidth={variables.pdfPageMaxWidth}
-                    isSmallScreen={isSmallScreenWidth}
+                    isSmallScreen={shouldUseNarrowLayout}
                     maxCanvasWidth={maxCanvasWidth}
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}

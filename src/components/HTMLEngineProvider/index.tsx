@@ -5,9 +5,9 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
 
 function HTMLEngineProvider({children}: ChildrenProps) {
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    return <BaseHTMLEngineProvider textSelectable={!DeviceCapabilities.canUseTouchScreen() || !isSmallScreenWidth}>{children}</BaseHTMLEngineProvider>;
+    return <BaseHTMLEngineProvider textSelectable={!DeviceCapabilities.canUseTouchScreen() || !shouldUseNarrowLayout}>{children}</BaseHTMLEngineProvider>;
 }
 
 HTMLEngineProvider.displayName = 'HTMLEngineProvider';

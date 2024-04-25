@@ -35,7 +35,7 @@ type PDFPasswordFormProps = {
 
 function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadingIndicator = false, onSubmit, onPasswordUpdated, onPasswordFieldFocused}: PDFPasswordFormProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     const [password, setPassword] = useState('');
@@ -105,7 +105,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
     return shouldShowForm ? (
         <ScrollView
             keyboardShouldPersistTaps="handled"
-            style={styles.getPDFPasswordFormStyle(isSmallScreenWidth)}
+            style={styles.getPDFPasswordFormStyle(shouldUseNarrowLayout)}
             contentContainerStyle={styles.p5}
         >
             <View style={styles.mb4}>

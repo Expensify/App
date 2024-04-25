@@ -52,8 +52,8 @@ function LHNOptionsList({
     const styles = useThemeStyles();
     const {canUseViolations} = usePermissions();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const shouldShowEmptyLHN = isSmallScreenWidth && data.length === 0;
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldShowEmptyLHN = shouldUseNarrowLayout && data.length === 0;
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.

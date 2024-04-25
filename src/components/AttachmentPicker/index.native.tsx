@@ -120,7 +120,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const popoverRef = useRef(null);
 
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -355,7 +355,7 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
                 anchorRef={popoverRef}
                 onModalHide={onModalHide.current}
             >
-                <View style={!isSmallScreenWidth && styles.createMenuContainer}>
+                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
                     {menuItemData.map((item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}

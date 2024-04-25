@@ -91,7 +91,7 @@ function PopoverMenu({
     shouldSetModalVisibility = true,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const selectedItemIndex = useRef<number | null>(null);
 
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
@@ -190,7 +190,7 @@ function PopoverMenu({
             withoutOverlay={withoutOverlay}
             shouldSetModalVisibility={shouldSetModalVisibility}
         >
-            <View style={isSmallScreenWidth ? {} : styles.createMenuContainer}>
+            <View style={shouldUseNarrowLayout ? {} : styles.createMenuContainer}>
                 {!!headerText && <Text style={[styles.createMenuHeaderText, styles.ml3]}>{headerText}</Text>}
                 {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
                 {currentMenuItems.map((item, menuIndex) => (

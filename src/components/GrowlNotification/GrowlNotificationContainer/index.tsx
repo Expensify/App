@@ -6,11 +6,11 @@ import type GrowlNotificationContainerProps from './types';
 
 function GrowlNotificationContainer({children, translateY}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <Animated.View
-            style={[styles.growlNotificationContainer, styles.growlNotificationDesktopContainer, styles.growlNotificationTranslateY(translateY), isSmallScreenWidth && styles.mwn]}
+            style={[styles.growlNotificationContainer, styles.growlNotificationDesktopContainer, styles.growlNotificationTranslateY(translateY), shouldUseNarrowLayout && styles.mwn]}
         >
             {children}
         </Animated.View>

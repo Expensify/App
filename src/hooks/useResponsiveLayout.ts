@@ -1,5 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import { useOnyx } from 'react-native-onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import useWindowDimensions from './useWindowDimensions';
 
 type ResponsiveLayoutResult = {
@@ -16,10 +18,12 @@ type ResponsiveLayoutResult = {
 /**
  * Hook to determine if we are on mobile devices or in the Modal Navigator.
  * Use "shouldUseNarrowLayout" for "on mobile or in RHP/LHP", "isSmallScreenWidth" for "on mobile", "isInModal" for "in RHP/LHP".
- * Note: Don't use "shouldUseNarrowLayout" in popovers and "alert-style" modals.
  */
 export default function useResponsiveLayout(): ResponsiveLayoutResult {
     const {isSmallScreenWidth, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen} = useWindowDimensions();
+    
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
+    const willAlertModalBecomeVisible = modal?.willAlertModalBecomeVisible ?? false;
 
     const [isInModal, setIsInModal] = useState(false);
     const hasSetIsInModal = useRef(false);
@@ -47,6 +51,6 @@ export default function useResponsiveLayout(): ResponsiveLayoutResult {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const shouldUseNarrowLayout = isSmallScreenWidth || isInModal;
+    const shouldUseNarrowLayout = willAlertModalBecomeVisible ? isSmallScreenWidth : isSmallScreenWidth || isInModal;
     return {shouldUseNarrowLayout, isSmallScreenWidth, isInModal, isExtraSmallScreenHeight, isExtraSmallScreenWidth, isMediumScreenWidth, isLargeScreenWidth, isSmallScreen};
 }

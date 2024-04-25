@@ -45,7 +45,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     const activeEmoji = useRef<string | undefined>();
     const emojiSearchInput = useRef<BaseTextInputRef | null>();
     const {windowHeight} = useWindowDimensions();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     /**
      * Get the popover anchor ref
@@ -162,7 +162,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             const emojiPopoverAnchor = getEmojiPopoverAnchor();
             if (!emojiPopoverAnchor?.current) {
                 // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
-                if (isEmojiPickerVisible && !isSmallScreenWidth) {
+                if (isEmojiPickerVisible && !shouldUseNarrowLayout) {
                     hideEmojiPicker();
                 }
                 return;
@@ -184,7 +184,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             }
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible, isSmallScreenWidth, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
+    }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out

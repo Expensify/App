@@ -34,7 +34,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
     const isFocusedRef = useRef(true);
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
@@ -77,7 +77,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
      * @param [event] - A press event.
      */
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
-        if (!isFocusedRef.current && isSmallScreenWidth) {
+        if (!isFocusedRef.current && shouldUseNarrowLayout) {
             return;
         }
         setIsContextMenuActive(true);
