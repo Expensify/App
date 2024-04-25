@@ -5,7 +5,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import type {RootStackParamList} from './types';
 
 /**
- * Closes the last RHP flow, if there is only one, it closes the entire navigator.
+ * Closes the last RHP flow, if there is only one, closes the entire RHP.
  */
 export default function closeRHPFlow(navigationRef: NavigationContainerRef<RootStackParamList>) {
     if (!navigationRef.isReady()) {

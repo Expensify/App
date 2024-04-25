@@ -61,7 +61,7 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
     const report = getReport(reportID);
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
-// Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The dismissModal isn't defined in this file to avoid cyclic dependencies.
+// Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 // Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
