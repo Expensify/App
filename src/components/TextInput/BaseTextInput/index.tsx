@@ -413,8 +413,8 @@ function BaseTextInput(
                                     >
                                         <Icon
                                             src={Expensicons.Clear}
-                                            height={18}
-                                            width={18}
+                                            height={20}
+                                            width={20}
                                             fill={theme.icon}
                                         />
                                     </PressableWithoutFeedback>
