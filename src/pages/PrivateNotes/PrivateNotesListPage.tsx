@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -30,24 +30,26 @@ type PrivateNotesListPageProps = WithReportAndPrivateNotesOrNotFoundProps &
     };
 
 type NoteListItem = {
-    id: string;
     title: string;
     action: () => void;
     brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
     note: string;
     disabled: boolean;
+    reportID: string;
+    accountID: string;
 };
 
 function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNotesListPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const getAttachmentValue = useCallback((item: NoteListItem) => ({reportID: item.reportID, accountID: Number(item.accountID), type: CONST.ATTACHMENT_TYPE.NOTE}), []);
 
     /**
      * Gets the menu item for each workspace
      */
     function getMenuItem(item: NoteListItem) {
         return (
-            <AttachmentContext.Provider value={{id: item.id, type: CONST.ATTACHMENT_TYPE.NOTE}}>
+            <AttachmentContext.Provider value={getAttachmentValue(item)}>
                 <MenuItemWithTopDescription
                     key={item.title}
                     description={item.title}
@@ -72,6 +74,8 @@ function PrivateNotesListPage({report, personalDetailsList, session}: PrivateNot
         return Object.keys(report.privateNotes ?? {}).map((accountID: string) => {
             const privateNote = report.privateNotes?.[Number(accountID)];
             return {
+                reportID: report.reportID,
+                accountID,
                 title: Number(session?.accountID) === Number(accountID) ? translate('privateNotes.myNote') : personalDetailsList?.[accountID]?.login ?? '',
                 action: () => Navigation.navigate(ROUTES.PRIVATE_NOTES_EDIT.getRoute(report.reportID, accountID)),
                 brickRoadIndicator: privateNoteBrickRoadIndicator(Number(accountID)),

@@ -768,9 +768,10 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.CENTRAL_PANE_NAVIGATOR]: NavigatorScreenParams<CentralPaneNavigatorParamList>;
     [SCREENS.CONCIERGE]: undefined;
     [SCREENS.ATTACHMENTS]: {
-        id: string;
+        reportID: string;
         source: string;
         type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+        accountID: string;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;

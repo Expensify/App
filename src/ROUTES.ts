@@ -227,7 +227,8 @@ const ROUTES = {
     },
     ATTACHMENTS: {
         route: 'attachment',
-        getRoute: (id: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string) => `attachment?source=${encodeURIComponent(url)}&type=${type}${id ? `&id=${id}` : ''}`,
+        getRoute: (reportID: string, type: ValueOf<typeof CONST.ATTACHMENT_TYPE>, url: string, accountID?: number) =>
+            `attachment?source=${encodeURIComponent(url)}&type=${type}${reportID ? `&reportID=${reportID}` : ''}${accountID ? `&accountID=${accountID}` : ''}`,
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',

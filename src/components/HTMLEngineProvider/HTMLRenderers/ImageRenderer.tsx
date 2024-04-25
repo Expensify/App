@@ -80,17 +80,19 @@ function ImageRenderer({tnode}: ImageRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <AttachmentContext.Consumer>
-                    {({id, type}) => (
+                    {({reportID, accountID, type}) => (
                         <PressableWithoutFocus
                             style={[styles.noOutline]}
                             onPress={() => {
-                                let route = '';
-                                if (source && type) {
-                                    if (id) {
-                                        route = ROUTES.ATTACHMENTS?.getRoute(id, type, source);
-                                        Navigation.navigate(route);
-                                    }
+                                if (!source || !type) {
+                                    return;
                                 }
+                                let route = '';
+                                if (reportID) {
+                                    route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID);
+                                }
+
+                                Navigation.navigate(route);
                             }}
                             onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                             shouldUseHapticsOnLongPress

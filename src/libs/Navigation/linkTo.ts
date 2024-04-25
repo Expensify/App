@@ -148,23 +148,20 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
     // If action type is different than NAVIGATE we can't change it to the PUSH safely
     if (action?.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE) {
-    
         const topmostCentralPaneRoute = getTopmostCentralPaneRoute(rootState);
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
         const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== action.payload.params?.screen);
         const areParamsDifferent = !shallowCompare(topmostCentralPaneRoute?.params, action.payload.params?.params);
-        console.log("6666666666666 step 1", action)
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
-            console.log("6666666666666 step 2")
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
         } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
-            console.log("6666666666666 step 3")
+
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID);
             const isNewPolicyID =
@@ -181,12 +178,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             // If the type is UP, we deeplinked into one of the RHP flows and we want to replace the current screen with the previous one in the flow
             // and at the same time we want the back button to go to the page we were before the deeplink
         } else if (type === CONST.NAVIGATION.TYPE.UP) {
-            console.log("6666666666666 step 4")
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to ModalNavigator or FullScreenNavigator and the last route on the root navigator is not already opened Navigator then push
         } else if ((action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR || isModalNavigator(action.payload.name)) && !isTargetNavigatorOnTop) {
-            console.log("6666666666666 step 5")
             if (isModalNavigator(topRouteName)) {
                 dismissModal(navigation);
             }
@@ -208,7 +203,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         } else if (action.payload.name === NAVIGATORS.BOTTOM_TAB_NAVIGATOR) {
-            console.log("6666666666666 step 6")
             // If path contains a policyID, we should invoke the navigate function
             const shouldNavigate = !!extractedPolicyID;
             const actionForBottomTabNavigator = getActionForBottomTabNavigator(action, rootState, policyID, shouldNavigate);
@@ -221,7 +215,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
             // If the layout is wide we need to push matching central pane route to the stack.
             if (!isNarrowLayout) {
-                console.log("6666666666666 step 7")
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath, rootState)!;
@@ -249,7 +242,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     }
 
     if (action && 'payload' in action && action.payload && 'name' in action.payload && isModalNavigator(action.payload.name)) {
-        console.log("6666666666666 step 8")
         const minimalAction = getMinimalAction(action, navigation.getRootState());
         if (minimalAction) {
             // There are situations where a route already exists on the current navigation stack

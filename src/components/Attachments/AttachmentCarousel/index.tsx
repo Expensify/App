@@ -19,6 +19,7 @@ import AttachmentCarouselCellRenderer from './AttachmentCarouselCellRenderer';
 import CarouselActions from './CarouselActions';
 import CarouselButtons from './CarouselButtons';
 import CarouselItem from './CarouselItem';
+import extractAttachmentsFromNote from './extractAttachmentsFromNote';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import type {AttachmentCaraouselOnyxProps, AttachmentCarouselProps, UpdatePageProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
@@ -29,7 +30,7 @@ const viewabilityConfig = {
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, reportActions, parentReportActions, source, onNavigate, setDownloadButtonVisibility, type, accountID}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,19 +50,24 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
         const attachmentsFromReport = extractAttachmentsFromReport(parentReportAction, reportActions ?? undefined);
+        let attachmentsFromNote: Attachment[] = [];
+        if (type === CONST.ATTACHMENT_TYPE.NOTE && accountID) {
+            attachmentsFromNote = extractAttachmentsFromNote(report.reportID, accountID);
+        }
+        const targetAttachments = type === CONST.ATTACHMENT_TYPE.REPORT ? attachmentsFromReport : attachmentsFromNote;
 
-        if (isEqual(attachments, attachmentsFromReport)) {
+        if (isEqual(attachments, targetAttachments)) {
             return;
         }
 
-        const initialPage = attachmentsFromReport.findIndex(compareImage);
+        const initialPage = targetAttachments.findIndex(compareImage);
 
         // Dismiss the modal when deleting an attachment during its display in preview.
         if (initialPage === -1 && attachments.find(compareImage)) {
             Navigation.dismissModal();
         } else {
             setPage(initialPage);
-            setAttachments(attachmentsFromReport);
+            setAttachments(targetAttachments);
 
             // Update the download button visibility in the parent modal
             if (setDownloadButtonVisibility) {
@@ -69,11 +75,11 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
             }
 
             // Update the parent modal's state with the source and name from the mapped attachments
-            if (attachmentsFromReport[initialPage] !== undefined && onNavigate) {
-                onNavigate(attachmentsFromReport[initialPage]);
+            if (targetAttachments[initialPage] !== undefined && onNavigate) {
+                onNavigate(targetAttachments[initialPage]);
             }
         }
-    }, [reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate]);
+    }, [reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, report.reportID]);
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(

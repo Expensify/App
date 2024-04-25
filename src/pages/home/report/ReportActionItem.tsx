@@ -374,7 +374,7 @@ function ReportActionItem({
         [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport],
     );
 
-    const attachmentContextValue = useMemo(() => ({id: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
+    const attachmentContextValue = useMemo(() => ({reportID: report.reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [report.reportID]);
 
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
         const isWhisperResolution = (action?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution !== null;

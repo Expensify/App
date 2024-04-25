@@ -6,14 +6,15 @@ import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ReportAttachmentsProps = StackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
 
 function ReportAttachments({route}: ReportAttachmentsProps) {
-    const reportID = route.params.id;
+    const reportID = route.params.reportID;
+    const type = route.params.type;
+    const accountID = route.params.accountID;
     const report = ReportUtils.getReport(reportID);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
@@ -21,14 +22,16 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
-            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(reportID, CONST.ATTACHMENT_TYPE.REPORT, String(attachment.source));
+            const routeToNavigate = ROUTES.ATTACHMENTS.getRoute(reportID, type, String(attachment.source), Number(accountID));
             Navigation.navigate(routeToNavigate);
         },
-        [reportID],
+        [reportID, accountID, type],
     );
 
     return (
         <AttachmentModal
+            accountID={Number(accountID)}
+            type={type}
             allowDownload
             defaultOpen
             report={report}
