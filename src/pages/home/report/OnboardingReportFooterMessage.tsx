@@ -1,12 +1,11 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Banner from '@components/Banner';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import * as ReportInstance from '@userActions/Report';
@@ -31,7 +30,6 @@ type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps
 function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingReportFooterMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     const adminChatReport = useMemo(() => {
         const adminsReports = Object.values(reports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
@@ -63,7 +61,7 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
                             style={styles.label}
                             onPress={() => ReportInstance.navigateToConciergeChat()}
                         >
-                            {`${CONST?.CONCIERGE_CHAT_NAME}`}
+                            {CONST?.CONCIERGE_CHAT_NAME}
                         </TextLink>
                         {translate('onboardingBottomMessage.default.phrase2')}
                     </>
@@ -72,23 +70,17 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
     }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, styles.label, translate]);
 
     return (
-        <View
-            style={[
-                styles.chatFooter,
-                isSmallScreenWidth ? styles.mb5 : styles.mb4,
-                styles.mh5,
-                styles.mt4,
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.p4,
-                styles.borderRadiusComponentLarge,
-                styles.hoveredComponentBG,
-                styles.breakWord,
-                styles.justifyContentCenter,
-            ]}
-        >
-            <Text style={[styles.textSupporting, styles.label]}>{content}</Text>
-        </View>
+        <Banner
+            containerStyles={[styles.archivedReportFooter]}
+            content={
+                <Text
+                    style={[styles.label, styles.w100, styles.textAlignCenter]}
+                    suppressHighlighting
+                >
+                    {content}
+                </Text>
+            }
+        />
     );
 }
 

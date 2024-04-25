@@ -17,7 +17,10 @@ import Tooltip from './Tooltip';
 
 type BannerProps = {
     /** Text to display in the banner. */
-    text: string;
+    text?: string;
+
+    /** Content to display in the banner. */
+    content?: React.ReactNode;
 
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
@@ -41,7 +44,7 @@ type BannerProps = {
     textStyles?: StyleProp<TextStyle>;
 };
 
-function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
+function Banner({text, content, onClose, onPress, containerStyles, textStyles, shouldRenderHTML = false, shouldShowIcon = false, shouldShowCloseButton = false}: BannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -73,7 +76,9 @@ function Banner({text, onClose, onPress, containerStyles, textStyles, shouldRend
                                     />
                                 </View>
                             )}
-                            {shouldRenderHTML ? (
+                            {content && content}
+
+                            {shouldRenderHTML && text ? (
                                 <RenderHTML html={text} />
                             ) : (
                                 <Text
