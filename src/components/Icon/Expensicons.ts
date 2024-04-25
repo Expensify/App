@@ -1,4 +1,5 @@
 import AddReaction from '@assets/images/add-reaction.svg';
+import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
@@ -165,6 +166,7 @@ export {
     ActiveRoomAvatar,
     AddReaction,
     AdminRoomAvatar,
+    All,
     Android,
     AnnounceRoomAvatar,
     Apple,
