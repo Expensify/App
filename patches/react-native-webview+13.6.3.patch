@@ -1,0 +1,83 @@
+diff --git a/node_modules/react-native-webview/apple/RNCWebView.mm b/node_modules/react-native-webview/apple/RNCWebView.mm
+index 70d5ee4..6c3467d 100644
+--- a/node_modules/react-native-webview/apple/RNCWebView.mm
++++ b/node_modules/react-native-webview/apple/RNCWebView.mm
+@@ -313,24 +313,28 @@ - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &
+     
+     if (oldViewProps.dataDetectorTypes != newViewProps.dataDetectorTypes) {
+         WKDataDetectorTypes dataDetectorTypes = WKDataDetectorTypeNone;
+-            if (dataDetectorTypes & RNCWebViewDataDetectorTypes::Address) {
++        for (const auto& type : newViewProps.dataDetectorTypes) {
++            if (type == "address") {
+                 dataDetectorTypes |= WKDataDetectorTypeAddress;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::Link) {
++            } else if (type == "link") {
+                 dataDetectorTypes |= WKDataDetectorTypeLink;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::CalendarEvent) {
++            } else if (type == "calendarEvent") {
+                 dataDetectorTypes |= WKDataDetectorTypeCalendarEvent;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::TrackingNumber) {
++            } else if (type == "trackingNumber") {
+                 dataDetectorTypes |= WKDataDetectorTypeTrackingNumber;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::FlightNumber) {
++            } else if (type == "flightNumber") {
+                 dataDetectorTypes |= WKDataDetectorTypeFlightNumber;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::LookupSuggestion) {
++            } else if (type == "lookupSuggestion") {
+                 dataDetectorTypes |= WKDataDetectorTypeLookupSuggestion;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::PhoneNumber) {
++            } else if (type == "phoneNumber") {
+                 dataDetectorTypes |= WKDataDetectorTypePhoneNumber;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::All) {
++            } else if (type == "all") {
+                 dataDetectorTypes |= WKDataDetectorTypeAll;
+-            } else if (dataDetectorTypes & RNCWebViewDataDetectorTypes::None) {
++                break;
++            } else if (type == "none") {
+                 dataDetectorTypes = WKDataDetectorTypeNone;
++                break;
++            }
+         }
+         [_view setDataDetectorTypes:dataDetectorTypes];
+     }
+diff --git a/node_modules/react-native-webview/react-native-webview.podspec b/node_modules/react-native-webview/react-native-webview.podspec
+index b6f164a..e5f977e 100644
+--- a/node_modules/react-native-webview/react-native-webview.podspec
++++ b/node_modules/react-native-webview/react-native-webview.podspec
+@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
+ 
+   s.source_files    = "apple/**/*.{h,m,mm,swift}"
+ 
+-  s.dependency "React-Core"
++  
+ 
+   if ENV['RCT_NEW_ARCH_ENABLED'] == '1' then
+     s.compiler_flags = folly_compiler_flags + " -DRCT_NEW_ARCH_ENABLED=1"
+@@ -28,11 +28,8 @@ Pod::Spec.new do |s|
+         "CLANG_CXX_LANGUAGE_STANDARD" => "c++17"
+     }
+ 
+-    s.dependency "React-RCTFabric"
+-    s.dependency "React-Codegen"
+-    s.dependency "RCT-Folly"
+-    s.dependency "RCTRequired"
+-    s.dependency "RCTTypeSafety"
+-    s.dependency "ReactCommon/turbomodule/core"
++    install_modules_dependencies(s)
++  else
++      s.dependency "React-Core"
+   end
+ end
+diff --git a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
+index ae52bc8..d035207 100644
+--- a/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
++++ b/node_modules/react-native-webview/src/RNCWebViewNativeComponent.ts
+@@ -187,7 +187,7 @@ export interface NativeProps extends ViewProps {
+   contentMode?: WithDefault<'recommended' | 'mobile' | 'desktop', 'recommended'>;
+   dataDetectorTypes?: WithDefault<
+     // eslint-disable-next-line @typescript-eslint/array-type
+-    ReadonlyArray<'address' | 'link' | 'calendarEvent' | 'trackingNumber' | 'flightNumber' | 'lookupSuggestion' | 'phoneNumber' | 'all' | 'none'>,
++    ReadonlyArray<string>,
+     'phoneNumber'
+   >;
+   decelerationRate?: Double;
