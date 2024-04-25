@@ -970,6 +970,7 @@ function MoneyRequestConfirmationList({
                         isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
                         fileExtension={fileExtension}
                         shouldUseThumbnailImage
+                        shouldUseInitialObjectPosition={isDistanceRequest}
                     />
                 )}
             </View>
