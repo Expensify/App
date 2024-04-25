@@ -81,6 +81,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
+    const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyEmployee);
+    const canLeavePolicyExpenseChat = ReportUtils.canLeavePolicyExpenseChat(report, policy ?? {});
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
@@ -104,6 +106,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
+    const canJoin = canJoinOrLeave && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
@@ -196,7 +200,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat || isChatRoom) {
+        if (isGroupChat || (isChatRoom && canJoinOrLeave && !canJoin)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
@@ -227,6 +231,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report,
         isMoneyRequestReport,
         isChatRoom,
+        canJoinOrLeave,
+        canJoin,
         activeChatMembers.length,
         session,
         leaveChat,
