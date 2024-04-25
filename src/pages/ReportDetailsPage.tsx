@@ -333,9 +333,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             )}
                         </View>
                     </View>
-                    {(isGroupChat || isChatRoom) && <ChatDetailsQuickActionsBar report={report} />}
                     {shouldShowReportDescription && (
-                        <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
+                        <OfflineWithFeedback
+                            pendingAction={report.pendingFields?.description}
+                            style={styles.mb5}
+                        >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={canEditReportDescription}
                                 interactive={canEditReportDescription}
@@ -347,6 +349,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
+                    {(isGroupChat || isChatRoom) && <ChatDetailsQuickActionsBar report={report} />}
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
