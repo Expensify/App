@@ -2245,7 +2245,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, 'notification'));
         });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {

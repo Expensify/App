@@ -250,10 +250,10 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
-
         if (ReportUtils.isUnread(report)) {
-            if (Visibility.isVisible() && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if ((Visibility.isVisible() || route?.params?.referrer === 'notification') && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
+                Navigation.setParams({ referrer: undefined });
             } else {
                 readActionSkipped.current = true;
             }
