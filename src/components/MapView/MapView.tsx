@@ -34,11 +34,9 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const theme = useTheme();
         const centerButtonOpacity = useSharedValue(1);
         const [isMapCentered, setIsMapCentered] = useState(true);
-        const centerButtonAnimatedStyle = useAnimatedStyle(() => {
-            return {
-                opacity: centerButtonOpacity.value,
-            };
-        });
+        const centerButtonAnimatedStyle = useAnimatedStyle(() => ({
+            opacity: centerButtonOpacity.value,
+        }));
 
         const cameraRef = useRef<Mapbox.Camera>(null);
         const [isIdle, setIsIdle] = useState(false);

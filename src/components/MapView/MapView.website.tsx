@@ -50,11 +50,9 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const {translate} = useLocalize();
         const centerButtonOpacity = useSharedValue(1);
         const [isMapCentered, setIsMapCentered] = useState(true);
-        const centerButtonAnimatedStyle = useAnimatedStyle(() => {
-            return {
-                opacity: centerButtonOpacity.value,
-            };
-        });
+        const centerButtonAnimatedStyle = useAnimatedStyle(() => ({
+            opacity: centerButtonOpacity.value,
+        }));
 
         const theme = useTheme();
         const styles = useThemeStyles();
@@ -211,7 +209,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             centerButtonOpacity.value = withTiming(0, {duration: 1000}, () => {
                 setIsMapCentered(true);
             });
-        }, [directionCoordinates, currentPosition, mapRef, waypoints, centerButtonOpacity]);
+        }, [directionCoordinates, currentPosition, mapRef, waypoints, centerButtonOpacity, mapPadding]);
 
         const onMove = useCallback(() => {
             if (!isMapCentered) {
