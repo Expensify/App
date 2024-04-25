@@ -247,10 +247,17 @@ function SettlementButton({
     }, [currency, formattedAmount, iouReport, policyID, translate, shouldHidePaymentOptions, shouldShowApproveButton, shouldDisableApproveButton]);
     const selectPaymentType = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         if (
-            !hasBankAccount || !hasPaymentMethod
+            (iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA ||
+            iouPaymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT ||
+            iouPaymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) && !hasBankAccount
         ) {
             triggerKYCFlow(event, iouPaymentType);
             BankAccounts.setPersonalBankAccountContinueKYCOnSuccess(ROUTES.ENABLE_PAYMENTS);
+            return;
+        }
+
+        if ((iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) && !hasPaymentMethod) {
+            triggerKYCFlow(event, iouPaymentType);
             return;
         }
 
