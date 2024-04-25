@@ -1238,6 +1238,8 @@ const CONST = {
         EXPORT_INVOICE: 'exportInvoice',
         EXPORT_ENTITY: 'exportEntity',
         EXPORT_ACCOUNT: 'exportAccount',
+        EXPORT_ACCOUNT_PAYABLE: 'exportAccountPayable',
+        EXPORT_COMPANY_CARD_ACCOUNT: 'exportCompanyCardAccount',
         EXPORT_COMPANY_CARD: 'exportCompanyCard',
         AUTO_SYNC: 'autoSync',
         SYNCE_PEOPLE: 'syncPeople',
@@ -4608,6 +4610,12 @@ const CONST = {
         LAST_EXPENSE: 'lastExpense',
         EXPORTED_DATE: 'exportedDate',
         SUBMITTED_DATA: 'submittedData',
+    },
+
+    QUICKBOOKS_EXPORT_COMPANY_CARD: {
+        CREDIT_CARD: 'creditCard',
+        DEBIT_CARD: 'debitCard',
+        VENDOR_BILL: 'vendorBill',
     },
 
     SESSION_STORAGE_KEYS: {
