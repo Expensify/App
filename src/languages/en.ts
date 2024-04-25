@@ -1929,7 +1929,6 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks account below.',
                 qboBillPaymentAccount: 'QuickBooks bill payment account',
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
-                collectionAccountDescription: 'Once invoices have been paid, the payment will appear in the account configured below.',
                 accountSelectDescription:
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
                 invoiceAccountSelectDescription:

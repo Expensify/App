@@ -60,7 +60,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
                 <MenuItem
                     title={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')}
-                    description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
                     shouldShowBasicTitle
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     interactive={false}

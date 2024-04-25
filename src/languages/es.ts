@@ -1956,7 +1956,6 @@ export default {
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el pago de la factura correspondiente en de Quickbooks cuenta indicadas a continuación.',
                 qboBillPaymentAccount: 'Cuenta de pago de facturas de QuickBooks',
                 qboInvoiceCollectionAccount: 'Cuenta de cobro de facturas QuickBooks',
-                collectionAccountDescription: 'Una vez abonadas las facturas, el pago aparecerá en la cuenta configurada a continuación.',
                 accountSelectDescription:
                     'Como has activado la sincronización de los informes de reembolso, tendrás que seleccionar la cuenta bancaria de la que saldrán tus reembolsos y crearemos el pago en QuickBooks.',
                 invoiceAccountSelectDescription:
