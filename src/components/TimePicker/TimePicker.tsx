@@ -534,7 +534,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                 <FormHelpMessage
                     isError={isError}
                     message={errorMessage}
-                    style={[styles.pl5, styles.pr5]}
+                    style={[styles.ph5]}
                 />
             ) : (
                 <View style={styles.formHelperMessage} />
