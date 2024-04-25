@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
+import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
@@ -30,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import useNetwork from '@hooks/useNetwork';
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -45,6 +47,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -58,7 +61,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
             {
                 icon: Expensicons.Sync,
                 text: translate('workspace.accounting.syncNow'),
-                onSelected: () => {},
+                onSelected: () => syncConnection(policyID),
+                disabled: isOffline
             },
             {
                 icon: Expensicons.Trashcan,
@@ -66,7 +70,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [translate],
+        [translate, policyID, isOffline],
     );
 
     const menuItems: MenuItemProps[] = useMemo(() => {
