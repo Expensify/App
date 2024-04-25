@@ -104,7 +104,7 @@ type SplitShare = {
     isModified?: boolean;
 };
 
-type SplitShares = Record<number, SplitShare>;
+type SplitShares = Record<number, SplitShare | null>;
 
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {

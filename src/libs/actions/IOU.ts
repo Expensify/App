@@ -5849,7 +5849,6 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
 
         const isPayer = accountID === userAccountID;
         const splitAmount = IOUUtils.calculateAmount(participantAccountIDsWithoutCurrentUser.length, amount, currency, isPayer);
-        console.log(accountID, isPayer, 'amount:' + splitAmount);
         return {
             ...result,
             [accountID]: {
