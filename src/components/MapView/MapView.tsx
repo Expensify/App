@@ -4,8 +4,9 @@ import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -161,7 +162,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
                 cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
                 centerButtonOpacity.value = withTiming(0, {duration: 1000}, () => {
-                    setIsMapCentered(true);
+                    runOnJS(setIsMapCentered)(true);
                 });
                 return;
             }
@@ -171,7 +172,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
             });
             centerButtonOpacity.value = withTiming(0, {duration: 1000}, () => {
-                setIsMapCentered(true);
+                runOnJS(setIsMapCentered)(true);
             });
         }, [directionCoordinates, currentPosition, mapPadding, waypoints]);
 
