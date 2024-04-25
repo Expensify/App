@@ -7,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
+import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 import type {Unit} from './types/onyx/Policy';
 
 type RateAndUnit = {
@@ -1374,7 +1375,7 @@ const CONST = {
         DEFAULT_DATA: {
             bankName: '',
             plaidAccessToken: '',
-            bankAccounts: [] as [],
+            bankAccounts: [] as PlaidBankAccount[],
             isLoading: false,
             error: '',
             errors: {},
