@@ -16,7 +16,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, Report} from '@src/types/onyx';
 
-type OnboardingReportFooterMessageOnyxProps = {choice: OnyxEntry<OnboardingPurposeType>; reports: OnyxCollection<Report>; policies: OnyxCollection<PolicyType>};
+type OnboardingReportFooterMessageOnyxProps = {
+    /** Saved onboarding purpose selected by the user */
+    choice: OnyxEntry<OnboardingPurposeType>;
+
+    /** Collection of reports */
+    reports: OnyxCollection<Report>;
+
+    /** The list of this user's policies */
+    policies: OnyxCollection<PolicyType>;
+};
 type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps;
 
 function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingReportFooterMessageProps) {
@@ -25,8 +34,8 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const adminChatReport = useMemo(() => {
-        const adminsReports = reports ? Object.values(reports).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS) : [];
-        const activePolicies = policies ? Object.values(policies).filter((policy) => PolicyUtils.shouldShowPolicy(policy, false)) : [];
+        const adminsReports = Object.values(reports ?? {}).filter((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+        const activePolicies = Object.values(policies ?? {}).filter((policy) => PolicyUtils.shouldShowPolicy(policy, false));
 
         return adminsReports.find((report) => activePolicies.find((policy) => policy?.id === report?.policyID));
     }, [policies, reports]);
@@ -36,27 +45,27 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
             case CONST.ONBOARDING_CHOICES.MANAGE_TEAM:
                 return (
                     <>
-                        {`${translate('onboardingBottomMessage.newDotManageTeam.phrase1')}`}
+                        {translate('onboardingBottomMessage.newDotManageTeam.phrase1')}
                         <TextLink
                             style={styles.label}
                             onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? ''))}
                         >
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
-                        {`${translate('onboardingBottomMessage.newDotManageTeam.phrase2')}`}
+                        {translate('onboardingBottomMessage.newDotManageTeam.phrase2')}
                     </>
                 );
             default:
                 return (
                     <>
-                        {`${translate('onboardingBottomMessage.default.phrase1')}`}
+                        {translate('onboardingBottomMessage.default.phrase1')}
                         <TextLink
                             style={styles.label}
                             onPress={() => ReportInstance.navigateToConciergeChat()}
                         >
                             {`${CONST?.CONCIERGE_CHAT_NAME}`}
                         </TextLink>
-                        {`${translate('onboardingBottomMessage.default.phrase2')}`}
+                        {translate('onboardingBottomMessage.default.phrase2')}
                     </>
                 );
         }
