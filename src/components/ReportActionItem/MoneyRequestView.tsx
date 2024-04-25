@@ -195,8 +195,10 @@ function MoneyRequestView({
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    const merchantTitle = isScanning ? translate('iou.receiptStatusTitle') : isEmptyMerchant ? '' : transactionMerchant;
-    const amountTitle = isScanning ? translate('iou.receiptStatusTitle') : formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
+    const getMerchant = isEmptyMerchant ? '' : transactionMerchant;
+    const getAmount = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
+    const merchantTitle = isScanning ? translate('iou.receiptStatusTitle') : getMerchant;
+    const amountTitle = isScanning ? translate('iou.receiptStatusTitle') : getAmount;
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
