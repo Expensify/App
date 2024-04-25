@@ -1,0 +1,10 @@
+{
+    "name": "github-action",
+    "version": "1.0.0",
+    "dependencies": {
+        "@actions/core": "^1.2.6",
+        "@actions/github": "^4.0.0",
+        "@octokit/rest": "^18.0.0",
+        "openai": "^4.24.7"
+    }
+}
