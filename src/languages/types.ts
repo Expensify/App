@@ -1,5 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ReportAction} from '@src/types/onyx';
+import type {Unit} from '@src/types/onyx/Policy';
 import type en from './en';
 
 type AddressLineParams = {
@@ -300,6 +301,8 @@ type HeldRequestParams = {comment: string};
 
 type DistanceRateOperationsParams = {count: number};
 
+type ReimbursementRateParams = {unit: Unit};
+
 export type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -350,6 +353,7 @@ export type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,

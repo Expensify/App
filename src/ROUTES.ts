@@ -208,11 +208,6 @@ const ROUTES = {
         route: 'r/:reportID/avatar',
         getRoute: (reportID: string) => `r/${reportID}/avatar` as const,
     },
-    EDIT_REQUEST: {
-        route: 'r/:threadReportID/edit/:field/:tagIndex?',
-        getRoute: (threadReportID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${threadReportID}/edit/${field as string}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
-    },
     EDIT_CURRENCY_REQUEST: {
         route: 'r/:threadReportID/edit/currency',
         getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
@@ -277,11 +272,6 @@ const ROUTES = {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
     },
-    EDIT_SPLIT_BILL: {
-        route: `r/:reportID/split/:reportActionID/edit/:field/:tagIndex?`,
-        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${reportID}/split/${reportActionID}/edit/${field as string}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
-    },
     TASK_TITLE: {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title` as const,
@@ -310,22 +300,10 @@ const ROUTES = {
         route: 'r/:reportID/invite/:role?',
         getRoute: (reportID: string, role?: string) => `r/${reportID}/invite/${role}` as const,
     },
-    MONEY_REQUEST_PARTICIPANTS: {
-        route: ':iouType/new/participants/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/participants/${reportID}` as const,
-    },
     MONEY_REQUEST_HOLD_REASON: {
         route: ':type/edit/reason/:transactionID?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
             `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
-    },
-    MONEY_REQUEST_MERCHANT: {
-        route: ':iouType/new/merchant/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
-    },
-    MONEY_REQUEST_RECEIPT: {
-        route: ':iouType/new/receipt/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
     },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
@@ -376,6 +354,11 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_DISTANCE_RATE: {
+        route: ':action/:iouType/distanceRate/:transactionID/:reportID',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/distanceRate/${transactionID}/${reportID}`, backTo),
+    },
     MONEY_REQUEST_STEP_MERCHANT: {
         route: ':action/:iouType/merchant/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
@@ -422,20 +405,20 @@ const ROUTES = {
     },
 
     MONEY_REQUEST_STATE_SELECTOR: {
-        route: 'request/state',
+        route: 'submit/state',
 
         getRoute: (state?: string, backTo?: string, label?: string) =>
-            `${getUrlWithBackToParam(`request/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
+            `${getUrlWithBackToParam(`submit/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
-    IOU_REQUEST: 'request/new',
-    IOU_SEND: 'send/new',
-    IOU_SEND_ADD_BANK_ACCOUNT: 'send/new/add-bank-account',
-    IOU_SEND_ADD_DEBIT_CARD: 'send/new/add-debit-card',
-    IOU_SEND_ENABLE_PAYMENTS: 'send/new/enable-payments',
+    IOU_REQUEST: 'submit/new',
+    IOU_SEND: 'pay/new',
+    IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
+    IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
+    IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
 
     NEW_TASK: 'new/task',
     NEW_TASK_ASSIGNEE: 'new/task/assignee',
@@ -443,10 +426,6 @@ const ROUTES = {
     NEW_TASK_DETAILS: 'new/task/details',
     NEW_TASK_TITLE: 'new/task/title',
     NEW_TASK_DESCRIPTION: 'new/task/description',
-
-    ONBOARD: 'onboard',
-    ONBOARD_MANAGE_EXPENSES: 'onboard/manage-expenses',
-    ONBOARD_EXPENSIFY_CLASSIC: 'onboard/expensify-classic',
 
     TEACHERS_UNITE: 'settings/teachersunite',
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
@@ -476,9 +455,45 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/profile',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
     },
+    WORKSPACE_ACCOUNTING: {
+        route: 'settings/workspaces/:policyID/accounting',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+    },
     WORKSPACE_PROFILE_CURRENCY: {
         route: 'settings/workspaces/:policyID/profile/currency',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/currency` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/company-card-expense-account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/company-card-expense-account-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/account-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
     },
     WORKSPACE_PROFILE_NAME: {
         route: 'settings/workspaces/:policyID/profile/name',
@@ -563,6 +578,18 @@ const ROUTES = {
     POLICY_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/account-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/account-selector` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
@@ -694,9 +721,10 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
-    PROCESS_MONEY_REQUEST_HOLD: 'hold-request-educational',
+    PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
+    ONBOARDING_WORK: 'onboarding/work',
     ONBOARDING_PURPOSE: 'onboarding/purpose',
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
 
@@ -737,6 +765,7 @@ const ROUTES = {
  */
 const HYBRID_APP_ROUTES = {
     MONEY_REQUEST_CREATE: '/request/new/scan',
+    MONEY_REQUEST_SUBMIT_CREATE: '/submit/new/scan',
 } as const;
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam};
