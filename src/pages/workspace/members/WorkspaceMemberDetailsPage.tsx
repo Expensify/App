@@ -127,7 +127,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={['ADMIN', 'PAID']}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
         >
             <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>

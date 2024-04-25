@@ -26,7 +26,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={['ADMIN']}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >

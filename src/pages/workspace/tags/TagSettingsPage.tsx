@@ -66,7 +66,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={['ADMIN', 'PAID']}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >

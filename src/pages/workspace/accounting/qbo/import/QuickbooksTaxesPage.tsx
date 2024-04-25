@@ -23,7 +23,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const isSwitchOn = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={['ADMIN']}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >

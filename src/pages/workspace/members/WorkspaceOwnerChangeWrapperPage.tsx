@@ -55,7 +55,7 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={['ADMIN', 'PAID']}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
         >
             <ScreenWrapper testID={WorkspaceOwnerChangeWrapperPage.displayName}>

@@ -56,7 +56,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={['ADMIN']}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper testID={QuickBooksExportPreferredExporterPage.displayName}>

@@ -1661,6 +1661,10 @@ const CONST = {
                 JOB_DONE: 'jobDone',
             },
         },
+        ACCESS_VARIANTS: {
+            PAID: 'paid',
+            ADMIN: 'admin',
+        },
     },
 
     CUSTOM_UNITS: {

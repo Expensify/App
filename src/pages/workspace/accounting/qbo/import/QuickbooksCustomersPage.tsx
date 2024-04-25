@@ -25,7 +25,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
     const isReportFieldsSelected = syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={['ADMIN']}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
