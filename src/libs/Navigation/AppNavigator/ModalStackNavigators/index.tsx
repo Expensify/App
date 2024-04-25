@@ -12,7 +12,6 @@ import type {
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
-    OnboardEngagementNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
@@ -91,14 +90,11 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../../pages/iou/MoneyRequestWaypointPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../../pages/EditRequestReceiptPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: () => require('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default as React.ComponentType,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
-    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../../pages/EditSplitBillPage').default as React.ComponentType,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
@@ -164,12 +160,6 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
     [SCREENS.NEW_TASK.DETAILS]: () => require('../../../../pages/tasks/NewTaskDetailsPage').default as React.ComponentType,
     [SCREENS.NEW_TASK.TITLE]: () => require('../../../../pages/tasks/NewTaskTitlePage').default as React.ComponentType,
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require('../../../../pages/tasks/NewTaskDescriptionPage').default as React.ComponentType,
-});
-
-const OnboardEngagementModalStackNavigator = createModalStackNavigator<OnboardEngagementNavigatorParamList>({
-    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: () => require('../../../../pages/OnboardEngagement/PurposeForUsingExpensifyPage').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: () => require('../../../../pages/OnboardEngagement/ManageTeamsExpensesPage').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: () => require('../../../../pages/OnboardEngagement/ExpensifyClassicPage').default as React.ComponentType,
 });
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
@@ -345,7 +335,6 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
 export {
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    OnboardEngagementModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,
