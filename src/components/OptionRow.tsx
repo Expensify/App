@@ -253,7 +253,7 @@ function OptionRow({
                                         <Text style={[styles.textLabel]}>{option.descriptiveText}</Text>
                                     </View>
                                 ) : null}
-                                {option.shouldShowAmountInput ? (
+                                {option.shouldShowAmountInput && option.amountInputProps ? (
                                     <MoneyRequestAmountInput
                                         touchableInputWrapperStyle={[styles.amountInputWithPrefix]}
                                         prefixContainerStyle={[styles.pv0]}
