@@ -1,5 +1,5 @@
 import type {StackNavigationOptions} from '@react-navigation/stack';
 
-const slideFromLeft: StackNavigationOptions = {animationEnabled: true, animationTypeForReplace: 'push', gestureDirection: 'horizontal-inverted'};
+const slideFromLeft: StackNavigationOptions = {animationEnabled: true, gestureDirection: 'horizontal-inverted'};
 
 export default slideFromLeft;
