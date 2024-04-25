@@ -129,6 +129,7 @@ export default {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
@@ -550,7 +551,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Search for something...',
+        buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
@@ -1319,8 +1320,7 @@ export default {
     onboarding: {
         welcomeVideo: {
             title: 'Welcome to Expensify',
-            description: 'Getting paid is as easy as sending a message.',
-            button: "Let's go",
+            description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
