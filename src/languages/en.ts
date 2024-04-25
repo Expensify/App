@@ -1893,7 +1893,7 @@ export default {
             exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             creditCard: 'Credit card',
-            debitCard: 'Debit Card',
+            debitCard: 'Debit card',
             vendorBill: 'Vendor Bill',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
