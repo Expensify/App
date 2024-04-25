@@ -39,16 +39,9 @@ jest.mock('@react-navigation/native', () => {
             addListener: () => jest.fn(),
         }),
         useIsFocused: () => true,
+        useNavigationState: () => {},
     } as typeof Navigation;
 });
-
-jest.mock('@hooks/useResponsiveLayout', () =>
-    jest.fn(() => ({
-        shouldUseNarrowLayout: false,
-        isSmallScreenWidth: false,
-        isInModal: false,
-    })),
-);
 
 jest.mock('@src/libs/actions/EmojiPickerAction', () => {
     const actualEmojiPickerAction = jest.requireActual('@src/libs/actions/EmojiPickerAction');
