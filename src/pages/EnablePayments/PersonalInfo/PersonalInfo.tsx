@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +18,9 @@ import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {WalletAdditionalDetailsForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+import type {WalletAdditionalDetailsRefactor} from '@src/types/onyx/WalletAdditionalDetails';
 import Address from './substeps/AddressStep';
 import Confirmation from './substeps/ConfirmationStep';
 import DateOfBirth from './substeps/DateOfBirthStep';
@@ -25,15 +28,22 @@ import FullName from './substeps/FullNameStep';
 import PhoneNumber from './substeps/PhoneNumberStep';
 import SocialSecurityNumber from './substeps/SocialSecurityNumberStep';
 
+type PersonalInfoPageOnyxProps = {
+    /** Reimbursement account from ONYX */
+    walletAdditionalDetails: OnyxEntry<WalletAdditionalDetailsRefactor>;
+
+    /** The draft values of the bank account being setup */
+    walletAdditionalDetailsDraft: OnyxEntry<WalletAdditionalDetailsForm>;
+};
+
+type PersonalInfoPageProps = PersonalInfoPageOnyxProps;
+
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, Address, PhoneNumber, SocialSecurityNumber, Confirmation];
 
-function PersonalInfoPage() {
+function PersonalInfoPage({walletAdditionalDetails, walletAdditionalDetailsDraft}: PersonalInfoPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
-    const [walletAdditionalDetailsDraft] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
 
     const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
@@ -64,6 +74,7 @@ function PersonalInfoPage() {
         prevScreen,
         moveTo,
         screenIndex,
+        goToTheLastStep,
     } = useSubStep({
         bodyContent,
         startFrom,
@@ -72,6 +83,10 @@ function PersonalInfoPage() {
 
     const handleBackButtonPress = () => {
         // TODO: connect to the fist step of the wallet setup https://github.com/Expensify/App/issues/36648
+        if (isEditing) {
+            goToTheLastStep();
+            return;
+        }
         if (screenIndex === 0) {
             Navigation.goBack(ROUTES.SETTINGS_WALLET);
             Wallet.resetWalletAdditionalDetailsDraft();
@@ -82,7 +97,6 @@ function PersonalInfoPage() {
 
     return (
         <ScreenWrapper
-            shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={false}
             testID={PersonalInfoPage.displayName}
         >
@@ -107,4 +121,13 @@ function PersonalInfoPage() {
 
 PersonalInfoPage.displayName = 'PersonalInfoPage';
 
-export default PersonalInfoPage;
+export default withOnyx<PersonalInfoPageProps, PersonalInfoPageOnyxProps>({
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    walletAdditionalDetails: {
+        key: ONYXKEYS.WALLET_ADDITIONAL_DETAILS,
+    },
+    // @ts-expect-error ONYXKEYS.WALLET_ADDITIONAL_DETAILS is conflicting with ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_FORM
+    walletAdditionalDetailsDraft: {
+        key: ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT,
+    },
+})(PersonalInfoPage);
