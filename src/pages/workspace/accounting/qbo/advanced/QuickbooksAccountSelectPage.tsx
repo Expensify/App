@@ -13,8 +13,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -22,23 +22,14 @@ type SelectorType = ListItem & {
     value: string;
 };
 
-// TODO: remove once UI is approved
-const DRAFT = [
-    {name: 'Croissant Co Payroll Account', id: 'Croissant Co Payroll Account'},
-    {name: 'Croissant Co Money in Clearing', id: 'Croissant Co Money in Clearing'},
-    {name: 'Croissant Co Debts and Loans', id: 'Croissant Co Debts and Loans'},
-];
-
-function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const selectedAccount = DRAFT[0].id; // selected
-
     const policyID = policy?.id ?? '';
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const accountOptions = useMemo(() => DRAFT || [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
+    const {reimbursementAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
 
     const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -46,9 +37,9 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                 value: id,
                 text: name,
                 keyForList: id,
-                isSelected: selectedAccount === id,
+                isSelected: reimbursementAccountID === id,
             })),
-        [selectedAccount, accountOptions],
+        [reimbursementAccountID, accountOptions],
     );
     const listHeaderComponent = useMemo(
         () => (
@@ -80,7 +71,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
                         includeSafeAreaPaddingBottom={false}
                         testID={QuickbooksAccountSelectPage.displayName}
                     >
-                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboAccount')} />
+                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount')} />
 
                         <SelectionList
                             sections={[{data: qboOnlineSelectorOptions}]}
@@ -98,4 +89,4 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyProps) {
 
 QuickbooksAccountSelectPage.displayName = 'QuickbooksAccountSelectPage';
 
-export default withPolicy(QuickbooksAccountSelectPage);
+export default withPolicyConnections(QuickbooksAccountSelectPage);

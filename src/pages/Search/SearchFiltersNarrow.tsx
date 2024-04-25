@@ -29,18 +29,23 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
 
-    const activeItem = filterItems.find((item) => item.title.toLowerCase() === activeItemLabel);
-    const popoverMenuItems = filterItems.map((item) => ({
+    const activeItemIndex = filterItems.findIndex((item) => item.title.toLowerCase() === activeItemLabel);
+    const popoverMenuItems = filterItems.map((item, index) => ({
         text: item.title,
         onSelected: singleExecution(() => Navigation.navigate(item.route)),
         icon: item.icon,
+        iconFill: index === activeItemIndex ? theme.iconSuccessFill : theme.icon,
+        iconRight: Expensicons.Checkmark,
+        shouldShowRightIcon: index === activeItemIndex,
+        success: index === activeItemIndex,
+        containerStyle: index === activeItemIndex ? [{backgroundColor: theme.border}] : undefined,
     }));
 
     return (
         <>
             <PressableWithFeedback
                 accessible
-                accessibilityLabel={activeItem?.title ?? ''}
+                accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
                 style={[styles.tabSelectorButton]}
                 wrapperStyle={[styles.flex1]}
                 ref={buttonRef}
@@ -50,10 +55,10 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
                     <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, true, theme.border), styles.mh3]}>
                         <View style={[styles.flexRow]}>
                             <Icon
-                                src={activeItem?.icon ?? Expensicons.All}
+                                src={popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.All}
                                 fill={theme.icon}
                             />
-                            <Text style={[styles.searchFiltersButtonText]}>{activeItem?.title}</Text>
+                            <Text style={[styles.mh1, styles.textStrong]}>{popoverMenuItems[activeItemIndex]?.text}</Text>
                             <Icon
                                 src={Expensicons.DownArrow}
                                 fill={theme.icon}
