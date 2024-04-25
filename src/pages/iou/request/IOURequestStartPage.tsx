@@ -103,9 +103,7 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest =
-        (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate) && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.INVOICE;
-    const shouldDisplayScanRequest = iouType !== CONST.IOU.TYPE.INVOICE;
+    const shouldDisplayDistanceRequest = (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate) && iouType !== CONST.IOU.TYPE.SPLIT;
 
     // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the exoense
     const isAllowedToCreateRequest = isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType) || PolicyUtils.canSendInvoice(allPolicies);
@@ -146,14 +144,14 @@ function IOURequestStartPage({
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
                             />
-                            {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY ? (
+                            {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     onTabSelected={resetIOUTypeIfChanged}
                                     tabBar={TabSelector}
                                 >
                                     <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <IOURequestStepAmount route={route} />}</TopTab.Screen>
-                                    {shouldDisplayScanRequest && <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>}
+                                    <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>{() => <IOURequestStepScan route={route} />}</TopTab.Screen>
                                     {shouldDisplayDistanceRequest && <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>{() => <IOURequestStepDistance route={route} />}</TopTab.Screen>}
                                 </OnyxTabNavigator>
                             ) : (
