@@ -3,9 +3,9 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
 
 type WrappedTextProps = ChildrenProps & {
     /** Style to be applied to Text */
@@ -63,12 +63,19 @@ function WrappedText({children, wordStyles, textStyles}: WrappedTextProps) {
                 >
                     <View style={[wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
                         <Text style={[textStyles, !containsEmoji(colText) && styles.codePlainTextStyle]}>
-                            {Array.from(colText).map((char, charIndex) => (
-                                containsOnlyEmojis(char) ? <Text key={charIndex} style={[
-                                    textStyles, 
-                                    styles.emojiDefaultStyles
-                                ]}>{char}</Text> : char
-                            ))}
+                            {Array.from(colText).map((char, charIndex) =>
+                                containsOnlyEmojis(char) ? (
+                                    <Text
+                                        // eslint-disable-next-line react/no-array-index-key
+                                        key={`${colIndex}-${charIndex}`}
+                                        style={[textStyles, styles.emojiDefaultStyles]}
+                                    >
+                                        {char}
+                                    </Text>
+                                ) : (
+                                    char
+                                ),
+                            )}
                         </Text>
                     </View>
                 </View>
