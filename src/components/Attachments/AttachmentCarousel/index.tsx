@@ -79,7 +79,7 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
                 onNavigate(targetAttachments[initialPage]);
             }
         }
-    }, [reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, report.reportID]);
+    }, [reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate, accountID, report.reportID, type]);
 
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
