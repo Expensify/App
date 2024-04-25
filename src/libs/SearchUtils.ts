@@ -1,5 +1,6 @@
 import ExpenseListItem from '@components/SelectionList/TemporaryExpenseListItem';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 
 const searchTypeToItemMap = {
     transaction: {
@@ -7,7 +8,7 @@ const searchTypeToItemMap = {
     },
 };
 
-const getTransactionsSections = (data: OnyxTypes.SearchResults['data']) =>
+const getTransactionsSections = (data: OnyxTypes.SearchResults['data']): SearchTransaction[] =>
     Object.entries(data)
         .filter(([key]) => key.startsWith('transactions_'))
         .map(([, value]) => value);
