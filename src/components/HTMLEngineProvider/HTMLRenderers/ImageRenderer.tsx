@@ -87,12 +87,11 @@ function ImageRenderer({tnode}: ImageRendererProps) {
                                 if (!source || !type) {
                                     return;
                                 }
-                                let route = '';
-                                if (reportID) {
-                                    route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID);
-                                }
 
-                                Navigation.navigate(route);
+                                if (reportID) {
+                                    const route = ROUTES.ATTACHMENTS?.getRoute(reportID, type, source, accountID);
+                                    Navigation.navigate(route);
+                                }
                             }}
                             onLongPress={(event) => showContextMenuForReport(event, anchor, report?.reportID ?? '', action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                             shouldUseHapticsOnLongPress
