@@ -37,9 +37,6 @@ import type {Note} from '@src/types/onyx/Report';
 type PrivateNotesEditPageOnyxProps = {
     /** All of the personal details for everyone */
     personalDetailsList: OnyxCollection<PersonalDetails>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
 };
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
@@ -183,9 +180,6 @@ export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(
     withOnyx<PrivateNotesEditPageProps, PrivateNotesEditPageOnyxProps>({
         personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     })(PrivateNotesEditPage),
 );
