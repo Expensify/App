@@ -16,6 +16,7 @@ import RightElementEnabledStatus from '@components/SelectionList/RightElementEna
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
@@ -56,7 +57,7 @@ type PolicyOption = ListItem & {
 
 type WorkspaceTagsPageProps = WithPolicyConnectionsProps;
 
-function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
+function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -68,6 +69,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const policyID = route.params.policyID ?? '';
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
+    const isAccountingConnected = Object.keys(policy?.connections ?? {}).length > 0;
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
@@ -286,7 +288,19 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         />
                         {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                         <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                            {isAccountingConnected ? (
+                                <Text>
+                                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                                    <TextLink
+                                        style={[styles.textNormal, styles.link]}
+                                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                                    >
+                                        {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                                    </TextLink>
+                                </Text>
+                            ) : (
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                            )}
                         </View>
                         {isLoading && (
                             <ActivityIndicator
