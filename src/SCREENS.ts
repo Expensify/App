@@ -116,7 +116,6 @@ const SCREENS = {
         PARTICIPANTS: 'Participants',
         MONEY_REQUEST: 'MoneyRequest',
         NEW_TASK: 'NewTask',
-        ONBOARD_ENGAGEMENT: 'Onboard_Engagement',
         TEACHERS_UNITE: 'TeachersUnite',
         TASK_DETAILS: 'Task_Details',
         ENABLE_PAYMENTS: 'EnablePayments',
@@ -218,7 +217,10 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_EXPORT: 'Workspace_Accounting_Quickbooks_Online_Export',
             QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Date_Select',
             QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Invoice_Account_Select',
-            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
+            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense',
+            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Select',
+            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Payable_Select',
+            QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
             QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
@@ -304,12 +306,6 @@ const SCREENS = {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
         WORK: 'Onboarding_Work',
-    },
-
-    ONBOARD_ENGAGEMENT: {
-        ROOT: 'Onboard_Engagement_Root',
-        MANAGE_TEAMS_EXPENSES: 'Manage_Teams_Expenses',
-        EXPENSIFY_CLASSIC: 'Expenisfy_Classic',
     },
 
     WELCOME_VIDEO: {

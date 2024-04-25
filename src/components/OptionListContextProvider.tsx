@@ -84,16 +84,18 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         if (!areOptionsInitialized.current || !reports) {
             return;
         }
-        const missingReportId = Object.keys(reports).find((key) => prevReports && !(key in prevReports));
-        const report = missingReportId ? reports[missingReportId] : null;
-        if (!missingReportId || !report) {
-            return;
-        }
+        const missingReportIds = Object.keys(reports).filter((key) => prevReports && !(key in prevReports));
 
-        const reportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
-            newOptions.reports.push(reportOption);
+            missingReportIds.forEach((missingReportId) => {
+                const report = missingReportId ? reports[missingReportId] : null;
+                if (!missingReportId || !report) {
+                    return;
+                }
+                const reportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
+                newOptions.reports.push(reportOption);
+            });
             return newOptions;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
