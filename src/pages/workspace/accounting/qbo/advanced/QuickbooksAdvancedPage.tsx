@@ -49,7 +49,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     title={selectedQboAccountName}
-                    description={translate('workspace.qbo.advancedConfig.qboAccount')}
+                    description={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
                     error={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
@@ -59,7 +59,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
             <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
                 <MenuItem
-                    title={translate('workspace.qbo.advancedConfig.collectionAccount')}
+                    title={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')}
                     description={translate('workspace.qbo.advancedConfig.collectionAccountDescription')}
                     shouldShowBasicTitle
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
