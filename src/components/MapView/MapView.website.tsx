@@ -17,6 +17,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import setUserLocation from '@userActions/UserLocation';
 import CONST from '@src/CONST';
@@ -254,7 +255,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                                 /* eslint-disable @typescript-eslint/naming-convention */
                                 'circle-radius': 8,
                                 /* eslint-disable @typescript-eslint/naming-convention */
-                                'circle-color': '#007bff',
+                                'circle-color': colors.blueDot,
                             }}
                         />
                     </Source>

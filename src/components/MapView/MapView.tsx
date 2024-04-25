@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Icon from '@components/Icon';
+import colors from '@styles/theme/colors';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useTheme from '@hooks/useTheme';
@@ -224,7 +225,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                             id="user-location-layer"
                             sourceID="user-location"
                             style={{
-                                circleColor: '#007bff',
+                                circleColor: colors.blueDot,
                                 circleRadius: 8,
                             }}
                         />
