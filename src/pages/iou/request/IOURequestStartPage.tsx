@@ -1,4 +1,4 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -11,7 +11,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as IOUUtils from '@libs/IOUUtils';
@@ -60,16 +59,16 @@ function IOURequestStartPage({
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const navigation = useNavigation();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const tabTitles = {
-        [CONST.IOU.TYPE.REQUEST]: translate('iou.requestMoney'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.sendMoney'),
-        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitBill'),
-        [CONST.IOU.TYPE.TRACK_EXPENSE]: translate('iou.trackExpense'),
+        [CONST.IOU.TYPE.REQUEST]: translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.SUBMIT]: translate('iou.submitExpense'),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
+        [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
+        [CONST.IOU.TYPE.TRACK]: translate('iou.trackExpense'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
-    const previousIOURequestType = usePrevious(transactionRequestType.current);
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
@@ -88,7 +87,7 @@ function IOURequestStartPage({
         }, []),
     );
 
-    // Clear out the temporary money request if the reportID in the URL has changed from the transaction's reportID
+    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID
     useEffect(() => {
         if (transaction?.reportID === reportID) {
             return;
@@ -98,9 +97,9 @@ function IOURequestStartPage({
 
     const isExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isExpenseReport = ReportUtils.isExpenseReport(report);
-    const shouldDisplayDistanceRequest = !!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate;
+    const shouldDisplayDistanceRequest = (!!canUseP2PDistanceRequests || isExpenseChat || isExpenseReport || isFromGlobalCreate) && iouType !== CONST.IOU.TYPE.SPLIT;
 
-    // Allow the user to create the request if we are creating the request in global menu or the report can create the request
+    // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the exoense
     const isAllowedToCreateRequest = isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType);
 
     const navigateBack = () => {
@@ -108,17 +107,10 @@ function IOURequestStartPage({
     };
 
     const resetIOUTypeIfChanged = useCallback(
-        (newIouType: IOURequestType) => {
-            if (newIouType === previousIOURequestType) {
-                return;
-            }
-            if (iouType === CONST.IOU.TYPE.SPLIT && transaction?.isFromGlobalCreate) {
-                IOU.updateMoneyRequestTypeParams(navigation.getState()?.routes ?? [], CONST.IOU.TYPE.REQUEST, newIouType);
-            }
-            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIouType);
-            transactionRequestType.current = newIouType;
+        (newIOUType: IOURequestType) => {
+            IOU.initMoneyRequest(reportID, policy, isFromGlobalCreate, newIOUType);
         },
-        [policy, previousIOURequestType, reportID, isFromGlobalCreate, iouType, navigation, transaction?.isFromGlobalCreate],
+        [policy, reportID, isFromGlobalCreate],
     );
 
     if (!transaction?.transactionID) {
@@ -146,7 +138,7 @@ function IOURequestStartPage({
                                 title={tabTitles[iouType]}
                                 onBackButtonPress={navigateBack}
                             />
-                            {iouType !== CONST.IOU.TYPE.SEND ? (
+                            {iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.IOU_REQUEST_TYPE}
                                     onTabSelected={resetIOUTypeIfChanged}

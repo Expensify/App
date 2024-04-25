@@ -9,11 +9,9 @@ import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useLocalize from '@hooks/useLocalize';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
-import ROUTES from '@src/ROUTES';
 import type {AnchorDimensions} from '@src/styles';
 import type {ReportAction} from '@src/types/onyx';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -39,6 +37,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const reportActionRef = useRef<OnyxEntry<ReportAction>>(null);
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
+    const transactionThreadReportIDRef = useRef('0');
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string>();
 
@@ -173,6 +172,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         shouldCloseOnTarget = false,
         setIsEmojiPickerActive = () => {},
         isOverflowMenu = false,
+        transactionThreadReportID = undefined,
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -214,6 +214,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             reportIDRef.current = reportID ?? '0';
             reportActionIDRef.current = reportActionID ?? '0';
             originalReportIDRef.current = originalReportID ?? '0';
+            transactionThreadReportIDRef.current = transactionThreadReportID ?? '0';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -274,9 +275,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             }
         } else if (reportAction) {
             Report.deleteReportComment(reportIDRef.current, reportAction);
-            if (!((reportAction?.childVisibleActionCount ?? 0) > 0)) {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportIDRef.current));
-            }
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
@@ -342,6 +340,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                     type={typeRef.current}
                     reportID={reportIDRef.current}
                     reportActionID={reportActionIDRef.current}
+                    transactionThreadReportID={transactionThreadReportIDRef.current}
                     draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
                     isArchivedRoom={isRoomArchived}
