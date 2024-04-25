@@ -1966,10 +1966,9 @@ export default {
                     'Expensify creará automáticamente un proveedor en Quickbooks, si no existe. Expensify también creará automáticamente un cliente al exportar facturas.',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
-                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el pago de la factura correspondiente en las cuentas de Quickbooks indicadas a continuación.',
-                qboAccount: 'Cuenta Quickbooks',
-                collectionAccount: 'Cuenta de cobro de facturas',
-                collectionAccountDescription: 'Una vez abonadas las facturas, el pago aparecerá en la cuenta configurada a continuación.',
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks indicadas a continuación.',
+                qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
+                qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
                 accountSelectDescription:
                     'Como has activado la sincronización de los informes de reembolso, tendrás que seleccionar la cuenta bancaria de la que saldrán tus reembolsos y crearemos el pago en QuickBooks.',
                 invoiceAccountSelectDescription:

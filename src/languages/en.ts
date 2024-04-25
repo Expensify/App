@@ -1939,10 +1939,9 @@ export default {
                 createEntitiesDescription:
                     'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
                 reimbursedReports: 'Sync reimbursed reports',
-                reimbursedReportsDescription: 'Any time report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks accounts below.',
-                qboAccount: 'Quickbooks account',
-                collectionAccount: 'Invoice collection account',
-                collectionAccountDescription: 'Once invoices have been paid, the payment will appear in the account configured below.',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks account below.',
+                qboBillPaymentAccount: 'QuickBooks bill payment account',
+                qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription:
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
                 invoiceAccountSelectDescription:
