@@ -85,7 +85,7 @@ function ExpensifyCardPage({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy;
-    const domain = cardList?.[cardID].domainName ?? '';
+    const domain = cardList?.[cardID]?.domainName ?? '';
     const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
 
     const [isNotFound, setIsNotFound] = useState(false);
