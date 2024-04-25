@@ -72,11 +72,12 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     const dropdownButtonRef = useRef(null);
     const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
+    const policyID = route.params.policyID ?? '';
     const {environmentURL} = useEnvironment();
 
     const fetchTags = useCallback(() => {
-        Policy.openPolicyTagsPage(route.params.policyID);
-    }, [route.params.policyID]);
+        Policy.openPolicyTagsPage(policyID);
+    }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
@@ -144,22 +145,22 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     );
 
     const navigateToTagsSettings = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
     };
 
     const navigateToCreateTagPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(route.params.policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
 
     const navigateToTagSettings = (tag: PolicyOption) => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route.params.policyID, tag.keyForList));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
 
     const handleDeleteTags = () => {
         setSelectedTags({});
-        Policy.deletePolicyTags(route.params.policyID, selectedTagsArray);
+        Policy.deletePolicyTags(policyID, selectedTagsArray);
         setDeleteTagsConfirmModalVisible(false);
     };
 
@@ -194,7 +195,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                     value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         setSelectedTags({});
-                        Policy.setWorkspaceTagEnabled(route.params.policyID, tagsToDisable);
+                        Policy.setWorkspaceTagEnabled(policyID, tagsToDisable);
                     },
                 });
             }
@@ -216,7 +217,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                     value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
                         setSelectedTags({});
-                        Policy.setWorkspaceTagEnabled(route.params.policyID, tagsToEnable);
+                        Policy.setWorkspaceTagEnabled(policyID, tagsToEnable);
                     },
                 });
             }
@@ -259,10 +260,10 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
+            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
                 <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
+                    policyID={policyID}
                     featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
                 >
                     <ScreenWrapper
@@ -319,7 +320,7 @@ function WorkspaceTagsPage({policyTags, route}: WorkspaceTagsPageProps) {
                                 customListHeader={getCustomListHeader()}
                                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                                 listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                                onDismissError={(item) => Policy.clearPolicyTagErrors(route.params.policyID, item.value)}
+                                onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
                             />
                         )}
                     </ScreenWrapper>
