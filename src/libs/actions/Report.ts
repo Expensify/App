@@ -3317,9 +3317,6 @@ function completeOnboarding(
                 [textCommentAction.reportActionID]: {
                     errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
                 } as ReportAction,
-                [videoCommentAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
-                } as ReportAction,
             },
         },
         {
@@ -3348,6 +3345,16 @@ function completeOnboarding(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
             value: {
                 [videoCommentAction.reportActionID]: {pendingAction: null},
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
             },
         });
 
