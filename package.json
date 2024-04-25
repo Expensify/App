@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.63-19",
+  "version": "1.4.65-5",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -65,7 +65,7 @@
     "@babel/plugin-proposal-private-methods": "^7.18.6",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@dotlottie/react-player": "^1.6.3",
-    "@expensify/react-native-live-markdown": "0.1.62",
+    "@expensify/react-native-live-markdown": "0.1.64",
     "@expo/metro-runtime": "~3.1.1",
     "@formatjs/intl-datetimeformat": "^6.10.0",
     "@formatjs/intl-listformat": "^7.2.2",
@@ -183,8 +183,7 @@
     "react-webcam": "^7.1.1",
     "react-window": "^1.8.9",
     "semver": "^7.5.2",
-    "shim-keyboard-event-key": "^1.0.3",
-    "underscore": "^1.13.1"
+    "shim-keyboard-event-key": "^1.0.3"
   },
   "devDependencies": {
     "@actions/core": "1.10.0",
@@ -233,7 +232,6 @@
     "@types/react-test-renderer": "^18.0.0",
     "@types/semver": "^7.5.4",
     "@types/setimmediate": "^1.0.2",
-    "@types/underscore": "^1.11.5",
     "@types/webpack": "^5.28.5",
     "@types/webpack-bundle-analyzer": "^4.7.0",
     "@typescript-eslint/eslint-plugin": "^6.13.2",

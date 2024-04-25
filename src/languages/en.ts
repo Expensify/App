@@ -129,6 +129,7 @@ export default {
         optional: 'Optional',
         new: 'New',
         search: 'Search',
+        find: 'Find',
         searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
@@ -512,11 +513,10 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `Welcome to ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\nYou can also use the + button to ${additionalText}, or assign a task!`,
         iouTypes: {
-            send: 'pay expenses',
+            pay: 'pay expenses',
             split: 'split an expense',
-            request: 'submit an expense',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'track-expense': 'track an expense',
+            submit: 'submit an expense',
+            track: 'track an expense',
         },
     },
     reportAction: {
@@ -551,7 +551,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Search for something...',
+        buttonFind: 'Find something...',
         buttonMySettings: 'My settings',
         fabNewChat: 'Start chat',
         fabNewChatExplained: 'Start chat (Floating action)',
@@ -631,10 +631,10 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
-        routePending: 'Pending...',
         receiptScanning: 'Receipt scanning...',
         receiptScanInProgress: 'Receipt scan in progress.',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
+        fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptMissingDetails: 'Receipt missing details',
         missingAmount: 'Missing amount',
@@ -656,6 +656,7 @@ export default {
         nextStep: 'Next Steps',
         finished: 'Finished',
         submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
+        trackAmount: ({amount}: RequestAmountParams) => `track ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
@@ -1322,8 +1323,7 @@ export default {
     onboarding: {
         welcomeVideo: {
             title: 'Welcome to Expensify',
-            description: 'Getting paid is as easy as sending a message.',
-            button: "Let's go",
+            description: 'One app to handle all your business and personal spend in a chat. Built for your business, your team, and your friends.',
         },
         whatsYourName: "What's your name?",
         whereYouWork: 'Where do you work?',
@@ -1335,7 +1335,7 @@ export default {
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: "I'm just looking around",
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
@@ -1875,6 +1875,69 @@ export default {
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             locationsAdditionalDescription:
                 'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
+            export: 'Export',
+            exportAs: 'Export as',
+            exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
+            preferredExporter: 'Preferred exporter',
+            date: 'Date',
+            exportExpenses: 'Export out-of-pocket expenses as',
+            exportInvoices: 'Export invoices to',
+            exportCompany: 'Export company cards as',
+            exportExpensifyCard: 'Export Expensify Card transactions as',
+            deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a "Expensify Card Liability Account" created with',
+            deepDiveExpensifyCardIntegration: 'our integration.',
+            exportDate: 'Export date',
+            exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
+            lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
+            exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooks Online'},
+            submittedData: {label: 'Submitted date', description: 'The date the report was submitted for approval'},
+            receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
+            archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
+            exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
+            exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
+            creditCard: 'Credit Card',
+            debitCard: 'Debit Card',
+            vendorBill: 'Vendor Bill',
+            exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
+            exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
+            exportVendorBillDescription:
+                "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
+            check: 'Check',
+            accountsPayable: 'Accounts Payable',
+            accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
+            journalEntry: 'Journal Entry',
+            optionBelow: 'Choose an option below:',
+            vendorBillError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+            checkError: 'Check is not available when locations are enabled. Please select a different export option.',
+            journalEntryError: 'Journal entry is not available when taxes enabled. please select a different export option.',
+            companyCardsLocationEnabledDescription:
+                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
+            outOfPocketTaxEnabledDescription:
+                "Note: QuickBooks Online doesn't support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
+            outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',
+            outOfPocketLocationEnabledError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+            outOfPocketLocationEnabledDescription:
+                'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations as Tags, this export option is unavailable.',
+            advancedConfig: {
+                advanced: 'Advanced',
+                autoSync: 'Auto-sync',
+                autoSyncDescription: 'Changes made in Quickbooks will automatically be reflected in Expensify.',
+                inviteEmployees: 'Invite employees',
+                inviteEmployeesDescription: 'Import Quickbooks Online employee records and invite them to this workspace.',
+                createEntities: 'Automatically create entities',
+                createEntitiesDescription:
+                    'Expensify will automatically create a vendor in Quickbooks, if one does not exist. Expensify will also automatically create a customer when exporting invoices.',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time report is paid using Expensify ACH, the corresponding bill payment will be created in the Quickbooks accounts below.',
+                qboAccount: 'Quickbooks account',
+                collectionAccount: 'Invoice collection account',
+                collectionAccountDescription: 'Once invoices have been paid, the payment will appear in the account configured below.',
+                accountSelectDescription:
+                    "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
+                invoiceAccountSelectDescription:
+                    'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
+            },
         },
         type: {
             free: 'Free',
@@ -1905,6 +1968,7 @@ export default {
             categoryRequiredError: 'Category name is required.',
             existingCategoryError: 'A category with this name already exists.',
             invalidCategoryName: 'Invalid category name.',
+            importedFromAccountingSoftware: 'The categories below are imported from your',
         },
         moreFeatures: {
             spendSection: {
@@ -2077,6 +2141,7 @@ export default {
             lowRateError: 'Rate must be greater than 0',
         },
         accounting: {
+            settings: 'settings',
             title: 'Connections',
             subtitle: 'Connect to your accounting system to code transactions with your chart of accounts, auto-match payments and keep your finances in sync.',
             qbo: 'Quickbooks Online',
@@ -2654,13 +2719,13 @@ export default {
             header: `Start a chat, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `Get paid to talk to your friends! Start a chat with a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText1: 'Submit expense, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Submit an expense, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `It pays to get paid! Submit an expense to a new Expensify account and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
             buttonText1: 'Pay someone, ',
             buttonText2: `get $${CONST.REFERRAL_PROGRAM.REVENUE}.`,
             header: `Pay someone, get $${CONST.REFERRAL_PROGRAM.REVENUE}`,
@@ -2678,28 +2743,6 @@ export default {
             body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
         },
         copyReferralLink: 'Copy invite link',
-    },
-    purposeForExpensify: {
-        [CONST.INTRO_CHOICES.TRACK]: 'Track business spend for taxes',
-        [CONST.INTRO_CHOICES.SUBMIT]: 'Get paid back by my employer',
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
-        welcomeMessage: 'Welcome to Expensify',
-        welcomeSubtitle: 'What would you like to do?',
-    },
-    manageTeams: {
-        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Multi level approval',
-        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Custom expense coding',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Company card tracking',
-        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Accounting integrations',
-        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Rule enforcement',
-        title: 'Do you require any of the following features?',
-    },
-    expensifyClassic: {
-        title: "Expensify Classic has everything you'll need",
-        firstDescription: "While we're busy working on New Expensify, it currently doesn't support some of the features you're looking for.",
-        secondDescription: "Don't worry, Expensify Classic has everything you need.",
-        buttonText: 'Take me to Expensify Classic',
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
