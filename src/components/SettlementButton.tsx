@@ -219,13 +219,13 @@ function SettlementButton({
             disabled: !!shouldDisableApproveButton,
         };
 
-        // Only show the Approve button if the user cannot pay the request
+        // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
             return [approveButtonOption];
         }
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default.
-        // If the user has previously chosen a specific payment option or paid for some request or expense,
+        // If the user has previously chosen a specific payment option or paid for some expense,
         // let's use the last payment method or use default.
         const paymentMethod = nvpLastPaymentMethod?.[policyID] ?? '';
 

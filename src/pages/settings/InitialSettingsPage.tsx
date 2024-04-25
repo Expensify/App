@@ -326,7 +326,9 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                                 hoverAndPressStyle={styles.hoveredComponentBG}
                                 shouldBlockSelection={Boolean(item.link)}
                                 onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={!!activeRoute && !!item.routeName && !!(activeRoute.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))}
+                                focused={
+                                    !!activeRoute?.name && !!item.routeName && !!(activeRoute?.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
+                                }
                                 isPaneMenu
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
@@ -482,7 +484,7 @@ function InitialSettingsPage({session, userWallet, bankAccountList, fundList, wa
                 ref={scrollViewRef}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
-                style={[styles.w100, styles.pt4]}
+                contentContainerStyle={[styles.w100, styles.pt4]}
             >
                 {headerContent}
                 {accountMenuItems}

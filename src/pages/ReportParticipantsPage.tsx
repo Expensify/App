@@ -13,6 +13,7 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -27,7 +28,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -84,13 +84,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={translate('common.admin')} />;
             }
 
             result.push({
@@ -98,13 +92,14 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 accountID,
                 isSelected,
                 isDisabledCheckbox: accountID === currentUserAccountID,
+                isDisabled: pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 pendingAction: pendingChatMember?.pendingAction,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details?.avatar, accountID),
+                        source: details.avatar ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -115,7 +110,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
 
         result = result.sort((a, b) => (a.text ?? '').toLowerCase().localeCompare((b.text ?? '').toLowerCase()));
         return result;
-    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, styles, StyleUtils, isGroupChat]);
+    }, [formatPhoneNumber, personalDetails, report, selectedMembers, currentUserAccountID, translate, isGroupChat]);
 
     const participants = useMemo(() => getUsers(), [getUsers]);
 
@@ -309,7 +304,6 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
             includeSafeAreaPaddingBottom={false}
             style={[styles.defaultModalContainer]}
             testID={ReportParticipantsPage.displayName}
-            shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView shouldShow={!report || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report)}>
                 <HeaderWithBackButton

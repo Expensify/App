@@ -714,6 +714,10 @@ function clearPolicyErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {[fieldName]: null}});
 }
 
+function clearQBOErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
+}
+
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
     const policy = getPolicy(policyID);
 
@@ -3790,77 +3794,6 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function updatePolicyConnectionConfig(policyID: string, settingName: ValueOf<typeof CONST.QUICK_BOOKS_IMPORTS>, settingValue: ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>) {
-    const parameters = {policyID, connectionName: CONST.QUICK_BOOKS_ONLINE, settingName, settingValue, idempotencyKey: settingName};
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    quickbooksOnline: {
-                        config: {
-                            [settingName]: settingValue,
-                            pendingFields: {
-                                [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    quickbooksOnline: {
-                        config: {
-                            [settingName]: settingValue,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage'),
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                connections: {
-                    quickbooksOnline: {
-                        config: {
-                            [settingName]: settingValue,
-                            pendingFields: {
-                                [settingName]: null,
-                            },
-                            errorFields: {
-                                [settingName]: null,
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
-}
-
 function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     const isNarrowLayout = getIsNarrowLayout();
     if (isNarrowLayout) {
@@ -3877,7 +3810,9 @@ function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
     new Promise<void>((resolve) => {
         resolve();
     }).then(() => {
-        Navigation.navigate(featureRoute);
+        requestAnimationFrame(() => {
+            Navigation.navigate(featureRoute);
+        });
     });
 }
 
@@ -5130,13 +5065,13 @@ export {
     createPolicyTag,
     renamePolicyTag,
     clearPolicyTagErrors,
+    clearQBOErrorField,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
     deletePolicyTags,
     setWorkspaceTagEnabled,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
-    updatePolicyConnectionConfig,
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
