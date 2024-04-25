@@ -44,7 +44,6 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const taglistName = useMemo(() => PolicyUtils.getTagLists(policyTags)[0].name, [policyTags]);
-
     const {inputCallbackRef} = useAutoFocusInput();
 
     const updateTaglistName = useCallback(
