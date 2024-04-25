@@ -74,7 +74,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '';
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
 
     const fetchTags = useCallback(() => {
