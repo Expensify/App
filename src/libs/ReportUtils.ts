@@ -2624,7 +2624,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     const transaction = getLinkedTransaction(reportAction);
 
     if (isEmptyObject(transaction)) {
-        // Transaction data might be empty on app's first load, if so we fallback to Expense
+        // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
         return ReportActionsUtils.isTrackExpenseAction(reportAction) ? Localize.translateLocal('iou.trackExpense') : Localize.translateLocal('iou.expense');
     }
 
@@ -2650,10 +2650,13 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 
     const transactionDetails = getTransactionDetails(transaction);
 
-    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) && !ReportActionsUtils.isTrackExpenseAction(reportAction) ? 'iou.threadPaySomeoneReportName' : 'iou.threadExpenseReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
-        comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
-    });
+    return Localize.translateLocal(
+        ReportActionsUtils.isSentMoneyReportAction(reportAction) && !ReportActionsUtils.isTrackExpenseAction(reportAction) ? 'iou.threadPaySomeoneReportName' : 'iou.threadExpenseReportName',
+        {
+            formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
+            comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
+        },
+    );
 }
 
 /**
