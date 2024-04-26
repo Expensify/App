@@ -5841,10 +5841,11 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
         return;
     }
     const oldAccountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
-    const participantAccountIDsWithoutCurrentUser = newAccountIDs.filter((accountID) => accountID !== userAccountID);
 
     // Create an array containing unique IDs of the current transaction participants and the new ones
-    const accountIDs = [...new Set<number>([userAccountID, ...participantAccountIDsWithoutCurrentUser, ...oldAccountIDs])];
+    // The current userAccountID might not be included in newAccountIDs if this is called from the participants step using Global Create
+    // If this is called from an existing group chat, it'll be included. So we manually add them to account for both cases.
+    const accountIDs = [...new Set<number>([userAccountID, ...newAccountIDs, ...oldAccountIDs])];
 
     const splitShares: SplitShares = accountIDs.reduce((result: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
@@ -5859,7 +5860,9 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
         }
 
         const isPayer = accountID === userAccountID;
-        const splitAmount = IOUUtils.calculateAmount(participantAccountIDsWithoutCurrentUser.length, amount, currency, isPayer);
+
+        // This function expects the length of participants without current user
+        const splitAmount = IOUUtils.calculateAmount(accountIDs.length - 1, amount, currency, isPayer);
         return {
             ...result,
             [accountID]: {
