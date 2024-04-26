@@ -112,6 +112,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
@@ -229,6 +230,7 @@ export default {
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
             enterDate: 'Introduce una fecha',
+            invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -1338,6 +1340,9 @@ export default {
             requiredLastName: 'Introduce tu apellido para continuar',
         },
     },
+    featureTraining: {
+        doNotShowAgain: 'No muestres esto otra vez',
+    },
     personalDetails: {
         error: {
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
@@ -1921,6 +1926,19 @@ export default {
             optionBelow: 'Elija una opción a continuación:',
             creditCard: 'Tarjeta de crédito',
             vendorBill: 'Factura del proveedor',
+            account: 'Cuenta',
+            vendor: 'Proveedor',
+            defaultVendor: 'Proveedor predeterminado',
+            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
+            debitCardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
+            creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
+            vendorBillAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+            debitCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
+            creditCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
+            vendorBillDescription:
+                'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
             companyCardsLocationEnabledDescription:
@@ -1953,10 +1971,9 @@ export default {
                     'Expensify creará automáticamente un proveedor en Quickbooks, si no existe. Expensify también creará automáticamente un cliente al exportar facturas.',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
-                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el pago de la factura correspondiente en las cuentas de Quickbooks indicadas a continuación.',
-                qboAccount: 'Cuenta Quickbooks',
-                collectionAccount: 'Cuenta de cobro de facturas',
-                collectionAccountDescription: 'Una vez abonadas las facturas, el pago aparecerá en la cuenta configurada a continuación.',
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks indicadas a continuación.',
+                qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
+                qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
                 accountSelectDescription:
                     'Como has activado la sincronización de los informes de reembolso, tendrás que seleccionar la cuenta bancaria de la que saldrán tus reembolsos y crearemos el pago en QuickBooks.',
                 invoiceAccountSelectDescription:
@@ -2171,6 +2188,8 @@ export default {
                         case 'quickbooksOnlineCheckConnection':
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
+                            return 'Importando datos desde QuickBooks Online';
+                        case 'startingImport':
                             return 'Importando datos desde QuickBooks Online';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -2419,6 +2438,9 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        error: {
+            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
+        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
