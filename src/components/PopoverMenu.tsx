@@ -218,6 +218,8 @@ function PopoverMenu({
                         shouldShowSubscriptRightAvatar={item.shouldShowSubscriptRightAvatar}
                         disabled={item.disabled}
                         onFocus={() => setFocusedIndex(menuIndex)}
+                        success={item.success}
+                        containerStyle={item.containerStyle}
                     />
                 ))}
             </View>

@@ -11,7 +11,7 @@
 
 #### Table of Contents
 * [Local Development](#local-development)
-* [Testing on browsers on simulators and emulators](#testing-on-browsers-on-simulators-and-emulators)
+* [Testing on browsers in simulators and emulators](#testing-on-browsers-in-simulators-and-emulators)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
 * [App Structure and Conventions](#app-structure-and-conventions)
@@ -60,6 +60,7 @@ If you're using another operating system, you will need to ensure `mkcert` is in
 For an M1 Mac, read this [SO](https://stackoverflow.com/questions/64901180/how-to-run-cocoapods-on-apple-silicon-m1) for installing cocoapods.
 
 * If you haven't already, install Xcode tools and make sure to install the optional "iOS Platform" package as well. This installation may take awhile.
+    * After installation, check in System Settings that there's no update for Xcode. Otherwise, you may encounter issues later that don't explain that you solve them by updating Xcode.
 * Install project gems, including cocoapods, using bundler to ensure everyone uses the same versions. In the project root, run: `bundle install`
     * If you get the error `Could not find 'bundler'`, install the bundler gem first: `gem install bundler` and try again.
     * If you are using MacOS and get the error `Gem::FilePermissionError` when trying to install the bundler gem, you're likely using system Ruby, which requires administrator permission to modify. To get around this, install another version of Ruby with a version manager like [rbenv](https://github.com/rbenv/rbenv#installation).
