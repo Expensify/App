@@ -1969,6 +1969,7 @@ export default {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
+            needCategoryForExportToIntegration: 'A category is required on every expense in order to export to',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
