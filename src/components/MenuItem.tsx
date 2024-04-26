@@ -333,7 +333,7 @@ function MenuItem(
     const StyleUtils = useStyleUtils();
     const combinedStyle = [style, styles.popoverMenuItem];
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {isExecuting, singleExecution} = useContext(MenuItemGroupContext) ?? {};
+    const {isExecuting, singleExecution, waitForNavigate} = useContext(MenuItemGroupContext) ?? {};
 
     const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
     const descriptionVerticalMargin = shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
@@ -408,11 +408,15 @@ function MenuItem(
         }
 
         if (onPress && event) {
-            if (!singleExecution) {
+            if (!singleExecution || !waitForNavigate) {
                 onPress(event);
                 return;
             }
-            singleExecution(onPress)(event);
+            singleExecution(
+                waitForNavigate(() => {
+                    onPress(event);
+                }),
+            )();
         }
     };
 
@@ -637,14 +641,7 @@ function MenuItem(
                                     {badgeText && (
                                         <Badge
                                             text={badgeText}
-                                            textStyles={styles.textStrong}
-                                            badgeStyles={[
-                                                styles.alignSelfCenter,
-                                                styles.badgeBordered,
-                                                brickRoadIndicator ? styles.mr2 : undefined,
-                                                focused || isHovered || pressed ? styles.activeItemBadge : {},
-                                                badgeStyle,
-                                            ]}
+                                            badgeStyles={badgeStyle}
                                         />
                                     )}
                                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}

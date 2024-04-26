@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -9,6 +8,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
+import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -67,6 +67,10 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             false,
             {},
             [],
+            true,
+            undefined,
+            undefined,
+            undefined,
             true,
         );
         const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
@@ -182,6 +186,10 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
      */
     const createChat = useCallback(
         (option?: OptionsListUtils.Option) => {
+            if (option?.isSelfDM) {
+                Navigation.dismissModal(option.reportID);
+                return;
+            }
             let login = '';
 
             if (option?.login) {
@@ -200,6 +208,9 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & OptionsListUtils.Option) => {
+            if (item.isSelfDM) {
+                return null;
+            }
             /**
              * Removes a selected option from list if already selected. If not already selected add this option to the list.
              * @param  option
@@ -265,6 +276,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 {!!selectedOptions.length && (
                     <Button
                         success
+                        large
                         text={translate('common.next')}
                         onPress={createGroup}
                         pressOnEnter
@@ -276,8 +288,12 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
     );
 
     return (
-        <View
-            style={styles.flex1}
+        <ScreenWrapper
+            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom={isOffline}
+            shouldShowOfflineIndicator={false}
+            includePaddingTop={false}
+            shouldEnablePickerAvoiding={false}
             testID={NewChatPage.displayName}
         >
             <KeyboardAvoidingView
@@ -306,7 +322,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
                 />
                 {isSmallScreenWidth && <OfflineIndicator />}
             </KeyboardAvoidingView>
-        </View>
+        </ScreenWrapper>
     );
 }
 
