@@ -3029,14 +3029,12 @@ function completeOnboarding(
     },
     adminsChatReportID?: string,
 ) {
-    let targetEmail: string = CONST.EMAIL.CONCIERGE;
-    if (currentUserAccountID % 2 === 1) {
-        // for odd accountID, we will use the expensify persona instead of concierge
-        targetEmail = CONST.EMAIL.EXPENSIFY_PERSONA;
-    }
+    const isAccountIDOdd = currentUserAccountID % 2 === 1;
+    const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
 
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
-    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
+    // TODO: using getSystemChat is rather not necessary if we could have participants list filled correctly
+    const targetChatReport= isAccountIDOdd ? ReportUtils.getSystemChat() : ReportUtils.getChatByParticipants([actorAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message

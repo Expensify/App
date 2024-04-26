@@ -53,6 +53,7 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
+    SYSTEM: 'system',
 } as const;
 
 // Explicit type annotation is required
@@ -1202,7 +1203,6 @@ const CONST = {
         CHRONOS: 'chronos@expensify.com',
         CONCIERGE: 'concierge@expensify.com',
         CONTRIBUTORS: 'contributors@expensify.com',
-        EXPENSIFY_PERSONA: 'expensify@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
         HELP: 'help@expensify.com',
