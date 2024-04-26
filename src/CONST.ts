@@ -846,7 +846,7 @@ const CONST = {
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
-        }
+        },
     },
     NEXT_STEP: {
         FINISHED: 'Finished!',
