@@ -111,7 +111,7 @@ process.argv.forEach((arg) => {
 // happens correctly.
 let hasUpdate = false;
 let downloadedVersion: string;
-let isSilentUpdate = false;
+let isSilentUpdating = false;
 
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
@@ -138,7 +138,10 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWin
 
     autoUpdater
         .checkForUpdates()
-        .catch((error) => ({error}))
+        .catch((error) => {
+            isSilentUpdating = false;
+            return {error};
+        })
         .then((result) => {
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
@@ -150,7 +153,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWin
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdate}),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdating}),
                     buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {
@@ -174,6 +177,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWin
             return downloadPromise;
         })
         .finally(() => {
+            isSilentUpdating = false;
             if (!menuItem) {
                 return;
             }
@@ -206,7 +210,7 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (checkForUpdatesMenuItem) {
                 checkForUpdatesMenuItem.visible = false;
             }
-            if (browserWindow.isVisible() && !isSilentUpdate) {
+            if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 quitAndInstallWithUpdate();
@@ -611,7 +615,10 @@ const mainWindow = (): Promise<void> => {
 
                 // Automatically check for and install the latest version in the background
                 ipcMain.on(ELECTRON_EVENTS.SILENT_UPDATE, () => {
-                    isSilentUpdate = true;
+                    if (isSilentUpdating) {
+                        return;
+                    }
+                    isSilentUpdating = true;
                     manuallyCheckForUpdates(undefined, browserWindow);
                 });
 
