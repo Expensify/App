@@ -2652,7 +2652,6 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     }
 
     if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-        const transactionDetails = getTransactionDetails(transaction);
         return Localize.translateLocal('iou.threadTrackReportName', {
             formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
             comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
