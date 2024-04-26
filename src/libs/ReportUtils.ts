@@ -2593,6 +2593,8 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Check if any of the transactions in the report has required missing fields
  *
+ * NOTE: The function hasMissingSmartscanFields is used on both LHN preview and report action,
+ * so we need to create a isLHNPreview to handle both cases above
  */
 function hasMissingSmartscanFields(iouReportID: string, isLHNPreview?: boolean): boolean {
     if (isLHNPreview) {
