@@ -1,5 +1,7 @@
 package com.expensify.chat
 
+import com.facebook.react.common.assets.ReactFontManager
+
 import android.app.ActivityManager
 import android.content.res.Configuration
 import android.database.CursorWindow
@@ -42,6 +44,9 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)
+        ReactFontManager.getInstance().addCustomFont(this, "Expensify Mono", R.font.expensify_mono)
 
         RNPerformance.getInstance().mark("appCreationStart", false);
 
