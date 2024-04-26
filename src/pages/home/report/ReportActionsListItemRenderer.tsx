@@ -17,6 +17,9 @@ type ReportActionsListItemRendererProps = {
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<ReportAction>;
 
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<ReportAction>;
+
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -66,6 +69,7 @@ function ReportActionsListItemRenderer({
     shouldDisplayReplyDivider,
     isFirstVisibleReportActionID = false,
     usedThreadDividerLine = false,
+    parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report) && !ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -157,6 +161,7 @@ function ReportActionsListItemRenderer({
             parentReportAction={parentReportAction}
             report={report}
             transactionThreadReport={transactionThreadReport}
+            parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
             reportActions={reportActions}
             linkedReportActionID={linkedReportActionID}
