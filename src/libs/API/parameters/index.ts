@@ -12,6 +12,7 @@ export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
 export type {default as ConnectPolicyToQuickbooksOnlineParams} from './ConnectPolicyToQuickbooksOnlineParams';
+export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyToQuickbooksOnlineParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
@@ -215,3 +216,4 @@ export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpensePa
 export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';
 export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
+export type {default as SearchParams} from './Search';
