@@ -444,7 +444,7 @@ function MoneyRequestConfirmationList({
                     title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
-                    isDisabled: false,
+                    isDisabled: !canModifyParticipants,
                 },
             );
         } else {
@@ -967,7 +967,7 @@ function MoneyRequestConfirmationList({
     );
 
     return (
-        <>
+        <View>
             <SelectionList
                 canSelectMultiple={canModifyParticipants}
                 sections={optionSelectorSections}
@@ -1007,6 +1007,7 @@ function MoneyRequestConfirmationList({
                 />
             )}
             {shouldShowAllFields && supplementaryFields}
+            {footerContent}
             <ConfirmModal
                 title={translate('attachmentPicker.wrongFileType')}
                 onConfirm={navigateBack}
@@ -1016,8 +1017,7 @@ function MoneyRequestConfirmationList({
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
-            {footerContent}
-        </>
+        </View>
     );
 }
 
