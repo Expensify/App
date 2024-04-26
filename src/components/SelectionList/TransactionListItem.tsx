@@ -1,17 +1,22 @@
 import {format} from 'date-fns';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Avatar from '@components/Avatar';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {TransactionListItemProps, ListItem} from './types';
+import type {ListItem, TransactionListItemProps} from './types';
 
 function TransactionListItem<TItem extends ListItem>({
     item,
@@ -30,6 +35,7 @@ function TransactionListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
@@ -40,6 +46,8 @@ function TransactionListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+
+    console.log('personalDetails', personalDetails);
 
     return (
         <BaseListItem
@@ -96,116 +104,93 @@ function TransactionListItem<TItem extends ListItem>({
                             ]}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={format(new Date(item.created), 'MMM dd')}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkText,
-                                styles.pre,
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                    </View>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.description}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkText,
-                                styles.pre,
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                    </View>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.from.displayName}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkText,
-                                styles.pre,
+                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={format(new Date(item.created), 'MMM dd')}
+                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+                            />
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={item.description}
+                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+                            />
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
+                                <Avatar
+                                    imageStyles={[styles.alignSelfCenter]}
+                                    size={CONST.AVATAR_SIZE.SMALL}
+                                    source={personalDetails[item.managerID]?.avatar}
+                                    name={personalDetails[item.managerID]?.displayName}
+                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                />
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
+                                >
+                                    {personalDetails[item.managerID]?.displayName}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
+                                <Avatar
+                                    imageStyles={[styles.alignSelfCenter]}
+                                    size={CONST.AVATAR_SIZE.SMALL}
+                                    source={personalDetails[item.accountID]?.avatar}
+                                    name={personalDetails[item.accountID]?.displayName}
+                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                />
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
+                                >
+                                    {personalDetails[item.accountID]?.displayName}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={item.category}
+                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+                            />
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={item.tag}
+                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+                            />
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsEnd]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={showTooltip}
+                                text={`${CurrencyUtils.getLocalizedCurrencySymbol(item.currency)}${item.amount}`}
+                                style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
+                            />
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <Icon
+                                src={Expensicons.CreditCard}
+                                fill={theme.icon}
+                            />
+                        </View>
 
-                                styles.justifyContentCenter,
-                            ]}
-                        />
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <Button
+                                success
+                                onPress={() => {}}
+                                small
+                                pressOnEnter
+                                text="View"
+                            />
+                        </View>
                     </View>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.to.displayName}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkText,
-                                styles.pre,
-
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                    </View>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.category}
-                            style={[
-                                styles.optionDisplayName,
-                                styles.sidebarLinkActiveText,
-                                styles.pre,
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                    </View>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.tag}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkText,
-                                styles.pre,
-
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                    </View>
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsEnd]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.amount}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkText,
-                                styles.pre,
-
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                    </View>
-                    {/* 
-                    
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                        <TextWithTooltip
-                            shouldShowTooltip={showTooltip}
-                            text={item.amount}
-                            style={[
-                                styles.optionDisplayName,
-                                isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                styles.sidebarLinkText,
-                                styles.pre,
-
-                                styles.justifyContentCenter,
-                            ]}
-                        />
-                    </View> */}
                     {!!item.rightElement && item.rightElement}
                 </>
             )}

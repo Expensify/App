@@ -31,14 +31,10 @@ const data = [
         transactionID: '1234',
         modifiedCreated: '2024-05-06 00:00:00',
         description: 'description description description description',
-        from: {
-            displayName: 'TestUser1',
-            avatarUrl: '',
-        },
-        to: {
-            displayName: 'TestUser2',
-            avatarUrl: '',
-        },
+        accountID: '8392101',
+        managerID: '8392101',
+        currency: 'USD',
+        modifiedCurrency: '',
         category: 'Bananas',
         tag: 'Green',
     },
@@ -53,14 +49,10 @@ const data = [
         transactionID: '5555',
         modifiedCreated: '2024-05-06 00:00:00',
         description: 'description',
-        from: {
-            displayName: 'TestUser1',
-            avatarUrl: '',
-        },
-        to: {
-            displayName: 'TestUser2',
-            avatarUrl: '',
-        },
+        accountID: '8392101',
+        managerID: '8392101',
+        currency: 'USD',
+        modifiedCurrency: '',
         category: 'Bananas',
         tag: 'Green',
     },
@@ -77,7 +69,7 @@ function SearchPage({route}: SearchPageProps) {
         const showMerchantColumn = isSmallScreenWidth && true;
 
         return (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.gap3]}>
                 {/* <Text style={styles.searchInputStyle}>{translate('common.receipt')}</Text> */}
                 <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.date')}</Text>
                 {showMerchantColumn && <Text style={[styles.searchInputStyle]}>{translate('common.merchant')}</Text>}
@@ -87,6 +79,8 @@ function SearchPage({route}: SearchPageProps) {
                 <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.category')}</Text>
                 <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.tag')}</Text>
                 <Text style={[styles.searchInputStyle, styles.flex1, styles.textAlignRight]}>{translate('common.total')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.type')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.action')}</Text>
             </View>
         );
     };
