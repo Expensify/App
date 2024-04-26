@@ -3613,7 +3613,7 @@ function splitBillAndOpenReport({
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
         chatType: splitData.chatType,
-        splitPayerAccountIDs: [],
+        splitPayerAccountIDs,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
