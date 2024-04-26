@@ -1335,7 +1335,6 @@ export default {
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
-            requiredLastName: 'Introduce tu apellido para continuar',
         },
     },
     personalDetails: {

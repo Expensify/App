@@ -90,7 +90,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         const errors = {};
 
         // First we validate the first name field
-        if (values.firstName.length === 0) {
+        if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'onboarding.error.requiredFirstName');
         }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
@@ -103,9 +103,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         }
 
         // Then we validate the last name field
-        if (values.lastName.length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLastName');
-        }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
