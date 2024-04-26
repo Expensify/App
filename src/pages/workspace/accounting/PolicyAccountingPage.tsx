@@ -239,13 +239,17 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         );
         return otherIntegrations.map((integration) => {
             const integrationData = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
+            const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
             return {
-                icon: integrationData?.icon,
+                ...iconProps,
                 title: integrationData?.title,
                 rightComponent: integrationData?.setupConnectionButton,
+                interactive: false,
+                shouldShowRightComponent: true,
+                wrapperStyle: styles.sectionMenuItemTopDescription,
             };
         });
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, translate]);
+    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, styles.sectionMenuItemTopDescription, translate]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -296,33 +300,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                                         menuItems={connectionsMenuItems}
                                         shouldUseSingleExecution
                                     />
-                                    {otherIntegrationsItems && otherIntegrationsItems?.length > 0 && (
+                                    {otherIntegrationsItems && (
                                         <CollapsibleSection
                                             title={translate('workspace.accounting.other')}
                                             wrapperStyle={styles.pr3}
                                             titleStyle={[styles.textNormal, styles.colorMuted]}
                                         >
-                                            {otherIntegrationsItems.map((integration) =>
-                                                integration?.icon ? (
-                                                    <MenuItem
-                                                        icon={integration?.icon}
-                                                        iconType={CONST.ICON_TYPE_AVATAR}
-                                                        interactive={false}
-                                                        shouldShowRightComponent
-                                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                        title={integration.title}
-                                                        rightComponent={integration.rightComponent}
-                                                    />
-                                                ) : (
-                                                    <MenuItem
-                                                        interactive={false}
-                                                        shouldShowRightComponent
-                                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                        title={integration.title}
-                                                        rightComponent={integration.rightComponent}
-                                                    />
-                                                ),
-                                            )}
+                                            <MenuItemList
+                                                menuItems={otherIntegrationsItems}
+                                                shouldUseSingleExecution
+                                            />
                                         </CollapsibleSection>
                                     )}
                                 </Section>
