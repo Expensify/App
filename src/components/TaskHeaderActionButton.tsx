@@ -25,7 +25,7 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    if (ReportUtils.canWriteInReport(report)) {
+    if (!ReportUtils.canWriteInReport(report)) {
         return null;
     }
 

@@ -1177,18 +1177,18 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
  * Checks if the user can write in the provided report
  */
 function canWriteInReport(report: OnyxEntry<Report>): boolean {
-    if (Array.isArray(report?.permissions)) {
-        return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
+    if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
+        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
     }
 
-    return false;
+    return true;
 }
 
 /**
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
-    if (canWriteInReport(report)) {
+    if (!canWriteInReport(report)) {
         return false;
     }
 
@@ -5390,7 +5390,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
-    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && !canWriteInReport(report);
+    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
