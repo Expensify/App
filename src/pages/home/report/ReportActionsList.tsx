@@ -597,7 +597,7 @@ function ReportActionsList({
             parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
-       ],
+        ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
