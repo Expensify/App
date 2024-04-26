@@ -213,12 +213,12 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [directionCoordinates, currentPosition, mapRef, waypoints, centerButtonOpacity, mapPadding]);
 
         const onMove = useCallback(() => {
-            if (!isMapCentered) {
+            if (!isMapCentered || !userInteractedWithMap) {
                 return;
             }
             setIsMapCentered(false);
             centerButtonOpacity.value = 1;
-        }, [isMapCentered, centerButtonOpacity]);
+        }, [isMapCentered, centerButtonOpacity, userInteractedWithMap]);
 
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View

@@ -176,12 +176,12 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         }, [directionCoordinates, currentPosition, mapPadding, waypoints, centerButtonOpacity]);
 
         const onRegionDidChange = useCallback(() => {
-            if (!isMapCentered) {
+            if (!isMapCentered || !userInteractedWithMap) {
                 return;
             }
             setIsMapCentered(false);
             centerButtonOpacity.value = 1;
-        }, [isMapCentered, centerButtonOpacity]);
+        }, [isMapCentered, centerButtonOpacity, userInteractedWithMap]);
 
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View style={style}>
