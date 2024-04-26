@@ -2200,6 +2200,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         errors: {},
                     },
                 },
+                chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
             },
         },
         {
