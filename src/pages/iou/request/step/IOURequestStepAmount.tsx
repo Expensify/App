@@ -183,7 +183,7 @@ function IOURequestStepAmount({
 
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport({
+                    IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -196,6 +196,7 @@ function IOURequestStepAmount({
                         created: transaction?.created ?? '',
                         billable: false,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        existingSplitChatReportID: report?.reportID,
                     });
                     return;
                 }
