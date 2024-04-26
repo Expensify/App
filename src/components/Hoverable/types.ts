@@ -18,6 +18,9 @@ type HoverableProps = {
 
     /** Decides whether to handle the scroll behaviour to show hover once the scroll ends */
     shouldHandleScroll?: boolean;
+
+    /** Decides whether to freeze the capture of the hover event */
+    shouldFreezeCapture?: boolean;
 };
 
 export default HoverableProps;
