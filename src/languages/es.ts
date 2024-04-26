@@ -1880,17 +1880,12 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         qbo: {
-            import: 'Importación',
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
             classes: 'Clases',
-            accounts: 'Plan de cuentas',
             locations: 'Lugares',
-            taxes: 'Impuestos',
             customers: 'Clientes/Proyectos',
-            imported: 'Importado',
             displayedAs: 'Mostrado como',
             notImported: 'No importado',
-            importedAsTags: 'Importado, mostrado como etiqueta',
             importedAsReportFields: 'Importado, mostrado como campo de informe',
             accountsDescription: 'Los planes de cuentas se importan como categorías cuando está conectado con una integración de contaduría, esto no se puede desactivar.',
             accountsSwitchTitle: 'Habilita el plan de cuentas recien importado',
@@ -1983,14 +1978,9 @@ export default {
         xero: {
             organization: 'Organización Xero',
             organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
-            import: 'Importación',
             importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
-            accounts: 'Plan de cuentas',
             trackingCategories: 'Categorías de seguimiento',
-            taxes: 'Impuestos',
             customers: 'Volver a facturar a los clientes',
-            imported: 'Importado',
-            importedAsTags: 'Importado, mostrado como etiqueta',
         },
         type: {
             free: 'Gratis',
@@ -2176,6 +2166,10 @@ export default {
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             disconnectTitle: 'Desconectar integración',
+            accounts: 'Plan de cuentas',
+            taxes: 'Impuestos',
+            imported: 'Importado',
+            importedAsTags: 'Importado, mostrado como etiqueta',
             disconnectPrompt: (integrationToConnect?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

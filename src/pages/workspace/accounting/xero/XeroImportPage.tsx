@@ -27,31 +27,31 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const sections = useMemo(
         () => [
             {
-                description: translate('workspace.xero.accounts'),
+                description: translate('workspace.accounting.accounts'),
                 action: () => {},
                 hasError: !!policy?.errors?.enableNewCategories,
-                title: translate('workspace.xero.imported'),
+                title: translate('workspace.accounting.imported'),
                 pendingAction: pendingFields?.enableNewCategories,
             },
             {
                 description: translate('workspace.xero.trackingCategories'),
                 action: () => {},
                 hasError: !!policy?.errors?.importTrackingCategories,
-                title: importTrackingCategories ? translate('workspace.xero.importedAsTags') : '',
+                title: importTrackingCategories ? translate('workspace.accounting.importedAsTags') : '',
                 pendingAction: pendingFields?.importTrackingCategories,
             },
             {
                 description: translate('workspace.xero.customers'),
                 action: () => {},
                 hasError: !!policy?.errors?.importCustomers,
-                title: importCustomers ? translate('workspace.xero.importedAsTags') : '',
+                title: importCustomers ? translate('workspace.accounting.importedAsTags') : '',
                 pendingAction: pendingFields?.importCustomers,
             },
             {
-                description: translate('workspace.xero.taxes'),
+                description: translate('workspace.accounting.taxes'),
                 action: () => {},
                 hasError: !!policy?.errors?.importTaxes,
-                title: importTaxRates ? translate('workspace.xero.imported') : '',
+                title: importTaxRates ? translate('workspace.accounting.imported') : '',
                 pendingAction: pendingFields?.importTaxRates,
             },
         ],
@@ -83,7 +83,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                     testID={XeroImportPage.displayName}
                 >
                     <HeaderWithBackButton
-                        title={translate('workspace.xero.import')}
+                        title={translate('workspace.accounting.import')}
                         subtitle={currentXeroOrganization?.name}
                     />
                     <ScrollView contentContainerStyle={styles.pb2}>
