@@ -384,6 +384,7 @@ function MoneyRequestView({
                         }
                     />
                 )}
+                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {!(!hasReceipt && (canEditReceipt || isAdmin || isApprover)) && !(showMapAsImage || hasReceipt) && <View style={{marginVertical: 6}} />}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={noteTypeViolations} />}
                 <ViolationMessages violations={getViolationsForField('receipt')} />
