@@ -372,11 +372,11 @@ function BaseTextInput(
                                 markdownStyle={markdownStyle}
                             />
                             {isFocused && !isReadOnly && shouldShowClearButton && value && (
-                                <Tooltip text="Clear">
+                                <Tooltip text={translate('common.clear')}>
                                     <PressableWithoutFeedback
                                         style={[styles.mt4, styles.ml1]}
                                         accessibilityRole={CONST.ROLE.BUTTON}
-                                        accessibilityLabel="Clear"
+                                        accessibilityLabel={translate('common.clear')}
                                         onMouseDown={(e) => {
                                             e.preventDefault();
                                         }}

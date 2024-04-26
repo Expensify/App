@@ -314,6 +314,7 @@ export default {
             subtitleText3: '.',
         },
         businessName: 'Nombre del Negocio',
+        clear: 'Clara',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
