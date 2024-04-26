@@ -99,26 +99,49 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+type Fare = {
+    amount: number;
+    convertedAmount: number;
+    convertedCurrency: string;
+    currencyCode: string;
+};
+
+type SpotnanaPayload = {
+    tripId: string;
+    pnrId: string;
+    bookingStatus: string;
+    documents: unknown[];
+    carPnr?: unknown;
+    airPnr?: unknown;
+    totalFare: Fare;
+    totalFareAmount: {
+        base: Fare;
+        tax: Fare;
+    };
+    version: number;
+};
+
 type Reservation = {
-    company: Company;
-    confirmations: ReservationConfirmation[];
+    reservationID?: string;
     start: ReservationTimeDetails;
     end: ReservationTimeDetails;
+    type: ReservationType;
+    company?: Company;
+    confirmations?: ReservationConfirmation[];
     numPassengers?: number;
     numberOfRooms?: number;
-    route: {
+    route?: {
         class: string;
         number: string;
     };
-    type: ReservationType;
 };
 
 type ReservationTimeDetails = {
-    address: string;
     date: string;
-    longName: string;
-    shortName: string;
-    timezoneOffset: number;
+    address?: string;
+    longName?: string;
+    shortName?: string;
+    timezoneOffset?: number;
 };
 
 type Company = {
@@ -255,6 +278,8 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         // @TODO: Check whether this type is correct once the backend for it's ready
         /** Travel reserviation list */
         reservationList?: Reservation[];
+
+        originalSpotnanaPayload?: SpotnanaPayload;
 
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
