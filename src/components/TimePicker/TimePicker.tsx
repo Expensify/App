@@ -112,6 +112,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
     const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
     const [isError, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
     const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
     const [selectionMinute, setSelectionMinute] = useState({start: 2, end: 2}); // we focus it by default so need  to have selection on the end
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value).hour);
@@ -129,8 +130,17 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
 
     const validate = useCallback(
         (time: string) => {
-            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString: time || `${hours}:${minutes} ${amPmValue}`, dateTimeString: defaultValue});
+            const timeString = time || `${hours}:${minutes} ${amPmValue}`;
+            const [hourStr] = timeString.split(/[:\s]+/);
+            const hour = parseInt(hourStr, 10);
+            if (hour === 0) {
+                setError(true);
+                setErrorMessage('common.error.invalidTimeRange');
+                return false;
+            }
+            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({timeString, dateTimeString: defaultValue});
             setError(!isValid);
+            setErrorMessage('common.error.invalidTimeShouldBeFuture');
             return isValid;
         },
         [hours, minutes, amPmValue, defaultValue],
@@ -458,7 +468,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                         onSelectionChange={(e) => {
                             setSelectionHour(e.nativeEvent.selection);
                         }}
-                        style={styles.timePickerInput}
+                        style={[styles.iouAmountTextInput, styles.timePickerInput]}
+                        containerStyle={[styles.iouAmountTextInputContainer]}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionHour}
                     />
@@ -484,7 +495,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
                         onSelectionChange={(e) => {
                             setSelectionMinute(e.nativeEvent.selection);
                         }}
-                        style={styles.timePickerInput}
+                        style={[styles.iouAmountTextInput, styles.timePickerInput]}
+                        containerStyle={[styles.iouAmountTextInputContainer]}
                         touchableInputWrapperStyle={styles.timePickerHeight100}
                         selection={selectionMinute}
                     />
@@ -521,8 +533,8 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}}: Tim
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
-                    message="common.error.invalidTimeShouldBeFuture"
-                    style={styles.pl5}
+                    message={errorMessage}
+                    style={[styles.ph5]}
                 />
             ) : (
                 <View style={styles.formHelperMessage} />

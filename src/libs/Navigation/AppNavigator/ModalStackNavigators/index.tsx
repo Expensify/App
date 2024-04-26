@@ -12,7 +12,6 @@ import type {
     MoneyRequestNavigatorParamList,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
-    OnboardEngagementNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
@@ -23,6 +22,7 @@ import type {
     ReportSettingsNavigatorParamList,
     RoomInviteNavigatorParamList,
     RoomMembersNavigatorParamList,
+    SearchReportParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
     SplitDetailsNavigatorParamList,
@@ -91,14 +91,11 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: () => require('../../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: () => require('../../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.WAYPOINT]: () => require('../../../../pages/iou/MoneyRequestWaypointPage').default as React.ComponentType,
-    [SCREENS.MONEY_REQUEST.RECEIPT]: () => require('../../../../pages/EditRequestReceiptPage').default as React.ComponentType,
     [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: () => require('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default as React.ComponentType,
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
     [SCREENS.SPLIT_DETAILS.ROOT]: () => require('../../../../pages/iou/SplitBillDetailsPage').default as React.ComponentType,
-    [SCREENS.SPLIT_DETAILS.EDIT_REQUEST]: () => require('../../../../pages/EditSplitBillPage').default as React.ComponentType,
 });
 
 const DetailsModalStackNavigator = createModalStackNavigator<DetailsNavigatorParamList>({
@@ -164,12 +161,6 @@ const NewTaskModalStackNavigator = createModalStackNavigator<NewTaskNavigatorPar
     [SCREENS.NEW_TASK.DETAILS]: () => require('../../../../pages/tasks/NewTaskDetailsPage').default as React.ComponentType,
     [SCREENS.NEW_TASK.TITLE]: () => require('../../../../pages/tasks/NewTaskTitlePage').default as React.ComponentType,
     [SCREENS.NEW_TASK.DESCRIPTION]: () => require('../../../../pages/tasks/NewTaskDescriptionPage').default as React.ComponentType,
-});
-
-const OnboardEngagementModalStackNavigator = createModalStackNavigator<OnboardEngagementNavigatorParamList>({
-    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: () => require('../../../../pages/OnboardEngagement/PurposeForUsingExpensifyPage').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: () => require('../../../../pages/OnboardEngagement/ManageTeamsExpensesPage').default as React.ComponentType,
-    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: () => require('../../../../pages/OnboardEngagement/ExpensifyClassicPage').default as React.ComponentType,
 });
 
 const NewTeachersUniteNavigator = createModalStackNavigator<TeachersUniteNavigatorParamList>({
@@ -263,12 +254,18 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportInvoiceAccountSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountPayableSelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseEntitySelectPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: () =>
-        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountSelectPage').default as React.ComponentType,
+        require('@pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountSelectCardPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT]: () =>
+        require('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () =>
         require('../../../../pages/workspace/accounting/qbo/export/QuickbooksPreferredExporterConfigurationPage').default as React.ComponentType,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: () => require('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default as React.ComponentType,
@@ -333,7 +330,6 @@ const PrivateNotesModalStackNavigator = createModalStackNavigator<PrivateNotesNa
 const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParamList>({
     [SCREENS.SIGN_IN_ROOT]: () => require('../../../../pages/signin/SignInModal').default as React.ComponentType,
 });
-
 const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
     [SCREENS.REFERRAL_DETAILS]: () => require('../../../../pages/ReferralDetailsPage').default as React.ComponentType,
 });
@@ -342,10 +338,13 @@ const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
     [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require('../../../../pages/ProcessMoneyRequestHoldPage').default as React.ComponentType,
 });
 
+const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
+    [SCREENS.SEARCH.REPORT_RHP]: () => require('../../../../pages/home/ReportScreen').default as React.ComponentType,
+});
+
 export {
     AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
-    OnboardEngagementModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
     FlagCommentStackNavigator,
@@ -372,4 +371,5 @@ export {
     WalletStatementStackNavigator,
     ProcessMoneyRequestHoldStackNavigator,
     WorkspaceSettingsModalStackNavigator,
+    SearchReportModalStackNavigator,
 };
