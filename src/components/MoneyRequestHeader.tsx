@@ -108,12 +108,8 @@ function MoneyRequestHeader({
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);
         } else {
-            if (!policy?.type) {
-                return;
-            }
-
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy.type, iouTransactionID, report?.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, report?.reportID, activeRoute));
         }
     };
 
