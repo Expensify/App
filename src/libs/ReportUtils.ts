@@ -2636,6 +2636,21 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
         return Localize.translateLocal('iou.receiptMissingDetails');
     }
 
+    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
+        return Localize.translateLocal('iou.fieldPending');
+    }
+
+    const transactionDetails = getTransactionDetails(transaction);
+
+    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '';
+    const comment = (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '';
+    if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+        return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
+    }
+    if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
+        return Localize.translateLocal('iou.threadPaySomeoneReportName', {formattedAmount, comment});
+    }
+
     if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
         const transactionDetails = getTransactionDetails(transaction);
         return Localize.translateLocal('iou.threadTrackReportName', {
@@ -2643,20 +2658,7 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
             comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
         });
     }
-
-    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
-        return Localize.translateLocal('iou.fieldPending');
-    }
-
-    const transactionDetails = getTransactionDetails(transaction);
-
-    return Localize.translateLocal(
-        ReportActionsUtils.isSentMoneyReportAction(reportAction) && !ReportActionsUtils.isTrackExpenseAction(reportAction) ? 'iou.threadPaySomeoneReportName' : 'iou.threadExpenseReportName',
-        {
-            formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
-            comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
-        },
-    );
+    return Localize.translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
 
 /**
