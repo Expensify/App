@@ -10,12 +10,14 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PopoverMenu from '@components/PopoverMenu';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
@@ -25,6 +27,7 @@ import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
@@ -51,11 +54,20 @@ type FloatingActionButtonAndPopoverOnyxProps = {
     /** Information on the last taken action to display as Quick Action */
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 
+    /** The report data of the quick action */
+    quickActionReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The policy data of the quick action */
+    quickActionPolicy: OnyxEntry<OnyxTypes.Policy>;
+
     /** The current session */
     session: OnyxEntry<OnyxTypes.Session>;
 
     /** Personal details of all the users */
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+
+    /** Has user seen track expense training interstitial */
+    hasSeenTrackTraining: OnyxEntry<boolean>;
 };
 
 type FloatingActionButtonAndPopoverProps = FloatingActionButtonAndPopoverOnyxProps & {
@@ -135,7 +147,18 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails}: FloatingActionButtonAndPopoverProps,
+    {
+        onHideCreateMenu,
+        onShowCreateMenu,
+        isLoading = false,
+        allPolicies,
+        quickAction,
+        quickActionReport,
+        quickActionPolicy,
+        session,
+        personalDetails,
+        hasSeenTrackTraining,
+    }: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
@@ -146,10 +169,7 @@ function FloatingActionButtonAndPopover(
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
-
-    const quickActionReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : null), [quickAction]);
-
-    const quickActionPolicy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`] : undefined;
+    const {isOffline} = useNetwork();
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -292,7 +312,7 @@ function FloatingActionButtonAndPopover(
                               {
                                   icon: Expensicons.DocumentPlus,
                                   text: translate('iou.trackExpense'),
-                                  onSelected: () =>
+                                  onSelected: () => {
                                       interceptAnonymousUser(() =>
                                           IOU.startMoneyRequest(
                                               CONST.IOU.TYPE.TRACK,
@@ -301,7 +321,11 @@ function FloatingActionButtonAndPopover(
                                               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                               ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
                                           ),
-                                      ),
+                                      );
+                                      if (!hasSeenTrackTraining && !isOffline) {
+                                          Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                      }
+                                  },
                               },
                           ]
                         : []),
@@ -407,11 +431,20 @@ export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<Floa
     quickAction: {
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
     },
+    quickActionReport: {
+        key: ({quickAction}) => `${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`,
+    },
+    quickActionPolicy: {
+        key: ({quickActionReport}) => `${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`,
+    },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    hasSeenTrackTraining: {
+        key: ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING,
     },
 })(forwardRef(FloatingActionButtonAndPopover));
 

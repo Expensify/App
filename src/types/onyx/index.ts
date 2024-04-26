@@ -63,6 +63,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -177,4 +178,5 @@ export type {
     Log,
     PolicyJoinMember,
     CapturedLogs,
+    SearchResults,
 };
