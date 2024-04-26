@@ -2650,13 +2650,6 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
     if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
         return Localize.translateLocal('iou.threadPaySomeoneReportName', {formattedAmount, comment});
     }
-
-    if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-        return Localize.translateLocal('iou.threadTrackReportName', {
-            formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
-            comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
-        });
-    }
     return Localize.translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
 
