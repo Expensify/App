@@ -8,6 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
+import AccountUtils from '@libs/AccountUtils';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -1930,6 +1931,18 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
     }
 }
 
+/**
+ * Navigates to the 1:1 system chat
+ */
+function navigateToSystemChat() {
+    // TODO: when system report participants list is filled, we could just use `ReportUtils.getChatByParticipants()` method insted `getSystemChat()`
+    const systemChatReport = ReportUtils.getSystemChat();
+
+    if (systemChatReport && systemChatReport.reportID) {
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(systemChatReport.reportID));
+    }
+}
+
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: ReportUtils.OptimisticChatReport) {
     const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
@@ -3029,12 +3042,12 @@ function completeOnboarding(
     },
     adminsChatReportID?: string,
 ) {
-    const isAccountIDOdd = currentUserAccountID % 2 === 1;
+    const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
 
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     // TODO: using getSystemChat is rather not necessary if we could have participants list filled correctly
-    const targetChatReport= isAccountIDOdd ? ReportUtils.getSystemChat() : ReportUtils.getChatByParticipants([actorAccountID]);
+    const targetChatReport = isAccountIDOdd ? ReportUtils.getSystemChat() : ReportUtils.getChatByParticipants([actorAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message
@@ -3736,6 +3749,7 @@ export {
     saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
+    navigateToSystemChat,
     addPolicyReport,
     deleteReport,
     navigateToConciergeChatAndDeleteReport,

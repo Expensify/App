@@ -7,6 +7,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
+import {useSession} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -15,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import AccountUtils from '@libs/AccountUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -32,6 +34,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {accountID} = useSession();
 
     useDisableModalDismissOnEscape();
 
@@ -62,6 +65,8 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
             // Otherwise stay on the chats screen.
             if (isSmallScreenWidth) {
                 Navigation.navigate(ROUTES.HOME);
+            } else if (AccountUtils.isAccountIDOddNumber(accountID ?? 0)) {
+                Report.navigateToSystemChat();
             } else {
                 Report.navigateToConciergeChat();
             }
@@ -72,7 +77,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
                 Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
             }, variables.welcomeVideoDelay);
         },
-        [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected],
+        [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected, accountID],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
