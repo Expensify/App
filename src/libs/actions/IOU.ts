@@ -5837,9 +5837,15 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     }
     const oldAccountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
     const participantAccountIDsWithoutCurrentUser = newAccountIDs.filter((accountID) => accountID !== userAccountID);
+
+    // Create an array containing unique IDs of the current transaction participants and the new ones
     const accountIDs = [...new Set<number>([userAccountID, ...participantAccountIDsWithoutCurrentUser, ...oldAccountIDs])];
 
     const splitShares: SplitShares = accountIDs.reduce((result: SplitShares, accountID): SplitShares => {
+        // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
+        // In the case of going back to the participants page and removing a participant
+        // a simple merge will have the previous participant still present in the splitshares object
+        // So we manually set their entry to null
         if (!newAccountIDs.includes(accountID) && accountID !== userAccountID) {
             return {
                 ...result,
