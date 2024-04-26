@@ -213,7 +213,7 @@ function MoneyRequestHeader({
                         title={translate('iou.hold')}
                         description={translate('iou.expenseOnHold')}
                         shouldShowBorderBottom
-                        error
+                        danger
                     />
                 )}
             </View>

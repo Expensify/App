@@ -14,11 +14,11 @@ type MoneyRequestHeaderStatusBarProps = {
     /** Whether we show the border bottom */
     shouldShowBorderBottom: boolean;
 
-    /** Is Error type */
-    error?: boolean;
+    /** Whether we should use the danger theme color */
+    danger?: boolean;
 };
 
-function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom, error = false}: MoneyRequestHeaderStatusBarProps) {
+function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom, danger = false}: MoneyRequestHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
@@ -27,7 +27,7 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
                 <Badge
                     text={title}
                     badgeStyles={styles.ml0}
-                    error={error}
+                    error={danger}
                 />
             </View>
             <View style={[styles.flexShrink1]}>
