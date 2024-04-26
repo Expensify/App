@@ -1340,7 +1340,6 @@ export default {
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
-            requiredLastName: 'Please input your last name to continue',
         },
     },
     featureTraining: {
@@ -2464,6 +2463,12 @@ export default {
     },
     search: {
         resultsAreLimited: 'Search results are limited.',
+        searchResults: {
+            emptyResults: {
+                title: 'Nothing to show',
+                subtitle: 'Try creating something using the green + button.',
+            },
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
