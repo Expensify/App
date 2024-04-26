@@ -54,6 +54,12 @@ type FloatingActionButtonAndPopoverOnyxProps = {
     /** Information on the last taken action to display as Quick Action */
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 
+    /** The report data of the quick action */
+    quickActionReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** The policy data of the quick action */
+    quickActionPolicy: OnyxEntry<OnyxTypes.Policy>;
+
     /** The current session */
     session: OnyxEntry<OnyxTypes.Session>;
 
@@ -141,7 +147,18 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover(
-    {onHideCreateMenu, onShowCreateMenu, isLoading = false, allPolicies, quickAction, session, personalDetails, hasSeenTrackTraining}: FloatingActionButtonAndPopoverProps,
+    {
+        onHideCreateMenu,
+        onShowCreateMenu,
+        isLoading = false,
+        allPolicies,
+        quickAction,
+        quickActionReport,
+        quickActionPolicy,
+        session,
+        personalDetails,
+        hasSeenTrackTraining,
+    }: FloatingActionButtonAndPopoverProps,
     ref: ForwardedRef<FloatingActionButtonAndPopoverRef>,
 ) {
     const styles = useThemeStyles();
@@ -153,10 +170,6 @@ function FloatingActionButtonAndPopover(
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
-
-    const quickActionReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => (quickAction ? ReportUtils.getReport(quickAction.chatReportID) : null), [quickAction]);
-
-    const quickActionPolicy = allPolicies ? allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`] : undefined;
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -417,6 +430,12 @@ export default withOnyx<FloatingActionButtonAndPopoverProps & RefAttributes<Floa
     },
     quickAction: {
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    },
+    quickActionReport: {
+        key: ({quickAction}) => `${ONYXKEYS.COLLECTION.REPORT}${quickAction?.chatReportID}`,
+    },
+    quickActionPolicy: {
+        key: ({quickActionReport}) => `${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`,
     },
     personalDetails: {
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
