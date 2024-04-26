@@ -1106,8 +1106,15 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
 }
 
+function getDismissedViolationMessageText(originalMessage): string {
+    const reason = originalMessage.reason;
+    const violationName = originalMessage.violationName;
+    return Localize.translateLocal(`violationDismissal.${violationName}.${reason}`);
+}
+
 export {
     extractLinksFromMessageHtml,
+    getDismissedViolationMessageText,
     getOneTransactionThreadReportID,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,

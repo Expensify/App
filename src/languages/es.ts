@@ -3303,6 +3303,11 @@ export default {
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },
+    violationDismissal: {
+        rter:{
+            manual: 'marcó este recibo como efectivo, confirmando que no coincide con una transacción de tarjeta de crédito',
+        }
+    },
     videoPlayer: {
         play: 'Reproducir',
         pause: 'Pausar',

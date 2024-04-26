@@ -79,6 +79,7 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
+import {getDismissedViolationMessageText} from "@libs/ReportActionsUtils";
 
 const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
@@ -586,6 +587,8 @@ function ReportActionItem({
             children = <ReportActionItemBasicMessage message={action.message?.[0]?.text ?? ''} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION) {
+            children = <ReportActionItemBasicMessage message={ReportActionsUtils.getDismissedViolationMessageText(action.originalMessage)} />;
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) &&
