@@ -13,6 +13,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
+// import EmptySearchView from './EmptySearchView';
+// import SearchResults from './SearchResults';
 import useCustomBackHandler from './useCustomBackHandler';
 
 type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
@@ -60,6 +62,8 @@ function SearchPage({route}: SearchPageProps) {
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             />
+            {/* <SearchResults query={route.params.query} />
+            <EmptySearchView /> */}
         </ScreenWrapper>
     );
 }
