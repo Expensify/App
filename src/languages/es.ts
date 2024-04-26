@@ -3263,6 +3263,16 @@ export default {
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
+    systemChatFooterMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chatea con tu especialista asignado en ',
+            phrase2: ' para obtener ayuda',
+        },
+        default: {
+            phrase1: 'Envía un email a ',
+            phrase2: ' para obtener ayuda con la configuración',
+        },
+    },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
         autoReportedRejectedExpense: ({rejectedBy, rejectReason}: ViolationsAutoReportedRejectedExpenseParams) => `${rejectedBy} rechazó la solicitud y comentó "${rejectReason}"`,
