@@ -37,6 +37,8 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
     const {translate} = useLocalize();
     const {transactionID, backTo} = route.params;
 
+    const selectedWorkspace = useMemo(() => transaction?.participants?.find((participant) => participant.isSender), [transaction]);
+
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
         const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
         return activeAdminWorkspaces.map((policy) => ({
@@ -51,7 +53,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
                     type: CONST.ICON_TYPE_WORKSPACE,
                 },
             ],
-            isSelected: !!transaction?.participants?.find((participant) => participant.policyID === policy.id),
+            isSelected: selectedWorkspace?.policyID === policy.id,
         }));
     }, [allPolicies, transaction]);
 
@@ -84,6 +86,7 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
                 sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
                 onSelectRow={selectWorkspace}
                 ListItem={UserListItem}
+                initiallyFocusedOptionKey={selectedWorkspace?.policyID}
             />
         </StepScreenWrapper>
     );
