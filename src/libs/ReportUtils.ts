@@ -1174,9 +1174,9 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Checks if report is in read-only mode.
+ * Checks if the user can write in the provided report
  */
-function isReadOnly(report: OnyxEntry<Report>): boolean {
+function canWriteInReport(report: OnyxEntry<Report>): boolean {
     if (Array.isArray(report?.permissions)) {
         return !report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
     }
@@ -1188,7 +1188,7 @@ function isReadOnly(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
-    if (isReadOnly(report)) {
+    if (canWriteInReport(report)) {
         return false;
     }
 
@@ -5390,7 +5390,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
-    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && !isReadOnly(report);
+    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && !canWriteInReport(report);
 }
 
 /**
@@ -6419,7 +6419,7 @@ export {
     isValidReport,
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteTask,
-    isReadOnly,
+    canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,
     parseReportRouteParams,

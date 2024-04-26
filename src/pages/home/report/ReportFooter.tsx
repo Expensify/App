@@ -82,7 +82,7 @@ function ReportFooter({
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
-    const isReadOnlyReport = ReportUtils.isReadOnly(report);
+    const canWriteInReport = ReportUtils.canWriteInReport(report);
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -141,7 +141,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {isReadOnlyReport && <OnboardingReportFooterMessage />}
+                    {canWriteInReport && <OnboardingReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}

@@ -915,7 +915,7 @@ function ReportActionItem({
                             originalReportID={originalReportID ?? ''}
                             isArchivedRoom={ReportUtils.isArchivedRoom(report)}
                             displayAsGroup={displayAsGroup}
-                            disabledActions={ReportUtils.isReadOnly(report) ? RestrictedReadOnlyContextMenuActions : []}
+                            disabledActions={ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
                             isVisible={hovered && draftMessage === undefined && !hasErrors}
                             draftMessage={draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
