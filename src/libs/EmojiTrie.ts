@@ -1,6 +1,7 @@
 import emojis, {localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
+import {Locale} from '@src/types/onyx';
 import Timing from './actions/Timing';
 import Trie from './Trie';
 
@@ -101,13 +102,11 @@ const emojiTrie: EmojiTrie = {
     es: undefined,
 };
 
-const buildEmojisTrie = (locale: string) => {
-    if (locale === 'en' && !emojiTrie.en) {
-        emojiTrie.en = createTrie('en');
+const buildEmojisTrie = (locale: 'en' | 'es') => {
+    if (emojiTrie[locale]) {
+        return;
     }
-    if (locale === 'es' && !emojiTrie.es) {
-        emojiTrie.es = createTrie('es');
-    }
+    emojiTrie[locale] = createTrie(locale);
 };
 
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);

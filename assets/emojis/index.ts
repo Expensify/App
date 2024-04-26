@@ -33,15 +33,9 @@ const localeEmojis: LocaleEmojis = {
 };
 
 const importEmojiLocale = (locale: Locale) => {
-    if (locale === 'en' && !localeEmojis.en) {
-        return import('./en').then((esEmojiModule) => {
-            localeEmojis.en = esEmojiModule.default;
-        });
-    }
-
-    if (locale === 'es' && !localeEmojis.es) {
-        return import('./es').then((enEmojiModule) => {
-            localeEmojis.es = enEmojiModule.default;
+    if (!localeEmojis[locale]) {
+        return import(`./${locale}`).then((esEmojiModule) => {
+            localeEmojis[locale] = esEmojiModule.default;
         });
     }
     return Promise.resolve();
