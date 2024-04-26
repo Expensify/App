@@ -3144,8 +3144,22 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, session: OnyxEntry<Se
     }
     const currentUserPrivateNote = report.privateNotes?.[session.accountID]?.note ?? '';
     if (isEmpty(currentUserPrivateNote)) {
-        goBackToDetailsPage(report);
-        return;
+        const participantAccountIDs = report?.participantAccountIDs ?? [];
+
+        if (isSelfDM(report)) {
+            Navigation.goBack(ROUTES.PROFILE.getRoute(currentUserAccountID ?? 0));
+            return;
+        }
+    
+        if (isOneOnOneChat(report)) {
+            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs[0]));
+            return;
+        }
+
+        if (report?.reportID) {
+            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
+            return;
+        }
     }
     Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID));
 }
