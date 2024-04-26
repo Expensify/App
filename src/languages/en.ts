@@ -122,6 +122,7 @@ export default {
         yes: 'Yes',
         no: 'No',
         ok: 'OK',
+        learnMore: 'Learn more',
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
@@ -239,6 +240,7 @@ export default {
             enterMerchant: 'Enter a merchant name',
             enterAmount: 'Enter an amount',
             enterDate: 'Enter a date',
+            invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -1336,8 +1338,10 @@ export default {
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
-            requiredLastName: 'Please input your last name to continue',
         },
+    },
+    featureTraining: {
+        doNotShowAgain: "Don't show me this again",
     },
     personalDetails: {
         error: {
@@ -1965,6 +1969,7 @@ export default {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
+            needCategoryForExportToIntegration: 'A category is required on every expense in order to export to',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
@@ -2048,6 +2053,7 @@ export default {
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
+            importedFromAccountingSoftware: 'The tags below are imported from your',
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -2188,6 +2194,8 @@ export default {
                         case 'quickbooksOnlineCheckConnection':
                             return 'Checking QuickBooks Online connection';
                         case 'quickbooksOnlineImportMain':
+                            return 'Importing your QuickBooks Online data';
+                        case 'startingImport':
                             return 'Importing your QuickBooks Online data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -2400,6 +2408,9 @@ export default {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
         notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
+        error: {
+            genericAdd: 'There was a problem adding this room member.',
+        },
     },
     newTaskPage: {
         assignTask: 'Assign task',
@@ -2452,6 +2463,12 @@ export default {
     },
     search: {
         resultsAreLimited: 'Search results are limited.',
+        searchResults: {
+            emptyResults: {
+                title: 'Nothing to show',
+                subtitle: 'Try creating something using the green + button.',
+            },
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
