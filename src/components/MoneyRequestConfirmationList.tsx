@@ -430,7 +430,10 @@ function MoneyRequestConfirmationList({
         const sections: MemberSection[] = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
+            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants).map((participant) => ({
+                ...participant,
+                rightElement: 'descriptiveText' in participant && <Text>{participant.descriptiveText}</Text>,
+            }));
             let formattedParticipantsList = [...new Set([...formattedSelectedParticipants, ...unselectedParticipants])];
 
             if (!canModifyParticipants) {
@@ -449,7 +452,7 @@ function MoneyRequestConfirmationList({
             sections.push(
                 {
                     title: translate('moneyRequestConfirmationList.paidBy'),
-                    data: [{...formattedPayeeOption, isSelected: true}],
+                    data: [{...formattedPayeeOption, isSelected: true, rightElement: <Text>{formattedPayeeOption.descriptiveText}</Text>}],
                     shouldShow: true,
                     isDisabled: shouldDisablePaidBySection,
                 },
