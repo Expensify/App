@@ -4,108 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 970:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(2186);
-
-/**
- * Safely parse a JSON input to a GitHub Action.
- *
- * @param {String} name - The name of the input.
- * @param {Object} options - Options to pass to core.getInput
- * @param {*} [defaultValue] - A default value to provide for the input.
- *                             Not required if the {required: true} option is given in the second arg to this function.
- * @returns {any}
- */
-function getJSONInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (input) {
-        return JSON.parse(input);
-    }
-    return defaultValue;
-}
-
-/**
- * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
- *
- * @param {String} name
- * @param {Object} options
- * @param {*} [defaultValue]
- * @returns {string|undefined}
- */
-function getStringInput(name, options, defaultValue = undefined) {
-    const input = core.getInput(name, options);
-    if (!input) {
-        return defaultValue;
-    }
-    return input;
-}
-
-module.exports = {
-    getJSONInput,
-    getStringInput,
-};
-
-
-/***/ }),
-
-/***/ 4502:
-/***/ ((module) => {
-
-/**
- * Simulates a while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseWhile(condition, action) {
-    console.info('[promiseWhile] promiseWhile()');
-
-    return new Promise((resolve, reject) => {
-        const loop = function () {
-            if (!condition()) {
-                resolve();
-            } else {
-                const actionResult = action();
-                console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
-                Promise.resolve(actionResult).then(loop).catch(reject);
-            }
-        };
-        loop();
-    });
-}
-
-/**
- * Simulates a do-while loop where the condition is determined by the result of a Promise.
- *
- * @param {Function} condition
- * @param {Function} action
- * @returns {Promise}
- */
-function promiseDoWhile(condition, action) {
-    console.info('[promiseWhile] promiseDoWhile()');
-
-    return new Promise((resolve, reject) => {
-        console.info('[promiseWhile] promiseDoWhile() condition', condition);
-        const actionResult = action();
-        console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
-        actionResult
-            .then(() => promiseWhile(condition, action))
-            .then(() => resolve())
-            .catch(reject);
-    });
-}
-
-module.exports = {
-    promiseWhile,
-    promiseDoWhile,
-};
-
-
-/***/ }),
-
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -12222,45 +12120,22 @@ function wrappy (fn, cb) {
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention */
 const throttle_1 = __importDefault(__nccwpck_require__(2891));
-const ActionUtils_1 = __importDefault(__nccwpck_require__(970));
+const ActionUtils_1 = __nccwpck_require__(6981);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const GithubUtils_1 = __importStar(__nccwpck_require__(9296));
-const promiseWhile_1 = __nccwpck_require__(4502);
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const promiseWhile_1 = __nccwpck_require__(9438);
 function run() {
     console.info('[awaitStagingDeploys] run()');
-    console.info('[awaitStagingDeploys] ActionUtils', ActionUtils_1.default);
+    console.info('[awaitStagingDeploys] getStringInput', ActionUtils_1.getStringInput);
     console.info('[awaitStagingDeploys] GitHubUtils', GithubUtils_1.default);
     console.info('[awaitStagingDeploys] promiseDoWhile', promiseWhile_1.promiseDoWhile);
-    const tag = ActionUtils_1.default.getStringInput('TAG', { required: false });
+    const tag = (0, ActionUtils_1.getStringInput)('TAG', { required: false });
     console.info('[awaitStagingDeploys] run() tag', tag);
     let currentStagingDeploys = [];
     console.info('[awaitStagingDeploys] run()  _.throttle', throttle_1.default);
@@ -12283,25 +12158,92 @@ function run() {
             }),
     ])
         .then((responses) => {
+        console.info('[awaitStagingDeploys] listWorkflowRuns responses', responses);
         const workflowRuns = responses[0].data.workflow_runs;
         if (!tag && typeof responses[1] === 'object') {
             workflowRuns.push(...responses[1].data.workflow_runs);
         }
+        console.info('[awaitStagingDeploys] workflowRuns', workflowRuns);
         return workflowRuns;
     })
         .then((workflowRuns) => (currentStagingDeploys = workflowRuns.filter((workflowRun) => workflowRun.status !== 'completed')))
-        .then(() => console.log(!currentStagingDeploys.length
-        ? 'No current staging deploys found'
-        : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`));
+        .then(() => {
+        console.info('[awaitStagingDeploys] currentStagingDeploys', currentStagingDeploys);
+        console.log(!currentStagingDeploys.length
+            ? 'No current staging deploys found'
+            : `Found ${currentStagingDeploys.length} staging deploy${currentStagingDeploys.length > 1 ? 's' : ''} still running...`);
+    });
     console.info('[awaitStagingDeploys] run() throttleFunc', throttleFunc);
     return (0, promiseWhile_1.promiseDoWhile)(() => !!currentStagingDeploys.length, (0, throttle_1.default)(throttleFunc, 
     // Poll every 60 seconds instead of every 10 seconds
-    GithubUtils_1.POLL_RATE * 6));
+    CONST_1.default.POLL_RATE * 6));
 }
 if (require.main === require.cache[eval('__filename')]) {
     run();
 }
 exports["default"] = run;
+
+
+/***/ }),
+
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * Safely parse a JSON input to a GitHub Action.
+ *
+ * @param name - The name of the input.
+ * @param options - Options to pass to core.getInput
+ * @param [defaultValue] - A default value to provide for the input.
+ *                         Not required if the {required: true} option is given in the second arg to this function.
+ */
+function getJSONInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (input) {
+        return JSON.parse(input);
+    }
+    return defaultValue;
+}
+exports.getJSONInput = getJSONInput;
+/**
+ * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
+ */
+function getStringInput(name, options, defaultValue) {
+    const input = core.getInput(name, options);
+    if (!input) {
+        return defaultValue;
+    }
+    return input;
+}
+exports.getStringInput = getStringInput;
 
 
 /***/ }),
@@ -12312,9 +12254,13 @@ exports["default"] = run;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const CONST = {
+const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
+const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
     APP_REPO: 'App',
+};
+const CONST = {
+    ...GIT_CONST,
     APPLAUSE_BOT: 'applausebot',
     OS_BOTIFY: 'OSBotify',
     LABELS: {
@@ -12323,18 +12269,20 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
     },
     DATE_FORMAT_STRING: 'yyyy-MM-dd',
-    APP_REPO_URL: '',
-    APP_REPO_GIT_URL: '',
+    PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`),
+    ISSUE_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`),
+    ISSUE_OR_PULL_REQUEST_REGEX: new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`),
+    POLL_RATE: 10000,
+    APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
+    APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
-CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
-CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
 exports["default"] = CONST;
 
 
 /***/ }),
 
 /***/ 9296:
-/***/ (function(module, exports, __nccwpck_require__) {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -12365,7 +12313,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.POLL_RATE = exports.ISSUE_OR_PULL_REQUEST_REGEX = void 0;
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
@@ -12374,20 +12321,8 @@ const plugin_throttling_1 = __nccwpck_require__(9968);
 const EmptyObject_1 = __nccwpck_require__(8227);
 const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
-const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
-const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
-const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
-const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`);
-exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
-/**
- * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
- * It's 10 seconds :)
- */
-const POLL_RATE = 10000;
-exports.POLL_RATE = POLL_RATE;
 class GithubUtils {
     static internalOctokit;
-    static POLL_RATE;
     /**
      * Initialize internal octokit
      *
@@ -12512,7 +12447,7 @@ class GithubUtils {
             return [];
         }
         PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
@@ -12530,7 +12465,7 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -12548,7 +12483,7 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2].split('-')[0].trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -12727,7 +12662,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Pull Request.
      */
     static getPullRequestNumberFromURL(URL) {
-        const matches = URL.match(PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
         }
@@ -12739,7 +12674,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue.
      */
     static getIssueNumberFromURL(URL) {
-        const matches = URL.match(ISSUE_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
         }
@@ -12751,7 +12686,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
     static getIssueOrPullRequestNumberFromURL(URL) {
-        const matches = URL.match(ISSUE_OR_PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
@@ -12779,9 +12714,61 @@ class GithubUtils {
     }
 }
 exports["default"] = GithubUtils;
-// This is a temporary solution to allow the use of the GithubUtils class in both TypeScript and JavaScript.
-// Once all the files that import GithubUtils are migrated to TypeScript, this can be removed.
-module.exports = GithubUtils;
+
+
+/***/ }),
+
+/***/ 9438:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.promiseDoWhile = exports.promiseWhile = void 0;
+/**
+ * Simulates a while loop where the condition is determined by the result of a Promise.
+ */
+function promiseWhile(condition, action) {
+    console.info('[promiseWhile] promiseWhile()');
+    return new Promise((resolve, reject) => {
+        const loop = function () {
+            if (!condition()) {
+                resolve();
+            }
+            else {
+                const actionResult = action?.();
+                console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
+                if (!actionResult) {
+                    resolve();
+                    return;
+                }
+                Promise.resolve(actionResult).then(loop).catch(reject);
+            }
+        };
+        loop();
+    });
+}
+exports.promiseWhile = promiseWhile;
+/**
+ * Simulates a do-while loop where the condition is determined by the result of a Promise.
+ */
+function promiseDoWhile(condition, action) {
+    console.info('[promiseWhile] promiseDoWhile()');
+    return new Promise((resolve, reject) => {
+        console.info('[promiseWhile] promiseDoWhile() condition', condition);
+        const actionResult = action?.();
+        console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
+        if (!actionResult) {
+            resolve();
+            return;
+        }
+        actionResult
+            .then(() => promiseWhile(condition, action))
+            .then(resolve)
+            .catch(reject);
+    });
+}
+exports.promiseDoWhile = promiseDoWhile;
 
 
 /***/ }),
