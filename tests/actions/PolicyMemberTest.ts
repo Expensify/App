@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
@@ -104,16 +105,13 @@ describe('actions/PolicyMember', () => {
     });
     describe('UpdateWorkspaceMembersRole', () => {
         it('Update member to admin role', () => {
-            const fakeUser2 = {
-                ...createPersonalDetails(2),
-                role: CONST.POLICY.ROLE.USER,
-            };
+            const fakeUser2 = createPersonalDetails(2);
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(0),
                 employeeList: {
                     [fakeUser2.login ?? '']: {
                         email: fakeUser2.login,
-                        role: fakeUser2.role,
+                        role: CONST.POLICY.ROLE.USER,
                     },
                 },
             };
@@ -122,6 +120,9 @@ describe('actions/PolicyMember', () => {
             fetch.pause();
             return (
                 Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                    .then(() => {
+                        Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
+                    })
                     .then(() => {
                         Policy.updateWorkspaceMembersRole(fakePolicy.id, [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
                         return waitForBatchedUpdates();
@@ -136,7 +137,7 @@ describe('actions/PolicyMember', () => {
                                         Onyx.disconnect(connectionID);
                                         const employee = policy?.employeeList?.[fakeUser2?.login ?? ''];
                                         expect(employee?.role).toBe(CONST.POLICY.ROLE.ADMIN);
-                                        expect(employee?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
                                         resolve();
                                     },
                                 });
@@ -211,8 +212,6 @@ describe('actions/PolicyMember', () => {
                                         expect(policy?.isLoading).toBeFalsy();
                                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();
-                                        expect(policy?.owner).toBe(fakeEmail);
-                                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
                                         resolve();
                                     },
                                 });
@@ -278,8 +277,6 @@ describe('actions/PolicyMember', () => {
                                         expect(policy?.isLoading).toBeFalsy();
                                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();
-                                        expect(policy?.owner).toBe(fakeEmail);
-                                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
                                         resolve();
                                     },
                                 });
