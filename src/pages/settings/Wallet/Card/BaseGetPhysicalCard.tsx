@@ -156,7 +156,7 @@ function BaseGetPhysicalCard({
             return;
         }
         GetPhysicalCardUtils.goToNextPhysicalCardRoute(domain, updatedPrivatePersonalDetails);
-    }, [cardID, domain, draftValues, isConfirmation, session?.authToken]);
+    }, [cardID, cardToBeIssued?.cardID, domain, draftValues, isConfirmation, session?.authToken]);
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
