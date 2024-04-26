@@ -4,6 +4,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -22,7 +23,6 @@ import type {Route} from '@src/ROUTES';
 import type {Policy, ReimbursementAccount, User} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -156,18 +156,19 @@ function WorkspacePageWithSections({
     }, [policy, shouldShowNonAdmin]);
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper
-            policyID={route.params.policyID ?? ''}
-            onLinkPress={Navigation.resetToHome}
-            shouldShow={shouldShow}
-            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+            testID={WorkspacePageWithSections.displayName}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
-                shouldEnableMaxHeight
-                testID={WorkspacePageWithSections.displayName}
-                shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
+            <FullPageNotFoundView
+                onBackButtonPress={Navigation.dismissModal}
+                onLinkPress={Navigation.resetToHome}
+                shouldShow={shouldShow}
+                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldForceFullScreen
             >
                 <HeaderWithBackButton
                     title={headerText}
@@ -194,8 +195,8 @@ function WorkspacePageWithSections({
                         {footer}
                     </>
                 )}
-            </ScreenWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+            </FullPageNotFoundView>
+        </ScreenWrapper>
     );
 }
 

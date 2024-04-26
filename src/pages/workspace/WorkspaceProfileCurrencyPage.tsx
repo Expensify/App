@@ -31,7 +31,7 @@ type WorkspaceProfileCurrencyPageSectionItem = {
 
 const getDisplayText = (currencyCode: string, currencySymbol: string) => `${currencyCode} - ${currencySymbol}`;
 
-function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingReportData = true}: WorkspaceProfileCurrentPageProps) {
+function WorkspaceProfileCurrencyPage({currencyList = {}, policy}: WorkspaceProfileCurrentPageProps) {
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
@@ -74,7 +74,6 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingRepor
         <AdminPolicyAccessOrNotFoundWrapper
             policyID={policy?.id ?? ''}
             onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-            shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
             subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
         >
             <ScreenWrapper

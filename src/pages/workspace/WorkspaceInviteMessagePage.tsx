@@ -135,7 +135,6 @@ function WorkspaceInviteMessagePage({
     return (
         <AdminPolicyAccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
             subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
         >

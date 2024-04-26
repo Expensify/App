@@ -52,7 +52,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInvitePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
-function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy, isLoadingReportData = true}: WorkspaceInvitePageProps) {
+function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
@@ -282,7 +282,6 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     return (
         <AdminPolicyAccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
             subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
         >

@@ -35,9 +35,6 @@ type AdminPolicyAccessOrNotFoundComponentProps = AdminAccessOrNotFoundOnyxProps 
 
     /** The key in the translations file to use for the subtitle */
     subtitleKey?: TranslationPaths;
-
-    /** If true, child components are replaced with a blocking "not found" view */
-    shouldShow?: boolean;
 };
 
 function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFoundComponentProps) {
@@ -55,7 +52,7 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
 
     const shouldShowFullScreenLoadingIndicator = props.isLoadingReportData !== false && (!Object.entries(props.policy ?? {}).length || !props.policy?.id);
 
-    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyAdmin(props.policy);
+    const shouldShowNotFoundPage = isEmptyObject(props.policy) || !props.policy?.id || !PolicyUtils.isPolicyAdmin(props.policy) || PolicyUtils.isPendingDeletePolicy(props.policy);
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
@@ -68,7 +65,7 @@ function AdminPolicyAccessOrNotFoundComponent(props: AdminPolicyAccessOrNotFound
             return (
                 <ScreenWrapper testID={AdminPolicyAccessOrNotFoundComponent.displayName}>
                     <FullPageNotFoundView
-                        shouldShow={props.shouldShow ?? true}
+                        shouldShow
                         shouldForceFullScreen
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                         onLinkPress={props.onLinkPress}
