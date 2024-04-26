@@ -260,7 +260,7 @@ function OptionRow({
                                         inputStyle={[
                                             StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
                                         ]}
-                                        containerStyle={[styles.iouAmountTextInputContainer]}
+                                        containerStyle={styles.iouAmountTextInputContainer}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...option.amountInputProps}
                                     />
