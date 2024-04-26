@@ -399,7 +399,7 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
-        splitWith: 'Split with',
+        splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
     optionsSelector: {

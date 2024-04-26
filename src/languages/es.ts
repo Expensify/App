@@ -390,7 +390,7 @@ export default {
     },
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
-        splitWith: 'Dividir con',
+        splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
     optionsSelector: {

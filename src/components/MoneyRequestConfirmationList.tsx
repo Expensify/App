@@ -472,14 +472,21 @@ function MoneyRequestConfirmationList({
         }));
     }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits]);
 
+    const isSplitModified = useMemo(() => {
+        if (!transaction?.splitShares) {
+            return;
+        }
+        return Object.keys(transaction.splitShares).some((key) => transaction.splitShares?.[Number(key) ?? -1]?.isModified);
+    }, [transaction?.splitShares]);
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         if (hasMultipleParticipants) {
             sections.push({
-                title: translate('moneyRequestConfirmationList.splitWith'),
+                title: translate('moneyRequestConfirmationList.splitAmounts'),
                 data: splitParticipants,
                 shouldShow: true,
-                shouldShowActionButton: !shouldShowReadOnlySplits,
+                shouldShowActionButton: !shouldShowReadOnlySplits && isSplitModified,
                 onActionButtonPress: () => IOU.resetSplitShares(transaction),
                 actionButtonTitle: translate('common.reset'),
             });
@@ -495,7 +502,7 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, hasMultipleParticipants, translate, splitParticipants, transaction, shouldShowReadOnlySplits]);
+    }, [selectedParticipants, hasMultipleParticipants, translate, splitParticipants, transaction, shouldShowReadOnlySplits, isSplitModified]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
