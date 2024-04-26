@@ -334,7 +334,9 @@ function MoneyRequestConfirmationList({
         }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, setFormError]);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -714,7 +716,7 @@ function MoneyRequestConfirmationList({
                     <FormHelpMessage
                         style={[styles.ph1, styles.mb2]}
                         isError
-                        message={isTypeSplit ? debouncedFormError : formError}
+                        message={!shouldShowReadOnlySplits ? debouncedFormError : formError}
                     />
                 )}
 
@@ -730,9 +732,9 @@ function MoneyRequestConfirmationList({
         iouCurrencyCode,
         policyID,
         splitOrRequestOptions,
-        isTypeSplit,
         formError,
         debouncedFormError,
+        shouldShowReadOnlySplits,
         styles.ph1,
         styles.mb2,
     ]);
