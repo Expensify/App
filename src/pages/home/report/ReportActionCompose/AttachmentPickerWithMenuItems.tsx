@@ -11,6 +11,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -115,8 +116,11 @@ function AttachmentPickerWithMenuItems({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight} = useWindowDimensions();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const {canUseTrackExpense} = usePermissions();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const isReportOpenInRHP = useIsReportOpenInRHP();
+    const shouldUseNarrowLayout = isReportOpenInRHP || isSmallScreenWidth;
 
     /**
      * Returns the list of IOU Options
@@ -302,7 +306,7 @@ function AttachmentPickerWithMenuItems({
                                     triggerAttachmentPicker();
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(windowHeight)}
+                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay
