@@ -51,7 +51,7 @@ type ReportActionsListItemRendererProps = {
     isFirstVisibleReportActionID: boolean;
 
     /** IF the thread divider line will be used */
-    usedThreadDividerLine?: boolean;
+    shouldUseThreadDividerLine?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -68,7 +68,7 @@ function ReportActionsListItemRenderer({
     linkedReportActionID = '',
     shouldDisplayReplyDivider,
     isFirstVisibleReportActionID = false,
-    usedThreadDividerLine = false,
+    shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
@@ -153,7 +153,7 @@ function ReportActionsListItemRenderer({
             transactionThreadReport={transactionThreadReport}
             index={index}
             isFirstVisibleReportActionID={isFirstVisibleReportActionID}
-            usedThreadDividerLine={usedThreadDividerLine}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     ) : (
         <ReportActionItem
@@ -176,7 +176,7 @@ function ReportActionsListItemRenderer({
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportActionID={isFirstVisibleReportActionID}
-            usedThreadDividerLine={usedThreadDividerLine}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     );
 }

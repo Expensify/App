@@ -156,7 +156,7 @@ type ReportActionItemProps = {
     isFirstVisibleReportActionID: boolean;
 
     /** IF the thread divider line will be used */
-    usedThreadDividerLine?: boolean;
+    shouldUseThreadDividerLine?: boolean;
 } & ReportActionItemOnyxProps;
 
 const isIOUReport = (actionObj: OnyxEntry<OnyxTypes.ReportAction>): actionObj is OnyxTypes.ReportActionBase & OnyxTypes.OriginalMessageIOU =>
@@ -182,7 +182,7 @@ function ReportActionItem({
     transaction,
     onPress = undefined,
     isFirstVisibleReportActionID = false,
-    usedThreadDividerLine = false,
+    shouldUseThreadDividerLine = false,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -470,15 +470,15 @@ function ReportActionItem({
 
     const renderThreadDivider = useMemo(
         () =>
-            !shouldHideThreadDividerLine ? (
-                <SpacerView
-                    shouldShow={!shouldHideThreadDividerLine}
-                    style={[!shouldHideThreadDividerLine && styles.reportHorizontalRule]}
-                />
-            ) : (
+            shouldHideThreadDividerLine ? (
                 <UnreadActionIndicator
                     reportActionID={report.reportID}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                />
+            ) : (
+                <SpacerView
+                    shouldShow={!shouldHideThreadDividerLine}
+                    style={[!shouldHideThreadDividerLine ? styles.reportHorizontalRule : {}]}
                 />
             ),
         [shouldHideThreadDividerLine, styles.reportHorizontalRule, report.reportID],
@@ -938,7 +938,7 @@ function ReportActionItem({
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
                         {shouldDisplayNewMarker &&
-                            (usedThreadDividerLine ? (
+                            (shouldUseThreadDividerLine ? (
                                 !isFirstVisibleReportActionID && <UnreadActionIndicator reportActionID={action.reportActionID} />
                             ) : (
                                 <UnreadActionIndicator reportActionID={action.reportActionID} />

@@ -580,7 +580,7 @@ function ReportActionsList({
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
                 shouldDisplayReplyDivider={sortedReportActions.length > 1}
                 isFirstVisibleReportActionID={firstVisibleReportActionID === reportAction.reportActionID}
-                usedThreadDividerLine={shouldUseThreadDividerLine}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             />
         ),
         [
