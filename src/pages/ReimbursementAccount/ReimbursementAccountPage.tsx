@@ -389,7 +389,6 @@ function ReimbursementAccountPage({
         ].some((value) => value === currentStep)
     );
 
-    console.log('is loading?', {isLoading, isReimbursementAccountLoading, hasACHDataBeenLoaded, plaidCurrentEvent, substep: achData?.subStep})
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
     // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
     // On Android, when we open the app from the background, Onfido activity gets destroyed, so we need to reopen it.
