@@ -95,9 +95,24 @@ function createTrie(lang: SupportedLanguage = CONST.LOCALES.DEFAULT): Trie<Emoji
     return trie;
 }
 
-const emojiTrie: EmojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
+// const emojiTrie: EmojiTrie = supportedLanguages.reduce((prev, cur) => ({...prev, [cur]: createTrie(cur)}), {});
+const emojiTrie: EmojiTrie = {
+    en: undefined,
+    es: undefined,
+};
+
+const buildEmojisTrie = (locale: string) => {
+    if (locale === 'en' && !emojiTrie.en) {
+        emojiTrie.en = createTrie('en');
+    }
+    if (locale === 'es' && !emojiTrie.es) {
+        emojiTrie.es = createTrie('es');
+    }
+};
 
 Timing.end(CONST.TIMING.TRIE_INITIALIZATION);
 
 export default emojiTrie;
+export {buildEmojisTrie};
+
 export type {SupportedLanguage};
