@@ -130,10 +130,6 @@ function ReportFooter({
         [report.reportID, handleCreateTask],
     );
 
-    if (isReadOnlyReport) {
-        return <OnboardingReportFooterMessage />;
-    }
-
     return (
         <>
             {hideComposer && (
@@ -145,6 +141,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
+                    {isReadOnlyReport && <OnboardingReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}
