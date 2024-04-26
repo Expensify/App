@@ -937,12 +937,7 @@ function ReportActionItem({
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
-                        {shouldDisplayNewMarker &&
-                            (shouldUseThreadDividerLine ? (
-                                !isFirstVisibleReportActionID && <UnreadActionIndicator reportActionID={action.reportActionID} />
-                            ) : (
-                                <UnreadActionIndicator reportActionID={action.reportActionID} />
-                            ))}
+                        {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportActionID) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={report.reportID}
                             reportActionID={action.reportActionID}
