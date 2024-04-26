@@ -45,19 +45,19 @@ function SystemChatReportFooterMessage({choice, reports, policies}: SystemChatRe
             case CONST.ONBOARDING_CHOICES.MANAGE_TEAM:
                 return (
                     <>
-                        {translate('onboardingBottomMessage.newDotManageTeam.phrase1')}
+                        {translate('systemChatFooterMessage.newDotManageTeam.phrase1')}
                         <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? ''))}>
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
-                        {translate('onboardingBottomMessage.newDotManageTeam.phrase2')}
+                        {translate('systemChatFooterMessage.newDotManageTeam.phrase2')}
                     </>
                 );
             default:
                 return (
                     <>
-                        {translate('onboardingBottomMessage.default.phrase1')}
+                        {translate('systemChatFooterMessage.default.phrase1')}
                         <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
-                        {translate('onboardingBottomMessage.default.phrase2')}
+                        {translate('systemChatFooterMessage.default.phrase2')}
                     </>
                 );
         }

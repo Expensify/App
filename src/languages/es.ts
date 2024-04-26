@@ -3256,7 +3256,7 @@ export default {
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
-    onboardingBottomMessage: {
+    systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
             phrase1: 'Chatea con tu especialista asignado en ',
             phrase2: ' para obtener ayuda',

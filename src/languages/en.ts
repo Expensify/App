@@ -2763,7 +2763,7 @@ export default {
         },
         copyReferralLink: 'Copy invite link',
     },
-    onboardingBottomMessage: {
+    systemChatFooterMessage: {
         [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
             phrase1: 'Chat with your setup specialist in ',
             phrase2: ' for help',
