@@ -28,6 +28,11 @@ const ROUTES = {
         getRoute: (query: string) => `search/${query}` as const,
     },
 
+    SEARCH_REPORT: {
+        route: '/search/:query/view/:reportID',
+        getRoute: (query: string, reportID: string) => `search/${query}/view/${reportID}` as const,
+    },
+
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
     FLAG_COMMENT: {
@@ -272,11 +277,6 @@ const ROUTES = {
         route: 'r/:reportID/split/:reportActionID',
         getRoute: (reportID: string, reportActionID: string) => `r/${reportID}/split/${reportActionID}` as const,
     },
-    EDIT_SPLIT_BILL: {
-        route: `r/:reportID/split/:reportActionID/edit/:field/:tagIndex?`,
-        getRoute: (reportID: string, reportActionID: string, field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>, tagIndex?: number) =>
-            `r/${reportID}/split/${reportActionID}/edit/${field as string}${typeof tagIndex === 'number' ? `/${tagIndex}` : ''}` as const,
-    },
     TASK_TITLE: {
         route: 'r/:reportID/title',
         getRoute: (reportID: string) => `r/${reportID}/title` as const,
@@ -309,14 +309,6 @@ const ROUTES = {
         route: ':type/edit/reason/:transactionID?',
         getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string) =>
             `${type}/edit/reason/${transactionID}?backTo=${backTo}&reportID=${reportID}` as const,
-    },
-    MONEY_REQUEST_MERCHANT: {
-        route: ':iouType/new/merchant/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/merchant/${reportID}` as const,
-    },
-    MONEY_REQUEST_RECEIPT: {
-        route: ':iouType/new/receipt/:reportID?',
-        getRoute: (iouType: IOUType, reportID = '') => `${iouType}/new/receipt/${reportID}` as const,
     },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID',
@@ -480,17 +472,29 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/company-card-expense-account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/company-card-expense-account-select` as const,
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-select` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/preferred-exporter` as const,
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/export/quickbooks-online/preferred-exporter` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',
@@ -734,6 +738,7 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
+    TRACK_TRAINING_MODAL: 'track-training',
     PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
