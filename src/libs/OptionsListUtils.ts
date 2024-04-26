@@ -2031,7 +2031,6 @@ function getFilteredOptions(
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
     includePersonalDetails = true,
-    maxRecentReportsToShow = 5,
 ) {
     return getOptions(
         {reports, personalDetails},

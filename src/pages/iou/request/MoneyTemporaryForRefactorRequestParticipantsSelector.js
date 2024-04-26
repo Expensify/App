@@ -123,14 +123,13 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             false,
-            0,
+            isCategorizeOrShareAction ? 0 : undefined,
             undefined,
             undefined,
             undefined,
             undefined,
             undefined,
             !isCategorizeOrShareAction,
-            isCategorizeOrShareAction ? 0 : undefined,
         );
 
         return optionList;
