@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import * as ActiveClients from '@userActions/ActiveClients';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Init, IsClientTheLeader, IsReady } from './types';
+import type {Init, IsClientTheLeader, IsReady} from './types';
 
 const clientID = Str.guid();
 const maxClients = 20;
@@ -51,7 +51,7 @@ const cleanUpOnPageHide = () => {
     localStorage.setItem(ACTIVE_CLIENT_LEFT_KEY, clientID);
 };
 
-const syncLocal = ({ key, newValue: clientLeftID }: StorageEvent) => {
+const syncLocal = ({key, newValue: clientLeftID}: StorageEvent) => {
     if (key !== ACTIVE_CLIENT_LEFT_KEY) {
         return;
     }
@@ -59,7 +59,7 @@ const syncLocal = ({ key, newValue: clientLeftID }: StorageEvent) => {
     // clean clientID of recently closed tab
     // since it's not possible to write to IDB on closing stage
     if (clientLeftID && activeClients.includes(clientLeftID) && clientLeftID !== clientID) {
-        activeClients = activeClients.filter(id => id !== clientLeftID);
+        activeClients = activeClients.filter((id) => id !== clientLeftID);
         ActiveClients.setActiveClients(activeClients);
     }
     localStorage.removeItem(ACTIVE_CLIENT_LEFT_KEY);
@@ -107,4 +107,4 @@ const isClientTheLeader: IsClientTheLeader = () => {
     return lastActiveClient === clientID;
 };
 
-export { init, isClientTheLeader, isReady };
+export {init, isClientTheLeader, isReady};
