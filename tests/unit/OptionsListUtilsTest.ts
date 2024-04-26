@@ -318,6 +318,10 @@ describe('OptionsListUtils', () => {
             reportID: '15',
             participantAccountIDs: [2, 1],
             visibleChatMemberAccountIDs: [2, 1],
+            participants: {
+                1: {},
+                2: {},
+            },
             reportName: 'Test Workspace',
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
