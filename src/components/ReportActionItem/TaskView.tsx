@@ -149,6 +149,8 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
                         interactive={!isDisableInteractive}
+                        shouldRenderAsHTML
+                        shouldEscapeText={false}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
