@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -23,6 +23,19 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const policyID = policy?.id ?? '';
     const {exportCompanyCardAccount, exportAccountPayable, autoCreateVendor, errorFields, pendingFields, exportCompanyCard} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isVendorSelected = exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.VENDOR_BILL;
+    const showAccountSelection = Boolean(autoCreateVendor) || (!isVendorSelected && exportCompanyCard);
+    const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if ((!autoCreateVendor && exportCompanyCardAccount) || (Boolean(autoCreateVendor) && !isVendorSelected)) {
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT);
+            return;
+        }
+        if (Boolean(autoCreateVendor) && !exportCompanyCardAccount && vendors && vendors?.length > 0) {
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT, vendors[0].name);
+        }
+    }, [autoCreateVendor, exportCompanyCardAccount, isVendorSelected, policyID, vendors]);
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
             <FeatureEnabledAccessOrNotFoundWrapper
@@ -74,16 +87,18 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 />
                             </>
                         )}
-                        <OfflineWithFeedback pendingAction={pendingFields?.exportCompanyCardAccount}>
-                            <MenuItemWithTopDescription
-                                title={exportCompanyCardAccount}
-                                description={isVendorSelected ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
-                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
-                                brickRoadIndicator={errorFields?.exportCompanyCardAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                shouldShowRightIcon
-                                error={errorFields?.exportCompanyCardAccount ? translate('common.genericErrorMessage') : undefined}
-                            />
-                        </OfflineWithFeedback>
+                        {showAccountSelection && (
+                            <OfflineWithFeedback pendingAction={pendingFields?.exportCompanyCardAccount}>
+                                <MenuItemWithTopDescription
+                                    title={exportCompanyCardAccount}
+                                    description={isVendorSelected ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
+                                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
+                                    brickRoadIndicator={errorFields?.exportCompanyCardAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    shouldShowRightIcon
+                                    error={errorFields?.exportCompanyCardAccount ? translate('common.genericErrorMessage') : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </ScrollView>
                 </ScreenWrapper>
             </FeatureEnabledAccessOrNotFoundWrapper>
