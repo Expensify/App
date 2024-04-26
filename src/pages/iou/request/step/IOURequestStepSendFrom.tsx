@@ -1,15 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -39,8 +35,6 @@ type IOURequestStepSendFromProps = IOURequestStepSendFromOnyxProps &
 
 function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestStepSendFromProps) {
     const {translate} = useLocalize();
-    const theme = useTheme();
-    const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
     const workspaceOptions: WorkspaceListItem[] = useMemo(() => {
@@ -78,20 +72,6 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
         navigateBack();
     };
 
-    const renderCheckbox = useCallback(
-        (item: ListItem) => (
-            <View style={[styles.roundCheckmarkWrapper, styles.mh2]}>
-                {item.isSelected && (
-                    <Icon
-                        src={Expensicons.Checkmark}
-                        fill={theme.success}
-                    />
-                )}
-            </View>
-        ),
-        [styles.roundCheckmarkWrapper, styles.mh2, theme.success],
-    );
-
     return (
         <StepScreenWrapper
             headerTitle={translate('workspace.invoices.sendFrom')}
@@ -104,7 +84,6 @@ function IOURequestStepSendFrom({route, transaction, allPolicies}: IOURequestSte
                 sections={[{data: workspaceOptions, title: translate('common.workspaces')}]}
                 onSelectRow={selectWorkspace}
                 ListItem={UserListItem}
-                rightHandSideComponent={renderCheckbox}
             />
         </StepScreenWrapper>
     );
