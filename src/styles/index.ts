@@ -1925,7 +1925,6 @@ const styles = (theme: ThemeColors) =>
             flexGrow: 1,
             justifyContent: 'flex-start',
             paddingBottom: 16,
-            overflow: 'hidden',
         },
 
         // Chat Item
