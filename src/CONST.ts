@@ -1619,6 +1619,27 @@ const CONST = {
             DISABLE: 'disable',
             ENABLE: 'enable',
         },
+        DEFAULT_CATEGORIES: [
+            'Advertising',
+            'Benefits',
+            'Car',
+            'Equipment',
+            'Fees',
+            'Home Office',
+            'Insurance',
+            'Interest',
+            'Labor',
+            'Maintenance',
+            'Materials',
+            'Meals and Entertainment',
+            'Office Supplies',
+            'Other',
+            'Professional Services',
+            'Rent',
+            'Taxes',
+            'Travel',
+            'Utilities',
+        ],
         OWNERSHIP_ERRORS: {
             NO_BILLING_CARD: 'noBillingCard',
             AMOUNT_OWED: 'amountOwed',
@@ -3417,6 +3438,16 @@ const CONST = {
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
+    },
+
+    FEATURE_TRAINING: {
+        CONTENT_TYPES: {
+            TRACK_EXPENSE: 'track-expenses',
+        },
+        'track-expenses': {
+            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business.mp4`,
+            LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
+        },
     },
 
     /**

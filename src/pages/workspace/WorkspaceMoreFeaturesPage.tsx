@@ -1,5 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
+import {CONST} from 'expensify-common/lib/CONST';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -101,7 +102,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
-            disabled: isSyncTaxEnabled,
+            disabled: isSyncTaxEnabled || policy?.connections?.quickbooksOnline.data.country === CONST.COUNTRY.US,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);

@@ -86,6 +86,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.FEATURE_TRAINING_ROOT]: {
+                    path: ROUTES.TRACK_TRAINING_MODAL,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.WELCOME_VIDEO.ROOT]: {
@@ -664,6 +672,11 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: {
                     screens: {
                         [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
+                    },
+                },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
+                    screens: {
+                        [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
                     },
                 },
             },
