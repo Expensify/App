@@ -6,7 +6,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import SelectionList from '@components/SelectionList';
-import ExpenseListItem from '@components/SelectionList/ExpenseListItem';
+import TransactionListItem from '@components/SelectionList/TransactionListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -101,7 +101,7 @@ function SearchPage({route}: SearchPageProps) {
             <SelectionList
                 canSelectMultiple
                 customListHeader={getListHeader()}
-                ListItem={ExpenseListItem}
+                ListItem={TransactionListItem}
                 onSelectRow={() => {}}
                 onSelectAll={() => {}}
                 sections={[{data, isDisabled: false}]}

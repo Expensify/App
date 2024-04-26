@@ -11,9 +11,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {ExpenseListItemProps, ListItem} from './types';
+import type {TransactionListItemProps, ListItem} from './types';
 
-function ExpenseListItem<TItem extends ListItem>({
+function TransactionListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -26,7 +26,7 @@ function ExpenseListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
-}: ExpenseListItemProps<TItem>) {
+}: TransactionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -213,6 +213,6 @@ function ExpenseListItem<TItem extends ListItem>({
     );
 }
 
-ExpenseListItem.displayName = 'ExpenseListItem';
+TransactionListItem.displayName = 'TransactionListItem';
 
-export default ExpenseListItem;
+export default TransactionListItem;
