@@ -27,6 +27,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
 import * as Link from '@userActions/Link';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -198,7 +199,7 @@ function WorkspaceInviteMessagePage({
                             autoCompleteType="off"
                             autoCorrect={false}
                             autoGrowHeight
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             defaultValue={getDefaultWelcomeNote()}
                             value={welcomeNote}
                             onChangeText={(text: string) => {
