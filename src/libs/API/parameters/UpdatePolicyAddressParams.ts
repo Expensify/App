@@ -1,14 +1,12 @@
-type AddressData = {
-    addressStreet: string;
-    city: string;
-    country: string;
-    state: string;
-    zipCode: string;
-};
-
+// TODO: Change API endpoint parameters format to make it possible to follow naming-convention
+/* eslint-disable @typescript-eslint/naming-convention */
 type UpdatePolicyAddressParams = {
     policyID: string;
-    data: AddressData[];
+    'data[addressStreet]': string;
+    'data[city]': string;
+    'data[country]': string;
+    'data[state]': string;
+    'data[zipCode]': string;
 };
 
-export type {UpdatePolicyAddressParams, AddressData};
+export default UpdatePolicyAddressParams;

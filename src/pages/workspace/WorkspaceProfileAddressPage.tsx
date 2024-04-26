@@ -23,7 +23,7 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
     const {translate} = useLocalize();
     const address = useMemo(() => policy?.address, [policy]);
     const [currentCountry, setCurrentCountry] = useState(address?.country);
-    const [street1, street2] = (address?.street ?? '').split('\n');
+    const [street1, street2] = (address?.addressStreet ?? '').split('\n');
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
     const [zipcode, setZipcode] = useState(address?.zip);
@@ -33,8 +33,7 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
             return;
         }
         updateAddress(policy?.id, {
-            street: values.addressLine1?.trim() ?? '',
-            street2: values.addressLine2?.trim() ?? '',
+            addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
             city: values.city.trim(),
             state: values.state.trim(),
             zip: values?.zipPostCode?.trim().toUpperCase() ?? '',

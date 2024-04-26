@@ -54,7 +54,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
-import type {AddressData, UpdatePolicyAddressParams} from '@libs/API/parameters/UpdatePolicyAddressParams';
+import type UpdatePolicyAddressParams from '@libs/API/parameters/UpdatePolicyAddressParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1822,19 +1822,19 @@ function hideWorkspaceAlertMessage(policyID: string) {
 }
 
 function updateAddress(policyID: string, newAddress: CompanyAddress) {
-    const {street, street2, city, state, zip, country} = newAddress;
-
-    const data: AddressData = {
-        addressStreet: `${street}\n${street2}`,
-        city,
-        country,
-        state,
-        zipCode: zip,
-    };
-
+    // TODO: Change API endpoint parameters format to make it possible to follow naming-convention
     const parameters: UpdatePolicyAddressParams = {
         policyID,
-        data: [data],
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'data[addressStreet]': newAddress.addressStreet,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'data[city]': newAddress.city,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'data[country]': newAddress.country,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'data[state]': newAddress.state,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'data[zipCode]': newAddress.zip,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -1846,6 +1846,7 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
             },
         },
     ];
+
     API.write(WRITE_COMMANDS.UPDATE_POLICY_ADDRESS, parameters, {
         optimisticData,
     });
