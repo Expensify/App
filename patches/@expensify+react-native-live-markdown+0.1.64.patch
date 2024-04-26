@@ -1,9 +1,0 @@
-diff --git a/node_modules/@expensify/react-native-live-markdown/ios/RCTBackedTextFieldDelegateAdapter+Markdown.m b/node_modules/@expensify/react-native-live-markdown/ios/RCTBackedTextFieldDelegateAdapter+Markdown.mm
-similarity index 100%
-rename from node_modules/@expensify/react-native-live-markdown/ios/RCTBackedTextFieldDelegateAdapter+Markdown.m
-rename to node_modules/@expensify/react-native-live-markdown/ios/RCTBackedTextFieldDelegateAdapter+Markdown.mm
-diff --git a/node_modules/@expensify/react-native-live-markdown/ios/RCTBaseTextInputView+Markdown.m b/node_modules/@expensify/react-native-live-markdown/ios/RCTBaseTextInputView+Markdown.mm
-similarity index 100%
-rename from node_modules/@expensify/react-native-live-markdown/ios/RCTBaseTextInputView+Markdown.m
-rename to node_modules/@expensify/react-native-live-markdown/ios/RCTBaseTextInputView+Markdown.mm
-
