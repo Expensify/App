@@ -1048,7 +1048,7 @@ function MoneyRequestConfirmationList({
             shouldTextInputAppearBelowOptions
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
-            footerContent={!isEditingSplitBill && footerContent}
+            footerContent={footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
         >
