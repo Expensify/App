@@ -31,6 +31,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     const policyID = policy?.id ?? '';
     const {exportCompanyCard, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const {creditCards, bankAccounts, accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
 
     const defaultCards = useMemo<Card[]>(
         () => [
@@ -68,11 +69,18 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
         (row: CardListItem) => {
             if (row.value !== exportCompanyCard) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD, row.value);
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT);
+                if (row.value === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.VENDOR_BILL) {
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT);
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT_PAYABLE, accountPayable?.[0]?.name);
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR);
+                } else {
+                    const accountName = row.value === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.CREDIT_CARD ? creditCards?.[0]?.name : bankAccounts?.[0]?.name;
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT, accountName);
+                }
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [exportCompanyCard, policyID],
+        [accountPayable, bankAccounts, creditCards, exportCompanyCard, policyID],
     );
 
     return (

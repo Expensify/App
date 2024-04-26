@@ -53,7 +53,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                             <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>
                         )}
                         {isLocationEnabled && <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}
-                        {!isLocationEnabled && (
+                        {!isLocationEnabled && exportEntity && (
                             <OfflineWithFeedback pendingAction={pendingFields?.exportAccount}>
                                 <MenuItemWithTopDescription
                                     title={exportAccount}

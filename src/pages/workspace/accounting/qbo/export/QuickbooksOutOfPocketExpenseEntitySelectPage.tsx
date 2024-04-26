@@ -34,6 +34,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const isTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
     const isLocationError = isLocationsEnabled && exportEntity !== CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
     const policyID = policy?.id ?? '';
+    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
 
     useEffect(() => {
         if (!isTaxError && !isLocationError) {
@@ -74,11 +75,26 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const selectExportEntity = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportEntity) {
+                let accountName;
+                switch (row.value) {
+                    case CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK:
+                        accountName = bankAccounts?.[0]?.name;
+                        break;
+                    case CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL:
+                        accountName = accountPayable?.[0]?.name;
+                        break;
+                    case CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY:
+                        accountName = journalEntryAccounts?.[0]?.name;
+                        break;
+                    default:
+                        accountName = undefined;
+                }
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY, row.value);
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT, accountName);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },
-        [exportEntity, policyID],
+        [accountPayable, bankAccounts, exportEntity, journalEntryAccounts, policyID],
     );
 
     return (
