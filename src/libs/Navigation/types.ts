@@ -286,6 +286,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
@@ -465,22 +474,12 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
-    [SCREENS.MONEY_REQUEST.WAYPOINT]: {
-        iouType: string;
-        transactionID: string;
-        waypointIndex: string;
-        threadReportID: number;
-    };
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
         reportID: string;
         backTo: Routes;
-    };
-    [SCREENS.MONEY_REQUEST.RECEIPT]: {
-        iouType: string;
-        reportID: string;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -549,12 +548,6 @@ type NewTaskNavigatorParamList = {
     [SCREENS.NEW_TASK.DESCRIPTION]: undefined;
 };
 
-type OnboardEngagementNavigatorParamList = {
-    [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: undefined;
-    [SCREENS.ONBOARD_ENGAGEMENT.MANAGE_TEAMS_EXPENSES]: undefined;
-    [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: undefined;
-};
-
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
@@ -621,6 +614,10 @@ type SignInNavigatorParamList = {
     [SCREENS.SIGN_IN_ROOT]: undefined;
 };
 
+type FeatureTrainingNavigatorParamList = {
+    [SCREENS.FEATURE_TRAINING_ROOT]: undefined;
+};
+
 type ReferralDetailsNavigatorParamList = {
     [SCREENS.REFERRAL_DETAILS]: {
         contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
@@ -659,7 +656,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.ROOM_INVITE]: NavigatorScreenParams<RoomInviteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.NEW_TASK]: NavigatorScreenParams<NewTaskNavigatorParamList>;
-    [SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT]: NavigatorScreenParams<OnboardEngagementNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TEACHERS_UNITE]: NavigatorScreenParams<TeachersUniteNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TASK_DETAILS]: NavigatorScreenParams<TaskDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS]: NavigatorScreenParams<EnablePaymentsNavigatorParamList>;
@@ -673,10 +669,12 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
 type WorkspacesCentralPaneNavigatorParamList = {
@@ -823,11 +821,19 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
     [NAVIGATORS.FULL_SCREEN_NAVIGATOR]: NavigatorScreenParams<FullScreenNavigatorParamList>;
     [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
+    [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
     [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
         reportID: string;
         transactionID: string;
+    };
+};
+
+type SearchReportParamList = {
+    [SCREENS.SEARCH.REPORT_RHP]: {
+        query: string;
+        reportID: string;
     };
 };
 
@@ -868,7 +874,6 @@ export type {
     NavigationStateRoute,
     NewChatNavigatorParamList,
     NewTaskNavigatorParamList,
-    OnboardEngagementNavigatorParamList,
     OnboardingModalNavigatorParamList,
     ParticipantsNavigatorParamList,
     PrivateNotesNavigatorParamList,
@@ -885,6 +890,7 @@ export type {
     RootStackParamList,
     SettingsNavigatorParamList,
     SignInNavigatorParamList,
+    FeatureTrainingNavigatorParamList,
     SplitDetailsNavigatorParamList,
     StackNavigationAction,
     State,
@@ -897,4 +903,5 @@ export type {
     WelcomeVideoModalNavigatorParamList,
     WorkspaceSwitcherNavigatorParamList,
     WorkspacesCentralPaneNavigatorParamList,
+    SearchReportParamList,
 };

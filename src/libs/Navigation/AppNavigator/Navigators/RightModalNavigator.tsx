@@ -86,10 +86,6 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         component={ModalStackNavigators.NewTaskModalStackNavigator}
                     />
                     <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ONBOARD_ENGAGEMENT}
-                        component={ModalStackNavigators.OnboardEngagementModalStackNavigator}
-                    />
-                    <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
                         component={ModalStackNavigators.NewTeachersUniteNavigator}
                     />
@@ -140,6 +136,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                     <Stack.Screen
                         name={SCREENS.RIGHT_MODAL.TRAVEL}
                         component={ModalStackNavigators.TravelModalStackNavigator}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                        component={ModalStackNavigators.SearchReportModalStackNavigator}
                     />
                 </Stack.Navigator>
             </View>

@@ -11,26 +11,17 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-// TODO - should be removed after API fully working
-const draft = [
-    {
-        name: 'Accounts Payable (A/P)',
-    },
-    {
-        name: 'Payroll Accounts',
-    },
-];
+import type {Account} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {bankAccounts, journalEntryAccounts, accountsPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -38,22 +29,22 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
     const {exportEntity, exportAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const data: CardListItem[] = useMemo(() => {
-        let result;
+        let accounts: Account[];
         switch (exportEntity) {
             case CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK:
-                result = bankAccounts ?? [];
+                accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL:
-                result = accountsPayable ?? [];
+                accounts = accountsPayable ?? [];
                 break;
             case CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY:
-                result = journalEntryAccounts ?? [];
+                accounts = journalEntryAccounts ?? [];
                 break;
             default:
-                result = draft;
+                accounts = [];
         }
 
-        return (draft ?? result)?.map((card) => ({
+        return accounts.map((card) => ({
             value: card.name,
             text: card.name,
             keyForList: card.name,
@@ -63,7 +54,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
 
     const policyID = policy?.id ?? '';
 
-    const onSelectRow = useCallback(
+    const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportAccount) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT, row.value);
@@ -85,7 +76,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
                         headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
                         sections={[{data}]}
                         ListItem={RadioListItem}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={selectExportAccount}
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     />
                 </ScreenWrapper>
@@ -96,4 +87,4 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyProps
 
 QuickbooksOutOfPocketExpenseAccountSelectPage.displayName = 'QuickbooksOutOfPocketExpenseAccountSelectPage';
 
-export default withPolicy(QuickbooksOutOfPocketExpenseAccountSelectPage);
+export default withPolicyConnections(QuickbooksOutOfPocketExpenseAccountSelectPage);
