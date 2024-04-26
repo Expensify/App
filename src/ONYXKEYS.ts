@@ -465,6 +465,8 @@ const ONYXKEYS = {
         WORKSPACE_TAX_VALUE_FORM_DRAFT: 'workspaceTaxValueFormDraft',
         NEW_CHAT_NAME_FORM: 'newChatNameForm',
         NEW_CHAT_NAME_FORM_DRAFT: 'newChatNameFormDraft',
+        REVIEW_DUPLICATES_FORM: 'reviewDuplicatesForm_',
+        REVIEW_DUPLICATES_FORM_DRAFT: 'reviewDuplicatesFormDraft_',
     },
 } as const;
 
@@ -522,6 +524,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM]: FormTypes.WorkspaceTaxNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_TAX_VALUE_FORM]: FormTypes.WorkspaceTaxValueForm;
     [ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM]: FormTypes.NewChatNameForm;
+    [ONYXKEYS.FORMS.REVIEW_DUPLICATES_FORM]: FormTypes.ReviewDuplicatesForm;
 };
 
 type OnyxFormDraftValuesMapping = {
