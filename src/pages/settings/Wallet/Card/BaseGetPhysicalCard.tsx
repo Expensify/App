@@ -111,7 +111,7 @@ function BaseGetPhysicalCard({
 
     const domainCards = CardUtils.getDomainCards(cardList)[domain] || [];
     const cardToBeIssued = domainCards.find((card) => !card?.nameValuePairs?.isVirtual && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-    const cardID = cardToBeIssued?.cardID ?? 0;
+    const cardID = cardToBeIssued?.cardID.toString() ?? '';
 
     useEffect(() => {
         if (isRouteSet.current || !privatePersonalDetails || !cardList) {
@@ -148,7 +148,7 @@ function BaseGetPhysicalCard({
         const updatedPrivatePersonalDetails = GetPhysicalCardUtils.getUpdatedPrivatePersonalDetails(draftValues);
         // If the current step of the get physical card flow is the confirmation page
         if (isConfirmation) {
-            Wallet.requestPhysicalExpensifyCard(cardID, session?.authToken ?? '', updatedPrivatePersonalDetails);
+            Wallet.requestPhysicalExpensifyCard(cardToBeIssued?.cardID ?? 0, session?.authToken ?? '', updatedPrivatePersonalDetails);
             // Form draft data needs to be erased when the flow is complete,
             // so that no stale data is left on Onyx
             FormActions.clearDraftValues(ONYXKEYS.FORMS.GET_PHYSICAL_CARD_FORM);
@@ -165,7 +165,7 @@ function BaseGetPhysicalCard({
         >
             <HeaderWithBackButton
                 title={title}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID.toString()))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID))}
             />
             <Text style={[styles.textHeadline, styles.mh5, styles.mb5]}>{headline}</Text>
             {renderContent({onSubmit, submitButtonText, children, onValidate})}
