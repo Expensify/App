@@ -2196,6 +2196,18 @@ export default {
                             return 'Importing your QuickBooks Online data';
                         case 'startingImport':
                             return 'Importing your QuickBooks Online data';
+                        case 'quickbooksOnlineSyncTitle':
+                            return 'Synchronizing QuickBooks Online data';
+                        case 'quickbooksOnlineSyncLoadData':
+                            return 'Loading data';
+                        case 'quickbooksOnlineSyncApplyCategories':
+                            return 'Updating categories';
+                        case 'quickbooksOnlineSyncApplyCustomers':
+                            return 'Updating Customers/Projects';
+                        case 'quickbooksOnlineSyncApplyEmployees':
+                            return 'Updating people list';
+                        case 'quickbooksOnlineSyncApplyClassesLocations':
+                            return 'Updating report fields';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
