@@ -2453,11 +2453,11 @@ export default {
     search: {
         resultsAreLimited: 'Search results are limited.',
         searchResults: {
-            emptyResults:{
+            emptyResults: {
                 title: 'Nothing to show',
                 subtitle: 'Try creating something using the green + button.',
-            }
-        }
+            },
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
