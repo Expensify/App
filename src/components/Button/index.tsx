@@ -209,7 +209,7 @@ function Button(
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    
+
     const renderContent = () => {
         if ('children' in rest) {
             return rest.children;
