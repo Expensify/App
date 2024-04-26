@@ -994,7 +994,8 @@ function MoneyRequestConfirmationList({
 
     return (
         <>
-            {isTypeSplit && action === CONST.IOU.ACTION.CREATE && (
+            {/** Hide it temporarily, it will back when https://github.com/Expensify/App/pull/40386 is merged */}
+            {isTypeSplit && action === CONST.IOU.ACTION.CREATE && false && (
                 <MenuItem
                     key={translate('moneyRequestConfirmationList.paidBy')}
                     label={translate('moneyRequestConfirmationList.paidBy')}
