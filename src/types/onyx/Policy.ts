@@ -174,6 +174,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncAccounts: IntegrationEntityMap;
     syncTaxes: IntegrationEntityMap;
     lastConfigurationTime: number;
+    exportCompanyCardAccount?: string;
     syncTax: boolean;
     enableNewCategories: IntegrationEntityMap;
     errors?: OnyxCommon.Errors;
@@ -182,8 +183,10 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     outOfPocketExpenses: string;
     exportInvoice: string;
     exportAccount: string;
+    exportAccountPayable: string;
+    accountPayable: string;
     exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
-    exportCompanyCard: string;
+    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 type Connection<ConnectionData, ConnectionConfig> = {
