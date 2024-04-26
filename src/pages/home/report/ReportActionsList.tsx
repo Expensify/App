@@ -4,7 +4,7 @@ import type {RouteProp} from '@react-navigation/native';
 import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {EmitterSubscription, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import InvertedFlatList from '@components/InvertedFlatList';
@@ -200,7 +200,8 @@ function ReportActionsList({
     );
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
+    const hasNewestReportAction =
+        sortedReportActions?.[0].created === report.lastVisibleActionCreated || sortedReportActions?.[0].created === transactionThreadReport?.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -306,12 +307,28 @@ function ReportActionsList({
             setMessageManuallyMarkedUnread(new Date().getTime());
         });
 
+        let unreadActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
+        let readNewestActionSubscriptionForTransactionThread: EmitterSubscription | undefined;
+        if (transactionThreadReport?.reportID) {
+            unreadActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`unreadAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(new Date().getTime());
+            });
+
+            readNewestActionSubscriptionForTransactionThread = DeviceEventEmitter.addListener(`readNewestAction_${transactionThreadReport?.reportID}`, (newLastReadTime) => {
+                resetUnreadMarker(newLastReadTime);
+                setMessageManuallyMarkedUnread(0);
+            });
+        }
+
         return () => {
             unreadActionSubscription.remove();
             readNewestActionSubscription.remove();
             deletedReportActionSubscription.remove();
+            unreadActionSubscriptionForTransactionThread?.remove();
+            readNewestActionSubscriptionForTransactionThread?.remove();
         };
-    }, [report.reportID]);
+    }, [report.reportID, transactionThreadReport?.reportID]);
 
     useEffect(() => {
         if (linkedReportActionID) {
@@ -325,14 +342,16 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-            // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
+            // If a new comment is added and it's from the current user scroll to the bottom
+            // otherwise leave the user positioned where they are now in the list.
+            // Additionally, since the first report action could be a whisper message (new WS) ->
+            // hasNewestReportAction will be false, check isWhisperAction is false before returning early.
+            if (!isFromCurrentUser || (!hasNewestReportActionRef.current && !ReportActionsUtils.isWhisperAction(sortedReportActions?.[0]))) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [reportScrollManager],
+        [sortedReportActions, reportScrollManager],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -397,6 +416,9 @@ function ReportActionsList({
         reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
+        if (transactionThreadReport?.reportID) {
+            Report.readNewestAction(transactionThreadReport?.reportID);
+        }
     };
 
     /**
@@ -436,7 +458,7 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
                     shouldDisplay =
                         (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
                         isWithinVisibleThreshold;
@@ -575,7 +597,7 @@ function ReportActionsList({
             parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
             firstVisibleReportActionID,
-        ],
+       ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

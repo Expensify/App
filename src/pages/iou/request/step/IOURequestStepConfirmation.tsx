@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MoneyRequestConfirmationList from '@components/MoneyTemporaryForRefactorRequestConfirmationList';
+import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -77,31 +77,31 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.MOVE;
+    const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
-        if (isSharingTrackExpense) {
+        if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
         }
-        if (isRequestingFromTrackExpense) {
+        if (isSubmittingFromTrackExpense) {
             return translate('iou.submitExpense');
         }
-        if (isCategorizingTrackExpense) {
+        if (isSharingTrackExpense) {
             return translate('iou.share');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.splitExpense');
         }
-        if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (iouType === CONST.IOU.TYPE.TRACK) {
             return translate('iou.trackExpense');
         }
-        if (iouType === CONST.IOU.TYPE.SEND) {
+        if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
-        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, report, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
+        return translate('iou.submitExpense');
+    }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
     const participants = useMemo(
         () =>
@@ -123,7 +123,7 @@ function IOURequestStepConfirmation({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
+        IOU.setMoneyRequestBillable(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
@@ -254,7 +254,7 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string) => {
+        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
             if (!transaction) {
                 return;
             }
@@ -273,6 +273,7 @@ function IOURequestStepConfirmation({
                 policy,
                 policyTags,
                 policyCategories,
+                customUnitRateID,
             );
         },
         [policy, policyCategories, policyTags, report, transaction],
@@ -352,7 +353,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE || isCategorizingTrackExpense || isSharingTrackExpense) {
+            if (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense) {
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense) {
@@ -419,7 +420,8 @@ function IOURequestStepConfirmation({
             }
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
-                createDistanceRequest(selectedParticipants, trimmedComment);
+                const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
+                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
                 return;
             }
 
@@ -476,11 +478,11 @@ function IOURequestStepConfirmation({
             }
             return participant;
         });
-        IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
+        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
     };
 
     const setBillable = (billable: boolean) => {
-        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
+        IOU.setMoneyRequestBillable(transactionID, billable);
     };
 
     return (
@@ -494,7 +496,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
