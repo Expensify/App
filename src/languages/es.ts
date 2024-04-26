@@ -1980,6 +1980,18 @@ export default {
                     'Si está exportando facturas de Expensify a Quickbooks Online, ésta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
             },
         },
+        xero: {
+            organization: 'Organización Xero',
+            organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
+            import: 'Importación',
+            importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
+            accounts: 'Plan de cuentas',
+            trackingCategories: 'Categorías de seguimiento',
+            taxes: 'Impuestos',
+            customers: 'Volver a facturar a los clientes',
+            imported: 'Importado',
+            importedAsTags: 'Importado, mostrado como etiqueta',
+        },
         type: {
             free: 'Gratis',
             control: 'Control',

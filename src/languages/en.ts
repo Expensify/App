@@ -1963,10 +1963,7 @@ export default {
             taxes: 'Taxes',
             customers: 'Re-bill customers',
             imported: 'Imported',
-            displayedAs: 'Displayed as',
-            importedAsCategories: 'Imported, displayed as categories',
             importedAsTags: 'Imported, displayed as tags',
-            importedAsReportFields: 'Imported, displayed as report fields',
         },
         type: {
             free: 'Free',
