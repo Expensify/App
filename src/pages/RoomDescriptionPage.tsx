@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -83,6 +84,7 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!el) {
@@ -94,7 +96,6 @@ function RoomDescriptionPage({report, policies}: RoomDescriptionPageProps) {
                             value={description}
                             onChangeText={handleReportDescriptionChange}
                             autoCapitalize="none"
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
                 </FormProvider>

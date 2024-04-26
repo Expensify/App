@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import {parseHtmlToMarkdown} from '@libs/OnyxAwareParser';
 import playSound, {SOUNDS} from '@libs/Sound';
+import variables from '@styles/variables';
 import * as TaskActions from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -131,8 +132,8 @@ function NewTaskDetailsPage({task}: NewTaskDetailsPageProps) {
                         label={translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm
-                        containerStyles={styles.autoGrowHeightMultilineInput}
                         defaultValue={parseHtmlToMarkdown(parser.replace(taskDescription))}
                         value={taskDescription}
                         onValueChange={setTaskDescription}
