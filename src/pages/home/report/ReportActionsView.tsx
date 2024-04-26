@@ -348,10 +348,17 @@ function ReportActionsView({
                 newestReportAction: newestReportAction.pendingAction,
                 firstReportActionID: newestReportAction?.reportActionID,
                 isLoadingOlderReportsFirstNeeded,
+                reportActionID,
             })}`,
         );
 
-        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (
+            !reportActionID ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
             return;
         }
 
