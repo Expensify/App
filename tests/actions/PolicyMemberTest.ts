@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
