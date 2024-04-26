@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -13,6 +12,7 @@ import * as Policy from '@userActions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -31,7 +31,7 @@ type WorkspaceProfileCurrencyPageSectionItem = {
 
 const getDisplayText = (currencyCode: string, currencySymbol: string) => `${currencyCode} - ${currencySymbol}`;
 
-function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingReportData = true}: WorkspaceProfileCurrentPageProps) {
+function WorkspaceProfileCurrencyPage({currencyList = {}, policy}: WorkspaceProfileCurrentPageProps) {
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const trimmedText = searchText.trim().toLowerCase();
@@ -71,15 +71,14 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingRepor
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceProfileCurrencyPage.displayName}
+        <AdminPolicyAccessOrNotFoundWrapper
+            policyID={policy?.id ?? ''}
+            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
         >
-            <FullPageNotFoundView
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceProfileCurrencyPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
@@ -97,8 +96,8 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy, isLoadingRepor
                     initiallyFocusedOptionKey={initiallyFocusedOptionKey}
                     showScrollIndicator
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

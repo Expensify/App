@@ -1340,7 +1340,6 @@ export default {
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
-            requiredLastName: 'Introduce tu apellido para continuar',
         },
     },
     featureTraining: {
@@ -2497,6 +2496,12 @@ export default {
     },
     search: {
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+        searchResults: {
+            emptyResults: {
+                title: 'No hay nada que ver aquí',
+                subtitle: 'Por favor intenta crear algo usando el botón verde.',
+            },
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
