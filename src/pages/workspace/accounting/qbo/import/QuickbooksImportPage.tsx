@@ -10,8 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -58,14 +58,17 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             title: syncLocations,
             pendingAction: pendingFields?.syncLocations,
         },
-        {
+    ];
+
+    if (policy?.connections?.quickbooksOnline.data.country !== CONST.COUNTRY.US) {
+        sections.push({
             description: translate('workspace.qbo.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: syncTaxes,
             pendingAction: pendingFields?.syncTaxes,
-        },
-    ];
+        });
+    }
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -104,4 +107,4 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
 
 QuickbooksImportPage.displayName = 'PolicyQuickbooksImportPage';
 
-export default withPolicy(QuickbooksImportPage);
+export default withPolicyConnections(QuickbooksImportPage);
