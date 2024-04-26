@@ -21,7 +21,6 @@ import Log from '@libs/Log';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import type {PayeePersonalDetails} from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
@@ -173,13 +172,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
     /** The action to take */
     action?: IOUAction;
-};
-
-type MemberSection = {
-    title: string | undefined;
-    shouldShow: boolean;
-    data: Array<PayeePersonalDetails | Participant | ReportUtils.OptionData>;
-    isDisabled: boolean;
 };
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
@@ -410,8 +402,8 @@ function MoneyRequestConfirmationList({
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
-    const optionSelectorSections = useMemo(() => {
-        const sections: MemberSection[] = [];
+    const selectionListSections = useMemo(() => {
+        const sections = [];
         const unselectedParticipants = selectedParticipantsProp.filter((participant) => !participant.selected);
         if (hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants).map((participant) => ({
@@ -967,10 +959,10 @@ function MoneyRequestConfirmationList({
     );
 
     return (
-        <View>
+        <>
             <SelectionList
                 canSelectMultiple={canModifyParticipants}
-                sections={optionSelectorSections}
+                sections={selectionListSections}
                 ListItem={InviteMemberListItem}
                 onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
                 shouldShowTooltips
@@ -1017,7 +1009,7 @@ function MoneyRequestConfirmationList({
                 confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
-        </View>
+        </>
     );
 }
 
