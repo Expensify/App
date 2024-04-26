@@ -78,12 +78,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-    const shouldDisableRename = useMemo(() => {
-        if (!policy) {
-            return false;
-        }
-        return ReportUtils.shouldDisableRename(report, policy);
-    }, [report, policy]);
+    const shouldDisableRename = useMemo(() => (!policy ? false : ReportUtils.shouldDisableRename(report, policy)), [report, policy]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
     const shouldShowRoomName =
         !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report) && !isTaskReport && !isDeprecatedGroupDM && !isMoneyRequestReport && !isArchivedRoom;
