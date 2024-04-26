@@ -19,6 +19,53 @@ import useCustomBackHandler from './useCustomBackHandler';
 
 type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
+const data = [
+    {
+        receipt: {source: 'http...'},
+        hasEReceipt: false,
+        created: '2024-04-11 00:00:00',
+        amount: 12500,
+        type: 'cash',
+        reportID: '1',
+        transactionThreadReportID: '2',
+        transactionID: '1234',
+        modifiedCreated: '2024-05-06 00:00:00',
+        description: 'description description description description',
+        from: {
+            displayName: 'TestUser1',
+            avatarUrl: '',
+        },
+        to: {
+            displayName: 'TestUser2',
+            avatarUrl: '',
+        },
+        category: 'Bananas',
+        tag: 'Green',
+    },
+    {
+        receipt: {source: 'http...'},
+        hasEReceipt: false,
+        created: '2024-04-11 00:00:00',
+        amount: 12500,
+        type: 'cash', // not present in live data (data outside of snapshot_)
+        reportID: '1',
+        transactionThreadReportID: '2',
+        transactionID: '5555',
+        modifiedCreated: '2024-05-06 00:00:00',
+        description: 'description',
+        from: {
+            displayName: 'TestUser1',
+            avatarUrl: '',
+        },
+        to: {
+            displayName: 'TestUser2',
+            avatarUrl: '',
+        },
+        category: 'Bananas',
+        tag: 'Green',
+    },
+];
+
 function SearchPage({route}: SearchPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -57,7 +104,7 @@ function SearchPage({route}: SearchPageProps) {
                 ListItem={ExpenseListItem}
                 onSelectRow={() => {}}
                 onSelectAll={() => {}}
-                sections={[{data: [], isDisabled: false}]}
+                sections={[{data, isDisabled: false}]}
                 onCheckboxPress={() => {}}
                 shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                 listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
