@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy as PolicyType, Report} from '@src/types/onyx';
 
-type OnboardingReportFooterMessageOnyxProps = {
+type SystemChatReportFooterMessageOnyxProps = {
     /** Saved onboarding purpose selected by the user */
     choice: OnyxEntry<OnboardingPurposeType>;
 
@@ -27,9 +27,9 @@ type OnboardingReportFooterMessageOnyxProps = {
     policies: OnyxCollection<PolicyType>;
 };
 
-type OnboardingReportFooterMessageProps = OnboardingReportFooterMessageOnyxProps;
+type SystemChatReportFooterMessageProps = SystemChatReportFooterMessageOnyxProps;
 
-function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingReportFooterMessageProps) {
+function SystemChatReportFooterMessage({choice, reports, policies}: SystemChatReportFooterMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -73,9 +73,9 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
     );
 }
 
-OnboardingReportFooterMessage.displayName = 'OnboardingReportFooterMessage';
+SystemChatReportFooterMessage.displayName = 'SystemChatReportFooterMessage';
 
-export default withOnyx<OnboardingReportFooterMessageProps, OnboardingReportFooterMessageOnyxProps>({
+export default withOnyx<SystemChatReportFooterMessageProps, SystemChatReportFooterMessageOnyxProps>({
     choice: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
     },
@@ -85,4 +85,4 @@ export default withOnyx<OnboardingReportFooterMessageProps, OnboardingReportFoot
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
     },
-})(OnboardingReportFooterMessage);
+})(SystemChatReportFooterMessage);

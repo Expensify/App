@@ -20,8 +20,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
-import OnboardingReportFooterMessage from './OnboardingReportFooterMessage';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
+import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
 type ReportFooterOnyxProps = {
     /** Whether to show the compose input */
@@ -141,7 +141,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {!canWriteInReport && <OnboardingReportFooterMessage />}
+                    {!canWriteInReport && <SystemChatReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}
