@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
@@ -15,10 +15,14 @@ import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy as PolicyType} from '@src/types/onyx';
 
 type SystemChatReportFooterMessageOnyxProps = {
     /** Saved onboarding purpose selected by the user */
     choice: OnyxEntry<OnboardingPurposeType>;
+
+    /** The list of this user's policies */
+    policies: OnyxCollection<PolicyType>;
 
     /** policyID for main workspace */
     activePolicyID: OnyxEntry<Required<string>>;
@@ -26,14 +30,17 @@ type SystemChatReportFooterMessageOnyxProps = {
 
 type SystemChatReportFooterMessageProps = SystemChatReportFooterMessageOnyxProps;
 
-function SystemChatReportFooterMessage({choice, activePolicyID}: SystemChatReportFooterMessageProps) {
+function SystemChatReportFooterMessage({choice, policies, activePolicyID}: SystemChatReportFooterMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const adminChatReport = useMemo(() => {
-        const policy = PolicyUtils.getPolicy(activePolicyID ?? '');
-        return ReportUtils.getReport(String(policy.chatReportIDAdmins));
-    }, [activePolicyID]);
+        const adminPolicy = activePolicyID
+            ? PolicyUtils.getPolicy(activePolicyID ?? '')
+            : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
+
+        return ReportUtils.getReport(String(adminPolicy?.chatReportIDAdmins));
+    }, [activePolicyID, policies]);
 
     const content = useMemo(() => {
         switch (choice) {
@@ -74,7 +81,9 @@ export default withOnyx<SystemChatReportFooterMessageProps, SystemChatReportFoot
     choice: {
         key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
     },
-
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
         initialValue: null,
