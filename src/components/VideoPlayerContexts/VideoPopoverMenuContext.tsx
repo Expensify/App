@@ -19,14 +19,14 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[2]);
     const {isOffline} = useNetwork();
     const isLocalFile = currentlyPlayingURL && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => currentlyPlayingURL.startsWith(prefix));
-    const playerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
+    const videoPopoverMenuPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
 
     const updatePlaybackSpeed = useCallback(
         (speed: PlaybackSpeed) => {
             setCurrentPlaybackSpeed(speed);
-            playerRef.current?.setStatusAsync?.({rate: speed});
+            videoPopoverMenuPlayerRef.current?.setStatusAsync?.({rate: speed});
         },
-        [playerRef],
+        [videoPopoverMenuPlayerRef],
     );
 
     const downloadAttachment = useCallback(() => {
@@ -65,7 +65,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         return items;
     }, [currentPlaybackSpeed, downloadAttachment, translate, updatePlaybackSpeed, isOffline, isLocalFile]);
 
-    const contextValue = useMemo(() => ({menuItems, playerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed}), [menuItems, playerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed]);
+    const contextValue = useMemo(() => ({menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed}), [menuItems, videoPopoverMenuPlayerRef, updatePlaybackSpeed, setCurrentPlaybackSpeed]);
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

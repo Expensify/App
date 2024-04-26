@@ -81,7 +81,7 @@ function BaseVideoPlayer({
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
     const {updateVolume} = useVolumeContext();
-    const {playerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
+    const {videoPopoverMenuPlayerRef, setCurrentPlaybackSpeed} = useVideoPopoverMenuContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -96,7 +96,7 @@ function BaseVideoPlayer({
 
     const showPopoverMenu = (event?: GestureResponderEvent | KeyboardEvent) => {
         setIsPopoverVisible(true);
-        playerRef.current = videoPlayerRef.current;
+        videoPopoverMenuPlayerRef.current = videoPlayerRef.current;
         videoPlayerRef.current?.getStatusAsync().then((status) => {
             if (!('rate' in status && status.rate)) {
                 return;
