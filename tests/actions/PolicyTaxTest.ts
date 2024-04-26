@@ -455,7 +455,6 @@ describe('actions/PolicyTax', () => {
                     foreignTaxDefault: 'id_TAX_RATE_1',
                 },
             };
-            const foreignTaxDefault = fakePolicy?.taxRates?.foreignTaxDefault;
             const taxID = 'id_TAX_RATE_1';
             const firstTaxID = 'id_TAX_EXEMPT';
 
