@@ -185,7 +185,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         />
                         <SelectionList
                             sections={sections}
-                            textInputLabel={translate('optionsSelector.findMember')}
+                            textInputLabel={translate('selectionList.findMember')}
                             textInputValue={searchTerm}
                             onChangeText={setSearchTerm}
                             headerMessage={headerMessage}

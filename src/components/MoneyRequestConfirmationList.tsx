@@ -144,7 +144,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** File name of the receipt */
     receiptFilename?: string;
 
-    /** List styles for OptionsSelector */
+    /** List styles for SelectionList */
     listStyles?: StyleProp<ViewStyle>;
 
     /** Transaction that represents the expense */

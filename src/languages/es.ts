@@ -392,7 +392,7 @@ export default {
         splitWith: 'Dividir con',
         whatsItFor: '¿Para qué es?',
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
         findMember: 'Encuentra un miembro',
     },

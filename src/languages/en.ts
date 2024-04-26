@@ -401,7 +401,7 @@ export default {
         splitWith: 'Split with',
         whatsItFor: "What's it for?",
     },
-    optionsSelector: {
+    selectionList: {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
         findMember: 'Find a member',
     },
