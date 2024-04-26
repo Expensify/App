@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -45,10 +46,7 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
                 return (
                     <>
                         {translate('onboardingBottomMessage.newDotManageTeam.phrase1')}
-                        <TextLink
-                            style={styles.label}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? ''))}
-                        >
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminChatReport?.reportID ?? ''))}>
                             {adminChatReport?.reportName ?? CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
                         </TextLink>
                         {translate('onboardingBottomMessage.newDotManageTeam.phrase2')}
@@ -58,29 +56,19 @@ function OnboardingReportFooterMessage({choice, reports, policies}: OnboardingRe
                 return (
                     <>
                         {translate('onboardingBottomMessage.default.phrase1')}
-                        <TextLink
-                            style={styles.label}
-                            onPress={() => ReportInstance.navigateToConciergeChat()}
-                        >
-                            {CONST?.CONCIERGE_CHAT_NAME}
-                        </TextLink>
+                        <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}>{CONST?.CONCIERGE_CHAT_NAME}</TextLink>
                         {translate('onboardingBottomMessage.default.phrase2')}
                     </>
                 );
         }
-    }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, styles.label, translate]);
+    }, [adminChatReport?.reportName, adminChatReport?.reportID, choice, translate]);
 
     return (
         <Banner
             containerStyles={[styles.archivedReportFooter]}
-            content={
-                <Text
-                    style={[styles.label, styles.w100, styles.textAlignCenter]}
-                    suppressHighlighting
-                >
-                    {content}
-                </Text>
-            }
+            shouldShowIcon
+            icon={Expensicons.Lightbulb}
+            content={<Text suppressHighlighting>{content}</Text>}
         />
     );
 }
