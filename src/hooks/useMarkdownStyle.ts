@@ -22,6 +22,7 @@ function useMarkdownStyle(message: string | null = null): MarkdownStyle {
             },
             emoji: {
                 fontSize: emojiFontSize,
+                lineHeight: emojiFontSize
             },
             blockquote: {
                 borderColor: theme.border,
