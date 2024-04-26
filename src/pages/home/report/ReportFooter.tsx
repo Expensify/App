@@ -133,7 +133,7 @@ function ReportFooter({
     return (
         <>
             {hideComposer && (
-                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser ? styles.mt4 : {}, isSmallScreenWidth ? styles.mb5 : null]}>
+                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser || !canWriteInReport ? styles.mt4 : {}, isSmallScreenWidth ? styles.mb5 : null]}>
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={report}
