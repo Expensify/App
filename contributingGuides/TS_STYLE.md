@@ -684,7 +684,7 @@ _.each(arr, () => {});
 
 // GOOD
 var arr = [];
-arr.forEach(() => {});
+arr.forEach(function loopArr() {});
 
 // BAD
 lodashGet(object, ['foo'], 'bar');
