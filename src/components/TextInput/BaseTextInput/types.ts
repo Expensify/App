@@ -116,9 +116,6 @@ type CustomBaseTextInputProps = {
     /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;
 
-    /** Callback to handle clear the value on Form when input is used in the Form component. */
-    onClearInput?: (value: string | undefined) => void;
-
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 

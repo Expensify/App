@@ -64,7 +64,6 @@ function BaseTextInput(
         inputID,
         isMarkdownEnabled = false,
         shouldShowClearButton = false,
-        onClearInput = () => {},
         prefixContainerStyle = [],
         prefixStyle = [],
         ...inputProps
@@ -408,7 +407,6 @@ function BaseTextInput(
                                         }}
                                         onPress={() => {
                                             setValue('');
-                                            onClearInput?.(inputID);
                                         }}
                                     >
                                         <Icon
