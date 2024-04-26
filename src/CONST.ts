@@ -1379,7 +1379,6 @@ const CONST = {
             plaidAccessToken: '',
             bankAccounts: [] as PlaidBankAccount[],
             isLoading: false,
-            error: '',
             errors: {},
         },
     },
