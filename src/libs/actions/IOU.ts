@@ -5909,7 +5909,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
         .map((key: string): number => transaction?.splitShares?.[Number(key)]?.amount ?? 0)
         .reduce((prev: number, current: number): number => prev + current, 0);
 
-    const unModifiedSharesAccountIDs = Object.keys(transaction.splitShares ?? {})
+    const unmodifiedSharesAccountIDs = Object.keys(transaction.splitShares ?? {})
         .filter((key: string) => !transaction?.splitShares?.[Number(key)]?.isModified)
         .map((key: string) => Number(key));
 
@@ -5918,8 +5918,8 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
         return;
     }
 
-    const splitShares: SplitShares = unModifiedSharesAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
-        const splitAmount = IOUUtils.calculateAmount(unModifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
+    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((result: SplitShares, accountID: number, index: number): SplitShares => {
+        const splitAmount = IOUUtils.calculateAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
         return {
             ...result,
             [accountID]: {
