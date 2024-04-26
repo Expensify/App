@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
@@ -21,7 +21,7 @@ import ROUTES from '@src/ROUTES';
 
 type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
-function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
+function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
@@ -62,9 +62,9 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyProps) {
         },
         {
             description: translate('workspace.qbo.exportCompany'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: exportCompanyCard,
+            title: exportCompanyCard ? translate(`workspace.qbo.${exportCompanyCard}`) : undefined,
             pendingAction: pendingFields?.exportCompanyCard,
             error: errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined,
         },

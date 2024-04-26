@@ -12,7 +12,7 @@ import {getAdminEmployees} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -21,7 +21,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
+function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {exporter} = policy?.connections?.quickbooksOnline?.config ?? {};
@@ -44,7 +44,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
         [exporter, exporters],
     );
 
-    const onSelectRow = useCallback(
+    const selectExporter = useCallback(
         (row: CardListItem) => {
             if (row.value !== exporter) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
@@ -71,7 +71,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyProps) {
                         }
                         sections={[{data}]}
                         ListItem={RadioListItem}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={selectExporter}
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     />
                 </ScreenWrapper>
