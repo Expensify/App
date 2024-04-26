@@ -5270,7 +5270,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true, filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report)) || isInvoiceRoom(report)) {
+    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report)) || isInvoiceRoom(report) || isInvoiceReport(report)) {
         return [];
     }
 
