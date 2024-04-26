@@ -67,6 +67,7 @@ function IOURequestStartPage({
         [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackExpense'),
+        [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
     };
     const transactionRequestType = useRef(TransactionUtils.getRequestType(transaction));
     const {canUseP2PDistanceRequests} = usePermissions(iouType);
