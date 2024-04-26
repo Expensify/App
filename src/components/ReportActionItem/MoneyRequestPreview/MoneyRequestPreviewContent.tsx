@@ -216,7 +216,7 @@ function MoneyRequestPreviewContent({
         () =>
             shouldShowSplitShare &&
             (transaction?.comment?.splits
-                ? transaction?.comment?.splits?.find((split) => split.accountID === action.actorAccountID)?.amount
+                ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount
                 : IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );
