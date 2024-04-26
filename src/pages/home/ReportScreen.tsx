@@ -21,6 +21,7 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import withCurrentReportID from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -151,7 +152,6 @@ function ReportScreen({
 }: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const reportIDFromRoute = getReportID(route);
     const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
@@ -160,6 +160,9 @@ function ReportScreen({
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
+    const isReportOpenInRHP = useIsReportOpenInRHP();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -324,6 +327,7 @@ function ReportScreen({
             onNavigationMenuButtonClicked={goBack}
             report={report}
             parentReportAction={parentReportAction}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 
@@ -333,6 +337,7 @@ function ReportScreen({
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
     }
@@ -356,6 +361,7 @@ function ReportScreen({
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
     }
@@ -369,7 +375,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !reportIDFromRoute || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||
@@ -474,13 +480,13 @@ function ReportScreen({
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (!isSmallScreenWidth || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             return;
         }
         Report.openReport(report.reportID);
 
         // We don't want to run this useEffect every time `report` is changed
-        // Excluding isSmallScreenWidth from the dependency list to prevent re-triggering on screen resize events.
+        // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report.notificationPreference, isFocused]);
 
@@ -650,7 +656,7 @@ function ReportScreen({
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowLink={false}
                     >
@@ -661,7 +667,7 @@ function ReportScreen({
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                            {ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>

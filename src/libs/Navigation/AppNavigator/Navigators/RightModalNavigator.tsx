@@ -137,6 +137,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
                         component={ModalStackNavigators.TransactionDuplicateStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                        component={ModalStackNavigators.SearchReportModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>
