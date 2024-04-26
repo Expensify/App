@@ -1,8 +1,50 @@
 diff --git a/node_modules/react-native-vision-camera/VisionCamera.podspec b/node_modules/react-native-vision-camera/VisionCamera.podspec
-index 3a0e313..357a282 100644
+index 3a0e313..e983153 100644
 --- a/node_modules/react-native-vision-camera/VisionCamera.podspec
 +++ b/node_modules/react-native-vision-camera/VisionCamera.podspec
-@@ -40,6 +40,7 @@ Pod::Spec.new do |s|
+@@ -2,7 +2,13 @@ require "json"
+ 
+ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
+ 
+-nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('react-native/package.json')"`), '..')
++pkgJsonPath = ENV['REACT_NATIVE_DIR'] ? '../react-native/package.json' : 'react-native/package.json'
++nodeModules = File.join(File.dirname(`cd "#{Pod::Config.instance.installation_root.to_s}" && node --print "require.resolve('#{pkgJsonPath}')"`), '..')
++
++frameworks_flags = {
++  "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++  "OTHER_CPLUSPLUSFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++}
+ 
+ forceDisableFrameProcessors = false
+ if defined?($VCDisableFrameProcessors)
+@@ -15,6 +21,13 @@ workletsPath = File.join(nodeModules, "react-native-worklets-core")
+ hasWorklets = File.exist?(workletsPath) && !forceDisableFrameProcessors
+ Pod::UI.puts("[VisionCamera] react-native-worklets-core #{hasWorklets ? "found" : "not found"}, Frame Processors #{hasWorklets ? "enabled" : "disabled"}!")
+ 
++default_config = {
++  "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SK_METAL=1 SK_GANESH=1 VISION_CAMERA_ENABLE_FRAME_PROCESSORS=#{hasWorklets}",
++  "OTHER_SWIFT_FLAGS" => "$(inherited) -DRCT_NEW_ARCH_ENABLED #{hasWorklets ? "-D VISION_CAMERA_ENABLE_FRAME_PROCESSORS" : ""}",
++  "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
++  "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/cpp/\"/** "
++}
++
+ Pod::Spec.new do |s|
+   s.name         = "VisionCamera"
+   s.version      = package["version"]
+@@ -27,19 +40,13 @@ Pod::Spec.new do |s|
+   s.platforms    = { :ios => "12.4" }
+   s.source       = { :git => "https://github.com/mrousavy/react-native-vision-camera.git", :tag => "#{s.version}" }
+ 
+-  s.pod_target_xcconfig = {
+-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) SK_METAL=1 SK_GANESH=1 VISION_CAMERA_ENABLE_FRAME_PROCESSORS=#{hasWorklets}",
+-    "OTHER_SWIFT_FLAGS" => "$(inherited) #{hasWorklets ? "-D VISION_CAMERA_ENABLE_FRAME_PROCESSORS" : ""}",
+-    "CLANG_CXX_LANGUAGE_STANDARD" => "c++17",
+-    "HEADER_SEARCH_PATHS" => "\"$(PODS_TARGET_SRCROOT)/cpp/\"/** "
+-  }
+-
+   s.requires_arc = true
+ 
+   # All source files that should be publicly visible
    # Note how this does not include headers, since those can nameclash.
    s.source_files = [
      # Core
@@ -10,7 +52,7 @@ index 3a0e313..357a282 100644
      "ios/*.{m,mm,swift}",
      "ios/Core/*.{m,mm,swift}",
      "ios/Extensions/*.{m,mm,swift}",
-@@ -47,6 +48,7 @@ Pod::Spec.new do |s|
+@@ -47,6 +54,7 @@ Pod::Spec.new do |s|
      "ios/React Utils/*.{m,mm,swift}",
      "ios/Types/*.{m,mm,swift}",
      "ios/CameraBridge.h",
@@ -18,16 +60,18 @@ index 3a0e313..357a282 100644
  
      # Frame Processors
      hasWorklets ? "ios/Frame Processor/*.{m,mm,swift}" : "",
-@@ -66,9 +68,10 @@ Pod::Spec.new do |s|
+@@ -66,9 +74,12 @@ Pod::Spec.new do |s|
      "ios/**/*.h"
    ]
- 
+   
 -  s.dependency "React"
 -  s.dependency "React-Core"
 -  s.dependency "React-callinvoker"
-+  s.pod_target_xcconfig    = {
-+      "OTHER_SWIFT_FLAGS" => "-DRCT_NEW_ARCH_ENABLED"
-+  }
++  if ENV['USE_FRAMEWORKS'] == '1'
++    s.pod_target_xcconfig = default_config.merge(frameworks_flags)
++  else
++    s.pod_target_xcconfig = default_config
++  end
 +  install_modules_dependencies(s)
  
    if hasWorklets
@@ -609,8 +653,7 @@ index 0000000..56a6c3d
 +include ':VisionCamera'
 diff --git a/node_modules/react-native-vision-camera/android/src/main/.DS_Store b/node_modules/react-native-vision-camera/android/src/main/.DS_Store
 new file mode 100644
-index 0000000..63b728b
-Binary files /dev/null and b/node_modules/react-native-vision-camera/android/src/main/.DS_Store differ
+index 0000000..e69de29
 diff --git a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt b/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt
 index a7c8358..a935ef6 100644
 --- a/node_modules/react-native-vision-camera/android/src/main/java/com/mrousavy/camera/CameraDevicesManager.kt
@@ -1273,13 +1316,12 @@ index 0000000..46c2c2c
 +#endif /* RCT_NEW_ARCH_ENABLED */
 diff --git a/node_modules/react-native-vision-camera/ios/RNCameraView.mm b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
 new file mode 100644
-index 0000000..63fb00f
+index 0000000..019be20
 --- /dev/null
 +++ b/node_modules/react-native-vision-camera/ios/RNCameraView.mm
-@@ -0,0 +1,373 @@
+@@ -0,0 +1,377 @@
 +// This guard prevent the code from being compiled in the old architecture
 +#ifdef RCT_NEW_ARCH_ENABLED
-+//#import "RNCameraView.h"
 +#import <React/RCTViewComponentView.h>
 +
 +#import <react/renderer/components/RNVisionCameraSpec/ComponentDescriptors.h>
@@ -1292,7 +1334,12 @@ index 0000000..63fb00f
 +#import <AVFoundation/AVCaptureVideoDataOutput.h>
 +#import <React/RCTViewManager.h>
 +#import <React/RCTConversions.h>
++
++#ifdef USE_FRAMEWORKS
++#import <VisionCamera/VisionCamera-Swift.h>
++#else
 +#import "VisionCamera-Swift.h"
++#endif
 +
 +@interface RNCameraView : RCTViewComponentView <RNCameraViewDirectEventDelegate>
 +@end

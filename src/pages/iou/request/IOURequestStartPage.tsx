@@ -109,7 +109,7 @@ function IOURequestStartPage({
     const isAllowedToCreateRequest = isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType) || PolicyUtils.canSendInvoice(allPolicies);
 
     const navigateBack = () => {
-        Navigation.dismissModal();
+        Navigation.closeRHPFlow();
     };
 
     const resetIOUTypeIfChanged = useCallback(
