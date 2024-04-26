@@ -108,7 +108,7 @@ type CustomBaseTextInputProps = {
     /** Should live markdown be enabled. Changes RNTextInput component to RNMarkdownTextInput */
     isMarkdownEnabled?: boolean;
 
-    /** Clear button should be displayed */
+    /** Whether the clear button should be displayed */
     shouldShowClearButton?: boolean;
 
     /** Callback to handle clear the value on Form when input is used in the Form component. */
