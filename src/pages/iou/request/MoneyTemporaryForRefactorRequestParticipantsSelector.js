@@ -1,4 +1,3 @@
-import lodashEvery from 'lodash/every';
 import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
 import lodashMap from 'lodash/map';
@@ -9,11 +8,8 @@ import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -26,15 +22,11 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -87,7 +79,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-    const {isSmallScreenWidth} = useWindowDimensions();
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
@@ -134,6 +125,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             undefined,
             undefined,
             !isCategorizeOrShareAction,
+            isCategorizeOrShareAction ? 0 : undefined,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
@@ -334,31 +326,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             </>
         );
     }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
-
-    const renderEmptyWorkspaceView = () => (
-        <>
-            <BlockingView
-                icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyWorkspaceIconWidth}
-                iconHeight={variables.emptyWorkspaceIconHeight}
-                title={translate('workspace.emptyWorkspace.notFound')}
-                shouldShowLink={false}
-            />
-            <Button
-                success
-                large
-                text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                style={[styles.mh5, styles.mb5]}
-            />
-            {isSmallScreenWidth && <OfflineIndicator />}
-        </>
-    );
-
-    const isAllSectionsEmpty = lodashEvery(sections, (section) => section.data.length === 0);
-    if (isCategorizeOrShareAction && isAllSectionsEmpty && didScreenTransitionEnd && debouncedSearchTerm.trim() === '' && areOptionsInitialized) {
-        return renderEmptyWorkspaceView();
-    }
 
     return (
         <SelectionList

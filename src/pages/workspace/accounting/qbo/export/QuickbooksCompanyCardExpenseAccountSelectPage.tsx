@@ -1,11 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {SectionListData} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, Section} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,61 +11,56 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Account} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
     value: string;
 };
-type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
-type Card = {name: string};
 
-function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {exportCompanyCard, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-
-    const defaultCards = useMemo<Card[]>(
-        () => [
-            {
-                name: translate(`workspace.qbo.creditCard`),
-            },
-            {
-                name: translate(`workspace.qbo.debitCard`),
-            },
-            {
-                name: translate(`workspace.qbo.vendorBill`),
-            },
-        ],
-        [translate],
-    );
-    const cards = useMemo<Card[]>(() => (isLocationEnabled ? defaultCards.slice(0, -1) : defaultCards), [isLocationEnabled, defaultCards]);
-
-    const data = useMemo<CardListItem[]>(
-        () =>
-            cards.map((card) => ({
-                value: card.name,
-                text: card.name,
-                keyForList: card.name,
-                isSelected: card.name === exportCompanyCard,
-            })),
-        [cards, exportCompanyCard],
-    );
-
-    const sections = useMemo<CardsSection[]>(() => [{data}], [data]);
     const policyID = policy?.id ?? '';
+    const {creditCards, vendors, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
 
-    const onSelectRow = useCallback(
+    const {exportCompanyCardAccount, exportAccount, exportCompanyCard} = policy?.connections?.quickbooksOnline?.config ?? {};
+
+    const data: CardListItem[] = useMemo(() => {
+        let accounts: Account[];
+        switch (exportCompanyCard) {
+            case CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.CREDIT_CARD:
+                accounts = creditCards ?? [];
+                break;
+            case CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.DEBIT_CARD:
+                accounts = bankAccounts ?? [];
+                break;
+            case CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL:
+                accounts = vendors ?? [];
+                break;
+            default:
+                accounts = [];
+        }
+
+        return accounts.map((card) => ({
+            value: card.name,
+            text: card.name,
+            keyForList: card.name,
+            isSelected: card.name === exportCompanyCardAccount,
+        }));
+    }, [exportCompanyCardAccount, creditCards, bankAccounts, exportCompanyCard, vendors]);
+
+    const selectExportAccount = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportCompanyCard) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD, row.value);
+            if (row.value !== exportAccount) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT, row.value);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [exportCompanyCard, policyID],
+        [exportAccount, policyID],
     );
 
     return (
@@ -77,20 +70,16 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyProps
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             >
                 <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}>
-                    <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
-                    <View style={styles.flex1}>
-                        <SelectionList
-                            containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>}
-                            sections={sections}
-                            ListItem={RadioListItem}
-                            onSelectRow={onSelectRow}
-                            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                            footerContent={
-                                isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>
-                            }
-                        />
-                    </View>
+                    <HeaderWithBackButton
+                        title={exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.VENDOR_BILL ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
+                    />
+                    <SelectionList
+                        headerContent={exportCompanyCard ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.${exportCompanyCard}AccountDescription`)}</Text> : null}
+                        sections={[{data}]}
+                        ListItem={RadioListItem}
+                        onSelectRow={selectExportAccount}
+                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                    />
                 </ScreenWrapper>
             </FeatureEnabledAccessOrNotFoundWrapper>
         </AdminPolicyAccessOrNotFoundWrapper>
