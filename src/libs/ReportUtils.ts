@@ -4804,6 +4804,7 @@ function shouldReportBeInOptionList({
             !isTaskReport(report) &&
             !isSelfDM(report) &&
             !isGroupChat(report) &&
+            // TODO: this shouldn't be necessary if the system report has participants list filled
             !isSystemChat(report))
     ) {
         return false;
