@@ -1,7 +1,6 @@
 import fontFamily from './fontFamily';
 import multiFontFamily from './fontFamily/multiFontFamily';
 import singleFontFamily from './fontFamily/singleFontFamily';
-import fontWeightBold from './fontWeight/bold';
 
 const FontUtils = {
     fontFamily: {
@@ -10,8 +9,8 @@ const FontUtils = {
         multi: multiFontFamily,
     },
     fontWeight: {
-        bold: fontWeightBold,
         normal: '400',
+        bold: '700',
     },
 } as const;
 
