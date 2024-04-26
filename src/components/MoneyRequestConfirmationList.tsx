@@ -437,7 +437,7 @@ function MoneyRequestConfirmationList({
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
-    const getParticipantOptions = useCallback(() => {
+    const splitParticipants = useMemo(() => {
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
@@ -475,10 +475,9 @@ function MoneyRequestConfirmationList({
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         if (hasMultipleParticipants) {
-            const formattedParticipantsList = getParticipantOptions();
             sections.push({
                 title: translate('moneyRequestConfirmationList.splitWith'),
-                data: formattedParticipantsList,
+                data: splitParticipants,
                 shouldShow: true,
                 shouldShowActionButton: !shouldShowReadOnlySplits,
                 onActionButtonPress: () => IOU.resetSplitShares(transaction),
@@ -496,7 +495,7 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, hasMultipleParticipants, translate, getParticipantOptions, transaction, shouldShowReadOnlySplits]);
+    }, [selectedParticipants, hasMultipleParticipants, translate, splitParticipants, transaction, shouldShowReadOnlySplits]);
 
     const selectedOptions = useMemo(() => {
         if (!hasMultipleParticipants) {
