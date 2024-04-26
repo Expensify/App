@@ -133,7 +133,7 @@ type QBOConnectionData = {
     bankAccounts: Account[];
     creditCards: Account[];
     accountsReceivable: Account[];
-    accountsPayable: Account[];
+    accountPayable: Account[];
     otherCurrentAssetAccounts: Account[];
 
     taxCodes: TaxCode[];

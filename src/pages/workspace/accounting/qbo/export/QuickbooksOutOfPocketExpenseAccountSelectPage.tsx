@@ -24,7 +24,7 @@ type CardListItem = ListItem & {
 function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {bankAccounts, journalEntryAccounts, accountsPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
 
     const {exportEntity, exportAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
@@ -35,7 +35,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                 accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL:
-                accounts = accountsPayable ?? [];
+                accounts = accountPayable ?? [];
                 break;
             case CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY:
                 accounts = journalEntryAccounts ?? [];
@@ -50,7 +50,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
             keyForList: card.name,
             isSelected: card.name === exportAccount,
         }));
-    }, [accountsPayable, bankAccounts, exportAccount, exportEntity, journalEntryAccounts]);
+    }, [accountPayable, bankAccounts, exportAccount, exportEntity, journalEntryAccounts]);
 
     const policyID = policy?.id ?? '';
 

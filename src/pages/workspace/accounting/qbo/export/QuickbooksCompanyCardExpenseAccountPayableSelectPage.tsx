@@ -23,19 +23,19 @@ type CardListItem = ListItem & {
 function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountsPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
     const {exportAccountPayable} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
-            accountsPayable?.map((account) => ({
+            accountPayable?.map((account) => ({
                 value: account.name,
                 text: account.name,
                 keyForList: account.name,
                 isSelected: account.name === exportAccountPayable,
             })) ?? [],
-        [exportAccountPayable, accountsPayable],
+        [exportAccountPayable, accountPayable],
     );
 
     const selectAccountPayable = useCallback(
