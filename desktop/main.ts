@@ -612,7 +612,7 @@ const mainWindow = (): Promise<void> => {
                 // Automatically check for and install the latest version in the background
                 ipcMain.on(ELECTRON_EVENTS.SILENT_UPDATE, () => {
                     isSilentUpdate = true;
-                    manuallyCheckForUpdates();
+                    manuallyCheckForUpdates(undefined, browserWindow);
                 });
 
                 return browserWindow;
