@@ -79,6 +79,7 @@ type ContextMenuActionPayload = {
     event?: GestureResponderEvent | MouseEvent | KeyboardEvent;
     setIsEmojiPickerActive?: (state: boolean) => void;
     anchorRef?: MutableRefObject<View | null>;
+    transactionThreadReportID?: string;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -213,8 +214,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
-        onPress: (closePopover, {reportID}) => {
+        onPress: (closePopover, {reportID, transactionThreadReportID}) => {
             Report.readNewestAction(reportID);
+            if (transactionThreadReportID && transactionThreadReportID !== '0') {
+                Report.readNewestAction(transactionThreadReportID);
+            }
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
