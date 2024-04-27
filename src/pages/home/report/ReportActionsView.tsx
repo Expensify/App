@@ -354,6 +354,7 @@ function ReportActionsView({
 
         if (
             !reportActionID ||
+            !isFocused ||
             isLoadingInitialReportActions ||
             isLoadingOlderReportActions ||
             network.isOffline ||
@@ -375,6 +376,7 @@ function ReportActionsView({
         network.isOffline,
         reportActions.length,
         newestReportAction,
+        isFocused,
     ]);
 
     /**
