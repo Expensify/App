@@ -19,7 +19,7 @@ function WorkspacesSectionHeader() {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.mh4, styles.mt6, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb1]}>
+        <View style={[styles.mh4, styles.mt2, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
             <View>
                 <Text
                     style={styles.label}
