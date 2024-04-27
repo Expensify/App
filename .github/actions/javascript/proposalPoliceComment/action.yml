@@ -1,7 +1,7 @@
 name: ProposalPolice™ - Issue Comment Workflow
 on:
   issue_comment:
-    types: [created, edited]
+    types: [created]
 
 jobs:
   process-issue-comment:
@@ -12,11 +12,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: "20"
 
       - name: Install dependencies
         run: npm install
-        working-directory: .github/scripts/proposal-police
+        working-directory: ../../../
 
       # Checks if the comment is created and follows the template
       - name: Run issue new comment script
@@ -27,15 +27,4 @@ jobs:
           OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
           ISSUE: ${{ toJson(github.event.issue) }}
           COMMENT: ${{ toJson(github.event.comment) }}
-        run: node .github/scripts/proposal-police/issue-comment.js
-
-      # Checks if the comment is edited and if proposal template is followed
-      - name: Run issue comment edited script
-        if: github.event.action == 'edited'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_ASSISTANT_ID: ${{ secrets.OPENAI_ASSISTANT_ID }}
-          ISSUE: ${{ toJson(github.event.issue) }}
-          COMMENT: ${{ toJson(github.event.comment) }}
-        run: node .github/scripts/proposal-police/issue-comment-edit.js
+        run: ./index.js
