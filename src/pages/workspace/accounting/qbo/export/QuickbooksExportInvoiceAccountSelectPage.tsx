@@ -11,7 +11,7 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -20,7 +20,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -38,7 +38,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
         [exportInvoice, accountsReceivable],
     );
 
-    const onSelectRow = useCallback(
+    const selectExportInvoice = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportInvoice) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_INVOICE, row.value);
@@ -60,7 +60,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
                         headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
                         sections={[{data}]}
                         ListItem={RadioListItem}
-                        onSelectRow={onSelectRow}
+                        onSelectRow={selectExportInvoice}
                         initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                     />
                 </ScreenWrapper>

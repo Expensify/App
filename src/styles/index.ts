@@ -531,6 +531,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        borderRadiusComponentLarge: {
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -1662,9 +1666,10 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionReportActionCompose: (windowHeight: number) =>
+        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
-                horizontal: 18 + variables.sideBarWidth,
+                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
+                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
@@ -4869,12 +4874,6 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
-        },
-
-        searchFiltersButtonText: {
-            marginLeft: 4,
-            marginRight: 4,
-            fontWeight: 'bold',
         },
     } satisfies Styles);
 
