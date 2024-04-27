@@ -139,7 +139,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageHtml?: string;
         lastActorAccountID?: number;
 
-        // indicate the type of the last action
+        // The type of the last action
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
         ownerEmail?: string;
