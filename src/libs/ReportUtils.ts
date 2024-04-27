@@ -1173,9 +1173,24 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the user can write in the provided report
+ */
+function canWriteInReport(report: OnyxEntry<Report>): boolean {
+    if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
+        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
+    }
+
+    return true;
+}
+
+/**
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
+    if (!canWriteInReport(report)) {
+        return false;
+    }
+
     // Default to allowing all users to post
     const capability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -5374,7 +5389,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
-    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
+    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
@@ -6281,7 +6296,6 @@ export {
     getParsedComment,
     getParticipantAccountIDs,
     getParticipants,
-    getPayeeName,
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
@@ -6316,6 +6330,7 @@ export {
     getWorkspaceChats,
     getWorkspaceIcon,
     goBackToDetailsPage,
+    getPayeeName,
     hasActionsWithErrors,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
@@ -6403,6 +6418,7 @@ export {
     isValidReport,
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteTask,
+    canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,
     parseReportRouteParams,
