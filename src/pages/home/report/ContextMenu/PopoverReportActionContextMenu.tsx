@@ -37,7 +37,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const reportActionRef = useRef<OnyxEntry<ReportAction>>(null);
     const reportActionIDRef = useRef('0');
     const originalReportIDRef = useRef('0');
-    const transactionThreadReportIDRef = useRef('0');
     const selectionRef = useRef('');
     const reportActionDraftMessageRef = useRef<string>();
 
@@ -172,7 +171,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         shouldCloseOnTarget = false,
         setIsEmojiPickerActive = () => {},
         isOverflowMenu = false,
-        transactionThreadReportID = undefined,
     ) => {
         const {pageX = 0, pageY = 0} = extractPointerEvent(event);
         contextMenuAnchorRef.current = contextMenuAnchor;
@@ -214,7 +212,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             reportIDRef.current = reportID ?? '0';
             reportActionIDRef.current = reportActionID ?? '0';
             originalReportIDRef.current = originalReportID ?? '0';
-            transactionThreadReportIDRef.current = transactionThreadReportID ?? '0';
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
@@ -340,7 +337,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                     type={typeRef.current}
                     reportID={reportIDRef.current}
                     reportActionID={reportActionIDRef.current}
-                    transactionThreadReportID={transactionThreadReportIDRef.current}
                     draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
                     isArchivedRoom={isRoomArchived}

@@ -216,3 +216,4 @@ export type {default as ShareTrackedExpenseParams} from './ShareTrackedExpensePa
 export type {default as CategorizeTrackedExpenseParams} from './CategorizeTrackedExpenseParams';
 export type {default as LeavePolicyParams} from './LeavePolicyParams';
 export type {default as OpenPolicyAccountingPageParams} from './OpenPolicyAccountingPageParams';
+export type {default as SearchParams} from './Search';
