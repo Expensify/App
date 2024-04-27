@@ -466,6 +466,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_DISTANCE_RATES_PAGE: 'OpenPolicyDistanceRatesPage',
     OPEN_POLICY_MORE_FEATURES_PAGE: 'OpenPolicyMoreFeaturesPage',
     OPEN_POLICY_ACCOUNTING_PAGE: 'OpenPolicyAccountingPage',
+    SEARCH: 'Search',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -510,6 +511,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE]: Parameters.OpenPolicyDistanceRatesPageParams;
     [READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE]: Parameters.OpenPolicyMoreFeaturesPageParams;
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
+    [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {
