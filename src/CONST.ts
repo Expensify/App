@@ -1262,9 +1262,9 @@ const CONST = {
     },
 
     QUICKBOOKS_EXPORT_ENTITY: {
-        VENDOR_BILL: 'vendorBill',
+        VENDOR_BILL: 'vendor_bill',
         CHECK: 'check',
-        JOURNAL_ENTRY: 'journalEntry',
+        JOURNAL_ENTRY: 'jouranl_entry',
     },
 
     ACCOUNT_ID: {
