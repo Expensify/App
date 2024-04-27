@@ -22,8 +22,8 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
     const {syncLocations, exportAccount, exportEntity, errorFields, syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const shouldShowTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
-    const shouldShowLocationError = isLocationEnabled && exportEntity !== CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
+    const shouldShowTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.JOURNAL_ENTRY;
+    const shouldShowLocationError = isLocationEnabled && exportEntity !== CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.JOURNAL_ENTRY;
     const hasErrors = Boolean(errorFields?.exportEntity) || shouldShowTaxError || shouldShowLocationError;
 
     return (
@@ -49,7 +49,7 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                                 shouldShowRightIcon
                             />
                         </OfflineWithFeedback>
-                        {exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL && !isLocationEnabled && (
+                        {exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.VENDOR_BILL && !isLocationEnabled && (
                             <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>
                         )}
                         {isLocationEnabled && <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}

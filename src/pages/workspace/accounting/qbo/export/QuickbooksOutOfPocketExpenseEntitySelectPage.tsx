@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type CardListItem = ListItem & {
-    value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
+    value: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT>;
     isShown: boolean;
 };
 type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
@@ -31,8 +31,8 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const {exportEntity, syncTaxes, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
-    const isLocationError = isLocationsEnabled && exportEntity !== CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
+    const isTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.JOURNAL_ENTRY;
+    const isLocationError = isLocationsEnabled && exportEntity !== CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.JOURNAL_ENTRY;
     const policyID = policy?.id ?? '';
 
     useEffect(() => {
@@ -45,24 +45,24 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const data: CardListItem[] = useMemo(
         () => [
             {
-                value: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
+                value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.CHECK,
                 text: translate(`workspace.qbo.check`),
-                keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
-                isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK,
+                keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.CHECK,
+                isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.CHECK,
                 isShown: !isLocationsEnabled,
             },
             {
-                value: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
+                value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.JOURNAL_ENTRY,
                 text: translate(`workspace.qbo.journalEntry`),
-                keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
-                isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY,
+                keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.JOURNAL_ENTRY,
+                isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.JOURNAL_ENTRY,
                 isShown: !isTaxesEnabled || isLocationsEnabled,
             },
             {
-                value: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
+                value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.VENDOR_BILL,
                 text: translate(`workspace.qbo.vendorBill`),
-                keyForList: CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
-                isSelected: exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL,
+                keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.VENDOR_BILL,
+                isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.VENDOR_BILL,
                 isShown: !isLocationsEnabled,
             },
         ],

@@ -182,7 +182,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportAccount: string;
     exportAccountPayable: string;
     accountPayable: string;
-    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
+    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT>;
     exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>;
     errorFields?: OnyxCommon.ErrorFields;
 }>;

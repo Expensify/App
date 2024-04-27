@@ -38,7 +38,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             case CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.DEBIT_CARD:
                 accounts = bankAccounts ?? [];
                 break;
-            case CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL:
+            case CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.VENDOR_BILL:
                 accounts = vendors ?? [];
                 break;
             default:
