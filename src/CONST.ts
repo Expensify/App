@@ -1262,9 +1262,11 @@ const CONST = {
     },
 
     QUICKBOOKS_EXPORT_ENTITY: {
-        VENDOR_BILL: 'vendorBill',
+        VENDOR_BILL: 'bill',
         CHECK: 'check',
-        JOURNAL_ENTRY: 'journalEntry',
+        JOURNAL_ENTRY: 'journal_entry',
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
     },
 
     ACCOUNT_ID: {
@@ -4673,12 +4675,6 @@ const CONST = {
         LAST_EXPENSE: 'lastExpense',
         EXPORTED_DATE: 'exportedDate',
         SUBMITTED_DATA: 'submittedData',
-    },
-
-    QUICKBOOKS_EXPORT_COMPANY_CARD: {
-        CREDIT_CARD: 'creditCard',
-        DEBIT_CARD: 'debitCard',
-        VENDOR_BILL: 'vendorBill',
     },
 
     SESSION_STORAGE_KEYS: {
