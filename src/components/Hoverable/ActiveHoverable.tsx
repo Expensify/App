@@ -67,8 +67,8 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
          * @param event The hover event object.
          */
         const unsetHoveredIfOutside = (event: MouseEvent) => {
-            // We're also returning early if shouldFreezeCapture is true because
-            // in order to not update the hover state but keep it frozen.
+            // We're also returning early if shouldFreezeCapture is true in order
+            // to not update the hover state but keep it frozen.
             if (!elementRef.current || elementRef.current.contains(event.target as Node) || shouldFreezeCapture) {
                 return;
             }
