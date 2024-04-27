@@ -15,6 +15,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -97,7 +98,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
             return Expensicons.MoneyCircle;
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-            return Expensicons.Receipt;
+            return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
@@ -105,9 +106,13 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
             return Expensicons.Transfer;
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return Expensicons.Send;
+            return getIconForAction(CONST.IOU.TYPE.SEND);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return Expensicons.Task;
+        case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
+        case CONST.QUICK_ACTIONS.TRACK_MANUAL:
+        case CONST.QUICK_ACTIONS.TRACK_SCAN:
+            return getIconForAction(CONST.IOU.TYPE.TRACK);
         default:
             return Expensicons.MoneyCircle;
     }
@@ -310,7 +315,7 @@ function FloatingActionButtonAndPopover(
                     ...(canUseTrackExpense && selfDMReportID
                         ? [
                               {
-                                  icon: Expensicons.DocumentPlus,
+                                  icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                                   text: translate('iou.trackExpense'),
                                   onSelected: () => {
                                       interceptAnonymousUser(() =>
@@ -330,7 +335,7 @@ function FloatingActionButtonAndPopover(
                           ]
                         : []),
                     {
-                        icon: Expensicons.MoneyCircle,
+                        icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                         text: translate('iou.submitExpense'),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
@@ -356,7 +361,7 @@ function FloatingActionButtonAndPopover(
                             ),
                     },
                     {
-                        icon: Expensicons.Send,
+                        icon: getIconForAction(CONST.IOU.TYPE.SEND),
                         text: translate('iou.paySomeone', {}),
                         onSelected: () =>
                             interceptAnonymousUser(() =>
