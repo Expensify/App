@@ -973,6 +973,10 @@ function isSelfDM(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.SELF_DM;
 }
 
+function isSystemDM(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM_DM;
+}
+
 function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP;
 }
@@ -1942,6 +1946,10 @@ function getIcons(
 
     if (isSelfDM(report)) {
         return getIconsForParticipants([currentUserAccountID ?? 0], personalDetails);
+    }
+
+    if (isSystemDM(report)) {
+        return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
 
     if (isGroupChat(report)) {
@@ -3037,6 +3045,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
+    }
+
+    if (isSystemDM(report)) {
+        formattedName = getDisplayNameForParticipant(CONST.ACCOUNT_ID.NOTIFICATIONS);
     }
 
     if (formattedName) {
@@ -4804,8 +4816,6 @@ function shouldReportBeInOptionList({
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (report?.participantAccountIDs?.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
@@ -6408,6 +6418,7 @@ export {
     isReportParticipant,
     isSelfDM,
     isSettled,
+    isSystemDM,
     isTaskReport,
     isThread,
     isThreadFirstChat,
