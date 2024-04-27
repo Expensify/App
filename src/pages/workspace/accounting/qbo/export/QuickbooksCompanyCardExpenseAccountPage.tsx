@@ -17,6 +17,12 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+const AccountTypeTranslationKeyMapping = {
+    [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL]: 'vendorBill',
+    [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'creditCard',
+    [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'debitCard',
+} as const;
+
 function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -38,7 +44,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                         <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>
                         <OfflineWithFeedback pendingAction={pendingFields?.exportCompanyCard}>
                             <MenuItemWithTopDescription
-                                title={exportCompanyCard ? translate(`workspace.qbo.${exportCompanyCard}`) : undefined}
+                                title={exportCompanyCard ? translate(`workspace.qbo.${AccountTypeTranslationKeyMapping[exportCompanyCard]}`) : undefined}
                                 description={translate('workspace.qbo.exportCompany')}
                                 error={errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
@@ -47,7 +53,9 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                             />
                         </OfflineWithFeedback>
                         {!!exportCompanyCard && (
-                            <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>{translate(`workspace.qbo.${exportCompanyCard}Description`)}</Text>
+                            <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>
+                                {translate(`workspace.qbo.${AccountTypeTranslationKeyMapping[exportCompanyCard]}Description`)}
+                            </Text>
                         )}
                         {isVendorSelected && (
                             <>
