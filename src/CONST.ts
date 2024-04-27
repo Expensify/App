@@ -1261,7 +1261,7 @@ const CONST = {
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
     },
 
-    QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT: {
+    QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'vendor_bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'jouranl_entry',
