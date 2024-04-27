@@ -138,6 +138,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         displayName?: string;
         lastMessageHtml?: string;
         lastActorAccountID?: number;
+
         // indicate the type of the last action
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
         ownerAccountID?: number;
@@ -152,6 +153,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         managerEmail?: string;
         parentReportActionIDs?: number[];
         errorFields?: OnyxCommon.ErrorFields;
+
         /** Whether the report is waiting on a bank account */
         isWaitingOnBankAccount?: boolean;
 
