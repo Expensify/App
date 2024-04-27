@@ -4675,7 +4675,7 @@ const CONST = {
         SUBMITTED_DATA: 'submittedData',
     },
 
-    QUICKBOOKS_EXPORT_COMPANY_CARD: {
+    QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE: {
         CREDIT_CARD: 'credit_card',
         DEBIT_CARD: 'debit_card',
         VENDOR_BILL: 'vendor_bill',

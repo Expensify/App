@@ -20,10 +20,10 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 type CardListItem = ListItem & {
-    value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>;
+    value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>;
 };
 type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
-type Card = {name: string; id: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>};
+type Card = {name: string; id: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>};
 
 function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -36,15 +36,15 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
         () => [
             {
                 name: translate(`workspace.qbo.creditCard`),
-                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.CREDIT_CARD,
+                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD,
             },
             {
                 name: translate(`workspace.qbo.debitCard`),
-                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.DEBIT_CARD,
+                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD,
             },
             {
                 name: translate(`workspace.qbo.vendorBill`),
-                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.VENDOR_BILL,
+                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL,
             },
         ],
         [translate],

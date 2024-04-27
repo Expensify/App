@@ -32,10 +32,10 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
     const data: CardListItem[] = useMemo(() => {
         let accounts: Account[];
         switch (exportCompanyCard) {
-            case CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.CREDIT_CARD:
+            case CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD:
                 accounts = creditCards ?? [];
                 break;
-            case CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.DEBIT_CARD:
+            case CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD:
                 accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT.VENDOR_BILL:
@@ -71,7 +71,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             >
                 <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}>
                     <HeaderWithBackButton
-                        title={exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.VENDOR_BILL ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
+                        title={exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
                     />
                     <SelectionList
                         headerContent={exportCompanyCard ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.${exportCompanyCard}AccountDescription`)}</Text> : null}
