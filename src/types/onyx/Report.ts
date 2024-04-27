@@ -21,6 +21,7 @@ type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type PendingChatMember = {
     accountID: string;
     pendingAction: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors;
 };
 
 type Participant = {
@@ -187,6 +188,8 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         transactionThreadReportID?: string;
 
         fieldList?: Record<string, PolicyReportField>;
+
+        permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
     },
     PolicyReportField['fieldID']
 >;

@@ -19,7 +19,12 @@ function promiseWhile(condition: () => boolean, action: (() => Promise<void>) | 
                     return;
                 }
 
-                Promise.resolve(actionResult).then(loop).catch(reject);
+                Promise.resolve(actionResult)
+                    .then(() => {
+                        // Set a timeout to delay the next loop iteration
+                        setTimeout(loop, 1000); // 1000 ms delay
+                    })
+                    .catch(reject);
             }
         };
         loop();
