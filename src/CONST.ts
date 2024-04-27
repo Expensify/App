@@ -4676,9 +4676,9 @@ const CONST = {
     },
 
     QUICKBOOKS_EXPORT_COMPANY_CARD: {
-        CREDIT_CARD: 'creditCard',
-        DEBIT_CARD: 'debitCard',
-        VENDOR_BILL: 'vendorBill',
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'vendor_bill',
     },
 
     SESSION_STORAGE_KEYS: {
