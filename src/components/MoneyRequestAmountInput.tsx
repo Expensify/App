@@ -171,13 +171,7 @@ function MoneyRequestAmountInput(
         if (!currency || typeof amount !== 'number') {
             return;
         }
-        let frontendAmount;
-
-        if (formatAmountOnChange) {
-            frontendAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency);
-        } else {
-            frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
-        }
+        const frontendAmount = formatAmountOnChange ? CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency) : CurrencyUtils.convertToFrontendAmount(amount).toString();
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
