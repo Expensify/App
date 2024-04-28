@@ -12,6 +12,7 @@ const insertAtCaret = (target: HTMLElement, text: string) => {
     if (selection?.rangeCount) {
         const range = selection.getRangeAt(0);
         range.deleteContents();
+        text = text.replace(/^[\r\n]+|[\r\n]+$/g, '');  // Remove trailing Carriage Return and Line feed
         const node = document.createTextNode(text);
         range.insertNode(node);
 
