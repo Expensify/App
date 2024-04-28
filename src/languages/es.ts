@@ -513,6 +513,7 @@ export default {
             split: 'dividir un gasto',
             submit: 'presentar un gasto',
             track: 'rastrear un gasto',
+            invoice: 'facturar un gasto',
         },
     },
     reportAction: {
@@ -1999,6 +2000,7 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            needCategoryForExportToIntegration: 'Se requiere una categoría en cada gasto para poder exportarlo a',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
@@ -2082,6 +2084,7 @@ export default {
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
+            importedFromAccountingSoftware: 'Etiquetas importadas desde',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -3264,6 +3267,16 @@ export default {
             body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
+    },
+    systemChatFooterMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chatea con tu especialista asignado en ',
+            phrase2: ' para obtener ayuda',
+        },
+        default: {
+            phrase1: 'Envía un email a ',
+            phrase2: ' para obtener ayuda con la configuración',
+        },
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',

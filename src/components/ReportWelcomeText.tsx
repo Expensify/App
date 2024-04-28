@@ -39,7 +39,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
@@ -62,6 +63,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     };
 
     const welcomeHeroText = useMemo(() => {
+        if (isInvoiceRoom) {
+            return translate('reportActionsView.sayHello');
+        }
+
         if (isChatRoom) {
             return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
@@ -71,7 +76,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isSelfDM, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isSelfDM, translate, reportName]);
 
     return (
         <>
