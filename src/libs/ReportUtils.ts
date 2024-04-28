@@ -921,7 +921,7 @@ function isPaidGroupPolicyExpenseReport(report: OnyxEntry<Report>): boolean {
  * Checks if the supplied report is an invoice report in Open state and status.
  */
 function isOpenInvoiceReport(report: OnyxEntry<Report> | EmptyObject): boolean {
-    return isInvoiceReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+    return isInvoiceReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
 }
 
 /**
@@ -3604,7 +3604,7 @@ function buildOptimisticInvoiceReport(chatReportID: string, policyID: string, re
         currency,
         // We don’t translate reportName because the server response is always in English
         reportName: `${receiverName} owes ${formattedTotal}`,
-        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
         statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         total,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
