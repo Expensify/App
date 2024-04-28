@@ -36,13 +36,13 @@ jobs:
             const allRuns = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: preDeploy.yml,
+              workflow_id: 'preDeploy.yml',
             });
             const run = allRuns.data.workflow_runs.find(run => run.id === runId);
             const run_number = run.run_number;
             const previousRun = allRuns.data.workflow_runs.find(run => run.run_number === run_number - 1);
             if (previousRun.actor.login === 'OSBotify') {
-              return allRuns.data.workflow_runs.find(run.run_number === run_number - 2);
+              return allRuns.data.workflow_runs.find(run => run.run_number === run_number - 2);
             }
             return previousRun;
 
