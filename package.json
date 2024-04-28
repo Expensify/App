@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.65-5",
+  "version": "1.4.67-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -160,7 +160,7 @@
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#da50d2c5c54e268499047f9cc98b8df4196c1ddf",
     "react-native-plaid-link-sdk": "11.5.0",
     "react-native-qrcode-svg": "^6.2.0",
-    "react-native-quick-sqlite": "^8.0.0-beta.2",
+    "react-native-quick-sqlite": "git+https://github.com/margelo/react-native-quick-sqlite#abc91857d4b3efb2020ec43abd2a508563b64316",
     "react-native-reanimated": "^3.7.2",
     "react-native-release-profiler": "^0.1.6",
     "react-native-render-html": "6.3.1",
@@ -293,8 +293,8 @@
     "wait-port": "^0.2.9",
     "webpack": "^5.76.0",
     "webpack-bundle-analyzer": "^4.5.0",
-    "webpack-cli": "^4.10.0",
-    "webpack-dev-server": "^4.9.3",
+    "webpack-cli": "^5.0.4",
+    "webpack-dev-server": "^5.0.4",
     "webpack-merge": "^5.8.0",
     "yaml": "^2.2.1"
   },
