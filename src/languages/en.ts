@@ -504,6 +504,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
+        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 Use this room to view, discuss, and pay invoices.',
         beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
@@ -519,6 +520,7 @@ export default {
             split: 'split an expense',
             submit: 'submit an expense',
             track: 'track an expense',
+            invoice: 'invoice an expense',
         },
     },
     reportAction: {
