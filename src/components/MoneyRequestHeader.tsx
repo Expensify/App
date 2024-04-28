@@ -50,9 +50,21 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<ReportAction>;
+
+    /** Whether we should display the header as in narrow layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({
+    session,
+    parentReport,
+    report,
+    parentReportAction,
+    transaction,
+    shownHoldUseExplanation = false,
+    policy,
+    shouldUseNarrowLayout = false,
+}: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -61,7 +73,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
@@ -96,12 +108,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);
         } else {
-            if (!policy?.type) {
-                return;
-            }
-
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy.type, iouTransactionID, report?.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, report?.reportID, activeRoute));
         }
     };
 
@@ -144,14 +152,14 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             return;
         }
 
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
+    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.setShownHoldUseExplanation();
@@ -180,7 +188,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
                 {isPending && (
@@ -209,7 +217,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {isSmallScreenWidth && shouldShowHoldMenu && (
+            {shouldUseNarrowLayout && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}

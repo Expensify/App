@@ -7,12 +7,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
 import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
-import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -320,6 +321,38 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+
+    return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
+function getDefaultApprover(policy: OnyxEntry<Policy> | EmptyObject): string {
+    return policy?.approver ?? policy?.owner ?? '';
+}
+
+/**
+ * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
+ */
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | EmptyObject, employeeAccountID: number): number {
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
+    const defaultApprover = getDefaultApprover(policy);
+
+    // For policy using the optional or basic workflow, the manager is the policy default approver.
+    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
+        return getAccountIDsByLogins([defaultApprover])[0];
+    }
+
+    const employee = policy?.employeeList?.[employeeLogin];
+    if (!employee) {
+        return -1;
+    }
+
+    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+}
+
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
@@ -329,6 +362,10 @@ function getPersonalPolicy() {
  */
 function getPolicyIDFromNavigationState() {
     return getPolicyIDFromState(navigationRef.getRootState() as State<RootStackParamList>);
+}
+
+function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
+    return Object.values(policy?.employeeList ?? {}).filter((employee) => employee.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -381,6 +418,8 @@ export {
     getTaxByID,
     hasPolicyCategoriesError,
     getPolicyIDFromNavigationState,
+    getSubmitToAccountID,
+    getAdminEmployees,
     getPolicy,
 };
 

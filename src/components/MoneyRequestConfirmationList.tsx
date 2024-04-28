@@ -98,7 +98,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     iouCurrencyCode?: string;
 
     /** IOU type */
-    iouType?: IOUType;
+    iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
     /** IOU date */
     iouCreated?: string;
@@ -183,7 +183,7 @@ function MoneyRequestConfirmationList({
     onSendMoney,
     onConfirm,
     onSelectParticipant,
-    iouType = CONST.IOU.TYPE.REQUEST,
+    iouType = CONST.IOU.TYPE.SUBMIT,
     isScanRequest = false,
     iouAmount,
     policyCategories,
@@ -226,10 +226,10 @@ function MoneyRequestConfirmationList({
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
     const {isOffline} = useNetwork();
 
-    const isTypeRequest = iouType === CONST.IOU.TYPE.REQUEST;
+    const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
-    const isTypeSend = iouType === CONST.IOU.TYPE.SEND;
-    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK_EXPENSE;
+    const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
+    const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     const transactionID = transaction?.transactionID ?? '';
     const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
@@ -303,8 +303,6 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
-    const [merchantError, setMerchantError] = useState(false);
-
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const navigateBack = () => {
@@ -322,19 +320,9 @@ function MoneyRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
+    const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
-    useEffect(() => {
-        if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
-            return;
-        }
-        if (!isMerchantEmpty && merchantError) {
-            setMerchantError(false);
-            if (formError === 'iou.error.invalidMerchant') {
-                setFormError('');
-            }
-        }
-    }, [formError, isMerchantEmpty, merchantError, isMerchantRequired]);
+    const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -345,13 +333,9 @@ function MoneyRequestConfirmationList({
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
-        if (merchantError) {
-            setFormError('iou.error.invalidMerchant');
-            return;
-        }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -577,8 +561,8 @@ function MoneyRequestConfirmationList({
             if (selectedParticipants.length === 0) {
                 return;
             }
-            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))) {
-                setMerchantError(true);
+            if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null)))) {
+                setFormError('iou.error.invalidMerchant');
                 return;
             }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
@@ -586,7 +570,7 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.SEND) {
+            if (iouType === CONST.IOU.TYPE.PAY) {
                 if (!paymentMethod) {
                     return;
                 }
@@ -637,7 +621,7 @@ function MoneyRequestConfirmationList({
             return;
         }
 
-        const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.SEND;
+        const shouldShowSettlementButton = iouType === CONST.IOU.TYPE.PAY;
         const shouldDisableButton = selectedParticipants.length === 0;
 
         const button = shouldShowSettlementButton ? (
@@ -749,7 +733,6 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm}
                     // todo: handle edit for transaction while moving from track expense
                     interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
@@ -767,9 +750,7 @@ function MoneyRequestConfirmationList({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -808,8 +789,8 @@ function MoneyRequestConfirmationList({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={merchantError ? translate('common.error.fieldRequired') : ''}
+                    brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired ? translate('common.required') : ''}
                 />
             ),
@@ -994,7 +975,7 @@ function MoneyRequestConfirmationList({
             shouldShowTextInput={false}
             shouldUseStyleForChildren={false}
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
-            footerContent={!isEditingSplitBill && footerContent}
+            footerContent={footerContent}
             listStyles={listStyles}
             shouldAllowScrollingChildren
         >
@@ -1003,14 +984,14 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
-            {(!isMovingTransactionFromTrackExpense || !hasRoute) &&
+            {!isDistanceRequest &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (receiptImage || receiptThumbnail
                     ? receiptThumbnailContent
                     : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
                       PolicyUtils.isPaidGroupPolicy(policy) &&
                       !isDistanceRequest &&
-                      iouType === CONST.IOU.TYPE.REQUEST && (
+                      iouType === CONST.IOU.TYPE.SUBMIT && (
                           <ReceiptEmptyState
                               onPress={() =>
                                   Navigation.navigate(
