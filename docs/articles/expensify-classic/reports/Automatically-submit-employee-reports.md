@@ -18,7 +18,7 @@ If an expense has a violation, Scheduled Submit will not automatically submit it
 2. Click the **Group** tab on the left (or click the Individual tab to enable Scheduled Submit for your individual workspace).  
 3. Click the desired workspace name. 
 4. Click the **Reports** tab on the left. 
-5. Click the Schedule Submit toggle to enable it. 
+5. Click the Scheduled Submit toggle to enable it. 
 6. Click the “How often expenses submit” dropdown and select the submission schedule:
    - **Daily**: Expenses are submitted every evening. Expenses with violations are submitted the day after the violations are corrected.
    - **Weekly**: Expenses are submitted once a week. Expenses with violations are submitted the following Sunday after the violations are corrected. 
