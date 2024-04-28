@@ -30,6 +30,6 @@ Tag approvers are only supported for a single level of tags, not for multi-level
 2. Click the **Group** tab on the left. 
 3. Click the desired workspace name. 
 4. Click the **Tags** tab on the left.
-5. Locate the tags list In the list of tags and click the Approver field to assign an approver.  
+5. Locate the tag in the list of tags and click the Approver field to assign an approver.  
 
 </div>
