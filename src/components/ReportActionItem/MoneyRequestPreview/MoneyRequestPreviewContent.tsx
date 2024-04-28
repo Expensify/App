@@ -212,12 +212,13 @@ function MoneyRequestPreviewContent({
     const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
 
     const shouldShowSplitShare = isBillSplit && !!requestAmount && requestAmount > 0;
+
+    // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
     const splitShare = useMemo(
         () =>
             shouldShowSplitShare &&
-            (transaction?.comment?.splits
-                ? transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount
-                : IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
+            (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
         [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
     );
 
