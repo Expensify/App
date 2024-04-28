@@ -14,7 +14,7 @@ import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
 import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -25,7 +25,7 @@ type CardListItem = ListItem & {
 };
 type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
 
-function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps) {
+function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {exportEntity, syncTaxes, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
@@ -71,7 +71,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
 
     const sections: CardsSection[] = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
 
-    const onSelectRow = useCallback(
+    const selectExportEntity = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportEntity) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY, row.value);
@@ -98,7 +98,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyProps)
                             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
                             sections={sections}
                             ListItem={RadioListItem}
-                            onSelectRow={onSelectRow}
+                            onSelectRow={selectExportEntity}
                             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
                             footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
                         />

@@ -63,6 +63,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -72,7 +73,6 @@ import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
 import type User from './User';
 import type UserLocation from './UserLocation';
-import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
@@ -156,7 +156,6 @@ export type {
     TransactionViolations,
     User,
     UserLocation,
-    UserMetadata,
     UserWallet,
     ViolationName,
     WalletAdditionalDetails,
@@ -179,4 +178,5 @@ export type {
     Log,
     PolicyJoinMember,
     CapturedLogs,
+    SearchResults,
 };
