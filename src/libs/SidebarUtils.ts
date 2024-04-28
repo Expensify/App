@@ -21,6 +21,7 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
+import * as Session from './actions/Session';
 
 const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
@@ -107,7 +108,7 @@ function getOrderedReportIDs(
             policies: policies as OnyxCollection<Policy>,
             excludeEmptyChats: true,
             doesReportHaveViolations,
-            includeSelfDM: true,
+            includeSelfDM: !Session.isAnonymousUser(),
         });
     });
 
