@@ -36,7 +36,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -133,8 +133,9 @@ function WorkspaceInviteMessagePage({
     const policyName = policy?.name;
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper
+        <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
             onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
         >
@@ -216,7 +217,7 @@ function WorkspaceInviteMessagePage({
                     </View>
                 </FormProvider>
             </ScreenWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
