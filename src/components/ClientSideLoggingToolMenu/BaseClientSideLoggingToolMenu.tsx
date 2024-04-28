@@ -72,7 +72,7 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
             </TestToolRow>
             {!!file && (
                 <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}/${file.newFileName}`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.debugConsole.logs')}>
                         <Button
                             small

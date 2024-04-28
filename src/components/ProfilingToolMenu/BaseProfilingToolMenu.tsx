@@ -44,6 +44,8 @@ function formatBytes(bytes: number, decimals = 2) {
     return `${parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
 }
 
+const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
+
 function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, displayPath}: BaseProfilingToolMenuProps) {
     const styles = useThemeStyles();
     const [pathIOS, setPathIOS] = useState('');
@@ -88,8 +90,6 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
         [totalMemory, usedMemory],
     );
 
-    const newFileName = `Profile_trace_for_${pkg.version}.cpuprofile`;
-
     useEffect(() => {
         if (!pathIOS) {
             return;
@@ -123,7 +123,7 @@ function BaseProfilingToolMenu({isProfilingInProgress = false, pathToBeUsed, dis
         };
 
         rename();
-    }, [pathIOS, newFileName, pathToBeUsed]);
+    }, [pathIOS, pathToBeUsed]);
 
     const onDownloadProfiling = useCallback(() => {
         // eslint-disable-next-line @lwc/lwc/no-async-await
