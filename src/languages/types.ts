@@ -302,8 +302,6 @@ type DistanceRateOperationsParams = {count: number};
 
 type ReimbursementRateParams = {unit: Unit};
 
-type InvalidSplitTotalParams = {invalidAmount: string; correctAmount: string};
-
 export type {
     AdminCanceledRequestParams,
     ApprovedAmountParams,
@@ -409,5 +407,4 @@ export type {
     HeldRequestParams,
     PaySomeoneParams,
     ReimbursementRateParams,
-    InvalidSplitTotalParams,
 };
