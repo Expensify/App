@@ -719,6 +719,7 @@ function ReportScreen({
                                         onComposerFocus={() => setIsComposerFocus(true)}
                                         onComposerBlur={() => setIsComposerFocus(false)}
                                         report={report}
+                                        policy={policy}
                                         pendingAction={reportPendingAction}
                                         isComposerFullSize={!!isComposerFullSize}
                                         listHeight={listHeight}

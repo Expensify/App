@@ -7,7 +7,6 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,8 +42,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
-    const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
-    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
+    const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report);
     const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
     const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
