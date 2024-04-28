@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import Share from 'react-native-share';
 import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
-import CONST from "@src/CONST";
+import CONST from '@src/CONST';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 
 function ClientSideLoggingToolMenu() {
