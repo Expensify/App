@@ -109,10 +109,16 @@ function ReportFooter({
             const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
 
             let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
+            let assigneeChatReport;
             if (mentionWithDomain) {
                 assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
+                if (!Object.keys(assignee).length) {
+                    const optimisticDataForNewAssignee = Report.buildOptimisticTaskDataForNewAssingee(mentionWithDomain);
+                    assignee = optimisticDataForNewAssignee.assignee;
+                    assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
+                }
             }
-            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
+            Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, assigneeChatReport, report.policyID);
             return true;
         },
         [allPersonalDetails, report.policyID, report.reportID],
