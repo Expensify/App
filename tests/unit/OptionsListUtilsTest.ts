@@ -19,8 +19,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.015',
             isPinned: false,
             reportID: '1',
-            participantAccountIDs: [2, 1],
-            visibleChatMemberAccountIDs: [2, 1],
             participants: {
                 2: {},
                 1: {},
@@ -33,8 +31,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.016',
             isPinned: false,
             reportID: '2',
-            participantAccountIDs: [3],
-            visibleChatMemberAccountIDs: [3],
             participants: {
                 3: {},
             },
@@ -48,8 +44,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.170',
             isPinned: true,
             reportID: '3',
-            participantAccountIDs: [1],
-            visibleChatMemberAccountIDs: [1],
             participants: {
                 1: {},
             },
@@ -61,8 +55,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.180',
             isPinned: false,
             reportID: '4',
-            participantAccountIDs: [4],
-            visibleChatMemberAccountIDs: [4],
             participants: {
                 4: {},
             },
@@ -74,8 +66,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.019',
             isPinned: false,
             reportID: '5',
-            participantAccountIDs: [5],
-            visibleChatMemberAccountIDs: [5],
             participants: {
                 5: {},
             },
@@ -87,8 +77,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.020',
             isPinned: false,
             reportID: '6',
-            participantAccountIDs: [6],
-            visibleChatMemberAccountIDs: [6],
             participants: {
                 6: {},
             },
@@ -102,8 +90,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:03.999',
             isPinned: false,
             reportID: '7',
-            participantAccountIDs: [7],
-            visibleChatMemberAccountIDs: [7],
             participants: {
                 7: {},
             },
@@ -117,8 +103,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: '8',
-            participantAccountIDs: [12],
-            visibleChatMemberAccountIDs: [12],
             participants: {
                 12: {},
             },
@@ -132,8 +116,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.998',
             isPinned: false,
             reportID: '9',
-            participantAccountIDs: [8],
-            visibleChatMemberAccountIDs: [8],
             participants: {
                 8: {},
             },
@@ -148,8 +130,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.001',
             reportID: '10',
             isPinned: false,
-            participantAccountIDs: [2, 7],
-            visibleChatMemberAccountIDs: [2, 7],
             participants: {
                 2: {},
                 7: {},
@@ -242,8 +222,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '11',
-            participantAccountIDs: [999],
-            visibleChatMemberAccountIDs: [999],
             participants: {
                 999: {},
             },
@@ -259,8 +237,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '12',
-            participantAccountIDs: [1000],
-            visibleChatMemberAccountIDs: [1000],
             participants: {
                 1000: {},
             },
@@ -276,8 +252,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '13',
-            participantAccountIDs: [1001],
-            visibleChatMemberAccountIDs: [1001],
             participants: {
                 1001: {},
             },
@@ -293,8 +267,6 @@ describe('OptionsListUtils', () => {
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
             isPinned: false,
             reportID: '14',
-            participantAccountIDs: [1, 10, 3],
-            visibleChatMemberAccountIDs: [1, 10, 3],
             participants: {
                 1: {},
                 10: {},
