@@ -4940,6 +4940,10 @@ function shouldReportBeInOptionList({
 
     // Include reports if they are pinned
     if (report.isPinned) {
+        // This is a temporary fix to hide self DM from LHN when visiting a public room
+        if(isSelfDM(report) && !includeSelfDM) {
+            return false;
+        }
         return true;
     }
 
