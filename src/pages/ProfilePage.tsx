@@ -64,7 +64,7 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
 const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     report && {
         reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
+        participants: report.participants,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
         type: report.type,

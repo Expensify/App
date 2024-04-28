@@ -572,12 +572,7 @@ function editTaskAssignee(
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
-        const participants = report?.participantAccountIDs ?? [];
-        const visibleMembers = report.visibleChatMemberAccountIDs ?? [];
-        if (!visibleMembers.includes(assigneeAccountID)) {
-            optimisticReport.participantAccountIDs = [...participants, assigneeAccountID];
-            optimisticReport.visibleChatMemberAccountIDs = [...visibleMembers, assigneeAccountID];
-        }
+        optimisticReport.participants = {[assigneeAccountID]: {hidden: false}};
 
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,

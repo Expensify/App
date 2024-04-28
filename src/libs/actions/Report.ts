@@ -509,7 +509,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
     };
 
-    if (reportIDDeeplinkedFromOldDot === reportID && report?.participantAccountIDs?.length === 1 && Number(report.participantAccountIDs?.[0]) === CONST.ACCOUNT_ID.CONCIERGE) {
+    if (reportIDDeeplinkedFromOldDot === reportID && ReportUtils.isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
     }
 
@@ -811,12 +811,9 @@ function openReport(
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxCollection<PersonalDetails> = {};
         const settledPersonalDetails: OnyxCollection<PersonalDetails> = {};
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         participantLoginList.forEach((login, index) => {
-            const accountID = newReportObject?.participantAccountIDs?.[index];
-
-            if (!accountID) {
-                return;
-            }
+            const accountID = participantAccountIDs[index];
 
             optimisticPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? {
                 login,
@@ -968,7 +965,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
             parentReportID,
         );
 
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat?.participantAccountIDs ?? []);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
         openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
@@ -2608,12 +2605,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
     const inviteeAccountIDs = Object.values(inviteeEmailsToAccountIDs);
-    const participantAccountIDsAfterInvitation = [...new Set([...(report?.participantAccountIDs ?? []), ...inviteeAccountIDs])].filter(
-        (accountID): accountID is number => typeof accountID === 'number',
-    );
-    const visibleMemberAccountIDsAfterInvitation = [...new Set([...(report?.visibleChatMemberAccountIDs ?? []), ...inviteeAccountIDs])].filter(
-        (accountID): accountID is number => typeof accountID === 'number',
-    );
 
     const participantsAfterInvitation = inviteeAccountIDs.reduce(
         (reportParticipants: Participants, accountID: number) => {
@@ -2638,8 +2629,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: participantAccountIDsAfterInvitation,
-                visibleChatMemberAccountIDs: visibleMemberAccountIDsAfterInvitation,
                 participants: participantsAfterInvitation,
                 pendingChatMembers,
             },
@@ -2700,7 +2689,6 @@ function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
     const report = currentReportData?.[reportID];
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
-        participantAccountIDs: report?.parentReportActionIDs?.filter((parentReportActionID) => parentReportActionID !== Number(invitedAccountID)),
         participants: {
             [invitedAccountID]: null,
         },
@@ -2746,24 +2734,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
     }
 
     const removeParticipantsData: Record<number, null> = {};
-    const currentParticipants = ReportUtils.getParticipants(reportID);
-    if (!currentParticipants) {
-        return;
-    }
-
-    const currentParticipantAccountIDs = ReportUtils.getParticipantAccountIDs(reportID);
-    const participantAccountIDsAfterRemoval: number[] = [];
-    const visibleChatMemberAccountIDsAfterRemoval: number[] = [];
-    currentParticipantAccountIDs.forEach((participantAccountID: number) => {
-        const participant = currentParticipants[participantAccountID];
-        if (!targetAccountIDs.includes(participantAccountID)) {
-            participantAccountIDsAfterRemoval.push(participantAccountID);
-            if (!participant.hidden) {
-                visibleChatMemberAccountIDsAfterRemoval.push(participantAccountID);
-            }
-        }
-    });
-
     targetAccountIDs.forEach((accountID) => {
         removeParticipantsData[accountID] = null;
     });
@@ -2797,8 +2767,6 @@ function removeFromRoom(reportID: string, targetAccountIDs: number[]) {
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: removeParticipantsData,
-                participantAccountIDs: participantAccountIDsAfterRemoval,
-                visibleChatMemberAccountIDs: visibleChatMemberAccountIDsAfterRemoval,
                 pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
