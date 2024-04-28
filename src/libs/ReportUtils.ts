@@ -55,6 +55,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import * as IOU from './actions/IOU';
+import * as PolicyActions from './actions/Policy';
 import * as store from './actions/ReimbursementAccount/store';
 import * as CurrencyUtils from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -1172,9 +1173,24 @@ function isJoinRequestInAdminRoom(report: OnyxEntry<Report>): boolean {
 }
 
 /**
+ * Checks if the user can write in the provided report
+ */
+function canWriteInReport(report: OnyxEntry<Report>): boolean {
+    if (Array.isArray(report?.permissions) && report?.permissions.length > 0) {
+        return report?.permissions?.includes(CONST.REPORT.PERMISSIONS.WRITE);
+    }
+
+    return true;
+}
+
+/**
  * Checks if the current user is allowed to comment on the given report.
  */
 function isAllowedToComment(report: OnyxEntry<Report>): boolean {
+    if (!canWriteInReport(report)) {
+        return false;
+    }
+
     // Default to allowing all users to post
     const capability = report?.writeCapability ?? CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
@@ -2289,6 +2305,12 @@ function getTitleReportField(reportFields: Record<string, PolicyReportField>) {
  * Get the key for a report field
  */
 function getReportFieldKey(reportFieldId: string) {
+    // We don't need to add `expensify_` prefix to the title field key, because backend stored title under a unique key `text_title`,
+    // and all the other report field keys are stored under `expensify_FIELD_ID`.
+    if (reportFieldId === CONST.REPORT_FIELD_TITLE_FIELD_ID) {
+        return reportFieldId;
+    }
+
     return `expensify_${reportFieldId}`;
 }
 
@@ -3213,7 +3235,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
         textForNewComment = parser.htmlToText(htmlForNewComment);
     } else {
         htmlForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
-        textForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+        textForNewComment = `${parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
     }
 
     const isAttachment = !text && file !== undefined;
@@ -3475,9 +3497,10 @@ function buildOptimisticExpenseReport(chatReportID: string, policyID: string, pa
         lastVisibleActionCreated: DateUtils.getDBTime(),
     };
 
-    // The account defined in the policy submitsTo field is the approver/ manager for this report
-    if (policy?.submitsTo) {
-        expenseReport.managerID = policy.submitsTo;
+    // Get the approver/manager for this report to properly display the optimistic data
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, payeeAccountID);
+    if (submitToAccountID) {
+        expenseReport.managerID = submitToAccountID;
     }
 
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policyID) ?? {});
@@ -5366,7 +5389,7 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
-    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser;
+    return !isArchivedRoom(report) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
 
 /**
@@ -6017,9 +6040,9 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
 
 function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
     const policy = getPolicy(report?.policyID);
-    const {submitsTo} = policy;
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? -1);
 
-    return isAllowedToApproveExpenseReport(report, submitsTo);
+    return isAllowedToApproveExpenseReport(report, submitToAccountID);
 }
 
 /**
@@ -6108,7 +6131,34 @@ function createDraftTransactionAndNavigateToParticipantSelector(transactionID: s
         mccGroup,
     } as Transaction);
 
-    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+    const filteredPolicies = Object.values(allPolicies ?? {}).filter(
+        (policy) => policy?.type !== CONST.POLICY.TYPE.PERSONAL && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    );
+
+    if (actionName === CONST.IOU.ACTION.SUBMIT || (allPolicies && filteredPolicies.length > 0)) {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID, undefined, actionName));
+        return;
+    }
+
+    const {expenseChatReportID, policyID, policyName} = PolicyActions.createWorkspace();
+    const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
+
+    IOU.setMoneyRequestParticipants(transactionID, [
+        {
+            selected: true,
+            accountID: 0,
+            isPolicyExpenseChat: true,
+            reportID: expenseChatReportID,
+            policyID,
+            searchText: policyName,
+        },
+    ]);
+    const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID);
+    if (isCategorizing) {
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID, iouConfirmationPageRoute));
+    } else {
+        Navigation.navigate(iouConfirmationPageRoute);
+    }
 }
 
 /**
@@ -6246,7 +6296,6 @@ export {
     getParsedComment,
     getParticipantAccountIDs,
     getParticipants,
-    getPayeeName,
     getPendingChatMembers,
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
@@ -6281,6 +6330,7 @@ export {
     getWorkspaceChats,
     getWorkspaceIcon,
     goBackToDetailsPage,
+    getPayeeName,
     hasActionsWithErrors,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
@@ -6368,6 +6418,7 @@ export {
     isValidReport,
     isValidReportIDFromPath,
     isWaitingForAssigneeToCompleteTask,
+    canWriteInReport,
     navigateToDetailsPage,
     navigateToPrivateNotes,
     parseReportRouteParams,

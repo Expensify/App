@@ -1,5 +1,4 @@
 import React from 'react';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -9,12 +8,13 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspaceProfileCurrentPageProps = WithPolicyAndFullscreenLoadingProps;
 
-function WorkspaceProfileCurrencyPage({policy, isLoadingReportData = true}: WorkspaceProfileCurrentPageProps) {
+function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrentPageProps) {
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
@@ -23,15 +23,14 @@ function WorkspaceProfileCurrencyPage({policy, isLoadingReportData = true}: Work
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceProfileCurrencyPage.displayName}
+        <AdminPolicyAccessOrNotFoundWrapper
+            policyID={policy?.id ?? ''}
+            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
         >
-            <FullPageNotFoundView
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={WorkspaceProfileCurrencyPage.displayName}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.editor.currencyInputLabel')}
@@ -43,8 +42,8 @@ function WorkspaceProfileCurrencyPage({policy, isLoadingReportData = true}: Work
                     onSelect={onSelectCurrency}
                     initiallySelectedCurrencyCode={policy?.outputCurrency}
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

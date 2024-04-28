@@ -11,6 +11,7 @@ import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import originalCloseRHPFlow from './closeRHPFlow';
 import originalDismissModal from './dismissModal';
 import originalDismissModalWithReport from './dismissModalWithReport';
 import originalGetTopmostReportActionId from './getTopmostReportActionID';
@@ -60,6 +61,8 @@ const dismissModal = (reportID?: string, ref = navigationRef) => {
     const report = getReport(reportID);
     originalDismissModalWithReport({reportID, ...report}, ref);
 };
+// Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
+const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
 
 // Re-exporting the dismissModalWithReport here to fill in default value for navigationRef. The dismissModalWithReport isn't defined in this file to avoid cyclic dependencies.
 // This method is needed because it allows to dismiss the modal and then open the report. Within this method is checked whether the report belongs to a specific workspace. Sometimes the report we want to check, hasn't been added to the Onyx yet.
@@ -380,6 +383,7 @@ export default {
     navigateWithSwitchPolicyID,
     resetToHome,
     isDisplayedInModal,
+    closeRHPFlow,
 };
 
 export {navigationRef};
