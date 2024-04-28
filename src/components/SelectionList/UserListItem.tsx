@@ -29,6 +29,7 @@ function UserListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
+    pressableStyle,
 }: UserListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -61,6 +62,7 @@ function UserListItem<TItem extends ListItem>({
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
+            pressableStyle={pressableStyle}
             FooterComponent={
                 item.invitedSecondaryLogin ? (
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>

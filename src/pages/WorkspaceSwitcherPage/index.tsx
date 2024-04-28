@@ -181,14 +181,13 @@ function WorkspaceSwitcherPage() {
                     {translate('workspace.switcher.everythingSection')}
                 </Text>
             </View>
-            <View>
-                <UserListItem
-                    item={defaultPolicy}
-                    isFocused={activeWorkspaceID === undefined}
-                    showTooltip={false}
-                    onSelectRow={() => selectPolicy(defaultPolicy)}
-                />
-            </View>
+            <UserListItem
+                item={defaultPolicy}
+                isFocused={activeWorkspaceID === undefined}
+                showTooltip={false}
+                onSelectRow={() => selectPolicy(defaultPolicy)}
+                pressableStyle={styles.flexRow}
+            />
             <WorkspacesSectionHeader />
             <SelectionList<WorkspaceListItem>
                 ListItem={UserListItem}
