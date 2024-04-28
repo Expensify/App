@@ -32,7 +32,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const runId = "${{ github.event.workflow_run.id }}";
+            const runId = ${{ github.event.workflow_run.id }};
             const allRuns = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -83,7 +83,8 @@ jobs:
               if (jobs.jobs[i].conclusion == 'failure') {
                 const jobName = jobs.jobs[i].name;
                 const jobLink = jobs.jobs[i].html_url;
-                const previousJobSucceeded = previousRunJobs.jobs.find(job => job.name === jobName && job.conclusion === 'success');
+                const previousJob = previousRunJobs.jobs.find(job => job.name === jobName);
+                previousJobSucceeded = previousJob.conclusion === 'success';
                 if (previousJobSucceeded) {
                   const annotations = await github.rest.checks.listAnnotations({
                     owner: context.repo.owner,
