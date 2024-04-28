@@ -504,6 +504,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
+        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 Use this room to view, discuss, and pay invoices.',
         beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
@@ -519,6 +520,7 @@ export default {
             split: 'split an expense',
             submit: 'submit an expense',
             track: 'track an expense',
+            invoice: 'invoice an expense',
         },
     },
     reportAction: {
@@ -2769,6 +2771,16 @@ export default {
             body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
         },
         copyReferralLink: 'Copy invite link',
+    },
+    systemChatFooterMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chat with your setup specialist in ',
+            phrase2: ' for help',
+        },
+        default: {
+            phrase1: 'Message ',
+            phrase2: ' for help with setup',
+        },
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
