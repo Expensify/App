@@ -11,6 +11,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import * as Session from './actions/Session';
 import * as CollectionUtils from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
@@ -21,7 +22,6 @@ import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
 import * as UserUtils from './UserUtils';
-import * as Session from './actions/Session';
 
 const visibleReportActionItems: ReportActions = {};
 Onyx.connect({
