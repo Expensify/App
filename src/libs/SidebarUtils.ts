@@ -281,7 +281,7 @@ function getOptionData({
     result.isSelfDM = ReportUtils.isSelfDM(report);
 
     const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-        .filter(([_, participant]) => participant && !participant.hidden)
+        .filter(([, participant]) => participant && !participant.hidden)
         .map(([accountID]) => Number(accountID));
 
     result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);

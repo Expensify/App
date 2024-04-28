@@ -696,7 +696,7 @@ function createOption(
         result.isSelfDM = ReportUtils.isSelfDM(report);
 
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-            .filter(([_, participant]) => participant && !participant.hidden)
+            .filter(([, participant]) => participant && !participant.hidden)
             .map(([accountID]) => Number(accountID));
 
         result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
@@ -765,7 +765,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
     const report = ReportUtils.getReport(participant.reportID);
 
     const visibleParticipantAccountIDs = Object.entries(report?.participants ?? {})
-        .filter(([_, participant]) => participant && !participant.hidden)
+        .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)
         .map(([accountID]) => Number(accountID));
 
     const option = createOption(
@@ -798,7 +798,7 @@ function getPolicyExpenseReportOption(participant: Participant | ReportUtils.Opt
     const expenseReport = ReportUtils.isPolicyExpenseChat(participant) ? ReportUtils.getReport(participant.reportID) : null;
 
     const visibleParticipantAccountIDs = Object.entries(expenseReport?.participants ?? {})
-        .filter(([_, participant]) => participant && !participant.hidden)
+        .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)
         .map(([accountID]) => Number(accountID));
 
     const option = createOption(

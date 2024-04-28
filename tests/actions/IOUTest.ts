@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {IOUMessage, OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
-import {Participant} from '@src/types/onyx/Report';
+import type {Participant} from '@src/types/onyx/Report';
 import type {ReportActionBase} from '@src/types/onyx/ReportAction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';

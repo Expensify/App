@@ -168,7 +168,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
         let result: ListItem[] = [];
 
         Object.entries(report.participants ?? {})
-            .filter(([_, participant]) => participant && !participant.hidden)
+            .filter(([, participant]) => participant && !participant.hidden)
             .forEach(([accountIDKey]) => {
                 const accountID = Number(accountIDKey);
 
