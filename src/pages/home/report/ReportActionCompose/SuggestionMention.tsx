@@ -5,7 +5,6 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -17,6 +16,7 @@ import * as LoginUtils from '@libs/LoginUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as SuggestionsUtils from '@libs/SuggestionUtils';
+import * as UserUtils from '@libs/UserUtils';
 import {isValidRoomName} from '@libs/ValidationUtils';
 import * as ReportUserActions from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -86,10 +86,10 @@ function SuggestionMention(
     const debouncedSearchInServer = useDebounce(
         useCallback(() => {
             const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
-            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
+            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
                 ReportUserActions.searchInServer(value, policyID);
             }
-        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value]),
+        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, isGroupPolicyReport]),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
     );
 
@@ -242,10 +242,9 @@ function SuggestionMention(
                     icons: [
                         {
                             name: detail?.login,
-                            source: detail?.avatar ?? FallbackAvatar,
+                            source: UserUtils.getAvatar(detail?.avatar, detail?.accountID),
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
-                            id: detail?.accountID,
                         },
                     ],
                 });
