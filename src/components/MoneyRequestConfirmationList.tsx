@@ -406,12 +406,7 @@ function MoneyRequestConfirmationList({
         const shares: number[] = Object.values(splitSharesMap).map((splitShare) => splitShare?.amount ?? 0);
         const sumOfShares = shares?.reduce((prev, current): number => prev + current, 0);
         if (sumOfShares !== iouAmount) {
-            setFormError(
-                translate('iou.error.invalidSplit', {
-                    invalidAmount: CurrencyUtils.convertToDisplayString(sumOfShares, iouCurrencyCode),
-                    correctAmount: CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode),
-                }),
-            );
+            setFormError(translate('iou.error.invalidSplit'));
             return;
         }
 
@@ -468,6 +463,8 @@ function MoneyRequestConfirmationList({
                 prefixCharacter: currencySymbol,
                 isCurrencyPressable: false,
                 hideCurrencySymbol: true,
+                formatAmountOnBlur: true,
+                formatAmountOnChange: !transaction?.splitShares?.[participantOption.accountID ?? 0]?.isModified,
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));

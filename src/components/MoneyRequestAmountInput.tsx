@@ -62,6 +62,12 @@ type MoneyRequestAmountInputProps = {
 
     /** Style for the touchable input wrapper */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether we want to format the dsplay amount on blur */
+    formatAmountOnBlur?: boolean;
+
+    /** Whether to format display amount when the `amount` prop changes from the outside */
+    formatAmountOnChange?: boolean;
 };
 
 type Selection = {
@@ -88,6 +94,8 @@ function MoneyRequestAmountInput(
         hideCurrencySymbol = false,
         shouldUpdateSelection = true,
         moneyRequestAmountInputRef,
+        formatAmountOnBlur,
+        formatAmountOnChange,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -163,7 +171,13 @@ function MoneyRequestAmountInput(
         if (!currency || typeof amount !== 'number') {
             return;
         }
-        const frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+        let frontendAmount;
+
+        if (formatAmountOnChange) {
+            frontendAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency);
+        } else {
+            frontendAmount = amount ? CurrencyUtils.convertToFrontendAmount(amount).toString() : '';
+        }
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
@@ -174,6 +188,7 @@ function MoneyRequestAmountInput(
                 end: frontendAmount.length,
             });
         }
+
         // we want to re-initialize the state only when the amount changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [amount]);
@@ -209,6 +224,13 @@ function MoneyRequestAmountInput(
         forwardDeletePressedRef.current = key === 'delete' || ((operatingSystem === CONST.OS.MAC_OS || operatingSystem === CONST.OS.IOS) && nativeEvent?.ctrlKey && key === 'd');
     };
 
+    const onBlur = useCallback(() => {
+        if (!formatAmountOnBlur) {
+            return;
+        }
+        setCurrentAmount(CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency));
+    }, [amount, currency, formatAmountOnBlur]);
+
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 
     return (
@@ -216,6 +238,7 @@ function MoneyRequestAmountInput(
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
             onCurrencyButtonPress={onCurrencyButtonPress}
+            onBlur={onBlur}
             placeholder={numberFormat(0)}
             ref={(ref) => {
                 if (typeof forwardedRef === 'function') {
@@ -253,4 +276,4 @@ function MoneyRequestAmountInput(
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default React.forwardRef(MoneyRequestAmountInput);
-export type {CurrentMoney, MoneyRequestAmountInputRef};
+export type {CurrentMoney, MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
