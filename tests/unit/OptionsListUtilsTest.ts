@@ -280,15 +280,13 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_CHAT_ROOM = {
+    const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
         ...REPORTS,
         15: {
             lastReadTime: '2021-01-14 11:25:39.301',
             lastVisibleActionCreated: '2022-11-22 03:26:02.000',
             isPinned: false,
             reportID: '15',
-            participantAccountIDs: [3, 4],
-            visibleChatMemberAccountIDs: [3, 4],
             participants: {
                 3: {},
                 4: {},

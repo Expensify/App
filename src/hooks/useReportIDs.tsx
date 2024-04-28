@@ -38,7 +38,7 @@ const ReportIDsContext = createContext<ReportIDsContextValue>({
 const chatReportSelector = (report: OnyxEntry<OnyxTypes.Report>): ChatReportSelector =>
     (report && {
         reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
+        participants: report.participants,
         isPinned: report.isPinned,
         isHidden: report.isHidden,
         notificationPreference: report.notificationPreference,
