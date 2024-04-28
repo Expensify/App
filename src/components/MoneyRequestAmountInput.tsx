@@ -167,6 +167,7 @@ function MoneyRequestAmountInput(
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
+        // In the line below the currentAmount is not immediately updated, it should still hold the previous value.
         if (frontendAmount !== currentAmount) {
             setSelection({
                 start: frontendAmount.length,
