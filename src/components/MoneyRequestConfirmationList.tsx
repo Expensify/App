@@ -303,8 +303,6 @@ function MoneyRequestConfirmationList({
     const [didConfirm, setDidConfirm] = useState(false);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
 
-    const [merchantError, setMerchantError] = useState(false);
-
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     const navigateBack = () => {
@@ -322,19 +320,9 @@ function MoneyRequestConfirmationList({
     const isMerchantEmpty = !iouMerchant || iouMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isMerchantRequired = isPolicyExpenseChat && !isScanRequest && shouldShowMerchant;
 
-    const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
+    const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
-    useEffect(() => {
-        if ((!isMerchantRequired && isMerchantEmpty) || !merchantError) {
-            return;
-        }
-        if (!isMerchantEmpty && merchantError) {
-            setMerchantError(false);
-            if (formError === 'iou.error.invalidMerchant') {
-                setFormError('');
-            }
-        }
-    }, [formError, isMerchantEmpty, merchantError, isMerchantRequired]);
+    const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -345,13 +333,9 @@ function MoneyRequestConfirmationList({
             setFormError('iou.error.genericSmartscanFailureMessage');
             return;
         }
-        if (merchantError) {
-            setFormError('iou.error.invalidMerchant');
-            return;
-        }
         // reset the form error whenever the screen gains or loses focus
         setFormError('');
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isMerchantRequired, merchantError]);
+    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount) {
@@ -577,8 +561,8 @@ function MoneyRequestConfirmationList({
             if (selectedParticipants.length === 0) {
                 return;
             }
-            if ((isMerchantRequired && isMerchantEmpty) || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null))) {
-                setMerchantError(true);
+            if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && TransactionUtils.isMerchantMissing(transaction ?? null)))) {
+                setFormError('iou.error.invalidMerchant');
                 return;
             }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
@@ -749,7 +733,6 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={didConfirm}
                     // todo: handle edit for transaction while moving from track expense
                     interactive={!isReadOnly && !isMovingTransactionFromTrackExpense}
@@ -767,9 +750,7 @@ function MoneyRequestConfirmationList({
                     description={translate('common.distance')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
-                    onPress={() =>
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
                 />
@@ -808,8 +789,8 @@ function MoneyRequestConfirmationList({
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    brickRoadIndicator={merchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    error={merchantError ? translate('common.error.fieldRequired') : ''}
+                    brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    error={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
                     rightLabel={isMerchantRequired ? translate('common.required') : ''}
                 />
             ),
