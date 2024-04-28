@@ -290,6 +290,8 @@ type TranslationFlatObject = {
     [TKey in TranslationPaths]: TranslateType<EnglishTranslation, TKey>;
 };
 
+type TranslationPhraseParamType<T> = T extends (args: unknown) => string ? Parameters<T> : never;
+
 type TermsParams = {amount: string};
 
 type ElectronicFundsParams = {percentage: string; amount: string};
@@ -376,6 +378,7 @@ export type {
     TransferParams,
     TranslationBase,
     TranslationFlatObject,
+    TranslationPhraseParamType,
     TranslationPaths,
     UntilTimeParams,
     UpdatedTheDistanceParams,

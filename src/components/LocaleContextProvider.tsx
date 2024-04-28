@@ -9,7 +9,7 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import * as NumberFormatUtils from '@libs/NumberFormatUtils';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type {TranslationPhraseParamType, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WithCurrentUserPersonalDetailsProps} from './withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from './withCurrentUserPersonalDetails';
@@ -29,7 +29,7 @@ type LocaleContextProviderProps = LocaleContextProviderOnyxProps &
 
 type LocaleContextProps = {
     /** Returns translated string for given locale and phrase */
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Localize.PhraseParameters<Record<string, unknown>>) => string;
+    translate: <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters: TranslationPhraseParamType<TKey>) => string;
 
     /** Formats number formatted according to locale and options */
     numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
@@ -80,7 +80,7 @@ function LocaleContextProvider({preferredLocale, currentUserPersonalDetails = {}
 
     const translate = useMemo<LocaleContextProps['translate']>(
         () =>
-            <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Record<string, unknown>) =>
+            <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters: TranslationPhraseParamType<TKey>) =>
                 Localize.translate(locale, phraseKey, phraseParameters),
         [locale],
     );
