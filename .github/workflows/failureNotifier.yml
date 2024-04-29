@@ -38,12 +38,9 @@ jobs:
               repo: context.repo.repo,
               workflow_id: 'preDeploy.yml',
             });
-            const run = allRuns.data.workflow_runs.find(run => run.id === runId);
-            const run_number = run.run_number;
-            const previousRun = allRuns.data.workflow_runs.find(run => run.run_number === run_number - 1);
-            if (previousRun.actor.login === 'OSBotify') {
-              return allRuns.data.workflow_runs.find(run => run.run_number === run_number - 2);
-            }
+            const filteredRuns = allRuns.data.workflow_runs.filter(run => run.actor.login !== 'OSBotify' && run.status !== 'cancelled');
+            const currentIndex = filteredRuns.findIndex(run => run.id === runId);
+            const previousRun = filteredRuns[currentIndex + 1];
             return previousRun;
 
       - name: Fetch Previous Workflow Run Jobs
@@ -84,8 +81,7 @@ jobs:
                 const jobName = jobs.jobs[i].name;
                 const jobLink = jobs.jobs[i].html_url;
                 const previousJob = previousRunJobs.jobs.find(job => job.name === jobName);
-                previousJobSucceeded = previousJob.conclusion === 'success';
-                if (previousJobSucceeded) {
+                if (previousJob?.conclusion === 'success') {
                   const annotations = await github.rest.checks.listAnnotations({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
