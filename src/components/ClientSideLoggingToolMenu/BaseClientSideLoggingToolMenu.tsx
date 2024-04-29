@@ -81,7 +81,9 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
                         small
                         text={translate('initialSettingsPage.debugConsole.viewConsole')}
                         onPress={() => {
-                            closeTestToolsModal()
+                            if (closeTestToolsModal) {
+                                closeTestToolsModal()
+                            }
                             Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(isViaTestToolsModal))
                         }}
                     />

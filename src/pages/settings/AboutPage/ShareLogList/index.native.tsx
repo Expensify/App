@@ -5,7 +5,7 @@ import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';
 import type {ShareLogListProps} from './types';
 
-function ShareLogList({logSource}: ShareLogListProps) {
+function ShareLogList({logSource, isViaTestToolsModal}: ShareLogListProps) {
     const onAttachLogToReport = (reportID: string, filename: string) => {
         if (!reportID || !logSource) {
             return;
@@ -17,7 +17,10 @@ function ShareLogList({logSource}: ShareLogListProps) {
         Navigation.navigate(routeToNavigate);
     };
 
-    return <BaseShareLogList onAttachLogToReport={onAttachLogToReport} />;
+    return <BaseShareLogList
+        onAttachLogToReport={onAttachLogToReport}
+        isViaTestToolsModal
+    />;
 }
 
 export default ShareLogList;

@@ -25,9 +25,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CapturedLogs} from '@src/types/onyx';
-import {RouteProp, useRoute} from "@react-navigation/native";
-import {SettingsNavigatorParamList} from "@navigation/types";
-import SCREENS from "@src/SCREENS";
+import type {RouteProp} from "@react-navigation/native";
+import { useRoute} from "@react-navigation/native";
+import type {SettingsNavigatorParamList} from "@navigation/types";
+import type SCREENS from "@src/SCREENS";
 
 type ConsolePageOnyxProps = {
     /** Logs captured on the current device */
