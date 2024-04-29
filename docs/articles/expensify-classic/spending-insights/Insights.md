@@ -26,28 +26,28 @@ The Insights dashboard allows you to monitor all aspects of company spending acr
 ## Create a Custom Export Report for your Expenses
 
 1. Navigate to **Settings > Account > Preferences > scroll down to CSV Export Formats** 
-2. Build up a report using these [formulas](https://community.expensify.com/discussion/5795/deep-dive-expense-level-formula/p1?new=1)
+2. Build up a report using these [formulas]((https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates))
 3. Click the **Custom Export** button on the Insights page and your Account Manager will help get you started on building up your report  
 
-## Create a Custom Export Report for your Policy
+## Create a Custom Export Report for your Workspace
 
-1. Navigate to **Settings > Policies > Group > [Policy Name] > Export Formats** 
-2. Build up a report using these [formulas](https://community.expensify.com/discussion/5795/deep-dive-expense-level-formula/p1?new=1)
+1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Export Formats** 
+2. Build up a report using these [formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates)
 3. If you need any help, click the **Support** button on the top left to contact your Account Manager
 
 {% include faq-begin.md %}
 
 #### Can I share my custom export report? 
 
-If you would like to create a custom export report that can be shared with other policy admins, you can create these by navigating to the **[Settings > Policies > Group > [Policy Name] > Export Formats](https://www.expensify.com/admin_policies?param={"section":"group"})** page. Custom export reports created under **Settings > Account > Preferences** page are only available to the member who created them.
+If you would like to create a custom export report that can be shared with other workspace admins, you can do so by navigating to the **[Settings > Workspaces > Group > [Workspace Name] > Export Formats** page. Custom export reports created under the **Settings > Account > Preferences** page are only available to the member who created them.
 
-#### Can I put expenses from different policies on the same report? 
+#### Can I put expenses from different workspaces on the same report? 
 
-Custom export reports created under the Settings > Account > Preferences page can export expenses from multiple policies, and custom export formats created under Settings > Workspaces> Group > [Workspace Name] > Export Formats are for expenses reported under that policy only. 
+Custom export reports created under the Settings > Account > Preferences page can export expenses from multiple workspaces, and custom export formats created under Settings > Workspaces> Group > [Workspace Name] > Export Formats are for expenses reported under that workspace only. 
 
 #### Are there any default export reports available?
 
-Yes! We have [seven default reports](https://community.expensify.com/discussion/5602/deep-dive-default-export-templates) available to export directly from the Reports page: 
+Yes! We have [seven default reports](https://help.expensify.com/articles/expensify-classic/spending-insights/Default-Export-Templates) available to export directly from the Reports page: 
 
 - **All Data** - Expense Level Export** - the name says it all! This is for the people who want ALL the details from their expense reports. We're talking Tax, Merchant Category Codes, Approvers - you name it, this report's got it!
 - **All Data** - Report Level Export - this is the report for those who don't need to see each individual expense but want to see a line-by-line breakdown at a report level - submitter, total amount, report ID - that kind of stuff
@@ -60,7 +60,7 @@ Yes! We have [seven default reports](https://community.expensify.com/discussion/
 *These reports will be emailed directly to your email address rather than automatically downloaded.* 
 
 #### How many expenses can I export in one report? 
-The custom export reports are best for small-to-medium chunks of data. If you want to export large amounts of data, we recommend you use a [default export report](https://community.expensify.com/discussion/5602/deep-dive-default-export-templates) that you can run from the Reports page.  
+The custom export reports are best for small-to-medium chunks of data. If you want to export large amounts of data, we recommend you use a [default export report](https://help.expensify.com/articles/expensify-classic/spending-insights/Default-Export-Templates) that you can run from the Reports page.  
 
 #### What other kinds of export reports can my Account Manager help me create? 
 
