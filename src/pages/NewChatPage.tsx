@@ -97,12 +97,16 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const selectedParticipants = newGroupDraft.participants.filter((participant) => participant.accountID !== personalData.accountID);
-        const newSelectedOptions = selectedParticipants.map((participant): OptionData => {
-            const baseOption = OptionsListUtils.getParticipantsOption({accountID: participant.accountID, login: participant.login, reportID: ''}, personalDetails);
-            return {...baseOption, reportID: baseOption.reportID ?? '', isSelected: true};
-        });
+        const combinedList = [...options.personalDetails, ...selectedOptions, options.userToInvite];
+        const selectedAccountIDs = newGroupDraft.participants.map((participant) => participant.accountID);
+        const selectedParticipants = combinedList.filter((option) => option?.accountID && selectedAccountIDs.includes(option?.accountID));
+        const newSelectedOptions = selectedParticipants.map((participant) => ({
+            ...participant,
+            reportID: participant?.reportID ?? '',
+            isSelected: true,
+        }));
         setSelectedOptions(newSelectedOptions);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newGroupDraft, personalData, personalDetails]);
 
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
