@@ -960,7 +960,7 @@ function deleteTask(report: OnyxEntry<OnyxTypes.Report>) {
  * Closes the current open task modal and clears out the task info from the store.
  */
 function dismissModalAndClearOutTaskInfo() {
-    Navigation.dismissModal();
+    Navigation.closeRHPFlow();
     clearOutTaskInfo();
 }
 
@@ -1002,6 +1002,10 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 
     if (sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport)) {
         return true;
+    }
+
+    if (!ReportUtils.canWriteInReport(ReportUtils.getReport(taskReport?.reportID))) {
+        return false;
     }
 
     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);

@@ -1,15 +1,14 @@
-/* eslint-disable rulesdir/prefer-underscore-method */
 import Str from 'expensify-common/lib/str';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {ChatReportSelector, PolicySelector, ReportActionsSelector} from '@hooks/useReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
+import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import * as CollectionUtils from './CollectionUtils';
@@ -63,11 +62,11 @@ function compareStringDates(a: string, b: string): 0 | 1 | -1 {
  */
 function getOrderedReportIDs(
     currentReportId: string | null,
-    allReports: OnyxCollection<Report>,
+    allReports: OnyxCollection<ChatReportSelector>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<Policy>,
-    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>,
-    allReportActions: OnyxCollection<ReportAction[]>,
+    policies: OnyxCollection<PolicySelector>,
+    priorityMode: OnyxEntry<PriorityMode>,
+    allReportActions: OnyxCollection<ReportActionsSelector>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
@@ -89,7 +88,7 @@ function getOrderedReportIDs(
         const doesReportHaveViolations = !!(
             betas?.includes(CONST.BETAS.VIOLATIONS) &&
             !!parentReportAction &&
-            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction)
+            ReportUtils.doesTransactionThreadHaveViolations(report, transactionViolations, parentReportAction as OnyxEntry<ReportAction>)
         );
         const isHidden = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         const isFocused = report.reportID === currentReportId;
@@ -105,7 +104,7 @@ function getOrderedReportIDs(
             currentReportId: currentReportId ?? '',
             isInGSDMode,
             betas,
-            policies,
+            policies: policies as OnyxCollection<Policy>,
             excludeEmptyChats: true,
             doesReportHaveViolations,
             includeSelfDM: true,
@@ -132,13 +131,13 @@ function getOrderedReportIDs(
         );
     }
     // There are a few properties that need to be calculated for the report which are used when sorting reports.
-    reportsToDisplay.forEach((report) => {
-        // Normally, the spread operator would be used here to clone the report and prevent the need to reassign the params.
-        // However, this code needs to be very performant to handle thousands of reports, so in the interest of speed, we're just going to disable this lint rule and add
-        // the reportDisplayName property to the report object directly.
+    reportsToDisplay.forEach((reportToDisplay) => {
+        let report = reportToDisplay as OnyxEntry<Report>;
         if (report) {
-            // eslint-disable-next-line no-param-reassign
-            report.displayName = ReportUtils.getReportName(report);
+            report = {
+                ...report,
+                displayName: ReportUtils.getReportName(report),
+            };
         }
 
         const isPinned = report?.isPinned ?? false;
@@ -251,6 +250,7 @@ function getOptionData({
     result.isThread = ReportUtils.isChatThread(report);
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
+    result.isInvoiceReport = ReportUtils.isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
@@ -413,7 +413,7 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail?.avatar ?? {}, personalDetail?.accountID), '', -1, policy);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail?.avatar ?? '', personalDetail?.accountID), '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
 
