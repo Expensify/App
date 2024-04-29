@@ -1836,7 +1836,7 @@ export default {
     travel: {
         header: 'Reservar viajes',
         title: 'Viaja de forma inteligente',
-        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos tus gastos de negocio en un solo lugar.',
+        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos los gastos de tu negocio en un solo lugar.',
         features: {
             saveMoney: 'Ahorra dinero en tus reservas',
             alerts: 'Obtén actualizaciones y alertas en tiempo real',
@@ -1844,12 +1844,12 @@ export default {
         bookTravel: 'Reservar viajes',
         termsAndConditions: {
             header: 'Antes de continuar...',
-            title: 'Por favor lea los Términos y condiciones para viajar',
-            subtitle: 'Para permitir viajar en su espacio de trabajo debe aceptar nuestros ',
+            title: 'Por favor, lee los Términos y condiciones para reservar viajes',
+            subtitle: 'Para permitir la opción de reservar viajes en su espacio de trabajo debe aceptar nuestros ',
             termsconditions: 'términos y condiciones',
             travelTermsAndConditions: 'términos y condiciones de viaje',
-            helpDocIntro: 'Consulte este ',
-            helpDocOutro: 'para obtener más información o comuníquese con el conserje o su administrador de cuentas.',
+            helpDocIntro: 'Consulta este ',
+            helpDocOutro: 'para obtener más información o comunícate con Concierge o tu gestor de cuentas.',
             helpDoc: 'documento de ayuda',
             agree: 'Acepto los ',
             error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
