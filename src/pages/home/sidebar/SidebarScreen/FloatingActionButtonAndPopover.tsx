@@ -313,7 +313,7 @@ function FloatingActionButtonAndPopover(
                                           if (!hasSeenTrackTraining && !isOffline) {
                                               Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
                                           }
-                                      }, 300);
+                                      }, CONST.ANIMATED_TRANSITION);
                                   },
                               },
                           ]
