@@ -106,8 +106,8 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
     const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
-    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
-    const canJoin = report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const canLeave =
+        !isSelfDM && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat) && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 
     useEffect(() => {
         // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
@@ -200,7 +200,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         }
 
-        if (isGroupChat || (isChatRoom && canJoinOrLeave && !canJoin)) {
+        if (isGroupChat || (isChatRoom && canLeave)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: 'common.leave',
@@ -231,8 +231,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         report,
         isMoneyRequestReport,
         isChatRoom,
-        canJoinOrLeave,
-        canJoin,
+        canLeave,
         activeChatMembers.length,
         session,
         leaveChat,

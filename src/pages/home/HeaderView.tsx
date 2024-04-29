@@ -1,4 +1,4 @@
-import React, {memo, useMemo} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -82,7 +82,8 @@ function HeaderView({
     onNavigationMenuButtonClicked,
     shouldUseNarrowLayout = false,
 }: HeaderViewProps) {
-    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
+    const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = useState(false);
+    const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -157,8 +158,17 @@ function HeaderView({
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
-    const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const leaveChat = useCallback(() => {
+        if (isChatRoom) {
+            const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
+            Report.leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
+            return;
+        }
+        Report.leaveGroupChat(report.reportID);
+    }, [isChatRoom, isChatThread, isPolicyEmployee, isPolicyExpenseChat, report.reportID, report.visibility]);
+
+    const canJoinOrLeave = !isSelfDM && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
+    const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN && !isGroupChat;
     const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     if (canJoin) {
         threeDotMenuItems.push({
@@ -167,11 +177,17 @@ function HeaderView({
             onSelected: join,
         });
     } else if (canLeave) {
-        const isWorkspaceMemberLeavingWorkspaceRoom = !isChatThread && (report.visibility === CONST.REPORT.VISIBILITY.RESTRICTED || isPolicyExpenseChat) && isPolicyEmployee;
         threeDotMenuItems.push({
             icon: Expensicons.ChatBubbles,
             text: translate('common.leave'),
-            onSelected: Session.checkIfActionIsAllowed(() => Report.leaveRoom(reportID, isWorkspaceMemberLeavingWorkspaceRoom)),
+            onSelected: Session.checkIfActionIsAllowed(() => {
+                if ((report?.participantAccountIDs ?? []).length === 1 && isGroupChat) {
+                    setIsLastMemberLeavingGroupModalVisible(true);
+                    return;
+                }
+
+                leaveChat();
+            }),
         });
     }
 
@@ -371,6 +387,19 @@ function HeaderView({
                                 confirmText={translate('common.delete')}
                                 cancelText={translate('common.cancel')}
                                 danger
+                            />
+                            <ConfirmModal
+                                danger
+                                title={translate('groupChat.lastMemberTitle')}
+                                isVisible={isLastMemberLeavingGroupModalVisible}
+                                onConfirm={() => {
+                                    setIsLastMemberLeavingGroupModalVisible(false);
+                                    Report.leaveGroupChat(report.reportID);
+                                }}
+                                onCancel={() => setIsLastMemberLeavingGroupModalVisible(false)}
+                                prompt={translate('groupChat.lastMemberWarning')}
+                                confirmText={translate('common.leave')}
+                                cancelText={translate('common.cancel')}
                             />
                         </>
                     )}
