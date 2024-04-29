@@ -4,8 +4,10 @@ import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
+import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 import type {Unit} from './types/onyx/Policy';
 
 type RateAndUnit = {
@@ -53,6 +55,7 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
+    INVOICE: 'invoice',
 } as const;
 
 // Explicit type annotation is required
@@ -804,6 +807,7 @@ const CONST = {
             EXPENSE: 'expense',
             IOU: 'iou',
             TASK: 'task',
+            INVOICE: 'invoice',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -847,6 +851,16 @@ const CONST = {
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
+        PERMISSIONS: {
+            READ: 'read',
+            WRITE: 'write',
+            SHARE: 'share',
+            OWN: 'own',
+        },
+        INVOICE_RECEIVER_TYPE: {
+            INDIVIDUAL: 'individual',
+            BUSINESS: 'policy',
+        },
     },
     NEXT_STEP: {
         FINISHED: 'Finished!',
@@ -1378,6 +1392,13 @@ const CONST = {
             ERROR: 'ERROR',
             EXIT: 'EXIT',
         },
+        DEFAULT_DATA: {
+            bankName: '',
+            plaidAccessToken: '',
+            bankAccounts: [] as PlaidBankAccount[],
+            isLoading: false,
+            errors: {},
+        },
     },
 
     ONFIDO: {
@@ -1456,6 +1477,7 @@ const CONST = {
             PAY: 'pay',
             SPLIT: 'split',
             REQUEST: 'request',
+            INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',
         },
@@ -3949,31 +3971,43 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
-    REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX: {
-        BANK_ACCOUNT: {
-            ACCOUNT_NUMBERS: 0,
+    REIMBURSEMENT_ACCOUNT: {
+        DEFAULT_DATA: {
+            achData: {
+                state: BankAccount.STATE.SETUP,
+            },
+            isLoading: false,
+            errorFields: {},
+            errors: {},
+            maxAttemptsReached: false,
+            shouldShowResetModal: false,
         },
-        PERSONAL_INFO: {
-            LEGAL_NAME: 0,
-            DATE_OF_BIRTH: 1,
-            SSN: 2,
-            ADDRESS: 3,
-        },
-        BUSINESS_INFO: {
-            BUSINESS_NAME: 0,
-            TAX_ID_NUMBER: 1,
-            COMPANY_WEBSITE: 2,
-            PHONE_NUMBER: 3,
-            COMPANY_ADDRESS: 4,
-            COMPANY_TYPE: 5,
-            INCORPORATION_DATE: 6,
-            INCORPORATION_STATE: 7,
-        },
-        UBO: {
-            LEGAL_NAME: 0,
-            DATE_OF_BIRTH: 1,
-            SSN: 2,
-            ADDRESS: 3,
+        SUBSTEP_INDEX: {
+            BANK_ACCOUNT: {
+                ACCOUNT_NUMBERS: 0,
+            },
+            PERSONAL_INFO: {
+                LEGAL_NAME: 0,
+                DATE_OF_BIRTH: 1,
+                SSN: 2,
+                ADDRESS: 3,
+            },
+            BUSINESS_INFO: {
+                BUSINESS_NAME: 0,
+                TAX_ID_NUMBER: 1,
+                COMPANY_WEBSITE: 2,
+                PHONE_NUMBER: 3,
+                COMPANY_ADDRESS: 4,
+                COMPANY_TYPE: 5,
+                INCORPORATION_DATE: 6,
+                INCORPORATION_STATE: 7,
+            },
+            UBO: {
+                LEGAL_NAME: 0,
+                DATE_OF_BIRTH: 1,
+                SSN: 2,
+                ADDRESS: 3,
+            },
         },
     },
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{

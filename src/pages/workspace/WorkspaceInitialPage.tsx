@@ -244,7 +244,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
     if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]) {
         protectedCollectPolicyMenuItems.push({
             translationKey: 'workspace.common.taxes',
-            icon: Expensicons.Tax,
+            icon: Expensicons.Coins,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
             routeName: SCREENS.WORKSPACE.TAXES,
             brickRoadIndicator: PolicyUtils.hasTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
