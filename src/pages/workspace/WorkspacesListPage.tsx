@@ -115,6 +115,8 @@ function dismissWorkspaceError(policyID: string, pendingAction: OnyxCommon.Pendi
     throw new Error('Not implemented');
 }
 
+const stickyHeaderIndices = [0];
+
 function WorkspacesListPage({policies, reimbursementAccount, reports, session}: WorkspaceListPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -260,7 +262,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                         {translate('workspace.common.workspaceType')}
                     </Text>
                 </View>
-                <View style={[styles.ml10, styles.mr2]} />
+                <View style={[styles.workspaceRightColumn, styles.mr2]} />
             </View>
         );
     }, [isLessThanMediumScreen, styles, translate]);
@@ -422,7 +424,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                     data={workspaces}
                     renderItem={getMenuItem}
                     ListHeaderComponent={listHeaderComponent}
-                    stickyHeaderIndices={[0]}
+                    stickyHeaderIndices={stickyHeaderIndices}
                 />
             </View>
             <ConfirmModal

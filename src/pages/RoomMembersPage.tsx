@@ -204,7 +204,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 keyForList: String(accountID),
                 accountID,
                 isSelected: selectedMembers.includes(accountID),
-                isDisabled: accountID === session?.accountID,
+                isDisabled: accountID === session?.accountID || pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
@@ -216,6 +216,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     },
                 ],
                 pendingAction: pendingChatMember?.pendingAction,
+                errors: pendingChatMember?.errors,
             });
         });
 
@@ -223,6 +224,13 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
         return result;
     };
+
+    const dismissError = useCallback(
+        (item: ListItem) => {
+            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? ''));
+        },
+        [report.reportID],
+    );
 
     const isPolicyEmployee = useMemo(() => {
         if (!report?.policyID || policies === null) {
@@ -232,6 +240,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     }, [report?.policyID, policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -300,6 +309,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ListItem={UserListItem}
+                            onDismissError={dismissError}
                         />
                     </View>
                 </View>

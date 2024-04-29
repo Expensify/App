@@ -1,6 +1,4 @@
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import getNumberOfLines from './getNumberOfLines';
-import updateNumberOfLines from './updateNumberOfLines';
 
 type Selection = {
     start: number;
@@ -49,5 +47,5 @@ function findCommonSuffixLength(str1: string, str2: string, cursorPosition: numb
     return commonSuffixLength;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, insertWhiteSpaceAtIndex, findCommonSuffixLength};
+export {insertText, canSkipTriggerHotkeys, insertWhiteSpaceAtIndex, findCommonSuffixLength};
 export type {Selection};
