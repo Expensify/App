@@ -8,7 +8,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyListItem, CurrencySelectionListOnyxProps, CurrencySelectionListProps} from './types';
 
-function CurrencySelectionList({textInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList}: CurrencySelectionListProps) {
+function CurrencySelectionList({searchInputLabel, initiallySelectedCurrencyCode, onSelect, currencyList}: CurrencySelectionListProps) {
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
 
@@ -44,7 +44,7 @@ function CurrencySelectionList({textInputLabel, initiallySelectedCurrencyCode, o
         <SelectionList
             sections={sections}
             ListItem={RadioListItem}
-            textInputLabel={textInputLabel}
+            textInputLabel={searchInputLabel}
             textInputValue={searchValue}
             onChangeText={setSearchValue}
             onSelectRow={onSelect}

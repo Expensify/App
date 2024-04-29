@@ -74,7 +74,7 @@ function IOURequestStepCurrency({
         >
             {({didScreenTransitionEnd}) => (
                 <CurrencySelectionList
-                    textInputLabel={translate('common.search')}
+                    searchInputLabel={translate('common.search')}
                     onSelect={(option: CurrencyListItem) => {
                         if (!didScreenTransitionEnd) {
                             return;

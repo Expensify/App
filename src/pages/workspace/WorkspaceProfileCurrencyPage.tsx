@@ -12,9 +12,9 @@ import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWra
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspaceProfileCurrentPageProps = WithPolicyAndFullscreenLoadingProps;
+type WorkspaceProfileCurrencyPageProps = WithPolicyAndFullscreenLoadingProps;
 
-function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrentPageProps) {
+function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrencyPageProps) {
     const {translate} = useLocalize();
 
     const onSelectCurrency = (item: CurrencyListItem) => {
@@ -38,7 +38,7 @@ function WorkspaceProfileCurrencyPage({policy}: WorkspaceProfileCurrentPageProps
                 />
 
                 <CurrencySelectionList
-                    textInputLabel={translate('workspace.editor.currencyInputLabel')}
+                    searchInputLabel={translate('workspace.editor.currencyInputLabel')}
                     onSelect={onSelectCurrency}
                     initiallySelectedCurrencyCode={policy?.outputCurrency}
                 />

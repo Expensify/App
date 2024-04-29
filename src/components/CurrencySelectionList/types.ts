@@ -8,13 +8,13 @@ type CurrencyListItem = ListItem & {
 };
 
 type CurrencySelectionListOnyxProps = {
-    /** Constant, list of available currencies */
+    /** List of available currencies */
     currencyList: OnyxEntry<CurrencyList>;
 };
 
 type CurrencySelectionListProps = CurrencySelectionListOnyxProps & {
     /** Label for the search text input */
-    textInputLabel: string;
+    searchInputLabel: string;
 
     /** Currency item to be selected initially */
     initiallySelectedCurrencyCode?: string;
