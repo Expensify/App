@@ -5,7 +5,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, Section} from '@components/SelectionList/types';
@@ -19,6 +18,7 @@ import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/typ
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as UserUtils from '@libs/UserUtils';
 import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -87,7 +87,7 @@ function WorkspaceWorkflowsApproverPage({policy, personalDetails, isLoadingRepor
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: UserUtils.getAvatar(details.avatar, accountID),
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,

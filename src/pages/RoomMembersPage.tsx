@@ -8,7 +8,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -27,6 +26,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -209,7 +209,7 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                 alternateText: details?.login ? formatPhoneNumber(details.login) : '',
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: UserUtils.getAvatar(details.avatar, accountID),
                         name: details.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                         id: Number(accountID),
