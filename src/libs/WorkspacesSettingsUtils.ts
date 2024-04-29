@@ -10,6 +10,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
+import { Phrase, PhraseParameters } from './Localize';
 
 type CheckingMethod = () => boolean;
 
@@ -224,7 +225,7 @@ function getUnitTranslationKey(unit: Unit): TranslationPaths {
  */
 function getOwnershipChecksDisplayText(
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>,
-    translate: <TKey extends TranslationPaths>(phraseKey: TKey, phraseParameters?: Record<string, unknown>) => string,
+    translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
     policy: OnyxEntry<Policy>,
     accountLogin: string | undefined,
 ) {

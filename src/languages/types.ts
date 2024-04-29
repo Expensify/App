@@ -255,6 +255,7 @@ type TaskCreatedActionParams = {title: string};
 /* Translation Object types */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TranslationBaseValue = string | string[] | ((...args: any[]) => string);
+
 type TranslationBase = {[key: string]: TranslationBaseValue | TranslationBase};
 
 /* Flat Translation Object types */
