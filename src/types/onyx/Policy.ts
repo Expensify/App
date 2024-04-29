@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
-import type { WorkspaceTravelSettings } from './TravelSettings';
+import type {WorkspaceTravelSettings} from './TravelSettings';
 
 type Unit = 'mi' | 'km';
 
