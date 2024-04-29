@@ -1,5 +1,6 @@
-# JavaScript Coding Standards
+# Coding Standards
 
+<!-- Consider removing this as we moved to TS -->
 For almost all of our code style rules, refer to the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
 
 When writing ES6 or React code, please also refer to the [Airbnb React/JSX Style Guide](https://github.com/airbnb/javascript/tree/master/react).
@@ -10,7 +11,508 @@ We use Prettier to automatically style our code.
 
 There are a few things that we have customized for our tastes which will take precedence over Airbnb's guide.
 
+## TypeScript guidelines
+
+### General Rules
+
+Strive to type as strictly as possible.
+
+```ts
+type Foo = {
+    fetchingStatus: "loading" | "success" | "error"; // vs. fetchingStatus: string;
+    person: { name: string; age: number }; // vs. person: Record<string, unknown>;
+};
+```
+
+### `d.ts` Extension
+
+Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and JavaScript's built-in modules (e.g. `window` object) can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
+
+> Why? Type errors in `d.ts` files are not checked by TypeScript.
+
+### Type Alias vs. Interface
+
+Do not use `interface`. Use `type`. eslint: [`@typescript-eslint/consistent-type-definitions`](https://typescript-eslint.io/rules/consistent-type-definitions/)
+
+> Why? In TypeScript, `type` and `interface` can be used interchangeably to declare types. Use `type` for consistency.
+
+```ts
+// BAD
+interface Person {
+    name: string;
+}
+
+// GOOD
+type Person = {
+    name: string;
+};
+```
+
+### Enum vs. Union Type
+
+Do not use `enum`. Use union types. eslint: [`no-restricted-syntax`](https://eslint.org/docs/latest/rules/no-restricted-syntax)
+
+> Why? Enums come with several [pitfalls](https://blog.logrocket.com/why-typescript-enums-suck/). Most enum use cases can be replaced with union types.
+
+```ts
+// Most simple form of union type.
+type Color = "red" | "green" | "blue";
+function printColors(color: Color) {
+    console.log(color);
+}
+
+// When the values need to be iterated upon.
+import { TupleToUnion } from "type-fest";
+
+const COLORS = ["red", "green", "blue"] as const;
+type Color = TupleToUnion<typeof COLORS>; // type: 'red' | 'green' | 'blue'
+
+for (const color of COLORS) {
+    printColor(color);
+}
+
+// When the values should be accessed through object keys. (i.e. `COLORS.Red` vs. `"red"`)
+import { ValueOf } from "type-fest";
+
+const COLORS = {
+    Red: "red",
+    Green: "green",
+    Blue: "blue",
+} as const;
+type Color = ValueOf<typeof COLORS>; // type: 'red' | 'green' | 'blue'
+
+printColor(COLORS.Red);
+```
+
+### `unknown` vs. `any`
+
+Don't use `any`. Use `unknown` if type is not known beforehand. eslint: [`@typescript-eslint/no-explicit-any`](https://typescript-eslint.io/rules/no-explicit-any/)
+
+> Why? `any` type bypasses type checking. `unknown` is type safe as `unknown` type needs to be type narrowed before being used.
+
+```ts
+const value: unknown = JSON.parse(someJson);
+if (typeof value === 'string') {...}
+else if (isPerson(value)) {...}
+...
+```
+
+### `T[]` vs. `Array<T>`
+
+Use `T[]` or `readonly T[]` for simple types (i.e. types which are just primitive names or type references). Use `Array<T>` or `ReadonlyArray<T>` for all other types (union types, intersection types, object types, function types, etc). eslint: [`@typescript-eslint/array-type`](https://typescript-eslint.io/rules/array-type/)
+
+```ts
+// Array<T>
+const a: Array<string | number> = ["a", "b"];
+const b: Array<{ prop: string }> = [{ prop: "a" }];
+const c: Array<() => void> = [() => {}];
+
+// T[]
+const d: MyType[] = ["a", "b"];
+const e: string[] = ["a", "b"];
+const f: readonly string[] = ["a", "b"];
+```
+
+### @ts-ignore
+
+Do not use `@ts-ignore` or its variant `@ts-nocheck` to suppress warnings and errors.
+
+### Type Inference
+
+When possible, allow the compiler to infer type of variables.
+
+```ts
+// BAD
+const foo: string = "foo";
+const [counter, setCounter] = useState<number>(0);
+
+// GOOD
+const foo = "foo";
+const [counter, setCounter] = useState(0);
+const [username, setUsername] = useState<string | undefined>(undefined); // Username is a union type of string and undefined, and its type cannot be inferred from the default value of undefined
+```
+
+For function return types, default to always typing them unless a function is simple enough to reason about its return type.
+
+> Why? Explicit return type helps catch errors when implementation of the function changes. It also makes it easy to read code even when TypeScript intellisense is not provided.
+
+```ts
+function simpleFunction(name: string) {
+    return `hello, ${name}`;
+}
+
+function complicatedFunction(name: string): boolean {
+// ... some complex logic here ...
+    return foo;
+}
+```
+
+### Utility Types
+
+Use types from [TypeScript utility types](https://www.typescriptlang.org/docs/handbook/utility-types.html) and [`type-fest`](https://github.com/sindresorhus/type-fest) when possible.
+
+```ts
+type Foo = {
+    bar: string;
+};
+
+// BAD
+type ReadOnlyFoo = {
+    readonly [Property in keyof Foo]: Foo[Property];
+};
+
+// GOOD
+type ReadOnlyFoo = Readonly<Foo>;
+```
+
+### `object` type
+
+Don't use `object` type. eslint: [`@typescript-eslint/ban-types`](https://typescript-eslint.io/rules/ban-types/)
+
+> Why? `object` refers to "any non-primitive type," not "any object". Typing "any non-primitive value" is not commonly needed.
+
+```ts
+// BAD
+const foo: object = [1, 2, 3]; // TypeScript does not error
+```
+
+If you know that the type of data is an object but don't know what properties or values it has beforehand, use `Record<string, unknown>`.
+
+> Even though `string` is specified as a key, `Record<string, unknown>` type can still accepts objects whose keys are numbers. This is because numbers are converted to strings when used as an object index. Note that you cannot use [symbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) for `Record<string, unknown>`.
+
+```ts
+function logObject(object: Record<string, unknown>) {
+    for (const [key, value] of Object.entries(object)) {
+        console.log(`${key}: ${value}`);
+    }
+}
+```
+
+### Prop Types
+
+Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types.
+
+> Don't export prop types from component files by default. Only export it when there is a code that needs to access the prop type directly.
+
+```tsx
+// MyComponent.tsx
+export type MyComponentProps = {
+    foo: string;
+};
+
+export default function MyComponent({ foo }: MyComponentProps) {
+    return <Text>{foo}</Text>;
+}
+
+// BAD
+import { ComponentProps } from "React";
+import MyComponent from "./MyComponent";
+type MyComponentProps = ComponentProps<typeof MyComponent>;
+
+// GOOD
+import MyComponent, { MyComponentProps } from "./MyComponent";
+```
+
+### File organization
+
+In modules with platform-specific implementations, create `types.ts` to define shared types. Import and use shared types in each platform specific files. Do not use [`satisfies` operator](#satisfies-operator) for platform-specific implementations, always define shared types that complies with all variants.
+
+> Why? To encourage consistent API across platform-specific implementations. If you're migrating module that doesn't have a default implement (i.e. `index.ts`, e.g. `getPlatform`), refer to [Migration Guidelines](#migration-guidelines) for further information.
+
+Utility module example
+
+```ts
+// types.ts
+type GreetingModule = {
+    getHello: () => string;
+    getGoodbye: () => string;
+};
+
+// index.native.ts
+import { GreetingModule } from "./types";
+function getHello() {
+    return "hello from mobile code";
+}
+function getGoodbye() {
+    return "goodbye from mobile code";
+}
+const Greeting: GreetingModule = {
+    getHello,
+    getGoodbye,
+};
+export default Greeting;
+
+// index.ts
+import { GreetingModule } from "./types";
+function getHello() {
+    return "hello from other platform code";
+}
+function getGoodbye() {
+    return "goodbye from other platform code";
+}
+const Greeting: GreetingModule = {
+    getHello,
+    getGoodbye,
+};
+export default Greeting;
+```
+
+Component module example
+
+```ts
+// types.ts
+export type MyComponentProps = {
+    foo: string;
+}
+
+// index.ios.ts
+import { MyComponentProps } from "./types";
+
+export MyComponentProps;
+export default function MyComponent({ foo }: MyComponentProps) { /* ios specific implementation */ }
+
+// index.ts
+import { MyComponentProps } from "./types";
+
+export MyComponentProps;
+export default function MyComponent({ foo }: MyComponentProps) { /* Default implementation */ }
+```
+
+### Reusable Types
+
+Reusable type definitions, such as models (e.g., Report), must have their own file and be placed under `src/types/`. The type should be exported as a default export.
+
+```ts
+// src/types/Report.ts
+
+type Report = {...};
+
+export default Report;
+```
+
+### tsx
+
+Use `.tsx` extension for files that contain React syntax.
+
+> Why? It is a widely adopted convention to mark any files that contain React specific syntax with `.jsx` or `.tsx`.
+
+### No inline prop types
+
+Do not define prop types inline for components that are exported.
+
+> Why? Prop types might [need to be exported from component files](#export-prop-types). If the component is only used inside a file or module and not exported, then inline prop types can be used.
+
+```ts
+// BAD
+export default function MyComponent({ foo, bar }: { foo: string, bar: number }){
+   // component implementation
+};
+
+// GOOD
+type MyComponentProps = { foo: string, bar: number };
+export default MyComponent({ foo, bar }: MyComponentProps){
+   // component implementation
+}
+```
+
+### Satisfies Operator
+
+Use the `satisfies` operator when you need to validate that the structure of an expression matches a specific type, without affecting the resulting type of the expression.
+
+> Why? TypeScript developers often want to ensure that an expression aligns with a certain type, but they also want to retain the most specific type possible for inference purposes. The `satisfies` operator assists in doing both.
+
+```ts
+// BAD
+const sizingStyles = {
+    w50: {
+        width: '50%',
+    },
+    mw100: {
+        maxWidth: '100%',
+    },
+} as const;
+
+// GOOD
+const sizingStyles = {
+    w50: {
+        width: '50%',
+    },
+    mw100: {
+        maxWidth: '100%',
+    },
+} satisfies Record<string, ViewStyle>;
+```
+
+### Type imports/exports
+
+Always use the `type` keyword when importing/exporting types
+
+> Why? In order to improve code clarity and consistency and reduce bundle size after typescript transpilation, we enforce the all type imports/exports to contain the `type` keyword. This way, TypeScript can automatically remove those imports from the transpiled JavaScript bundle 
+
+Imports:
+```ts
+// BAD
+import {SomeType} from './a'
+import someVariable from './a'
+
+import {someVariable, SomeOtherType} from './b'
+
+// GOOD
+import type {SomeType} from './a'
+import someVariable from './a'
+```
+
+ Exports:
+```ts
+// BAD
+export {SomeType}
+export someVariable
+// or 
+export {someVariable, SomeOtherType}
+
+// GOOD
+export type {SomeType}
+export someVariable
+```
+
+### Exception to Rules
+
+Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. The internal engineer assigned to the PR should be the one that approves each exception, however all discussion regarding granting exceptions should happen in the public channel instead of the GitHub PR page so that the TS migration team can access them easily.
+
+When an exception is granted, link the relevant Slack conversation in your PR. Suppress ESLint or TypeScript warnings/errors with comments if necessary.
+
+This rule will apply until the migration is done. After the migration, discussion on granting exception can happen inside the PR page and doesn't need take place in the Slack channel.
+
+### Communication Items
+
+> Comment in the `#expensify-open-source` Slack channel if any of the following situations are encountered. Each comment should be prefixed with `TS ATTENTION:`. Internal engineers will access each situation and prescribe solutions to each case. Internal engineers should refer to general solutions to each situation that follows each list item.
+
+- I think types definitions in a third party library or JavaScript's built-in module are incomplete or incorrect
+
+When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/types/modules/*.d.ts`, each library as a separate file.
+
+```ts
+// external-library-name.d.ts
+
+declare module "external-library-name" {
+    interface LibraryComponentProps {
+        // Add or modify typings
+        additionalProp: string;
+    }
+}
+```
+
+### Other Expensify Resources on TypeScript
+
+- [Expensify TypeScript React Native CheatSheet](./TS_CHEATSHEET.md)
+
 ## Naming Conventions
+
+### Types
+
+  - Use PascalCase for type names. eslint: [`@typescript-eslint/naming-convention`](https://typescript-eslint.io/rules/naming-convention/)
+
+    ```ts
+    // BAD
+    type foo = ...;
+    type BAR = ...;
+
+    // GOOD
+    type Foo = ...;
+    type Bar = ...;
+    ```
+
+  - Do not postfix type aliases with `Type`.
+
+    ```ts
+    // BAD
+    type PersonType = ...;
+
+    // GOOD
+    type Person = ...;
+    ```
+
+  - Use singular name for union types.
+
+    ```ts
+    // BAD
+    type Colors = "red" | "blue" | "green";
+
+    // GOOD
+    type Color = "red" | "blue" | "green";
+    ```
+
+  - Use `{ComponentName}Props` pattern for prop types.
+
+    ```ts
+    // BAD
+    type Props = {
+        // component's props
+    };
+
+    function MyComponent({}: Props) {
+        // component's code
+    }
+
+    // GOOD
+    type MyComponentProps = {
+        // component's props
+    };
+
+    function MyComponent({}: MyComponentProps) {
+        // component's code
+    }
+    ```
+
+  - Use {ComponentName}Handle for custon ref handle types.
+
+    ```tsx
+    // BAD
+    type MyComponentRef = {
+        onPressed: () => void;
+    };
+
+    // GOOD
+    type MyComponentHandle = {
+        onPressed: () => void;
+    };s
+    ```
+
+  - For generic type parameters, use `T` if you have only one type parameter. Don't use the `T`, `U`, `V`... sequence. Make type parameter names descriptive, each prefixed with `T`.
+
+    > Prefix each type parameter name to distinguish them from other types.
+
+    ```ts
+    // BAD
+    type KeyValuePair<T, U> = { key: K; value: U };
+
+    type Keys<Key> = Array<Key>;
+
+    // GOOD
+    type KeyValuePair<TKey, TValue> = { key: TKey; value: TValue };
+
+    type Keys<T> = Array<T>;
+    type Keys<TKey> = Array<TKey>;
+    ```
+
+### Prop callbacks
+  - Prop callbacks should be named for what has happened, not for what is going to happen. Components should never assume anything about how they will be used (that's the job of whatever is implementing it).
+
+    ```ts
+    // Bad
+    type ComponentProps = {
+        /** A callback to call when we want to save the form */
+        onSaveForm: () => void;
+    };
+
+    // Good
+    type ComponentProps = {
+        /** A callback to call when the form has been submitted */
+        onFormSubmitted: () => void;
+    };
+    ```
+
+  * Do not use underscores when naming private methods.
 
 ### Event Handlers
   - When you have an event handler, do not prefix it with "on" or "handle". The method should be named for what it does, not what it handles. This promotes code reuse by minimizing assumptions that a method must be called in a certain fashion (eg. only as an event handler).
@@ -78,7 +580,7 @@ someArray.map(function (item) {...});
 someArray.map((item) => {...});
 ```
 
-Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
+Empty functions (noop) should be declared as arrow functions with no whitespace inside. Avoid _.noop()
 
 ```javascript
 // Bad
@@ -114,53 +616,68 @@ if (someCondition) {
 
 ## Accessing Object Properties and Default Values
 
-Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type.
+Use optional chaining (`?.`) to safely access object properties and nullish coalescing (`??`) to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. Don't use the `lodashGet()` function. eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
 
-```javascript
-// Bad
-const value = somePossiblyNullThing ?? 'default';
-// Good
-const value = somePossiblyNullThing || 'default';
-// Bad
-const value = someObject.possiblyUndefinedProperty?.nestedProperty || 'default';
-// Bad
-const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
-// Good
-const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
+```ts
+// BAD
+import lodashGet from "lodash/get";
+const name = lodashGet(user, "name", "default name");
+
+// BAD
+const name = user?.name || "default name";
+
+// GOOD
+const name = user?.name ?? "default name";
 ```
 
 ## JSDocs
 
-- Always document parameters and return values.
-- Optional parameters should be enclosed by `[]` e.g. `@param {String} [optionalText]`.
-- Document object parameters with separate lines e.g. `@param {Object} parameters` followed by `@param {String} parameters.field`.
-- If a parameter accepts more than one type use `*` to denote there is no single type.
-- Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc).
-- When specifying a return value use `@returns` instead of `@return`. If there is no return value do not include one in the doc.
-
+- Omit comments that are redundant with TypeScript. Do not declare types in `@param` or `@return` blocks. Do not write `@implements`, `@enum`, `@private`, `@override`. eslint: [`jsdoc/no-types`](https://github.com/gajus/eslint-plugin-jsdoc/blob/main/.README/rules/no-types.md)
+- Only document params/return values if their names are not enough to fully understand their purpose. Not all parameters or return values need to be listed in the JSDoc comment. If there is no comment accompanying the parameter or return value, omit it.
+- When specifying a return value use `@returns` instead of `@return`. 
 - Avoid descriptions that don't add any additional information. Method descriptions should only be added when it's behavior is unclear.
 - Do not use block tags other than `@param` and `@returns` (e.g. `@memberof`, `@constructor`, etc).
 - Do not document default parameters. They are already documented by adding them to a declared function's arguments.
 - Do not use record types e.g. `{Object.<string, number>}`.
-- Do not create `@typedef` to use in JSDocs.
-- Do not use type unions e.g. `{(number|boolean)}`.
 
-```javascript
-// Bad
+```ts
+// BAD
 /**
- * Populates the shortcut modal
- * @param {bool} shouldShowAdvancedShortcuts whether to show advanced shortcuts
- * @return {*}
+ * @param {number} age
+ * @returns {boolean} Whether the person is a legal drinking age or nots
  */
-function populateShortcutModal(shouldShowAdvancedShortcuts) {
+function canDrink(age: number): boolean {
+    return age >= 21;
 }
 
-// Good
+// GOOD
 /**
- * @param {Boolean} shouldShowAdvancedShortcuts
- * @returns {Boolean}
+ * @returns Whether the person is a legal drinking age or nots
  */
-function populateShortcutModal(shouldShowAdvancedShortcuts) {
+function canDrink(age: number): boolean {
+    return age >= 21;
+}
+```
+
+In the above example, because the parameter `age` doesn't have any accompanying comment, it is completely omitted from the JSDoc.
+
+## Component props
+
+Do not use **`propTypes` and `defaultProps`**: . Use object destructing and assign a default value to each optional prop unless the default values is `undefined`.
+
+```tsx
+type MyComponentProps = {
+    requiredProp: string;
+    optionalPropWithDefaultValue?: number;
+    optionalProp?: boolean;
+};
+
+function MyComponent({
+    requiredProp,
+    optionalPropWithDefaultValue = 42,
+    optionalProp,
+}: MyComponentProps) {
+    // component's code
 }
 ```
 
@@ -177,35 +694,6 @@ const {data} = event.data;
 
 // Good
 const {name, accountID, email} = data;
-```
-
-**React Components**
-
-Always use destructuring to get prop values. Destructuring is necessary to assign default values to props. 
-
-```javascript
-// Bad
-function UserInfo(props) {
-    return (
-        <View>
-            <Text>Name: {props.name}</Text>
-            <Text>Email: {props.email}</Text>
-        </View>
-}
-
-UserInfo.defaultProps = {
-    name: 'anonymous';
-}
-
-// Good
-function UserInfo({ name = 'anonymous', email }) {
-    return (
-        <View>
-            <Text>Name: {name}</Text>
-            <Text>Email: {email}</Text>
-        </View>
-    );
-}
 ```
 
 ## Named vs Default Exports in ES6 - When to use what?
@@ -277,98 +765,47 @@ So, if a new language feature isn't something we have agreed to support it's off
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
 - **Async/Await** - Use the native `Promise` instead
-- **Optional Chaining** - Use `lodashGet()` to fetch a nested value instead
-- **Null Coalescing Operator** - Use `lodashGet()` or `||` to set a default value for a possibly `undefined` or `null` variable
+- **Optional Chaining** - Yes, don't use `lodashGet()`
+- **Null Coalescing Operator** - Yes, don't use `lodashGet()` or `||` to set a default value for a possibly `undefined` or `null` variable
 
 # React Coding Standards
 
 # React specific styles
 
-## Method Naming and Code Documentation
-* Prop callbacks should be named for what has happened, not for what is going to happen. Components should never assume anything about how they will be used (that's the job of whatever is implementing it).
+## Code Documentation
+
+* Add descriptions to all component props using a block comment above the definition. No need to document the types, but add some context for each property so that other developers understand the intended use.
 
 ```javascript
 // Bad
-const propTypes = {
-    /** A callback to call when we want to save the form */
-    onSaveForm: PropTypes.func.isRequired,
-};
-
-// Good
-const propTypes = {
-    /** A callback to call when the form has been submitted */
-    onFormSubmitted: PropTypes.func.isRequired,
-};
-```
-
-* Do not use underscores when naming private methods.
-* Add descriptions to all `propTypes` using a block comment above the definition. No need to document the types (that's what `propTypes` is doing already), but add some context for each property so that other developers understand the intended use.
-
-```javascript
-// Bad
-const propTypes = {
-    currency: PropTypes.string.isRequired,
-    amount: PropTypes.number.isRequired,
-    isIgnored: PropTypes.bool.isRequired
+type ComponentProps = {
+    currency: string;
+    amount: number;
+    isIgnored: boolean;
 };
 
 // Bad
-const propTypes = {
+type ComponentProps = {
     // The currency that the reward is in
-    currency: React.PropTypes.string.isRequired,
+    currency: string;
 
     // The amount of reward
-    amount: React.PropTypes.number.isRequired,
+    amount: number;
 
     // If the reward has been ignored or not
-    isIgnored: React.PropTypes.bool.isRequired
+    isIgnored: boolean;
 }
 
 // Good
-const propTypes = {
+type ComponentProps = {
     /** The currency that the reward is in */
-    currency: React.PropTypes.string.isRequired,
+    currency: string;
 
     /** The amount of the reward */
-    amount: React.PropTypes.number.isRequired,
+    amount: number;
 
     /** If the reward has not been ignored yet */
-    isIgnored: React.PropTypes.bool.isRequired
-}
-```
-
-All `propTypes` and `defaultProps` *must* be defined at the **top** of the file in variables called `propTypes` and `defaultProps`.
-These variables should then be assigned to the component at the bottom of the file.
-
-```js
-MyComponent.propTypes = propTypes;
-MyComponent.defaultProps = defaultProps;
-export default MyComponent;
-```
-
-Any nested `propTypes` e.g. that may appear in a `PropTypes.shape({})` should also be documented.
-
-```javascript
-// Bad
-const propTypes = {
-    /** Session data */
-    session: PropTypes.shape({
-        authToken: PropTypes.string,
-        login: PropTypes.string,
-    }),
-}
-
-// Good
-const propTypes = {
-    /** Session data */
-    session: PropTypes.shape({
-
-        /** Token used to authenticate the user */
-        authToken: PropTypes.string,
-
-        /** User email or phone number */
-        login: PropTypes.string,
-    }),
+    isIgnored: boolean;
 }
 ```
 
@@ -452,27 +889,112 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 When writing a function component you must ALWAYS add a `displayName` property and give it the same value as the name of the component (this is so it appears properly in the React dev tools)
 
 ```javascript
+function Avatar(props: AvatarProps) {...};
 
-    function Avatar(props) {...};
+Avatar.displayName = 'Avatar';
 
-    Avatar.propTypes = propTypes;
-    Avatar.defaultProps = defaultProps;
-    Avatar.displayName = 'Avatar';
-
-    export default Avatar;
+export default Avatar;
 ```
 
 ## Forwarding refs
 
 When forwarding a ref define named component and pass it directly to the `forwardRef`. By doing this we remove potential extra layer in React tree in form of anonymous component.
 
-```javascript
-    function FancyInput(props, ref) {
-        ...
-        return <input {...props} ref={ref} />
-    }
+```tsx
+import type {ForwarderRef} from 'react';
 
-    export default React.forwardRef(FancyInput)
+type FancyInputProps = {
+    ...
+};
+
+function FancyInput(props: FancyInputProps, ref: ForwardedRef<TextInput>) {
+    ...
+    return <input {...props} ref={ref} />
+};
+
+export default React.forwardRef(FancyInput)
+```
+
+If the ref handle is not available (e.g. `useImperativeHandle` is used) you can define a custom handle type above the component.
+
+```tsx 
+import type {ForwarderRef} from 'react';
+import {useImperativeHandle} from 'react';
+
+type FancyInputProps = {
+    ...
+    onButtonPressed: () => void;
+};
+
+type FancyInputHandle = {
+  onButtonPressed: () => void;
+}
+
+function FancyInput(props: FancyInputProps, ref: ForwardedRef<FancyInputHandle>) {
+    useImperativeHandle(ref, () => ({onButtonPressed}));
+
+    ...
+    return <input {...props} ref={ref} />;
+};
+
+export default React.forwardRef(FancyInput)
+```
+
+## Hooks and HOCs
+
+Use hooks whenever possible, avoid using HOCs.
+
+> Why? Hooks are easier to use (can be used inside the function component), and don't need nesting or `compose` when exporting the component. It also allows us to remove `compose` completely in some components since it has been bringing up some issues with TypeScript. Read the [`compose` usage](#compose-usage) section for further information about the TypeScript issues with `compose`.
+
+> Note: Because Onyx doesn't provide a hook yet, in a component that accesses Onyx data with `withOnyx` HOC, please make sure that you don't use other HOCs (if applicable) to avoid HOC nesting.
+
+```tsx
+// BAD
+type ComponentOnyxProps = {
+    session: OnyxEntry<Session>;
+};
+
+type ComponentProps = WindowDimensionsProps &
+    WithLocalizeProps &
+    ComponentOnyxProps & {
+        someProp: string;
+    };
+
+function Component({windowWidth, windowHeight, translate, session, someProp}: ComponentProps) {
+    // component's code
+}
+
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+    withOnyx<ComponentProps, ComponentOnyxProps>({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(Component);
+
+// GOOD
+type ComponentOnyxProps = {
+    session: OnyxEntry<Session>;
+};
+
+type ComponentProps = ComponentOnyxProps & {
+    someProp: string;
+};
+
+function Component({session, someProp}: ComponentProps) {
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {translate} = useLocalize();
+    // component's code
+}
+
+// There is no hook alternative for withOnyx yet.
+export default withOnyx<ComponentProps, ComponentOnyxProps>({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(Component);
 ```
 
 ## Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
@@ -481,31 +1003,48 @@ Class components are DEPRECATED. Use function components and React hooks.
 
 [https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function](https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function)
 
-## Composition vs Inheritance
+## Composition 
+
+Avoid the usage of `compose` function to compose HOCs in TypeScript files. Use nesting instead.
+
+  > Why? `compose` function doesn't work well with TypeScript when dealing with several HOCs being used in a component, many times resulting in wrong types and errors. Instead, nesting can be used to allow a seamless use of multiple HOCs and result in a correct return type of the compoment. Also, you can use [hooks instead of HOCs](#hooks-instead-of-hocs) whenever possible to minimize or even remove the need of HOCs in the component.
 
 From React's documentation -
 >Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
 >If you want to reuse non-UI functionality between components, we suggest extracting it into a separate JavaScript module. The components may import it and use that function, object, or a class, without extending it.
 
-Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+  ```ts
+  // BAD
+  export default compose(
+      withCurrentUserPersonalDetails,
+      withReportOrNotFound(),
+      withOnyx<ComponentProps, ComponentOnyxProps>({
+          session: {
+              key: ONYXKEYS.SESSION,
+          },
+      }),
+  )(Component);
 
-If several HOC need to be combined there is a `compose()` utility. But we should not use this utility when there is only one HOC.
+  // GOOD
+  export default withCurrentUserPersonalDetails(
+      withReportOrNotFound()(
+          withOnyx<ComponentProps, ComponentOnyxProps>({
+              session: {
+                  key: ONYXKEYS.SESSION,
+              },
+          })(Component),
+      ),
+  );
 
-```javascript
-// Bad
-export default compose(
-    withLocalize,
-)(MyComponent);
-
-// Good
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(MyComponent);
-
-// Good
-export default withLocalize(MyComponent)
-```
+  // GOOD - alternative to HOC nesting
+  const ComponentWithOnyx = withOnyx<ComponentProps, ComponentOnyxProps>({
+      session: {
+          key: ONYXKEYS.SESSION,
+      },
+  })(Component);
+  const ComponentWithReportOrNotFound = withReportOrNotFound()(ComponentWithOnyx);
+  export default withCurrentUserPersonalDetails(ComponentWithReportOrNotFound);
+  ```
 
 **Note:** If you find that none of these approaches work for you, please ask an Expensify engineer for guidance via Slack or GitHub.
 
@@ -586,3 +1125,19 @@ For example, if you are storing a boolean value that could be associated with a 
 **Exception:** There are some [gotchas](https://github.com/expensify/react-native-onyx#merging-data) when working with complex nested array values in Onyx. So, this could be another valid reason to break a property off of it's parent object (e.g. `reportActions` are easier to work with as a separate collection).
 
 If you're not sure whether something should have a collection key reach out in [`#expensify-open-source`](https://expensify.slack.com/archives/C01GTK53T8Q) for additional feedback.
+
+# Learning Resources
+
+### Quickest way to learn TypeScript
+
+- Get up to speed quickly
+  - [TypeScript playground](https://www.typescriptlang.org/play?q=231#example)
+    - Go though all examples on the playground. Click on "Example" tab on the top
+- Handy Reference
+  - [TypeScript CheatSheet](https://www.typescriptlang.org/cheatsheets)
+    - [Type](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
+    - [Control Flow Analysis](https://www.typescriptlang.org/static/TypeScript%20Control%20Flow%20Analysis-8a549253ad8470850b77c4c5c351d457.png)
+- TypeScript with React
+  - [React TypeScript CheatSheet](https://react-typescript-cheatsheet.netlify.app/)
+    - [List of built-in utility types](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/utilities)
+    - [HOC CheatSheet](https://react-typescript-cheatsheet.netlify.app/docs/hoc/)
