@@ -92,7 +92,7 @@ function TransactionListItem<TItem extends ListItem>({
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
-                                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                                <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Avatar
                                         imageStyles={[styles.alignSelfCenter]}
                                         size={CONST.AVATAR_SIZE.SMALL}
@@ -113,7 +113,7 @@ function TransactionListItem<TItem extends ListItem>({
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                                <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter]}>
                                     <Avatar
                                         imageStyles={[styles.alignSelfCenter]}
                                         size={CONST.AVATAR_SIZE.SMALL}
