@@ -629,7 +629,7 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
-        receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema' : 'Problemas'} encontrado`,
+        receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
         fieldPending: 'Pendiente...',
         defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',

@@ -334,7 +334,8 @@ function MoneyRequestView({
     );
 
     const shouldShowReceiptEmptyState = !hasReceipt && (canEditReceipt || isAdmin || isApprover);
-    const shouldShowMapOrReceipt = showMapAsImage ?? hasReceipt;
+    /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
+    const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
