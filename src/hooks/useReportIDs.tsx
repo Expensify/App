@@ -97,7 +97,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
         type: policy.type,
         name: policy.name,
-        avatar: policy.avatar,
+        avatar: policy.avatarURL,
         employeeList: policy.employeeList,
     }) as PolicySelector;
 
