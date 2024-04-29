@@ -15,6 +15,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
+import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -53,39 +54,41 @@ function WorkspaceNamePage({policy}: Props) {
     }, []);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={WorkspaceNamePage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('workspace.editor.nameInputLabel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-
-            <FormProvider
-                formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
-                submitButtonText={translate('workspace.editor.save')}
-                style={[styles.flexGrow1, styles.ph5]}
-                scrollContextEnabled
-                validate={validate}
-                onSubmit={submit}
-                enabledWhenOffline
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policy?.id ?? ''}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={WorkspaceNamePage.displayName}
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUT_IDS.NAME}
-                        label={translate('workspace.editor.nameInputLabel')}
-                        accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                        defaultValue={policy?.name}
-                        spellCheck={false}
-                        autoFocus
-                    />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+                <HeaderWithBackButton
+                    title={translate('workspace.editor.nameInputLabel')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM}
+                    submitButtonText={translate('workspace.editor.save')}
+                    style={[styles.flexGrow1, styles.ph5]}
+                    scrollContextEnabled
+                    validate={validate}
+                    onSubmit={submit}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.NAME}
+                            label={translate('workspace.editor.nameInputLabel')}
+                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            defaultValue={policy?.name}
+                            spellCheck={false}
+                            autoFocus
+                        />
+                    </View>
+                </FormProvider>
+            </ScreenWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 
