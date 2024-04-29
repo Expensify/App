@@ -1942,9 +1942,12 @@ export default {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             vendor_billDescription:
                 "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            debitCardAccountDescription: 'Debit card transactions will export to the bank account below.”',
-            creditCardAccountDescription: 'Credit card transactions will export to the bank account below.',
-            vendorBillAccountDescription: 'Select the vendor applied to all credit card transactions.',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            debit_cardAccountDescription: 'Debit card transactions will export to the bank account below.”',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            credit_cardAccountDescription: 'Credit card transactions will export to the bank account below.',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            vendor_billAccountDescription: 'Select the vendor applied to all credit card transactions.',
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',

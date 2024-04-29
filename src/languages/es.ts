@@ -1944,22 +1944,33 @@ export default {
             archive: 'Archivo de cuentas por cobrar', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
             exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
+            // The account type name uses underscores in the backend.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             debit_card: 'Tarjeta de débito',
             check: 'Cheque',
             optionBelow: 'Elija una opción a continuación:',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             credit_card: 'Tarjeta de crédito',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             vendor_bill: 'Factura del proveedor',
             account: 'Cuenta',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
             defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
-            debitCardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
-            creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
-            vendorBillAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+            // The account type name uses underscores in the backend.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            debit_cardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            credit_cardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            vendor_billAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             debit_cardDescription:
                 "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             credit_cardDescription:
                 "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             vendor_billDescription:
                 'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
             accountsPayable: 'Cuentas por pagar',
