@@ -5,7 +5,6 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
 import type {
     BottomTabNavigatorParamList,
@@ -15,7 +14,6 @@ import type {
     SettingsNavigatorParamList,
     WorkspacesCentralPaneNavigatorParamList,
 } from '@navigation/types';
-import policyMemberPropType from '@pages/policyMemberPropType';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,6 +52,34 @@ type PolicyRoute = RouteProp<
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
 }
+
+const taxPropTypes = PropTypes.shape({
+    /** Name of a tax */
+    name: PropTypes.string,
+
+    /** The value of a tax */
+    value: PropTypes.string,
+
+    /** Whether the tax is disabled */
+    isDisabled: PropTypes.bool,
+});
+
+const taxRatesPropTypes = PropTypes.shape({
+    /** Name of the tax */
+    name: PropTypes.string,
+
+    /** Default policy tax ID */
+    defaultExternalID: PropTypes.string,
+
+    /** Default value of taxes */
+    defaultValue: PropTypes.string,
+
+    /** Default foreign policy tax ID */
+    foreignTaxDefault: PropTypes.string,
+
+    /** List of tax names and values */
+    taxes: PropTypes.objectOf(taxPropTypes),
+});
 
 const policyPropTypes = {
     /** The policy object for the current route */
@@ -115,18 +141,13 @@ const policyPropTypes = {
         }),
 
         /** Collection of tax rates attached to a policy */
-        taxRates: taxPropTypes,
+        taxRates: taxRatesPropTypes,
     }),
-
-    /** The employee list of this policy */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
 };
 
 type WithPolicyOnyxProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-    policyMembers: OnyxEntry<OnyxTypes.PolicyMembers>;
     policyDraft: OnyxEntry<OnyxTypes.Policy>;
-    policyMembersDraft: OnyxEntry<OnyxTypes.PolicyMember>;
 };
 
 type WithPolicyProps = WithPolicyOnyxProps & {
@@ -135,9 +156,7 @@ type WithPolicyProps = WithPolicyOnyxProps & {
 
 const policyDefaultProps: WithPolicyOnyxProps = {
     policy: {} as OnyxTypes.Policy,
-    policyMembers: {},
     policyDraft: {} as OnyxTypes.Policy,
-    policyMembersDraft: {},
 };
 
 /*
@@ -168,14 +187,8 @@ export default function <TProps extends WithPolicyProps, TRef>(WrappedComponent:
         policy: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
-        policyMembers: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
-        },
         policyDraft: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
-        },
-        policyMembersDraft: {
-            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS_DRAFTS}${getPolicyIDFromRoute(props.route)}`,
         },
     })(forwardRef(WithPolicy));
 }

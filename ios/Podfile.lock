@@ -1236,7 +1236,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-geolocation (3.0.6):
+  - react-native-geolocation (3.2.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1380,10 +1380,25 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-quick-sqlite (8.0.0-beta.2):
-    - React
-    - React-callinvoker
+  - react-native-quick-sqlite (8.0.6):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-release-profiler (0.1.6):
     - glog
     - hermes-engine
@@ -1697,25 +1712,6 @@ PODS:
     - React-perflogger (= 0.73.4)
   - RNAppleAuthentication (2.2.2):
     - React-Core
-  - RNCAsyncStorage (1.21.0):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNCClipboard (1.13.2):
     - glog
     - hermes-engine
@@ -1835,7 +1831,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.47):
+  - RNLiveMarkdown (0.1.64):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1853,9 +1849,9 @@ PODS:
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNLiveMarkdown/common (= 0.1.47)
+    - RNLiveMarkdown/common (= 0.1.64)
     - Yoga
-  - RNLiveMarkdown/common (0.1.47):
+  - RNLiveMarkdown/common (0.1.64):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -2154,7 +2150,6 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
-  - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
@@ -2385,8 +2380,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNAppleAuthentication:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
-  RNCAsyncStorage:
-    :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCPicker:
@@ -2512,7 +2505,7 @@ SPEC CHECKSUMS:
   react-native-cameraroll: 95ce0d1a7d2d1fe55bf627ab806b64de6c3e69e9
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
-  react-native-geolocation: dcc37809bc117ffdb5946fecc127d62319ccd4a9
+  react-native-geolocation: c1c21a8cda4abae6724a322458f64ac6889b8c2b
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
   react-native-key-command: 74d18ad516037536c2f671ef0914bcce7739b2f5
   react-native-launch-arguments: 5f41e0abf88a15e3c5309b8875d6fd5ac43df49d
@@ -2521,7 +2514,7 @@ SPEC CHECKSUMS:
   react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
   react-native-performance: 1aa5960d005159f4ab20be15b44714b53b44e075
   react-native-plaid-link-sdk: 93870f8cd1de8e0acca5cb5020188bdc94e15db6
-  react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
+  react-native-quick-sqlite: f7b9f578b8b3b608dc742240b0103faae5b61f63
   react-native-release-profiler: 42fc8e09b4f6f9b7d14cc5a15c72165e871c0918
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: e8bdd57d9f8d34cc336f0ee6acb30712a8454446
@@ -2551,7 +2544,6 @@ SPEC CHECKSUMS:
   React-utils: 6e5ad394416482ae21831050928ae27348f83487
   ReactCommon: 840a955d37b7f3358554d819446bffcf624b2522
   RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
-  RNCAsyncStorage: 559f22cc4b582414e783fd7255974b29e24b451c
   RNCClipboard: c73bbc2e9012120161f1012578418827983bfd0c
   RNCPicker: c77efa39690952647b83d8085520bf50ebf94ecb
   RNDeviceInfo: cbf78fdb515ae73e641ee7c6b474f77a0299e7e6
@@ -2564,7 +2556,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 1190c218cdaaf029ee1437076a3fbbc3297d89fb
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
-  RNLiveMarkdown: f172c7199283dc9d21bccf7e21ea10741fd19e1d
+  RNLiveMarkdown: ddc8b2d827febd397c88137ffc7a6e102d511b8b
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   rnmapbox-maps: 3e273e0e867a079ec33df9ee33bb0482434b897d
   RNPermissions: 8990fc2c10da3640938e6db1647cb6416095b729
@@ -2580,7 +2572,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: 3033e0dd5272d46e97bcb406adea4ae0e6907abf
+  VisionCamera: 8c5c9c50b3d76018782a823cee2f0b8b628c8604
   Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d

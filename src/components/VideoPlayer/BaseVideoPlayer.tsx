@@ -2,7 +2,7 @@
 import type {AVPlaybackStatus, VideoFullscreenUpdateEvent} from 'expo-av';
 import {ResizeMode, Video, VideoFullscreenUpdate} from 'expo-av';
 import type {MutableRefObject} from 'react';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -10,6 +10,7 @@ import Hoverable from '@components/Hoverable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
 import VideoPopoverMenu from '@components/VideoPopoverMenu';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -77,6 +78,7 @@ function BaseVideoPlayer({
     const isCurrentlyURLSet = currentlyPlayingURL === url;
     const isUploading = CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => url.startsWith(prefix));
     const videoStateRef = useRef<AVPlaybackStatus | null>(null);
+    const {updateVolume} = useVolumeContext();
 
     const togglePlayCurrentVideo = useCallback(() => {
         videoResumeTryNumber.current = 0;
@@ -156,6 +158,16 @@ function BaseVideoPlayer({
 
             if (event.fullscreenUpdate === VideoFullscreenUpdate.PLAYER_DID_DISMISS) {
                 isFullScreenRef.current = false;
+
+                // Sync volume updates in full screen mode after leaving it
+                currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
+                    if (!('isMuted' in status)) {
+                        return;
+                    }
+
+                    updateVolume(status.isMuted ? 0 : status.volume || 1);
+                });
+
                 // we need to use video state ref to check if video is playing, to catch proper state after exiting fullscreen
                 // and also fix a bug with fullscreen mode dismissing when handleFullscreenUpdate function changes
                 if (videoStateRef.current && (!('isPlaying' in videoStateRef.current) || videoStateRef.current.isPlaying)) {
@@ -165,7 +177,7 @@ function BaseVideoPlayer({
                 }
             }
         },
-        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber],
+        [isFullScreenRef, onFullscreenUpdate, pauseVideo, playVideo, videoResumeTryNumber, updateVolume, currentVideoPlayerRef],
     );
 
     const bindFunctions = useCallback(() => {
@@ -181,6 +193,18 @@ function BaseVideoPlayer({
             handlePlaybackStatusUpdate(status);
         });
     }, [currentVideoPlayerRef, handleFullscreenUpdate, handlePlaybackStatusUpdate]);
+
+    // use `useLayoutEffect` instead of `useEffect` because ref is null when unmount in `useEffect` hook
+    // ref url: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
+    useLayoutEffect(
+        () => () => {
+            if (shouldUseSharedVideoElement || videoPlayerRef.current !== currentVideoPlayerRef.current) {
+                return;
+            }
+            currentVideoPlayerRef.current = null;
+        },
+        [currentVideoPlayerRef, shouldUseSharedVideoElement],
+    );
 
     useEffect(() => {
         if (!isUploading || !videoPlayerRef.current) {
@@ -273,7 +297,7 @@ function BaseVideoPlayer({
                                     }
                                     togglePlayCurrentVideo();
                                 }}
-                                style={styles.flex1}
+                                style={[styles.flex1, styles.noSelect]}
                             >
                                 {shouldUseSharedVideoElement ? (
                                     <>

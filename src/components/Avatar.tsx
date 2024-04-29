@@ -90,7 +90,7 @@ function Avatar({
     if (isWorkspace) {
         iconColors = StyleUtils.getDefaultWorkspaceAvatarColor(name);
     } else if (useFallBackAvatar) {
-        iconColors = StyleUtils.getBackgroundColorAndFill(theme.border, theme.icon);
+        iconColors = StyleUtils.getBackgroundColorAndFill(theme.buttonHoveredBG, theme.icon);
     } else {
         iconColors = null;
     }
