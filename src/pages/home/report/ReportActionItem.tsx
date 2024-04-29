@@ -805,7 +805,7 @@ function ReportActionItem({
                 </View>
             );
         }
-        if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
+        if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
                     {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (

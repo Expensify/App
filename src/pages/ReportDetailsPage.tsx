@@ -79,6 +79,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report), [report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
+    const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
     const canLeaveRoom = ReportUtils.canLeaveRoom(report, isPolicyEmployee);
@@ -189,7 +190,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         });
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isChatThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(report)) {
+        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !ReportUtils.isTaskReport(report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -235,6 +236,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         activeChatMembers.length,
         session,
         leaveChat,
+        isInvoiceReport,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -292,7 +294,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
-                            {isMoneyRequestReport ? (
+                            {isMoneyRequestReport || isInvoiceReport ? (
                                 <MultipleAvatars
                                     icons={icons}
                                     size={CONST.AVATAR_SIZE.LARGE}
@@ -328,7 +330,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             ) : (
                                 chatRoomSubtitleText
                             )}
-                            {!isEmptyObject(parentNavigationSubtitleData) && isMoneyRequestReport && (
+                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport) && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                                     parentReportID={report?.parentReportID}

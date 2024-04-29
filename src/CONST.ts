@@ -55,6 +55,7 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
+    INVOICE: 'invoice',
 } as const;
 
 // Explicit type annotation is required
@@ -805,6 +806,7 @@ const CONST = {
             EXPENSE: 'expense',
             IOU: 'iou',
             TASK: 'task',
+            INVOICE: 'invoice',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -853,6 +855,10 @@ const CONST = {
             WRITE: 'write',
             SHARE: 'share',
             OWN: 'own',
+        },
+        INVOICE_RECEIVER_TYPE: {
+            INDIVIDUAL: 'individual',
+            BUSINESS: 'policy',
         },
     },
     NEXT_STEP: {
@@ -1470,6 +1476,7 @@ const CONST = {
             PAY: 'pay',
             SPLIT: 'split',
             REQUEST: 'request',
+            INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',
         },
