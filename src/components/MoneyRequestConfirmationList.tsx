@@ -5,7 +5,7 @@ import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'reac
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +26,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import * as ReceiptUtils from '@libs/ReceiptUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -44,6 +45,7 @@ import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
+import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
@@ -75,6 +77,9 @@ type MoneyRequestConfirmationListOnyxProps = {
 
     /** Last selected distance rates */
     lastSelectedDistanceRates: OnyxEntry<Record<string, string>>;
+
+    /** The list of all policies */
+    allPolicies: OnyxCollection<OnyxTypes.Policy>;
 
     /** List of currencies */
     currencyList: OnyxEntry<OnyxTypes.CurrencyList>;
@@ -214,6 +219,7 @@ function MoneyRequestConfirmationList({
     reportActionID,
     defaultMileageRate,
     lastSelectedDistanceRates,
+    allPolicies,
     action = CONST.IOU.ACTION.CREATE,
     currencyList,
 }: MoneyRequestConfirmationListProps) {
@@ -228,6 +234,7 @@ function MoneyRequestConfirmationList({
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => TransactionUtils.isScanRequest(transaction), [transaction]);
 
     const transactionID = transaction?.transactionID ?? '';
@@ -273,6 +280,13 @@ function MoneyRequestConfirmationList({
     const shouldShowMerchant = shouldShowSmartScanFields && !isDistanceRequest && !isTypeSend;
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+
+    const senderWorkspace = useMemo(() => {
+        const senderWorkspaceParticipant = selectedParticipantsProp.find((participant) => participant.isSender);
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${senderWorkspaceParticipant?.policyID}`];
+    }, [allPolicies, selectedParticipantsProp]);
+
+    const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
 
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
@@ -365,7 +379,9 @@ function MoneyRequestConfirmationList({
 
     const splitOrRequestOptions: Array<DropdownOption<string>> = useMemo(() => {
         let text;
-        if (isTypeTrackExpense) {
+        if (isTypeInvoice) {
+            text = translate('iou.sendInvoice', {amount: formattedAmount});
+        } else if (isTypeTrackExpense) {
             text = translate('iou.trackExpense');
         } else if (isTypeSplit && iouAmount === 0) {
             text = translate('iou.splitExpense');
@@ -384,7 +400,7 @@ function MoneyRequestConfirmationList({
                 value: iouType,
             },
         ];
-    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount]);
+    }, [isTypeTrackExpense, isTypeSplit, iouAmount, receiptPath, isTypeRequest, isDistanceRequestWithPendingRoute, iouType, translate, formattedAmount, isTypeInvoice]);
 
     const onSplitShareChange = useCallback(
         (accountID: number, value: number) => {
@@ -1042,6 +1058,26 @@ function MoneyRequestConfirmationList({
                     <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
                 </View>
             )}
+            {isTypeInvoice && (
+                <MenuItem
+                    key={translate('workspace.invoices.sendFrom')}
+                    shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
+                    title={senderWorkspace?.name}
+                    icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                    iconType={CONST.ICON_TYPE_WORKSPACE}
+                    description={translate('workspace.common.workspace')}
+                    label={translate('workspace.invoices.sendFrom')}
+                    isLabelHoverable={false}
+                    interactive={!isReadOnly && canUpdateSenderWorkspace}
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
+                    }}
+                    style={styles.moneyRequestMenuItem}
+                    labelStyle={styles.mt2}
+                    titleStyle={styles.flex1}
+                    disabled={didConfirm || !canUpdateSenderWorkspace}
+                />
+            )}
             {!isDistanceRequest &&
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 (receiptImage || receiptThumbnail
@@ -1104,6 +1140,9 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     },
     lastSelectedDistanceRates: {
         key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+    },
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
     currencyList: {
         key: ONYXKEYS.CURRENCY_LIST,
