@@ -98,7 +98,6 @@ function IOURequestStepScan({
 
         const defaultConstraints = {facingMode: {exact: 'environment'}};
         navigator.mediaDevices
-            // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
             .then((stream) => {
                 setCameraPermissionState('granted');
@@ -108,7 +107,6 @@ function IOURequestStepScan({
                     let deviceId;
                     for (const track of stream.getTracks()) {
                         const setting = track.getSettings();
-                        // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
                         if (setting.zoom === 1) {
                             deviceId = setting.deviceId;
                             break;
@@ -152,7 +150,6 @@ function IOURequestStepScan({
         }
         navigator.permissions
             .query({
-                // @ts-expect-error camera does exist in PermissionName
                 name: 'camera',
             })
             .then((permissionState) => {
@@ -398,7 +395,6 @@ function IOURequestStepScan({
             return;
         }
         trackRef.current.applyConstraints({
-            // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
             advanced: [{torch: false}],
         });
     }, []);
@@ -407,7 +403,6 @@ function IOURequestStepScan({
         if (trackRef.current && isFlashLightOn) {
             trackRef.current
                 .applyConstraints({
-                    // @ts-expect-error there is a type mismatch in typescipt types for MediaStreamTrack microsoft/TypeScript#39010
                     advanced: [{torch: true}],
                 })
                 .then(() => {
