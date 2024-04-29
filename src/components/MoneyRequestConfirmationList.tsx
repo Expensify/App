@@ -173,8 +173,11 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     action?: IOUAction;
 };
 
-const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
-    const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
+const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+    const getTaxValue = (taxCode: string) => Object.values(TransactionUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+
+    const percentage = (transaction?.taxCode ? getTaxValue(transaction?.taxCode) : getTaxValue(defaultTaxCode)) ?? '';
     return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
 };
 
@@ -364,7 +367,7 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     useEffect(() => {
-        const taxAmount = getTaxAmount(transaction, taxRates?.defaultValue ?? '').toString();
+        const taxAmount = getTaxAmount(transaction, policy).toString();
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
         if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
