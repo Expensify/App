@@ -332,7 +332,9 @@ function FloatingActionButtonAndPopover(
                                           ),
                                       );
                                       if (!hasSeenTrackTraining && !isOffline) {
-                                          Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                          setTimeout(() => {
+                                              Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                          }, CONST.ANIMATED_TRANSITION);
                                       }
                                   },
                               },
