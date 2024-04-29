@@ -630,3 +630,45 @@ index 2b565c4..dc9425f 100644
 -  public abstract void idle(@Nullable Double viewRef, Promise promise);
 +  public abstract void idle(@Nullable Integer viewRef, Promise promise);
  }
+diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFabricHelpers.h b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFabricHelpers.h
+index bf07607..974ee24 100644
+--- a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFabricHelpers.h
++++ b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXFabricHelpers.h
+@@ -67,7 +67,7 @@ static std::tuple<std::string, std::string> RNMBXStringifyEventData(NSDictionary
+ }
+ 
+ template <typename T>
+-void RNMBXSetCommonLayerPropsWithoutSourceID(T newProps, RNMBXLayer *_view)
++void RNMBXSetCommonLayerPropsWithoutSourceID(const T& newProps, RNMBXLayer *_view)
+ {
+     id idx = RNMBXConvertFollyDynamicToId(newProps.id);
+     if (idx != nil) {
+@@ -108,7 +108,7 @@ void RNMBXSetCommonLayerPropsWithoutSourceID(T newProps, RNMBXLayer *_view)
+ }
+ 
+ template <typename T>
+-void RNMBXSetCommonLayerProps(T newProps, RNMBXLayer *_view)
++void RNMBXSetCommonLayerProps(const T& newProps, RNMBXLayer *_view)
+ {
+     RNMBXSetCommonLayerPropsWithoutSourceID(newProps, _view);
+     id sourceLayerID = RNMBXConvertFollyDynamicToId(newProps.sourceLayerID);
+diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXMarkerViewComponentView.mm b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXMarkerViewComponentView.mm
+index fd34996..cb42359 100644
+--- a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXMarkerViewComponentView.mm
++++ b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXMarkerViewComponentView.mm
+@@ -104,6 +104,7 @@ - (void)updateLayoutMetrics:(const LayoutMetrics &)layoutMetrics
+         layoutMetrics.contentInsets,
+         layoutMetrics.borderWidth,
+         layoutMetrics.displayType,
++        layoutMetrics.positionType, // RN074
+         layoutMetrics.layoutDirection,
+         layoutMetrics.wasLeftAndRightSwapped,
+         layoutMetrics.pointScaleFactor,
+diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.m b/node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.mm
+similarity index 100%
+rename from node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.m
+rename to node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXChangeLineOffsetsShapeAnimatorModule.mm
+diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXMovePointShapeAnimatorModule.m b/node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXMovePointShapeAnimatorModule.mm
+similarity index 100%
+rename from node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXMovePointShapeAnimatorModule.m
+rename to node_modules/@rnmapbox/maps/ios/RNMBX/ShapeAnimators/RNMBXMovePointShapeAnimatorModule.mm
