@@ -175,7 +175,7 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) => {
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-    const getTaxValue = (taxCode: string) => Object.values(TransactionUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
 
     const percentage = (transaction?.taxCode ? getTaxValue(transaction?.taxCode) : getTaxValue(defaultTaxCode)) ?? '';
     return TransactionUtils.calculateTaxAmount(percentage, transaction?.amount ?? 0);
