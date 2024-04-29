@@ -27,6 +27,7 @@
   - [1.20 Hooks instead of HOCs](#hooks-instead-of-hocs)
   - [1.21 `compose` usage](#compose-usage)
   - [1.22 Type imports](#type-imports)
+  - [1.23 Using `-1` instead of `0` ](#inexistent-record)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -639,6 +640,8 @@ type Foo = {
   export type {SomeType}
   export someVariable
   ```
+
+- [1.23](#inexistent-record) **Defining Inexisting Record**: Always use `-1` when defining inexisiting records instead of using `0`
 
 ## Exception to Rules
 

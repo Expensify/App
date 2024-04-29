@@ -3871,9 +3871,9 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
             },
         ],
         created,
-        accountID: iouReport?.managerID ?? 0,
+        accountID: iouReport?.managerID ?? -1,
         // The preview is initially whispered if created with a receipt, so the actor is the current user as well
-        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? 0,
+        actorAccountID: hasReceipt ? currentUserAccountID : iouReport?.managerID ?? -1,
         childReportID: childReportID ?? iouReport?.reportID,
         childMoneyRequestCount: 1,
         childLastMoneyRequestComment: comment,
