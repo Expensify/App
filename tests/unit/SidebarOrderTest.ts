@@ -299,7 +299,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -363,7 +363,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -430,7 +430,7 @@ describe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                             [`${ONYXKEYS.COLLECTION.POLICY}${fakeReport.policyID}`]: fakePolicy,
                             ...reportCollectionDataSet,
                         }),
@@ -785,12 +785,10 @@ describe('Sidebar', () => {
 
                     // When a new report is added
                     .then(() =>
-                        Onyx.multiSet({
-                            ...reportDraftCommentCollectionDataSet,
-                            [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`]: 'report4 draft',
-                            ...reportCollectionDataSet,
-                            [`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`]: report4,
-                        }),
+                        Promise.all([
+                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report4.reportID}`, report4),
+                            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report4.reportID}`, 'report4 draft'),
+                        ]),
                     )
 
                     // Then they are still in alphabetical order
