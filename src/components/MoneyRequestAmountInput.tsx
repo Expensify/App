@@ -66,7 +66,7 @@ type MoneyRequestAmountInputProps = {
     /** Style for the touchable input wrapper */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Whether we want to format the dsplay amount on blur */
+    /** Whether we want to format the display amount on blur */
     formatAmountOnBlur?: boolean;
 
     /** Whether to format display amount when the `amount` prop changes from the outside */
