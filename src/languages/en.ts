@@ -1920,9 +1920,13 @@ export default {
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
-            creditCard: 'Credit card',
-            debitCard: 'Debit card',
-            vendorBill: 'Vendor bill',
+            // The account type name uses underscores in the backend.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            credit_card: 'Credit card',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            debit_card: 'Debit card',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            vendor_bill: 'Vendor bill',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
