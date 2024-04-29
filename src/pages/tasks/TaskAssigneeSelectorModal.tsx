@@ -73,6 +73,7 @@ function useOptions() {
             [],
             [],
             true,
+            5,
             CONST.REPORT.TYPE.TASK,
         );
 

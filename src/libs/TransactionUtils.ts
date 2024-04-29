@@ -613,6 +613,17 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Check if transaction is on hold for the given transactionID
+ */
+function isOnHoldByTransactionID(transactionID: string): boolean {
+    if (!transactionID) {
+        return false;
+    }
+
+    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null);
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
@@ -715,6 +726,7 @@ export {
     isPending,
     isPosted,
     isOnHold,
+    isOnHoldByTransactionID,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
