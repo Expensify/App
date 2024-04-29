@@ -75,8 +75,7 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy}: WorkspaceProf
         <AccessOrNotFoundWrapper
             policyID={policy?.id ?? ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            fullPageNotFoundViewProps={{onLinkPress: PolicyUtils.goBackFromInvalidPolicy, subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

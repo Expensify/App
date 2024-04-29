@@ -5,17 +5,17 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 type NotFoundPageProps = {
     onBackButtonPress?: () => void;
-} & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
+} & FullPageNotFoundViewProps;
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-function NotFoundPage({onBackButtonPress, subtitleKey, onLinkPress}: NotFoundPageProps) {
+function NotFoundPage({onBackButtonPress, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
     return (
         <ScreenWrapper testID={NotFoundPage.displayName}>
             <FullPageNotFoundView
                 shouldShow
                 onBackButtonPress={onBackButtonPress}
-                subtitleKey={subtitleKey}
-                onLinkPress={onLinkPress}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...fullPageNotFoundViewProps}
             />
         </ScreenWrapper>
     );

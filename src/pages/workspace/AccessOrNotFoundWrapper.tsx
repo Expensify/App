@@ -43,29 +43,32 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
 
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
+
+    /** Props for customizing fallback pages */
+    fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
-type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'subtitleKey' | 'onLinkPress'> & {shouldShowFullScreenFallback: boolean};
+type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean};
 
-function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, subtitleKey, onLinkPress}: PageNotFoundFallbackProps) {
+function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageNotFoundViewProps}: PageNotFoundFallbackProps) {
     return shouldShowFullScreenFallback ? (
         <FullPageNotFoundView
             shouldShow
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             shouldForceFullScreen
-            subtitleKey={subtitleKey}
-            onLinkPress={onLinkPress}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...fullPageNotFoundViewProps}
         />
     ) : (
         <NotFoundPage
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
-            subtitleKey={subtitleKey}
-            onLinkPress={onLinkPress}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...fullPageNotFoundViewProps}
         />
     );
 }
 
-function AccessOrNotFoundWrapper({accessVariants = [], subtitleKey, onLinkPress, ...props}: AccessOrNotFoundWrapperProps) {
+function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, ...props}: AccessOrNotFoundWrapperProps) {
     const {policy, policyID, featureName, isLoadingReportData} = props;
 
     const isPolicyIDInRoute = !!policyID?.length;
@@ -100,8 +103,7 @@ function AccessOrNotFoundWrapper({accessVariants = [], subtitleKey, onLinkPress,
             <PageNotFoundFallback
                 policyID={policyID}
                 shouldShowFullScreenFallback={!isFeatureEnabled}
-                subtitleKey={subtitleKey}
-                onLinkPress={onLinkPress}
+                fullPageNotFoundViewProps={fullPageNotFoundViewProps}
             />
         );
     }

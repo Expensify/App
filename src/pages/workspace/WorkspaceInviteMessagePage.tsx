@@ -136,8 +136,7 @@ function WorkspaceInviteMessagePage({
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
