@@ -6147,16 +6147,21 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction) || !parentReport) {
+        if (!parentReportAction || ReportActionsUtils.isTransactionThread(parentReportAction)) {
             break;
         }
 
-        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport, parentReportAction);
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport ?? {}, parentReportAction);
         allAncestors.push({
             report: currentReport,
             reportAction: parentReportAction,
             shouldDisplayNewMarker: isParentReportActionUnread,
         });
+
+        if (!parentReport) {
+            break;
+        }
+
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;
         if (!isEmptyObject(parentReport)) {
@@ -6186,12 +6191,16 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReportAction || (!includeTransactionThread && ReportActionsUtils.isTransactionThread(parentReportAction)) || !parentReport) {
+        if (!parentReportAction || (!includeTransactionThread && ReportActionsUtils.isTransactionThread(parentReportAction))) {
             break;
         }
 
         allAncestorIDs.reportIDs.push(parentReportID ?? '');
         allAncestorIDs.reportActionsIDs.push(parentReportActionID ?? '');
+
+        if (!parentReport) {
+            break;
+        }
 
         parentReportID = parentReport?.parentReportID;
         parentReportActionID = parentReport?.parentReportActionID;
