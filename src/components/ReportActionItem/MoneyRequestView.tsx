@@ -328,6 +328,9 @@ function MoneyRequestView({
         </OfflineWithFeedback>
     );
 
+    const shouldShowReceiptEmptyState = !hasReceipt && (canEditReceipt || isAdmin || isApprover);
+    const shouldShowMapOrReceipt = showMapAsImage ?? hasReceipt;
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -337,7 +340,7 @@ function MoneyRequestView({
                     shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                 />
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                {(showMapAsImage || hasReceipt) && (
+                {shouldShowMapOrReceipt && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
                         errors={transaction?.errors}
@@ -367,7 +370,7 @@ function MoneyRequestView({
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && (canEditReceipt || isAdmin || isApprover) && (
+                {shouldShowReceiptEmptyState && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
                         disabled={!canEditReceipt}
@@ -385,7 +388,7 @@ function MoneyRequestView({
                     />
                 )}
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                {!(!hasReceipt && (canEditReceipt || isAdmin || isApprover)) && !(showMapAsImage || hasReceipt) && <View style={{marginVertical: 6}} />}
+                {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
                 {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />}
                 <ViolationMessages violations={getViolationsForField('receipt')} />
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
