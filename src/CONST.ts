@@ -55,6 +55,11 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
+<<<<<<< HEAD
+=======
+    INVOICE: 'invoice',
+    SYSTEM: 'system',
+>>>>>>> 3d06f77 (Merge pull request #41200 from neonbhai/system-footer-fixes)
 } as const;
 
 // Explicit type annotation is required
