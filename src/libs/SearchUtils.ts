@@ -1,4 +1,4 @@
-import TransactionListItem from '@components/SelectionList/TemporaryTransactionListItem';
+import TransactionListItem from '@components/SelectionList/TransactionListItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
