@@ -7,19 +7,19 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
-function ReceiptAuditHeader({notes = [], showAuditMessage = false}: {notes?: string[]; showAuditMessage?: boolean}) {
+function ReceiptAuditHeader({notes = [], shouldShowAuditMessage = false}: {notes?: string[]; shouldShowAuditMessage?: boolean}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const issuesFoundText = notes.length > 0 ? translate('iou.receiptIssuesFound', notes.length) : translate('common.verified');
+    const auditText = notes.length > 0 ? translate('iou.receiptIssuesFound', notes.length) : translate('common.verified');
     return (
         <View style={[styles.ph5, styles.mbn1]}>
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Text style={[styles.textLabelSupporting]}>{translate('common.receipt')}</Text>
-                {showAuditMessage && (
+                {shouldShowAuditMessage && (
                     <>
-                        <Text style={[styles.textLabelSupporting]}>{` • ${issuesFoundText}`}</Text>
+                        <Text style={[styles.textLabelSupporting]}>{` • ${auditText}`}</Text>
                         <Icon
                             width={12}
                             height={12}

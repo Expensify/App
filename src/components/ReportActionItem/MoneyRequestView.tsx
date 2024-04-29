@@ -156,7 +156,7 @@ function MoneyRequestView({
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
-    const isReceiptScanCompleted = hasReceipt && TransactionUtils.isReceiptScanCompleted(transaction);
+    const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
     // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
 
@@ -187,7 +187,7 @@ function MoneyRequestView({
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
         [canUseViolations, getViolationsForField],
     );
-    const noteTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
+    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     let amountDescription = `${translate('iou.amount')}`;
@@ -333,8 +333,8 @@ function MoneyRequestView({
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 <ReceiptAuditHeader
-                    notes={noteTypeViolations}
-                    showAuditMessage={shouldShowNotesViolations && isReceiptScanCompleted}
+                    notes={noticeTypeViolations}
+                    shouldShowAuditMessage={shouldShowNotesViolations && didRceiptScanSucceed}
                 />
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (
@@ -386,7 +386,7 @@ function MoneyRequestView({
                 )}
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {!(!hasReceipt && (canEditReceipt || isAdmin || isApprover)) && !(showMapAsImage || hasReceipt) && <View style={{marginVertical: 6}} />}
-                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noteTypeViolations} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />}
                 <ViolationMessages violations={getViolationsForField('receipt')} />
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription

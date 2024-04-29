@@ -491,7 +491,7 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
-function isReceiptScanCompleted(transaction: OnyxEntry<Transaction>): boolean {
+function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
 }
 
@@ -600,9 +600,9 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
 }
 
 /**
- * Checks if any violations for the provided transaction are of type 'note'
+ * Checks if any violations for the provided transaction are of type 'notice'
  */
-function hasNoteTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
 }
 
@@ -691,7 +691,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
-    isReceiptScanCompleted,
+    didRceiptScanSucceed,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -711,7 +711,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
-    hasNoteTypeViolation,
+    hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
 };
