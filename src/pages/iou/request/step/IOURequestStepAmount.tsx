@@ -61,8 +61,7 @@ function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: Ony
     }
     const transactionTaxCode = transaction?.taxCode ?? '';
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
-    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
-    const taxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : getTaxValue(defaultTaxCode)) ?? '';
+    const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transactionTaxCode ?? defaultTaxCode) ?? '';
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
 }
 function IOURequestStepAmount({
