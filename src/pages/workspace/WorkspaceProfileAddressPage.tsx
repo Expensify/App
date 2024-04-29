@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import AddressForm from '@components/AddressForm';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -23,10 +23,10 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
     const {translate} = useLocalize();
     const address = useMemo(() => policy?.address, [policy]);
     const [currentCountry, setCurrentCountry] = useState(address?.country);
-    const [street1, street2] = (address?.addressStreet ?? '').split('\n');
+    const [[street1, street2], setStreets] = useState((address?.addressStreet ?? '').split('\n'));
     const [state, setState] = useState(address?.state);
     const [city, setCity] = useState(address?.city);
-    const [zipcode, setZipcode] = useState(address?.zip);
+    const [zipcode, setZipcode] = useState(address?.zipCode);
 
     const updatePolicyAddress = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM>) => {
         if (!policy) {
@@ -36,7 +36,7 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
             addressStreet: `${values.addressLine1?.trim() ?? ''}\n${values.addressLine2?.trim() ?? ''}`,
             city: values.city.trim(),
             state: values.state.trim(),
-            zip: values?.zipPostCode?.trim().toUpperCase() ?? '',
+            zipCode: values?.zipPostCode?.trim().toUpperCase() ?? '',
             country: values.country,
         });
         Navigation.goBack();
@@ -46,7 +46,7 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
         const countryValue = value as Country | '';
         const addressKey = key as keyof CompanyAddress;
 
-        if (addressKey !== 'country' && addressKey !== 'state' && addressKey !== 'city' && addressKey !== 'zip') {
+        if (addressKey !== 'country' && addressKey !== 'state' && addressKey !== 'city' && addressKey !== 'zipCode') {
             return;
         }
         if (addressKey === 'country') {
@@ -69,6 +69,17 @@ function WorkspaceProfileAddressPage({policy}: WorkspaceProfileAddressPageProps)
         }
         setZipcode(countryValue);
     }, []);
+
+    useEffect(() => {
+        if (!address) {
+            return;
+        }
+        setStreets((address?.addressStreet ?? '').split('\n'));
+        setState(address.state);
+        setCurrentCountry(address.country);
+        setCity(address.city);
+        setZipcode(address.zipCode);
+    }, [address]);
 
     return (
         <ScreenWrapper

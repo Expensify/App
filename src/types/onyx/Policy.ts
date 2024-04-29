@@ -35,7 +35,7 @@ type CompanyAddress = {
     addressStreet: string;
     city: string;
     state: string;
-    zip: string;
+    zipCode: string;
     country: Country | '';
 };
 

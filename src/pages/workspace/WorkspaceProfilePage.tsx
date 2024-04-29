@@ -59,7 +59,9 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
 
     const [street1, street2] = (policy?.address?.addressStreet ?? '').split('\n');
     const formattedAddress =
-        !isEmptyObject(policy) && !isEmptyObject(policy.address) ? `${street1.trim()}, ${street2.trim()}, ${policy.address.city}, ${policy.address.state} ${policy.address.zip}` : '';
+        !isEmptyObject(policy) && !isEmptyObject(policy.address)
+            ? `${street1?.trim()}, ${street2 ? `${street2.trim()}, ` : ''}${policy.address.city}, ${policy.address.state} ${policy.address.zipCode ?? ''}`
+            : '';
 
     const onPressCurrency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_CURRENCY.getRoute(policy?.id ?? '')), [policy?.id]);
     const onPressAddress = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE_ADDRESS.getRoute(policy?.id ?? '')), [policy?.id]);

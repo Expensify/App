@@ -1833,7 +1833,7 @@ function updateAddress(policyID: string, newAddress: CompanyAddress) {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         'data[state]': newAddress.state,
         // eslint-disable-next-line @typescript-eslint/naming-convention
-        'data[zipCode]': newAddress.zip,
+        'data[zipCode]': newAddress.zipCode,
     };
 
     const optimisticData: OnyxUpdate[] = [
