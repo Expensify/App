@@ -23,7 +23,7 @@ function ReceiptAuditHeader({notes, shouldShowAuditMessage}: {notes: string[]; s
                         <Icon
                             width={12}
                             height={12}
-                            src={notes.length > 0 ? Expensicons.DotIndicator : Expensicons.Checkmark}
+                            src={notes.length ? Expensicons.DotIndicator : Expensicons.Checkmark}
                             fill={notes.length ? theme.danger : theme.success}
                             additionalStyles={styles.ml1}
                         />
