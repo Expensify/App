@@ -1076,6 +1076,18 @@ export default {
     cardPage: {
         expensifyCard: 'Expensify Card',
         availableSpend: 'Remaining limit',
+        smartLimit: {
+            name: 'Smart limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and the limit will reset as your submitted expenses are approved.`,
+        },
+        fixedLimit: {
+            name: 'Fixed limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and then it will deactivate.`,
+        },
+        monthlyLimit: {
+            name: 'Monthly limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
+        },
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         getPhysicalCard: 'Get physical card',
