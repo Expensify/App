@@ -116,7 +116,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
-            return translatedPhrase(phraseParameters);
+            return translatedPhrase(...phraseParameters);
         }
 
         // We set the translated value in the cache only for the phrases without parameters.
