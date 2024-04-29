@@ -449,8 +449,8 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
 
-        /** Object containing all policy information necessary to connect with Spotnan */
-        travelSettings: WorkspaceTravelSettings;
+        /** Object containing all policy information necessary to connect with Spontana */
+        travelSettings?: WorkspaceTravelSettings;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;

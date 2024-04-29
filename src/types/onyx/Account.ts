@@ -61,8 +61,8 @@ type Account = {
     twoFactorAuthStep?: TwoFactorAuthStep;
     dismissedReferralBanners?: DismissedReferralBanners;
 
-    /** Object containing all account information necessary to connect with Spotnana */
-    travelSettings: TravelSettings;
+    /** Object containing all account information necessary to connect with Spontana */
+    travelSettings?: TravelSettings;
 };
 
 export default Account;
