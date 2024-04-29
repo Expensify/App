@@ -17,24 +17,44 @@ asMutable(translations).default = {
         testKeyGroup: {
             testFunction: ({testVariable}) => `With variable ${testVariable}`,
         },
-        testPlural: () => ({
-            one: 'You have one item',
-            other: 'You have many items',
-        }),
-        ordinalExample: () => ({
-            one: 'st item',
-            two: 'nd item',
-            few: 'rd item',
-            other: 'th item',
-        }),
+        testPlural: ({count}) => {
+            const enPluralRules = new Intl.PluralRules('en', {type: 'ordinal'});
+            const pluralType = enPluralRules.select(count);
+            switch (pluralType) {
+                case 'one':
+                    return `You have one item`;
+                default:
+                    return `You have many items`;
+            }
+        },
+        ordinalExample: ({count}) => {
+            const enPluralRules = new Intl.PluralRules('en', {type: 'ordinal'});
+            const pluralType = enPluralRules.select(count);
+            switch (pluralType) {
+                case 'one':
+                    return `${count}st item`;
+                case 'two':
+                    return `${count}nd item`;
+                case 'few':
+                    return `${count}rd item`;
+                default:
+                    return `${count}th item`;
+            }
+        },
     }),
     [CONST.LOCALES.ES]: translations.flattenObject({
         testKey1: 'Spanish',
         testKey2: 'Spanish Word 2',
-        ordinalExample: () => ({
-            one: 'º elemento',
-            other: 'ª elemento',
-        }),
+        ordinalExample: ({count}) => {
+            const esPluralRules = new Intl.PluralRules('es', {type: 'ordinal'});
+            const pluralType = esPluralRules.select(count);
+            switch (pluralType) {
+                case 'one':
+                    return `${count}º elemento`;
+                default:
+                    return `${count}ª elemento`;
+            }
+        },
     }),
     [CONST.LOCALES.ES_ES]: translations.flattenObject({testKey1: 'Spanish ES'}),
 };
@@ -183,7 +203,7 @@ describe('plural translations', () => {
         const phraseParameters = {count: 2};
         const expectedTranslation = 'You have many items';
 
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
+        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 
@@ -192,7 +212,7 @@ describe('plural translations', () => {
         const phraseParameters = {count: 3, itemName: 'books'};
         const expectedTranslation = 'You have many items';
 
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
+        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 
@@ -201,7 +221,7 @@ describe('plural translations', () => {
         const phraseParameters = {count: 1};
         const expectedTranslation = '1st item';
 
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
+        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 
@@ -210,7 +230,7 @@ describe('plural translations', () => {
         const phraseParameters = {count: 11};
         const expectedTranslation = '11th item';
 
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
+        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 
@@ -219,7 +239,7 @@ describe('plural translations', () => {
         const phraseParameters = {count: 23};
         const expectedTranslation = '23ª elemento';
 
-        const translation = Localize.translate(CONST.LOCALES.ES, phraseKey, phraseParameters);
+        const translation = Localize.translate(CONST.LOCALES.ES, phraseKey, ...phraseParameters);
         expect(translation).toBe(expectedTranslation);
     });
 });

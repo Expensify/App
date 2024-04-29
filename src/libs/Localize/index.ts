@@ -59,9 +59,16 @@ type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends
  * {
  *  "en": {
  *   "name": "Name",
- *   "pluralExample": {
- *     "one": "You have one item",
- *     "other": "You have {{count}} items"
+ *   "pluralExample": ({count}) => {
+ *     const pluralForm = enPluralRules.select(count);
+ *     switch (pluralForm) {
+ *      case 'one': 
+ *          return `You have one item`;
+ *      case 'other':
+ *         return `You have ${count} items`;
+ *      default: 
+ *          throw new Error(`Unsupported plural form ${pluralForm}`);
+ *      }
  *   }
  * }
  *
