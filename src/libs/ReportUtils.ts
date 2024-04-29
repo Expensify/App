@@ -5940,7 +5940,11 @@ function getAllAncestorReportActionIDs(report: Report | null | undefined, includ
         const parentReport = getReport(parentReportID);
         const parentReportAction = ReportActionsUtils.getReportAction(parentReportID, parentReportActionID ?? '0');
 
-        if (!parentReportAction || (!includeTransactionThread && (ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction))) || !parentReport) {
+        if (
+            !parentReportAction ||
+            (!includeTransactionThread && (ReportActionsUtils.isTransactionThread(parentReportAction) || ReportActionsUtils.isReportPreviewAction(parentReportAction))) ||
+            !parentReport
+        ) {
             break;
         }
 
