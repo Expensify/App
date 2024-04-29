@@ -10,6 +10,7 @@ import type {AvatarSource} from '@libs/UserUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Image from './Image';
@@ -81,7 +82,7 @@ function Avatar({
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
-    const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar || !source;
+    const useFallBackAvatar = imageError || source === Expensicons.FallbackAvatar || isEmptyObject(source);
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
     const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
