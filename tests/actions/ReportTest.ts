@@ -59,7 +59,7 @@ describe('actions/Report', () => {
         const REPORT_ID = '1';
         let reportActionID: string;
         const REPORT_ACTION = {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -243,7 +243,7 @@ describe('actions/Report', () => {
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             1: {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                                 actorAccountID: USER_2_ACCOUNT_ID,
                                 automatic: false,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -330,7 +330,7 @@ describe('actions/Report', () => {
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
                 const USER_1_BASE_ACTION = {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     actorAccountID: USER_1_ACCOUNT_ID,
                     automatic: false,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
@@ -510,7 +510,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
         const REPORT_ACTION = {
-            actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
 
         // Setup user and pusher listeners
