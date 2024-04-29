@@ -1268,7 +1268,7 @@ const CONST = {
     },
 
     QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE: {
-        VENDOR_BILL: 'vendor_bill',
+        VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'jouranl_entry',
     },
