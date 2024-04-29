@@ -14,12 +14,6 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-const AccountTypeTranslationKeyMapping = {
-    [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'vendorBill',
-    [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'check',
-    [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'journalEntry',
-} as const;
-
 function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -46,9 +40,9 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                     {!isLocationEnabled && <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>}
                     <OfflineWithFeedback pendingAction={pendingFields?.exportEntity}>
                         <MenuItemWithTopDescription
-                            title={exportEntity ? translate(`workspace.qbo.${AccountTypeTranslationKeyMapping[exportEntity]}`) : undefined}
+                            title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
                             description={translate('workspace.qbo.exportAs')}
-                            error={hasErrors && exportEntity ? translate(`workspace.qbo.${AccountTypeTranslationKeyMapping[exportEntity]}Error`) : undefined}
+                            error={hasErrors && exportEntity ? translate(`workspace.qbo.${exportEntity}Error`) : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                             brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
