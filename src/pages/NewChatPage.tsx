@@ -74,7 +74,6 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             filteredOptions.personalDetails.length + filteredOptions.recentReports.length !== 0,
             Boolean(filteredOptions.userToInvite),
             debouncedSearchTerm.trim(),
-            false,
             selectedOptions.some((participant) => participant?.searchText?.toLowerCase?.().includes(debouncedSearchTerm.trim().toLowerCase())),
         );
         return {...filteredOptions, headerMessage};
@@ -121,7 +120,7 @@ function NewChatPage({isGroupChat}: NewChatPageProps) {
         const sectionsList: OptionsListUtils.CategorySection[] = [];
         let firstKey = '';
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails, false);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, selectedOptions, recentReports, personalDetails);
         sectionsList.push(formatResults.section);
 
         if (!firstKey) {

@@ -82,7 +82,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const {isSmallScreenWidth} = useWindowDimensions();
 
     useEffect(() => {
@@ -122,21 +121,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             false,
         );
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
-            participants,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            maxParticipantsReached,
-            personalDetails,
-            true,
-        );
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, participants, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
 
         newSections.push(formatResults.section);
-
-        if (maxParticipantsReached) {
-            return [newSections, {}];
-        }
 
         newSections.push({
             title: translate('common.recents'),
@@ -175,7 +162,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         action,
         canUseP2PDistanceRequests,
         iouRequestType,
-        maxParticipantsReached,
         personalDetails,
         translate,
         didScreenTransitionEnd,
@@ -250,10 +236,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
-                maxParticipantsReached,
                 _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
+        [newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split an expense with a workspace and other additional participants
