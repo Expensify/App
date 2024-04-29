@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -68,47 +69,49 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-            testID={WorkspaceProfileDescriptionPage.displayName}
-        >
-            <HeaderWithBackButton
-                title={translate('workspace.editor.descriptionInputLabel')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-
-            <FormProvider
-                formID={ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM}
-                submitButtonText={translate('workspace.editor.save')}
-                style={[styles.flexGrow1, styles.ph5]}
-                scrollContextEnabled
-                onSubmit={submit}
-                validate={validate}
-                enabledWhenOffline
+        <AdminPolicyAccessOrNotFoundWrapper policyID={policy?.id ?? ''}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={WorkspaceProfileDescriptionPage.displayName}
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID="description"
-                        label={translate('workspace.editor.descriptionInputLabel')}
-                        accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
-                        value={description}
-                        maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
-                        spellCheck={false}
-                        autoFocus
-                        onChangeText={setDescription}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        isMarkdownEnabled
-                        ref={(el: BaseTextInputRef | null): void => {
-                            updateMultilineInputRange(el);
-                        }}
-                    />
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+                <HeaderWithBackButton
+                    title={translate('workspace.editor.descriptionInputLabel')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM}
+                    submitButtonText={translate('workspace.editor.save')}
+                    style={[styles.flexGrow1, styles.ph5]}
+                    scrollContextEnabled
+                    onSubmit={submit}
+                    validate={validate}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID="description"
+                            label={translate('workspace.editor.descriptionInputLabel')}
+                            accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            value={description}
+                            maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
+                            spellCheck={false}
+                            autoFocus
+                            onChangeText={setDescription}
+                            autoGrowHeight
+                            isMarkdownEnabled
+                            ref={(el: BaseTextInputRef | null): void => {
+                                updateMultilineInputRange(el);
+                            }}
+                        />
+                    </View>
+                </FormProvider>
+            </ScreenWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

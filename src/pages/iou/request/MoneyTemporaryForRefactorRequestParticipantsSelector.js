@@ -125,6 +125,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             undefined,
             undefined,
             !isCategorizeOrShareAction,
+            isCategorizeOrShareAction ? 0 : undefined,
         );
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
