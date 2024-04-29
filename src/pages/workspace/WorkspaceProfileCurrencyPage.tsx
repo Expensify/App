@@ -9,10 +9,11 @@ import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -71,10 +72,10 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy}: WorkspaceProf
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper
+        <AccessOrNotFoundWrapper
             policyID={policy?.id ?? ''}
-            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{onLinkPress: PolicyUtils.goBackFromInvalidPolicy, subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
@@ -97,7 +98,7 @@ function WorkspaceProfileCurrencyPage({currencyList = {}, policy}: WorkspaceProf
                     showScrollIndicator
                 />
             </ScreenWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -211,6 +211,7 @@ function ReportScreen({
             lastMentionedTime: reportProp?.lastMentionedTime,
             avatarUrl: reportProp?.avatarUrl,
             permissions: reportProp?.permissions,
+            invoiceReceiver: reportProp?.invoiceReceiver,
         }),
         [
             reportProp?.lastReadTime,
@@ -251,6 +252,7 @@ function ReportScreen({
             reportProp?.lastMentionedTime,
             reportProp?.avatarUrl,
             reportProp?.permissions,
+            reportProp?.invoiceReceiver,
         ],
     );
 
@@ -356,7 +358,7 @@ function ReportScreen({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
     }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
 
-    if (ReportUtils.isMoneyRequestReport(report)) {
+    if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
@@ -424,19 +426,12 @@ function ReportScreen({
             return;
         }
 
-        // It is possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
-        // is not stored locally yet. If report.reportID exists, then the report has been stored locally and nothing more needs to be done.
-        // If it doesn't exist, then we fetch the report from the API.
-        if (report.reportID && report.reportID === reportIDFromRoute && !reportMetadata?.isLoadingInitialReportActions) {
-            return;
-        }
-
         if (!shouldFetchReport(report)) {
             return;
         }
 
         fetchReport();
-    }, [report, reportMetadata?.isLoadingInitialReportActions, fetchReport, reportIDFromRoute]);
+    }, [report, fetchReport, reportIDFromRoute]);
 
     const dismissBanner = useCallback(() => {
         setIsBannerVisible(false);
