@@ -1951,8 +1951,7 @@ export default {
             optionBelow: 'Elija una opción a continuación:',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             credit_card: 'Tarjeta de crédito',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            vendor_bill: 'Factura del proveedor',
+            bill: 'Factura del proveedor',
             account: 'Cuenta',
             vendor: 'Proveedor',
             defaultVendor: 'Proveedor predeterminado',
@@ -1962,16 +1961,14 @@ export default {
             debit_cardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             credit_cardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            vendor_billAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+            billAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             debit_cardDescription:
                 "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
             // eslint-disable-next-line @typescript-eslint/naming-convention
             credit_cardDescription:
                 "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            vendor_billDescription:
+            billDescription:
                 'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
             accountsPayable: 'Cuentas por pagar',
             accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
@@ -1980,7 +1977,8 @@ export default {
             exportPreferredExporterNote:
                 'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
             exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
-            journalEntry: 'Asiento contable',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            journal_entry: 'Asiento contable',
             vendorBillError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
             checkError: 'La verificación no está disponible cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
             journalEntryError: 'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',

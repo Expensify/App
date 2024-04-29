@@ -1925,8 +1925,7 @@ export default {
             credit_card: 'Credit card',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             debit_card: 'Debit card',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            vendor_bill: 'Vendor bill',
+            bill: 'Vendor bill',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
@@ -1938,16 +1937,13 @@ export default {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             credit_cardDescription:
                 "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
-            // The account type name uses underscores in the backend.
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            vendor_billDescription:
+            billDescription:
                 "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
             // eslint-disable-next-line @typescript-eslint/naming-convention
             debit_cardAccountDescription: 'Debit card transactions will export to the bank account below.”',
             // eslint-disable-next-line @typescript-eslint/naming-convention
             credit_cardAccountDescription: 'Credit card transactions will export to the bank account below.',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            vendor_billAccountDescription: 'Select the vendor applied to all credit card transactions.',
+            billAccountDescription: 'Select the vendor applied to all credit card transactions.',
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
@@ -1957,7 +1953,8 @@ export default {
             accountsPayable: 'Accounts payable',
             account: 'Account',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
-            journalEntry: 'Journal entry',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            journal_entry: 'Journal entry',
             optionBelow: 'Choose an option below:',
             vendorBillError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
             checkError: 'Check is not available when locations are enabled. Please select a different export option.',
