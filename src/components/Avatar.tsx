@@ -80,8 +80,8 @@ function Avatar({
     }, [originalSource]);
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
-
     const iconSize = StyleUtils.getAvatarSize(size);
+
     const imageStyle: StyleProp<ImageStyle> = [StyleUtils.getAvatarStyle(size), imageStyles, styles.noBorderRadius];
     const iconStyle = imageStyles ? [StyleUtils.getAvatarStyle(size), styles.bgTransparent, imageStyles] : undefined;
 

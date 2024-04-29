@@ -107,7 +107,7 @@ function WorkspaceSwitcherPage() {
         }
 
         return Object.values(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline) && !policy?.isJoinRequestPending)
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id ?? '',
