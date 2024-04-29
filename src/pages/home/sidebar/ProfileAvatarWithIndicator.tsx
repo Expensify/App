@@ -5,6 +5,7 @@ import AvatarWithIndicator from '@components/AvatarWithIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as UserUtils from '@libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ProfileAvatarWithIndicatorProps = {
@@ -22,8 +23,7 @@ function ProfileAvatarWithIndicator({isSelected = false}: ProfileAvatarWithIndic
         <OfflineWithFeedback pendingAction={currentUserPersonalDetails.pendingFields?.avatar}>
             <View style={[isSelected && styles.selectedAvatarBorder]}>
                 <AvatarWithIndicator
-                    source={currentUserPersonalDetails.avatar}
-                    accountID={currentUserPersonalDetails.accountID}
+                    source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
                     fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                     isLoading={isLoading && !currentUserPersonalDetails.avatar}
                 />
