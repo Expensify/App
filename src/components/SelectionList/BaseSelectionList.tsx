@@ -516,7 +516,7 @@ function BaseSelectionList<TItem extends ListItem>(
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
                     {shouldShowTextInput && (
-                        <View style={[styles.ph4, styles.pb3]}>
+                        <View style={[styles.ph5, styles.pb3]}>
                             <TextInput
                                 ref={(element) => {
                                     innerTextInputRef.current = element as RNTextInput;
@@ -556,7 +556,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     {/* If we are loading new options we will avoid showing any header message. This is mostly because one of the header messages says there are no options. */}
                     {/* This is misleading because we might be in the process of loading fresh options from the server. */}
                     {!isLoadingNewOptions && !!headerMessage && (
-                        <View style={headerMessageStyle ?? [styles.ph4, styles.pb5]}>
+                        <View style={headerMessageStyle ?? [styles.ph5, styles.pb5]}>
                             <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     )}
