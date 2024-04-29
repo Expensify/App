@@ -662,6 +662,13 @@ function transformedTaxRates(policy: OnyxEntry<Policy> | undefined, transaction?
 }
 
 /**
+ * Gets the tax value of a selected tax
+ */
+function getTaxValue(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, taxCode: string) {
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+}
+
+/**
  * Gets the tax name for Workspace Taxes Settings
  */
 function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: string) {
@@ -693,6 +700,7 @@ export {
     getWorkspaceTaxesSettingsName,
     getDefaultTaxCode,
     transformedTaxRates,
+    getTaxValue,
     getTaxRateTitle,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
