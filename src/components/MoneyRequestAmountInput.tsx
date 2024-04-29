@@ -54,6 +54,9 @@ type MoneyRequestAmountInputProps = {
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
+    /** Whether to disable native keyboard on mobile */
+    disableKeyboard?: boolean;
+
     /** Style for the prefix */
     prefixStyle?: StyleProp<TextStyle>;
 
@@ -94,6 +97,7 @@ function MoneyRequestAmountInput(
         hideCurrencySymbol = false,
         shouldUpdateSelection = true,
         moneyRequestAmountInputRef,
+        disableKeyboard = true,
         formatAmountOnBlur,
         formatAmountOnChange,
         ...props
@@ -229,6 +233,7 @@ function MoneyRequestAmountInput(
 
     return (
         <TextInputWithCurrencySymbol
+            disableKeyboard={disableKeyboard}
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
             onCurrencyButtonPress={onCurrencyButtonPress}

@@ -255,6 +255,10 @@ function OptionRow({
                                 ) : null}
                                 {option.shouldShowAmountInput && option.amountInputProps ? (
                                     <MoneyRequestAmountInput
+                                        disableKeyboard={false}
+                                        isCurrencyPressable={false}
+                                        hideCurrencySymbol
+                                        formatAmountOnBlur
                                         touchableInputWrapperStyle={[styles.amountInputWithPrefix]}
                                         prefixContainerStyle={[styles.pv0]}
                                         inputStyle={[

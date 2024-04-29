@@ -38,6 +38,9 @@ type TextInputWithCurrencySymbolProps = {
     /** Whether to hide the currency symbol */
     hideCurrencySymbol?: boolean;
 
+    /** Whether to disable native keyboard on mobile */
+    disableKeyboard?: boolean;
+
     /** Extra symbol to display */
     extraSymbol?: React.ReactNode;
 
