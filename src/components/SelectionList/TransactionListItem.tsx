@@ -50,7 +50,7 @@ function TransactionListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isMediumScreenWidth, isSmallScreen} = useWindowDimensions();
 
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
@@ -66,7 +66,53 @@ function TransactionListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
-    if (isSmallScreenWidth) {
+    const rowButtonElement = (
+        <Button
+            success
+            onPress={() => {
+                onSelectRow(item);
+            }}
+            small
+            pressOnEnter
+            text="View"
+        />
+    );
+
+    const amountElement = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={`${CurrencyUtils.getLocalizedCurrencySymbol(item.currency)}${item.amount}`}
+            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+
+    const categoryElement = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={item.category}
+            style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+
+    const descriptionElement = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={item.description}
+            style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+
+    const dateElement = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={format(new Date(item.created), 'MMM dd')}
+            style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+
+    const displayNarrowVersion = isMediumScreenWidth || isSmallScreen;
+
+    if (displayNarrowVersion) {
         return (
             <BaseListItem
                 item={item}
@@ -90,7 +136,7 @@ function TransactionListItem<TItem extends ListItem>({
             >
                 {(hovered) => (
                     <>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2]}>
                             <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter, styles.justifyContentBetween]}>
                                     <Avatar
@@ -129,17 +175,24 @@ function TransactionListItem<TItem extends ListItem>({
                                     </Text>
                                 </View>
                             </View>
-                            <View style={styles.flexShrink0}>
-                                <Button
-                                    success
-                                    onPress={() => {}}
-                                    small
-                                    pressOnEnter
-                                    text="View"
-                                />
+                            <View style={styles.flexShrink0}>{rowButtonElement}</View>
+                        </View>
+                        <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                            <View>
+                                {descriptionElement}
+                                {categoryElement}
+                            </View>
+                            <View>
+                                {amountElement}
+                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStretch, styles.gap2]}>
+                                    <Icon
+                                        src={typeIcon}
+                                        fill={theme.icon}
+                                    />
+                                    {dateElement}
+                                </View>
                             </View>
                         </View>
-                        <View></View>
                     </>
                 )}
             </BaseListItem>
@@ -191,20 +244,8 @@ function TransactionListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={format(new Date(item.created), 'MMM dd')}
-                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
-                            />
-                        </View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={item.description}
-                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
-                            />
-                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{dateElement}</View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
                                 <Avatar
@@ -239,13 +280,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 </Text>
                             </View>
                         </View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={item.category}
-                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
-                            />
-                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
@@ -253,13 +288,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
                             />
                         </View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsEnd]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={`${CurrencyUtils.getLocalizedCurrencySymbol(item.currency)}${item.amount}`}
-                                style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
-                            />
-                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsEnd]}>{amountElement}</View>
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <Icon
                                 src={typeIcon}
@@ -267,17 +296,7 @@ function TransactionListItem<TItem extends ListItem>({
                             />
                         </View>
 
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <Button
-                                success
-                                onPress={() => {
-                                    onSelectRow(item);
-                                }}
-                                small
-                                pressOnEnter
-                                text="View"
-                            />
-                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{rowButtonElement}</View>
                     </View>
                     {!!item.rightElement && item.rightElement}
                 </>
