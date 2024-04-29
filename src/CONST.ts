@@ -868,9 +868,8 @@ const CONST = {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
         MAX_LINES_FULL: -1,
-
-        // The minimum number of typed lines needed to enable the full screen composer
-        FULL_COMPOSER_MIN_LINES: 3,
+        // The minimum height needed to enable the full screen composer
+        FULL_COMPOSER_MIN_HEIGHT: 60,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -1026,6 +1025,11 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
+        NETWORK_STATUS: {
+            ONLINE: 'online',
+            OFFLINE: 'offline',
+            UNKNOWN: 'unknown',
+        },
     },
     WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
@@ -1710,6 +1714,10 @@ const CONST = {
                 QBO_CHECK_CONNECTION: 'quickbooksOnlineCheckConnection',
                 JOB_DONE: 'jobDone',
             },
+        },
+        ACCESS_VARIANTS: {
+            PAID: 'paid',
+            ADMIN: 'admin',
         },
     },
 

@@ -650,6 +650,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
+        sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -698,6 +699,7 @@ export default {
             invalidSplit: 'La suma de las partes no equivale al importe total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
+            genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde',
             receiptFailureMessage: 'El recibo no se subió. ',
             saveFileMessage: 'Guarda el archivo ',
             loseFileMessage: 'o descarta este error y piérdelo',
@@ -1072,6 +1074,18 @@ export default {
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
         availableSpend: 'Límite restante',
+        smartLimit: {
+            name: 'Límite inteligente',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta al mes. El límite se restablecerá el primer día del mes.`,
+        },
+        fixedLimit: {
+            name: 'Límite fijo',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta, luego se desactivará.`,
+        },
+        monthlyLimit: {
+            name: 'Límite mensual',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta y el límite se restablecerá a medida que se aprueben tus gastos.`,
+        },
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         getPhysicalCard: 'Obtener tarjeta física',
@@ -2254,6 +2268,7 @@ export default {
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
+            sendFrom: 'Enviar desde',
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
@@ -2441,9 +2456,6 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
-        error: {
-            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
-        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
