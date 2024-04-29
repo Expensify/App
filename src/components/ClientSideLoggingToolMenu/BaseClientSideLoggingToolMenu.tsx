@@ -10,10 +10,10 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import {parseStringifiedMessages} from '@libs/Console';
+import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {CapturedLogs, Log} from '@src/types/onyx';
-import Navigation from "@navigation/Navigation";
-import ROUTES from "@src/ROUTES";
 
 type BaseClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */
@@ -38,7 +38,16 @@ type BaseClientSideLoggingToolProps = {
     closeTestToolsModal?: () => void;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
-function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging, isViaTestToolsModal, closeTestToolsModal}: BaseClientSideLoggingToolProps) {
+function BaseClientSideLoggingToolMenu({
+    shouldStoreLogs,
+    capturedLogs,
+    file,
+    onShareLogs,
+    onDisableLogging,
+    onEnableLogging,
+    isViaTestToolsModal,
+    closeTestToolsModal,
+}: BaseClientSideLoggingToolProps) {
     const {translate} = useLocalize();
 
     const onToggle = () => {
@@ -82,9 +91,9 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
                         text={translate('initialSettingsPage.debugConsole.viewConsole')}
                         onPress={() => {
                             if (closeTestToolsModal) {
-                                closeTestToolsModal()
+                                closeTestToolsModal();
                             }
-                            Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(isViaTestToolsModal))
+                            Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(isViaTestToolsModal));
                         }}
                     />
                 </TestToolRow>

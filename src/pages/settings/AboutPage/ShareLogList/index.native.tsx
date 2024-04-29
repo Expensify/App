@@ -17,10 +17,12 @@ function ShareLogList({logSource, isViaTestToolsModal}: ShareLogListProps) {
         Navigation.navigate(routeToNavigate);
     };
 
-    return <BaseShareLogList
-        onAttachLogToReport={onAttachLogToReport}
-        isViaTestToolsModal
-    />;
+    return (
+        <BaseShareLogList
+            onAttachLogToReport={onAttachLogToReport}
+            isViaTestToolsModal={isViaTestToolsModal}
+        />
+    );
 }
 
 export default ShareLogList;

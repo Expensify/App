@@ -1,3 +1,5 @@
+import type {RouteProp} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {format} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -21,14 +23,12 @@ import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {CapturedLogs} from '@src/types/onyx';
-import type {RouteProp} from "@react-navigation/native";
-import { useRoute} from "@react-navigation/native";
-import type {SettingsNavigatorParamList} from "@navigation/types";
-import type SCREENS from "@src/SCREENS";
 
 type ConsolePageOnyxProps = {
     /** Logs captured on the current device */
@@ -122,7 +122,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(isViaTestToolsModal ? undefined : ROUTES.SETTINGS_TROUBLESHOOT)
+                    Navigation.goBack(isViaTestToolsModal ? undefined : ROUTES.SETTINGS_TROUBLESHOOT);
                 }}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>

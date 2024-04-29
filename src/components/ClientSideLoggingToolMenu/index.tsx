@@ -9,11 +9,13 @@ function ClientSideLoggingToolMenu({isViaTestToolsModal, closeTestToolsModal}: C
         localFileDownload('logs', JSON.stringify(logs, null, 2));
     };
 
-    return <BaseClientSideLoggingToolMenu
-        onDisableLogging={downloadFile}
-        isViaTestToolsModal={isViaTestToolsModal}
-        closeTestToolsModal={closeTestToolsModal}
-    />;
+    return (
+        <BaseClientSideLoggingToolMenu
+            onDisableLogging={downloadFile}
+            isViaTestToolsModal={isViaTestToolsModal}
+            closeTestToolsModal={closeTestToolsModal}
+        />
+    );
 }
 
 ClientSideLoggingToolMenu.displayName = 'ClientSideLoggingToolMenu';
