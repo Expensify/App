@@ -303,5 +303,13 @@ describe('getViolationsOnyxData', () => {
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
             expect(result.value).toEqual([violation]);
         });
+        it('should return missingTag when all dependent tags are enabled in the policy but are not set in the transaction', () => {
+            const missingDepartmentTag = {...missingTagViolation, data: {tagName: 'Department'}};
+            const missingRegionTag = {...missingTagViolation, data: {tagName: 'Region'}};
+            const missingProjectTag = {...missingTagViolation, data: {tagName: 'Project'}};
+            transaction.tag = undefined;
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories, true);
+            expect(result.value).toEqual(expect.arrayContaining([missingDepartmentTag, missingRegionTag, missingProjectTag]));
+        });
     });
 });
