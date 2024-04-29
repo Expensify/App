@@ -3324,7 +3324,7 @@ function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject,
         textForNewComment = parseHtmlToText(htmlForNewComment);
     } else {
         htmlForNewComment = `${commentText}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
-        textForNewComment = `${parser.htmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
+        textForNewComment = `${parseHtmlToText(commentText)}\n${CONST.ATTACHMENT_UPLOADING_MESSAGE_HTML}`;
     }
 
     const isAttachment = !text && file !== undefined;
