@@ -71,6 +71,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -738,7 +739,7 @@ function openReport(
     if (ReportUtils.isGroupChat(newReportObject)) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
-        parameters.optimisticAccountIDList = participantAccountIDList.join(',');
+        parameters.optimisticAccountIDList = Object.keys(newReportObject.participants ?? {}).join(',');
         parameters.reportName = newReportObject.reportName ?? '';
 
         // If we have an avatar then include it with the parameters
@@ -820,6 +821,7 @@ function openReport(
             optimisticPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? {
                 login,
                 accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
                 isOptimisticPersonalDetail: true,
             };
@@ -1169,11 +1171,6 @@ function saveReportDraftComment(reportID: string, comment: string | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment));
 }
 
-/** Saves the number of lines for the comment */
-function saveReportCommentNumberOfLines(reportID: string, numberOfLines: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
-}
-
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -1504,11 +1501,6 @@ function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
 function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
-}
-
-/** Saves the number of lines for the report action draft */
-function saveReportActionDraftNumberOfLines(reportID: string, reportActionID: string, numberOfLines: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 function updateNotificationPreference(
@@ -2467,11 +2459,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
     const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
+        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '');
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
         if (!isChatThread) {
-            Navigation.goBack();
+            // Fallback to the lastAccessedReportID route, if this is first route in the navigator
+            Navigation.goBack(lastAccessedReportRoute);
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
+        Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -2658,17 +2652,18 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: report.participantAccountIDs,
-                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
-                participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
-                    // eslint-disable-next-line no-param-reassign
-                    revertedParticipants[accountID] = null;
-                    return revertedParticipants;
-                }, {}),
-                pendingChatMembers: report?.pendingChatMembers ?? null,
+                pendingChatMembers:
+                    pendingChatMembers.map((pendingChatMember) => {
+                        if (!inviteeAccountIDs.includes(Number(pendingChatMember.accountID))) {
+                            return pendingChatMember;
+                        }
+                        return {
+                            ...pendingChatMember,
+                            errors: ErrorUtils.getMicroSecondOnyxError('roomMembersPage.error.genericAdd'),
+                        };
+                    }) ?? null,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
     ];
 
     if (ReportUtils.isGroupChat(report)) {
@@ -2689,6 +2684,20 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
+}
+
+function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
+    const report = currentReportData?.[reportID];
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
+        participantAccountIDs: report?.parentReportActionIDs?.filter((parentReportActionID) => parentReportActionID !== Number(invitedAccountID)),
+        participants: {
+            [invitedAccountID]: null,
+        },
+    });
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [invitedAccountID]: null,
+    });
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
@@ -3707,7 +3716,6 @@ export {
     unsubscribeFromReportChannel,
     unsubscribeFromLeavingRoomReportChannel,
     saveReportDraftComment,
-    saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     broadcastUserIsLeavingRoom,
     togglePinnedState,
@@ -3715,7 +3723,6 @@ export {
     handleUserDeletedLinksInHtml,
     deleteReportActionDraft,
     saveReportActionDraft,
-    saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     addPolicyReport,
@@ -3777,4 +3784,5 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
+    clearAddRoomMemberError,
 };

@@ -112,6 +112,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
@@ -496,6 +497,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: '¡Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
         beginningOfChatHistoryUserRoomPartTwo: '.',
+        beginningOfChatHistoryInvoiceRoom: '¡Este es el lugar para colaborar! 🎉 Utilice esta sala para ver, discutir y pagar facturas.',
         beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
@@ -511,6 +513,7 @@ export default {
             split: 'dividir un gasto',
             submit: 'presentar un gasto',
             track: 'rastrear un gasto',
+            invoice: 'facturar un gasto',
         },
     },
     reportAction: {
@@ -647,6 +650,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
+        sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -695,6 +699,7 @@ export default {
             invalidSplit: 'La suma de las partes no equivale al importe total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
+            genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde',
             receiptFailureMessage: 'El recibo no se subió. ',
             saveFileMessage: 'Guarda el archivo ',
             loseFileMessage: 'o descarta este error y piérdelo',
@@ -1069,6 +1074,18 @@ export default {
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
         availableSpend: 'Límite restante',
+        smartLimit: {
+            name: 'Límite inteligente',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta al mes. El límite se restablecerá el primer día del mes.`,
+        },
+        fixedLimit: {
+            name: 'Límite fijo',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta, luego se desactivará.`,
+        },
+        monthlyLimit: {
+            name: 'Límite mensual',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta y el límite se restablecerá a medida que se aprueben tus gastos.`,
+        },
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         getPhysicalCard: 'Obtener tarjeta física',
@@ -1336,8 +1353,10 @@ export default {
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
-            requiredLastName: 'Introduce tu apellido para continuar',
         },
+    },
+    featureTraining: {
+        doNotShowAgain: 'No muestres esto otra vez',
     },
     personalDetails: {
         error: {
@@ -1993,6 +2012,7 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            needCategoryForExportToIntegration: 'Se requiere una categoría en cada gasto para poder exportarlo a',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
@@ -2076,6 +2096,7 @@ export default {
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
+            importedFromAccountingSoftware: 'Etiquetas importadas desde',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -2185,6 +2206,8 @@ export default {
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
                             return 'Importando datos desde QuickBooks Online';
+                        case 'startingImport':
+                            return 'Importando datos desde QuickBooks Online';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2245,6 +2268,7 @@ export default {
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
+            sendFrom: 'Enviar desde',
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
@@ -2432,6 +2456,9 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        error: {
+            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
+        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
@@ -2484,6 +2511,12 @@ export default {
     },
     search: {
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+        searchResults: {
+            emptyResults: {
+                title: 'No hay nada que ver aquí',
+                subtitle: 'Por favor intenta crear algo usando el botón verde.',
+            },
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -3246,6 +3279,16 @@ export default {
             body: `Chatea, paga, presenta y divide gastos con un amigo y recibirás $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se convierta en cliente. También puedes publicar tu enlace de invitación en las redes sociales.`,
         },
         copyReferralLink: 'Copiar enlace de invitación',
+    },
+    systemChatFooterMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chatea con tu especialista asignado en ',
+            phrase2: ' para obtener ayuda',
+        },
+        default: {
+            phrase1: 'Envía un email a ',
+            phrase2: ' para obtener ayuda con la configuración',
+        },
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
