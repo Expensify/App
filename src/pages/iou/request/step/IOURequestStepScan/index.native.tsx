@@ -355,6 +355,7 @@ function IOURequestStepScan({
             transaction,
             navigateToConfirmationPage,
             navigateToParticipantPage,
+            policy,
         ],
     );
 
