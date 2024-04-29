@@ -260,6 +260,61 @@ function IOURequestStepScan({
                                 participants[0],
                                 '',
                                 receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                }
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                }
+                            );
+                        }
+                    },
+                    (errorData) => {
+                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
                             );
                         } else {
                             IOU.requestMoney(
@@ -275,15 +330,6 @@ function IOURequestStepScan({
                                 receipt,
                             );
                         }
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile, {
-                            lat: successData.coords.latitude,
-                            long: successData.coords.longitude,
-                        });
-                    },
-                    (errorData) => {
-                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
-                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        requestMoney(selectedParticipants, trimmedComment, receiptFile);
                     },
                     {
                         // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
