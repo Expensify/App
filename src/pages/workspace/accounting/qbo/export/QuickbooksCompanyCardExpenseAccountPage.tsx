@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,6 +14,7 @@ import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabl
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -25,15 +26,6 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const isVendorSelected = exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD.VENDOR_BILL;
     const showAccountSelection = Boolean(autoCreateVendor) || (!isVendorSelected && exportCompanyCard);
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
-
-    useEffect(() => {
-        if (!isVendorSelected) {
-            return;
-        }
-        if (Boolean(autoCreateVendor) && !exportCompanyCardAccount) {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT, vendors?.[0]?.name);
-        }
-    }, [autoCreateVendor, exportCompanyCardAccount, isVendorSelected, policyID, vendors]);
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
@@ -79,9 +71,17 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                     title={translate('workspace.qbo.defaultVendor')}
                                     wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                                     isActive={Boolean(autoCreateVendor)}
+                                    onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR)}
                                     onToggle={(isOn) => {
                                         if (!isOn) {
                                             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT);
+                                        } else {
+                                            Connections.updatePolicyConnectionConfig(
+                                                policyID,
+                                                CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                                CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT,
+                                                vendors?.[0]?.name,
+                                            );
                                         }
                                         Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, isOn);
                                     }}
