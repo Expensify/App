@@ -34,6 +34,7 @@ import type {
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
     SearchForReportsParams,
+    SearchForRoomsToMentionParams,
     SetNameValuePairParams,
     TogglePinnedChatParams,
     UpdateCommentParams,
@@ -738,7 +739,7 @@ function openReport(
     if (ReportUtils.isGroupChat(newReportObject)) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
-        parameters.optimisticAccountIDList = participantAccountIDList.join(',');
+        parameters.optimisticAccountIDList = Object.keys(newReportObject.participants ?? {}).join(',');
         parameters.reportName = newReportObject.reportName ?? '';
 
         // If we have an avatar then include it with the parameters
@@ -950,10 +951,12 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction: P
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const parentReport = allReports?.[parentReportID];
+        // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
+        const childReportChatType = parentReport && ReportUtils.isSelfDM(parentReport) ? undefined : parentReport?.chatType;
         const newChat = ReportUtils.buildOptimisticChatReport(
             participantAccountIDs,
             parentReportAction?.message?.[0]?.text,
-            parentReport?.chatType,
+            childReportChatType,
             parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
@@ -2466,11 +2469,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
     const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
+        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '');
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
         if (!isChatThread) {
-            Navigation.goBack();
+            // Fallback to the lastAccessedReportID route, if this is first route in the navigator
+            Navigation.goBack(lastAccessedReportRoute);
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
+        Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -2657,17 +2662,18 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: report.participantAccountIDs,
-                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
-                participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
-                    // eslint-disable-next-line no-param-reassign
-                    revertedParticipants[accountID] = null;
-                    return revertedParticipants;
-                }, {}),
-                pendingChatMembers: report?.pendingChatMembers ?? null,
+                pendingChatMembers:
+                    pendingChatMembers.map((pendingChatMember) => {
+                        if (!inviteeAccountIDs.includes(Number(pendingChatMember.accountID))) {
+                            return pendingChatMember;
+                        }
+                        return {
+                            ...pendingChatMember,
+                            errors: ErrorUtils.getMicroSecondOnyxError('roomMembersPage.error.genericAdd'),
+                        };
+                    }) ?? null,
             },
         },
-        ...newPersonalDetailsOnyxData.finallyData,
     ];
 
     if (ReportUtils.isGroupChat(report)) {
@@ -2688,6 +2694,20 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
+}
+
+function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
+    const report = currentReportData?.[reportID];
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
+        participantAccountIDs: report?.parentReportActionIDs?.filter((parentReportActionID) => parentReportActionID !== Number(invitedAccountID)),
+        participants: {
+            [invitedAccountID]: null,
+        },
+    });
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [invitedAccountID]: null,
+    });
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
@@ -3037,16 +3057,20 @@ function completeOnboarding(
         reportComment: textComment.commentText,
     };
 
-    // Video message
-    const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
-    const videoCommentAction: OptimisticAddCommentReportAction = videoComment.reportAction;
-    const videoMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: videoCommentAction.reportActionID,
-        reportComment: videoComment.commentText,
-    };
+    let videoCommentAction: OptimisticAddCommentReportAction | null = null;
+    let videoMessage: AddCommentOrAttachementParams | null = null;
+    if (data.video) {
+        const videoComment = ReportUtils.buildOptimisticAddCommentReportAction(CONST.ATTACHMENT_MESSAGE_TEXT, undefined, actorAccountID, 2);
+        videoCommentAction = videoComment.reportAction;
+        videoMessage = {
+            reportID: targetChatReportID,
+            reportActionID: videoCommentAction.reportActionID,
+            reportComment: videoComment.commentText,
+        };
+    }
 
     const tasksData = data.tasks.map((task, index) => {
+        const hasSubtitle = !!task.subtitle;
         const currentTask = ReportUtils.buildOptimisticTaskReport(
             actorAccountID,
             undefined,
@@ -3066,13 +3090,13 @@ function completeOnboarding(
             actorAccountID,
             index + 3,
             {
-                childVisibleActionCount: 2,
+                childVisibleActionCount: hasSubtitle ? 2 : 1,
                 childCommenterCount: 1,
                 childLastVisibleActionCreated: DateUtils.getDBTime(),
                 childOldestFourAccountIDs: `${actorAccountID}`,
             },
         );
-        const subtitleComment = task.subtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID) : null;
+        const subtitleComment = hasSubtitle ? ReportUtils.buildOptimisticAddCommentReportAction(task.subtitle, undefined, actorAccountID, 0, false) : null;
         const isTaskMessageFunction = typeof task.message === 'function';
         const taskMessage = isTaskMessageFunction
             ? task.message({
@@ -3219,6 +3243,33 @@ function completeOnboarding(
         [],
     );
 
+    const tasksForFailureData = tasksData.reduce<OnyxUpdate[]>((acc, {currentTask, taskReportAction}) => {
+        const tasksForFailureDataAcc: OnyxUpdate[] = [
+            ...acc,
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+                value: {
+                    [taskReportAction.reportAction.reportActionID]: {
+                        errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
+                    } as ReportAction,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${currentTask.reportID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentTask.reportID}`,
+                value: null,
+            },
+        ];
+
+        return tasksForFailureDataAcc;
+    }, []);
+
     const optimisticData: OnyxUpdate[] = [
         ...tasksForOptimisticData,
         {
@@ -3234,7 +3285,6 @@ function completeOnboarding(
             value: {
                 [mentionCommentAction.reportActionID]: mentionCommentAction as ReportAction,
                 [textCommentAction.reportActionID]: textCommentAction as ReportAction,
-                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
             },
         },
         {
@@ -3250,17 +3300,89 @@ function completeOnboarding(
             value: {
                 [mentionCommentAction.reportActionID]: {pendingAction: null},
                 [textCommentAction.reportActionID]: {pendingAction: null},
-                [videoCommentAction.reportActionID]: {pendingAction: null},
             },
+        },
+    ];
+    let failureReport: Partial<Report> = {
+        lastMessageTranslationKey: '',
+        lastMessageText: '',
+        lastVisibleActionCreated: '',
+    };
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(targetChatReportID);
+    if (lastMessageText || lastMessageTranslationKey) {
+        const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(targetChatReportID);
+        const lastVisibleActionCreated = lastVisibleAction?.created;
+        const lastActorAccountID = lastVisibleAction?.actorAccountID;
+        failureReport = {
+            lastMessageTranslationKey,
+            lastMessageText,
+            lastVisibleActionCreated,
+            lastActorAccountID,
+        };
+    }
+
+    const failureData: OnyxUpdate[] = [
+        ...tasksForFailureData,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${targetChatReportID}`,
+            value: failureReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [mentionCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+                [textCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_INTRO_SELECTED,
+            value: {choice: null},
         },
     ];
 
     const guidedSetupData: GuidedSetupData = [
         {type: 'message', ...mentionMessage},
         {type: 'message', ...textMessage},
-        {type: 'video', ...data.video, ...videoMessage},
-        ...tasksForParameters,
     ];
+
+    if (data.video && videoCommentAction && videoMessage) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: videoCommentAction as ReportAction,
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {pendingAction: null},
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetChatReportID}`,
+            value: {
+                [videoCommentAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('report.genericAddCommentFailureMessage'),
+                } as ReportAction,
+            },
+        });
+
+        guidedSetupData.push({type: 'video', ...data.video, ...videoMessage});
+    }
+
+    guidedSetupData.push(...tasksForParameters);
 
     const parameters: CompleteGuidedSetupParams = {
         engagementChoice,
@@ -3269,7 +3391,7 @@ function completeOnboarding(
         guidedSetupData: JSON.stringify(guidedSetupData),
     };
 
-    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData});
+    API.write(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -3426,7 +3548,7 @@ function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
-function searchForReports(searchInput: string) {
+function searchForReports(searchInput: string, policyID?: string) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isNetworkOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
@@ -3449,12 +3571,16 @@ function searchForReports(searchInput: string) {
         },
     ];
 
-    const parameters: SearchForReportsParams = {searchInput};
+    const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput, policyID: policyID ?? ''};
+    const searchForReportsParams: SearchForReportsParams = {searchInput};
 
-    API.read(READ_COMMANDS.SEARCH_FOR_REPORTS, parameters, {successData, failureData});
+    API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : READ_COMMANDS.SEARCH_FOR_REPORTS, policyID ? searchForRoomToMentionParams : searchForReportsParams, {
+        successData,
+        failureData,
+    });
 }
 
-function searchInServer(searchInput: string) {
+function searchInServer(searchInput: string, policyID?: string) {
     if (isNetworkOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
@@ -3464,7 +3590,7 @@ function searchInServer(searchInput: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(searchInput);
+    searchForReports(searchInput, policyID);
 }
 
 function updateLastVisitTime(reportID: string) {
@@ -3670,4 +3796,5 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
+    clearAddRoomMemberError,
 };
