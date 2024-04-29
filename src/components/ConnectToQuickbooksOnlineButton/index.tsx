@@ -51,4 +51,6 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
     );
 }
 
+ConnectToQuickbooksOnlineButton.displayName = 'ConnectToQuickbooksOnlineButton';
+
 export default ConnectToQuickbooksOnlineButton;
