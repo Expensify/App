@@ -11,9 +11,7 @@ import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -125,40 +123,37 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     ];
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={QuickbooksAdvancedPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={QuickbooksAdvancedPage.displayName}
+            >
+                <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
 
-                        <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
-                            {qboToggleSettingItems.map((item) => (
-                                <ToggleSettingOptionRow
-                                    key={item.title}
-                                    errors={item.errors}
-                                    onCloseError={item.onCloseError}
-                                    title={item.title}
-                                    subtitle={item.subtitle}
-                                    shouldPlaceSubtitleBelowSwitch
-                                    wrapperStyle={item.wrapperStyle}
-                                    isActive={item.isActive}
-                                    onToggle={item.onToggle}
-                                    pendingAction={item.pendingAction}
-                                    subMenuItems={item.subMenuItems}
-                                />
-                            ))}
-                        </ScrollView>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
+                    {qboToggleSettingItems.map((item) => (
+                        <ToggleSettingOptionRow
+                            key={item.title}
+                            errors={item.errors}
+                            onCloseError={item.onCloseError}
+                            title={item.title}
+                            subtitle={item.subtitle}
+                            shouldPlaceSubtitleBelowSwitch
+                            wrapperStyle={item.wrapperStyle}
+                            isActive={item.isActive}
+                            onToggle={item.onToggle}
+                            pendingAction={item.pendingAction}
+                            subMenuItems={item.subMenuItems}
+                        />
+                    ))}
+                </ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

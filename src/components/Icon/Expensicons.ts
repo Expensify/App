@@ -38,6 +38,7 @@ import ChatBubbles from '@assets/images/chatbubbles.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
+import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
@@ -87,6 +88,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
+import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
@@ -123,6 +125,7 @@ import Printer from '@assets/images/printer.svg';
 import Profile from '@assets/images/profile.svg';
 import QrCode from '@assets/images/qrcode.svg';
 import QuestionMark from '@assets/images/question-mark-circle.svg';
+import ReceiptScan from '@assets/images/receipt-scan.svg';
 import ReceiptSearch from '@assets/images/receipt-search.svg';
 import Receipt from '@assets/images/receipt.svg';
 import RemoveMembers from '@assets/images/remove-members.svg';
@@ -143,7 +146,6 @@ import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
-import Tax from '@assets/images/tax.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
@@ -234,7 +236,7 @@ export {
     Fullscreen,
     Folder,
     Tag,
-    Tax,
+    Coins,
     Thread,
     Gallery,
     Gear,
@@ -249,6 +251,7 @@ export {
     ImageCropSquareMask,
     Info,
     Invoice,
+    InvoiceGeneric,
     Key,
     Keyboard,
     Link,
@@ -288,6 +291,7 @@ export {
     QrCode,
     QuestionMark,
     Receipt,
+    ReceiptScan,
     RemoveMembers,
     ReceiptSearch,
     Rotate,
