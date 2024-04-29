@@ -187,7 +187,7 @@ function MoneyRequestView({
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data']): boolean => !!canUseViolations && getViolationsForField(field, data).length > 0,
         [canUseViolations, getViolationsForField],
     );
-    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate));
+    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
     let amountDescription = `${translate('iou.amount')}`;
@@ -334,7 +334,7 @@ function MoneyRequestView({
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 <ReceiptAuditHeader
                     notes={noticeTypeViolations}
-                    shouldShowAuditMessage={shouldShowNotesViolations && didRceiptScanSucceed}
+                    shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                 />
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
                 {(showMapAsImage || hasReceipt) && (

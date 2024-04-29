@@ -7,7 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
-function ReceiptAuditHeader({notes = [], shouldShowAuditMessage = false}: {notes?: string[]; shouldShowAuditMessage?: boolean}) {
+function ReceiptAuditHeader({notes, shouldShowAuditMessage}: {notes: string[]; shouldShowAuditMessage: boolean}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
