@@ -310,7 +310,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
-        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
             name: policy?.name ?? '',
