@@ -202,6 +202,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isTaskReport ||
                                                 !!optionItem.isThread ||
                                                 !!optionItem.isMoneyRequestReport ||
+                                                !!optionItem.isInvoiceReport ||
                                                 ReportUtils.isGroupChat(report)
                                             }
                                         />
