@@ -98,6 +98,7 @@ function MoneyRequestPreviewContent({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const hasPendingUI = TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations));
     const shouldShowRBR =
         hasViolations || hasFieldErrors || (!(isSettled && !isSettlementOrApprovalPartial) && !(ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial) && isOnHold);
 
@@ -135,11 +136,7 @@ function MoneyRequestPreviewContent({
         showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
     };
 
-    const getPreviewHeaderTextAndIcon: () => {headerMessage: string; headerIcon?: React.FC<SvgProps>} = () => {
-        if (TransactionUtils.hasPendingUI(transaction, TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
-            return {headerMessage: translate('iou.pendingMatchWithCreditCard'), headerIcon: Expensicons.Hourglass};
-        }
-
+    const getPreviewHeaderText = (): string => {
         let message = translate('iou.cash');
 
         if (isDistanceRequest) {
@@ -154,13 +151,13 @@ function MoneyRequestPreviewContent({
             message = translate('iou.card');
             if (TransactionUtils.isPending(transaction)) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.pending')}`;
-                return {headerMessage: message};
+                return message;
             }
         }
 
         if (isSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${getSettledMessage()}`;
-            return {headerMessage: message};
+            return message;
         }
 
         if (shouldShowRBR && transaction) {
@@ -171,8 +168,7 @@ function MoneyRequestPreviewContent({
                 const isTooLong = violationsCount > 1 || violationMessage.length > 15;
                 const hasViolationsAndFieldErrors = violationsCount > 0 && hasFieldErrors;
 
-                message = `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
-                return {headerMessage: message, headerIcon: undefined};
+                return `${message} ${CONST.DOT_SEPARATOR} ${isTooLong || hasViolationsAndFieldErrors ? translate('violations.reviewRequired') : violationMessage}`;
             }
 
             const isMerchantMissing = TransactionUtils.isMerchantMissing(transaction);
@@ -195,10 +191,8 @@ function MoneyRequestPreviewContent({
         } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
         }
-        return {headerMessage: message};
+        return message;
     };
-
-    const {headerMessage, headerIcon} = getPreviewHeaderTextAndIcon();
 
     const getDisplayAmountText = (): string => {
         if (isScanning) {
@@ -257,15 +251,7 @@ function MoneyRequestPreviewContent({
                             <View style={styles.expenseAndReportPreviewTextButtonContainer}>
                                 <View style={styles.expenseAndReportPreviewTextContainer}>
                                     <View style={[styles.flexRow]}>
-                                        {headerIcon && (
-                                            <Icon
-                                                src={headerIcon}
-                                                height={variables.iconSizeExtraSmall}
-                                                width={variables.iconSizeExtraSmall}
-                                                fill={theme.textSupporting}
-                                            />
-                                        )}
-                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{headerMessage}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                                         {!isSettled && shouldShowRBR && (
                                             <Icon
                                                 src={Expensicons.DotIndicator}
@@ -339,6 +325,19 @@ function MoneyRequestPreviewContent({
                                                     fill={theme.textSupporting}
                                                 />
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>{translate('iou.receiptScanInProgress')}</Text>
+                                            </View>
+                                        )}
+                                        {!isScanning && hasPendingUI && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                                                <Icon
+                                                    src={Expensicons.Hourglass}
+                                                    height={variables.iconSizeExtraSmall}
+                                                    width={variables.iconSizeExtraSmall}
+                                                    fill={theme.textSupporting}
+                                                />
+                                                <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
+                                                    {translate('iou.pendingMatchWithCreditCard')}
+                                                </Text>
                                             </View>
                                         )}
                                     </View>
