@@ -13,7 +13,9 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
@@ -35,6 +37,8 @@ function TransactionListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
@@ -47,7 +51,85 @@ function TransactionListItem<TItem extends ListItem>({
         }
     }, [item, onCheckboxPress, onSelectRow]);
 
-    console.log('personalDetails', personalDetails);
+    if (isSmallScreenWidth) {
+        return (
+            <BaseListItem
+                item={item}
+                pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive]]}
+                wrapperStyle={[styles.flexColumn, styles.flex1, styles.userSelectNone, styles.alignItemsStretch]}
+                containerStyle={[styles.mb3]}
+                isFocused={isFocused}
+                isDisabled={isDisabled}
+                showTooltip={showTooltip}
+                canSelectMultiple={canSelectMultiple}
+                onSelectRow={onSelectRow}
+                onDismissError={onDismissError}
+                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                rightHandSideComponent={rightHandSideComponent}
+                errors={item.errors}
+                pendingAction={item.pendingAction}
+                keyForList={item.keyForList}
+                onFocus={onFocus}
+                shouldSyncFocus={shouldSyncFocus}
+                hoverStyle={item.isSelected && styles.activeComponentBG}
+            >
+                {(hovered) => (
+                    <>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
+                                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                                    <Avatar
+                                        imageStyles={[styles.alignSelfCenter]}
+                                        size={CONST.AVATAR_SIZE.SMALL}
+                                        source={personalDetails[item.managerID]?.avatar}
+                                        name={personalDetails[item.managerID]?.displayName}
+                                        type={CONST.ICON_TYPE_WORKSPACE}
+                                    />
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.flex1, styles.flexGrow1, styles.textStrong, styles.textMicro]}
+                                    >
+                                        {personalDetails[item.managerID]?.displayName}
+                                    </Text>
+                                </View>
+                                <Icon
+                                    src={Expensicons.ArrowRightLong}
+                                    width={variables.iconSizeXXSmall}
+                                    height={variables.iconSizeXXSmall}
+                                    fill={theme.icon}
+                                />
+                                <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                                    <Avatar
+                                        imageStyles={[styles.alignSelfCenter]}
+                                        size={CONST.AVATAR_SIZE.SMALL}
+                                        source={personalDetails[item.accountID]?.avatar}
+                                        name={personalDetails[item.accountID]?.displayName}
+                                        type={CONST.ICON_TYPE_WORKSPACE}
+                                    />
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.flex1, styles.flexGrow1, styles.textStrong, styles.textMicro]}
+                                    >
+                                        {personalDetails[item.accountID]?.displayName}
+                                    </Text>
+                                </View>
+                            </View>
+                            <View style={styles.flexShrink0}>
+                                <Button
+                                    success
+                                    onPress={() => {}}
+                                    small
+                                    pressOnEnter
+                                    text="View"
+                                />
+                            </View>
+                        </View>
+                        <View></View>
+                    </>
+                )}
+            </BaseListItem>
+        );
+    }
 
     return (
         <BaseListItem
@@ -92,17 +174,6 @@ function TransactionListItem<TItem extends ListItem>({
                                 )}
                             </View>
                         </PressableWithFeedback>
-                    )}
-                    {!!item.icons && (
-                        <MultipleAvatars
-                            icons={item.icons ?? []}
-                            shouldShowTooltip={showTooltip}
-                            secondAvatarStyle={[
-                                StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
-                            ]}
-                        />
                     )}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
