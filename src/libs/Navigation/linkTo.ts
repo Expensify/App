@@ -2,6 +2,7 @@ import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import shallowCompare from '@libs/ObjectUtils';
 import {extractPolicyIDFromPath, getPathWithoutPolicyID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -13,7 +14,6 @@ import getPolicyIDFromState from './getPolicyIDFromState';
 import getStateFromPath from './getStateFromPath';
 import getTopmostBottomTabRoute from './getTopmostBottomTabRoute';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
-import getTopmostReportId from './getTopmostReportId';
 import linkingConfig from './linkingConfig';
 import getAdaptedStateFromPath from './linkingConfig/getAdaptedStateFromPath';
 import getMatchingBottomTabRouteForState from './linkingConfig/getMatchingBottomTabRouteForState';
@@ -134,6 +134,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
     const policyIDFromState = getPolicyIDFromState(rootState);
     const policyID = extractedPolicyID ?? policyIDFromState;
 
+    const isNarrowLayout = getIsNarrowLayout();
+
     const isFullScreenOnTop = rootState.routes?.at(-1)?.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR;
 
     if (policyID && !isFullScreenOnTop) {
@@ -150,16 +152,15 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const topRouteName = rootState?.routes?.at(-1)?.name;
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
+        const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== action.payload.params?.screen);
+        const areParamsDifferent = !shallowCompare(topmostCentralPaneRoute?.params, action.payload.params?.params);
+
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 
             // If this action is navigating to the report screen and the top most navigator is different from the one we want to navigate - PUSH the new screen to the top of the stack
-        } else if (
-            action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR &&
-            topmostCentralPaneRoute &&
-            (topmostCentralPaneRoute.name !== action.payload.params?.screen || getTopmostReportId(rootState) !== getTopmostReportId(stateFromPath))
-        ) {
+        } else if (action.payload.name === NAVIGATORS.CENTRAL_PANE_NAVIGATOR && (isTargetScreenDifferentThanCurrent || areParamsDifferent)) {
             // We need to push a tab if the tab doesn't match the central pane route that we are going to push.
             const topmostBottomTabRoute = getTopmostBottomTabRoute(rootState);
             const matchingBottomTabRoute = getMatchingBottomTabRouteForState(stateFromPath, policyID);
@@ -194,8 +195,8 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
                     root.dispatch(diffAction);
                 }
             }
-            // All actions related to FullScreenNavigator are pushed when comparing differences between rootState and adaptedState.
-            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
+            // All actions related to FullScreenNavigator on wide screen are pushed when comparing differences between rootState and adaptedState.
+            if (action.payload.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR && !isNarrowLayout) {
                 return;
             }
             action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
@@ -213,7 +214,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
             root.dispatch(actionForBottomTabNavigator);
 
             // If the layout is wide we need to push matching central pane route to the stack.
-            if (!getIsNarrowLayout()) {
+            if (!isNarrowLayout) {
                 // stateFromPath should always include bottom tab navigator state, so getMatchingCentralPaneRouteForState will be always defined.
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 const matchingCentralPaneRoute = getMatchingCentralPaneRouteForState(stateFromPath, rootState)!;

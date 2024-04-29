@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 
 type Unit = 'mi' | 'km';
@@ -38,7 +39,7 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Name of the a tax rate. */
     name: string;
 
-    /** The value of the tax rate as percentage. */
+    /** The value of the tax rate. */
     value: string;
 
     /** The code associated with the tax rate. If a tax is created in old dot, code field is undefined */
@@ -140,12 +141,12 @@ type QBOConnectionData = {
     vendors: Vendor[];
 };
 
-type IntegrationEntityMap = 'NONE' | 'DEFAULT' | 'TAG' | 'REPORT_FIELD';
+type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
  */
-type QBOConnectionConfig = {
+type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     realmId: string;
     companyName: string;
     autoSync: {
@@ -158,6 +159,8 @@ type QBOConnectionConfig = {
     reimbursableExpensesExportDestination: IntegrationEntityMap;
     nonReimbursableExpensesExportDestination: IntegrationEntityMap;
 
+    collectionAccountID?: string;
+    reimbursementAccountID?: string;
     reimbursableExpensesAccount?: string;
     nonReimbursableExpensesAccount?: string;
     autoCreateVendor: boolean;
@@ -165,14 +168,24 @@ type QBOConnectionConfig = {
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
-    exportDate: string;
+    syncAccounts: IntegrationEntityMap;
+    syncTaxes: IntegrationEntityMap;
     lastConfigurationTime: number;
+    exportCompanyCardAccount?: string;
     syncTax: boolean;
-    enableNewCategories: boolean;
-    export: {
-        exporter: string;
-    };
-};
+    enableNewCategories: IntegrationEntityMap;
+    errors?: OnyxCommon.Errors;
+    exporter: string;
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+    outOfPocketExpenses: string;
+    exportInvoice: string;
+    exportAccount: string;
+    exportAccountPayable: string;
+    accountPayable: string;
+    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
+    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>;
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -183,12 +196,15 @@ type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
+type ConnectionName = keyof Connections;
+
 type ACHAccount = {
     bankAccountID: number;
     accountNumber: string;
     routingNumber: string;
     addressName: string;
     bankName: string;
+    reimburser: string;
 };
 
 type AutoReportingOffset = number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
@@ -315,9 +331,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled: boolean;
         };
 
-        /** @deprecated Whether the scheduled submit is enabled */
-        isPreventSelfApprovalEnabled?: boolean;
-
         /** Whether the self approval or submitting is enabled */
         preventSelfApproval?: boolean;
 
@@ -328,7 +341,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: [];
+        employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
@@ -390,12 +403,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
-        /** Email of the reimburser when reimbursement is set direct */
-        reimburserEmail?: string;
-
-        /** AccountID of the reimburser when reimbursement is set direct */
-        reimburserAccountID?: number;
-
         /** ReportID of the admins room for this workspace */
         chatReportIDAdmins?: number;
 
@@ -413,6 +420,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Tags feature is enabled */
         areTagsEnabled?: boolean;
+
+        /** Whether the Accounting feature is enabled */
+        areAccountingEnabled?: boolean;
 
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
@@ -438,9 +448,35 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'generalSettings' | 'addWorkspaceRoom'
+    'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
+
+type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
+type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
+type PolicyConnectionSyncProgress = {
+    stageInProgress: PolicyConnectionSyncStage;
+    connectionName: PolicyConnectionName;
+};
 
 export default Policy;
 
-export type {PolicyReportField, PolicyReportFieldType, Unit, CustomUnit, Attributes, Rate, TaxRate, TaxRates, TaxRatesWithDefault, PolicyFeatureName, PendingJoinRequestPolicy};
+export type {
+    PolicyReportField,
+    PolicyReportFieldType,
+    Unit,
+    CustomUnit,
+    Attributes,
+    Rate,
+    TaxRate,
+    TaxRates,
+    TaxRatesWithDefault,
+    IntegrationEntityMap,
+    PolicyFeatureName,
+    PendingJoinRequestPolicy,
+    PolicyConnectionName,
+    PolicyConnectionSyncStage,
+    PolicyConnectionSyncProgress,
+    Connections,
+    ConnectionName,
+    Account,
+};

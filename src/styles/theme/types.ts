@@ -11,6 +11,7 @@ type ThemeColors = {
     appBG: Color;
     splashBG: Color;
     highlightBG: Color;
+    messageHighlightBG: Color;
     border: Color;
     borderLighter: Color;
     borderFocus: Color;
@@ -19,6 +20,7 @@ type ThemeColors = {
     iconHovered: Color;
     iconMenuHovered: Color;
     iconSuccessFill: Color;
+    iconDangerFill: Color;
     iconReversed: Color;
     iconColorfulBackground: Color;
     textSupporting: Color;

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {Step} from '@kie/act-js';
-import type {CreateRepositoryFile, MockGithub} from '@kie/mock-github';
-import kieMockGithub from '@kie/mock-github';
+import {MockGithub} from '@kie/mock-github';
+import type {CreateRepositoryFile} from '@kie/mock-github';
 import path from 'path';
 import {assertCLAJobExecuted} from './assertions/claAssertions';
 import {CLA__CLA__CHECK_MATCH__STEP_MOCKS, CLA__CLA__NO_MATCHES__STEP_MOCKS, CLA__CLA__RECHECK_MATCH__STEP_MOCKS} from './mocks/claMocks';
@@ -10,7 +10,7 @@ import * as utils from './utils/utils';
 
 jest.setTimeout(90 * 1000);
 
-let mockGithub: MockGithub | undefined;
+let mockGithub: MockGithub;
 
 const FILES_TO_COPY_INTO_TEST_REPO: CreateRepositoryFile[] = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),
@@ -36,7 +36,7 @@ describe('test workflow cla', () => {
 
     beforeEach(async () => {
         // create a local repository and copy required files
-        mockGithub = new kieMockGithub.MockGithub({
+        mockGithub = new MockGithub({
             repo: {
                 testClaWorkflowRepo: {
                     files: FILES_TO_COPY_INTO_TEST_REPO,

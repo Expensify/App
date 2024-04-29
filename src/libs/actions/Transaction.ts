@@ -67,7 +67,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
                 [`waypoint${index}`]: waypoint,
             },
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
+        // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
         ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving a new waypoint as this indicates the user is updating their input
@@ -107,7 +107,7 @@ function saveWaypoint(transactionID: string, index: string, waypoint: RecentWayp
     }
 }
 
-function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void> {
+function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: string, isDraft?: boolean): Promise<void | void[]> {
     // Index comes from the route params and is a string
     const index = Number(currentIndex);
     const existingWaypoints = transaction?.comment?.waypoints ?? {};
@@ -141,7 +141,7 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
             ...transaction?.comment,
             waypoints: reIndexedWaypoints,
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
+        // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
         ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
     };
@@ -234,12 +234,12 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, isDraft:
  * @param waypoints - An object containing all the waypoints
  *                             which will replace the existing ones.
  */
-function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void> {
+function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void | void[]> {
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             waypoints,
         },
-        // We want to reset the amount only for draft transactions (when creating the request).
+        // We want to reset the amount only for draft transactions (when creating the expense).
         // When modifying an existing transaction, the amount will be updated on the actual IOU update operation.
         ...(isDraft && {amount: CONST.IOU.DEFAULT_AMOUNT}),
         // Empty out errors when we're saving new waypoints as this indicates the user is updating their input

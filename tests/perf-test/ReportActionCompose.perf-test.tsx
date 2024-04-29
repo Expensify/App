@@ -38,9 +38,8 @@ jest.mock('@react-navigation/native', () => {
             navigate: jest.fn(),
             addListener: () => jest.fn(),
         }),
-        useIsFocused: () => ({
-            navigate: jest.fn(),
-        }),
+        useIsFocused: () => true,
+        useNavigationState: () => {},
     } as typeof Navigation;
 });
 
@@ -162,7 +161,7 @@ test('[ReportActionCompose] render composer with attachement modal interactions'
     const scenario = async () => {
         const hintAddAttachmentButtonText = Localize.translateLocal('reportActionCompose.addAttachment');
         const hintAssignTaskButtonText = Localize.translateLocal('newTaskPage.assignTask');
-        const hintSplitBillButtonText = Localize.translateLocal('iou.splitBill');
+        const hintSplitBillButtonText = Localize.translateLocal('iou.splitExpense');
 
         // Query for the attachment modal items
         const addAttachmentButton = await screen.findByLabelText(hintAddAttachmentButtonText);

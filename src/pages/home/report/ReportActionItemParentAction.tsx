@@ -2,11 +2,13 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +33,12 @@ type ReportActionItemParentActionProps = {
     /** The current report is displayed */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for this report */
+    reportActions: OnyxTypes.ReportAction[];
+
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -38,12 +46,21 @@ type ReportActionItemParentActionProps = {
     shouldDisplayReplyDivider: boolean;
 };
 
-function ReportActionItemParentAction({report, parentReportAction, index = 0, shouldHideThreadDividerLine = false, shouldDisplayReplyDivider}: ReportActionItemParentActionProps) {
+function ReportActionItemParentAction({
+    report,
+    transactionThreadReport,
+    reportActions,
+    parentReportAction,
+    index = 0,
+    shouldHideThreadDividerLine = false,
+    shouldDisplayReplyDivider,
+}: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth} = useWindowDimensions();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -89,9 +106,19 @@ function ReportActionItemParentAction({report, parentReportAction, index = 0, sh
                 >
                     <ThreadDivider ancestor={ancestor} />
                     <ReportActionItem
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID))}
+                        onPress={() => {
+                            const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
+                            // Pop the thread report screen before navigating to the chat report.
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''));
+                            if (isVisibleAction && !isOffline) {
+                                // Pop the chat report screen before navigating to the linked report action.
+                                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID));
+                            }
+                        }}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
+                        reportActions={reportActions}
+                        transactionThreadReport={transactionThreadReport}
                         action={ancestor.reportAction}
                         displayAsGroup={false}
                         isMostRecentIOUReportAction={false}

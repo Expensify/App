@@ -95,6 +95,7 @@ function ReportActionsListWrapper() {
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList
                         parentReportAction={createRandomReportAction(1)}
+                        parentReportActionForTransactionThread={null}
                         sortedReportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                         report={LHNTestUtilsModule.getFakeReport()}
                         onLayout={mockOnLayout}
@@ -103,6 +104,8 @@ function ReportActionsListWrapper() {
                         listID={1}
                         loadOlderChats={mockLoadChats}
                         loadNewerChats={mockLoadChats}
+                        transactionThreadReport={LHNTestUtilsModule.getFakeReport()}
+                        reportActions={ReportTestUtils.getMockedSortedReportActions(500)}
                     />
                 </ActionListContext.Provider>
             </ReactionListContext.Provider>
