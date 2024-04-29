@@ -240,7 +240,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 lodashGet(newChatOptions, 'personalDetails', []).length + lodashGet(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
-
                 lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
         [newChatOptions, participants, debouncedSearchTerm],
