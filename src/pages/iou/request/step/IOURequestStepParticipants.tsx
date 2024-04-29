@@ -5,7 +5,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
+import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';

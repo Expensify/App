@@ -1,12 +1,8 @@
-import lodashGet from 'lodash/get';
 import lodashIsEqual from 'lodash/isEqual';
-import lodashMap from 'lodash/map';
 import lodashPick from 'lodash/pick';
 import lodashReject from 'lodash/reject';
-import lodashSome from 'lodash/some';
-import lodashValues from 'lodash/values';
-import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -23,46 +19,43 @@ import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type {MaybePhraseKey} from '@libs/Localize';
+import type {Options} from '@libs/OptionsListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
+import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Participant} from '@src/types/onyx/IOU';
 
-const propTypes = {
+type MoneyRequestParticipantsSelectorProps = {
     /** Callback to request parent modal to go to next step, which should be split */
-    onFinish: PropTypes.func.isRequired,
+    onFinish: (value?: string) => void;
 
     /** Callback to add participants in MoneyRequestModal */
-    onParticipantsAdded: PropTypes.func.isRequired,
-
+    onParticipantsAdded: (value: Participant[]) => void;
     /** Selected participants from MoneyRequestModal with login */
-    participants: PropTypes.arrayOf(
-        PropTypes.shape({
-            accountID: PropTypes.number,
-            login: PropTypes.string,
-            isPolicyExpenseChat: PropTypes.bool,
-            isOwnPolicyExpenseChat: PropTypes.bool,
-            selected: PropTypes.bool,
-        }),
-    ),
+    participants?: Participant[];
 
     /** The type of IOU report, i.e. split, request, send, track */
-    iouType: PropTypes.oneOf(lodashValues(CONST.IOU.TYPE)).isRequired,
+    iouType: IOUType;
 
     /** The expense type, ie. manual, scan, distance */
-    iouRequestType: PropTypes.oneOf(lodashValues(CONST.IOU.REQUEST_TYPE)).isRequired,
+    iouRequestType: IOURequestType;
 
     /** The action of the IOU, i.e. create, split, move */
-    action: PropTypes.oneOf(lodashValues(CONST.IOU.ACTION)),
+    action?: IOUAction;
 };
 
-const defaultProps = {
-    participants: [],
-    action: CONST.IOU.ACTION.CREATE,
-};
-
-function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onFinish, onParticipantsAdded, iouType, iouRequestType, action}) {
+function MoneyRequestParticipantsSelector({
+    participants = [],
+    onFinish,
+    onParticipantsAdded,
+    iouType,
+    iouRequestType,
+    action = CONST.IOU.ACTION.CREATE,
+}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -78,12 +71,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         shouldInitialize: didScreenTransitionEnd,
     });
 
-    const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
+    const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
-    const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
+    const isCategorizeOrShareAction = ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE] as string[]).includes(action);
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
 
@@ -97,7 +90,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
      * @returns {Array}
      */
     const [sections, newChatOptions] = useMemo(() => {
-        const newSections = [];
+        const newSections: OptionsListUtils.CategorySection[] = [];
         if (!areOptionsInitialized || !didScreenTransitionEnd) {
             return [newSections, {}];
         }
@@ -113,14 +106,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            (canUseP2PDistanceRequests ?? iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             {},
             [],
             false,
             {},
             [],
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            (canUseP2PDistanceRequests ?? iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             undefined,
             undefined,
@@ -134,7 +127,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
         const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
             debouncedSearchTerm,
-            participants,
+            participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})),
             chatOptions.recentReports,
             chatOptions.personalDetails,
             maxParticipantsReached,
@@ -160,11 +153,14 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             shouldShow: chatOptions.personalDetails.length > 0,
         });
 
-        if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
+        if (
+            chatOptions.userToInvite &&
+            !OptionsListUtils.isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? -1, status: chatOptions.userToInvite?.status ?? undefined})
+        ) {
             newSections.push({
                 title: undefined,
-                data: lodashMap([chatOptions.userToInvite], (participant) => {
-                    const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
+                data: [chatOptions.userToInvite].map((participant) => {
+                    const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
                 shouldShow: true,
@@ -196,8 +192,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
      * @param {Object} option
      */
     const addSingleParticipant = useCallback(
-        (option) => {
-            const newParticipants = [
+        (option: Participant) => {
+            const newParticipants: Participant[] = [
                 {
                     ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
@@ -206,10 +202,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID);
+                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID ?? undefined);
 
                 newParticipants.push({
-                    policyID: primaryPolicy.id,
+                    policyID: primaryPolicy?.id,
                     isSender: true,
                     selected: false,
                     iouType,
@@ -228,20 +224,20 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
      * @param {Object} option
      */
     const addParticipantToSelection = useCallback(
-        (option) => {
-            const isOptionSelected = (selectedOption) => {
-                if (selectedOption.accountID && selectedOption.accountID === option.accountID) {
+        (option: Participant) => {
+            const isOptionSelected = (selectedOption: Participant) => {
+                if (selectedOption.accountID && selectedOption.accountID === option?.accountID) {
                     return true;
                 }
 
-                if (selectedOption.reportID && selectedOption.reportID === option.reportID) {
+                if (selectedOption.reportID && selectedOption.reportID === option?.reportID) {
                     return true;
                 }
 
                 return false;
             };
-            const isOptionInList = lodashSome(participants, isOptionSelected);
-            let newSelectedOptions;
+            const isOptionInList = participants.some(isOptionSelected);
+            let newSelectedOptions: Participant[];
 
             if (isOptionInList) {
                 newSelectedOptions = lodashReject(participants, isOptionSelected);
@@ -269,11 +265,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                lodashGet(newChatOptions, 'personalDetails', []).length + lodashGet(newChatOptions, 'recentReports', []).length !== 0,
-                Boolean(newChatOptions.userToInvite),
+                ((newChatOptions as Options)?.personalDetails ?? []).length + ((newChatOptions as Options)?.recentReports ?? []).length !== 0,
+                Boolean((newChatOptions as Options)?.userToInvite),
                 debouncedSearchTerm.trim(),
                 maxParticipantsReached,
-                lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+                participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
         [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
     );
@@ -281,17 +277,17 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     // Right now you can't split an expense with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
-    const hasPolicyExpenseChatParticipant = lodashSome(participants, (participant) => participant.isPolicyExpenseChat);
+    const hasPolicyExpenseChatParticipant = participants.some((participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
-        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
-        ![CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE].includes(iouType) &&
-        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].includes(action);
+        (canUseP2PDistanceRequests ?? iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
+        !([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE] as string[]).includes(iouType) &&
+        !([CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE] as string[]).includes(action);
 
     const handleConfirmSelection = useCallback(
-        (keyEvent, option) => {
+        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
             const shouldAddSingleParticipant = option && !participants.length;
             if (shouldShowSplitBillErrorMessage || (!participants.length && !option)) {
                 return;
@@ -362,15 +358,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     );
 }
 
-MoneyTemporaryForRefactorRequestParticipantsSelector.propTypes = propTypes;
-MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps;
-MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
+MoneyRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
 export default memo(
-    MoneyTemporaryForRefactorRequestParticipantsSelector,
+    MoneyRequestParticipantsSelector,
     (prevProps, nextProps) =>
-        lodashIsEqual(prevProps.participants, nextProps.participants) &&
-        prevProps.iouRequestType === nextProps.iouRequestType &&
-        prevProps.iouType === nextProps.iouType &&
-        lodashIsEqual(prevProps.betas, nextProps.betas),
+        lodashIsEqual(prevProps.participants, nextProps.participants) && prevProps.iouRequestType === nextProps.iouRequestType && prevProps.iouType === nextProps.iouType,
 );
