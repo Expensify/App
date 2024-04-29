@@ -869,15 +869,6 @@ function buildOnyxDataForInvoice(
                 [transactionThreadCreatedReportAction.reportActionID]: transactionThreadCreatedReportAction,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
-            value: {
-                action: CONST.QUICK_ACTIONS.REQUEST_MANUAL,
-                chatReportID: chatReport?.reportID,
-                isFirstQuickAction: isEmptyObject(quickAction),
-            },
-        },
         // Remove the temporary transaction used during the creation flow
         {
             onyxMethod: Onyx.METHOD.SET,
