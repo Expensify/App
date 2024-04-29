@@ -1930,11 +1930,17 @@ export default {
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
-            debitCardDescription:
+            // The account type name uses underscores in the backend.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            debit_cardDescription:
                 "We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.",
-            creditCardDescription:
+            // The account type name uses underscores in the backend.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            credit_cardDescription:
                 "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
-            vendorBillDescription:
+            // The account type name uses underscores in the backend.
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            vendor_billDescription:
                 "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
             debitCardAccountDescription: 'Debit card transactions will export to the bank account below.”',
             creditCardAccountDescription: 'Credit card transactions will export to the bank account below.',
