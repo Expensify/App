@@ -2168,15 +2168,33 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: 'Disconnect integration',
-            disconnectPrompt: (integrationToConnect?: ConnectionName): string => {
+            disconnectTitle: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Disconnect QuickBooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Disconnect Xero';
+                    default: {
+                        return 'Disconnect integration';
+                    }
+                }
+            },
+            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'To set up QuickBooks Online you must disconnect. Are you sure you want to disconnect this integration?';
+                        return 'Are you sure you want to disconnect Xero to set up QuickBooks Online?';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'To set up Xero you must disconnect. Are you sure you want to disconnect this integration?';
+                        return 'Are you sure you want to disconnect QuickBooks Online to set up Xero?';
                     default: {
-                        return 'Are you sure you want to disconnect this integration?';
+                        switch (currentIntegration) {
+                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                                return 'Are you sure you want to disconnect QuickBooks Online?';
+                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                                return 'Are you sure you want to disconnect Xero?';
+                            default: {
+                                return 'Are you sure you want to disconnect this integration?';
+                            }
+                        }
                     }
                 }
             },

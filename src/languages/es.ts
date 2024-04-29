@@ -2163,15 +2163,33 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: 'Desconectar integración',
-            disconnectPrompt: (integrationToConnect?: ConnectionName): string => {
+            disconnectTitle: (currentIntegration?: ConnectionName): string => {
+                switch (currentIntegration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Desconectar QuickBooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Desconectar Xero';
+                    default: {
+                        return 'Desconectar integración';
+                    }
+                }
+            },
+            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'Para configurar QuickBooks Online debe desconectarse. ¿Estás seguro de que deseas desconectar esta intregración?';
+                        return '¿Estás seguro de que quieres desconectar Xero para configurar QuickBooks Online?';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'Para configurar Xero debe desconectarse. ¿Estás seguro de que deseas desconectar esta intregración?';
+                        return '¿Estás seguro de que quieres desconectar QuickBooks Online para configurar Xero?';
                     default: {
-                        return '¿Estás seguro de que deseas desconectar esta intregración?';
+                        switch (currentIntegration) {
+                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                                return '¿Estás seguro de que quieres desconectar QuickBooks Online?';
+                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                                return '¿Estás seguro de que quieres desconectar Xero?';
+                            default: {
+                                return '¿Estás seguro de que quieres desconectar integración?';
+                            }
+                        }
                     }
                 }
             },
