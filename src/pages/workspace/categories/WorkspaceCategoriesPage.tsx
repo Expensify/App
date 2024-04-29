@@ -214,6 +214,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
                     options={options}
+                    isSplitButton={false}
                     style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
                 />
             );
