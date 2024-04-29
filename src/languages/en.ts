@@ -1956,9 +1956,10 @@ export default {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             journal_entry: 'Journal entry',
             optionBelow: 'Choose an option below:',
-            vendorBillError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+            billError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
             checkError: 'Check is not available when locations are enabled. Please select a different export option.',
-            journalEntryError: 'Journal entry is not available when taxes enabled. please select a different export option.',
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            journal_entryError: 'Journal entry is not available when taxes enabled. please select a different export option.',
             companyCardsLocationEnabledDescription:
                 'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
             outOfPocketTaxEnabledDescription:
