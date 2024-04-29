@@ -23,6 +23,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -39,8 +41,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
-import getCurrentPosition from "@libs/getCurrentPosition";
-import Log from "@libs/Log";
 
 function IOURequestStepScan({
     report,
@@ -312,7 +312,7 @@ function IOURequestStepScan({
                                 {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
-                                }
+                                },
                             );
                         } else {
                             IOU.requestMoney(
@@ -337,7 +337,7 @@ function IOURequestStepScan({
                                 {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
-                                }
+                                },
                             );
                         }
                     },

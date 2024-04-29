@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -37,7 +38,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import CameraPermission from './CameraPermission';
 import NavigationAwareCamera from './NavigationAwareCamera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
-import getCurrentPosition from "@libs/getCurrentPosition";
 
 function IOURequestStepScan({
     report,
@@ -271,7 +271,7 @@ function IOURequestStepScan({
                                 {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
-                                }
+                                },
                             );
                         } else {
                             IOU.requestMoney(
@@ -296,7 +296,7 @@ function IOURequestStepScan({
                                 {
                                     lat: successData.coords.latitude,
                                     long: successData.coords.longitude,
-                                }
+                                },
                             );
                         }
                     },
