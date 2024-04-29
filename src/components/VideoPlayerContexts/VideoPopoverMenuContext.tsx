@@ -1,4 +1,3 @@
-import type {AVPlaybackSourceObject} from 'expo-av';
 import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -34,7 +33,11 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (videoPopoverMenuPlayerRef.current === null) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL((videoPopoverMenuPlayerRef.current.props.source as AVPlaybackSourceObject).uri);
+        const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+        if (typeof source === 'number' || !source) {
+            return;
+        }
+        const sourceURI = addEncryptedAuthTokenToURL(source.uri);
         fileDownload(sourceURI);
     }, [videoPopoverMenuPlayerRef]);
 
