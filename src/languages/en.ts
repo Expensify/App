@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import { satisfies } from 'semver';
+import * as translations from '@src/languages/translations';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -107,6 +107,8 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
+
+const originalTranslations = {...translations};
 
 /* eslint-disable max-len */
 export default {
@@ -2259,10 +2261,17 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
-            deleteRates: ({count}) => ({
-                one: `Delete ${count} rate`,
-                other: `Delete ${count} rates`,
-            }),
+            deleteRates: ({count}) => {
+                const pluralForm = originalTranslations.default.enPluralRules.select(count);
+                switch (pluralForm) {
+                    case 'one':
+                        return `Delete ${count} rate`;
+                    case 'other':
+                        return `Delete ${count} rates`;
+                    default:
+                        return `Delete ${count} rates`;
+                }
+            },
             enableRates: ({count}) => ({
                 one: `Enable ${count} rate`,
                 other: `Enable ${count} rates`,
