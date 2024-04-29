@@ -361,7 +361,7 @@ const ONYXKEYS = {
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
 
         // Search Page related
-        SEARCH: 'search_'
+        SNAPSHOT: 'snapshot_',
     },
 
     /** List of Form ids */
@@ -566,7 +566,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
-    [ONYXKEYS.COLLECTION.SEARCH]: OnyxTypes.SearchResults;
+    [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
 };
 
 type OnyxValuesMapping = {

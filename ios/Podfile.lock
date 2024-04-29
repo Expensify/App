@@ -1380,10 +1380,25 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-quick-sqlite (8.0.0-beta.2):
-    - React
-    - React-callinvoker
+  - react-native-quick-sqlite (8.0.6):
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2022.05.16.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-release-profiler (0.1.6):
     - glog
     - hermes-engine
@@ -2062,7 +2077,6 @@ DEPENDENCIES:
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
-  - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - libevent (~> 2.1.12)
@@ -2500,7 +2514,7 @@ SPEC CHECKSUMS:
   react-native-pdf: cd256a00b9d65cb1008dcca2792d7bfb8874838d
   react-native-performance: 1aa5960d005159f4ab20be15b44714b53b44e075
   react-native-plaid-link-sdk: 93870f8cd1de8e0acca5cb5020188bdc94e15db6
-  react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
+  react-native-quick-sqlite: f7b9f578b8b3b608dc742240b0103faae5b61f63
   react-native-release-profiler: 42fc8e09b4f6f9b7d14cc5a15c72165e871c0918
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: e8bdd57d9f8d34cc336f0ee6acb30712a8454446
@@ -2558,7 +2572,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: 3033e0dd5272d46e97bcb406adea4ae0e6907abf
+  VisionCamera: 8c5c9c50b3d76018782a823cee2f0b8b628c8604
   Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d

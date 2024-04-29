@@ -63,6 +63,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -80,7 +81,6 @@ import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WorkspaceRateAndUnit from './WorkspaceRateAndUnit';
-import type SearchResults  from './SearchResults'
 
 export type {
     Account,
@@ -178,5 +178,5 @@ export type {
     Log,
     PolicyJoinMember,
     CapturedLogs,
-    SearchResults
+    SearchResults,
 };

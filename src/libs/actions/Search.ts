@@ -1,8 +1,8 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import * as UserUtils from '@libs/UserUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {READ_COMMANDS} from '@libs/API/types';
+import * as SearchUtils from '@libs/SearchUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -17,7 +17,7 @@ function search(query: string) {
         return;
     }
 
-    const hash = UserUtils.hashText(query, 2 ** 32);
+    const hash = SearchUtils.getQueryHash(query);
     API.read(READ_COMMANDS.SEARCH, {query, hash});
 }
 
