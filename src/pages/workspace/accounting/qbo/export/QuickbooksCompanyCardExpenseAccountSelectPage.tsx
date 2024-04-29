@@ -19,11 +19,6 @@ import type {Account} from '@src/types/onyx/Policy';
 type CardListItem = ListItem & {
     value: string;
 };
-const AccountTypeTranslationKeyMapping = {
-    [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL]: 'vendorBill',
-    [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'creditCard',
-    [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'debitCard',
-} as const;
 
 function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -78,11 +73,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                     title={exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
                 />
                 <SelectionList
-                    headerContent={
-                        exportCompanyCard ? (
-                            <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.${AccountTypeTranslationKeyMapping[exportCompanyCard]}AccountDescription`)}</Text>
-                        ) : null
-                    }
+                    headerContent={exportCompanyCard ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.${exportCompanyCard}AccountDescription`)}</Text> : null}
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportAccount}
