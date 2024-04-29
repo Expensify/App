@@ -2,10 +2,9 @@ import {useIsFocused} from '@react-navigation/native';
 import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import FixedFooter from '@components/FixedFooter';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -41,11 +40,13 @@ import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 import ConfirmedRoute from './ConfirmedRoute';
 import ConfirmModal from './ConfirmModal';
+import FixedFooter from './FixedFooter';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
+import ScrollView from './ScrollView';
 import SelectionList from './SelectionList';
 import InviteMemberListItem from './SelectionList/InviteMemberListItem';
 import SettlementButton from './SettlementButton';
@@ -956,68 +957,76 @@ function MoneyRequestConfirmationList({
 
     return (
         <View style={{flex: 1, justifyContent: 'space-between'}}>
-            {/*
-             * The SelectionList component uses a SectionList which uses a VirtualizedList internally.
-             * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
-             * To work around this, we wrap the OptionsList component with a horizontal ScrollView.
-             */}
-            <ScrollView style={{flexGrow: 1}}>
-                <ScrollView
-                    horizontal
-                    bounces={false}
-                    contentContainerStyle={{flex: 1, flexDirection: 'column'}}
-                >
-                    <View style={{flexGrow: 0, flexShrink: 1, flexBasis: 'auto', flexDirection: 'row'}}>
-                        <SelectionList
-                            canSelectMultiple={canModifyParticipants}
-                            sections={selectionListSections}
-                            ListItem={InviteMemberListItem}
-                            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
-                            shouldShowTooltips
-                            sectionTitleStyles={styles.sidebarLinkTextBold}
-                            showScrollIndicator
-                        />
-                    </View>
-                    {isDistanceRequest && (
-                        <View style={styles.confirmationListMapItem}>
-                            <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
+            <View style={{flex: 1}}>
+                {/*
+                 * The SelectionList component uses a SectionList which uses a VirtualizedList internally.
+                 * VirtualizedList cannot be directly nested within ScrollViews of the same orientation.
+                 * To work around this, we wrap the SelectionList component with a horizontal ScrollView.
+                 */}
+                <ScrollView style={{flexGrow: 1}}>
+                    <ScrollView
+                        horizontal
+                        bounces={false}
+                        contentContainerStyle={{flex: 1, flexDirection: 'column'}}
+                    >
+                        <View style={{flex: 1}}>
+                            <SelectionList
+                                canSelectMultiple={canModifyParticipants}
+                                sections={selectionListSections}
+                                ListItem={InviteMemberListItem}
+                                onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+                                shouldShowTooltips
+                                sectionTitleStyles={styles.sidebarLinkTextBold}
+                                showScrollIndicator
+                            />
                         </View>
-                    )}
-                    {!isDistanceRequest &&
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        (receiptImage || receiptThumbnail
-                            ? receiptThumbnailContent
-                            : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-                              PolicyUtils.isPaidGroupPolicy(policy) &&
-                              !isDistanceRequest &&
-                              iouType === CONST.IOU.TYPE.SUBMIT && (
-                                  <ReceiptEmptyState
-                                      onPress={() =>
-                                          Navigation.navigate(
-                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                                          )
-                                      }
-                                  />
-                              ))}
-                    {primaryFields}
-                    {!shouldShowAllFields && (
-                        <ShowMoreButton
-                            containerStyle={[styles.mt1, styles.mb2]}
-                            onPress={toggleShouldExpandFields}
+                        {isDistanceRequest && (
+                            <View style={styles.confirmationListMapItem}>
+                                <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
+                            </View>
+                        )}
+                        {!isDistanceRequest &&
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            (receiptImage || receiptThumbnail
+                                ? receiptThumbnailContent
+                                : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                                  PolicyUtils.isPaidGroupPolicy(policy) &&
+                                  !isDistanceRequest &&
+                                  iouType === CONST.IOU.TYPE.SUBMIT && (
+                                      <ReceiptEmptyState
+                                          onPress={() =>
+                                              Navigation.navigate(
+                                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                                      CONST.IOU.ACTION.CREATE,
+                                                      iouType,
+                                                      transactionID,
+                                                      reportID,
+                                                      Navigation.getActiveRouteWithoutParams(),
+                                                  ),
+                                              )
+                                          }
+                                      />
+                                  ))}
+                        {primaryFields}
+                        {!shouldShowAllFields && (
+                            <ShowMoreButton
+                                containerStyle={[styles.mt1, styles.mb2]}
+                                onPress={toggleShouldExpandFields}
+                            />
+                        )}
+                        {shouldShowAllFields && supplementaryFields}
+                        <ConfirmModal
+                            title={translate('attachmentPicker.wrongFileType')}
+                            onConfirm={navigateBack}
+                            onCancel={navigateBack}
+                            isVisible={isAttachmentInvalid}
+                            prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                            confirmText={translate('common.close')}
+                            shouldShowCancelButton={false}
                         />
-                    )}
-                    {shouldShowAllFields && supplementaryFields}
-                    <ConfirmModal
-                        title={translate('attachmentPicker.wrongFileType')}
-                        onConfirm={navigateBack}
-                        onCancel={navigateBack}
-                        isVisible={isAttachmentInvalid}
-                        prompt={translate('attachmentPicker.protectedPDFNotSupported')}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
+                    </ScrollView>
                 </ScrollView>
-            </ScrollView>
+            </View>
             <FixedFooter>{footerContent}</FixedFooter>
         </View>
     );
