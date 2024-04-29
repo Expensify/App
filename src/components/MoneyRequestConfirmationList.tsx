@@ -375,7 +375,7 @@ function MoneyRequestConfirmationList({
         }
 
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
-    }, [taxRates?.defaultValue, transaction, transactionID, previousTransactionAmount]);
+    }, [policy, transaction, transactionID, previousTransactionAmount]);
 
     /**
      * Returns the participants with amount
