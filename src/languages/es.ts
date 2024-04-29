@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
-import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -2188,8 +2188,36 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: 'Desconectar integración',
-            disconnectPrompt: '¿Estás seguro de que deseas desconectar esta intregración?',
+            disconnectTitle: (currentIntegration?: ConnectionName): string => {
+                switch (currentIntegration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Desconectar QuickBooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Desconectar Xero';
+                    default: {
+                        return 'Desconectar integración';
+                    }
+                }
+            },
+            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
+                switch (integrationToConnect) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return '¿Estás seguro de que quieres desconectar Xero para configurar QuickBooks Online?';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return '¿Estás seguro de que quieres desconectar QuickBooks Online para configurar Xero?';
+                    default: {
+                        switch (currentIntegration) {
+                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                                return '¿Estás seguro de que quieres desconectar QuickBooks Online?';
+                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                                return '¿Estás seguro de que quieres desconectar Xero?';
+                            default: {
+                                return '¿Estás seguro de que quieres desconectar integración?';
+                            }
+                        }
+                    }
+                }
+            },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {

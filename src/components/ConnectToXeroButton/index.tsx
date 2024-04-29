@@ -5,12 +5,12 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
+import getXeroSetupLink from '@libs/actions/connections/ConnectToXero';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type {ConnectToQuickbooksOnlineButtonProps} from './types';
+import type {ConnectToXeroButtonProps} from './types';
 
-function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToQuickbooksOnlineButtonProps) {
+function ConnectToXeroButton({policyID, shouldDisconnectIntegrationBeforeConnecting, integrationToDisconnect}: ConnectToXeroButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -25,23 +25,23 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
                         setIsDisconnectModalOpen(true);
                         return;
                     }
-                    Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
+                    Link.openLink(getXeroSetupLink(policyID), environmentURL);
                 }}
                 text={translate('workspace.accounting.setup')}
                 style={styles.justifyContentCenter}
                 small
             />
-            {shouldDisconnectIntegrationBeforeConnecting && integrationToDisconnect && isDisconnectModalOpen && (
+            {shouldDisconnectIntegrationBeforeConnecting && isDisconnectModalOpen && integrationToDisconnect && (
                 <ConfirmModal
-                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.XERO)}
-                    isVisible={isDisconnectModalOpen}
+                    title={translate('workspace.accounting.disconnectTitle', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                    isVisible
                     onConfirm={() => {
                         removePolicyConnection(policyID, integrationToDisconnect);
-                        Link.openLink(getQuickBooksOnlineSetupLink(policyID), environmentURL);
+                        Link.openLink(getXeroSetupLink(policyID), environmentURL);
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.QBO)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', CONST.POLICY.CONNECTIONS.NAME.XERO)}
                     confirmText={translate('workspace.accounting.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
@@ -51,6 +51,4 @@ function ConnectToQuickbooksOnlineButton({policyID, shouldDisconnectIntegrationB
     );
 }
 
-ConnectToQuickbooksOnlineButton.displayName = 'ConnectToQuickbooksOnlineButton';
-
-export default ConnectToQuickbooksOnlineButton;
+export default ConnectToXeroButton;
