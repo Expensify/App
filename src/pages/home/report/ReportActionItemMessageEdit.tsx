@@ -448,7 +448,6 @@ function ReportActionItemMessageEdit(
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
-                                // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
                                 if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
                                     return;

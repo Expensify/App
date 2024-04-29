@@ -37,7 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import NavigationAwareCamera from './NavigationAwareCamera';
+import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type {IOURequestStepOnyxProps, IOURequestStepScanProps} from './types';
 
 function IOURequestStepScan({

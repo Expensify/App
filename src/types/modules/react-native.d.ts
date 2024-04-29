@@ -196,6 +196,14 @@ declare module 'react-native' {
         touchHistory: TouchHistory;
     };
 
+    interface TextInputFocusEventData extends TargetedEvent {
+        text: string;
+        eventCount: number;
+        relatedTarget?: {
+            id?: string;
+        };
+    }
+
     // https://necolas.github.io/react-native-web/docs/interactions/#responderevent-props-api
     // Extracted from react-native-web, packages/react-native-web/src/modules/useResponderEvents/ResponderSystem.js
     interface ResponderProps {
