@@ -8,9 +8,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as SearchUtils from '@libs/SearchUtils';
+import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
@@ -24,7 +26,7 @@ const mockData = [
         created: '2024-04-11 00:00:00',
         amount: 12500,
         type: 'cash',
-        reportID: '1',
+        reportID: '3632789879960357',
         transactionThreadReportID: '2',
         transactionID: '1234',
         modifiedCreated: '2024-05-06 00:00:00',
@@ -42,7 +44,7 @@ const mockData = [
         created: '2024-04-11 00:00:00',
         amount: 12500,
         type: 'card', // not present in live data (data outside of snapshot_)
-        reportID: '1',
+        reportID: '5768873634031661',
         transactionThreadReportID: '2',
         transactionID: '5555',
         modifiedCreated: '2024-05-06 00:00:00',
@@ -112,6 +114,12 @@ function Search({query}: SearchProps) {
         );
     };
 
+    const openReport = (reportID?: string) => {
+        if (reportID) {
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
+        }
+    };
+
     const ListItem = SearchUtils.getListItem();
 
     return (
@@ -120,7 +128,9 @@ function Search({query}: SearchProps) {
             customListHeader={getListHeader()}
             ListItem={ListItem}
             sections={[{data: mockData, isDisabled: false}]}
-            onSelectRow={() => {}}
+            onSelectRow={(item) => {
+                openReport(item.reportID);
+            }}
             onSelectAll={!isSmallScreenWidth ? () => {} : undefined}
             onCheckboxPress={() => {}}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}

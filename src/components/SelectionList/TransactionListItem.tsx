@@ -16,7 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
 
@@ -77,7 +77,7 @@ function TransactionListItem<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                onSelectRow={onSelectRow}
+                onSelectRow={() => {}}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
@@ -156,7 +156,7 @@ function TransactionListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
-            onSelectRow={onSelectRow}
+            onSelectRow={() => {}}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
@@ -270,7 +270,9 @@ function TransactionListItem<TItem extends ListItem>({
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <Button
                                 success
-                                onPress={() => {}}
+                                onPress={() => {
+                                    onSelectRow(item);
+                                }}
                                 small
                                 pressOnEnter
                                 text="View"
