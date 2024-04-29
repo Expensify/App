@@ -99,7 +99,7 @@ function TagPicker({selectedTag, tagListName, policyTags, tagListIndex, policyRe
             sections={sections}
             textInputValue={searchValue}
             headerMessage={headerMessage}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
+            textInputLabel={shouldShowTextInput ? translate('common.searchText') : undefined}
             isRowMultilineSupported
             initiallyFocusedOptionKey={selectedOptionKey}
             onChangeText={setSearchValue}

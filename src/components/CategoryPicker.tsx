@@ -77,7 +77,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
-            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
+            textInputLabel={shouldShowTextInput ? translate('common.searchText') : undefined}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}

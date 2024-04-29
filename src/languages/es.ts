@@ -1,4 +1,5 @@
 import CONST from '@src/CONST';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -17,6 +18,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnglishTranslation,
@@ -55,6 +57,7 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
+    RequestCountParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -87,6 +90,7 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
+    ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
@@ -98,6 +102,8 @@ import type {
     WeSentYouMagicSignInLinkParams,
     ZipCodeExampleFormatParams,
 } from './types';
+
+const esPluralRules = new Intl.PluralRules('es', {type: 'ordinal'});
 
 /* eslint-disable max-len */
 export default {
@@ -114,7 +120,7 @@ export default {
         to: 'A',
         optional: 'Opcional',
         new: 'Nuevo',
-        search: 'Buscar',
+        searchText: 'Buscar',
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
@@ -254,10 +260,17 @@ export default {
         youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
-        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => ({
-            one: `Has seleccionado el número máximo (${count}) de participantes.`,
-            other: `Has seleccionado el número máximo (${count}) de participantes.`,
-        }),
+        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => {
+            const pluralForm = esPluralRules.select(count);
+            switch (pluralForm) {
+                case 'one':
+                    return `Has seleccionado el número máximo (${count}) de participantes.`;
+                case 'other':
+                    return `Has seleccionado el número máximo (${count}) de participantes.`;
+                default:
+                    return `Has seleccionado el número máximo (${count}) de participantes.`;
+            }
+        },
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
@@ -285,7 +298,7 @@ export default {
         nonBillable: 'No facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
-        replace: 'Sustituir',
+        replaceText: 'Sustituir',
         distance: 'Distancia',
         mile: 'milla',
         miles: 'millas',
@@ -606,7 +619,7 @@ export default {
         cash: 'Efectivo',
         card: 'Tarjeta',
         original: 'Original',
-        split: 'Dividir',
+        splitIOU: 'Dividir',
         splitExpense: 'Dividir gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',
@@ -633,10 +646,22 @@ export default {
         receiptStatusText: 'Solo tú puedes ver este recibo cuando se está escaneando. Vuelve más tarde o introduce los detalles ahora.',
         receiptScanningFailed: 'El escaneo de recibo ha fallado. Introduce los detalles manualmente.',
         transactionPendingText: 'La transacción tarda unos días en contabilizarse desde la fecha en que se utilizó la tarjeta.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}) => ({
-            one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
-            other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
-        }),
+        // expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => ({
+        //     one: `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+        //     other: `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`,
+        // }),
+        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+            const pluralForm = esPluralRules.select(count);
+
+            switch (pluralForm) {
+                case 'one':
+                    return `${count} gasto${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`;
+                case 'other':
+                    return `${count} gastos${scanningReceipts > 0 ? `, ${scanningReceipts} escaneando` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pendiente` : ''}`;
+                default:
+                    return '';
+            }
+        },
         deleteExpense: 'Eliminar gasto',
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta solicitud?',
         settledExpensify: 'Pagado',
@@ -1355,7 +1380,7 @@ export default {
         error: {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `La fecha debe ser anterior a ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `La fecha debe ser posterior a ${dateString}.`,
-            incorrectZipFormat: ({zipFormat}) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Formato de código postal incorrecto.${zipFormat ? ` Formato aceptable: ${zipFormat}` : ''}`,
             hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos.',
         },
     },
@@ -1857,10 +1882,17 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: ({selectedNumber}) => ({
-                one: `${selectedNumber} seleccionado`,
-                other: `${selectedNumber} seleccionados`,
-            }),
+            selected: ({selectedNumber}) => {
+                const pluralForm = esPluralRules.select(selectedNumber);
+                switch (pluralForm) {
+                    case 'one':
+                        return `${selectedNumber} seleccionado`;
+                    case 'other':
+                        return `${selectedNumber} seleccionados`;
+                    default:
+                        return `${selectedNumber} seleccionados`;
+                }
+            },
             settlementFrequency: 'Frecuencia de liquidación',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             unavailable: 'Espacio de trabajo no disponible',
@@ -2168,7 +2200,7 @@ export default {
             disconnectPrompt: '¿Estás seguro de que deseas desconectar esta intregración?',
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
-                syncStageName: ({stage}) => {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importando clientes';
@@ -2288,22 +2320,50 @@ export default {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
-            deleteRates: ({count}) => ({
-                one: `Eliminar ${count} tasa`,
-                other: `Eliminar ${count} tasas`,
-            }),
-            enableRates: ({count}) => ({
-                one: `Activar ${count} tasa`,
-                other: `Activar ${count} tasas`,
-            }),
-            disableRates: ({count}) => ({
-                one: `Desactivar ${count} tasa`,
-                other: `Desactivar ${count} tasas`,
-            }),
-            areYouSureDelete: ({count}) => ({
-                one: `¿Estás seguro de que quieres eliminar esta ${count} tasa?`,
-                other: `¿Estás seguro de que quieres eliminar estas ${count} tasas?`,
-            }),
+            deleteRates: ({count}: Record<string, number>) => {
+                const pluralForm = esPluralRules.select(count);
+                switch (pluralForm) {
+                    case 'one':
+                        return `Eliminar ${count} tasa`;
+                    case 'other':
+                        return `Eliminar ${count} tasas`;
+                    default:
+                        return `Eliminar ${count} tasas`;
+                }
+            },
+            enableRates: ({count}) => {
+                const pluralForm = esPluralRules.select(count);
+                switch (pluralForm) {
+                    case 'one':
+                        return `Activar ${count} tasa`;
+                    case 'other':
+                        return `Activar ${count} tasas`;
+                    default:
+                        return `Activar ${count} tasas`;
+                }
+            },
+            disableRates: ({count}) => {
+                const pluralForm = esPluralRules.select(count);
+                switch (pluralForm) {
+                    case 'one':
+                        return `Desactivar ${count} tasa`;
+                    case 'other':
+                        return `Desactivar ${count} tasas`;
+                    default:
+                        return `Desactivar ${count} tasas`;
+                }
+            },
+            areYouSureDelete: ({count}: DistanceRateOperationsParams) => {
+                const pluralForm = esPluralRules.select(count);
+                switch (pluralForm) {
+                    case 'one':
+                        return `¿Estás seguro de que quieres eliminar esta ${count} tasa?`;
+                    case 'other':
+                        return `¿Estás seguro de que quieres eliminar estas ${count} tasas?`;
+                    default:
+                        return `¿Estás seguro de que quieres eliminar estas ${count} tasas?`;
+                }
+            },
             enableRate: 'Activar tasa',
             status: 'Estado',
             unit: 'Unidad',
@@ -3311,7 +3371,7 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Importe supera el límite${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Importe supera el límite diario de la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
         receiptNotSmartScanned: 'Recibo no verificado. Por favor, confirma su exactitud',
-        receiptRequired: ({params}) =>
+        receiptRequired: (params: ViolationsReceiptRequiredParams) =>
             `Recibo obligatorio${params ? ` para importes sobre${params.formattedLimit ? ` ${params.formattedLimit}` : ''}${params.category ? ' el límite de la categoría' : ''}` : ''}`,
         reviewRequired: 'Revisión requerida',
         rter: ({brokenBankConnection, isAdmin, email, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {

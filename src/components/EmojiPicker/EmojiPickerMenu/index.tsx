@@ -312,8 +312,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         >
             <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                 <TextInput
-                    label={translate('common.search')}
-                    accessibilityLabel={translate('common.search')}
+                    label={translate('common.searchText')}
+                    accessibilityLabel={translate('common.searchText')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
                     defaultValue=""

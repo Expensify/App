@@ -10,7 +10,7 @@ import * as CurrencyUtils from './CurrencyUtils';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
-import { Phrase, PhraseParameters } from './Localize';
+import type { Phrase, PhraseParameters } from './Localize';
 
 type CheckingMethod = () => boolean;
 

@@ -117,7 +117,7 @@ function IOURequestStepCurrency({
                 <SelectionList
                     sections={sections}
                     ListItem={RadioListItem}
-                    textInputLabel={translate('common.search')}
+                    textInputLabel={translate('common.searchText')}
                     textInputValue={searchValue}
                     onChangeText={setSearchValue}
                     onSelectRow={(option) => {

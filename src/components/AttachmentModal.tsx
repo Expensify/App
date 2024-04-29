@@ -421,7 +421,7 @@ function AttachmentModal({
         if (canEditReceipt) {
             menuItems.push({
                 icon: Expensicons.Camera,
-                text: translate('common.replace'),
+                text: translate('common.replaceText'),
                 onSelected: () => {
                     closeModal();
                     Navigation.navigate(

@@ -103,7 +103,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     return (
         <SelectionList
             textInputValue={searchValue}
-            textInputLabel={translate('common.search')}
+            textInputLabel={translate('common.searchText')}
             sections={sections ?? []}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}

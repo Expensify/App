@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
-import { Phrase, PhraseParameters } from '@libs/Localize';
+import type { Phrase, PhraseParameters } from '@libs/Localize';
 
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
