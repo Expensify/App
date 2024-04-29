@@ -208,6 +208,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: () => require('../../../../pages/settings/Wallet/TransferBalancePage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require('../../../../pages/EnablePayments/EnablePaymentsPage').default as React.ComponentType,
+    [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_REFACTOR]: () => require('../../../../pages/EnablePayments/PersonalInfo/PersonalInfo').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require('../../../../pages/settings/Wallet/AddDebitCardPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require('../../../../pages/AddPersonalBankAccountPage').default as React.ComponentType,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_REFACTOR]: () => require('../../../../pages/EnablePayments/AddBankAccount/AddBankAccount').default as React.ComponentType,

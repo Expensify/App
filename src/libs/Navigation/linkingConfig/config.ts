@@ -168,6 +168,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_REFACTOR]: {
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
