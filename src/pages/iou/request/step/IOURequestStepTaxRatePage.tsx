@@ -30,10 +30,11 @@ type IOURequestStepTaxRatePageProps = IOURequestStepTaxRatePageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(policy: OnyxEntry<Policy>, selectedTaxRate: string, amount: number): number | undefined {
-    const percentage = Object.values(TransactionUtils.transformedTaxRates(policy)).find((taxRate) => taxRate.modifiedName?.includes(selectedTaxRate))?.value;
-    if (percentage) {
-        return TransactionUtils.calculateTaxAmount(percentage, amount);
+function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>, selectedTaxCode: string, amount: number): number | undefined {
+    const getTaxValue = (taxCode: string) => TransactionUtils.getTaxValue(policy, transaction, taxCode);
+    const taxPercentage = getTaxValue(selectedTaxCode);
+    if (taxPercentage) {
+        return TransactionUtils.calculateTaxAmount(taxPercentage, amount);
     }
 }
 
@@ -59,11 +60,11 @@ function IOURequestStepTaxRatePage({
     const taxRateTitle = TransactionUtils.getTaxRateTitle(policy, transaction);
 
     const updateTaxRates = (taxes: TaxRatesOption) => {
-        if (!transaction || !taxes.text || !taxRates) {
+        if (!transaction || !taxes.code || !taxRates) {
             Navigation.goBack(backTo);
             return;
         }
-        const taxAmount = getTaxAmount(policy, taxes.text, TransactionUtils.getAmount(transaction, false, true));
+        const taxAmount = getTaxAmount(policy, transaction, taxes?.code, TransactionUtils.getAmount(transaction, false, true));
 
         if (isEditing) {
             const newTaxCode = taxes.code;
