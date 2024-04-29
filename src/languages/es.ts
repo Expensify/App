@@ -50,6 +50,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
@@ -111,6 +112,7 @@ export default {
         yes: 'Sí',
         no: 'No',
         ok: 'OK',
+        learnMore: 'Más información',
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
@@ -118,6 +120,7 @@ export default {
         optional: 'Opcional',
         new: 'Nuevo',
         search: 'Buscar',
+        find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
         next: 'Siguiente',
@@ -227,6 +230,7 @@ export default {
             enterMerchant: 'Introduce un comerciante',
             enterAmount: 'Introduce un importe',
             enterDate: 'Introduce una fecha',
+            invalidTimeRange: 'Por favor, introduce una hora entre 1 y 12 (por ejemplo, 2:30 PM).',
         },
         comma: 'la coma',
         semicolon: 'el punto y coma',
@@ -305,12 +309,14 @@ export default {
         member: 'Miembro',
         role: 'Role',
         currency: 'Divisa',
+        rate: 'Tarifa',
         emptyLHN: {
             title: 'Woohoo! Todo al día.',
             subtitleText1: 'Encuentra un chat usando el botón',
             subtitleText2: 'o crea algo usando el botón',
             subtitleText3: '.',
         },
+        businessName: 'Nombre de la empresa',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -491,6 +497,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: '¡Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',
         beginningOfChatHistoryUserRoomPartTwo: '.',
+        beginningOfChatHistoryInvoiceRoom: '¡Este es el lugar para colaborar! 🎉 Utilice esta sala para ver, discutir y pagar facturas.',
         beginningOfChatHistory: 'Aquí comienzan tus conversaciones con ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: '¡La colaboración entre ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' y ',
@@ -502,11 +509,11 @@ export default {
         welcomeToRoom: ({roomName}: WelcomeToRoomParams) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: ({additionalText}: UsePlusButtonParams) => `\n¡También puedes usar el botón + de abajo para ${additionalText}, o asignar una tarea!`,
         iouTypes: {
-            send: 'pagar gastos',
+            pay: 'pagar gastos',
             split: 'dividir un gasto',
-            request: 'presentar un gasto',
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            'track-expense': 'rastrear un gasto',
+            submit: 'presentar un gasto',
+            track: 'rastrear un gasto',
+            invoice: 'facturar un gasto',
         },
     },
     reportAction: {
@@ -541,7 +548,7 @@ export default {
         },
     },
     sidebarScreen: {
-        buttonSearch: 'Busca algo...',
+        buttonFind: 'Encuentre algo...',
         buttonMySettings: 'Mi configuración',
         fabNewChat: 'Iniciar chat',
         fabNewChatExplained: 'Iniciar chat (Acción flotante)',
@@ -621,7 +628,8 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
-        routePending: 'Ruta pendiente...',
+        fieldPending: 'Pendiente...',
+        defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
@@ -643,6 +651,7 @@ export default {
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
@@ -727,6 +736,7 @@ export default {
         set: 'estableció',
         changed: 'cambió',
         removed: 'eliminó',
+        chooseARate: ({unit}: ReimbursementRateParams) => `Seleccione una tasa de reembolso del espacio de trabajo por ${unit}`,
     },
     notificationPreferencesPage: {
         header: 'Preferencias de avisos',
@@ -1311,13 +1321,12 @@ export default {
         notYou: ({user}: NotYouParams) => `¿No eres ${user}?`,
     },
     onboarding: {
-        welcome: '¡Bienvenido!',
         welcomeVideo: {
             title: 'Bienvenido a Expensify',
-            description: 'Cobrar es tan fácil como enviar un mensaje.',
-            button: 'Vámonos',
+            description: 'Una aplicación para gestionar todos tus gastos de empresa y personales en un chat. Pensada para tu empresa, tu equipo y tus amigos.',
         },
         whatsYourName: '¿Cómo te llamas?',
+        whereYouWork: '¿Dónde trabajas?',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             error: 'Por favor, haga una selección antes de continuar.',
@@ -1326,12 +1335,14 @@ export default {
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
-            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Sólo estoy mirando',
+            [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
-            requiredLastName: 'Introduce tu apellido para continuar',
         },
+    },
+    featureTraining: {
+        doNotShowAgain: 'No muestres esto otra vez',
     },
     personalDetails: {
         error: {
@@ -1891,6 +1902,84 @@ export default {
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             locationsAdditionalDescription:
                 'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
+            export: 'Exportar',
+            exportAs: 'Exportar cómo',
+            exportExpenses: 'Exportar gastos de bolsillo como',
+            exportInvoices: 'Exportar facturas a',
+            exportCompany: 'Exportar tarjetas de empresa como',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a QuickBooks Online.',
+            preferredExporter: 'Exportador preferido',
+            date: 'Fecha',
+            deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
+            deepDiveExpensifyCardIntegration: 'nuestra integración.',
+            exportExpensifyCard: 'Exportar las transacciones de las tarjetas Expensify como',
+            exportDate: 'Fecha de exportación',
+            exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
+            lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
+            exportedDate: {label: 'Fecha de exportación', description: 'Fecha de exportación del informe a QuickBooks Online'},
+            submittedData: {label: 'Fecha de envío', description: 'Fecha en la que el informe se envió para su aprobación'},
+            receivable: 'Cuentas por cobrar', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
+            archive: 'Archivo de cuentas por cobrar', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
+            exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
+            exportCompanyCardsDescription: 'Establece cómo se exportan las compras con tarjeta de empresa a QuickBooks Online.',
+            debitCard: 'Tarjeta de débito',
+            check: 'Cheque',
+            optionBelow: 'Elija una opción a continuación:',
+            creditCard: 'Tarjeta de crédito',
+            vendorBill: 'Factura del proveedor',
+            account: 'Cuenta',
+            vendor: 'Proveedor',
+            defaultVendor: 'Proveedor predeterminado',
+            defaultVendorDescription: 'Establece un proveedor predeterminado que se aplicará a todas las transacciones con tarjeta de crédito al momento de exportarlas.',
+            debitCardAccountDescription: 'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
+            creditCardAccountDescription: 'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
+            vendorBillAccountDescription: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+            debitCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
+            creditCardDescription:
+                "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
+            vendorBillDescription:
+                'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
+            accountsPayable: 'Cuentas por pagar',
+            accountsPayableDescription: 'Esta es la cuenta de cuentas por pagar elegida, contra la cual se crean las facturas de proveedores para cada informe.',
+            companyCardsLocationEnabledDescription:
+                'Nota: QuickBooks Online no admite un campo para Ubicaciones como etiquetas en las exportaciones de facturas de proveedores. A medida que importa ubicaciones, esta opción de exportación no está disponible.',
+            exportPreferredExporterNote:
+                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+            journalEntry: 'Asiento contable',
+            vendorBillError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
+            checkError: 'La verificación no está disponible cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
+            journalEntryError: 'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
+            exportOutOfPocketExpensesDescription: 'Establezca cómo se exportan los gastos de bolsillo a QuickBooks Online.',
+            exportVendorBillDescription:
+                'Crearemos una única factura de proveedor detallada para cada informe de Expensify. Si el período de la factura está cerrado, lo publicaremos en el día 1 del siguiente período abierto. Puede agregar la factura del proveedor a la cuenta A/P de su elección (a continuación).',
+            outOfPocketTaxEnabledDescription:
+                'Nota: QuickBooks Online no admite un campo para impuestos en las exportaciones de Anotación en el diario. Debido a que tienes habilitado el seguimiento de impuestos en tu área de trabajo, esta opción de exportación no está disponible.',
+            outOfPocketTaxEnabledError: 'La Anotacion en el diario no está disponible cuando los impuestos están activados. Por favor, selecciona una opción de exportación diferente.',
+            outOfPocketLocationEnabledError: 'Las facturas de proveedores no están disponibles cuando las ubicaciones están activadas. Seleccione otra opción de exportación.',
+            outOfPocketLocationEnabledDescription:
+                'Nota: QuickBooks Online no admite un campo para Ubicaciones como Etiquetas en las exportaciones de Facturas de Proveedor. Al importar Ubicaciones como Etiquetas, esta opción de exportación no está disponible.',
+
+            advancedConfig: {
+                advanced: 'Avanzado',
+                autoSync: 'Autosincronización',
+                autoSyncDescription: 'Los cambios realizados en Quickbooks se reflejarán automáticamente en Expensify.',
+                inviteEmployees: 'Invitar empleados',
+                inviteEmployeesDescription: 'Importe los registros de los empleados de Quickbooks Online e invítelos a este espacio de trabajo.',
+                createEntities: 'Crear entidades automáticamente',
+                createEntitiesDescription:
+                    'Expensify creará automáticamente un proveedor en Quickbooks, si no existe. Expensify también creará automáticamente un cliente al exportar facturas.',
+                reimbursedReports: 'Sincronizar informes reembolsados',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Quickbooks indicadas a continuación.',
+                qboBillPaymentAccount: 'Cuenta de pago de las facturas de QuickBooks',
+                qboInvoiceCollectionAccount: 'Cuenta de cobro de las facturas QuickBooks',
+                accountSelectDescription:
+                    'Como has activado la sincronización de los informes de reembolso, tendrás que seleccionar la cuenta bancaria de la que saldrán tus reembolsos y crearemos el pago en QuickBooks.',
+                invoiceAccountSelectDescription:
+                    'Si está exportando facturas de Expensify a Quickbooks Online, ésta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
+            },
         },
         type: {
             free: 'Gratis',
@@ -1909,6 +1998,7 @@ export default {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben categorizar todos los gastos',
+            needCategoryForExportToIntegration: 'Se requiere una categoría en cada gasto para poder exportarlo a',
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
                 title: 'No has creado ninguna categoría',
@@ -1921,6 +2011,7 @@ export default {
             categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
             existingCategoryError: 'Ya existe una categoría con este nombre.',
             invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+            importedFromAccountingSoftware: 'Categorías importadas desde',
         },
         moreFeatures: {
             spendSection: {
@@ -1991,6 +2082,7 @@ export default {
             tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
             existingTagError: 'Ya existe una etiqueta con este nombre.',
             genericFailureMessage: 'Se produjo un error al actualizar la etiqueta, inténtelo nuevamente.',
+            importedFromAccountingSoftware: 'Etiquetas importadas desde',
         },
         taxes: {
             subtitle: 'Añade nombres, tasas y establezca valores por defecto para los impuestos.',
@@ -2061,6 +2153,7 @@ export default {
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
         },
         accounting: {
+            settings: 'configuración',
             title: 'Conexiones',
             subtitle: 'Conecta a tu sistema de contabilidad para codificar transacciones con tu plan de cuentas, auto-cotejar pagos y mantener tus finanzas sincronizadas.',
             qbo: 'Quickbooks Online',
@@ -2098,6 +2191,8 @@ export default {
                         case 'quickbooksOnlineCheckConnection':
                             return 'Revisando conexión a QuickBooks Online';
                         case 'quickbooksOnlineImportMain':
+                            return 'Importando datos desde QuickBooks Online';
+                        case 'startingImport':
                             return 'Importando datos desde QuickBooks Online';
                         default: {
                             return `Translation missing for stage: ${stage}`;
@@ -2346,6 +2441,9 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
+        error: {
+            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
+        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
@@ -2398,6 +2496,12 @@ export default {
     },
     search: {
         resultsAreLimited: 'Los resultados de búsqueda están limitados.',
+        searchResults: {
+            emptyResults: {
+                title: 'No hay nada que ver aquí',
+                subtitle: 'Por favor intenta crear algo usando el botón verde.',
+            },
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -3136,13 +3240,13 @@ export default {
             header: `Inicia un chat y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `¡Gana dinero por hablar con tus amigos! Inicia un chat con una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.MONEY_REQUEST]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText1: 'Presentar gasto, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Presenta un gasto y consigue $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             body: `¡Vale la pena cobrar! Envia un gasto a una cuenta nueva de Expensify y recibe $${CONST.REFERRAL_PROGRAM.REVENUE} cuando se conviertan en clientes.`,
         },
-        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SEND_MONEY]: {
+        [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.PAY_SOMEONE]: {
             buttonText1: 'Pagar a alguien, ',
             buttonText2: `recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
             header: `Paga a alguien y recibe $${CONST.REFERRAL_PROGRAM.REVENUE}`,
@@ -3161,27 +3265,15 @@ export default {
         },
         copyReferralLink: 'Copiar enlace de invitación',
     },
-    purposeForExpensify: {
-        [CONST.INTRO_CHOICES.TRACK]: 'Seguimiento de los gastos de empresa para fines fiscales',
-        [CONST.INTRO_CHOICES.SUBMIT]: 'Reclamar gastos a mi empleador',
-        [CONST.INTRO_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-        [CONST.INTRO_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
-        welcomeMessage: 'Bienvenido a Expensify',
-        welcomeSubtitle: '¿Qué te gustaría hacer?',
-    },
-    manageTeams: {
-        [CONST.MANAGE_TEAMS_CHOICE.MULTI_LEVEL]: 'Aprobación multinivel',
-        [CONST.MANAGE_TEAMS_CHOICE.CUSTOM_EXPENSE]: 'Codificación personalizada de gastos',
-        [CONST.MANAGE_TEAMS_CHOICE.CARD_TRACKING]: 'Seguimiento de tarjetas corporativas',
-        [CONST.MANAGE_TEAMS_CHOICE.ACCOUNTING]: 'Integraciones de contaduría',
-        [CONST.MANAGE_TEAMS_CHOICE.RULE]: 'Aplicación de reglas',
-        title: '¿Necesitas alguna de las siguientes funciones?',
-    },
-    expensifyClassic: {
-        title: 'Expensify Classic tiene todo lo que necesitas',
-        firstDescription: 'Aunque estamos ocupados trabajando en el Nuevo Expensify, actualmente no soporta algunas de las funciones que estás buscando.',
-        secondDescription: 'No te preocupes, Expensify Classic tiene todo lo que necesitas.',
-        buttonText: 'Llévame a Expensify Classic',
+    systemChatFooterMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chatea con tu especialista asignado en ',
+            phrase2: ' para obtener ayuda',
+        },
+        default: {
+            phrase1: 'Envía un email a ',
+            phrase2: ' para obtener ayuda con la configuración',
+        },
     },
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',

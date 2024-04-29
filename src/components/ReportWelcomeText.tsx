@@ -38,13 +38,14 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
+    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
     const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
     const reportName = ReportUtils.getReportName(report);
@@ -58,6 +59,10 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     };
 
     const welcomeHeroText = useMemo(() => {
+        if (isInvoiceRoom) {
+            return translate('reportActionsView.sayHello');
+        }
+
         if (isChatRoom) {
             return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
         }
@@ -67,7 +72,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         }
 
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isSelfDM, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isSelfDM, translate, reportName]);
 
     return (
         <>
@@ -160,9 +165,9 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) ||
-                    moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST) ||
-                    moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK_EXPENSE)) && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)) && (
+                    <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
+                )}
             </View>
         </>
     );
