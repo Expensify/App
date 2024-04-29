@@ -12,7 +12,7 @@ type UseWalletAdditionalDetailsStepFormSubmitParams = Pick<SubStepProps, 'onNext
 
 /**
  * Hook for handling submit method in WalletAdditionalDetails substeps.
- * When user is in editing mode we should save values only when user confirm that
+ * When user is in editing mode, we should save values only when user confirms the change
  * @param onNext - callback
  * @param fieldIds - field IDs for particular step
  * @param shouldSaveDraft - if we should save draft values

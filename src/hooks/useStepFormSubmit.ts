@@ -12,7 +12,7 @@ type UseStepFormSubmitParams<T extends keyof OnyxFormValuesMapping> = Pick<SubSt
 
 /**
  * Hook for handling submit method in substeps.
- * When user is in editing mode we should save values only when user confirm that
+ * When user is in editing mode, we should save values only when user confirms the change
  * @param formId - ID for particular form
  * @param onNext - callback
  * @param fieldIds - field IDs for particular step
