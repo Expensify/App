@@ -1,5 +1,3 @@
-import type {Address} from './PrivatePersonalDetails';
-
 type TravelSettings = {
     /** UUIDs that spotnana provides us with when we provision users in their system, and the spotnanaCompanyIDs as the values */
     accountIDs: Record<string, string>;

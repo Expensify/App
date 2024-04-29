@@ -68,7 +68,7 @@ type SectionProps = ChildrenProps & {
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
 
-    /** Padding for content on large screens*/
+    /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
 
     /** Overlay content to display on top of animation */
