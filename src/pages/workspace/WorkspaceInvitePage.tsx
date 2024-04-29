@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -35,6 +34,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Beta, InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -57,7 +57,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInvitePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
-function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy, isLoadingReportData = true, isSearchingForReports}: WorkspaceInvitePageProps) {
+function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy, isSearchingForReports}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -290,18 +290,17 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     }, [debouncedSearchTerm]);
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldUseCachedViewportHeight
-            testID={WorkspaceInvitePage.displayName}
-            includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
+        <AdminPolicyAccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
         >
-            <FullPageNotFoundView
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                shouldUseCachedViewportHeight
+                testID={WorkspaceInvitePage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
@@ -332,8 +331,8 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AdminPolicyAccessOrNotFoundWrapper>
     );
 }
 

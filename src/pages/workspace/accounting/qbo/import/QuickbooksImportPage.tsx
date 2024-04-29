@@ -58,14 +58,17 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             title: syncLocations,
             pendingAction: pendingFields?.syncLocations,
         },
-        {
+    ];
+
+    if (policy?.connections?.quickbooksOnline.data.country !== CONST.COUNTRY.US) {
+        sections.push({
             description: translate('workspace.qbo.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: syncTaxes,
             pendingAction: pendingFields?.syncTaxes,
-        },
-    ];
+        });
+    }
 
     return (
         <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
