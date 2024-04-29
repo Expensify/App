@@ -993,6 +993,10 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP;
 }
 
+function isSystemChat(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
+}
+
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
@@ -6536,6 +6540,7 @@ export {
     isReportParticipant,
     isSelfDM,
     isSettled,
+    isSystemChat,
     isTaskReport,
     isThread,
     isThreadFirstChat,
