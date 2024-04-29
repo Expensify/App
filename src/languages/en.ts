@@ -1,6 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import { satisfies } from 'semver';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -225,7 +226,7 @@ export default {
             fieldRequired: 'This field is required.',
             requestModified: 'This request is being modified by another member.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
-            characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
+            characterLimitExceedCounter: ({length, limit}: Record<string, number>) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
             invalidDateShouldBeFuture: 'Please choose today or a future date.',
             invalidTimeShouldBeFuture: 'Please choose a time at least one minute ahead.',
@@ -262,7 +263,7 @@ export default {
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
-        maxParticipantsReached: ({count}) => ({
+        maxParticipantsReached: ({count}: Record<string, number>) => ({
             one: `You've selected the maximum number (${count}) of participants.`,
             other: `You've selected the maximum number (${count}) of participants.`,
         }),
@@ -447,7 +448,7 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
-        conciergePlaceholderOptions: ({isSmallScreenWidth}): string => {
+        conciergePlaceholderOptions: ({isSmallScreenWidth}: Record<string, boolean>): string => {
             // If we are on a small width device then don't show last 3 items from conciergePlaceholderOptions
             const options = ['Ask for help!', 'Ask me anything!', 'Ask me to book travel!', 'Ask me what I can do!', 'Ask me how to pay people!'];
             if (!isSmallScreenWidth) {
@@ -639,7 +640,7 @@ export default {
         receiptStatusText: "Only you can see this receipt when it's scanning. Check back later or enter the details now.",
         receiptScanningFailed: 'Receipt scanning failed. Enter the details manually.',
         transactionPendingText: 'It takes a few days from the date the card was used for the transaction to post.',
-        expenseCount: ({count, scanningReceipts = 0, pendingReceipts = 0}) => ({
+        expenseCount: ({count = 0, scanningReceipts = 0, pendingReceipts = 0}) => ({
             one: `${count} expense${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
             other: `${count} expenses${scanningReceipts > 0 ? `, ${scanningReceipts} scanning` : ''}${pendingReceipts > 0 ? `, ${pendingReceipts} pending` : ''}`,
         }),
@@ -2870,4 +2871,4 @@ export default {
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },
-} as TranslationBase;
+} satisfies TranslationBase;

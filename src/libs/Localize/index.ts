@@ -99,8 +99,6 @@ function getPluralTranslation<TKey extends TranslationPaths>(
     result: Record<Intl.LDMLPluralRule, Phrase<TKey>>,
     language: string,
     phraseKey: TKey,
-    count: number,
-    phraseParameters: unknown,
 ): string | null {
     const pluralRules = new Intl.PluralRules(language, {type: 'ordinal'});
     const pluralForm = pluralRules.select(count);
@@ -169,10 +167,9 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
             const result = translatedPhrase(phraseParameters);
-            const count = phraseParameters && (phraseParameters as unknown as {count: number}).count;
 
-            if (typeof result === 'object' && count) {
-                return getPluralTranslation(result, language, phraseKey, count, phraseParameters);
+            if (typeof result === 'object' && 'pluralForm' in result) {
+                return getPluralTranslation(result, language, phraseKey);
             }
 
             return result;
