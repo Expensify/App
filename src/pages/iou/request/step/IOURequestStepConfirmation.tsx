@@ -294,7 +294,7 @@ function IOURequestStepConfirmation({
     );
 
     const createDistanceRequest = useCallback(
-        (selectedParticipants: Participant[], trimmedComment: string, customUnitRateID: string) => {
+        (trimmedComment: string, customUnitRateID: string) => {
             if (!transaction) {
                 return;
             }
@@ -468,7 +468,7 @@ function IOURequestStepConfirmation({
 
             if (requestType === CONST.IOU.REQUEST_TYPE.DISTANCE && !IOUUtils.isMovingTransactionFromTrackExpense(action)) {
                 const customUnitRateID = TransactionUtils.getRateID(transaction) ?? '';
-                createDistanceRequest(selectedParticipants, trimmedComment, customUnitRateID);
+                createDistanceRequest(trimmedComment, customUnitRateID);
                 return;
             }
 
