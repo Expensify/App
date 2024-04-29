@@ -43,7 +43,7 @@ const useIsFocused = () => {
     return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
 };
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatar' | 'name'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name'>;
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
@@ -89,7 +89,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         role: policy.role,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
-        avatar: policy.avatarURL,
+        avatarURL: policy.avatarURL,
         name: policy.name,
     }) as PolicySelector;
 
