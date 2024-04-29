@@ -5,7 +5,6 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import MultipleAvatars from '@components/MultipleAvatars';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
@@ -17,8 +16,22 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
+
+const getTypeIcon = (type: SearchTransactionType) => {
+    switch (type) {
+        case CONST.SEARCH_TRANSACTION_TYPE.CASH:
+            return Expensicons.Cash;
+        case CONST.SEARCH_TRANSACTION_TYPE.CARD:
+            return Expensicons.CreditCard;
+        case CONST.SEARCH_TRANSACTION_TYPE.DISTANCE:
+            return Expensicons.Car;
+        default:
+            return Expensicons.Cash;
+    }
+};
 
 function TransactionListItem<TItem extends ListItem>({
     item,
@@ -42,6 +55,8 @@ function TransactionListItem<TItem extends ListItem>({
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
+
+    const typeIcon = getTypeIcon(item.type);
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -247,7 +262,7 @@ function TransactionListItem<TItem extends ListItem>({
                         </View>
                         <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <Icon
-                                src={Expensicons.CreditCard}
+                                src={typeIcon}
                                 fill={theme.icon}
                             />
                         </View>

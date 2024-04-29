@@ -1,3 +1,5 @@
+import {ValueOf} from 'type-fest';
+import CONST from '@src/CONST';
 import type {Receipt} from './Transaction';
 
 type SearchResultsInfo = {
@@ -22,13 +24,15 @@ type SearchTransaction = {
     modifiedAmount?: number;
     category?: string;
     tag?: string;
-    type: string;
+    type: SearchTransactionType;
     hasViolation: boolean;
     taxAmount?: number;
     reportID: string;
     transactionThreadReportID: string; // Not present in live transactions_
     action: string;
 };
+
+type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
 
 type SearchResults = {
     search: SearchResultsInfo;
@@ -37,4 +41,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchTransaction};
+export type {SearchTransaction, SearchTransactionType};

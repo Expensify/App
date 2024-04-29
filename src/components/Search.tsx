@@ -13,9 +13,6 @@ import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import HeaderWithBackButton from './HeaderWithBackButton';
-import * as Illustrations from './Icon/Illustrations';
-import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 import Text from './Text';
@@ -44,7 +41,7 @@ const mockData = [
         hasEReceipt: false,
         created: '2024-04-11 00:00:00',
         amount: 12500,
-        type: 'cash', // not present in live data (data outside of snapshot_)
+        type: 'card', // not present in live data (data outside of snapshot_)
         reportID: '1',
         transactionThreadReportID: '2',
         transactionID: '5555',
@@ -68,6 +65,7 @@ function Search({query}: SearchProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
+    // const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     useCustomBackHandler();
 
     const hash = SearchUtils.getQueryHash(query);
@@ -79,7 +77,7 @@ function Search({query}: SearchProps) {
 
     const isLoading = !isOffline && isLoadingOnyxValue(searchResultsMeta);
     // Todo remove using mock data once api is done
-    const shouldShowEmptyState = isEmptyObject(searchResults) || !mockData;
+    const shouldShowEmptyState = !isEmptyObject(searchResults) || !mockData;
 
     if (isLoading) {
         return <TableListItemSkeleton shouldAnimate />;
