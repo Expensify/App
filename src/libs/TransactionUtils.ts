@@ -3,7 +3,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, Report, TaxRate, TaxRates, TaxRatesWithDefault, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Comment, Receipt, TransactionChanges, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -451,19 +450,6 @@ function getCreated(transaction: OnyxEntry<Transaction>, dateFormat: string = CO
 }
 
 /**
- * Returns the translation key to use for the header title
- */
-function getHeaderTitleTranslationKey(transaction: OnyxEntry<Transaction>): TranslationPaths {
-    const headerTitles: Record<IOURequestType, TranslationPaths> = {
-        [CONST.IOU.REQUEST_TYPE.DISTANCE]: 'tabSelector.distance',
-        [CONST.IOU.REQUEST_TYPE.MANUAL]: 'tabSelector.manual',
-        [CONST.IOU.REQUEST_TYPE.SCAN]: 'tabSelector.scan',
-    };
-
-    return headerTitles[getRequestType(transaction)];
-}
-
-/**
  * Determine whether a transaction is made with an Expensify card.
  */
 function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -601,6 +587,17 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 /**
+ * Check if transaction is on hold for the given transactionID
+ */
+function isOnHoldByTransactionID(transactionID: string): boolean {
+    if (!transactionID) {
+        return false;
+    }
+
+    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null);
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'violation'
  */
 function hasViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
@@ -669,7 +666,6 @@ export {
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getDescription,
-    getHeaderTitleTranslationKey,
     getRequestType,
     isManualRequest,
     isScanRequest,
@@ -703,6 +699,7 @@ export {
     isPending,
     isPosted,
     isOnHold,
+    isOnHoldByTransactionID,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
