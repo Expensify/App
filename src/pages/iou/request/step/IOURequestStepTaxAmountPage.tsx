@@ -34,15 +34,17 @@ type IOURequestStepTaxAmountPageProps = IOURequestStepTaxAmountPageOnyxProps &
         transaction: OnyxEntry<Transaction>;
     };
 
-function getTaxAmount(transaction: OnyxEntry<Transaction>, taxRates: TaxRatesWithDefault | undefined, isEditing: boolean): number | undefined {
+function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, isEditing: boolean): number | undefined {
     if (!transaction?.amount) {
         return;
     }
     const transactionTaxAmount = TransactionUtils.getAmount(transaction);
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
     const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxValue = taxRates?.defaultValue;
-    const moneyRequestTaxPercentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
-    const editingTaxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : moneyRequestTaxPercentage) ?? '';
+    const getTaxValue = (taxCode: string) => Object.values(TransactionUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+    const defaultTaxValue = getTaxValue(defaultTaxCode);
+    const moneyRequestTaxPercentage = (transaction?.taxCode ? getTaxValue(transactionTaxCode) : defaultTaxValue) ?? '';
+    const editingTaxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : moneyRequestTaxPercentage) ?? '';
     const taxPercentage = isEditing ? editingTaxPercentage : moneyRequestTaxPercentage;
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, transactionTaxAmount));
 }
@@ -150,7 +152,7 @@ function IOURequestStepTaxAmountPage({
                 isEditing={Boolean(backTo || isEditing)}
                 currency={currency}
                 amount={transactionDetails?.taxAmount}
-                taxAmount={getTaxAmount(transaction, taxRates, Boolean(backTo || isEditing))}
+                taxAmount={getTaxAmount(transaction, policy, Boolean(backTo || isEditing))}
                 ref={(e) => (textInput.current = e)}
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={updateTaxAmount}
