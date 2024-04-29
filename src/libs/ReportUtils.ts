@@ -426,6 +426,7 @@ type OptionData = {
     shouldShowSubscript?: boolean | null;
     isPolicyExpenseChat?: boolean | null;
     isMoneyRequestReport?: boolean | null;
+    isInvoiceReport?: boolean;
     isExpenseRequest?: boolean | null;
     isAllowedToComment?: boolean | null;
     isThread?: boolean | null;
@@ -5906,6 +5907,7 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
         report &&
             !isChatThread(report) &&
             !isTaskReport(report) &&
+            !isInvoiceReport(report) &&
             !isMoneyRequestReport(report) &&
             !isArchivedRoom(report) &&
             !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
