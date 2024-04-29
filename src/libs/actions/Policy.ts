@@ -71,7 +71,6 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
@@ -2075,6 +2074,69 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
     Onyx.update(optimisticData);
 }
 
+function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
+    const optimisticCategoryMap = categories.reduce(
+        (acc, category) => ({
+            ...acc,
+            [category]: {
+                name: category,
+                enabled: true,
+                errors: null,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        }),
+        {},
+    );
+
+    const successCategoryMap = categories.reduce(
+        (acc, category) => ({
+            ...acc,
+            [category]: {
+                errors: null,
+                pendingAction: null,
+            },
+        }),
+        {},
+    );
+
+    const failureCategoryMap = categories.reduce(
+        (acc, category) => ({
+            ...acc,
+            [category]: {
+                errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
+                pendingAction: null,
+            },
+        }),
+        {},
+    );
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: optimisticCategoryMap,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: successCategoryMap,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                value: failureCategoryMap,
+            },
+        ],
+    };
+
+    return onyxData;
+}
+
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
@@ -2083,7 +2145,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): string {
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
@@ -2102,6 +2164,8 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         expenseReportActionData,
         expenseCreatedReportActionID,
     } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+
+    const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2135,6 +2199,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         errors: {},
                     },
                 },
+                chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
             },
         },
         {
@@ -2293,6 +2358,18 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         },
     ];
 
+    if (optimisticCategoriesData.optimisticData) {
+        optimisticData.push(...optimisticCategoriesData.optimisticData);
+    }
+
+    if (optimisticCategoriesData.failureData) {
+        failureData.push(...optimisticCategoriesData.failureData);
+    }
+
+    if (optimisticCategoriesData.successData) {
+        successData.push(...optimisticCategoriesData.successData);
+    }
+
     const params: CreateWorkspaceParams = {
         policyID,
         announceChatReportID,
@@ -2311,7 +2388,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
-    return adminsChatReportID;
+    return params;
 }
 
 function openWorkspaceReimburseView(policyID: string) {
@@ -3085,46 +3162,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
 }
 
 function createPolicyCategory(policyID: string, categoryName: string) {
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        name: categoryName,
-                        enabled: true,
-                        errors: null,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        errors: null,
-                        pendingAction: null,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('workspace.categories.createFailureMessage'),
-                        pendingAction: null,
-                    },
-                },
-            },
-        ],
-    };
+    const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
 
     const parameters = {
         policyID,
@@ -3794,26 +3832,10 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
-    const isNarrowLayout = getIsNarrowLayout();
-    if (isNarrowLayout) {
-        setTimeout(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-        }, 1000);
-        return;
-    }
-
-    /**
-     * The app needs to set a navigation action to the microtask queue, it guarantees to execute Onyx.update first, then the navigation action.
-     * More details - https://github.com/Expensify/App/issues/37785#issuecomment-1989056726.
-     */
-    new Promise<void>((resolve) => {
-        resolve();
-    }).then(() => {
-        requestAnimationFrame(() => {
-            Navigation.navigate(featureRoute);
-        });
-    });
+function navigateWhenEnableFeature(policyID: string) {
+    setTimeout(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
@@ -3859,8 +3881,8 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -3951,8 +3973,8 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4043,8 +4065,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4156,8 +4178,8 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
@@ -4247,8 +4269,8 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
-    if (enabled) {
-        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
+    if (enabled && getIsNarrowLayout()) {
+        navigateWhenEnableFeature(policyID);
     }
 }
 
