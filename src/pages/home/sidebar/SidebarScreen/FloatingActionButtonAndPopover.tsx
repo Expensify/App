@@ -89,7 +89,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
         role: policy.role,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
-        avatar: policy.avatar,
+        avatar: policy.avatarURL,
         name: policy.name,
     }) as PolicySelector;
 
