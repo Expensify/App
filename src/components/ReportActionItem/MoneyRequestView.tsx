@@ -467,7 +467,7 @@ function MoneyRequestView({
                                     getErrorForField('tag', {
                                         tagListIndex: index,
                                         tagListName: name,
-                                        policyHasDependentTagLists: PolicyUtils.hasDependentTags(policy, policyTagList),
+                                        policyHasDependentTags: PolicyUtils.hasDependentTags(policy, policyTagList),
                                     })
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
@@ -475,7 +475,7 @@ function MoneyRequestView({
                                 error={getErrorForField('tag', {
                                     tagListIndex: index,
                                     tagListName: name,
-                                    policyHasDependentTagLists: PolicyUtils.hasDependentTags(policy, policyTagList),
+                                    policyHasDependentTags: PolicyUtils.hasDependentTags(policy, policyTagList),
                                 })}
                             />
                         </OfflineWithFeedback>

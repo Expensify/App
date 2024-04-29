@@ -779,7 +779,15 @@ function buildOnyxDataForMoneyRequest(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {}, true);
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        !!policy.requiresTag,
+        policyTagList ?? {},
+        !!policy.requiresCategory,
+        policyCategories ?? {},
+        PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);

@@ -63,29 +63,30 @@ function useViolations(violations: TransactionViolation[]) {
     const getViolationsForField = useCallback(
         (field: ViolationField, data?: TransactionViolation['data']) => {
             const currentViolations = violationsByField.get(field) ?? [];
-            const firstViolation = currentViolations[0];
+            const violation = currentViolations[0];
 
             // someTagLevelsRequired has special logic becase data.errorIndexes is a bit unique in how it denotes the tag list that has the violation
             // tagListIndex can be 0 so we compare with undefined
-            if (firstViolation?.name === 'someTagLevelsRequired' && data?.tagListIndex !== undefined && Array.isArray(firstViolation?.data?.errorIndexes)) {
+            if (violation?.name === 'someTagLevelsRequired' && data?.tagListIndex !== undefined && Array.isArray(violation?.data?.errorIndexes)) {
                 return currentViolations
-                    .filter((violation) => violation.data?.errorIndexes?.includes(data?.tagListIndex ?? -1))
-                    .map((violation) => ({
-                        ...violation,
+                    .filter((currentViolation) => currentViolation.data?.errorIndexes?.includes(data?.tagListIndex ?? -1))
+                    .map((currentViolation) => ({
+                        ...currentViolation,
                         data: {
-                            ...violation.data,
+                            ...currentViolation.data,
                             tagName: data?.tagListName,
                         },
                     }));
             }
 
-            // missingTag has special logic because we have to take into account dependent tags
-            if (data?.policyHasDependentTagLists && firstViolation?.name === 'missingTag' && data?.tagListName) {
+            // missingTag has special logic for policies with dependent tags, because only violation is returned for all tags
+            // when no tags are present, so the tag name isn't set in the violation data. That's why we add it here
+            if (data?.policyHasDependentTags && violation?.name === 'missingTag' && data?.tagListName) {
                 return [
                     {
-                        ...firstViolation,
+                        ...violation,
                         data: {
-                            ...firstViolation.data,
+                            ...violation.data,
                             tagName: data?.tagListName,
                         },
                     },
@@ -93,8 +94,8 @@ function useViolations(violations: TransactionViolation[]) {
             }
 
             // tagOutOfPolicy has special logic because we have to account for multi-level tags and use tagName to find the right tag to put the violation on
-            if (firstViolation?.name === 'tagOutOfPolicy' && data?.tagListName !== undefined && firstViolation?.data?.tagName) {
-                return currentViolations.filter((violation) => violation.data?.tagName === data?.tagListName);
+            if (violation?.name === 'tagOutOfPolicy' && data?.tagListName !== undefined && violation?.data?.tagName) {
+                return currentViolations.filter((currentViolation) => currentViolation.data?.tagName === data?.tagListName);
             }
 
             return currentViolations;

@@ -391,10 +391,10 @@ function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
 }
 
 function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagList>) {
-    return (
-        !!policy?.hasMultipleTagLists &&
-        Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter))
-    );
+    if (!policy?.hasMultipleTagLists) {
+        return false;
+    }
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
 }
 
 export {

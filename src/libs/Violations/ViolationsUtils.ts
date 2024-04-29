@@ -49,36 +49,31 @@ function getTagViolationsForSingleLevelTags(
 }
 
 /**
- * Calculates some tag levels required and missing tag violations for the given transaction
+ * Calculates missing tag violations for policies with dependent tags,
+ * by returning one per tag with its corresponding tagName in the data
  */
-function getTagViolationsForMultiLevelTags(
-    updatedTransaction: Transaction,
-    transactionViolations: TransactionViolation[],
-    policyRequiresTags: boolean,
-    policyTagList: PolicyTagList,
-    hasDependentTags: boolean,
-): TransactionViolation[] {
-    const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
-    let newTransactionViolations = [...transactionViolations];
-    newTransactionViolations = newTransactionViolations.filter(
-        (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
-    );
+function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[]) {
+    return [
+        ...transactionViolations,
+        ...Object.values(policyTagList).map((tagList) => ({
+            name: CONST.VIOLATIONS.MISSING_TAG,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            data: {tagName: tagList.name},
+        })),
+    ];
+}
 
-    if (hasDependentTags && !updatedTransaction.tag) {
-        Object.values(policyTagList).forEach((tagList) => {
-            newTransactionViolations.push({
-                name: CONST.VIOLATIONS.MISSING_TAG,
-                type: CONST.VIOLATION_TYPES.VIOLATION,
-                data: {tagName: tagList.name},
-            });
-        });
-        return newTransactionViolations;
-    }
+/**
+ * Calculates missing tag violations for policies with independent tags,
+ * by returning one per tag with its corresponding tagName in the data
+ */
+function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], policyTagKeys: string[], selectedTags: string[]) {
+    let newTransactionViolations = [...transactionViolations];
 
     // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
+
     for (let i = 0; i < policyTagKeys.length; i++) {
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
         const isTagSelected = Boolean(selectedTags[i]);
@@ -86,6 +81,7 @@ function getTagViolationsForMultiLevelTags(
             errorIndexes.push(i);
         }
     }
+
     if (errorIndexes.length !== 0) {
         newTransactionViolations.push({
             name: CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED,
@@ -96,10 +92,12 @@ function getTagViolationsForMultiLevelTags(
         });
     } else {
         let hasInvalidTag = false;
+
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags[i];
             const tags = policyTagList[policyTagKeys[i]].tags;
             const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && Boolean(tag.enabled));
+
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -112,13 +110,38 @@ function getTagViolationsForMultiLevelTags(
                 break;
             }
         }
+
         if (!hasInvalidTag) {
             newTransactionViolations = reject(newTransactionViolations, {
                 name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
             });
         }
     }
+
     return newTransactionViolations;
+}
+
+/**
+ * Calculates some tag levels required and missing tag violations for the given transaction
+ */
+function getTagViolationsForMultiLevelTags(
+    updatedTransaction: Transaction,
+    transactionViolations: TransactionViolation[],
+    policyRequiresTags: boolean,
+    policyTagList: PolicyTagList,
+    hasDependentTags: boolean,
+): TransactionViolation[] {
+    const policyTagKeys = getSortedTagKeys(policyTagList);
+    const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
+    const filteredTransactionViolations = transactionViolations.filter(
+        (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+    );
+
+    if (hasDependentTags && !updatedTransaction.tag) {
+        return getTagViolationsForDependentTags(policyTagList, filteredTransactionViolations);
+    }
+
+    return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, policyTagKeys, selectedTags);
 }
 
 const ViolationsUtils = {
