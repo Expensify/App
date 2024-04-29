@@ -1,7 +1,9 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import * as translations from '@src/languages/translations';
+import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -20,6 +22,7 @@ import type {
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
+    DistanceRateOperationsParams,
     EditActionParams,
     ElectronicFundsParams,
     EnterMagicCodeParams,
@@ -32,12 +35,14 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
+    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
     OOOEventSummaryFullDayParams,
     OOOEventSummaryPartialDayParams,
+    OurEmailProviderParams,
     PaidElsewhereWithAmountParams,
     PaidWithExpensifyWithAmountParams,
     ParentNavigationSummaryParams,
@@ -55,6 +60,7 @@ import type {
     ReportArchiveReasonsPolicyDeletedParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
+    RequestCountParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -87,6 +93,7 @@ import type {
     ViolationsOverCategoryLimitParams,
     ViolationsOverLimitParams,
     ViolationsPerDayLimitParams,
+    ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
     ViolationsTaxOutOfPolicyParams,
@@ -108,7 +115,7 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 
 type AllCountries = Record<Country, string>;
 
-const originalTranslations = {...translations};
+const enPluralRules = new Intl.PluralRules('en-US', {type: 'ordinal'});
 
 /* eslint-disable max-len */
 export default {
@@ -228,7 +235,7 @@ export default {
             fieldRequired: 'This field is required.',
             requestModified: 'This request is being modified by another member.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
-            characterLimitExceedCounter: ({length, limit}: Record<string, number>) => `Character limit exceeded (${length}/${limit})`,
+            characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
             dateInvalid: 'Please select a valid date',
             invalidDateShouldBeFuture: 'Please choose today or a future date.',
             invalidTimeShouldBeFuture: 'Please choose a time at least one minute ahead.',
@@ -1359,7 +1366,7 @@ export default {
             dateShouldBeBefore: ({dateString}: DateShouldBeBeforeParams) => `Date should be before ${dateString}.`,
             dateShouldBeAfter: ({dateString}: DateShouldBeAfterParams) => `Date should be after ${dateString}.`,
             hasInvalidCharacter: 'Name can only include Latin characters.',
-            incorrectZipFormat: ({zipFormat}) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Incorrect zip code format.${zipFormat ? ` Acceptable format: ${zipFormat}` : ''}`,
         },
     },
     resendValidationForm: {
@@ -1376,7 +1383,8 @@ export default {
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: ({user}) => `Our email provider has temporarily suspended emails to ${user.login} due to delivery issues. To unblock your login, please follow these steps:`,
+        ourEmailProvider: (user: OurEmailProviderParams) =>
+            `Our email provider has temporarily suspended emails to ${user.login} due to delivery issues. To unblock your login, please follow these steps:`,
         confirmThat: ({login}: ConfirmThatParams) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
         emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
         ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
@@ -2174,7 +2182,7 @@ export default {
             disconnectPrompt: 'Are you sure you want to disconnect this integration?',
             enterCredentials: 'Enter your credentials',
             connections: {
-                syncStageName: ({stage}) => {
+                syncStageName: (stage: PolicyConnectionSyncStage) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importing customers';
@@ -2262,7 +2270,7 @@ export default {
             rate: 'Rate',
             addRate: 'Add rate',
             deleteRates: ({count}) => {
-                const pluralForm = originalTranslations.default.enPluralRules.select(count);
+                const pluralForm = enPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
                         return `Delete ${count} rate`;
@@ -2289,6 +2297,7 @@ export default {
             unit: 'Unit',
             defaultCategory: 'Default category',
             deleteDistanceRate: 'Delete distance rate',
+            areYouSureDelete: ({count}: DistanceRateOperationsParams) => `Are you sure you want to delete ${Str.pluralize('this rate', 'these rates', count)}?`,
         },
         editor: {
             descriptionInputLabel: 'Description',
@@ -2825,7 +2834,7 @@ export default {
         overLimitAttendee: ({formattedLimit}: ViolationsOverLimitParams) => `Amount over ${formattedLimit}/person limit`,
         perDayLimit: ({formattedLimit}: ViolationsPerDayLimitParams) => `Amount over daily ${formattedLimit}/person category limit`,
         receiptNotSmartScanned: 'Receipt not verified. Please confirm accuracy.',
-        receiptRequired: ({params}) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ' category limit' : ''}` : ''}`,
+        receiptRequired: (params: ViolationsReceiptRequiredParams) => `Receipt required${params ? ` over ${params.formattedLimit}${params.category ? ' category limit' : ''}` : ''}`,
         reviewRequired: 'Review required',
         rter: ({brokenBankConnection, email, isAdmin, isTransactionOlderThan7Days, member}: ViolationsRterParams) => {
             if (brokenBankConnection) {

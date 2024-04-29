@@ -45,8 +45,6 @@ export function flattenObject(obj: TranslationBase): TranslationFlatObject {
 export default {
     en: flattenObject(en),
     es: flattenObject(es),
-    enPluralRules: new Intl.PluralRules('en-US', {type: 'ordinal'}),
-    esPluralRules: new Intl.PluralRules('es-ES', {type: 'ordinal'}),
     // eslint-disable-next-line @typescript-eslint/naming-convention
     'es-ES': flattenObject(esES),
 };
