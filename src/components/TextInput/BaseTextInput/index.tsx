@@ -15,8 +15,8 @@ import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
+import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -396,28 +396,7 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
-                            {isFocused && !isReadOnly && shouldShowClearButton && value && (
-                                <Tooltip text={translate('common.clear')}>
-                                    <PressableWithoutFeedback
-                                        style={[styles.mt4, styles.ml1]}
-                                        accessibilityRole={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={translate('common.clear')}
-                                        onMouseDown={(e) => {
-                                            e.preventDefault();
-                                        }}
-                                        onPress={() => {
-                                            setValue('');
-                                        }}
-                                    >
-                                        <Icon
-                                            src={Expensicons.Clear}
-                                            height={20}
-                                            width={20}
-                                            fill={theme.icon}
-                                        />
-                                    </PressableWithoutFeedback>
-                                </Tooltip>
-                            )}
+                            {isFocused && !isReadOnly && shouldShowClearButton && value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"
