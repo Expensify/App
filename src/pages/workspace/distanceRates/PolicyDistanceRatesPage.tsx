@@ -1,6 +1,6 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -25,9 +25,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import ButtonWithDropdownMenu from '@src/components/ButtonWithDropdownMenu';
 import CONST from '@src/CONST';
@@ -56,6 +54,7 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const dropdownButtonRef = useRef(null);
     const policyID = route.params.policyID;
+    const isFocused = useIsFocused();
 
     const customUnit: CustomUnit | undefined = useMemo(
         () => (policy?.customUnits !== undefined ? policy?.customUnits[Object.keys(policy?.customUnits)[0]] : undefined),
@@ -93,6 +92,13 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
         }, [fetchDistanceRates]),
     );
 
+    useEffect(() => {
+        if (isFocused) {
+            return;
+        }
+        setSelectedDistanceRates([]);
+    }, [isFocused]);
+
     const distanceRatesList = useMemo<RateForList[]>(
         () =>
             Object.values(customUnitRates).map((value) => ({
@@ -119,7 +125,6 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
     };
 
     const openRateDetails = (rate: RateForList) => {
-        setSelectedDistanceRates([]);
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rate.value));
     };
 
@@ -253,79 +258,77 @@ function PolicyDistanceRatesPage({policy, route}: PolicyDistanceRatesPageProps) 
                     buttonRef={dropdownButtonRef}
                     style={[isSmallScreenWidth && styles.flexGrow1]}
                     wrapperStyle={styles.w100}
+                    isSplitButton={false}
                 />
             )}
         </View>
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={PolicyDistanceRatesPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    icon={Illustrations.CarIce}
+                    title={translate('workspace.common.distanceRates')}
+                    shouldShowBackButton={isSmallScreenWidth}
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={PolicyDistanceRatesPage.displayName}
-                        shouldShowOfflineIndicatorInWideScreen
-                    >
-                        <HeaderWithBackButton
-                            icon={Illustrations.CarIce}
-                            title={translate('workspace.common.distanceRates')}
-                            shouldShowBackButton={isSmallScreenWidth}
-                        >
-                            {!isSmallScreenWidth && headerButtons}
-                        </HeaderWithBackButton>
-                        {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
-                        <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
-                        </View>
-                        {isLoading && (
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                style={[styles.flex1]}
-                                color={theme.spinner}
-                            />
-                        )}
-                        {Object.values(customUnitRates).length > 0 && (
-                            <SelectionList
-                                canSelectMultiple
-                                sections={[{data: distanceRatesList, isDisabled: false}]}
-                                onCheckboxPress={toggleRate}
-                                onSelectRow={openRateDetails}
-                                onSelectAll={toggleAllRates}
-                                onDismissError={dismissError}
-                                showScrollIndicator
-                                ListItem={TableListItem}
-                                shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                                customListHeader={getCustomListHeader()}
-                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            />
-                        )}
-                        <ConfirmModal
-                            onConfirm={() => setIsWarningModalVisible(false)}
-                            isVisible={isWarningModalVisible}
-                            title={translate('workspace.distanceRates.oopsNotSoFast')}
-                            prompt={translate('workspace.distanceRates.workspaceNeeds')}
-                            confirmText={translate('common.buttonConfirm')}
-                            shouldShowCancelButton={false}
-                        />
-                        <ConfirmModal
-                            title={translate('workspace.distanceRates.deleteDistanceRate')}
-                            isVisible={isDeleteModalVisible}
-                            onConfirm={deleteRates}
-                            onCancel={() => setIsDeleteModalVisible(false)}
-                            prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length})}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    {!isSmallScreenWidth && headerButtons}
+                </HeaderWithBackButton>
+                {isSmallScreenWidth && <View style={[styles.ph5]}>{headerButtons}</View>}
+                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.distanceRates.centrallyManage')}</Text>
+                </View>
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
+                    />
+                )}
+                {Object.values(customUnitRates).length > 0 && (
+                    <SelectionList
+                        canSelectMultiple
+                        sections={[{data: distanceRatesList, isDisabled: false}]}
+                        onCheckboxPress={toggleRate}
+                        onSelectRow={openRateDetails}
+                        onSelectAll={toggleAllRates}
+                        onDismissError={dismissError}
+                        showScrollIndicator
+                        ListItem={TableListItem}
+                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+                        customListHeader={getCustomListHeader()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                    />
+                )}
+                <ConfirmModal
+                    onConfirm={() => setIsWarningModalVisible(false)}
+                    isVisible={isWarningModalVisible}
+                    title={translate('workspace.distanceRates.oopsNotSoFast')}
+                    prompt={translate('workspace.distanceRates.workspaceNeeds')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    title={translate('workspace.distanceRates.deleteDistanceRate')}
+                    isVisible={isDeleteModalVisible}
+                    onConfirm={deleteRates}
+                    onCancel={() => setIsDeleteModalVisible(false)}
+                    prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length})}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
