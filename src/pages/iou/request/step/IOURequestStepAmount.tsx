@@ -55,13 +55,14 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
-function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, taxRates: OnyxTypes.TaxRatesWithDefault | undefined, newAmount: number) {
+function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, newAmount: number) {
     if (!transaction?.amount) {
         return;
     }
     const transactionTaxCode = transaction?.taxCode ?? '';
-    const defaultTaxValue = taxRates?.defaultValue;
-    const taxPercentage = (transactionTaxCode ? taxRates?.taxes[transactionTaxCode]?.value : defaultTaxValue) ?? '';
+    const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction) ?? '';
+    const getTaxValue = (taxCode: string) => Object.values(TransactionUtils.transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === taxCode)?.value;
+    const taxPercentage = (transactionTaxCode ? getTaxValue(transactionTaxCode) : getTaxValue(defaultTaxCode)) ?? '';
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
 }
 function IOURequestStepAmount({
@@ -277,7 +278,7 @@ function IOURequestStepAmount({
             return;
         }
 
-        const taxAmount = getTaxAmount(transaction, policy?.taxRates, newAmount);
+        const taxAmount = getTaxAmount(transaction, policy, newAmount);
 
         IOU.updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount});
         Navigation.dismissModal();
