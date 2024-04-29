@@ -212,6 +212,7 @@ const WRITE_COMMANDS = {
     CATEGORIZE_TRACKED_EXPENSE: 'CategorizeTrackedExpense',
     SHARE_TRACKED_EXPENSE: 'ShareTrackedExpense',
     LEAVE_POLICY: 'LeavePolicy',
+    SEND_INVOICE: 'SendInvoice',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -424,6 +425,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE]: Parameters.CategorizeTrackedExpenseParams;
     [WRITE_COMMANDS.SHARE_TRACKED_EXPENSE]: Parameters.ShareTrackedExpenseParams;
     [WRITE_COMMANDS.LEAVE_POLICY]: Parameters.LeavePolicyParams;
+    [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
 };
 
 const READ_COMMANDS = {
@@ -466,6 +468,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_DISTANCE_RATES_PAGE: 'OpenPolicyDistanceRatesPage',
     OPEN_POLICY_MORE_FEATURES_PAGE: 'OpenPolicyMoreFeaturesPage',
     OPEN_POLICY_ACCOUNTING_PAGE: 'OpenPolicyAccountingPage',
+    SEARCH: 'Search',
 } as const;
 
 type ReadCommand = ValueOf<typeof READ_COMMANDS>;
@@ -510,6 +513,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE]: Parameters.OpenPolicyDistanceRatesPageParams;
     [READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE]: Parameters.OpenPolicyMoreFeaturesPageParams;
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
+    [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
 };
 
 const SIDE_EFFECT_REQUEST_COMMANDS = {

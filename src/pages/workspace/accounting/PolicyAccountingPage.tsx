@@ -22,9 +22,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
@@ -179,59 +177,56 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     ];
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                >
-                    <ScreenWrapper
-                        testID={PolicyAccountingPage.displayName}
-                        includeSafeAreaPaddingBottom={false}
-                        shouldShowOfflineIndicatorInWideScreen
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.common.accounting')}
-                            shouldShowBackButton={isSmallScreenWidth}
-                            icon={Illustrations.Accounting}
-                            shouldShowThreeDotsButton
-                            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                            threeDotsMenuItems={headerThreeDotsMenuItems}
-                        />
-                        <ScrollView contentContainerStyle={styles.pt3}>
-                            <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                <Section
-                                    title={translate('workspace.accounting.title')}
-                                    subtitle={translate('workspace.accounting.subtitle')}
-                                    isCentralPane
-                                    subtitleMuted
-                                    titleStyles={styles.accountSettingsSectionTitle}
-                                    childrenStyles={styles.pt5}
-                                >
-                                    <MenuItemList
-                                        menuItems={menuItems}
-                                        shouldUseSingleExecution
-                                    />
-                                </Section>
-                            </View>
-                        </ScrollView>
-                        <ConfirmModal
-                            title={translate('workspace.accounting.disconnectTitle')}
-                            isVisible={isDisconnectModalOpen}
-                            onConfirm={() => {
-                                removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
-                                setIsDisconnectModalOpen(false);
-                            }}
-                            onCancel={() => setIsDisconnectModalOpen(false)}
-                            prompt={translate('workspace.accounting.disconnectPrompt')}
-                            confirmText={translate('workspace.accounting.disconnect')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                testID={PolicyAccountingPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.common.accounting')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    icon={Illustrations.Accounting}
+                    shouldShowThreeDotsButton
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsMenuItems={headerThreeDotsMenuItems}
+                />
+                <ScrollView contentContainerStyle={styles.pt3}>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={translate('workspace.accounting.title')}
+                            subtitle={translate('workspace.accounting.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            childrenStyles={styles.pt5}
+                        >
+                            <MenuItemList
+                                menuItems={menuItems}
+                                shouldUseSingleExecution
+                            />
+                        </Section>
+                    </View>
+                </ScrollView>
+                <ConfirmModal
+                    title={translate('workspace.accounting.disconnectTitle')}
+                    isVisible={isDisconnectModalOpen}
+                    onConfirm={() => {
+                        removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
+                        setIsDisconnectModalOpen(false);
+                    }}
+                    onCancel={() => setIsDisconnectModalOpen(false)}
+                    prompt={translate('workspace.accounting.disconnectPrompt')}
+                    confirmText={translate('workspace.accounting.disconnect')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

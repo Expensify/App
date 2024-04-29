@@ -504,6 +504,7 @@ export default {
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}: BeginningOfChatHistoryAnnounceRoomPartTwo) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
         beginningOfChatHistoryUserRoomPartTwo: ' related.',
+        beginningOfChatHistoryInvoiceRoom: 'Collaboration starts here! 🎉 Use this room to view, discuss, and pay invoices.',
         beginningOfChatHistory: 'This is the beginning of your chat with ',
         beginningOfChatHistoryPolicyExpenseChatPartOne: 'Collaboration between ',
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
@@ -519,6 +520,7 @@ export default {
             split: 'split an expense',
             submit: 'submit an expense',
             track: 'track an expense',
+            invoice: 'invoice an expense',
         },
     },
     reportAction: {
@@ -655,6 +657,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
+        sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
         trackAmount: ({amount}: RequestAmountParams) => `track ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -701,6 +704,7 @@ export default {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
+            genericCreateInvoiceFailureMessage: 'Unexpected error sending invoice, please try again later',
             receiptFailureMessage: "The receipt didn't upload. ",
             saveFileMessage: 'Download the file ',
             loseFileMessage: 'or dismiss this error and lose it',
@@ -1074,6 +1078,18 @@ export default {
     cardPage: {
         expensifyCard: 'Expensify Card',
         availableSpend: 'Remaining limit',
+        smartLimit: {
+            name: 'Smart limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and the limit will reset as your submitted expenses are approved.`,
+        },
+        fixedLimit: {
+            name: 'Fixed limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and then it will deactivate.`,
+        },
+        monthlyLimit: {
+            name: 'Monthly limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
+        },
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         getPhysicalCard: 'Get physical card',
@@ -1338,7 +1354,6 @@ export default {
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
-            requiredLastName: 'Please input your last name to continue',
         },
     },
     featureTraining: {
@@ -1970,6 +1985,7 @@ export default {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all spend',
+            needCategoryForExportToIntegration: 'A category is required on every expense in order to export to',
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
                 title: "You haven't created any categories",
@@ -2053,6 +2069,7 @@ export default {
             tagRequiredError: 'Tag name is required.',
             existingTagError: 'A tag with this name already exists.',
             genericFailureMessage: 'An error occurred while updating the tag, please try again.',
+            importedFromAccountingSoftware: 'The tags below are imported from your',
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
@@ -2223,6 +2240,7 @@ export default {
             unlockVBACopy: "You're all set to accept payments by ACH or credit card!",
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
+            sendFrom: 'Send from',
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
@@ -2462,6 +2480,12 @@ export default {
     },
     search: {
         resultsAreLimited: 'Search results are limited.',
+        searchResults: {
+            emptyResults: {
+                title: 'Nothing to show',
+                subtitle: 'Try creating something using the green + button.',
+            },
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
@@ -2762,6 +2786,16 @@ export default {
             body: `Chat, pay, submit, or split an expense with a friend and get $${CONST.REFERRAL_PROGRAM.REVENUE} when they become a customer. Otherwise, just share your invite link!`,
         },
         copyReferralLink: 'Copy invite link',
+    },
+    systemChatFooterMessage: {
+        [CONST.INTRO_CHOICES.MANAGE_TEAM]: {
+            phrase1: 'Chat with your setup specialist in ',
+            phrase2: ' for help',
+        },
+        default: {
+            phrase1: 'Message ',
+            phrase2: ' for help with setup',
+        },
     },
     violations: {
         allTagLevelsRequired: 'All tags required',
