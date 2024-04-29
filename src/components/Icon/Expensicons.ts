@@ -38,6 +38,7 @@ import ChatBubbles from '@assets/images/chatbubbles.svg';
 import Checkmark from '@assets/images/checkmark.svg';
 import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
+import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
@@ -144,7 +145,6 @@ import Stopwatch from '@assets/images/stopwatch.svg';
 import Sync from '@assets/images/sync.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
-import Tax from '@assets/images/tax.svg';
 import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
@@ -235,7 +235,7 @@ export {
     Fullscreen,
     Folder,
     Tag,
-    Tax,
+    Coins,
     Thread,
     Gallery,
     Gear,
