@@ -1911,11 +1911,24 @@ export default {
             exportExpensifyCard: 'Export Expensify Card transactions as',
             deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
-            exportDate: 'Export date',
-            exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
-            lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
-            exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooks Online'},
-            submittedData: {label: 'Submitted date', description: 'The date the report was submitted for approval'},
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to QuickBooks Online.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'The date of the most recent expense on the report',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'The date the report was exported to QuickBooks Online',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'The date the report was submitted for approval',
+                    },
+                },
+            },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
