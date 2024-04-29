@@ -55,6 +55,7 @@ type IOURequestStepAmountProps = IOURequestStepAmountOnyxProps &
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<OnyxTypes.Transaction>;
     };
+
 function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>, newAmount: number) {
     if (!transaction?.amount) {
         return;
@@ -64,6 +65,7 @@ function getTaxAmount(transaction: OnyxEntry<OnyxTypes.Transaction>, policy: Ony
     const taxPercentage = TransactionUtils.getTaxValue(policy, transaction, transactionTaxCode ?? defaultTaxCode) ?? '';
     return CurrencyUtils.convertToBackendAmount(TransactionUtils.calculateTaxAmount(taxPercentage, newAmount));
 }
+
 function IOURequestStepAmount({
     report,
     route: {
