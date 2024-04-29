@@ -172,7 +172,10 @@ const ROUTES = {
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: 'settings/troubleshoot/console',
+    SETTINGS_CONSOLE: {
+        route: 'settings/troubleshoot/console',
+        getRoute: (isViaTestToolsModal = false) => `settings/troubleshoot/console?isViaTestToolsModal=${isViaTestToolsModal}` as const,
+    },
     SETTINGS_SHARE_LOG: {
         route: 'settings/troubleshoot/console/share-log',
         getRoute: (source: string, isViaTestToolsModal = false) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}&isViaTestToolsModal=${isViaTestToolsModal}` as const,

@@ -1,8 +1,8 @@
 import React from 'react';
 import type {Log} from '@libs/Console';
 import localFileDownload from '@libs/localFileDownload';
-import type ClientSideLoggingToolMenuProps from "./types";
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
+import type ClientSideLoggingToolMenuProps from './types';
 
 function ClientSideLoggingToolMenu({isViaTestToolsModal, closeTestToolsModal}: ClientSideLoggingToolMenuProps) {
     const downloadFile = (logs: Log[]) => {

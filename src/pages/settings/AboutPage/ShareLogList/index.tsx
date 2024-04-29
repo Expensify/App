@@ -20,7 +20,12 @@ function ShareLogList({logSource, isViaTestToolsModal}: ShareLogListProps) {
             () => {},
         );
     };
-    return <BaseShareLogList onAttachLogToReport={onAttachLogToReport} isViaTestToolsModal={isViaTestToolsModal}/>;
+    return (
+        <BaseShareLogList
+            onAttachLogToReport={onAttachLogToReport}
+            isViaTestToolsModal={isViaTestToolsModal}
+        />
+    );
 }
 
 export default ShareLogList;

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {Alert} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,7 +12,8 @@ import * as Console from '@libs/actions/Console';
 import {parseStringifiedMessages} from '@libs/Console';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CapturedLogs, Log} from '@src/types/onyx';
-import ConsoleModal from "./ConsoleModal";
+import Navigation from "@navigation/Navigation";
+import ROUTES from "@src/ROUTES";
 
 type BaseClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */
@@ -64,7 +65,6 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
         Console.disableLoggingAndFlushLogs();
     };
     const styles = useThemeStyles();
-    const [isConsoleModalVisible, setIsConsoleModalVisible] = useState(false);
 
     return (
         <>
@@ -75,15 +75,18 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
                     onToggle={onToggle}
                 />
             </TestToolRow>
-            {!!shouldStoreLogs && isViaTestToolsModal &&
+            {!!shouldStoreLogs && isViaTestToolsModal && (
                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
                     <Button
                         small
                         text={translate('initialSettingsPage.debugConsole.viewConsole')}
-                        onPress={() => setIsConsoleModalVisible(true)}
+                        onPress={() => {
+                            closeTestToolsModal()
+                            Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(isViaTestToolsModal))
+                        }}
                     />
                 </TestToolRow>
-            }
+            )}
             {!!file && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${file.path}`}</Text>
@@ -96,13 +99,6 @@ function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onS
                     </TestToolRow>
                 </>
             )}
-            <ConsoleModal
-                isVisible={isConsoleModalVisible && !!shouldStoreLogs}
-                onClose={() => {
-                    setIsConsoleModalVisible(false)
-                }}
-                closeTestToolsModal={closeTestToolsModal}
-            />
         </>
     );
 }

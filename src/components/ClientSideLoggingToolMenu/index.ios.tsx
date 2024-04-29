@@ -3,7 +3,7 @@ import Share from 'react-native-share';
 import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
-import type ClientSideLoggingToolMenuProps from "./types";
+import type ClientSideLoggingToolMenuProps from './types';
 
 function ClientSideLoggingToolMenu({isViaTestToolsModal = false, closeTestToolsModal}: ClientSideLoggingToolMenuProps) {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();

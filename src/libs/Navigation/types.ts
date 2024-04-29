@@ -111,7 +111,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
-    [SCREENS.SETTINGS.CONSOLE]: undefined;
+    [SCREENS.SETTINGS.CONSOLE]: {
+        isViaTestToolsModal: boolean;
+    };
     [SCREENS.SETTINGS.SHARE_LOG]: {
         /** URL of the generated file to share logs in a report */
         source: string;

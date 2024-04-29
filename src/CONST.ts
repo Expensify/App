@@ -860,7 +860,6 @@ const CONST = {
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
             ONBOARDING: 'onboarding',
-            CENTERED_SMALL_AND_UNSWIPEABLE: 'centered_small_and_unswipeable'
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',

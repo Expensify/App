@@ -91,13 +91,7 @@ function BaseShareLogList({onAttachLogToReport, isViaTestToolsModal = false}: Ba
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => {
-                            if (isViaTestToolsModal) {
-                                Navigation.goBack();
-                                return;
-                            }
-                            Navigation.goBack(ROUTES.SETTINGS_CONSOLE)
-                        }}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE.getRoute(isViaTestToolsModal))}
                     />
                     <SelectionList
                         ListItem={UserListItem}
