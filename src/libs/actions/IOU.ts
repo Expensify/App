@@ -2539,6 +2539,7 @@ const getConvertTrackedExpenseInformation = (
 
 function convertTrackedExpenseToRequest(
     payerAccountID: number,
+    payerEmail: string,
     chatReportID: string,
     transactionID: string,
     actionableWhisperReportActionID: string,
@@ -2587,6 +2588,7 @@ function convertTrackedExpenseToRequest(
         merchant,
         receipt,
         payerAccountID,
+        payerEmail,
         chatReportID,
         transactionID,
         actionableWhisperReportActionID,
@@ -2820,6 +2822,7 @@ function requestMoney(
 
             convertTrackedExpenseToRequest(
                 payerAccountID,
+                payerEmail,
                 chatReport.reportID,
                 transaction.transactionID,
                 actionableWhisperReportActionID,
