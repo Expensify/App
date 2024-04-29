@@ -222,7 +222,7 @@ function MoneyRequestAmountInput(
         forwardDeletePressedRef.current = key === 'delete' || ((operatingSystem === CONST.OS.MAC_OS || operatingSystem === CONST.OS.IOS) && nativeEvent?.ctrlKey && key === 'd');
     };
 
-    const onBlur = useCallback(() => {
+    const formatAmount = useCallback(() => {
         if (!formatAmountOnBlur) {
             return;
         }
@@ -237,7 +237,7 @@ function MoneyRequestAmountInput(
             formattedAmount={formattedAmount}
             onChangeAmount={setNewAmount}
             onCurrencyButtonPress={onCurrencyButtonPress}
-            onBlur={onBlur}
+            onBlur={formatAmount}
             placeholder={numberFormat(0)}
             ref={(ref) => {
                 if (typeof forwardedRef === 'function') {
