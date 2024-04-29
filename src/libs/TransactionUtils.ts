@@ -640,7 +640,8 @@ function getRateID(transaction: OnyxEntry<Transaction>): string | undefined {
 }
 
 /**
- * Gets the default tax code based on selected currency
+ * Gets the tax code based on selected currency.
+ * Returns policy default tax rate if transaction is in policy default currency, otherwise returns foreign default tax rate
  */
 function getDefaultTaxCode(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
