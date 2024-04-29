@@ -433,12 +433,10 @@ function uniqFast(items: string[]): string[] {
 
 /**
  * Returns a string with all relevant search terms.
- * Default should be serachable by policy/domain name but not by participants.
  *
  * This method must be incredibly performant. It was found to be a big performance bottleneck
  * when dealing with accounts that have thousands of reports. For loops are more efficient than _.each
- * Array.prototype.push.apply is faster than using the spread operator, and concat() is faster than push().
-
+ * Array.prototype.push.apply is faster than using the spread operator.
  */
 function getSearchText(
     report: OnyxEntry<Report>,
@@ -447,22 +445,17 @@ function getSearchText(
     isChatRoomOrPolicyExpenseChat: boolean,
     isThread: boolean,
 ): string {
-    let searchTerms: string[] = [];
+    const searchTerms: string[] = [];
 
-    if (!isChatRoomOrPolicyExpenseChat) {
-        for (const personalDetail of personalDetailList) {
-            if (personalDetail.login) {
-                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-                // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([
-                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-                    personalDetail.login,
-                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
-                ]);
-            }
+    for (const personalDetail of personalDetailList) {
+        if (personalDetail.login) {
+            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
+            searchTerms.push(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false), personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''));
         }
     }
+
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -476,16 +469,6 @@ function getSearchText(
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
-        } else {
-            const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
-            if (allPersonalDetails) {
-                for (const accountID of visibleChatMemberAccountIDs) {
-                    const login = allPersonalDetails[accountID]?.login;
-                    if (login) {
-                        searchTerms = searchTerms.concat(login);
-                    }
-                }
-            }
         }
     }
 
@@ -722,7 +705,7 @@ function createOption(
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = visibleReportActionItems[report.reportID];
-        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
+        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
 
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
@@ -1472,8 +1455,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             }
 
             const isSelfDM = ReportUtils.isSelfDM(report);
-            // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
-            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
+            // Currently, currentUser is not included in participants, so for selfDM we need to add the currentUser as participants.
+            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number);
 
             if (!accountIDs || accountIDs.length === 0) {
                 return;
@@ -1505,7 +1488,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 }
 
 function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
-    const accountIDs = report.participantAccountIDs ?? [];
+    const isSelfDM = ReportUtils.isSelfDM(report);
+    const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.participantAccountIDs ?? [];
 
     return {
         item: report,
@@ -1692,8 +1676,8 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
-        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
+        // Currently, currentUser is not included in participants, so for selfDM we need to add the currentUser as participants.
+        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number);
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1740,8 +1724,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    // Exclude the current user from the personal details list
-    const optionsToExclude: Option[] = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1820,9 +1803,10 @@ function getOptions(
     }
 
     if (includePersonalDetails) {
+        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -2008,6 +1992,8 @@ function getFilteredOptions(
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
+    includePersonalDetails = true,
+    maxRecentReportsToShow = 5,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2016,8 +2002,8 @@ function getFilteredOptions(
             searchInputValue: searchValue.trim(),
             selectedOptions,
             includeRecentReports: true,
-            includePersonalDetails: true,
-            maxRecentReportsToShow: 5,
+            includePersonalDetails,
+            maxRecentReportsToShow,
             excludeLogins,
             includeOwnedWorkspaceChats,
             includeP2P,
