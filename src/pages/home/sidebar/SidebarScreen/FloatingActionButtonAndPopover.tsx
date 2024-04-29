@@ -331,11 +331,11 @@ function FloatingActionButtonAndPopover(
                                               ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
                                           ),
                                       );
-                                      setTimeout(() => {
-                                          if (!hasSeenTrackTraining && !isOffline) {
+                                      if (!hasSeenTrackTraining && !isOffline) {
+                                          setTimeout(() => {
                                               Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
-                                          }
-                                      }, CONST.ANIMATED_TRANSITION);
+                                          }, CONST.ANIMATED_TRANSITION);
+                                      }
                                   },
                               },
                           ]
