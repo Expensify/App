@@ -299,7 +299,7 @@ function FloatingActionButtonAndPopover(
                               {
                                   icon: Expensicons.DocumentPlus,
                                   text: translate('iou.trackExpense'),
-                                  onSelected: () => {
+                                  onSelected: async () => {
                                       interceptAnonymousUser(() =>
                                           IOU.startMoneyRequest(
                                               CONST.IOU.TYPE.TRACK,
@@ -309,6 +309,7 @@ function FloatingActionButtonAndPopover(
                                               ReportUtils.findSelfDMReportID() || ReportUtils.generateReportID(),
                                           ),
                                       );
+                                      await new Promise((resolve) => setTimeout(resolve, 500));
                                       if (!hasSeenTrackTraining && !isOffline) {
                                           Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
                                       }
