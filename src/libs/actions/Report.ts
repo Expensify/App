@@ -2662,18 +2662,17 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingChatMembers:
-                    pendingChatMembers.map((pendingChatMember) => {
-                        if (!inviteeAccountIDs.includes(Number(pendingChatMember.accountID))) {
-                            return pendingChatMember;
-                        }
-                        return {
-                            ...pendingChatMember,
-                            errors: ErrorUtils.getMicroSecondOnyxError('roomMembersPage.error.genericAdd'),
-                        };
-                    }) ?? null,
+                participantAccountIDs: report.participantAccountIDs,
+                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
+                    // eslint-disable-next-line no-param-reassign
+                    revertedParticipants[accountID] = null;
+                    return revertedParticipants;
+                }, {}),
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
+        ...newPersonalDetailsOnyxData.finallyData,
     ];
 
     if (ReportUtils.isGroupChat(report)) {
@@ -2694,20 +2693,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
-}
-
-function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
-    const report = currentReportData?.[reportID];
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
-        participantAccountIDs: report?.parentReportActionIDs?.filter((parentReportActionID) => parentReportActionID !== Number(invitedAccountID)),
-        participants: {
-            [invitedAccountID]: null,
-        },
-    });
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [invitedAccountID]: null,
-    });
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
@@ -3796,5 +3781,4 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
-    clearAddRoomMemberError,
 };
