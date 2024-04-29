@@ -78,14 +78,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
-<<<<<<< HEAD
-    const {isSmallScreenWidth} = useWindowDimensions();
-=======
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
->>>>>>> 19c92231511da97880d0cf5c59ae89f7bd7b447e
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -246,12 +240,8 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 lodashGet(newChatOptions, 'personalDetails', []).length + lodashGet(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
-<<<<<<< HEAD
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
-=======
-                maxParticipantsReached,
+
                 lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
->>>>>>> 19c92231511da97880d0cf5c59ae89f7bd7b447e
             ),
         [newChatOptions, participants, debouncedSearchTerm],
     );
