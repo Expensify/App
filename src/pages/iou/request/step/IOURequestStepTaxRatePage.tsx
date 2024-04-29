@@ -61,14 +61,15 @@ function IOURequestStepTaxRatePage({
 
     const updateTaxRates = (taxes: TaxRatesOption) => {
         if (!transaction || !taxes.code || !taxRates) {
-            Navigation.goBack(backTo);
+            Navigation.goBack();
             return;
         }
+
         const taxAmount = getTaxAmount(policy, transaction, taxes?.code, TransactionUtils.getAmount(transaction, false, true));
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            if (newTaxCode === undefined || newTaxCode === TransactionUtils.getTaxCode(transaction)) {
+            if (newTaxCode === TransactionUtils.getTaxCode(transaction)) {
                 navigateBack();
                 return;
             }
@@ -86,7 +87,7 @@ function IOURequestStepTaxRatePage({
         }
 
         if (taxAmount === undefined) {
-            Navigation.goBack(backTo);
+            Navigation.goBack();
             return;
         }
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(taxAmount);
