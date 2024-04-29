@@ -55,6 +55,8 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
+    INVOICE: 'invoice',
+    SYSTEM: 'system',
 } as const;
 
 // Explicit type annotation is required
