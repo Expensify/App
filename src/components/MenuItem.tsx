@@ -87,6 +87,9 @@ type MenuItemBaseProps = {
     /** Any additional styles to apply on the badge element */
     badgeStyle?: ViewStyle;
 
+    /** Any additional styles to apply to the label */
+    labelStyle?: StyleProp<ViewStyle>;
+
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
 
@@ -267,6 +270,7 @@ function MenuItem(
         outerWrapperStyle,
         containerStyle,
         titleStyle,
+        labelStyle,
         hoverAndPressStyle,
         descriptionTextStyle,
         badgeStyle,
@@ -424,7 +428,7 @@ function MenuItem(
     return (
         <View>
             {!!label && !isLabelHoverable && (
-                <View style={[styles.ph5]}>
+                <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                 </View>
             )}
@@ -460,7 +464,7 @@ function MenuItem(
                             <>
                                 <View style={[styles.flexColumn, styles.flex1]}>
                                     {!!label && isLabelHoverable && (
-                                        <View style={icon ? styles.mb2 : null}>
+                                        <View style={[icon ? styles.mb2 : null, labelStyle]}>
                                             <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                 {label}
                                             </Text>
