@@ -1,13 +1,13 @@
 import reject from 'lodash/reject';
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
+import type {Phrase, PhraseParameters} from '@libs/Localize';
 import {getSortedTagKeys} from '@libs/PolicyUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
-import type { Phrase, PhraseParameters } from '@libs/Localize';
 
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
@@ -183,7 +183,10 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string): string {
+    getViolationTranslation(
+        violation: TransactionViolation,
+        translate: <TKey extends TranslationPaths>(phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>) => string,
+    ): string {
         const {
             brokenBankConnection = false,
             isAdmin = false,

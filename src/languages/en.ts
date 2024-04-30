@@ -2198,7 +2198,7 @@ export default {
             disconnectPrompt: 'Are you sure you want to disconnect this integration?',
             enterCredentials: 'Enter your credentials',
             connections: {
-                syncStageName: (stage: PolicyConnectionSyncStage) => {
+                syncStageName: ({stage}: {stage: PolicyConnectionSyncStage}) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importing customers';
@@ -2925,4 +2925,7 @@ export default {
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
     },
+    testPlural: ({count}: {count: number}) => `${count} test`,
+    ordinalExample: ({count}: {count: number}) => `${count}th`,
+    testKeyGroup: {testFunction: ({testVariable}: {testVariable: string}) => `Test ${testVariable}`},
 } satisfies TranslationBase;

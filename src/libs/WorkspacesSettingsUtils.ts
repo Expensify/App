@@ -7,10 +7,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, ReimbursementAccount, Report, ReportActions} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import * as CurrencyUtils from './CurrencyUtils';
+import type {Phrase, PhraseParameters} from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
 import {hasCustomUnitsError, hasEmployeeListError, hasPolicyError, hasTaxRateError} from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
-import type { Phrase, PhraseParameters } from './Localize';
 
 type CheckingMethod = () => boolean;
 

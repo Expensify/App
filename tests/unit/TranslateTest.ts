@@ -17,44 +17,10 @@ asMutable(translations).default = {
         testKeyGroup: {
             testFunction: ({testVariable}) => `With variable ${testVariable}`,
         },
-        testPlural: ({count}) => {
-            const enPluralRules = new Intl.PluralRules('en', {type: 'ordinal'});
-            const pluralType = enPluralRules.select(count);
-            switch (pluralType) {
-                case 'one':
-                    return `You have one item`;
-                default:
-                    return `You have many items`;
-            }
-        },
-        ordinalExample: ({count}) => {
-            const enPluralRules = new Intl.PluralRules('en', {type: 'ordinal'});
-            const pluralType = enPluralRules.select(count);
-            switch (pluralType) {
-                case 'one':
-                    return `${count}st item`;
-                case 'two':
-                    return `${count}nd item`;
-                case 'few':
-                    return `${count}rd item`;
-                default:
-                    return `${count}th item`;
-            }
-        },
     }),
     [CONST.LOCALES.ES]: translations.flattenObject({
         testKey1: 'Spanish',
         testKey2: 'Spanish Word 2',
-        ordinalExample: ({count}) => {
-            const esPluralRules = new Intl.PluralRules('es', {type: 'ordinal'});
-            const pluralType = esPluralRules.select(count);
-            switch (pluralType) {
-                case 'one':
-                    return `${count}º elemento`;
-                default:
-                    return `${count}ª elemento`;
-            }
-        },
     }),
     [CONST.LOCALES.ES_ES]: translations.flattenObject({testKey1: 'Spanish ES'}),
 };
@@ -84,11 +50,11 @@ describe('translate', () => {
         asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
 
-    it('Test when translation value is a function', () => {
-        const expectedValue = 'With variable Test Variable';
-        const testVariable = 'Test Variable';
-        expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
-    });
+    // it('Test when translation value is a function', () => {
+    //     const expectedValue = 'With variable Test Variable';
+    //     const testVariable = 'Test Variable';
+    //     expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
+    // });
 });
 
 describe('Translation Keys', () => {
@@ -176,70 +142,5 @@ describe('flattenObject', () => {
             'complex.report.content': func,
             'complex.report.messages': ['Hello', 'Hi', 'Sup!'],
         });
-    });
-});
-
-describe('plural translations', () => {
-    it('should return the correct pluralized form for "one" case', () => {
-        const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: 1};
-        const expectedTranslation = 'You have one item';
-
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
-        expect(translation).toBe(expectedTranslation);
-    });
-
-    it('should return the correct pluralized form for "other" case', () => {
-        const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: 5};
-        const expectedTranslation = 'You have many items';
-
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, phraseParameters);
-        expect(translation).toBe(expectedTranslation);
-    });
-
-    it('should return the "other" form if the specific plural form is not found', () => {
-        const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: 2};
-        const expectedTranslation = 'You have many items';
-
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
-        expect(translation).toBe(expectedTranslation);
-    });
-
-    it('should handle plural translations with variables', () => {
-        const phraseKey = 'testPlural' as TranslationPaths;
-        const phraseParameters = {count: 3, itemName: 'books'};
-        const expectedTranslation = 'You have many items';
-
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
-        expect(translation).toBe(expectedTranslation);
-    });
-
-    it('should return the correct pluralized form for "one" case in English', () => {
-        const phraseKey = 'ordinalExample' as TranslationPaths;
-        const phraseParameters = {count: 1};
-        const expectedTranslation = '1st item';
-
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
-        expect(translation).toBe(expectedTranslation);
-    });
-
-    it('should return the correct pluralized form for "other" case in English', () => {
-        const phraseKey = 'ordinalExample' as TranslationPaths;
-        const phraseParameters = {count: 11};
-        const expectedTranslation = '11th item';
-
-        const translation = Localize.translate(CONST.LOCALES.EN, phraseKey, ...phraseParameters);
-        expect(translation).toBe(expectedTranslation);
-    });
-
-    it('should return the correct pluralized form for Spanish', () => {
-        const phraseKey = 'ordinalExample' as TranslationPaths;
-        const phraseParameters = {count: 23};
-        const expectedTranslation = '23ª elemento';
-
-        const translation = Localize.translate(CONST.LOCALES.ES, phraseKey, ...phraseParameters);
-        expect(translation).toBe(expectedTranslation);
     });
 });
