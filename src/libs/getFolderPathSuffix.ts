@@ -8,7 +8,7 @@ function getFolderPathSuffix(environment) {
             folderSuffix = '';
             break;
         case CONST.ENVIRONMENT.ADHOC:
-            folderSuffix = ' Adhoc';
+            folderSuffix = ' AdHoc';
             break;
         case CONST.ENVIRONMENT.DEV:
             folderSuffix = ' Dev';
