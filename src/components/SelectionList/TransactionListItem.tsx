@@ -54,11 +54,11 @@ function TransactionListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
 
     const shouldDisplayNarrowView = isMediumScreenWidth || isSmallScreenWidth;
-    const date = item.modifiedCreated ? item.modifiedCreated : item.created ?? '';
-    const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
+    const date = (item.modifiedCreated || item.created) ?? '';
+    const merchant = (item.modifiedMerchant || item.merchant) ?? '';
     const description = item.comment?.comment ?? '';
-    const amount = item.modifiedAmount ? item.modifiedAmount : item.amount ?? 0;
-    const currency = item.modifiedCurrency ? item.modifiedCurrency : item.currency ?? CONST.CURRENCY.USD;
+    const amount = (item.modifiedAmount || item.amount) ?? 0;
+    const currency = (item.modifiedCurrency || item.currency) ?? CONST.CURRENCY.USD;
     const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
     const dateCell = (
@@ -88,14 +88,14 @@ function TransactionListItem<TItem extends ListItem>({
                     imageStyles={[styles.alignSelfCenter]}
                     size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                     source={userDetails?.avatar}
-                    name={userDetails?.displayName}
+                    name={userDetails?.displayName ?? userDetails?.login}
                     type={CONST.ICON_TYPE_WORKSPACE}
                 />
                 <Text
                     numberOfLines={1}
                     style={[styles.flex1, styles.flexGrow1, styles.textMicroBold]}
                 >
-                    {userDetails?.displayName}
+                    {userDetails?.displayName ?? userDetails?.login}
                 </Text>
             </View>
         </View>
