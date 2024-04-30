@@ -477,7 +477,6 @@ type OutstandingChildRequest = {
 type ParsingDetails = {
     shouldEscapeText?: boolean;
     reportID?: string;
-    policyID?: string;
 };
 
 let currentUserEmail: string | undefined;
@@ -3307,10 +3306,6 @@ function getParsedComment(text: string, parsingDetails?: ParsingDetails): string
         const currentReport = getReport(parsingDetails?.reportID);
         isGroupPolicyReport = isReportInGroupPolicy(currentReport);
     }
-    if (parsingDetails?.policyID) {
-        const policyType = getPolicy(parsingDetails?.policyID).type;
-        isGroupPolicyReport = isGroupPolicy(policyType);
-    }
 
     const parser = new ExpensiMark();
     const textWithMention = text.replace(CONST.REGEX.SHORT_MENTION, (match) => {
@@ -3380,7 +3375,14 @@ function buildOptimisticInviteReportAction(invitedUserDisplayName: string, invit
     };
 }
 
-function buildOptimisticAddCommentReportAction(text?: string, file?: FileObject, actorAccountID?: number, createdOffset = 0, shouldEscapeText?: boolean, reportID?: string): OptimisticReportAction {
+function buildOptimisticAddCommentReportAction(
+    text?: string,
+    file?: FileObject,
+    actorAccountID?: number,
+    createdOffset = 0,
+    shouldEscapeText?: boolean,
+    reportID?: string,
+): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
     const isAttachmentOnly = file && !text;

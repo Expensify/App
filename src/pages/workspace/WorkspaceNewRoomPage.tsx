@@ -105,7 +105,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
         const participants = [session?.accountID ?? 0];
-        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '', {policyID});
+        const parsedDescription = ReportUtils.getParsedComment(values.reportDescription ?? '');
         const policyReport = ReportUtils.buildOptimisticChatReport(
             participants,
             values.roomName,
@@ -183,7 +183,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
                 ErrorUtils.addErrorMessage(errors, 'roomName', ['common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
             }
 
-            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription, {policyID});
+            const descriptionLength = ReportUtils.getCommentLength(values.reportDescription);
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
                 ErrorUtils.addErrorMessage(errors, 'reportDescription', [
                     'common.error.characterLimitExceedCounter',
@@ -197,7 +197,7 @@ function WorkspaceNewRoomPage({policies, reports, formState, session, activePoli
 
             return errors;
         },
-        [reports, policyID],
+        [reports],
     );
 
     const writeCapabilityOptions = useMemo(
