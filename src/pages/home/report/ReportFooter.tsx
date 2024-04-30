@@ -23,6 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import * as Expensicons from "@components/Icon/Expensicons";
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
@@ -160,6 +161,7 @@ function ReportFooter({
                         <Banner
                             containerStyles={[styles.chatFooterBanner]}
                             text={translate('adminOnlyCanPost')}
+                            icon={Expensicons.Lightbulb}
                             shouldShowIcon
                         />
                     )}
