@@ -9,7 +9,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -59,8 +59,8 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: stepFields,
-        isEditing,
         onNext,
+        shouldSaveDraft: isEditing,
     });
 
     return (
@@ -74,10 +74,9 @@ function AddressUBO({reimbursementAccountDraft, onNext, isEditing, beneficialOwn
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('beneficialOwnerInfoStep.enterTheOwnersAddress')}</Text>
             <Text style={[styles.textSupporting]}>{translate('common.noPO')}</Text>
-            <AddressForm
+            <AddressFormFields
                 inputKeys={inputKeys}
                 shouldSaveDraft={!isEditing}
-                translate={translate}
                 defaultValues={defaultValues}
                 streetTranslationKey="common.streetAddress"
             />

@@ -1,5 +1,5 @@
-import {createServer} from 'http';
 import type {IncomingMessage, ServerResponse} from 'http';
+import {createServer} from 'http';
 import type {NativeCommand, TestResult} from '@libs/E2E/client';
 import type {NetworkCacheMap, TestConfig} from '@libs/E2E/types';
 import config from '../config';
@@ -27,6 +27,7 @@ type ServerInstance = {
     addTestStartedListener: AddListener<TestStartedListener>;
     addTestResultListener: AddListener<TestResultListener>;
     addTestDoneListener: AddListener<TestDoneListener>;
+    forceTestCompletion: () => void;
     start: () => Promise<void>;
     stop: () => Promise<Error | undefined>;
 };
@@ -96,6 +97,12 @@ const createServerInstance = (): ServerInstance => {
     const [testResultListeners, addTestResultListener] = createListenerState<TestResultListener>();
     const [testDoneListeners, addTestDoneListener] = createListenerState<TestDoneListener>();
 
+    const forceTestCompletion = () => {
+        testDoneListeners.forEach((listener) => {
+            listener();
+        });
+    };
+
     let activeTestConfig: TestConfig | undefined;
     const networkCache: Record<string, NetworkCacheMap> = {};
 
@@ -131,24 +138,21 @@ const createServerInstance = (): ServerInstance => {
             }
 
             case Routes.testDone: {
-                testDoneListeners.forEach((listener) => {
-                    listener();
-                });
+                forceTestCompletion();
                 return res.end('ok');
             }
 
             case Routes.testNativeCommand: {
                 getPostJSONRequestData<NativeCommand>(req, res)
-                    ?.then((data) =>
-                        nativeCommands.executeFromPayload(data?.actionName, data?.payload).then((status) => {
-                            if (status) {
-                                res.end('ok');
-                                return;
-                            }
-                            res.statusCode = 500;
-                            res.end('Error executing command');
-                        }),
-                    )
+                    ?.then((data) => {
+                        const status = nativeCommands.executeFromPayload(data?.actionName, data?.payload);
+                        if (status) {
+                            res.end('ok');
+                            return;
+                        }
+                        res.statusCode = 500;
+                        res.end('Error executing command');
+                    })
                     .catch((error) => {
                         Logger.error('Error executing command', error);
                         res.statusCode = 500;
@@ -166,7 +170,7 @@ const createServerInstance = (): ServerInstance => {
                         return;
                     }
 
-                    const cachedData = networkCache[appInstanceId] || {};
+                    const cachedData = networkCache[appInstanceId] ?? {};
                     res.end(JSON.stringify(cachedData));
                 });
 
@@ -201,6 +205,7 @@ const createServerInstance = (): ServerInstance => {
         addTestStartedListener,
         addTestResultListener,
         addTestDoneListener,
+        forceTestCompletion,
         start: () =>
             new Promise<void>((resolve) => {
                 server.listen(PORT, resolve);

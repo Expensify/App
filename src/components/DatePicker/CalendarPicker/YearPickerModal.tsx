@@ -31,7 +31,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {
-        const yearsList = searchText === '' ? years : years.filter((year) => year.text.includes(searchText));
+        const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
             sections: [{data: yearsList.sort((a, b) => b.value - a.value), indexOffset: 0}],
@@ -65,7 +65,6 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}

@@ -1,6 +1,8 @@
 import NetInfo from '@react-native-community/netinfo';
+import {isBoolean} from 'lodash';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +12,7 @@ import Log from './Log';
 
 let isOffline = false;
 let hasPendingNetworkCheck = false;
+type NetworkStatus = ValueOf<typeof CONST.NETWORK.NETWORK_STATUS>;
 
 // Holds all of the callbacks that need to be triggered when the network reconnects
 let callbackID = 0;
@@ -62,7 +65,7 @@ Onyx.connect({
             setOfflineStatus(true);
         } else {
             // If we are no longer forcing offline fetch the NetInfo to set isOffline appropriately
-            NetInfo.fetch().then((state) => setOfflineStatus(state.isInternetReachable === false));
+            NetInfo.fetch().then((state) => setOfflineStatus((state.isInternetReachable ?? false) === false));
         }
     },
 });
@@ -81,7 +84,7 @@ function subscribeToNetInfo(): void {
             // By default, NetInfo uses `/` for `reachabilityUrl`
             // When App is served locally (or from Electron) this address is always reachable - even offline
             // Using the API url ensures reachability is tested over internet
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=Ping`,
+            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping`,
             reachabilityMethod: 'GET',
             reachabilityTest: (response) => {
                 if (!response.ok) {
@@ -106,7 +109,14 @@ function subscribeToNetInfo(): void {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
-        setOfflineStatus(state.isInternetReachable === false);
+        setOfflineStatus((state.isInternetReachable ?? false) === false);
+        let networkStatus;
+        if (!isBoolean(state.isInternetReachable)) {
+            networkStatus = CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
+        } else {
+            networkStatus = state.isInternetReachable ? CONST.NETWORK.NETWORK_STATUS.ONLINE : CONST.NETWORK.NETWORK_STATUS.OFFLINE;
+        }
+        NetworkActions.setNetWorkStatus(networkStatus);
     });
 }
 
@@ -158,3 +168,4 @@ export default {
     recheckNetworkConnection,
     subscribeToNetInfo,
 };
+export type {NetworkStatus};

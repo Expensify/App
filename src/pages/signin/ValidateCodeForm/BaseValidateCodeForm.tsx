@@ -17,6 +17,7 @@ import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as ValidationUtils from '@libs/ValidationUtils';
@@ -76,8 +77,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
     const shouldDisableResendValidateCode = isOffline ?? account?.isLoading;
-    const isValidateCodeFormSubmitting =
-        account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
+    const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (session?.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || account?.isLoading))) {
@@ -143,7 +143,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
             setTwoFactorAuthCode(text);
         }
         if (key === 'recoveryCode') {
-            setRecoveryCode(text);
+            setRecoveryCode(text.trim());
         }
 
         setFormError((prevError) => ({...prevError, [key]: undefined}));
@@ -290,7 +290,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                             accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
-                            maxLength={CONST.RECOVERY_CODE_LENGTH}
+                            maxLength={CONST.FORM_CHARACTER_LIMIT}
                             label={translate('recoveryCodeForm.recoveryCode')}
                             errorText={formError?.recoveryCode ?? ''}
                             hasError={hasError}
@@ -380,6 +380,7 @@ function BaseValidateCodeForm({account, credentials, session, autoComplete, isUs
                 <Button
                     isDisabled={isOffline}
                     success
+                    large
                     style={[styles.mv3]}
                     text={translate('common.signIn')}
                     isLoading={isValidateCodeFormSubmitting}

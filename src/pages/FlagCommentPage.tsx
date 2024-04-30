@@ -1,6 +1,6 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -53,7 +54,7 @@ function getReportID(route: FlagCommentPageNavigationProps['route']) {
     return route.params.reportID.toString();
 }
 
-function FlagCommentPage({parentReportAction, route, report, reportActions}: FlagCommentPageProps) {
+function FlagCommentPage({parentReportAction, route, report, parentReport, reportActions}: FlagCommentPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -129,7 +130,7 @@ function FlagCommentPage({parentReportAction, route, report, reportActions}: Fla
 
         // Handle threads if needed
         if (ReportUtils.isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
-            reportID = ReportUtils.getParentReport(report)?.reportID;
+            reportID = parentReport?.reportID;
         }
 
         if (reportAction && ReportUtils.canFlagReportAction(reportAction, reportID)) {

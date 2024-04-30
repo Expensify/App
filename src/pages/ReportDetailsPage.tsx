@@ -1,11 +1,13 @@
 import {useRoute} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useEffect, useMemo} from 'react';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ChatDetailsQuickActionsBar from '@components/ChatDetailsQuickActionsBar';
 import DisplayNames from '@components/DisplayNames';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,6 +19,7 @@ import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,36 +67,57 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const route = useRoute();
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`], [policies, report?.policyID]);
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy ?? null), [policy]);
-    const isPolicyMember = useMemo(() => PolicyUtils.isPolicyMember(report?.policyID ?? '', policies), [report?.policyID, policies]);
+    const isPolicyEmployee = useMemo(() => PolicyUtils.isPolicyEmployee(report?.policyID ?? '', policies), [report?.policyID, policies]);
     const shouldUseFullTitle = useMemo(() => ReportUtils.shouldUseFullTitleToDisplay(report), [report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(report), [report]);
-    const isThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(report), [report]);
+    const isDefaultRoom = useMemo(() => ReportUtils.isDefaultRoom(report), [report]);
+    const isChatThread = useMemo(() => ReportUtils.isChatThread(report), [report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(report), [report]);
     const isMoneyRequestReport = useMemo(() => ReportUtils.isMoneyRequestReport(report), [report]);
+    const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(report);
-    const participants = useMemo(() => ReportUtils.getVisibleMemberIDs(report), [report]);
+    const isGroupChat = useMemo(() => ReportUtils.isGroupChat(report), [report]);
+    const isThread = useMemo(() => ReportUtils.isThread(report), [report]);
+    const participants = useMemo(() => {
+        if (isGroupChat) {
+            return ReportUtils.getParticipantAccountIDs(report.reportID ?? '');
+        }
+
+        return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID ?? '');
+    }, [report, isGroupChat]);
+
+    // Get the active chat members by filtering out the pending members with delete action
+    const activeChatMembers = participants.flatMap((accountID) => {
+        const pendingMember = report?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        return !pendingMember || pendingMember.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? accountID : [];
+    });
 
     const isGroupDMChat = useMemo(() => ReportUtils.isDM(report) && participants.length > 1, [report, participants.length]);
-
     const isPrivateNotesFetchTriggered = report?.isLoadingPrivateNotes !== undefined;
 
+    const isSelfDM = useMemo(() => ReportUtils.isSelfDM(report), [report]);
+
     useEffect(() => {
-        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
-        if (isPrivateNotesFetchTriggered || isOffline) {
+        // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if the network is offline, or if the report is a self DM.
+        if (isPrivateNotesFetchTriggered || isOffline || isSelfDM) {
             return;
         }
 
         Report.getReportPrivateNote(report?.reportID ?? '');
-    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered]);
+    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     const menuItems: ReportDetailsPageMenuItem[] = useMemo(() => {
         const items: ReportDetailsPageMenuItem[] = [];
+
+        if (isSelfDM) {
+            return [];
+        }
 
         if (!isGroupDMChat) {
             items.push({
@@ -110,24 +134,34 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         // The Members page is only shown when:
+        // - The report is a thread in a chat report
         // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
         // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
-        if ((!isUserCreatedPolicyRoom && participants.length) || (isUserCreatedPolicyRoom && isPolicyMember)) {
+        if (
+            (isGroupChat ||
+                (isDefaultRoom && isChatThread && isPolicyEmployee) ||
+                (!isUserCreatedPolicyRoom && participants.length) ||
+                (isUserCreatedPolicyRoom && (isPolicyEmployee || (isChatThread && !ReportUtils.isPublicRoom(report))))) &&
+            !ReportUtils.isConciergeChatReport(report)
+        ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.MEMBERS,
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
-                subtitle: participants.length,
+                subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom && !report?.parentReportID) {
+                    if (isUserCreatedPolicyRoom || isChatThread) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
                     }
                 },
             });
-        } else if (isUserCreatedPolicyRoom && (!participants.length || !isPolicyMember) && !report?.parentReportID) {
+        } else if (
+            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
+            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
+        ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
@@ -150,7 +184,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         });
 
         // Prevent displaying private notes option for threads and task reports
-        if (!isThread && !isMoneyRequestReport && !ReportUtils.isTaskReport(report)) {
+        if (!isChatThread && !isMoneyRequestReport && !isInvoiceReport && !ReportUtils.isTaskReport(report)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.PRIVATE_NOTES,
                 translationKey: 'privateNotes.title',
@@ -162,7 +196,22 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         }
 
         return items;
-    }, [isArchivedRoom, participants.length, isThread, isMoneyRequestReport, report, isGroupDMChat, isPolicyMember, isUserCreatedPolicyRoom, session]);
+    }, [
+        isSelfDM,
+        isGroupDMChat,
+        isArchivedRoom,
+        isGroupChat,
+        isDefaultRoom,
+        isChatThread,
+        isPolicyEmployee,
+        isUserCreatedPolicyRoom,
+        participants.length,
+        report,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        activeChatMembers.length,
+        session,
+    ]);
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -181,6 +230,33 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         />
     ) : null;
 
+    const renderAvatar =
+        isGroupChat && !isThread ? (
+            <AvatarWithImagePicker
+                source={icons[0].source}
+                isUsingDefaultAvatar={!report.avatarUrl}
+                size={CONST.AVATAR_SIZE.XLARGE}
+                avatarStyle={styles.avatarXLarge}
+                shouldDisableViewPhoto
+                onImageRemoved={() => {
+                    // Calling this without a file will remove the avatar
+                    Report.updateGroupChatAvatar(report.reportID ?? '');
+                }}
+                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
+                editIcon={Expensicons.Camera}
+                editIconStyle={styles.smallEditIconAccount}
+            />
+        ) : (
+            <RoomHeaderAvatars
+                icons={icons}
+                reportID={report?.reportID}
+            />
+        );
+
+    const reportName =
+        ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
+            ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
+            : ReportUtils.getReportName(report);
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -192,26 +268,23 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 <ScrollView style={[styles.flex1]}>
                     <View style={styles.reportDetailsTitleContainer}>
                         <View style={styles.mb3}>
-                            {isMoneyRequestReport ? (
+                            {isMoneyRequestReport || isInvoiceReport ? (
                                 <MultipleAvatars
                                     icons={icons}
                                     size={CONST.AVATAR_SIZE.LARGE}
                                 />
                             ) : (
-                                <RoomHeaderAvatars
-                                    icons={icons}
-                                    reportID={report?.reportID}
-                                />
+                                renderAvatar
                             )}
                         </View>
                         <View style={[styles.reportDetailsRoomInfo, styles.mw100]}>
                             <View style={[styles.alignSelfCenter, styles.w100, styles.mt1]}>
                                 <DisplayNames
-                                    fullTitle={ReportUtils.getReportName(report)}
+                                    fullTitle={reportName ?? ''}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
                                     tooltipEnabled
-                                    numberOfLines={isChatRoom && !isThread ? 0 : 1}
-                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isThread ? undefined : styles.pre]}
+                                    numberOfLines={isChatRoom && !isChatThread ? 0 : 1}
+                                    textStyles={[styles.textHeadline, styles.textAlignCenter, isChatRoom && !isChatThread ? undefined : styles.pre]}
                                     shouldUseFullTitle={shouldUseFullTitle}
                                 />
                             </View>
@@ -231,10 +304,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             ) : (
                                 chatRoomSubtitleText
                             )}
-                            {!isEmptyObject(parentNavigationSubtitleData) && isMoneyRequestReport && (
+                            {!isEmptyObject(parentNavigationSubtitleData) && (isMoneyRequestReport || isInvoiceReport) && (
                                 <ParentNavigationSubtitle
                                     parentNavigationSubtitleData={parentNavigationSubtitleData}
                                     parentReportID={report?.parentReportID}
+                                    parentReportActionID={report?.parentReportActionID}
                                     pressableStyles={[styles.mt1, styles.mw100]}
                                 />
                             )}
@@ -253,6 +327,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             />
                         </OfflineWithFeedback>
                     )}
+                    {isGroupChat && <ChatDetailsQuickActionsBar report={report} />}
                     {menuItems.map((item) => {
                         const brickRoadIndicator =
                             ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;

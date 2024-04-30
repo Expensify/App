@@ -1,12 +1,20 @@
+import type {Stats} from '../../measure/math';
 import * as format from './format';
 
 type Entry = {
     name: string;
+    baseline: Stats;
+    current: Stats;
+    diff: number;
+    relativeDurationDiff: number;
+    isDurationDiffOfSignificance: boolean;
 };
 
 type Data = {
     significance: Entry[];
     meaningless: Entry[];
+    errors?: string[];
+    warnings?: string[];
 };
 
 const printRegularLine = (entry: Entry) => {
@@ -29,3 +37,5 @@ export default (data: Data) => {
 
     console.debug('');
 };
+
+export type {Data, Entry};

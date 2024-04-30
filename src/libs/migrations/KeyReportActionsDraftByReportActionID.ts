@@ -14,7 +14,7 @@ type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFT
  * After: reportActionsDrafts_reportID: {[reportActionID]: value}
  */
 export default function () {
-    return new Promise<void>((resolve) => {
+    return new Promise<void | void[]>((resolve) => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
             waitForCollectionCallback: true,
@@ -47,6 +47,7 @@ export default function () {
 
                     // If newReportActionsDrafts[newOnyxKey] isn't set, fall back on the migrated draft if there is one
                     const currentActionsDrafts = newReportActionsDrafts[newOnyxKey] ?? allReportActionsDrafts[newOnyxKey];
+
                     newReportActionsDrafts[newOnyxKey] = {
                         ...currentActionsDrafts,
                         [reportActionID]: reportActionDraft,

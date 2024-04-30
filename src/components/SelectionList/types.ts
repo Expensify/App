@@ -1,18 +1,28 @@
-import type {ReactElement, ReactNode} from 'react';
-import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {MutableRefObject, ReactElement, ReactNode} from 'react';
+import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {MaybePhraseKey} from '@libs/Localize';
+import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type UserListItem from './UserListItem';
 
-type CommonListItemProps<TItem> = {
+type TRightHandSideComponent<TItem extends ListItem> = {
+    /** Component to display on the right side */
+    rightHandSideComponent?: ((item: TItem) => ReactElement | null | undefined) | ReactElement | null;
+};
+
+type CommonListItemProps<TItem extends ListItem> = {
     /** Whether this item is focused (for arrow key controls) */
     isFocused?: boolean;
 
     /** Whether this item is disabled */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
 
     /** Whether this item should show Tooltip */
     showTooltip: boolean;
@@ -29,43 +39,52 @@ type CommonListItemProps<TItem> = {
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
 
-    /** Component to display on the right side */
-    rightHandSideComponent?: ((item: TItem) => ReactElement<TItem>) | ReactElement | null;
-
     /** Styles for the pressable component */
     pressableStyle?: StyleProp<ViewStyle>;
 
     /** Styles for the wrapper view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the container view */
+    containerStyle?: StyleProp<ViewStyle>;
+
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
-};
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
+} & TRightHandSideComponent<TItem>;
 
 type ListItem = {
     /** Text to display */
-    text: string;
+    text?: string;
 
     /** Alternate text to display */
-    alternateText?: string;
+    alternateText?: string | null;
 
     /** Key used internally by React */
-    keyForList: string;
+    keyForList?: string | null;
 
     /** Whether this option is selected */
     isSelected?: boolean;
 
+    /** Whether the checkbox should be disabled */
+    isDisabledCheckbox?: boolean;
+
     /** Whether this option is disabled for selection */
-    isDisabled?: boolean;
+    isDisabled?: boolean | null;
+
+    /** List title is bold by default. Use this props to customize it */
+    isBold?: boolean;
 
     /** User accountID */
     accountID?: number | null;
 
     /** User login */
-    login?: string;
+    login?: string | null;
 
     /** Element to show on the right side of the item */
     rightElement?: ReactNode;
@@ -87,16 +106,27 @@ type ListItem = {
     /** Represents the index of the option within the section it came from */
     index?: number;
 
+    /** ID of the report */
+    reportID?: string;
+
     /** Whether this option should show subscript */
-    shouldShowSubscript?: boolean;
+    shouldShowSubscript?: boolean | null;
 
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
+
+    /** The search value from the selection list */
+    searchText?: string | null;
+
+    /** What text to show inside the badge (if none present the badge will be omitted) */
+    badgeText?: string;
+
+    brickRoadIndicator?: BrickRoad | '' | null;
 };
 
-type ListItemProps = CommonListItemProps<ListItem> & {
+type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
-    item: ListItem;
+    item: TItem;
 
     /** Additional styles to apply to text */
     style?: StyleProp<TextStyle>;
@@ -107,21 +137,33 @@ type ListItemProps = CommonListItemProps<ListItem> & {
     /** Whether the default focus should be prevented on row selection */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
+    /** Prevent the submission of the list item when enter key is pressed */
+    shouldPreventEnterKeySubmit?: boolean;
+
     /** Key used internally by React */
     keyForList?: string;
+
+    /**
+     * Whether the focus on the element should be synchronized. For example it should be set to false when the text input above list items is currently focused.
+     * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
+     */
+    shouldSyncFocus?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
-    keyForList?: string;
+    shouldPreventEnterKeySubmit?: boolean;
+    keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
     FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps> | ((hovered: boolean) => ReactElement<ListItemProps>);
+    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+    shouldSyncFocus?: boolean;
+    hoverStyle?: StyleProp<ViewStyle>;
 };
 
-type UserListItemProps = ListItemProps & {
+type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Errors that this user may contain */
     errors?: Errors | ReceiptErrors | null;
 
@@ -132,16 +174,17 @@ type UserListItemProps = ListItemProps & {
     FooterComponent?: ReactElement;
 };
 
-type RadioListItemProps = ListItemProps;
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
-type TableListItemProps = ListItemProps;
+type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
     title?: string;
-
-    /** The initial index of this section given the total number of options in each section's data array */
-    indexOffset?: number;
 
     /** Array of options */
     data?: TItem[];
@@ -153,12 +196,17 @@ type Section<TItem extends ListItem> = {
     shouldShow?: boolean;
 };
 
+type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
+    /** The initial index of this section given the total number of options in each section's data array */
+    indexOffset?: number;
+};
+
 type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
-    sections: Array<SectionListData<TItem, Section<TItem>>>;
+    sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
 
     /** Default renderer for every item in the list */
-    ListItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    ListItem: ValidListItem;
 
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
@@ -182,13 +230,19 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     textInputPlaceholder?: string;
 
     /** Hint for the text input */
-    textInputHint?: string;
+    textInputHint?: MaybePhraseKey;
 
     /** Value for the text input */
     textInputValue?: string;
 
     /** Max length for the text input */
     textInputMaxLength?: number;
+
+    /** Icon to display on the left side of TextInput */
+    textInputIconLeft?: IconAsset;
+
+    /** Whether text input should be focused */
+    textInputAutoFocus?: boolean;
 
     /** Callback to fire when the text input changes */
     onChangeText?: (text: string) => void;
@@ -197,7 +251,7 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     inputMode?: InputModeOptions;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string;
+    initiallyFocusedOptionKey?: string | null;
 
     /** Callback to fire when the list is scrolled */
     onScroll?: () => void;
@@ -208,11 +262,14 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Message to display at the top of the list */
     headerMessage?: string;
 
+    /** Styles to apply to the header message */
+    headerMessageStyle?: StyleProp<ViewStyle>;
+
     /** Text to display on the confirm button */
     confirmButtonText?: string;
 
     /** Callback to fire when the confirm button is pressed */
-    onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    onConfirm?: (e?: GestureResponderEvent | KeyboardEvent | undefined, option?: TItem) => void;
 
     /** Whether to show the vertical scroll indicator */
     showScrollIndicator?: boolean;
@@ -238,26 +295,20 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Custom content to display in the footer */
     footerContent?: ReactNode;
 
+    /** Custom content to display in the footer of list component. If present ShowMore button won't be displayed */
+    listFooterContent?: React.JSX.Element | null;
+
     /** Whether to use dynamic maxToRenderPerBatch depending on the visible number of elements */
     shouldUseDynamicMaxToRenderPerBatch?: boolean;
 
     /** Whether keyboard shortcuts should be disabled */
     disableKeyboardShortcuts?: boolean;
 
-    /** Whether to disable initial styling for focused option */
-    disableInitialFocusOptionStyle?: boolean;
-
     /** Styles to apply to SelectionList container */
-    containerStyle?: ViewStyle;
-
-    /** Whether keyboard is visible on the screen */
-    isKeyboardShown?: boolean;
+    containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
-
-    /** Component to display on the right side of each child */
-    rightHandSideComponent?: ((item: ListItem) => ReactElement<ListItem>) | ReactElement | null;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -273,6 +324,22 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to wrap long text up to 2 lines */
     isRowMultilineSupported?: boolean;
+
+    /** Ref for textInput */
+    textInputRef?: MutableRefObject<TextInput | null> | ((ref: TextInput | null) => void);
+
+    /** Styles for the section title */
+    sectionTitleStyles?: StyleProp<ViewStyle>;
+
+    /**
+     * When true, the list won't be visible until the list layout is measured. This prevents the list from "blinking" as it's scrolled to the bottom which is recommended for large lists.
+     * When false, the list will render immediately and scroll to the bottom which works great for small lists.
+     */
+    shouldHideListOnInitialRender?: boolean;
+} & TRightHandSideComponent<TItem>;
+
+type SelectionListHandle = {
+    scrollAndHighlightItem?: (items: string[], timeout: number) => void;
 };
 
 type ItemLayout = {
@@ -290,20 +357,28 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
 
-type SectionListDataType<TItem extends ListItem> = SectionListData<TItem, Section<TItem>>;
+type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWithIndexOffset<TItem>> = SectionListData<TItem, TSection> & {
+    CustomSectionHeader?: ({section}: {section: TSection}) => ReactElement;
+};
+
+type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
     BaseSelectionListProps,
     CommonListItemProps,
     Section,
+    SectionWithIndexOffset,
     BaseListItemProps,
     UserListItemProps,
     RadioListItemProps,
     TableListItemProps,
+    InviteMemberListItemProps,
     ListItem,
     ListItemProps,
     FlattenedSectionsReturn,
     ItemLayout,
     ButtonOrCheckBoxRoles,
     SectionListDataType,
+    SelectionListHandle,
+    ValidListItem,
 };

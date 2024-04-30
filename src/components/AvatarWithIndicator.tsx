@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import Avatar from './Avatar';
 import AvatarSkeleton from './AvatarSkeleton';
 import * as Expensicons from './Icon/Expensicons';
@@ -33,6 +34,7 @@ function AvatarWithIndicator({source, tooltipText = '', fallbackIcon = Expensico
                 ) : (
                     <>
                         <Avatar
+                            size={CONST.AVATAR_SIZE.SMALL}
                             source={UserUtils.getSmallSizeAvatar(source)}
                             fallbackIcon={fallbackIcon}
                         />

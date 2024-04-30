@@ -1,13 +1,14 @@
 const restrictedImportPaths = [
     {
         name: 'react-native',
-        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text'],
+        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', 'Text', 'ScrollView'],
         message: [
             '',
             "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
             "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
             "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
             "For 'Text', please use '@components/Text' instead.",
+            "For 'ScrollView', please use '@components/ScrollView' instead.",
         ].join('\n'),
     },
     {
@@ -50,6 +51,10 @@ const restrictedImportPaths = [
         name: '@styles/theme/illustrations',
         message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.',
     },
+    {
+        name: 'date-fns/locale',
+        message: "Do not import 'date-fns/locale' directly. Please use the submodule import instead, like 'date-fns/locale/en-GB'.",
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -89,7 +94,6 @@ module.exports = {
             rules: {
                 'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
-                'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
                 'react/jsx-no-constructed-context-values': 'error',
                 'react-native-a11y/has-valid-accessibility-descriptors': [
@@ -114,6 +118,7 @@ module.exports = {
                             // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                             '@src': './src',
                             '@desktop': './desktop',
+                            '@github': './.github',
                         },
                     },
                 ],
@@ -193,6 +198,7 @@ module.exports = {
                     {
                         selector: ['parameter', 'method'],
                         format: ['camelCase', 'PascalCase'],
+                        leadingUnderscore: 'allow',
                     },
                 ],
                 '@typescript-eslint/ban-types': [
@@ -243,16 +249,18 @@ module.exports = {
                         message: "Please don't declare enums, use union types instead.",
                     },
                 ],
+                'no-restricted-properties': [
+                    'error',
+                    {
+                        object: 'Image',
+                        property: 'getSize',
+                        message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+                    },
+                ],
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: [
-                            ...restrictedImportPaths,
-                            {
-                                name: 'underscore',
-                                message: 'Please use the corresponding method from lodash instead',
-                            },
-                        ],
+                        paths: restrictedImportPaths,
                         patterns: restrictedImportPatterns,
                     },
                 ],

@@ -40,7 +40,7 @@ export default function (pageTitle: TranslationPaths) {
             const isReconnecting = prevIsOffline && !isOffline;
             const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
             const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !report.isLoadingPrivateNotes;
-            const isPrivateNotesEmpty = accountID ? !report?.privateNotes?.[Number(accountID)]?.note : isEmptyObject(report?.privateNotes);
+            const isPrivateNotesUndefined = accountID ? report?.privateNotes?.[Number(accountID)]?.note === undefined : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {
                 // Do not fetch private notes if isLoadingPrivateNotes is already defined, or if network is offline.
@@ -56,19 +56,19 @@ export default function (pageTitle: TranslationPaths) {
 
             // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
-                // Show not found view if the report is archived, or if the note is not of current user.
-                if (ReportUtils.isArchivedRoom(report) || isOtherUserNote) {
+                // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
+                if (ReportUtils.isArchivedRoom(report) || isOtherUserNote || ReportUtils.isSelfDM(report)) {
                     return true;
                 }
 
                 // Don't show not found view if the notes are still loading, or if the notes are non-empty.
-                if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesEmpty || isReconnecting) {
+                if (shouldShowFullScreenLoadingIndicator || !isPrivateNotesUndefined || isReconnecting) {
                     return false;
                 }
 
                 // As notes being empty and not loading is a valid case, show not found view only in offline mode.
                 return isOffline;
-            }, [report, isOtherUserNote, shouldShowFullScreenLoadingIndicator, isPrivateNotesEmpty, isReconnecting, isOffline]);
+            }, [report, isOtherUserNote, shouldShowFullScreenLoadingIndicator, isPrivateNotesUndefined, isReconnecting, isOffline]);
 
             if (shouldShowFullScreenLoadingIndicator) {
                 return <LoadingPage title={translate(pageTitle)} />;

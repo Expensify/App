@@ -1,14 +1,16 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, Report} from '@src/types/onyx';
@@ -33,17 +35,24 @@ type ReportWelcomeTextProps = ReportWelcomeTextOnyxProps & {
 function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {canUseTrackExpense} = usePermissions();
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat);
+    const isSelfDM = ReportUtils.isSelfDM(report);
+    const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, policy, participantAccountIDs);
-    const additionalText = moneyRequestOptions.map((item) => translate(`reportActionsView.iouTypes.${item}`)).join(', ');
+    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
+    const additionalText = moneyRequestOptions
+        .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
+        .map((item) => translate(`reportActionsView.iouTypes.${item}`))
+        .join(', ');
     const canEditPolicyDescription = ReportUtils.canEditPolicyDescription(policy);
+    const reportName = ReportUtils.getReportName(report);
 
     const navigateToReport = () => {
         if (!report?.reportID) {
@@ -53,12 +62,26 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
     };
 
+    const welcomeHeroText = useMemo(() => {
+        if (isInvoiceRoom) {
+            return translate('reportActionsView.sayHello');
+        }
+
+        if (isChatRoom) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+        }
+
+        if (isSelfDM) {
+            return translate('reportActionsView.yourSpace');
+        }
+
+        return translate('reportActionsView.sayHello');
+    }, [isChatRoom, isInvoiceRoom, isSelfDM, translate, reportName]);
+
     return (
         <>
             <View>
-                <Text style={[styles.textHero]}>
-                    {isChatRoom ? translate('reportActionsView.welcomeToRoom', {roomName: ReportUtils.getReportName(report)}) : translate('reportActionsView.sayHello')}
-                </Text>
+                <Text style={[styles.textHero]}>{welcomeHeroText}</Text>
             </View>
             <View style={[styles.mt3, styles.mw100]}>
                 {isPolicyExpenseChat &&
@@ -114,6 +137,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                             {roomWelcomeMessage.phrase2 !== undefined && <Text>{roomWelcomeMessage.phrase2}</Text>}
                         </Text>
                     ))}
+                {isSelfDM && (
+                    <Text>
+                        <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
+                    </Text>
+                )}
                 {isDefault && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistory')}</Text>
@@ -141,7 +169,7 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.TYPE.REQUEST)) && (
+                {(moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) || moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) || moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK)) && (
                     <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>
                 )}
             </View>

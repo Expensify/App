@@ -4,60 +4,6 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 688:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const core = __nccwpck_require__(186);
-const fs = __nccwpck_require__(147);
-
-const run = () => {
-    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8'));
-    const countDeviation = core.getInput('COUNT_DEVIATION', {required: true});
-    const durationDeviation = core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true});
-
-    if (regressionOutput.countChanged === undefined || regressionOutput.countChanged.length === 0) {
-        console.log('No countChanged data available. Exiting...');
-        return true;
-    }
-
-    console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
-
-    for (let i = 0; i < regressionOutput.countChanged.length; i++) {
-        const measurement = regressionOutput.countChanged[i];
-        const baseline = measurement.baseline;
-        const current = measurement.current;
-
-        console.log(`Processing measurement ${i + 1}: ${measurement.name}`);
-
-        const renderCountDiff = current.meanCount - baseline.meanCount;
-        if (renderCountDiff > countDeviation) {
-            core.setFailed(`Render count difference exceeded the allowed deviation of ${countDeviation}. Current difference: ${renderCountDiff}`);
-            break;
-        } else {
-            console.log(`Render count difference ${renderCountDiff} is within the allowed deviation range of ${countDeviation}.`);
-        }
-
-        const increasePercentage = ((current.meanDuration - baseline.meanDuration) / baseline.meanDuration) * 100;
-        if (increasePercentage > durationDeviation) {
-            core.setFailed(`Duration increase percentage exceeded the allowed deviation of ${durationDeviation}%. Current percentage: ${increasePercentage}%`);
-            break;
-        } else {
-            console.log(`Duration increase percentage ${increasePercentage}% is within the allowed deviation range of ${durationDeviation}%.`);
-        }
-    }
-
-    return true;
-};
-
-if (require.main === require.cache[eval('__filename')]) {
-    run();
-}
-
-module.exports = run;
-
-
-/***/ }),
-
 /***/ 351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -2745,6 +2691,81 @@ exports["default"] = _default;
 
 /***/ }),
 
+/***/ 378:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(186));
+const fs_1 = __importDefault(__nccwpck_require__(147));
+const run = () => {
+    const regressionOutput = JSON.parse(fs_1.default.readFileSync('.reassure/output.json', 'utf8'));
+    const countDeviation = Number(core.getInput('COUNT_DEVIATION', { required: true }));
+    const durationDeviation = Number(core.getInput('DURATION_DEVIATION_PERCENTAGE', { required: true }));
+    if (regressionOutput.countChanged === undefined || regressionOutput.countChanged.length === 0) {
+        console.log('No countChanged data available. Exiting...');
+        return true;
+    }
+    console.log(`Processing ${regressionOutput.countChanged.length} measurements...`);
+    for (let i = 0; i < regressionOutput.countChanged.length; i++) {
+        const measurement = regressionOutput.countChanged[i];
+        const baseline = measurement.baseline;
+        const current = measurement.current;
+        console.log(`Processing measurement ${i + 1}: ${measurement.name}`);
+        const renderCountDiff = current.meanCount - baseline.meanCount;
+        if (renderCountDiff > countDeviation) {
+            core.setFailed(`Render count difference exceeded the allowed deviation of ${countDeviation}. Current difference: ${renderCountDiff}`);
+            break;
+        }
+        else {
+            console.log(`Render count difference ${renderCountDiff} is within the allowed deviation range of ${countDeviation}.`);
+        }
+        const increasePercentage = ((current.meanDuration - baseline.meanDuration) / baseline.meanDuration) * 100;
+        if (increasePercentage > durationDeviation) {
+            core.setFailed(`Duration increase percentage exceeded the allowed deviation of ${durationDeviation}%. Current percentage: ${increasePercentage}%`);
+            break;
+        }
+        else {
+            console.log(`Duration increase percentage ${increasePercentage}% is within the allowed deviation range of ${durationDeviation}%.`);
+        }
+    }
+    return true;
+};
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
+
+
+/***/ }),
+
 /***/ 491:
 /***/ ((module) => {
 
@@ -2875,7 +2896,7 @@ module.exports = require("util");
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(688);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(378);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

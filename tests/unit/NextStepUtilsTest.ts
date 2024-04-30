@@ -1,11 +1,12 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Onyx from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
+import * as NextStepUtils from '@libs/NextStepUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
-import DateUtils from '../../src/libs/DateUtils';
-import * as NextStepUtils from '../../src/libs/NextStepUtils';
-import * as ReportUtils from '../../src/libs/ReportUtils';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -21,7 +22,6 @@ describe('libs/NextStepUtils', () => {
             // Important props
             id: policyID,
             owner: currentUserEmail,
-            submitsTo: currentUserAccountID,
             harvesting: {
                 enabled: false,
             },
@@ -40,17 +40,23 @@ describe('libs/NextStepUtils', () => {
         const report = ReportUtils.buildOptimisticExpenseReport('fake-chat-report-id-1', policyID, 1, -500, CONST.CURRENCY.USD) as Report;
 
         beforeAll(() => {
-            // @ts-expect-error Preset necessary values
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (item) => item.id);
+
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                     [strangeAccountID]: {
                         accountID: strangeAccountID,
                         login: strangeEmail,
                         avatar: '',
                     },
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                        avatar: '',
+                    },
                 },
+                ...policyCollectionDataSet,
             }).then(waitForBatchedUpdates);
         });
 
@@ -339,8 +345,12 @@ describe('libs/NextStepUtils', () => {
                 ];
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    submitsTo: currentUserAccountID,
-                    preventSelfApprovalEnabled: true,
+                    preventSelfApproval: true,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            submitsTo: currentUserEmail,
+                        },
+                    },
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.OPEN);
 
@@ -401,7 +411,11 @@ describe('libs/NextStepUtils', () => {
                 ];
 
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-                    submitsTo: strangeAccountID,
+                    employeeList: {
+                        [currentUserEmail]: {
+                            submitsTo: strangeEmail,
+                        },
+                    },
                 }).then(() => {
                     const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
@@ -436,9 +450,35 @@ describe('libs/NextStepUtils', () => {
                     },
                 ];
 
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    employeeList: {
+                        [strangeEmail]: {
+                            submitsTo: currentUserEmail,
+                        },
+                    },
+                }).then(() => {
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.SUBMITTED);
 
-                expect(result).toMatchObject(optimisticNextStep);
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
+
+            test('submit and close approval mode', () => {
+                report.ownerAccountID = strangeAccountID;
+                optimisticNextStep.title = 'Finished!';
+                optimisticNextStep.message = [
+                    {
+                        text: 'No further action required!',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                }).then(() => {
+                    const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
             });
         });
 
@@ -549,14 +589,6 @@ describe('libs/NextStepUtils', () => {
                 const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: false});
 
                 expect(result).toMatchObject(optimisticNextStep);
-            });
-        });
-
-        describe('it generates a nullable optimistic nextStep', () => {
-            test('closed status', () => {
-                const result = NextStepUtils.buildNextStep(report, CONST.REPORT.STATUS_NUM.CLOSED);
-
-                expect(result).toBeNull();
             });
         });
     });

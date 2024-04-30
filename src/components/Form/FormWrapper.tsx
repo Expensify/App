@@ -1,13 +1,15 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import type {RefObject} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import {Keyboard, ScrollView} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
+import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import type {SafeAreaChildrenProps} from '@components/SafeAreaConsumer/types';
+import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -60,7 +62,7 @@ function FormWrapper({
     disablePressOnEnter = true,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
     const errorMessage = useMemo(() => (formState ? ErrorUtils.getLatestErrorMessage(formState) : undefined), [formState]);
 
@@ -100,7 +102,7 @@ function FormWrapper({
             <FormElement
                 key={formID}
                 ref={formContentRef}
-                style={[style, safeAreaPaddingBottomStyle]}
+                style={[style, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}
             >
                 {children}
                 {isSubmitButtonVisible && (
@@ -108,7 +110,7 @@ function FormWrapper({
                         buttonText={submitButtonText}
                         isAlertVisible={((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage}
                         isLoading={!!formState?.isLoading}
-                        message={typeof errorMessage === 'string' && isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
+                        message={isEmptyObject(formState?.errorFields) ? errorMessage : undefined}
                         onSubmit={onSubmit}
                         footerContent={footerContent}
                         onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
@@ -121,26 +123,27 @@ function FormWrapper({
             </FormElement>
         ),
         [
-            children,
-            enabledWhenOffline,
-            errorMessage,
-            errors,
-            footerContent,
             formID,
-            formState?.errorFields,
-            formState?.isLoading,
-            isSubmitActionDangerous,
-            isSubmitButtonVisible,
-            onSubmit,
             style,
-            styles.flex1,
+            styles.pb5,
             styles.mh0,
             styles.mt5,
-            submitButtonStyles,
-            submitFlexEnabled,
+            styles.flex1,
+            children,
+            isSubmitButtonVisible,
             submitButtonText,
+            errors,
+            formState?.errorFields,
+            formState?.isLoading,
             shouldHideFixErrorsAlert,
+            errorMessage,
+            onSubmit,
+            footerContent,
             onFixTheErrorsLinkPressed,
+            submitFlexEnabled,
+            submitButtonStyles,
+            enabledWhenOffline,
+            isSubmitActionDangerous,
             disablePressOnEnter,
         ],
     );

@@ -1,17 +1,18 @@
 import type {SyntheticEvent} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Image from '@components/Image';
 import RESIZE_MODES from '@components/Image/resizeModes';
+import type {ImageOnLoadEvent} from '@components/Image/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
-import type {ImageLoadNativeEventData, ImageViewProps} from './types';
+import type ImageViewProps from './types';
 
 type ZoomDelta = {offsetX: number; offsetY: number};
 
@@ -73,7 +74,7 @@ function ImageView({isAuthTokenRequired = false, url, fileName, onError}: ImageV
         setIsZoomed(false);
     };
 
-    const imageLoad = ({nativeEvent}: NativeSyntheticEvent<ImageLoadNativeEventData>) => {
+    const imageLoad = ({nativeEvent}: ImageOnLoadEvent) => {
         setImageRegion(nativeEvent.width, nativeEvent.height);
         setIsLoading(false);
     };

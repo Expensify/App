@@ -11,11 +11,13 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import * as Session from '@libs/actions/Session';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {RootStackParamList} from '@libs/Navigation/types';
-import {checkIfWorkspaceSettingsTabHasRBR, getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import type {RootStackParamList, State} from '@libs/Navigation/types';
+import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
+import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
 import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import * as Welcome from '@userActions/Welcome';
@@ -39,32 +41,31 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
     const navigation = useNavigation();
 
     useEffect(() => {
-        const navigationState = navigation.getState();
-        const routes = navigationState.routes;
-        const currentRoute = routes[navigationState.index];
-        const bottomTabRoute = getTopmostBottomTabRoute(navigationState);
-        if (
-            // When we are redirected to the Settings tab from the OldDot, we don't want to call the Welcome.show() method.
-            // To prevent this, the value of the bottomTabRoute?.name is checked here
-            bottomTabRoute?.name === SCREENS.WORKSPACE.INITIAL ||
-            (currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR)
-        ) {
+        const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
+        const routes = navigationState?.routes;
+        const currentRoute = routes?.[navigationState?.index ?? 0];
+
+        if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
             return;
         }
 
-        Welcome.show(routes, () => Navigation.navigate(ROUTES.ONBOARD));
+        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
+        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(state);
+
+        if (topmostCentralPaneRoute && topmostCentralPaneRoute.name === SCREENS.SEARCH.CENTRAL_PANE) {
+            return SCREENS.SEARCH.CENTRAL_PANE;
+        }
+
         const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
 
-    const shouldShowWorkspaceRedBrickRoad = checkIfWorkspaceSettingsTabHasRBR(activeWorkspaceID) && currentTabName === SCREENS.HOME;
-
-    const chatTabBrickRoad = currentTabName !== SCREENS.HOME ? getChatTabBrickRoad(activeWorkspaceID) : undefined;
+    const chatTabBrickRoad = getChatTabBrickRoad(activeWorkspaceID);
 
     return (
         <View style={styles.bottomTabBarContainer}>
@@ -75,7 +76,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     }}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.chats')}
-                    wrapperStyle={styles.flexGrow1}
+                    wrapperStyle={styles.flex1}
                     style={styles.bottomTabBarItem}
                 >
                     <View>
@@ -92,29 +93,7 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                 </PressableWithFeedback>
             </Tooltip>
             <BottomTabBarFloatingActionButton />
-            <Tooltip text={translate('common.settings')}>
-                <PressableWithFeedback
-                    onPress={() =>
-                        interceptAnonymousUser(() =>
-                            activeWorkspaceID ? Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(activeWorkspaceID)) : Navigation.navigate(ROUTES.ALL_SETTINGS),
-                        )
-                    }
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.settings')}
-                    wrapperStyle={styles.flexGrow1}
-                    style={styles.bottomTabBarItem}
-                >
-                    <View>
-                        <Icon
-                            src={Expensicons.Wrench}
-                            fill={currentTabName === SCREENS.ALL_SETTINGS || currentTabName === SCREENS.WORKSPACE.INITIAL ? theme.iconMenu : theme.icon}
-                            width={variables.iconBottomBar}
-                            height={variables.iconBottomBar}
-                        />
-                        {shouldShowWorkspaceRedBrickRoad && <View style={styles.bottomTabStatusIndicator(theme.danger)} />}
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
+            <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
         </View>
     );
 }

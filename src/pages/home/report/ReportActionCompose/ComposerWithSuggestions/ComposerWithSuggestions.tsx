@@ -1,4 +1,5 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, MutableRefObject, RefAttributes, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
@@ -28,8 +29,8 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import * as ComposerUtils from '@libs/ComposerUtils';
-import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
+import {getDraftComment} from '@libs/DraftCommentUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getPlatform from '@libs/getPlatform';
@@ -62,9 +63,6 @@ type AnimatedRef = ReturnType<typeof useAnimatedRef>;
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
-    /** The number of lines the comment should take up */
-    numberOfLines: OnyxEntry<number>;
-
     /** The parent report actions for the report */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
@@ -159,7 +157,7 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         isEmptyChat?: boolean;
 
         /** The last report action */
-        lastReportAction?: OnyxTypes.ReportAction;
+        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
@@ -170,6 +168,12 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** The parent report ID */
         // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
         parentReportID: string | undefined;
+
+        /** Whether report is from group policy */
+        isGroupPolicyReport: boolean;
+
+        /** policy ID of the report */
+        policyID: string;
     };
 
 const {RNTextInputReset} = NativeModules;
@@ -179,9 +183,16 @@ const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
  */
-const debouncedBroadcastUserIsTyping = lodashDebounce((reportID: string) => {
-    Report.broadcastUserIsTyping(reportID);
-}, 100);
+const debouncedBroadcastUserIsTyping = lodashDebounce(
+    (reportID: string) => {
+        Report.broadcastUserIsTyping(reportID);
+    },
+    1000,
+    {
+        maxWait: 1000,
+        leading: true,
+    },
+);
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
@@ -201,7 +212,6 @@ function ComposerWithSuggestions(
         modal,
         preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
         parentReportActions,
-        numberOfLines,
 
         // Props: Report
         reportID,
@@ -209,6 +219,8 @@ function ComposerWithSuggestions(
         isEmptyChat,
         lastReportAction,
         parentReportActionID,
+        isGroupPolicyReport,
+        policyID,
 
         // Focus
         onFocus,
@@ -288,6 +300,9 @@ function ComposerWithSuggestions(
 
     const isAutoSuggestionPickerLarge = !isSmallScreenWidth || (isSmallScreenWidth && hasEnoughSpaceForLargeSuggestion);
 
+    // The ref to check whether the comment saving is in progress
+    const isCommentPendingSaved = useRef(false);
+
     /**
      * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
      * API is not called too often.
@@ -322,7 +337,8 @@ function ComposerWithSuggestions(
     const debouncedSaveReportComment = useMemo(
         () =>
             lodashDebounce((selectedReportID, newComment) => {
-                Report.saveReportComment(selectedReportID, newComment || '');
+                Report.saveReportDraftComment(selectedReportID, newComment);
+                isCommentPendingSaved.current = false;
             }, 1000),
         [],
     );
@@ -414,21 +430,12 @@ function ComposerWithSuggestions(
                 });
             }
 
-            // Indicate that draft has been created.
-            if (commentRef.current.length === 0 && newCommentConverted.length !== 0) {
-                Report.setReportWithDraft(reportID, true);
-            }
-
-            // The draft has been deleted.
-            if (newCommentConverted.length === 0) {
-                Report.setReportWithDraft(reportID, false);
-            }
-
             commentRef.current = newCommentConverted;
             if (shouldDebounceSaveComment) {
+                isCommentPendingSaved.current = true;
                 debouncedSaveReportComment(reportID, newCommentConverted);
             } else {
-                Report.saveReportComment(reportID, newCommentConverted || '');
+                Report.saveReportDraftComment(reportID, newCommentConverted);
             }
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID);
@@ -448,19 +455,6 @@ function ComposerWithSuggestions(
         ],
     );
 
-    /**
-     * Update the number of lines for a comment in Onyx
-     */
-    const updateNumberOfLines = useCallback(
-        (newNumberOfLines: number) => {
-            if (newNumberOfLines === numberOfLines) {
-                return;
-            }
-            Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
-        },
-        [reportID, numberOfLines],
-    );
-
     const prepareCommentAndResetComposer = useCallback((): string => {
         const trimmedComment = commentRef.current.trim();
         const commentLength = ReportUtils.getCommentLength(trimmedComment);
@@ -474,6 +468,7 @@ function ComposerWithSuggestions(
         // We don't really care about saving the draft the user was typing
         // We need to make sure an empty draft gets saved instead
         debouncedSaveReportComment.cancel();
+        isCommentPendingSaved.current = false;
 
         updateComment('');
         setTextInputShouldClear(true);
@@ -524,7 +519,8 @@ function ComposerWithSuggestions(
             ) {
                 event.preventDefault();
                 if (lastReportAction) {
-                    Report.saveReportActionDraft(reportID, lastReportAction, lastReportAction.message?.at(-1)?.html ?? '');
+                    const parser = new ExpensiMark();
+                    Report.saveReportActionDraft(reportID, lastReportAction, parser.htmlToMarkdown(lastReportAction.message?.at(-1)?.html ?? ''));
                 }
             }
         },
@@ -586,8 +582,8 @@ function ComposerWithSuggestions(
 
     const setUpComposeFocusManager = useCallback(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !isFocused) {
+        ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+            if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
                 return;
             }
 
@@ -637,6 +633,9 @@ function ComposerWithSuggestions(
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
+            // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
+            // @ts-expect-error need to reassign this ref
+            ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
             setUpComposeFocusManager();
         });
         KeyDownListener.addKeyDownPressListener(focusComposerOnKeyPress);
@@ -676,13 +675,6 @@ function ComposerWithSuggestions(
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
         updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
-
-        if (value.length === 0) {
-            return;
-        }
-
-        Report.setReportWithDraft(reportID, true);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     useImperativeHandle(
@@ -751,8 +743,6 @@ function ComposerWithSuggestions(
                     isComposerFullSize={isComposerFullSize}
                     value={value}
                     testID="composer"
-                    numberOfLines={numberOfLines ?? undefined}
-                    onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
@@ -768,6 +758,8 @@ function ComposerWithSuggestions(
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                isGroupPolicyReport={isGroupPolicyReport}
+                policyID={policyID}
                 // Input
                 value={value}
                 setValue={setValue}
@@ -782,6 +774,7 @@ function ComposerWithSuggestions(
                     value={value}
                     updateComment={updateComment}
                     commentRef={commentRef}
+                    isCommentPendingSaved={isCommentPendingSaved}
                 />
             )}
 
@@ -796,12 +789,6 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
 export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, ComposerWithSuggestionsOnyxProps>({
-    numberOfLines: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
-        // We might not have number of lines in onyx yet, for which the composer would be rendered as null
-        // during the first render, which we want to avoid:
-        initWithStoredValues: false,
-    },
     modal: {
         key: ONYXKEYS.MODAL,
     },

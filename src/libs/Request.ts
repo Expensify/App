@@ -12,7 +12,7 @@ function makeXHR(request: Request): Promise<Response | void> {
     return NetworkStore.hasReadRequiredDataFromStorage().then((): Promise<Response | void> => {
         // If we're using the Supportal token and this is not a Supportal request
         // let's just return a promise that will resolve itself.
-        if (NetworkStore.getSupportAuthToken() && !NetworkStore.isSupportRequest(request.command)) {
+        if (NetworkStore.isSupportAuthToken() && !NetworkStore.isSupportRequest(request.command)) {
             return new Promise<void>((resolve) => {
                 resolve();
             });

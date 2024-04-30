@@ -1,5 +1,5 @@
 type DOMRectProperties = 'top' | 'bottom' | 'left' | 'right' | 'height' | 'x' | 'y';
 
-type GetClickedTargetLocation = (target: Element) => Pick<DOMRect, DOMRectProperties>;
+type GetClickedTargetLocation = (target: HTMLDivElement) => Pick<DOMRect, DOMRectProperties>;
 
 export default GetClickedTargetLocation;

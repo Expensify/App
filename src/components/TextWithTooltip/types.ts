@@ -4,11 +4,11 @@ type TextWithTooltipProps = {
     /** The text to display */
     text: string;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltip: boolean;
 
-    /** Additional text styles */
-    textStyles?: StyleProp<TextStyle>;
+    /** Additional styles */
+    style?: StyleProp<TextStyle>;
 
     /** Custom number of lines for text wrapping */
     numberOfLines?: number;

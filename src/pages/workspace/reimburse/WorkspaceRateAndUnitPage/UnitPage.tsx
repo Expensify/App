@@ -1,9 +1,9 @@
 import React, {useEffect, useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import type {UnitItemType} from '@components/UnitPicker';
+import UnitPicker from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import compose from '@libs/compose';
@@ -16,14 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {WorkspaceRateAndUnit} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
-
-type OptionRow = {
-    value: Unit;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-};
 
 type WorkspaceUnitPageBaseProps = WithPolicyProps;
 
@@ -35,13 +27,6 @@ type WorkspaceUnitPageProps = WorkspaceUnitPageBaseProps & WorkspaceRateAndUnitO
 function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const unitItems = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: translate('workspace.reimburse.kilometers'),
-            [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: translate('workspace.reimburse.miles'),
-        }),
-        [translate],
-    );
 
     useEffect(() => {
         if (props.workspaceRateAndUnit?.policyID === props.policy?.id) {
@@ -51,29 +36,15 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const updateUnit = (unit: Unit) => {
-        Policy.setUnitForReimburseView(unit);
-        Navigation.navigate(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
+    const updateUnit = (unit: UnitItemType) => {
+        Policy.setUnitForReimburseView(unit.value);
+        Navigation.goBack(ROUTES.WORKSPACE_RATE_AND_UNIT.getRoute(props.policy?.id ?? ''));
     };
 
     const defaultValue = useMemo(() => {
         const defaultDistanceCustomUnit = Object.values(props.policy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         return defaultDistanceCustomUnit?.attributes.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     }, [props.policy?.customUnits]);
-
-    const unitOptions = useMemo(() => {
-        const arr: OptionRow[] = [];
-        Object.entries(unitItems).forEach(([unit, label]) => {
-            arr.push({
-                value: unit as Unit,
-                text: label,
-                keyForList: unit,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                isSelected: (props.workspaceRateAndUnit?.unit || defaultValue) === unit,
-            });
-        });
-        return arr;
-    }, [defaultValue, props.workspaceRateAndUnit?.unit, unitItems]);
 
     return (
         <WorkspacePageWithSections
@@ -88,12 +59,9 @@ function WorkspaceUnitPage(props: WorkspaceUnitPageProps) {
             {() => (
                 <>
                     <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.reimburse.trackDistanceChooseUnit')}</Text>
-
-                    <SelectionList
-                        sections={[{data: unitOptions}]}
-                        ListItem={RadioListItem}
-                        onSelectRow={(unit: OptionRow) => updateUnit(unit.value)}
-                        initiallyFocusedOptionKey={unitOptions.find((unit) => unit.isSelected)?.keyForList}
+                    <UnitPicker
+                        defaultValue={props.workspaceRateAndUnit?.unit ?? defaultValue}
+                        onOptionSelected={updateUnit}
                     />
                 </>
             )}

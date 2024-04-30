@@ -26,6 +26,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as SessionUtils from '@libs/SessionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -74,6 +75,38 @@ Onyx.connect({
             openApp();
         }
         priorityMode = nextPriorityMode;
+    },
+});
+
+const KEYS_TO_PRESERVE: OnyxKey[] = [
+    ONYXKEYS.ACCOUNT,
+    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.MODAL,
+    ONYXKEYS.NETWORK,
+    ONYXKEYS.SESSION,
+    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
+    ONYXKEYS.NVP_TRY_FOCUS_MODE,
+    ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.NVP_PREFERRED_LOCALE,
+    ONYXKEYS.CREDENTIALS,
+];
+
+Onyx.connect({
+    key: ONYXKEYS.RESET_REQUIRED,
+    callback: (isResetRequired) => {
+        if (!isResetRequired) {
+            return;
+        }
+
+        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+            // Set this to false to reset the flag for this client
+            Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            openApp();
+        });
     },
 });
 
@@ -131,7 +164,6 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
     Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
 
@@ -222,7 +254,7 @@ function openApp() {
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
     getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = {...policyParams};
+        const params: ReconnectAppParams = policyParams;
 
         // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
         // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
@@ -526,4 +558,5 @@ export {
     savePolicyDraftByNewWorkspace,
     createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
+    KEYS_TO_PRESERVE,
 };

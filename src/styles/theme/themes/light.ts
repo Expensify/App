@@ -17,6 +17,7 @@ const lightTheme = {
     iconHovered: colors.productLight900,
     iconMenuHovered: colors.green400,
     iconSuccessFill: colors.green400,
+    iconDangerFill: colors.red,
     iconReversed: colors.productLight100,
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.productLight800,
@@ -28,6 +29,7 @@ const lightTheme = {
     buttonDefaultBG: colors.productLight400,
     buttonHoveredBG: colors.productLight500,
     buttonPressedBG: colors.productLight600,
+    buttonSuccessText: colors.productLight100,
     danger: colors.red,
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
@@ -44,6 +46,7 @@ const lightTheme = {
     inverse: colors.productLight900,
     shadow: colors.black,
     componentBG: colors.productLight100,
+    messageHighlightBG: colors.yellow100,
     hoverComponentBG: colors.productLight300,
     activeComponentBG: colors.productLight400,
     signInSidebar: colors.green800,
@@ -112,7 +115,7 @@ const lightTheme = {
         },
         [SCREENS.SETTINGS.WORKSPACES]: {
             backgroundColor: colors.productLight100,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
+            statusBarStyle: CONST.STATUS_BAR_STYLE.DARK_CONTENT,
         },
         [SCREENS.SETTINGS.WALLET.ROOT]: {
             backgroundColor: colors.productLight100,
@@ -140,14 +143,6 @@ const lightTheme = {
         },
         [SCREENS.RIGHT_MODAL.SIGN_IN]: {
             backgroundColor: colors.productDark200,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.ONBOARD_ENGAGEMENT.ROOT]: {
-            backgroundColor: colors.pink800,
-            statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
-        },
-        [SCREENS.ONBOARD_ENGAGEMENT.EXPENSIFY_CLASSIC]: {
-            backgroundColor: colors.green600,
             statusBarStyle: CONST.STATUS_BAR_STYLE.LIGHT_CONTENT,
         },
     },

@@ -1,9 +1,9 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
+import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -27,7 +27,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
     const styles = useThemeStyles();
     const policyID = reimbursementAccount?.achData?.policyID ?? '';
     const shouldShowResetModal = reimbursementAccount.shouldShowResetModal ?? false;
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat();
+    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -39,13 +39,13 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount}: FinishCha
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <Button
+                    iconStyles={[styles.customMarginButtonWithMenuItem]}
                     text={translate('connectBankAccountStep.letsChatCTA')}
                     onPress={handleNavigateToConciergeChat}
                     icon={Expensicons.ChatBubble}
-                    iconStyles={[styles.buttonCTAIcon]}
                     shouldShowRightIcon
-                    large
                     success
+                    innerStyles={[styles.pr2, styles.pl4, styles.h13]}
                 />
                 <MenuItem
                     title={translate('workspace.bankAccount.noLetsStartOver')}

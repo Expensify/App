@@ -3,7 +3,6 @@ import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -60,7 +59,7 @@ type CustomLHNOptionsListProps = {
     onFirstItemRendered: () => void;
 };
 
-type LHNOptionsListProps = CustomLHNOptionsListProps & CurrentReportIDContextValue & LHNOptionsListOnyxProps;
+type LHNOptionsListProps = CustomLHNOptionsListProps & LHNOptionsListOnyxProps;
 
 type OptionRowLHNDataProps = {
     /** Whether row should be focused */
@@ -87,8 +86,8 @@ type OptionRowLHNDataProps = {
     /** The transaction linked to the report's last action */
     lastReportActionTransaction?: OnyxEntry<Transaction | EmptyObject>;
 
-    /** Comment added to report */
-    comment: string;
+    /** Whether a report contains a draft */
+    hasDraftComment: boolean;
 
     /** The receipt transaction from the parent report action */
     receiptTransactions: OnyxCollection<Transaction>;
@@ -133,6 +132,9 @@ type OptionRowLHNProps = {
 
     /** The item that should be rendered */
     optionItem?: OptionData;
+
+    /** Whether a report contains a draft */
+    hasDraftComment: boolean;
 
     onLayout?: (event: LayoutChangeEvent) => void;
 };

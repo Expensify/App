@@ -8,7 +8,7 @@ import getRootNavigatorScreenOptions from '@libs/Navigation/AppNavigator/getRoot
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import SCREENS from '@src/SCREENS';
 
-const loadInitialSettingsPage = () => require('../../../../pages/settings/InitialSettingsPage').default as React.ComponentType;
+const loadWorkspaceInitialPage = () => require('../../../../pages/workspace/WorkspaceInitialPage').default as React.ComponentType;
 
 const RootStack = createCustomFullScreenNavigator();
 
@@ -22,14 +22,14 @@ function FullScreenNavigator() {
         <View style={styles.rootNavigatorContainerStyles(isSmallScreenWidth)}>
             <RootStack.Navigator>
                 <RootStack.Screen
-                    name={SCREENS.SETTINGS.ROOT}
+                    name={SCREENS.WORKSPACE.INITIAL}
                     options={screenOptions.homeScreen}
-                    getComponent={loadInitialSettingsPage}
+                    getComponent={loadWorkspaceInitialPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.SETTINGS_CENTRAL_PANE}
+                    name={SCREENS.WORKSPACES_CENTRAL_PANE}
                     options={screenOptions.centralPaneNavigator}
-                    component={ModalStackNavigators.AccountSettingsModalStackNavigator}
+                    component={ModalStackNavigators.WorkspaceSettingsModalStackNavigator}
                 />
             </RootStack.Navigator>
         </View>

@@ -1,8 +1,12 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
+import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type {Participant, Split} from './IOU';
 import type * as OnyxCommon from './OnyxCommon';
 import type RecentWaypoint from './RecentWaypoint';
+import type ReportAction from './ReportAction';
 
 type Waypoint = {
     /** The name associated with the address of the waypoint */
@@ -57,7 +61,7 @@ type Geometry = {
     type?: GeometryType;
 };
 
-type ReceiptSource = string | number;
+type ReceiptSource = string;
 
 type Receipt = {
     receiptID?: number;
@@ -100,7 +104,13 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
-        /** Whether the request is billable */
+        /** The transaction tax amount */
+        taxAmount?: number;
+
+        /** The transaction tax code */
+        taxCode?: string;
+
+        /** Whether the expense is billable */
         billable?: boolean;
 
         /** The category name */
@@ -109,7 +119,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The comment object on the transaction */
         comment: Comment;
 
-        /** Date that the request was created */
+        /** Date that the expense was created */
         created: string;
 
         /** The original currency of the transaction */
@@ -125,7 +135,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         filename?: string;
 
         /** Used during the creation flow before the transaction is saved to the server */
-        iouRequestType?: ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
+        iouRequestType?: IOURequestType;
 
         /** The original merchant name */
         merchant: string;
@@ -142,7 +152,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The edited merchant name */
         modifiedMerchant?: string;
 
-        /** The edited waypoints for the distance request */
+        /** The edited waypoints for the distance expense */
         modifiedWaypoints?: WaypointCollection;
 
         /**
@@ -175,9 +185,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction tax rate */
         taxRate?: TaxRate;
 
-        /** Tax amount */
-        taxAmount?: number;
-
         /** Card Transactions */
 
         /** The parent transaction id */
@@ -209,6 +216,18 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates transaction loading */
         isLoading?: boolean;
+
+        /** The actionable report action ID associated with the transaction */
+        actionableWhisperReportActionID?: string;
+
+        /** The linked reportAction id for the tracked expense */
+        linkedTrackedExpenseReportAction?: ReportAction;
+
+        /** The linked report id for the tracked expense */
+        linkedTrackedExpenseReportID?: string;
+
+        /** The payers of split bill transaction */
+        splitPayerAccountIDs?: number[];
     },
     keyof Comment
 >;
@@ -224,5 +243,19 @@ type AdditionalTransactionChanges = {
 
 type TransactionChanges = Partial<Transaction> & AdditionalTransactionChanges;
 
+type TransactionCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+
 export default Transaction;
-export type {WaypointCollection, Comment, Receipt, Waypoint, ReceiptError, ReceiptErrors, TransactionPendingFieldsKey, TransactionChanges, TaxRate, ReceiptSource};
+export type {
+    WaypointCollection,
+    Comment,
+    Receipt,
+    Waypoint,
+    ReceiptError,
+    ReceiptErrors,
+    TransactionPendingFieldsKey,
+    TransactionChanges,
+    TaxRate,
+    ReceiptSource,
+    TransactionCollectionDataSet,
+};
