@@ -195,11 +195,11 @@ function MoneyRequestView({
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID as string] ?? {};
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
     const {unit} = mileageRate;
-    const rate = (transaction?.comment?.customUnit?.defaultP2PRate as number) ?? mileageRate.rate;
+    const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.convertToDistanceInMeters((transaction?.comment?.customUnit?.quantity as number) ?? 0, unit);
+    const distance = DistanceRequestUtils.convertToDistanceInMeters(TransactionUtils.getDistance(transaction), unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
