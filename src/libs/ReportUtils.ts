@@ -874,6 +874,14 @@ function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
 }
 
+function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
+    if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        return currentUserAccountID === report.invoiceReceiver.accountID;
+    }
+
+    return false;
+}
+
 /**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
@@ -1929,8 +1937,20 @@ function getIcons(
         return [domainIcon];
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report)) {
-        const workspaceIcon = getWorkspaceIcon(report, policy);
-        return [workspaceIcon];
+        const icons = [getWorkspaceIcon(report, policy)];
+
+        if (isInvoiceRoom(report)) {
+            if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+                icons.push(...getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails));
+            } else {
+                const receiverPolicy = getPolicy(report?.invoiceReceiver?.policyID);
+                if (!isEmptyObject(receiverPolicy)) {
+                    icons.push(getWorkspaceIcon(report, receiverPolicy));
+                }
+            }
+        }
+
+        return icons;
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
@@ -6673,6 +6693,7 @@ export {
     buildOptimisticInvoiceReport,
     buildOptimisticInviteReportAction,
     getInvoiceChatByParticipants,
+    isCurrentUserInvoiceReceiver,
 };
 
 export type {
