@@ -238,9 +238,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 shouldDisableViewPhoto
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
-                    Report.updateGroupChatAvatar(report.reportID ?? '', report.avatarUrl ?? '');
+                    Report.updateGroupChatAvatar(report.reportID ?? '');
                 }}
-                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', report.avatarUrl ?? '', file)}
+                onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
                 editIcon={Expensicons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
                 pendingAction={report?.pendingFields?.avatar ?? undefined}

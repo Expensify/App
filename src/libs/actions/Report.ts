@@ -636,7 +636,7 @@ function updateGroupChatName(reportID: string, reportName: string) {
     API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_NAME, parameters, {optimisticData});
 }
 
-function updateGroupChatAvatar(reportID: string, previousUrl: string, file?: File | CustomRNImageManipulatorResult) {
+function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageManipulatorResult) {
     // If we have no file that means we are removing the avatar.
     const optimisticData: OnyxUpdate[] = [
         {
@@ -659,7 +659,7 @@ function updateGroupChatAvatar(reportID: string, previousUrl: string, file?: Fil
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                avatarUrl: previousUrl,
+                avatarUrl: currentReportData?.[reportID]?.avatarUrl,
                 pendingFields: {
                     avatar: null,
                 },
