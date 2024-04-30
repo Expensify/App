@@ -4,7 +4,6 @@ import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -17,7 +16,6 @@ import SelectionList from '@components/SelectionList';
 import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -25,7 +23,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -84,10 +81,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    if (!currentPolicyTag) {
-        return <NotFoundPage />;
-    }
-
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policy) => policy.name === currentTagListName), [currentTagListName, policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
@@ -112,6 +105,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 .flat(),
         [policyTagLists, selectedTags],
     );
+
+    if (!currentPolicyTag) {
+        return <NotFoundPage />;
+    }
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
         acc[tag.value] = tag;
@@ -225,11 +222,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         return null;
     };
 
-    const updateWorkspaceTagRequired = (value: boolean) => {
-        // TODO after API command is added
-        return;
-    };
-
     const navigateToEditTag = () => {
         Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight.toString()));
     };
@@ -256,21 +248,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {/* TODO add errors and offline feedback after API command is added */}
-                <OfflineWithFeedback>
-                    <View style={[styles.mt2, styles.mh5]}>
-                        <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text>{translate('common.required')}</Text>
-                            <Switch
-                                isOn={currentPolicyTag.required}
-                                accessibilityLabel={translate('workspace.tags.enableTag')}
-                                onToggle={updateWorkspaceTagRequired}
-                                // TODO: enable switch after API command is added
-                                disabled
-                            />
-                        </View>
-                    </View>
-                </OfflineWithFeedback>
                 <OfflineWithFeedback
                     errors={currentPolicyTag.errors}
                     pendingAction={currentPolicyTag.pendingAction}
