@@ -26,7 +26,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import CurrentLocationButton from './CurrentLocationButton';
-import type {CurrentLocationButtonHandle} from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
 import type {AddressSearchProps} from './types';
 
@@ -83,12 +82,6 @@ function AddressSearch(
     const containerRef = useRef<View>(null);
     const [maxIndex, setMaxIndex] = useState(0);
     const resultRef = useRef();
-    const currentLocationButtonRef = useRef<CurrentLocationButtonHandle>(null);
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
-        initialFocusedIndex: -1,
-        maxIndex: maxIndex - 1,
-        isActive: true,
-    });
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -99,6 +92,10 @@ function AddressSearch(
         [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
     );
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: -1,
+        maxIndex,
+    });
     const saveLocationDetails = useCallback(
         (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
             const addressComponents = details?.address_components;
@@ -242,72 +239,8 @@ function AddressSearch(
         },
         [inputID, onInputChange, onPress, renamedInputKeys],
     );
-    const selectFocusedOption = useCallback(() => {
-        if (focusedIndex === -1 && shouldShowCurrentLocationButton) {
-            currentLocationButtonRef?.current?.press();
-            return;
-        }
-        if (!resultRef.current) {
-            return;
-        }
-        const data = resultRef?.current[focusedIndex];
-        if (!data) {
-            return;
-        }
-        saveLocationDetails(data, data);
-        setIsTyping(false);
-
-        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-        setDisplayListViewBorder(false);
-        setIsFocused(false);
-
-        // Clear location error code after address is selected
-        setLocationErrorCode(null);
-    }, [focusedIndex, saveLocationDetails, shouldShowCurrentLocationButton]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, () => {
-        if (focusedIndex === 0 && !currentLocationButtonRef?.current?.isFocused() && shouldShowCurrentLocationButton) {
-            setFocusedIndex(-1);
-            currentLocationButtonRef?.current?.focus();
-        } else if (focusedIndex === -1 && !currentLocationButtonRef?.current?.isFocused() && shouldShowCurrentLocationButton) {
-            currentLocationButtonRef?.current?.focus();
-        } else if (focusedIndex > 0) {
-            if (currentLocationButtonRef?.current?.isFocused()) {
-                currentLocationButtonRef?.current?.blur();
-            }
-            setFocusedIndex(focusedIndex - 1);
-        } else if (currentLocationButtonRef?.current?.isFocused()) {
-            currentLocationButtonRef?.current?.blur();
-            if (maxIndex > 0) {
-                setFocusedIndex(maxIndex - 1);
-            }
-        } else {
-            setFocusedIndex(maxIndex - 1);
-        }
-    });
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, () => {
-        if (focusedIndex === maxIndex - 1 && !currentLocationButtonRef?.current?.isFocused() && shouldShowCurrentLocationButton) {
-            setFocusedIndex(-1);
-            currentLocationButtonRef?.current?.focus();
-        } else if (focusedIndex === -1 && !currentLocationButtonRef?.current?.isFocused() && shouldShowCurrentLocationButton) {
-            if (maxIndex > 0) {
-                setFocusedIndex(maxIndex - 1);
-            } else {
-                currentLocationButtonRef?.current?.focus();
-            }
-        } else if (focusedIndex < maxIndex - 1) {
-            if (currentLocationButtonRef?.current?.isFocused()) {
-                currentLocationButtonRef?.current?.blur();
-            }
-            setFocusedIndex(focusedIndex + 1);
-        } else if (currentLocationButtonRef?.current?.isFocused()) {
-            currentLocationButtonRef?.current?.blur();
-        } else {
-            setFocusedIndex(0);
-        }
-    });
     /** Gets the user's current location and registers success/error callbacks */
-    const getCurrentLocation = () => {
+    const getCurrentLocation = useCallback(() => {
         if (isFetchingCurrentLocation) {
             return;
         }
@@ -349,8 +282,32 @@ function AddressSearch(
                 timeout: 30000,
             },
         );
-    };
+    }, [isFetchingCurrentLocation, onPress]);
+    const selectFocusedOption = useCallback(() => {
+        if (focusedIndex === 0 && shouldShowCurrentLocationButton) {
+            getCurrentLocation();
+            return;
+        }
+        if (!resultRef.current) {
+            return;
+        }
 
+        const data = resultRef?.current[shouldShowCurrentLocationButton ? focusedIndex - 1 : focusedIndex];
+        if (!data) {
+            return;
+        }
+        saveLocationDetails(data, data);
+        setIsTyping(false);
+
+        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+        setDisplayListViewBorder(false);
+        setIsFocused(false);
+
+        // Clear location error code after address is selected
+        setLocationErrorCode(null);
+    }, [focusedIndex, getCurrentLocation, saveLocationDetails, shouldShowCurrentLocationButton]);
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption);
     const renderHeaderComponent = () => (
         // eslint-disable-next-line react/jsx-no-useless-fragment
         <>
@@ -360,8 +317,7 @@ function AddressSearch(
                     {shouldShowCurrentLocationButton && (
                         <CurrentLocationButton
                             onPress={getCurrentLocation}
-                            isDisabled={isOffline}
-                            innerRef={currentLocationButtonRef}
+                            isFocused={focusedIndex === 0}
                         />
                     )}
                     {!value && <Text style={[styles.textLabel, styles.colorMuted, styles.pv2, styles.ph3, styles.overflowAuto]}>{translate('common.recentDestinations')}</Text>}
@@ -379,8 +335,7 @@ function AddressSearch(
     }, []);
 
     const listEmptyComponent = useCallback(
-        () =>
-            !!isOffline || !isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>,
+        () => (isOffline || !isTyping ? null : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
         [isOffline, isTyping, styles, translate],
     );
 
@@ -429,10 +384,12 @@ function AddressSearch(
                         renderRow={(data, index) => {
                             const title = data.isPredefinedPlace ? data.name : data.structured_formatting.main_text;
                             const subtitle = data.isPredefinedPlace ? data.description : data.structured_formatting.secondary_text;
+                            const isRowFocused = shouldShowCurrentLocationButton ? focusedIndex === index + 1 : focusedIndex === index;
                             return (
                                 <Hoverable>
                                     {(isHovered) => (
-                                        <View style={[styles.pv4, styles.ph3, StyleUtils.getBackgroundAndBorderStyle(isHovered || focusedIndex === index ? theme.border : theme.appBG)]}>
+                                        // <View style={[styles.pv4, styles.ph3, StyleUtils.getBackgroundAndBorderStyle(isHovered || focusedIndex === index ? theme.border : theme.appBG)]}>
+                                        <View style={[styles.pv4, styles.ph3, StyleUtils.getBackgroundAndBorderStyle(isHovered || isRowFocused ? theme.border : theme.appBG)]}>
                                             {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
                                             <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
                                         </View>
@@ -482,6 +439,8 @@ function AddressSearch(
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
+                                // Whenever the search term changes, focus the first result. That way, the best match is always initially highlighted.
+                                setFocusedIndex(0);
                                 if (inputID) {
                                     onInputChange?.(text);
                                 } else {
@@ -489,7 +448,7 @@ function AddressSearch(
                                 }
                                 // If the text is empty and we have no predefined places, we set displayListViewBorder to false to prevent UI flickering
                                 if (!text && !predefinedPlaces?.length) {
-                                    setMaxIndex(0);
+                                    setMaxIndex(-1);
                                     setDisplayListViewBorder(false);
                                 }
                             },
@@ -528,8 +487,7 @@ function AddressSearch(
                                 <View style={[StyleUtils.getGoogleListViewStyle(true), styles.overflowAuto, styles.borderLeft, styles.borderRight]}>
                                     <CurrentLocationButton
                                         onPress={getCurrentLocation}
-                                        isDisabled={isOffline}
-                                        innerRef={currentLocationButtonRef}
+                                        isFocused={focusedIndex === 0}
                                     />
                                 </View>
                             )

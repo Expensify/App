@@ -43,7 +43,7 @@ export default function useArrowKeyFocusManager({
     // Hence the use of CONST.EMPTY_ARRAY.
     disabledIndexes = CONST.EMPTY_ARRAY,
     shouldExcludeTextAreaNodes = true,
-    isActive,
+    isActive = true,
     itemsPerRow,
     disableCyclicTraversal = false,
     allowHorizontalArrowKeys = false,
