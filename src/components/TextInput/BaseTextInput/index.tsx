@@ -284,7 +284,7 @@ function BaseTextInput(
 
         prevTextValue.current = currentValue;
         requestAnimationFrame(() => {
-            setTextInputWidth((currentWidth) => currentWidth + 6);
+            setTextInputWidth((currentWidth) => currentWidth + 8);
         });
     }, [autoGrow, value]);
 
