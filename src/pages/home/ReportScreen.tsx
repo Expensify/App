@@ -5,7 +5,7 @@ import React, {memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, u
 import type {FlatList, ViewStyle} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {LayoutChangeEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 import Banner from '@components/Banner';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -53,10 +53,7 @@ import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
-type ReportScreenOnyxPropsWithoutParentReportAction = {
-    /** Get modal status */
-    modal: OnyxEntry<OnyxTypes.Modal>;
-
+type ReportScreenOnyxProps = {
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: OnyxEntry<boolean>;
 
@@ -66,20 +63,8 @@ type ReportScreenOnyxPropsWithoutParentReportAction = {
     /** The policies which the user has access to */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
-    /** The account manager report ID */
-    accountManagerReportID: OnyxEntry<string>;
-
-    /** Whether user is leaving the current report */
-    userLeavingStatus: OnyxEntry<boolean>;
-
-    /** Whether the composer is full size */
-    isComposerFullSize: OnyxEntry<boolean>;
-
     /** An array containing all report actions related to this report, sorted based on a date criterion */
     sortedAllReportActions: OnyxTypes.ReportAction[];
-
-    /** The report currently being looked at */
-    report: OnyxEntry<OnyxTypes.Report>;
 
     /** The report metadata loading states */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
@@ -92,14 +77,7 @@ type OnyxHOCProps = {
 
 type ReportScreenNavigationProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>;
 
-type ReportScreenPropsWithoutParentReportAction = OnyxHOCProps & CurrentReportIDContextValue & ReportScreenOnyxPropsWithoutParentReportAction & ReportScreenNavigationProps;
-
-type ReportScreenParentReportActionOnyxProps = {
-    /** The report's parentReportActions */
-    parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
-};
-
-type ReportScreenProps = ReportScreenPropsWithoutParentReportAction & ReportScreenParentReportActionOnyxProps;
+type ReportScreenProps = OnyxHOCProps & CurrentReportIDContextValue & ReportScreenOnyxProps & ReportScreenNavigationProps;
 
 /** Get the currently viewed report ID as number */
 function getReportID(route: ReportScreenNavigationProps['route']): string {
@@ -132,21 +110,15 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
 function ReportScreen({
     betas = [],
     route,
-    report: reportProp,
     sortedAllReportActions,
     reportMetadata = {
         isLoadingInitialReportActions: true,
         isLoadingOlderReportActions: false,
         isLoadingNewerReportActions: false,
     },
-    parentReportActions,
-    accountManagerReportID,
     markReadyForHydration,
     policies = {},
     isSidebarLoaded = false,
-    modal,
-    isComposerFullSize = false,
-    userLeavingStatus = false,
     currentReportID = '',
     navigation,
 }: ReportScreenProps) {
@@ -163,6 +135,17 @@ function ReportScreen({
     const isReportOpenInRHP = useIsReportOpenInRHP();
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
+
+    const [modal] = useOnyx(ONYXKEYS.COLLECTION.MODAL);
+    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`, {initialValue: false});
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: null});
+    const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`, {initialValue: false});
+    const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`, {allowStaleData: true});
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
+        canEvict: false,
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID as string),
+    });
+
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -173,90 +156,88 @@ function ReportScreen({
      */
     const report = useMemo(
         (): OnyxTypes.Report => ({
-            lastReadTime: reportProp?.lastReadTime,
-            reportID: reportProp?.reportID ?? '',
-            policyID: reportProp?.policyID,
-            lastVisibleActionCreated: reportProp?.lastVisibleActionCreated,
-            statusNum: reportProp?.statusNum,
-            stateNum: reportProp?.stateNum,
-            writeCapability: reportProp?.writeCapability,
-            type: reportProp?.type,
-            errorFields: reportProp?.errorFields,
-            isPolicyExpenseChat: reportProp?.isPolicyExpenseChat,
-            parentReportID: reportProp?.parentReportID,
-            parentReportActionID: reportProp?.parentReportActionID,
-            chatType: reportProp?.chatType,
-            pendingFields: reportProp?.pendingFields,
-            isDeletedParentAction: reportProp?.isDeletedParentAction,
-            reportName: reportProp?.reportName,
-            description: reportProp?.description,
-            managerID: reportProp?.managerID,
-            total: reportProp?.total,
-            nonReimbursableTotal: reportProp?.nonReimbursableTotal,
-            fieldList: reportProp?.fieldList,
-            ownerAccountID: reportProp?.ownerAccountID,
-            currency: reportProp?.currency,
-            unheldTotal: reportProp?.unheldTotal,
-            participantAccountIDs: reportProp?.participantAccountIDs,
-            isWaitingOnBankAccount: reportProp?.isWaitingOnBankAccount,
-            iouReportID: reportProp?.iouReportID,
-            isOwnPolicyExpenseChat: reportProp?.isOwnPolicyExpenseChat,
-            notificationPreference: reportProp?.notificationPreference,
-            isPinned: reportProp?.isPinned,
-            chatReportID: reportProp?.chatReportID,
-            visibility: reportProp?.visibility,
-            oldPolicyName: reportProp?.oldPolicyName,
-            policyName: reportProp?.policyName,
-            isOptimisticReport: reportProp?.isOptimisticReport,
-            lastMentionedTime: reportProp?.lastMentionedTime,
-            avatarUrl: reportProp?.avatarUrl,
-            permissions: reportProp?.permissions,
-            invoiceReceiver: reportProp?.invoiceReceiver,
+            lastReadTime: reportOnyx?.lastReadTime,
+            reportID: reportOnyx?.reportID ?? '',
+            policyID: reportOnyx?.policyID,
+            lastVisibleActionCreated: reportOnyx?.lastVisibleActionCreated,
+            statusNum: reportOnyx?.statusNum,
+            stateNum: reportOnyx?.stateNum,
+            writeCapability: reportOnyx?.writeCapability,
+            type: reportOnyx?.type,
+            errorFields: reportOnyx?.errorFields,
+            isPolicyExpenseChat: reportOnyx?.isPolicyExpenseChat,
+            parentReportID: reportOnyx?.parentReportID,
+            parentReportActionID: reportOnyx?.parentReportActionID,
+            chatType: reportOnyx?.chatType,
+            pendingFields: reportOnyx?.pendingFields,
+            isDeletedParentAction: reportOnyx?.isDeletedParentAction,
+            reportName: reportOnyx?.reportName,
+            description: reportOnyx?.description,
+            managerID: reportOnyx?.managerID,
+            total: reportOnyx?.total,
+            nonReimbursableTotal: reportOnyx?.nonReimbursableTotal,
+            fieldList: reportOnyx?.fieldList,
+            ownerAccountID: reportOnyx?.ownerAccountID,
+            currency: reportOnyx?.currency,
+            unheldTotal: reportOnyx?.unheldTotal,
+            participantAccountIDs: reportOnyx?.participantAccountIDs,
+            isWaitingOnBankAccount: reportOnyx?.isWaitingOnBankAccount,
+            iouReportID: reportOnyx?.iouReportID,
+            isOwnPolicyExpenseChat: reportOnyx?.isOwnPolicyExpenseChat,
+            notificationPreference: reportOnyx?.notificationPreference,
+            isPinned: reportOnyx?.isPinned,
+            chatReportID: reportOnyx?.chatReportID,
+            visibility: reportOnyx?.visibility,
+            oldPolicyName: reportOnyx?.oldPolicyName,
+            policyName: reportOnyx?.policyName,
+            isOptimisticReport: reportOnyx?.isOptimisticReport,
+            lastMentionedTime: reportOnyx?.lastMentionedTime,
+            avatarUrl: reportOnyx?.avatarUrl,
+            permissions: reportOnyx?.permissions,
+            invoiceReceiver: reportOnyx?.invoiceReceiver,
         }),
         [
-            reportProp?.lastReadTime,
-            reportProp?.reportID,
-            reportProp?.policyID,
-            reportProp?.lastVisibleActionCreated,
-            reportProp?.statusNum,
-            reportProp?.stateNum,
-            reportProp?.writeCapability,
-            reportProp?.type,
-            reportProp?.errorFields,
-            reportProp?.isPolicyExpenseChat,
-            reportProp?.parentReportID,
-            reportProp?.parentReportActionID,
-            reportProp?.chatType,
-            reportProp?.pendingFields,
-            reportProp?.isDeletedParentAction,
-            reportProp?.reportName,
-            reportProp?.description,
-            reportProp?.managerID,
-            reportProp?.total,
-            reportProp?.nonReimbursableTotal,
-            reportProp?.fieldList,
-            reportProp?.ownerAccountID,
-            reportProp?.currency,
-            reportProp?.unheldTotal,
-            reportProp?.participantAccountIDs,
-            reportProp?.isWaitingOnBankAccount,
-            reportProp?.iouReportID,
-            reportProp?.isOwnPolicyExpenseChat,
-            reportProp?.notificationPreference,
-            reportProp?.isPinned,
-            reportProp?.chatReportID,
-            reportProp?.visibility,
-            reportProp?.oldPolicyName,
-            reportProp?.policyName,
-            reportProp?.isOptimisticReport,
-            reportProp?.lastMentionedTime,
-            reportProp?.avatarUrl,
-            reportProp?.permissions,
-            reportProp?.invoiceReceiver,
+            reportOnyx?.lastReadTime,
+            reportOnyx?.reportID,
+            reportOnyx?.policyID,
+            reportOnyx?.lastVisibleActionCreated,
+            reportOnyx?.statusNum,
+            reportOnyx?.stateNum,
+            reportOnyx?.writeCapability,
+            reportOnyx?.type,
+            reportOnyx?.errorFields,
+            reportOnyx?.isPolicyExpenseChat,
+            reportOnyx?.parentReportID,
+            reportOnyx?.parentReportActionID,
+            reportOnyx?.chatType,
+            reportOnyx?.pendingFields,
+            reportOnyx?.isDeletedParentAction,
+            reportOnyx?.reportName,
+            reportOnyx?.description,
+            reportOnyx?.managerID,
+            reportOnyx?.total,
+            reportOnyx?.nonReimbursableTotal,
+            reportOnyx?.fieldList,
+            reportOnyx?.ownerAccountID,
+            reportOnyx?.currency,
+            reportOnyx?.unheldTotal,
+            reportOnyx?.participantAccountIDs,
+            reportOnyx?.isWaitingOnBankAccount,
+            reportOnyx?.iouReportID,
+            reportOnyx?.isOwnPolicyExpenseChat,
+            reportOnyx?.notificationPreference,
+            reportOnyx?.isPinned,
+            reportOnyx?.chatReportID,
+            reportOnyx?.visibility,
+            reportOnyx?.oldPolicyName,
+            reportOnyx?.policyName,
+            reportOnyx?.isOptimisticReport,
+            reportOnyx?.lastMentionedTime,
+            reportOnyx?.avatarUrl,
+            reportOnyx?.permissions,
+            reportOnyx?.invoiceReceiver,
         ],
     );
-
-    const parentReportAction = useMemo(() => getParentReportAction(parentReportActions, report?.parentReportActionID), [parentReportActions, report.parentReportActionID]);
 
     const prevReport = usePrevious(report);
     const prevUserLeavingStatus = usePrevious(userLeavingStatus);
@@ -430,6 +411,7 @@ function ReportScreen({
             return;
         }
 
+        console.log('fetch report', report);
         fetchReport();
     }, [report, fetchReport, reportIDFromRoute]);
 
@@ -458,7 +440,6 @@ function ReportScreen({
         Timing.end(CONST.TIMING.CHAT_RENDER);
         Performance.markEnd(CONST.TIMING.CHAT_RENDER);
 
-        fetchReportIfNeeded();
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             ComposerActions.setShouldShowComposeInput(true);
         });
@@ -474,6 +455,13 @@ function ReportScreen({
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (reportResult.status === 'loading') {
+            return;
+        }
+        fetchReportIfNeeded();
+    }, [reportResult.status]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
@@ -731,11 +719,8 @@ function ReportScreen({
 ReportScreen.displayName = 'ReportScreen';
 
 export default withCurrentReportID(
-    withOnyx<ReportScreenPropsWithoutParentReportAction, ReportScreenOnyxPropsWithoutParentReportAction>(
+    withOnyx<ReportScreenProps, ReportScreenOnyxProps>(
         {
-            modal: {
-                key: ONYXKEYS.MODAL,
-            },
             isSidebarLoaded: {
                 key: ONYXKEYS.IS_SIDEBAR_LOADED,
             },
@@ -743,10 +728,6 @@ export default withCurrentReportID(
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
                 canEvict: false,
                 selector: (allReportActions: OnyxEntry<OnyxTypes.ReportActions>) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, true),
-            },
-            report: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-                allowStaleData: true,
             },
             reportMetadata: {
                 key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_METADATA}${getReportID(route)}`,
@@ -756,10 +737,6 @@ export default withCurrentReportID(
                     isLoadingNewerReportActions: false,
                 },
             },
-            isComposerFullSize: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-                initialValue: false,
-            },
             betas: {
                 key: ONYXKEYS.BETAS,
             },
@@ -767,42 +744,20 @@ export default withCurrentReportID(
                 key: ONYXKEYS.COLLECTION.POLICY,
                 allowStaleData: true,
             },
-            accountManagerReportID: {
-                key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
-                initialValue: null,
-            },
-            userLeavingStatus: {
-                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`,
-                initialValue: false,
-            },
         },
         true,
+        true,
     )(
-        withOnyx<ReportScreenProps, ReportScreenParentReportActionOnyxProps>({
-            parentReportActions: {
-                key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report ? report.parentReportID : 0}`,
-                canEvict: false,
-            },
-        })(
-            memo(ReportScreen, (prevProps, nextProps) => {
-                const prevParentReportAction = getParentReportAction(prevProps.parentReportActions, prevProps.report?.parentReportActionID);
-                const nextParentReportAction = getParentReportAction(nextProps.parentReportActions, nextProps.report?.parentReportActionID);
-                return (
-                    prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
-                    lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
-                    lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-                    prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
-                    lodashIsEqual(prevProps.betas, nextProps.betas) &&
-                    lodashIsEqual(prevProps.policies, nextProps.policies) &&
-                    prevProps.accountManagerReportID === nextProps.accountManagerReportID &&
-                    prevProps.userLeavingStatus === nextProps.userLeavingStatus &&
-                    prevProps.currentReportID === nextProps.currentReportID &&
-                    lodashIsEqual(prevProps.modal, nextProps.modal) &&
-                    lodashIsEqual(prevParentReportAction, nextParentReportAction) &&
-                    lodashIsEqual(prevProps.route, nextProps.route) &&
-                    lodashIsEqual(prevProps.report, nextProps.report)
-                );
-            }),
-        ),
+        memo(ReportScreen, (prevProps, nextProps) => {
+            return (
+                prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
+                lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
+                lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
+                lodashIsEqual(prevProps.betas, nextProps.betas) &&
+                lodashIsEqual(prevProps.policies, nextProps.policies) &&
+                prevProps.currentReportID === nextProps.currentReportID &&
+                lodashIsEqual(prevProps.route, nextProps.route)
+            );
+        }),
     ),
 );
