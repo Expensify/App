@@ -20,7 +20,6 @@ import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} 
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldBanner from './HoldBanner';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
@@ -82,7 +81,7 @@ function MoneyRequestHeader({
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
+    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
@@ -138,7 +137,7 @@ function MoneyRequestHeader({
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || canModifyStatus)) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.holdExpense'),
@@ -223,7 +222,14 @@ function MoneyRequestHeader({
                         shouldShowBorderBottom
                     />
                 )}
-                {isOnHold && <HoldBanner />}
+                {isOnHold && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.hold')}
+                        description={translate('iou.expenseOnHold')}
+                        shouldShowBorderBottom
+                        danger
+                    />
+                )}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteExpense')}

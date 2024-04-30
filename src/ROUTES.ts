@@ -124,6 +124,7 @@ const ROUTES = {
     SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
     SETTINGS_ADD_BANK_ACCOUNT_REFACTOR: 'settings/wallet/add-bank-account-refactor',
     SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
+    SETTINGS_ENABLE_PAYMENTS_REFACTOR: 'settings/wallet/enable-payments-refactor',
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
@@ -314,6 +315,11 @@ const ROUTES = {
         route: ':action/:iouType/start/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const,
     },
+    MONEY_REQUEST_STEP_SEND_FROM: {
+        route: 'create/:iouType/from/:transactionID/:reportID',
+        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`create/${iouType as string}/from/${transactionID}/${reportID}`, backTo),
+    },
     MONEY_REQUEST_STEP_CONFIRMATION: {
         route: ':action/:iouType/confirmation/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
@@ -373,6 +379,11 @@ const ROUTES = {
         route: ':action/:iouType/participants/:transactionID/:reportID',
         getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '', action: IOUAction = 'create') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
+    },
+    MONEY_REQUEST_STEP_SPLIT_PAYER: {
+        route: ':action/:iouType/confirmation/:transactionID/:reportID/payer',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/confirmation/${transactionID}/${reportID}/payer`, backTo),
     },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',

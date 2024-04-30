@@ -414,6 +414,12 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
+    [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: {
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -479,6 +485,13 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
         backTo: Routes;
