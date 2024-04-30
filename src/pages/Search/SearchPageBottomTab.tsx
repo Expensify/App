@@ -1,67 +1,33 @@
 import React from 'react';
-import {View} from 'react-native';
-import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Search from '@components/Search';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useSingleExecution from '@hooks/useSingleExecution';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as Expensicons from '@src/components/Icon/Expensicons';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type IconAsset from '@src/types/utils/IconAsset';
-
-// import EmptySearchView from './EmptySearchView';
-
-type SearchMenuItem = {
-    title: string;
-    icon: IconAsset;
-    action: () => void;
-};
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import TopBar from '@navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
+import SearchFilters from './SearchFilters';
 
 function SearchPageBottomTab() {
-    const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
     const activeRoute = useActiveRoute();
-    const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
+    const styles = useThemeStyles();
 
-    const searchMenuItems: SearchMenuItem[] = [
-        {
-            title: 'All',
-            icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL))),
-        },
-        {
-            title: 'Sent',
-            icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.SENT))),
-        },
-        {
-            title: 'Drafts',
-            icon: Expensicons.ExpensifyLogoNew,
-            action: singleExecution(() => Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.DRAFTS))),
-        },
-    ];
+    const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
+    const query = String(currentQuery);
 
     return (
-        <ScreenWrapper testID={SearchPageBottomTab.displayName}>
-            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                {searchMenuItems.map((item) => (
-                    <MenuItem
-                        key={item.title}
-                        disabled={false}
-                        interactive
-                        title={item.title}
-                        icon={item.icon}
-                        onPress={item.action}
-                        wrapperStyle={styles.sectionMenuItem}
-                        focused={item.title.toLowerCase() === currentQuery}
-                        hoverAndPressStyle={styles.hoveredComponentBG}
-                        isPaneMenu
-                    />
-                ))}
-            </View>
-            {/* <EmptySearchView /> */}
+        <ScreenWrapper
+            testID={SearchPageBottomTab.displayName}
+            style={styles.pt0}
+        >
+            <TopBar
+                breadcrumbLabel={translate('common.search')}
+                shouldDisplaySearch={false}
+            />
+            <SearchFilters query={query} />
+            {isSmallScreenWidth && <Search query={query} />}
         </ScreenWrapper>
     );
 }
