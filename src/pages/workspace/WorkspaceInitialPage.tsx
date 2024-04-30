@@ -315,6 +315,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
+            id: policy.id ?? '',
         };
     }, [policy]);
 
