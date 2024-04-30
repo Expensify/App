@@ -1532,10 +1532,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
-                columnWidth = {width: 110};
+                columnWidth = {flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TO:
-                columnWidth = {width: 110};
+                columnWidth = {flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
                 columnWidth = {width: 96, alignItems: 'flex-end'};

@@ -165,10 +165,8 @@ function TransactionListItem<TItem extends ListItem>({
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                            <View>
-                                {merchantCell}
-                            </View>
-                            <View style={[styles.alignItemsEnd]}>
+                            {merchantCell}
+                            <View style={[styles.alignItemsEnd, styles.gap1]}>
                                 {totalCell}
                                 <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
                                     {typeCell}
