@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
@@ -54,11 +55,10 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={icon?.source ?? userAvatar}
+                        source={icon?.source ?? UserUtils.getAvatar(userAvatar, userAccountID)}
                         type={icon?.type ?? CONST.ICON_TYPE_AVATAR}
                         name={icon?.name ?? userLogin}
                         fallbackIcon={icon?.fallbackIcon}
-                        accountID={userAccountID}
                     />
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
