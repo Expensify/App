@@ -86,6 +86,14 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                 },
             },
         },
+        [NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.FEATURE_TRAINING_ROOT]: {
+                    path: ROUTES.TRACK_TRAINING_MODAL,
+                    exact: true,
+                },
+            },
+        },
         [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: {
             screens: {
                 [SCREENS.WELCOME_VIDEO.ROOT]: {
@@ -158,6 +166,10 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: {
                             path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS_REFACTOR]: {
+                            path: ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
@@ -593,6 +605,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
+                        [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
@@ -610,6 +623,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: ROUTES.MONEY_REQUEST_STEP_TAX_RATE.route,
                         [SCREENS.MONEY_REQUEST.STATE_SELECTOR]: {path: ROUTES.MONEY_REQUEST_STATE_SELECTOR.route, exact: true},
+                        [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.route,
                         [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                         [SCREENS.IOU_SEND.ADD_BANK_ACCOUNT]: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,

@@ -139,7 +139,7 @@ function ReportPreview({
     const hasErrors =
         hasMissingSmartscanFields ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarnings(iouReportID, transactionViolations))) ||
+        (canUseViolations && (ReportUtils.hasViolations(iouReportID, transactionViolations) || ReportUtils.hasWarningTypeViolations(iouReportID, transactionViolations))) ||
         ReportUtils.hasActionsWithErrors(iouReportID);
     const lastThreeTransactionsWithReceipts = transactionsWithReceipts.slice(-3);
     const lastThreeReceipts = lastThreeTransactionsWithReceipts.map((transaction) => ReceiptUtils.getThumbnailAndImageURIs(transaction));
@@ -213,7 +213,7 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(iouReport) && (shouldShowPayButton || shouldShowApproveButton);
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;

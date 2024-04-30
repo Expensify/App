@@ -515,6 +515,10 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
+function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
+    return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
+}
+
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
@@ -624,7 +628,18 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return !!transaction.comment?.hold || isDuplicate(transaction?.transactionID, true);
+    return !!transaction.comment?.hold;
+}
+
+/**
+ * Check if transaction is on hold for the given transactionID
+ */
+function isOnHoldByTransactionID(transactionID: string): boolean {
+    if (!transactionID) {
+        return false;
+    }
+
+    return isOnHold(allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? null);
 }
 
 /**
@@ -637,9 +652,16 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
 }
 
 /**
+ * Checks if any violations for the provided transaction are of type 'notice'
+ */
+function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
+}
+
+/**
  * Checks if any violations for the provided transaction are of type 'warning'
  */
-function hasWarning(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+function hasWarningTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
     return Boolean(
         transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === CONST.VIOLATION_TYPES.WARNING),
     );
@@ -730,6 +752,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    didRceiptScanSucceed,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -739,6 +762,7 @@ export {
     isPending,
     isPosted,
     isOnHold,
+    isOnHoldByTransactionID,
     getWaypoints,
     isAmountMissing,
     isMerchantMissing,
@@ -750,7 +774,8 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
-    hasWarning,
+    hasNoticeTypeViolation,
+    hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
 };
