@@ -315,7 +315,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </View>
                     </View>
                     {shouldShowReportDescription && (
-                        <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
+                        <OfflineWithFeedback style={{flex: 1}} pendingAction={report.pendingFields?.description}>
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={canEditReportDescription}
                                 interactive={canEditReportDescription}
@@ -328,22 +328,24 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </OfflineWithFeedback>
                     )}
                     {isGroupChat && <ChatDetailsQuickActionsBar report={report} />}
-                    {menuItems.map((item) => {
-                        const brickRoadIndicator =
-                            ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-                        return (
-                            <MenuItem
-                                key={item.key}
-                                title={translate(item.translationKey)}
-                                subtitle={item.subtitle}
-                                icon={item.icon}
-                                onPress={item.action}
-                                isAnonymousAction={item.isAnonymousAction}
-                                shouldShowRightIcon
-                                brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
-                            />
-                        );
-                    })}
+                    <View style={{flex: 1}}>
+                        {menuItems.map((item) => {
+                            const brickRoadIndicator =
+                                ReportUtils.hasReportNameError(report) && item.key === CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+                            return (
+                                <MenuItem
+                                    key={item.key}
+                                    title={translate(item.translationKey)}
+                                    subtitle={item.subtitle}
+                                    icon={item.icon}
+                                    onPress={item.action}
+                                    isAnonymousAction={item.isAnonymousAction}
+                                    shouldShowRightIcon
+                                    brickRoadIndicator={brickRoadIndicator ?? item.brickRoadIndicator}
+                                />
+                            );
+                        })}
+                    </View>
                 </ScrollView>
             </FullPageNotFoundView>
         </ScreenWrapper>

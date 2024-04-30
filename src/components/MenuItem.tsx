@@ -420,13 +420,29 @@ function MenuItem(
         }
     };
 
-    const truncateMarkdown = (markdownText: string, limit: number, addEllipsis = true) => {
+    const truncateMarkdown = (htmlText: string, limit: number, addEllipsis = true) => {
+        const parser = new ExpensiMark();
+        const markdownText = parser.htmlToMarkdown(htmlText);
         if (markdownText.length <= limit) {
             return markdownText;
         }
 
-        // Truncate directly on the markdown text to preserve markdown syntax as much as possible
-        let truncatedText = markdownText.substring(0, limit);
+
+        const markdownChars = markdownText.split('');
+        let characterCount = 0;
+        let overallIndex = 0;
+
+        for (const char of markdownChars) {
+            if (/[a-zA-Z\s\n]/.test(char)) {
+                characterCount++;
+            }
+            overallIndex++;
+            if (characterCount >= limit) {
+                break;
+            }
+        }
+
+        let truncatedText = markdownText.substring(0, overallIndex);
 
         // Avoid cutting the text in the middle of a Markdown element (like [link](url))
         const lastSpace = truncatedText.lastIndexOf(' ');
@@ -438,7 +454,7 @@ function MenuItem(
         // Extend the cut-off point to avoid breaking Markdown links and parenthesis syntax
         if (lastCloseBracket > lastOpenBracket && lastCloseBracket > lastSpace) {
             const nextCloseParen = markdownText.indexOf(')', lastCloseBracket);
-            if (nextCloseParen !== -1 && nextCloseParen <= limit) {
+            if (nextCloseParen !== -1 && nextCloseParen <= overallIndex) {
                 truncatedText = markdownText.substring(0, nextCloseParen + 1);
             } else {
                 truncatedText = markdownText.substring(0, lastCloseBracket + 1);
@@ -454,7 +470,7 @@ function MenuItem(
             truncatedText += '...';
         }
 
-        return truncatedText;
+        return parser.replace(truncatedText);
     };
 
     const maxDescLength = 300;
