@@ -39,8 +39,8 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
-    const rate = customUnit.rates[rateID];
-    const currency = rate.currency ?? CONST.CURRENCY.USD;
+    const rate = customUnit?.rates[rateID] ?? {};
+    const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const currentRateValue = (rate.rate ?? 0).toString();
 
     const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
