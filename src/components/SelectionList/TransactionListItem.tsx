@@ -1,6 +1,7 @@
 import {format} from 'date-fns';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import type { OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -10,6 +11,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ReceiptImage from '@components/ReceiptImage';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -21,6 +23,7 @@ import CONST from '@src/CONST';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
+
 
 
 const getTypeIcon = (type?: SearchTransactionType) => {
@@ -94,7 +97,7 @@ function TransactionListItem<TItem extends ListItem>({
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={item.category ?? ''}
-            style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
 
@@ -102,7 +105,7 @@ function TransactionListItem<TItem extends ListItem>({
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={item.tag ?? ''}
-            style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
 
@@ -110,7 +113,7 @@ function TransactionListItem<TItem extends ListItem>({
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={item?.description ?? ''}
-            style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
 
@@ -122,38 +125,20 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const fromElement = (
+    const userElement = (userDetails: OnyxEntry<PersonalDetails>) => (
         <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
-                size={CONST.AVATAR_SIZE.SMALL}
-                source={accountDetails?.avatar}
-                name={accountDetails?.displayName}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                source={userDetails?.avatar}
+                name={userDetails?.displayName}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
             <Text
                 numberOfLines={1}
-                style={[styles.flex1, styles.flexGrow1, styles.textStrong, userFontStyle]}
+                style={[styles.flex1, styles.flexGrow1, styles.textMicroBold]}
             >
-                {accountDetails?.displayName}
-            </Text>
-        </View>
-    );
-
-    const toElement = (
-        <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter]}>
-            <Avatar
-                imageStyles={[styles.alignSelfCenter]}
-                size={CONST.AVATAR_SIZE.SMALL}
-                source={managerDetails?.avatar}
-                name={managerDetails?.displayName}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-            <Text
-                numberOfLines={1}
-                style={[styles.flex1, styles.flexGrow1, styles.textStrong, userFontStyle]}
-            >
-                {managerDetails?.displayName}
+                {userDetails?.displayName}
             </Text>
         </View>
     );
@@ -261,15 +246,15 @@ function TransactionListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )} */}
-                    <View style={[styles.flex1, styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateElement}</View>
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>{descriptionElement}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{fromElement}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{toElement}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userElement(accountDetails)}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userElement(managerDetails)}</View>
                         {/* <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{tagElement}</View> */}
                         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{amountElement}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE), styles.alignItemsCenter]}>
                             <Icon
                                 src={typeIcon}
                                 fill={theme.icon}

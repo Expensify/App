@@ -1529,25 +1529,25 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {width: 40};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
-                columnWidth = {width: 40};
+                columnWidth = {width: 40, flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION:
                 columnWidth = {minWidth: 120};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
-                columnWidth = {width: 40};
+                columnWidth = {width: 106};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TO:
-                columnWidth = {width: 40};
+                columnWidth = {width: 110};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
-                columnWidth = {width: 40};
+                columnWidth = {width: 96, alignItems: 'flex-end', textAlign: 'right'};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TYPE:
-                columnWidth = {width: 40};
+                columnWidth = {width: 28};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.ACTION:
-                columnWidth = {width: 40};
+                columnWidth = {width: 80, textAlign: 'center'};
                 break;
             default:
                 columnWidth = styles.flex1;
