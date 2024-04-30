@@ -12,6 +12,11 @@ function getBounds(waypoints: Array<[number, number]>, directionCoordinates: und
     };
 }
 
+function areSameCoordinate(coordinate1: number[], coordinate2: number[]) {
+    return parseFloat(coordinate1[0].toFixed(4)) === parseFloat(coordinate2[0].toFixed(4)) && parseFloat(coordinate1[1].toFixed(4)) === parseFloat(coordinate2[1].toFixed(4));
+}
+
 export default {
     getBounds,
+    areSameCoordinate,
 };
