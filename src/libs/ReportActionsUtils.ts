@@ -14,6 +14,7 @@ import type {
     OriginalMessageIOU,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageReimbursementDequeued,
+    OriginalMessageDismissedViolation,
 } from '@src/types/onyx/OriginalMessage';
 import type Report from '@src/types/onyx/Report';
 import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/ReportAction';
@@ -29,6 +30,7 @@ import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
+import type {TranslationPaths} from '@src/languages/types';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -1108,10 +1110,10 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
 }
 
-function getDismissedViolationMessageText(originalMessage): string {
+function getDismissedViolationMessageText(originalMessage: OriginalMessageDismissedViolation['originalMessage']): string {
     const reason = originalMessage.reason;
     const violationName = originalMessage.violationName;
-    return Localize.translateLocal(`violationDismissal.${violationName}.${reason}`);
+    return Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
 }
 
 /**
