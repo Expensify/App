@@ -67,10 +67,6 @@ function ChatFinderPage({betas, navigation}: ChatFinderPageProps) {
         Performance.markStart(CONST.TIMING.CHAT_FINDER_RENDER);
     }, []);
 
-    useEffect(() => {
-        Report.searchInServer(debouncedSearchValue.trim());
-    }, [debouncedSearchValue]);
-
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return {
@@ -157,6 +153,10 @@ function ChatFinderPage({betas, navigation}: ChatFinderPageProps) {
 
     const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND});
 
+    useEffect(() => {
+        Report.searchInServer(debouncedSearchValue.trim());
+    }, [debouncedSearchValue]);
+    
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
