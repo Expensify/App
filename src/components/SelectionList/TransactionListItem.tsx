@@ -53,7 +53,7 @@ function TransactionListItem<TItem extends ListItem>({
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
-    const shouldDisplayNarrowView = isMediumScreenWidth || isSmallScreenWidth;
+    const isNarrowView = isMediumScreenWidth || isSmallScreenWidth;
     const date = (item.modifiedCreated || item.created) ?? '';
     const merchant = (item.modifiedMerchant || item.merchant) ?? '';
     const description = item.comment?.comment ?? '';
@@ -62,81 +62,71 @@ function TransactionListItem<TItem extends ListItem>({
     const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
     const dateCell = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
-                text={item?.created ? format(new Date(date), 'MMM dd') : ''}
-                style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-            />
-        </View>
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={item?.created ? format(new Date(date), 'MMM dd') : ''}
+            style={[styles.label, styles.pre, styles.justifyContentCenter, isNarrowView ? [styles.textMicro, styles.textSupporting] : undefined]}
+        />
     );
 
     const merchantCell = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
-                text={shouldShowMerchant ? merchant : description}
-                style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-            />
-        </View>
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={shouldShowMerchant ? merchant : description}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
     );
 
-    const userCell = (userDetails: OnyxEntry<PersonalDetails>, columnName: string) => (
-        <View style={[StyleUtils.getSearchTableColumnStyles(columnName)]}>
-            <View style={[styles.flexRow, styles.flex1, styles.gap1, styles.alignItemsCenter]}>
-                <Avatar
-                    imageStyles={[styles.alignSelfCenter]}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                    source={userDetails?.avatar}
-                    name={userDetails?.displayName ?? userDetails?.login}
-                    type={CONST.ICON_TYPE_WORKSPACE}
-                />
-                <Text
-                    numberOfLines={1}
-                    style={[styles.flex1, styles.flexGrow1, styles.textMicroBold]}
-                >
-                    {userDetails?.displayName ?? userDetails?.login}
-                </Text>
-            </View>
+    const userCell = (userDetails: OnyxEntry<PersonalDetails>) => (
+        <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
+            <Avatar
+                imageStyles={[styles.alignSelfCenter]}
+                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                source={userDetails?.avatar}
+                name={userDetails?.displayName ?? userDetails?.login}
+                type={CONST.ICON_TYPE_WORKSPACE}
+            />
+            <Text
+                numberOfLines={1}
+                style={[styles.textMicroBold]}
+            >
+                {userDetails?.displayName ?? userDetails?.login}
+            </Text>
         </View>
     );
 
     const totalCell = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
-                text={CurrencyUtils.convertToDisplayString(amount, currency)}
-                style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
-            />
-        </View>
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={CurrencyUtils.convertToDisplayString(amount, currency)}
+            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isNarrowView ? styles.textAlignRight : undefined]}
+        />
     );
 
     const typeCell = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE), styles.alignItemsCenter]}>
-            <Icon
-                src={typeIcon}
-                fill={theme.icon}
-            />
-        </View>
+        <Icon
+            src={typeIcon}
+            fill={theme.icon}
+            height={isNarrowView ? 12 : 20}
+            width={isNarrowView ? 12 : 20}
+        />
     )
 
     const actionCell = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
-            <Button
-                text={translate('common.view')}
-                onPress={() => {
-                    onSelectRow(item);
-                }}
-                small
-                pressOnEnter
-            />
-        </View>
+        <Button
+            text={translate('common.view')}
+            onPress={() => {
+                onSelectRow(item);
+            }}
+            small
+            pressOnEnter
+        />
     );
     
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
-    if (shouldDisplayNarrowView) {
+    if (isNarrowView) {
         return (
             <BaseListItem
                 item={item}
@@ -160,29 +150,28 @@ function TransactionListItem<TItem extends ListItem>({
                 {() => (
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex1]}>
-                                {fromElement}
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
+                                {userCell(item.from)}
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                {toElement}
+                                {userCell(item.to)}
                             </View>
-                            {actionCell}
+                            <View style={[{width: 80}]}>
+                                {actionCell}
+                            </View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             <View>
                                 {merchantCell}
                             </View>
-                            <View>
+                            <View style={[styles.alignItemsEnd]}>
                                 {totalCell}
-                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStretch, styles.gap2]}>
-                                    <Icon
-                                        src={typeIcon}
-                                        fill={theme.icon}
-                                    />
+                                <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
+                                    {typeCell}
                                     {dateCell}
                                 </View>
                             </View>
@@ -215,13 +204,27 @@ function TransactionListItem<TItem extends ListItem>({
         >
             {() => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                    {dateCell}
-                    {merchantCell}
-                    {userCell(item.from, CONST.SEARCH_TABLE_COLUMNS.FROM)}
-                    {userCell(item.to, CONST.SEARCH_TABLE_COLUMNS.TO)}
-                    {totalCell}
-                    {typeCell}
-                    {actionCell}
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
+                        {dateCell}
+                    </View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
+                        {merchantCell}
+                    </View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
+                        {userCell(item.from)}
+                    </View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
+                        {userCell(item.to)}
+                    </View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
+                        {totalCell}
+                    </View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>
+                        {typeCell}
+                    </View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
+                        {actionCell}
+                    </View>
                 </View>
             )}
         </BaseListItem>
