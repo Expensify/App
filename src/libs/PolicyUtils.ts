@@ -423,6 +423,7 @@ export {
     isSubmitAndClose,
     isTaxTrackingEnabled,
     shouldShowPolicy,
+    getActiveAdminWorkspaces,
     canSendInvoice,
 };
 
