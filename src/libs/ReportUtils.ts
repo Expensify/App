@@ -3181,14 +3181,14 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
  * Get either the policyName or domainName the chat is tied to
  */
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
-    if (isInvoiceRoom(report)) {
-        return Localize.translateLocal('workspace.common.invoices');
-    }
     if (isChatThread(report)) {
         return '';
     }
     if (isSelfDM(report)) {
         return Localize.translateLocal('reportActionsView.yourSpace');
+    }
+    if (isInvoiceRoom(report)) {
+        return Localize.translateLocal('workspace.common.invoices');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -3202,9 +3202,6 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     }
     if (isArchivedRoom(report)) {
         return report?.oldPolicyName ?? '';
-    }
-    if (isInvoiceRoom(report)) {
-        return Localize.translateLocal('workspace.common.invoices');
     }
     return getPolicyName(report);
 }
@@ -3226,7 +3223,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
         return {};
     }
 
-    if (isInvoiceReport(report)) {
+    if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         return {reportName: `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`};
     }
 
