@@ -41,7 +41,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
         const customTaxName = values[INPUT_IDS.NAME];
 
         if (!ValidationUtils.isRequiredFulfilled(customTaxName)) {
-            errors.name = 'workspace.taxes.errors.customNameRequired';
+            errors.name = 'workspace.taxes.error.customNameRequired';
         }
 
         return errors;
