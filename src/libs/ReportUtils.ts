@@ -879,6 +879,14 @@ function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
 }
 
+function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
+    if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        return currentUserAccountID === report.invoiceReceiver.accountID;
+    }
+
+    return false;
+}
+
 /**
  * Whether the provided report belongs to a Control policy and is an expense chat
  */
@@ -1941,8 +1949,20 @@ function getIcons(
         return [domainIcon];
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report)) {
-        const workspaceIcon = getWorkspaceIcon(report, policy);
-        return [workspaceIcon];
+        const icons = [getWorkspaceIcon(report, policy)];
+
+        if (isInvoiceRoom(report)) {
+            if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+                icons.push(...getIconsForParticipants([report?.invoiceReceiver.accountID], personalDetails));
+            } else {
+                const receiverPolicy = getPolicy(report?.invoiceReceiver?.policyID);
+                if (!isEmptyObject(receiverPolicy)) {
+                    icons.push(getWorkspaceIcon(report, receiverPolicy));
+                }
+            }
+        }
+
+        return icons;
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
         const workspaceIcon = getWorkspaceIcon(report, policy);
@@ -3173,14 +3193,14 @@ function getPayeeName(report: OnyxEntry<Report>): string | undefined {
  * Get either the policyName or domainName the chat is tied to
  */
 function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
-    if (isInvoiceRoom(report)) {
-        return Localize.translateLocal('workspace.common.invoices');
-    }
     if (isChatThread(report)) {
         return '';
     }
     if (isSelfDM(report)) {
         return Localize.translateLocal('reportActionsView.yourSpace');
+    }
+    if (isInvoiceRoom(report)) {
+        return Localize.translateLocal('workspace.common.invoices');
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -3194,9 +3214,6 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     }
     if (isArchivedRoom(report)) {
         return report?.oldPolicyName ?? '';
-    }
-    if (isInvoiceRoom(report)) {
-        return Localize.translateLocal('workspace.common.invoices');
     }
     return getPolicyName(report);
 }
@@ -3218,7 +3235,7 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
         return {};
     }
 
-    if (isInvoiceReport(report)) {
+    if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         return {reportName: `${getPolicyName(parentReport)} & ${getInvoicePayerName(parentReport)}`};
     }
 
@@ -6705,6 +6722,7 @@ export {
     buildOptimisticInviteReportAction,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,
+    isCurrentUserInvoiceReceiver,
 };
 
 export type {
