@@ -18,7 +18,6 @@ function SearchTableHeader() {
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.gap3]}>
-            <Text style={styles.searchInputStyle}>{translate('common.receipt')}</Text>
             <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.date')}</Text>
             {showMerchantColumn && <Text style={[styles.searchInputStyle]}>{translate('common.merchant')}</Text>}
             <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.description')}</Text>

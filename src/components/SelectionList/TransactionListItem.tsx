@@ -50,7 +50,6 @@ function TransactionListItem<TItem extends ListItem>({
 }: TransactionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
 
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
@@ -69,24 +68,6 @@ function TransactionListItem<TItem extends ListItem>({
 
     const accountDetails = item.accountID ? personalDetails[item.accountID] : null;
     const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
-
-    const receiptCell = (
-        <View style={[styles.hoveredComponentBG, styles.alignItemsCenter, styles.justifyContentCenter, styles.receiptListItemStyle]}>
-            {!item?.receipt?.source ? (
-                <Icon
-                    src={Expensicons.Receipt}
-                    height={16}
-                    width={16}
-                    fill={theme.icon}
-                />
-            ) : (
-                <ReceiptImage
-                    source={item.receipt.source}
-                    isThumbnail
-                />
-            )}
-        </View>
-    )
 
     const rowButtonElement = (
         <Button
@@ -181,7 +162,7 @@ function TransactionListItem<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
                 canSelectMultiple={canSelectMultiple}
-                onSelectRow={() => {}}
+                onSelectRow={onSelectRow}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 errors={item.errors}
@@ -238,7 +219,7 @@ function TransactionListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
-            onSelectRow={() => {}}
+            onSelectRow={onSelectRow}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             errors={item.errors}
@@ -272,7 +253,6 @@ function TransactionListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )} */}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{receiptCell}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{dateElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>
                         <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{fromElement}</View>
