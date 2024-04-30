@@ -79,10 +79,9 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
     const isInvoiceReport = useMemo(() => ReportUtils.isInvoiceReport(report), [report]);
     const canEditReportDescription = useMemo(() => ReportUtils.canEditReportDescription(report, policy), [report, policy]);
     const shouldShowReportDescription = isChatRoom && (canEditReportDescription || report.description !== '');
-    const shouldDisableRename = useMemo(() => (!policy ? false : ReportUtils.shouldDisableRename(report, policy)), [report, policy]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, policy), [policy, report]);
     const isDeprecatedGroupDM = useMemo(() => ReportUtils.isDeprecatedGroupDM(report), [report]);
-    const shouldShowRoomName =
-        !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report) && !isTaskReport && !isDeprecatedGroupDM && !isMoneyRequestReport && !isArchivedRoom;
+    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report) && !isTaskReport && !isDeprecatedGroupDM && !isMoneyRequestReport;
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(report), [report, policy]);
