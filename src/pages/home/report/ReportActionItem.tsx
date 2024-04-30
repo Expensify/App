@@ -39,6 +39,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import ControlSelection from '@libs/ControlSelection';
+import DateUtils from '@libs/DateUtils';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import focusTextInputAfterAnimation from '@libs/focusTextInputAfterAnimation';
@@ -892,7 +893,8 @@ function ReportActionItem({
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedToAccountIDs.includes(details?.accountID ?? -1)) as OnyxTypes.PersonalDetails[])
         : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
-    const indicatorTimestamp = action.reportActionTimestamp ?? 0;
+    const indicatorTimestamp = action.reportActionTimestamp ?? DateUtils.getTimestampFromDatetime(action.created) ?? 0;
+
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}

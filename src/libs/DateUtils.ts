@@ -20,6 +20,7 @@ import {
     isSameYear,
     isValid,
     parse,
+    parseISO,
     set,
     setDefaultOptions,
     startOfDay,
@@ -185,6 +186,14 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 function formatTimestampToDate(timestamp: number, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
     const date = new Date(timestamp);
     return format(date, formatString);
+}
+
+/**
+ * Get timestamp from datetime string
+ */
+function getTimestampFromDatetime(datetime: string): number {
+    const parsedISODate = parseISO(`${datetime}Z`);
+    return parsedISODate.getTime();
 }
 
 /**
@@ -836,7 +845,8 @@ const DateUtils = {
     formatToSupportedTimezone,
     enrichMoneyRequestTimestamp,
     getLastBusinessDayOfMonth,
-    formatDate: formatTimestampToDate,
+    formatTimestampToDate,
+    getTimestampFromDatetime,
 };
 
 export default DateUtils;

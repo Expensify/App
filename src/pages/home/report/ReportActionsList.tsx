@@ -217,7 +217,8 @@ function ReportActionsList({
     }));
 
     /**
-     * Determines whether we should display the date indicator label in chat messages
+     * Determines whether we should display the date indicator label in chat messages. When message is freshly created
+     * it doesn't have reportActionTimestamp, so we need to check the created date instead.
      * @return {Boolean}
      */
     const shouldShowStaticDateIndicator = useCallback(
@@ -230,8 +231,13 @@ function ReportActionsList({
             const nextItem = sortedReportActions[index + 1];
 
             if (nextItem.reportActionTimestamp && currentItem.reportActionTimestamp) {
-                return DateUtils.formatDate(currentItem.reportActionTimestamp) !== DateUtils.formatDate(nextItem.reportActionTimestamp);
+                return DateUtils.formatTimestampToDate(currentItem.reportActionTimestamp) !== DateUtils.formatTimestampToDate(nextItem.reportActionTimestamp);
             }
+
+            if (nextItem.reportActionTimestamp && !currentItem.reportActionTimestamp) {
+                return DateUtils.formatTimestampToDate(DateUtils.getTimestampFromDatetime(currentItem.created)) !== DateUtils.formatTimestampToDate(nextItem.reportActionTimestamp);
+            }
+
             return false;
         },
         [sortedReportActions],
