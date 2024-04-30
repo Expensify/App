@@ -461,6 +461,7 @@ function ReportScreen({
             return;
         }
         fetchReportIfNeeded();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportResult.status]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
