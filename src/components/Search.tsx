@@ -1,68 +1,47 @@
-import React from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import {PressableWithFeedback} from './Pressable';
-import Text from './Text';
-import Tooltip from './Tooltip';
+import React, {useEffect} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import useNetwork from '@hooks/useNetwork';
+import * as SearchActions from '@libs/actions/Search';
+import * as SearchUtils from '@libs/SearchUtils';
+import EmptySearchView from '@pages/Search/EmptySearchView';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
-    // Callback fired when component is pressed
-    onPress: (event?: GestureResponderEvent | KeyboardEvent) => void;
-
-    // Text explaining what the user can search for
-    placeholder?: string;
-
-    // Text showing up in a tooltip when component is hovered
-    tooltip?: string;
-
-    // Styles to apply on the outer element
-    style?: StyleProp<ViewStyle>;
-
-    /** Styles to apply to the outermost element */
-    containerStyle?: StyleProp<ViewStyle>;
+    query: string;
 };
 
-function Search({onPress, placeholder, tooltip, style, containerStyle}: SearchProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
+function Search({query}: SearchProps) {
+    const {isOffline} = useNetwork();
+    const hash = SearchUtils.getQueryHash(query);
+    const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
-    return (
-        <View style={containerStyle}>
-            <Tooltip text={tooltip ?? translate('common.search')}>
-                <PressableWithFeedback
-                    accessibilityLabel={tooltip ?? translate('common.search')}
-                    role={CONST.ROLE.BUTTON}
-                    onPress={onPress}
-                    style={styles.searchPressable}
-                >
-                    {({hovered}) => (
-                        <View style={[styles.searchContainer, hovered && styles.searchContainerHovered, style]}>
-                            <Icon
-                                src={Expensicons.MagnifyingGlass}
-                                width={variables.iconSizeSmall}
-                                height={variables.iconSizeSmall}
-                                fill={theme.icon}
-                            />
-                            <Text
-                                style={styles.searchInputStyle}
-                                numberOfLines={1}
-                            >
-                                {placeholder ?? translate('common.searchWithThreeDots')}
-                            </Text>
-                        </View>
-                    )}
-                </PressableWithFeedback>
-            </Tooltip>
-        </View>
-    );
+    useEffect(() => {
+        SearchActions.search(query);
+    }, [query]);
+
+    const isLoading = !isOffline && isLoadingOnyxValue(searchResultsMeta);
+    const shouldShowEmptyState = isEmptyObject(searchResults);
+
+    if (isLoading) {
+        return <TableListItemSkeleton shouldAnimate />;
+    }
+
+    if (shouldShowEmptyState) {
+        return <EmptySearchView />;
+    }
+
+    const ListItem = SearchUtils.getListItem();
+
+    // This will be updated with the proper List component in another PR
+    return SearchUtils.getSections(searchResults.data).map((item) => (
+        <ListItem
+            key={item.transactionID}
+            item={item}
+        />
+    ));
 }
 
 Search.displayName = 'Search';
