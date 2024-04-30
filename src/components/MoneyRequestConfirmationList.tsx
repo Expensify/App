@@ -46,7 +46,6 @@ import FormHelpMessage from './FormHelpMessage';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import {usePersonalDetails} from './OnyxProvider';
-import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
@@ -1006,79 +1005,87 @@ function MoneyRequestConfirmationList({
                     titleWithTooltips={payeePersonalDetails?.isOptimisticPersonalDetail ? undefined : payeeTooltipDetails}
                 />
             )}
-        <SelectionList
-            canSelectMultiple={canModifyParticipants}
-            sections={selectionListSections}
-            ListItem={InviteMemberListItem}
-            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
-            shouldShowTooltips
-            sectionTitleStyles={styles.sidebarLinkTextBold}
-            showScrollIndicator
-            footerContent={footerContent}
-            listFooterContent={
-                <>
-                    {isDistanceRequest && (
-                        <View style={styles.confirmationListMapItem}>
-                            <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
-                        </View>
-                    )}
-                    {isTypeInvoice && (
-                        <MenuItem
-                            key={translate('workspace.invoices.sendFrom')}
-                            shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
-                            title={senderWorkspace?.name}
-                            icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
-                            iconType={CONST.ICON_TYPE_WORKSPACE}
-                            description={translate('workspace.common.workspace')}
-                            label={translate('workspace.invoices.sendFrom')}
-                            isLabelHoverable={false}
-                            interactive={!isReadOnly && canUpdateSenderWorkspace}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()));
-                            }}
-                            style={styles.moneyRequestMenuItem}
-                            labelStyle={styles.mt2}
-                            titleStyle={styles.flex1}
-                            disabled={didConfirm || !canUpdateSenderWorkspace}
+            <SelectionList
+                canSelectMultiple={canModifyParticipants}
+                sections={selectionListSections}
+                ListItem={InviteMemberListItem}
+                onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
+                shouldShowTooltips
+                sectionTitleStyles={styles.sidebarLinkTextBold}
+                showScrollIndicator
+                footerContent={footerContent}
+                listFooterContent={
+                    <>
+                        {isDistanceRequest && (
+                            <View style={styles.confirmationListMapItem}>
+                                <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
+                            </View>
+                        )}
+                        {isTypeInvoice && (
+                            <MenuItem
+                                key={translate('workspace.invoices.sendFrom')}
+                                shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
+                                title={senderWorkspace?.name}
+                                icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                                iconType={CONST.ICON_TYPE_WORKSPACE}
+                                description={translate('workspace.common.workspace')}
+                                label={translate('workspace.invoices.sendFrom')}
+                                isLabelHoverable={false}
+                                interactive={!isReadOnly && canUpdateSenderWorkspace}
+                                onPress={() => {
+                                    Navigation.navigate(
+                                        ROUTES.MONEY_REQUEST_STEP_SEND_FROM.getRoute(iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                                    );
+                                }}
+                                style={styles.moneyRequestMenuItem}
+                                labelStyle={styles.mt2}
+                                titleStyle={styles.flex1}
+                                disabled={didConfirm || !canUpdateSenderWorkspace}
+                            />
+                        )}
+                        {!isDistanceRequest &&
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            (receiptImage || receiptThumbnail
+                                ? receiptThumbnailContent
+                                : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
+                                  PolicyUtils.isPaidGroupPolicy(policy) &&
+                                  !isDistanceRequest &&
+                                  iouType === CONST.IOU.TYPE.SUBMIT && (
+                                      <ReceiptEmptyState
+                                          onPress={() =>
+                                              Navigation.navigate(
+                                                  ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                                      CONST.IOU.ACTION.CREATE,
+                                                      iouType,
+                                                      transactionID,
+                                                      reportID,
+                                                      Navigation.getActiveRouteWithoutParams(),
+                                                  ),
+                                              )
+                                          }
+                                      />
+                                  ))}
+                        {primaryFields}
+                        {!shouldShowAllFields && (
+                            <ShowMoreButton
+                                containerStyle={[styles.mt1, styles.mb2]}
+                                onPress={toggleShouldExpandFields}
+                            />
+                        )}
+                        {shouldShowAllFields && supplementaryFields}
+                        <ConfirmModal
+                            title={translate('attachmentPicker.wrongFileType')}
+                            onConfirm={navigateBack}
+                            onCancel={navigateBack}
+                            isVisible={isAttachmentInvalid}
+                            prompt={translate('attachmentPicker.protectedPDFNotSupported')}
+                            confirmText={translate('common.close')}
+                            shouldShowCancelButton={false}
                         />
-                    )}
-                    {!isDistanceRequest &&
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        (receiptImage || receiptThumbnail
-                            ? receiptThumbnailContent
-                            : // The empty receipt component should only show for IOU Requests of a paid policy ("Team" or "Corporate")
-                              PolicyUtils.isPaidGroupPolicy(policy) &&
-                              !isDistanceRequest &&
-                              iouType === CONST.IOU.TYPE.SUBMIT && (
-                                  <ReceiptEmptyState
-                                      onPress={() =>
-                                          Navigation.navigate(
-                                              ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()),
-                                          )
-                                      }
-                                  />
-                              ))}
-                    {primaryFields}
-                    {!shouldShowAllFields && (
-                        <ShowMoreButton
-                            containerStyle={[styles.mt1, styles.mb2]}
-                            onPress={toggleShouldExpandFields}
-                        />
-                    )}
-                    {shouldShowAllFields && supplementaryFields}
-                    <ConfirmModal
-                        title={translate('attachmentPicker.wrongFileType')}
-                        onConfirm={navigateBack}
-                        onCancel={navigateBack}
-                        isVisible={isAttachmentInvalid}
-                        prompt={translate('attachmentPicker.protectedPDFNotSupported')}
-                        confirmText={translate('common.close')}
-                        shouldShowCancelButton={false}
-                    />
-                </>
-            }
-        />
-            </>
+                    </>
+                }
+            />
+        </>
     );
 }
 
