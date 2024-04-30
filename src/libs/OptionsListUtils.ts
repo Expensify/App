@@ -1580,7 +1580,7 @@ function getUserToInviteOption({
         // If user doesn't exist, use a fallback avatar
         userToInvite.icons = [
             {
-                source: FallbackAvatar,
+                source: UserUtils.getAvatar('', optimisticAccountID),
                 name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
