@@ -96,6 +96,11 @@ function AddressSearch(
         initialFocusedIndex: -1,
         maxIndex,
     });
+    useEffect(() => {
+        if (maxIndex <= 0 && shouldShowCurrentLocationButton) {
+            setFocusedIndex(0);
+        }
+    }, [shouldShowCurrentLocationButton, maxIndex, focusedIndex])
     const saveLocationDetails = useCallback(
         (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
             const addressComponents = details?.address_components;
