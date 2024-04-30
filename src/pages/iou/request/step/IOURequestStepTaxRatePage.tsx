@@ -57,7 +57,7 @@ function IOURequestStepTaxRatePage({
         Navigation.goBack(backTo);
     };
 
-    const taxRateTitle = TransactionUtils.getTaxRateTitle(policy, transaction);
+    const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
 
     const updateTaxRates = (taxes: TaxRatesOption) => {
         if (!transaction || !taxes.code || !taxRates) {
