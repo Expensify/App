@@ -745,7 +745,6 @@ export default withCurrentReportID(
             },
         },
         true,
-        true,
     )(
         memo(ReportScreen, (prevProps, nextProps) => {
             return (
