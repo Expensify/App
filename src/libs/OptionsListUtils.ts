@@ -173,6 +173,7 @@ type GetUserToInviteConfig = {
     betas: OnyxEntry<Beta[]>;
     reportActions?: ReportActions;
     showChatPreviewLine?: boolean;
+    shouldGetOptionToInvite: boolean;
 };
 
 type MemberForList = {
@@ -1544,12 +1545,21 @@ function getUserToInviteOption({
     betas,
     reportActions = {},
     showChatPreviewLine = false,
+    shouldGetOptionToInvite,
 }: GetUserToInviteConfig): ReportUtils.OptionData | null {
     let userToInvite: ReportUtils.OptionData | null = null;
     const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
 
+    /**
+     * We create a new user option if the following conditions are satisfied:
+     * - there's no match recent report and personal detail option
+     * - The searchValue is a valid email or phone number
+     * - The searchValue isn't the current personal detail login
+     * - We can use chronos or the search value is not the chronos email
+     */
     if (
         searchValue &&
+        shouldGetOptionToInvite &&
         !isCurrentUser({login: searchValue} as PersonalDetails) &&
         selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
         ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
@@ -1888,23 +1898,21 @@ function getOptions(
         currentUserOption = undefined;
     }
 
-    let userToInvite: ReportUtils.OptionData | null = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
         .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
-    if (noOptions || noOptionsMatchExactly) {
-        userToInvite = getUserToInviteOption({
-            searchValue,
-            excludeUnknownUsers,
-            optionsToExclude,
-            selectedOptions,
-            betas,
-            reportActions,
-            showChatPreviewLine,
-        });
-    }
+    const userToInvite = getUserToInviteOption({
+        searchValue,
+        excludeUnknownUsers,
+        optionsToExclude,
+        selectedOptions,
+        betas,
+        reportActions,
+        showChatPreviewLine,
+        shouldGetOptionToInvite: noOptions || noOptionsMatchExactly,
+    });
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
     if (sortByReportTypeInSearch && searchValue !== '') {
@@ -2338,22 +2346,11 @@ function filterOptions(options: Options, searchInputValue: string, betas: OnyxEn
     }, options);
 
     const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
-
-    let userToInvite: ReportUtils.OptionData | null = null;
-
-    /**
-     * We create a new user option if the following conditions are satisfied:
-     * - there's no match recent report and personal detail option
-     * - The searchValue is a valid email or phone number
-     * - The searchValue isn't the current personal detail login
-     * - We can use chronos or the search value is not the chronos email
-     */
-    if (recentReports.length === 0) {
-        userToInvite = getUserToInviteOption({
-            searchValue,
-            betas,
-        });
-    }
+    const userToInvite = getUserToInviteOption({
+        searchValue,
+        betas,
+        shouldGetOptionToInvite: recentReports.length === 0,
+    });
 
     return {
         personalDetails: [],
