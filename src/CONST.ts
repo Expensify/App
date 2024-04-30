@@ -56,6 +56,7 @@ const chatTypes = {
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
     INVOICE: 'invoice',
+    SYSTEM: 'system',
 } as const;
 
 // Explicit type annotation is required
@@ -79,13 +80,8 @@ const CONST = {
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT],
     ANDROID_PACKAGE_NAME,
-    WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY: 100,
-    ANIMATED_HIGHLIGHT_ENTRY_DELAY: 50,
-    ANIMATED_HIGHLIGHT_ENTRY_DURATION: 300,
-    ANIMATED_HIGHLIGHT_START_DELAY: 10,
-    ANIMATED_HIGHLIGHT_START_DURATION: 300,
-    ANIMATED_HIGHLIGHT_END_DELAY: 800,
-    ANIMATED_HIGHLIGHT_END_DURATION: 2000,
+    ANIMATED_HIGHLIGHT_DELAY: 500,
+    ANIMATED_HIGHLIGHT_DURATION: 500,
     ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATION_IN_TIMING: 100,
@@ -868,9 +864,8 @@ const CONST = {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
         MAX_LINES_FULL: -1,
-
-        // The minimum number of typed lines needed to enable the full screen composer
-        FULL_COMPOSER_MIN_LINES: 3,
+        // The minimum height needed to enable the full screen composer
+        FULL_COMPOSER_MIN_HEIGHT: 60,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -1026,6 +1021,11 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
+        NETWORK_STATUS: {
+            ONLINE: 'online',
+            OFFLINE: 'offline',
+            UNKNOWN: 'unknown',
+        },
     },
     WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
@@ -1365,8 +1365,9 @@ const CONST = {
             PERSONAL_INFO: {
                 LEGAL_NAME: 0,
                 DATE_OF_BIRTH: 1,
-                SSN: 2,
-                ADDRESS: 3,
+                ADDRESS: 2,
+                PHONE_NUMBER: 3,
+                SSN: 4,
             },
         },
         TIER_NAME: {
@@ -1695,6 +1696,7 @@ const CONST = {
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
+                XERO: 'xero',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT: 'startingImport',
@@ -1708,8 +1710,27 @@ const CONST = {
                 QBO_SYNC_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
                 QBO_IMPORT_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
                 QBO_CHECK_CONNECTION: 'quickbooksOnlineCheckConnection',
+                QBO_SYNC_TITLE: 'quickbooksOnlineSyncTitle',
+                QBO_SYNC_LOAD_DATA: 'quickbooksOnlineSyncLoadData',
+                QBO_SYNC_APPLY_CATEGORIES: 'quickbooksOnlineSyncApplyCategories',
+                QBO_SYNC_APPLY_CUSTOMERS: 'quickbooksOnlineSyncApplyCustomers',
+                QBO_SYNC_APPLY_PEOPLE: 'quickbooksOnlineSyncApplyEmployees',
+                QBO_SYNC_APPLY_CLASSES_LOCATIONS: 'quickbooksOnlineSyncApplyClassesLocations',
                 JOB_DONE: 'jobDone',
+                XERO_SYNC_STEP: 'xeroSyncStep',
+                XERO_SYNC_XERO_REIMBURSED_REPORTS: 'xeroSyncXeroReimbursedReports',
+                XERO_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'xeroSyncExpensifyReimbursedReports',
+                XERO_SYNC_IMPORT_CHART_OF_ACCOUNTS: 'xeroSyncImportChartOfAccounts',
+                XERO_SYNC_IMPORT_CATEGORIES: 'xeroSyncImportCategories',
+                XERO_SYNC_IMPORT_TRACKING_CATEGORIES: 'xeroSyncImportTrackingCategories',
+                XERO_SYNC_IMPORT_CUSTOMERS: 'xeroSyncImportCustomers',
+                XERO_SYNC_IMPORT_BANK_ACCOUNTS: 'xeroSyncImportBankAccounts',
+                XERO_SYNC_IMPORT_TAX_RATES: 'xeroSyncImportTaxRates',
             },
+        },
+        ACCESS_VARIANTS: {
+            PAID: 'paid',
+            ADMIN: 'admin',
         },
     },
 
@@ -4677,9 +4698,9 @@ const CONST = {
     },
 
     QUICKBOOKS_EXPORT_DATE: {
-        LAST_EXPENSE: 'lastExpense',
-        EXPORTED_DATE: 'exportedDate',
-        SUBMITTED_DATA: 'submittedData',
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
     QUICKBOOKS_EXPORT_COMPANY_CARD: {

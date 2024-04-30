@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -307,6 +307,7 @@ export default {
         tag: 'Tag',
         receipt: 'Receipt',
         replaceText: 'Replace',
+        verified: 'Verified',
         distance: 'Distance',
         mile: 'mile',
         miles: 'miles',
@@ -642,6 +643,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        receiptIssuesFound: (count: number) => `${count === 1 ? 'Issue' : 'Issues'} found`,
         fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
@@ -670,6 +672,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
+        sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
         trackAmount: ({amount}: RequestAmountParams) => `track ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -716,6 +719,7 @@ export default {
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
+            genericCreateInvoiceFailureMessage: 'Unexpected error sending invoice, please try again later',
             receiptFailureMessage: "The receipt didn't upload. ",
             saveFileMessage: 'Download the file ',
             loseFileMessage: 'or dismiss this error and lose it',
@@ -1089,6 +1093,18 @@ export default {
     cardPage: {
         expensifyCard: 'Expensify Card',
         availableSpend: 'Remaining limit',
+        smartLimit: {
+            name: 'Smart limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and the limit will reset as your submitted expenses are approved.`,
+        },
+        fixedLimit: {
+            name: 'Fixed limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card, and then it will deactivate.`,
+        },
+        monthlyLimit: {
+            name: 'Monthly limit',
+            title: (formattedLimit: string) => `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
+        },
         virtualCardNumber: 'Virtual card number',
         physicalCardNumber: 'Physical card number',
         getPhysicalCard: 'Get physical card',
@@ -1706,6 +1722,14 @@ export default {
         address: 'Address',
         letsDoubleCheck: "Let's double check that everything looks right.",
         byAddingThisBankAccount: 'By adding this bank account, you confirm that you have read, understand and accept',
+        whatsYourLegalName: 'What’s your legal name?',
+        whatsYourDOB: 'What’s your date of birth?',
+        whatsYourAddress: 'What’s your address?',
+        noPOBoxesPlease: 'No PO boxes or mail-drop addresses, please.',
+        whatsYourSSN: 'What are the last four digits of your Social Security Number?',
+        noPersonalChecks: 'Don’t worry, no personal credit checks here!',
+        whatsYourPhoneNumber: 'What’s your phone number?',
+        weNeedThisToVerify: 'We need this to verify your wallet.',
     },
     businessInfoStep: {
         businessInfo: 'Business info',
@@ -1912,11 +1936,24 @@ export default {
             exportExpensifyCard: 'Export Expensify Card transactions as',
             deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
-            exportDate: 'Export date',
-            exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
-            lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
-            exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooks Online'},
-            submittedData: {label: 'Submitted date', description: 'The date the report was submitted for approval'},
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to QuickBooks Online.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'The date of the most recent expense on the report',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'The date the report was exported to QuickBooks Online',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'The date the report was submitted for approval',
+                    },
+                },
+            },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
@@ -2194,8 +2231,36 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: 'Disconnect integration',
-            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            disconnectTitle: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Disconnect QuickBooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Disconnect Xero';
+                    default: {
+                        return 'Disconnect integration';
+                    }
+                }
+            },
+            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
+                switch (integrationToConnect) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Are you sure you want to disconnect Xero to set up QuickBooks Online?';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Are you sure you want to disconnect QuickBooks Online to set up Xero?';
+                    default: {
+                        switch (currentIntegration) {
+                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                                return 'Are you sure you want to disconnect QuickBooks Online?';
+                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                                return 'Are you sure you want to disconnect Xero?';
+                            default: {
+                                return 'Are you sure you want to disconnect this integration?';
+                            }
+                        }
+                    }
+                }
+            },
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: ({stage}: {stage: PolicyConnectionSyncStage}) => {
@@ -2222,6 +2287,18 @@ export default {
                             return 'Importing your QuickBooks Online data';
                         case 'startingImport':
                             return 'Importing your QuickBooks Online data';
+                        case 'quickbooksOnlineSyncTitle':
+                            return 'Synchronizing QuickBooks Online data';
+                        case 'quickbooksOnlineSyncLoadData':
+                            return 'Loading data';
+                        case 'quickbooksOnlineSyncApplyCategories':
+                            return 'Updating categories';
+                        case 'quickbooksOnlineSyncApplyCustomers':
+                            return 'Updating Customers/Projects';
+                        case 'quickbooksOnlineSyncApplyEmployees':
+                            return 'Updating people list';
+                        case 'quickbooksOnlineSyncApplyClassesLocations':
+                            return 'Updating report fields';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2249,6 +2326,7 @@ export default {
             unlockVBACopy: "You're all set to accept payments by ACH or credit card!",
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
+            sendFrom: 'Send from',
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
@@ -2473,9 +2551,6 @@ export default {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
         notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
-        error: {
-            genericAdd: 'There was a problem adding this room member.',
-        },
     },
     newTaskPage: {
         assignTask: 'Assign task',
