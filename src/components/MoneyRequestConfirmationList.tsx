@@ -267,7 +267,7 @@ function MoneyRequestConfirmationList({
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
-    const distance = transaction?.comment?.customUnit?.quantity ?? 0;
+    const distance = TransactionUtils.getDistance(transaction);
     const taxRates = policy?.taxRates ?? null;
 
     // A flag for showing the categories field
