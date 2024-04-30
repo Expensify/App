@@ -662,7 +662,7 @@ function MenuItem(
                                             </View>
                                         )}
                                         {!!brickRoadIndicator && (
-                                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1, styles.mr2]}>
+                                            <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml1]}>
                                                 <Icon
                                                     src={Expensicons.DotIndicator}
                                                     fill={brickRoadIndicator === 'error' ? theme.danger : theme.success}
