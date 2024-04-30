@@ -225,6 +225,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The linked report id for the tracked expense */
         linkedTrackedExpenseReportID?: string;
+
+        /** The payers of split bill transaction */
+        splitPayerAccountIDs?: number[];
     },
     keyof Comment
 >;

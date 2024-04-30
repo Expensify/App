@@ -164,7 +164,7 @@ function MoneyRequestView({
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
-    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
+    const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 

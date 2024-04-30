@@ -1,3 +1,5 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {Receipt} from './Transaction';
 
 type SearchResultsInfo = {
@@ -16,19 +18,24 @@ type SearchTransaction = {
     modifiedCreated?: string;
     modifiedMerchant?: string;
     description: string;
-    from: {displayName: string; avatarURL: string};
-    to: {displayName: string; avatarURL: string};
+    accountID: number;
+    managerID: number;
     amount: number;
     modifiedAmount?: number;
     category?: string;
+    currency: string;
     tag?: string;
-    type: string;
+    type: SearchTransactionType;
     hasViolation: boolean;
     taxAmount?: number;
     reportID: string;
     transactionThreadReportID: string; // Not present in live transactions_
     action: string;
 };
+
+type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+
+type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
 
 type SearchResults = {
     search: SearchResultsInfo;
@@ -37,4 +44,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchTransaction};
+export type {SearchQuery, SearchTransaction, SearchTransactionType};

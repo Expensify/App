@@ -438,6 +438,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
+        textNewKansasNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -4288,17 +4293,6 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 8,
             overflow: 'hidden',
             alignSelf: 'center',
-        },
-
-        moneyRequestHeaderStatusBarBadge: {
-            width: 68,
-            height: variables.inputHeightSmall,
-            borderRadius: variables.componentBorderRadiusSmall,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.border,
-            marginRight: 12,
         },
 
         staticHeaderImage: {

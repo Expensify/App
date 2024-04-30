@@ -270,8 +270,8 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
-    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
+function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
