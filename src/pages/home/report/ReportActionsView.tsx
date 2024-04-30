@@ -238,24 +238,6 @@ function ReportActionsView({
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
-        if (reportActionID) {
-            return;
-        }
-
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            openReportIfNecessary();
-        });
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        if (interactionTask) {
-            return () => {
-                interactionTask.cancel();
-            };
-        }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
         if (!reportActionID || indexOfLinkedAction > -1) {
             return;
         }
@@ -348,10 +330,18 @@ function ReportActionsView({
                 newestReportAction: newestReportAction.pendingAction,
                 firstReportActionID: newestReportAction?.reportActionID,
                 isLoadingOlderReportsFirstNeeded,
+                reportActionID,
             })}`,
         );
 
-        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (
+            !reportActionID ||
+            !isFocused ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
             return;
         }
 
@@ -368,6 +358,7 @@ function ReportActionsView({
         network.isOffline,
         reportActions.length,
         newestReportAction,
+        isFocused,
     ]);
 
     /**

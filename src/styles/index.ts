@@ -531,6 +531,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        borderRadiusComponentLarge: {
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -3417,30 +3421,10 @@ const styles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
-        floatingMessageCounterWrapperAndroid: {
-            left: 0,
-            width: '100%',
-            alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            zIndex: 100,
-            ...visibility.hidden,
-        },
-
-        floatingMessageCounterSubWrapperAndroid: {
-            left: '50%',
-            width: 'auto',
-        },
-
         floatingMessageCounter: {
             left: '-50%',
             ...visibility.visible,
         },
-
-        floatingMessageCounterTransformation: (translateY: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}],
-            } satisfies ViewStyle),
 
         confirmationAnimation: {
             height: 180,
@@ -4317,17 +4301,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        moneyRequestHeaderStatusBarBadge: {
-            width: 68,
-            height: variables.inputHeightSmall,
-            borderRadius: variables.componentBorderRadiusSmall,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.border,
-            marginRight: 12,
-        },
-
         staticHeaderImage: {
             minHeight: 240,
         },
@@ -4543,6 +4516,11 @@ const styles = (theme: ThemeColors) =>
 
             paddingHorizontal: 8,
             paddingVertical: 4,
+        },
+
+        walletCardLimit: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
         },
 
         walletCard: {
