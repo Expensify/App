@@ -52,9 +52,6 @@ function TransactionListItem<TItem extends ListItem>({
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
 
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    // const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    // const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
     const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
     const handleCheckboxPress = useCallback(() => {
@@ -233,7 +230,7 @@ function TransactionListItem<TItem extends ListItem>({
         >
             {() => (
                 <>
-                    {canSelectMultiple && (
+                    {/* {canSelectMultiple && (
                         <PressableWithFeedback
                             accessibilityLabel={item.text ?? ''}
                             role={CONST.ROLE.BUTTON}
@@ -253,7 +250,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 )}
                             </View>
                         </PressableWithFeedback>
-                    )}
+                    )} */}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{dateElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>

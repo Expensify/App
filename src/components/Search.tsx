@@ -1,7 +1,5 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -17,7 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
-import Text from './Text';
+import SearchTableHeader from './SelectionList/SearchTableHeader';
 
 /**
  * Todo This is a temporary function that will pick search results from under `snapshot_` key
@@ -41,7 +39,6 @@ type SearchProps = {
 
 function Search({query}: SearchProps) {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     // const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
@@ -77,31 +74,6 @@ function Search({query}: SearchProps) {
 
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
-    const getListHeader = () => {
-        if (displayNarrowVersion) {
-            return;
-        }
-
-        // const showMerchantColumn = ReportUtils.shouldShowMerchantColumn(data);
-        const showMerchantColumn = displayNarrowVersion && true;
-
-        return (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.gap3]}>
-                {/* <Text style={styles.searchInputStyle}>{translate('common.receipt')}</Text> */}
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.date')}</Text>
-                {showMerchantColumn && <Text style={[styles.searchInputStyle]}>{translate('common.merchant')}</Text>}
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.description')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.from')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.to')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.category')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.tag')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1, styles.textAlignRight]}>{translate('common.total')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.type')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.action')}</Text>
-            </View>
-        );
-    };
-
     const openReport = (reportID?: string) => {
         if (!reportID) {
             return;
@@ -116,7 +88,7 @@ function Search({query}: SearchProps) {
     return (
         <SelectionList
             canSelectMultiple
-            customListHeader={getListHeader()}
+            customListHeader={<SearchTableHeader />}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
