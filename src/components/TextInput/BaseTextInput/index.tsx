@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -270,6 +270,23 @@ function BaseTextInput(
 
         return undefined;
     }, [inputStyle]);
+
+    const prevTextValue = useRef('');
+    useLayoutEffect(() => {
+        if (!autoGrow || prevTextValue.current.length === value?.length) {
+            return;
+        }
+        const currentValue = value ?? '';
+        if (prevTextValue.current.length > currentValue.length || currentValue.length === 1 || currentValue.startsWith('0')) {
+            prevTextValue.current = currentValue;
+            return;
+        }
+
+        prevTextValue.current = currentValue;
+        requestAnimationFrame(() => {
+            setTextInputWidth((currentWidth) => currentWidth + 6);
+        });
+    }, [autoGrow, value]);
 
     return (
         <>
