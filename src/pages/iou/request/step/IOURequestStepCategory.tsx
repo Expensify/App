@@ -169,7 +169,7 @@ function IOURequestStepCategory({
                             success
                             style={[styles.w100]}
                             onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORIES.getRoute(policy?.id ?? ''))}
-                            text={translate('workspace.categories.editCategory')}
+                            text={translate('workspace.categories.editCategories')}
                             pressOnEnter
                         />
                     </FixedFooter>
