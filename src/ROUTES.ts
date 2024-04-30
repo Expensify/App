@@ -667,6 +667,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/tag/:tagName',
         getRoute: (policyID: string, tagName: string) => `settings/workspaces/${policyID}/tag/${encodeURIComponent(tagName)}` as const,
     },
+    WORKSPACE_TAG_LIST_VIEW: {
+        route: 'settings/workspaces/:policyID/tag-list/:order',
+        getRoute: (policyID: string, order: string) => `settings/workspaces/${policyID}/tag-list/${encodeURIComponent(order)}` as const,
+    },
     WORKSPACE_TAXES: {
         route: 'settings/workspaces/:policyID/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,

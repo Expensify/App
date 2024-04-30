@@ -1,4 +1,5 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
+import type {StackScreenProps} from '@react-navigation/stack';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -9,17 +10,12 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
-import RightElementRequiredStatus from '@components/SelectionList/RightElementRequiredStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
@@ -29,13 +25,13 @@ import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -54,9 +50,9 @@ type PolicyOption = ListItem & {
     keyForList: string;
 };
 
-type WorkspaceTagsPageProps = WithPolicyConnectionsProps;
+type WorkspaceViewTagsProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
 
-function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
+function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -67,22 +63,13 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '';
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const {environmentURL} = useEnvironment();
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const policyTagsLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const isOnlyOneTagsLists = Object.keys(policyTagsLists).length === 1;
+    const currentTagName = PolicyUtils.getTagListName(policyTags, +route.params.order);
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
     }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchTags();
-        }, [fetchTags]),
-    );
 
     useEffect(() => {
         if (isFocused) {
@@ -91,39 +78,30 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const tagList = useMemo<PolicyForList[]>(() => {
-        const policyTagLists = isOnlyOneTagsLists ? policyTagsLists.slice(0, 1) : policyTagsLists;
-        if (!isOnlyOneTagsLists) {
-            return Object.values(policyTagLists).map((policyTagList) => ({
-                value: policyTagList.name,
-                text: PolicyUtils.getCleanedTagName(policyTagList.name),
-                keyForList: policyTagList.orderWeight.toString(),
-                isSelected: !!selectedTags[policyTagList.name],
-                enabled: true,
-                required: policyTagList.required,
-                rightElement: <RightElementRequiredStatus required={policyTagList.required} />,
-            }));
-        }
-        return policyTagLists
-            .map((policyTagList) =>
-                lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
-                    const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
-                    const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                    return {
-                        value: tag.name,
-                        text: PolicyUtils.getCleanedTagName(tag.name),
-                        keyForList: tag.name,
-                        isSelected: !!selectedTags[tag.name],
-                        pendingAction: tag.pendingAction,
-                        errors: tag.errors ?? undefined,
-                        enabled: tag.enabled,
-                        isDisabled,
-                        rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
-                    };
-                }),
-            )
-            .flat();
-    }, [isOnlyOneTagsLists, policyTagsLists, selectedTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policy) => policy.name === currentTagName), [currentTagName, policyTags]);
+    const tagList = useMemo<PolicyForList[]>(
+        () =>
+            policyTagLists
+                .map((policyTagList) =>
+                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
+                        const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
+                        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                        return {
+                            value: tag.name,
+                            text: PolicyUtils.getCleanedTagName(tag.name),
+                            keyForList: tag.name,
+                            isSelected: !!selectedTags[tag.name],
+                            pendingAction: tag.pendingAction,
+                            errors: tag.errors ?? undefined,
+                            enabled: tag.enabled,
+                            isDisabled,
+                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
+                        };
+                    }),
+                )
+                .flat(),
+        [policyTagLists, selectedTags],
+    );
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
         acc[tag.value] = tag;
@@ -158,10 +136,6 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: PolicyOption) => {
-        if (!isOnlyOneTagsLists) {
-            Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.keyForList));
-            return;
-        }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
     };
 
@@ -248,16 +222,14 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
         return (
             <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                {isOnlyOneTagsLists && (
-                    <Button
-                        medium
-                        success
-                        onPress={navigateToCreateTagPage}
-                        icon={Expensicons.Plus}
-                        text={translate('workspace.tags.addTag')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
-                    />
-                )}
+                <Button
+                    medium
+                    success
+                    onPress={navigateToCreateTagPage}
+                    icon={Expensicons.Plus}
+                    text={translate('workspace.tags.addTag')}
+                    style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                />
                 {policyTags && (
                     <Button
                         medium
@@ -279,18 +251,10 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={[styles.defaultModalContainer]}
-                testID={WorkspaceTagsPage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
+                shouldEnableMaxHeight
+                testID={WorkspaceViewTagsPage.displayName}
             >
-                <HeaderWithBackButton
-                    icon={Illustrations.Tag}
-                    title={translate('workspace.common.tags')}
-                    shouldShowBackButton={isSmallScreenWidth}
-                >
-                    {!isSmallScreenWidth && getHeaderButtons()}
-                </HeaderWithBackButton>
+                <HeaderWithBackButton title={currentTagName}>{getHeaderButtons()}</HeaderWithBackButton>
                 <ConfirmModal
                     isVisible={deleteTagsConfirmModalVisible}
                     onConfirm={handleDeleteTags}
@@ -301,34 +265,11 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {isConnectedToAccounting ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                            >
-                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-                    )}
-                </View>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={theme.spinner}
-                    />
-                )}
-                {tagList.length === 0 && !isLoading && (
-                    <WorkspaceEmptyStateSection
-                        title={translate('workspace.tags.emptyTags.title')}
-                        icon={Illustrations.EmptyStateExpenses}
-                        subtitle={translate('workspace.tags.emptyTags.subtitle')}
                     />
                 )}
                 {tagList.length > 0 && !isLoading && (
@@ -351,6 +292,6 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     );
 }
 
-WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
+WorkspaceViewTagsPage.displayName = 'WorkspaceViewTagsPage';
 
-export default withPolicyConnections(WorkspaceTagsPage);
+export default WorkspaceViewTagsPage;
