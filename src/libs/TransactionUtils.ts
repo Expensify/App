@@ -698,7 +698,10 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
     return Object.values(transformedTaxRates(policy)).find((taxRate) => taxRate.code === taxCode)?.modifiedName;
 }
 
-function getTaxRateTitle(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
+/**
+ * Gets the tax name
+ */
+function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
@@ -710,7 +713,7 @@ export {
     getDefaultTaxCode,
     transformedTaxRates,
     getTaxValue,
-    getTaxRateTitle,
+    getTaxName,
     getEnabledTaxRateCount,
     getUpdatedTransaction,
     getDescription,
