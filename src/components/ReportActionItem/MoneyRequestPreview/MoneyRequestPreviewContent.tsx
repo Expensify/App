@@ -234,7 +234,10 @@ function MoneyRequestPreviewContent({
                 >
                     {showMapAsImage && (
                         <View style={styles.reportActionItemImages}>
-                            <ConfirmedRoute transaction={transaction} />
+                            <ConfirmedRoute
+                                transaction={transaction}
+                                interactive={false}
+                            />
                         </View>
                     )}
                     {!showMapAsImage && hasReceipt && (
