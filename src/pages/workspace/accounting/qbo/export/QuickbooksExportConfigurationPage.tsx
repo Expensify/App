@@ -69,7 +69,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
         },
         {
             description: translate('workspace.qbo.exportExpensifyCard'),
-            title: translate('workspace.qbo.exportCompanyCardAccountType.creditCard'),
+            title: translate('workspace.qbo.exportCompanyCardAccountType.credit_card'),
             shouldShowRightIcon: false,
             interactive: false,
         },
