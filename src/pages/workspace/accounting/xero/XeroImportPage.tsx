@@ -7,12 +7,11 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import type {Tenant} from '@src/types/onyx/Policy';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -72,40 +71,39 @@ function XeroImportPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={XeroImportPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={XeroImportPage.displayName}
-                >
-                    <HeaderWithBackButton
-                        title={translate('workspace.accounting.import')}
-                        subtitle={currentXeroOrganization?.name}
-                    />
-                    <ScrollView contentContainerStyle={styles.pb2}>
-                        <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.importDescription')}</Text>
-                        {sections.map((section) => (
-                            <OfflineWithFeedback
-                                key={section.description}
-                                pendingAction={section.pendingAction}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={section.title}
-                                    description={section.description}
-                                    shouldShowRightIcon
-                                    onPress={section.action}
-                                    brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                />
-                            </OfflineWithFeedback>
-                        ))}
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <HeaderWithBackButton
+                    title={translate('workspace.accounting.import')}
+                    subtitle={currentXeroOrganization?.name}
+                />
+                <ScrollView contentContainerStyle={styles.pb2}>
+                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.importDescription')}</Text>
+                    {sections.map((section) => (
+                        <OfflineWithFeedback
+                            key={section.description}
+                            pendingAction={section.pendingAction}
+                        >
+                            <MenuItemWithTopDescription
+                                title={section.title}
+                                description={section.description}
+                                shouldShowRightIcon
+                                onPress={section.action}
+                                brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        </OfflineWithFeedback>
+                    ))}
+                </ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
