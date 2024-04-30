@@ -20,7 +20,7 @@ function SearchTableHeader() {
     }
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
+        <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.ph4]}>
             <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{translate('common.date')}</Text>
             {showMerchantColumn && <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{translate('common.merchant')}</Text>}
             <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>{translate('common.description')}</Text>

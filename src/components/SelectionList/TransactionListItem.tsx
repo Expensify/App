@@ -112,7 +112,7 @@ function TransactionListItem<TItem extends ListItem>({
     const descriptionElement = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={item?.description ?? ''}
+            text={item?.comment?.comment ?? ''}
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -126,7 +126,7 @@ function TransactionListItem<TItem extends ListItem>({
     );
 
     const userElement = (userDetails: OnyxEntry<PersonalDetails>) => (
-        <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.flex1, styles.gap1, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}

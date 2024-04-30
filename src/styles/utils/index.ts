@@ -1532,7 +1532,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {width: 40, flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION:
-                columnWidth = {minWidth: 120};
+                columnWidth = {flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
                 columnWidth = {width: 106};

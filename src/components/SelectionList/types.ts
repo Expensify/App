@@ -134,7 +134,7 @@ type ListItem = {
 
     tag?: string;
 
-    description?: string;
+    comment?: {comment?: string};
 
     category?: string;
 
