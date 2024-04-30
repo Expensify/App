@@ -27,7 +27,7 @@ const mockData = [
         amount: 12500,
         type: 'cash',
         reportID: '3632789879960357',
-        transactionThreadReportID: '2',
+        transactionThreadReportID: '3632789879960357',
         transactionID: '1234',
         modifiedCreated: '2024-05-06 00:00:00',
         description: 'description description description description',
@@ -45,7 +45,7 @@ const mockData = [
         amount: 12500,
         type: 'card', // not present in live data (data outside of snapshot_)
         reportID: '5768873634031661',
-        transactionThreadReportID: '2',
+        transactionThreadReportID: '3632789879960357',
         transactionID: '5555',
         modifiedCreated: '2024-05-06 00:00:00',
         description: 'description',
@@ -129,7 +129,7 @@ function Search({query}: SearchProps) {
             ListItem={ListItem}
             sections={[{data: mockData, isDisabled: false}]}
             onSelectRow={(item) => {
-                openReport(item.reportID);
+                openReport(item.transactionThreadReportID);
             }}
             onSelectAll={!isSmallScreenWidth ? () => {} : undefined}
             onCheckboxPress={() => {}}

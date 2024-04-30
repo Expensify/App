@@ -142,15 +142,15 @@ function TransactionListItem<TItem extends ListItem>({
                                     <Avatar
                                         imageStyles={[styles.alignSelfCenter]}
                                         size={CONST.AVATAR_SIZE.SMALL}
-                                        source={personalDetails[item.managerID]?.avatar}
-                                        name={personalDetails[item.managerID]?.displayName}
+                                        source={personalDetails[item.accountID]?.avatar}
+                                        name={personalDetails[item.accountID]?.displayName}
                                         type={CONST.ICON_TYPE_WORKSPACE}
                                     />
                                     <Text
                                         numberOfLines={1}
                                         style={[styles.flex1, styles.flexGrow1, styles.textStrong, styles.textMicro]}
                                     >
-                                        {personalDetails[item.managerID]?.displayName}
+                                        {personalDetails[item.accountID]?.displayName}
                                     </Text>
                                 </View>
                                 <Icon
@@ -163,15 +163,15 @@ function TransactionListItem<TItem extends ListItem>({
                                     <Avatar
                                         imageStyles={[styles.alignSelfCenter]}
                                         size={CONST.AVATAR_SIZE.SMALL}
-                                        source={personalDetails[item.accountID]?.avatar}
-                                        name={personalDetails[item.accountID]?.displayName}
+                                        source={personalDetails[item.managerID]?.avatar}
+                                        name={personalDetails[item.managerID]?.displayName}
                                         type={CONST.ICON_TYPE_WORKSPACE}
                                     />
                                     <Text
                                         numberOfLines={1}
                                         style={[styles.flex1, styles.flexGrow1, styles.textStrong, styles.textMicro]}
                                     >
-                                        {personalDetails[item.accountID]?.displayName}
+                                        {personalDetails[item.managerID]?.displayName}
                                     </Text>
                                 </View>
                             </View>
@@ -251,23 +251,6 @@ function TransactionListItem<TItem extends ListItem>({
                                 <Avatar
                                     imageStyles={[styles.alignSelfCenter]}
                                     size={CONST.AVATAR_SIZE.SMALL}
-                                    source={personalDetails[item.managerID]?.avatar}
-                                    name={personalDetails[item.managerID]?.displayName}
-                                    type={CONST.ICON_TYPE_WORKSPACE}
-                                />
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
-                                >
-                                    {personalDetails[item.managerID]?.displayName}
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
-                                <Avatar
-                                    imageStyles={[styles.alignSelfCenter]}
-                                    size={CONST.AVATAR_SIZE.SMALL}
                                     source={personalDetails[item.accountID]?.avatar}
                                     name={personalDetails[item.accountID]?.displayName}
                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -277,6 +260,23 @@ function TransactionListItem<TItem extends ListItem>({
                                     style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
                                 >
                                     {personalDetails[item.accountID]?.displayName}
+                                </Text>
+                            </View>
+                        </View>
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
+                                <Avatar
+                                    imageStyles={[styles.alignSelfCenter]}
+                                    size={CONST.AVATAR_SIZE.SMALL}
+                                    source={personalDetails[item.managerID]?.avatar}
+                                    name={personalDetails[item.managerID]?.displayName}
+                                    type={CONST.ICON_TYPE_WORKSPACE}
+                                />
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
+                                >
+                                    {personalDetails[item.managerID]?.displayName}
                                 </Text>
                             </View>
                         </View>
