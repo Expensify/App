@@ -119,7 +119,14 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
-    const tenants = useMemo<Tenant[]>(() => policy?.connections?.xero?.data?.tenants ?? [], [policy?.connections?.xero.data.tenants]);
+    const tenants = useMemo<Tenant[]>(() => {
+        // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+        if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
+            return [];
+        }
+        return policy?.connections?.xero?.data?.tenants ?? [];
+    }, [policy]);
     const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
