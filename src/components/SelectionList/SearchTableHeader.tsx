@@ -7,13 +7,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 
-function SearchTableHeader() {
+type SearchTableHeaderProps = {
+    /** Whether we should show the merchant or description column */
+    shouldShowMerchant: boolean;
+};
+
+function SearchTableHeader({shouldShowMerchant}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
-    const showMerchantColumn = displayNarrowVersion && true;
 
     if (displayNarrowVersion) {
         return;
@@ -24,15 +28,9 @@ function SearchTableHeader() {
             <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
                 <Text style={[styles.mutedNormalTextLabel]}>{translate('common.date')}</Text>
             </View>
-            {showMerchantColumn ? (
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
-                    <Text style={[styles.mutedNormalTextLabel]}>{translate('common.merchant')}</Text>
-                </View>
-            ) : (
-                <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>
-                    <Text style={[styles.mutedNormalTextLabel]}>{translate('common.description')}</Text>
-                </View>
-            )}
+            <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
+                <Text style={[styles.mutedNormalTextLabel]}>{translate(shouldShowMerchant ? 'common.merchant' : 'common.description')}</Text>
+            </View>
             <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
                 <Text style={[styles.mutedNormalTextLabel]}>{translate('common.from')}</Text>
             </View>

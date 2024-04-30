@@ -1529,9 +1529,6 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {width: 40};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
-                columnWidth = {width: 40, flex: 1};
-                break;
-            case CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION:
                 columnWidth = {flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:

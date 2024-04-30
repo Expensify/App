@@ -22,8 +22,6 @@ import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
 
-
-
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
         case CONST.SEARCH_TRANSACTION_TYPE.CASH:
@@ -48,6 +46,7 @@ function TransactionListItem<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow,
     onFocus,
     shouldSyncFocus,
+    shouldShowMerchant,
 }: TransactionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,22 +60,27 @@ function TransactionListItem<TItem extends ListItem>({
 
     const accountDetails = item.accountID ? personalDetails[item.accountID] : null;
     const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
+    const date = item.modifiedCreated ? item.modifiedCreated : item.created ?? '';
+    const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
+    const description = item.comment?.comment ?? '';
+    const amount = item.modifiedAmount ? item.modifiedAmount : item.amount ?? 0;
+    const currency = item.modifiedCurrency ? item.modifiedCurrency : item.currency ?? CONST.CURRENCY.USD;
 
     const dateCell = (
         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
-                text={item?.created ? format(new Date(item.created), 'MMM dd') : ''}
+                text={item?.created ? format(new Date(date), 'MMM dd') : ''}
                 style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
             />
         </View>
     );
 
-    const descriptionCell = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>
+    const merchantCell = (
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
-                text={item?.comment?.comment ?? ''}
+                text={shouldShowMerchant ? merchant : description}
                 style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
             />
         </View>
@@ -106,7 +110,7 @@ function TransactionListItem<TItem extends ListItem>({
         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
-                text={CurrencyUtils.convertToDisplayString(item.amount, item.currency)}
+                text={CurrencyUtils.convertToDisplayString(amount, currency)}
                 style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
             />
         </View>
@@ -124,7 +128,7 @@ function TransactionListItem<TItem extends ListItem>({
     const actionCell = (
         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
             <Button
-                text={translate('common.view')} // Todo add translate
+                text={translate('common.view')}
                 onPress={() => {
                     onSelectRow(item);
                 }}
@@ -175,7 +179,7 @@ function TransactionListItem<TItem extends ListItem>({
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             <View>
-                                {descriptionCell}
+                                {merchantCell}
                                 {categoryElement}
                             </View>
                             <View>
@@ -218,7 +222,7 @@ function TransactionListItem<TItem extends ListItem>({
             {() => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                     {dateCell}
-                    {descriptionCell}
+                    {merchantCell}
                     {userCell(accountDetails, CONST.SEARCH_TABLE_COLUMNS.FROM)}
                     {userCell(managerDetails, CONST.SEARCH_TABLE_COLUMNS.TO)}
                     {totalCell}

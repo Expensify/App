@@ -130,7 +130,11 @@ type ListItem = {
 
     amount?: number;
 
+    modifiedAmount?: number;
+
     currency?: string;
+
+    modifiedCurrency?: string;
 
     tag?: string;
 
@@ -140,7 +144,11 @@ type ListItem = {
 
     created?: string;
 
+    modifiedCreated?: string;
+
     merchant?: string;
+
+    modifiedMerchant?: string;
 
     type?: string;
 };
@@ -169,6 +177,8 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
      * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
      */
     shouldSyncFocus?: boolean;
+
+    shouldShowMerchant?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
