@@ -11,7 +11,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
-import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -26,9 +25,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {AnchorPosition} from '@styles/index';
@@ -272,13 +269,17 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         );
         return otherIntegrations.map((integration) => {
             const integrationData = accountingIntegrationData(integration, policyID, translate, true, connectedIntegration);
+            const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
             return {
-                icon: integrationData?.icon,
+                ...iconProps,
                 title: integrationData?.title,
                 rightComponent: integrationData?.setupConnectionButton,
+                interactive: false,
+                shouldShowRightComponent: true,
+                wrapperStyle: styles.sectionMenuItemTopDescription,
             };
         });
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, translate]);
+    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, styles.sectionMenuItemTopDescription, translate]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -296,90 +297,68 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     ];
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                >
-                    <ScreenWrapper
-                        testID={PolicyAccountingPage.displayName}
-                        includeSafeAreaPaddingBottom={false}
-                        shouldShowOfflineIndicatorInWideScreen
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.common.accounting')}
-                            shouldShowBackButton={isSmallScreenWidth}
-                            icon={Illustrations.Accounting}
-                            shouldShowThreeDotsButton
-                            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                            threeDotsMenuItems={headerThreeDotsMenuItems}
-                        />
-                        <ScrollView contentContainerStyle={styles.pt3}>
-                            <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                                <Section
-                                    title={translate('workspace.accounting.title')}
-                                    subtitle={translate('workspace.accounting.subtitle')}
-                                    isCentralPane
-                                    subtitleMuted
-                                    titleStyles={styles.accountSettingsSectionTitle}
-                                    childrenStyles={styles.pt5}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                testID={PolicyAccountingPage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.common.accounting')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                    icon={Illustrations.Accounting}
+                    shouldShowThreeDotsButton
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsMenuItems={headerThreeDotsMenuItems}
+                />
+                <ScrollView contentContainerStyle={styles.pt3}>
+                    <View style={[styles.flex1, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={translate('workspace.accounting.title')}
+                            subtitle={translate('workspace.accounting.subtitle')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            childrenStyles={styles.pt5}
+                        >
+                            <MenuItemList
+                                menuItems={connectionsMenuItems}
+                                shouldUseSingleExecution
+                            />
+                            {otherIntegrationsItems && (
+                                <CollapsibleSection
+                                    title={translate('workspace.accounting.other')}
+                                    wrapperStyle={styles.pr3}
+                                    titleStyle={[styles.textNormal, styles.colorMuted]}
                                 >
                                     <MenuItemList
-                                        menuItems={connectionsMenuItems}
+                                        menuItems={otherIntegrationsItems}
                                         shouldUseSingleExecution
                                     />
-                                    {otherIntegrationsItems && otherIntegrationsItems?.length > 0 && (
-                                        <CollapsibleSection
-                                            title={translate('workspace.accounting.other')}
-                                            wrapperStyle={styles.pr3}
-                                            titleStyle={[styles.textNormal, styles.colorMuted]}
-                                        >
-                                            {otherIntegrationsItems.map((integration) =>
-                                                integration?.icon ? (
-                                                    <MenuItem
-                                                        icon={integration?.icon}
-                                                        iconType={CONST.ICON_TYPE_AVATAR}
-                                                        interactive={false}
-                                                        shouldShowRightComponent
-                                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                        title={integration.title}
-                                                        rightComponent={integration.rightComponent}
-                                                    />
-                                                ) : (
-                                                    <MenuItem
-                                                        interactive={false}
-                                                        shouldShowRightComponent
-                                                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                        title={integration.title}
-                                                        rightComponent={integration.rightComponent}
-                                                    />
-                                                ),
-                                            )}
-                                        </CollapsibleSection>
-                                    )}
-                                </Section>
-                            </View>
-                        </ScrollView>
-                        <ConfirmModal
-                            title={translate('workspace.accounting.disconnectTitle')}
-                            isVisible={isDisconnectModalOpen}
-                            onConfirm={() => {
-                                if (connectedIntegration) {
-                                    removePolicyConnection(policyID, connectedIntegration);
-                                }
-                                setIsDisconnectModalOpen(false);
-                            }}
-                            onCancel={() => setIsDisconnectModalOpen(false)}
-                            prompt={translate('workspace.accounting.disconnectPrompt')}
-                            confirmText={translate('workspace.accounting.disconnect')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                                </CollapsibleSection>
+                            )}
+                        </Section>
+                    </View>
+                </ScrollView>
+                <ConfirmModal
+                    title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
+                    isVisible={isDisconnectModalOpen}
+                    onConfirm={() => {
+                        removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
+                        setIsDisconnectModalOpen(false);
+                    }}
+                    onCancel={() => setIsDisconnectModalOpen(false)}
+                    prompt={translate('workspace.accounting.disconnectPrompt', undefined, connectedIntegration)}
+                    confirmText={translate('workspace.accounting.disconnect')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
