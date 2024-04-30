@@ -88,6 +88,7 @@ function HeaderView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
+    const isSystemDM = ReportUtils.isSystemChat(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
     // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
     const participants = isSelfDM ? [session?.accountID ?? -1] : (report?.participantAccountIDs ?? []).slice(0, 5);
@@ -157,7 +158,7 @@ function HeaderView({
         Report.updateNotificationPreference(reportID, report.notificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, false, report.parentReportID, report.parentReportActionID),
     );
 
-    const canJoinOrLeave = !isSelfDM && !isGroupChat && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
+    const canJoinOrLeave = !isSelfDM && !isGroupChat && !isSystemDM && (isChatThread || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     const canJoin = canJoinOrLeave && !isWhisperAction && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const canLeave = canJoinOrLeave && ((isChatThread && !!report.notificationPreference?.length) || isUserCreatedPolicyRoom || canLeaveRoom || canLeavePolicyExpenseChat);
     if (canJoin) {

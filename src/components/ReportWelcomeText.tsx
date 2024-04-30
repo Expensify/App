@@ -76,8 +76,12 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
             return translate('reportActionsView.yourSpace');
         }
 
+        if (isSystemDM) {
+            return reportName;
+        }
+
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isSelfDM, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemDM, translate, reportName]);
 
     return (
         <>
