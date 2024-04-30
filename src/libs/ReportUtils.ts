@@ -1721,7 +1721,7 @@ function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> =
         source: policyExpenseChatAvatarSource ?? '',
         type: CONST.ICON_TYPE_WORKSPACE,
         name: workspaceName,
-        id: -1,
+        id: report?.policyID,
     };
     return workspaceIcon;
 }
@@ -1924,7 +1924,7 @@ function getIcons(
             source: policyExpenseChatAvatarSource,
             type: CONST.ICON_TYPE_WORKSPACE,
             name: domainName ?? '',
-            id: -1,
+            id: report?.policyID,
         };
         return [domainIcon];
     }
