@@ -136,7 +136,7 @@ function ReportScreen({
     const {isSmallScreenWidth} = useWindowDimensions();
     const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
 
-    const [modal] = useOnyx(ONYXKEYS.COLLECTION.MODAL);
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`, {initialValue: false});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: null});
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`, {initialValue: false});
