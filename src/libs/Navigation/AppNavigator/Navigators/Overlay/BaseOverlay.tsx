@@ -34,7 +34,7 @@ function BaseOverlay({shouldUseNativeStyles, onPress, isModalOnTheLeft = false}:
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
-                    nativeID={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
+                    id={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
                     tabIndex={-1}
                 />
                 <PressableWithoutFeedback
@@ -43,7 +43,7 @@ function BaseOverlay({shouldUseNativeStyles, onPress, isModalOnTheLeft = false}:
                     accessibilityLabel={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
                     noDragArea
-                    nativeID={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
+                    id={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}
                     tabIndex={-1}
                 />
             </View>
