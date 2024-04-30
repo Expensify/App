@@ -256,9 +256,6 @@ type MenuItemBaseProps = {
 
     /** Handles what to do when the item is focused */
     onFocus?: () => void;
-
-    /** The text to display under the title */
-    underTitle?: string;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -333,7 +330,6 @@ function MenuItem(
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
         onFocus,
-        underTitle,
     }: MenuItemProps,
     ref: PressableRef,
 ) {
@@ -601,16 +597,6 @@ function MenuItem(
                                                         numberOfLines={2}
                                                     >
                                                         {furtherDetails}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                            {underTitle && (
-                                                <View style={styles.mt1}>
-                                                    <Text
-                                                        style={[styles.textLabelSupporting]}
-                                                        numberOfLines={1}
-                                                    >
-                                                        {underTitle}
                                                     </Text>
                                                 </View>
                                             )}

@@ -331,7 +331,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                                 titleStyle={styles.newKansasLarge}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={isGroupChat ? translate('groupConfirmPage.groupName') : translate('newRoomPage.roomName')}
-                                underTitle={chatRoomSubtitle && !isGroupChat ? `${translate('threads.in')} ${chatRoomSubtitle}` : ''} // "in Workspace X"
+                                furtherDetails={chatRoomSubtitle && !isGroupChat ? `${translate('threads.in')} ${chatRoomSubtitle}` : ''} // "in Workspace X"
                                 onPress={() =>
                                     isGroupChat
                                         ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
