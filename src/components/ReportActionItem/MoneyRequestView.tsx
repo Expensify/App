@@ -336,6 +336,12 @@ function MoneyRequestView({
     const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
+    const errors = {...(transaction?.errors ?? {})};
+    if (parentReportAction?.errors) {
+        // Merging parentReportAction.errors into errors
+        Object.assign(errors, parentReportAction.errors);
+    }
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
@@ -344,10 +350,10 @@ function MoneyRequestView({
                     notes={noticeTypeViolations}
                     shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
                 />
-                {shouldShowMapOrReceipt && (
+                {(shouldShowMapOrReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={transaction?.errors}
+                        errors={errors}
                         errorRowStyles={[styles.ml4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
@@ -356,22 +362,24 @@ function MoneyRequestView({
                             Transaction.clearError(transaction.transactionID);
                         }}
                     >
-                        <View style={styles.moneyRequestViewImage}>
-                            {showMapAsImage ? (
-                                <ConfirmedRoute transaction={transaction} />
-                            ) : (
-                                <ReportActionItemImage
-                                    thumbnail={receiptURIs?.thumbnail}
-                                    fileExtension={receiptURIs?.fileExtension}
-                                    isThumbnail={receiptURIs?.isThumbnail}
-                                    image={receiptURIs?.image}
-                                    isLocalFile={receiptURIs?.isLocalFile}
-                                    filename={receiptURIs?.filename}
-                                    transaction={transaction}
-                                    enablePreviewModal
-                                />
-                            )}
-                        </View>
+                        {shouldShowMapOrReceipt && (
+                            <View style={styles.moneyRequestViewImage}>
+                                {showMapAsImage ? (
+                                    <ConfirmedRoute transaction={transaction} />
+                                ) : (
+                                    <ReportActionItemImage
+                                        thumbnail={receiptURIs?.thumbnail}
+                                        fileExtension={receiptURIs?.fileExtension}
+                                        isThumbnail={receiptURIs?.isThumbnail}
+                                        image={receiptURIs?.image}
+                                        isLocalFile={receiptURIs?.isLocalFile}
+                                        filename={receiptURIs?.filename}
+                                        transaction={transaction}
+                                        enablePreviewModal
+                                    />
+                                )}
+                            </View>
+                        )}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowReceiptEmptyState && (
