@@ -1,24 +1,32 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
+import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 
+let allPolicies: OnyxCollection<OnyxTypes.Policy>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
+
 /**
  * Reset user's reimbursement account. This will delete the bank account.
  */
-function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<OnyxTypes.Session>, policyID: string) {
+function resetFreePlanBankAccount(bankAccountID: number | undefined, session: OnyxEntry<OnyxTypes.Session>, policyID: string, user: OnyxEntry<OnyxTypes.User>) {
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
     if (!session?.email) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
+
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as OnyxTypes.Policy);
 
     API.write(
         WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP,
@@ -39,6 +47,13 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
                         achData: null,
                     },
                 },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {
+                        achAccount: null,
+                    },
+                },
             ],
             successData: [
                 {
@@ -54,7 +69,7 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.PLAID_DATA,
-                    value: PlaidDataProps.plaidDataDefaultProps,
+                    value: CONST.PLAID.DEFAULT_DATA,
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
@@ -65,7 +80,7 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+                    value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
@@ -84,7 +99,7 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
                         [INPUT_IDS.BUSINESS_INFO_STEP.STATE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.ZIP_CODE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE]: '',
-                        [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: '',
+                        [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: getDefaultCompanyWebsite(session, user),
                         [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: '',
                         [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: '',
@@ -117,6 +132,13 @@ function resetFreePlanBankAccount(bankAccountID: number, session: OnyxEntry<Onyx
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     value: {isLoading: false, pendingAction: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    value: {
+                        achAccount: policy?.achAccount,
+                    },
                 },
             ],
         },

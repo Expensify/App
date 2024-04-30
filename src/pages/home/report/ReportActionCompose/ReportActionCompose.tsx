@@ -24,8 +24,8 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import getDraftComment from '@libs/ComposerUtils/getDraftComment';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {getDraftComment} from '@libs/DraftCommentUtils';
 import getModalState from '@libs/getModalState';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -85,6 +85,12 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
 
         /** Whether the report is ready for display */
         isReportReadyForDisplay?: boolean;
+
+        /** A method to call when the input is focus */
+        onComposerFocus?: () => void;
+
+        /** A method to call when the input is blur */
+        onComposerBlur?: () => void;
     };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
@@ -107,6 +113,8 @@ function ReportActionCompose({
     isReportReadyForDisplay = true,
     isEmptyChat,
     lastReportAction,
+    onComposerFocus,
+    onComposerBlur,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -293,20 +301,25 @@ function ReportActionCompose({
         isKeyboardVisibleWhenShowingModalRef.current = true;
     }, []);
 
-    const onBlur = useCallback((event: NativeSyntheticEvent<TextInputFocusEventData>) => {
-        const webEvent = event as unknown as FocusEvent;
-        setIsFocused(false);
-        if (suggestionsRef.current) {
-            suggestionsRef.current.resetSuggestions();
-        }
-        if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
-            isKeyboardVisibleWhenShowingModalRef.current = true;
-        }
-    }, []);
+    const onBlur = useCallback(
+        (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+            const webEvent = event as unknown as FocusEvent;
+            setIsFocused(false);
+            onComposerBlur?.();
+            if (suggestionsRef.current) {
+                suggestionsRef.current.resetSuggestions();
+            }
+            if (webEvent.relatedTarget && webEvent.relatedTarget === actionButtonRef.current) {
+                isKeyboardVisibleWhenShowingModalRef.current = true;
+            }
+        },
+        [onComposerBlur],
+    );
 
     const onFocus = useCallback(() => {
         setIsFocused(true);
-    }, []);
+        onComposerFocus?.();
+    }, [onComposerFocus]);
 
     // resets the composer to normal size when
     // the send button is pressed.
@@ -329,6 +342,8 @@ function ReportActionCompose({
         [],
     );
 
+    // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
+    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
     const reportRecipientAcountIDs = ReportUtils.getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails[reportRecipientAcountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !disabled && isFocused;
@@ -418,9 +433,11 @@ function ReportActionCompose({
                                         isScrollLikelyLayoutTriggered={isScrollLikelyLayoutTriggered}
                                         raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLikelyLayoutTriggered}
                                         reportID={reportID}
+                                        policyID={report?.policyID ?? ''}
                                         parentReportID={report?.parentReportID}
                                         parentReportActionID={report?.parentReportActionID}
                                         includeChronos={ReportUtils.chatIncludesChronos(report)}
+                                        isGroupPolicyReport={isGroupPolicyReport}
                                         isEmptyChat={isEmptyChat}
                                         lastReportAction={lastReportAction}
                                         isMenuVisible={isMenuVisible}
@@ -444,7 +461,7 @@ function ReportActionCompose({
                                             if (value.length === 0 && isComposerFullSize) {
                                                 Report.setIsComposerFullSize(reportID, false);
                                             }
-                                            validateCommentMaxLength(value);
+                                            validateCommentMaxLength(value, {reportID});
                                         }}
                                     />
                                     <ReportDropUI

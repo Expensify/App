@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
 type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
@@ -35,9 +36,6 @@ type Account = {
     /** The message to be displayed when code requested */
     message?: string;
 
-    /** Accounts that are on a domain with an Approved Accountant */
-    doesDomainHaveApprovedAccountant?: boolean;
-
     /** Form that is being loaded */
     loadingForm?: ValueOf<typeof CONST.FORMS>;
 
@@ -60,6 +58,7 @@ type Account = {
     success?: string;
     codesAreCopied?: boolean;
     twoFactorAuthStep?: TwoFactorAuthStep;
+    dismissedReferralBanners?: DismissedReferralBanners;
 };
 
 export default Account;

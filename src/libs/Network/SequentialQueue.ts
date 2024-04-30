@@ -63,6 +63,7 @@ function process(): Promise<void> {
     if (persistedRequests.length === 0 || NetworkStore.isOffline()) {
         return Promise.resolve();
     }
+
     const requestToProcess = persistedRequests[0];
 
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
@@ -155,6 +156,10 @@ function isRunning(): boolean {
     return isSequentialQueueRunning;
 }
 
+function isPaused(): boolean {
+    return isQueuePaused;
+}
+
 // Flush the queue when the connection resumes
 NetworkStore.onReconnection(flush);
 
@@ -190,4 +195,4 @@ function waitForIdle(): Promise<unknown> {
     return isReadyPromise;
 }
 
-export {flush, getCurrentRequest, isRunning, push, waitForIdle, pause, unpause};
+export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause};

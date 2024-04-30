@@ -1,5 +1,6 @@
+import {useFocusEffect} from '@react-navigation/native';
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
@@ -8,16 +9,17 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from './PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
@@ -29,6 +31,7 @@ type Item = {
     titleTranslationKey: TranslationPaths;
     subtitleTranslationKey: TranslationPaths;
     isActive: boolean;
+    disabled?: boolean;
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
 };
@@ -43,6 +46,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {canUseAccountingIntegrations} = usePermissions();
+    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax;
 
     const spendItems: Item[] = [
         {
@@ -73,6 +79,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
             subtitleTranslationKey: 'workspace.moreFeatures.categories.subtitle',
             isActive: policy?.areCategoriesEnabled ?? false,
+            disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areCategoriesEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
@@ -83,6 +90,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.tags.title',
             subtitleTranslationKey: 'workspace.moreFeatures.tags.subtitle',
             isActive: policy?.areTagsEnabled ?? false,
+            disabled: hasAccountingConnection,
             pendingAction: policy?.pendingFields?.areTagsEnabled,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTags(policy?.id ?? '', isEnabled);
@@ -92,10 +100,24 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             icon: Illustrations.Coins,
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
-            isActive: policy?.tax?.trackingEnabled ?? false,
+            isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
+            disabled: isSyncTaxEnabled || policy?.connections?.quickbooksOnline?.data?.country === CONST.COUNTRY.US,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
+            },
+        },
+    ];
+
+    const integrateItems: Item[] = [
+        {
+            icon: Illustrations.Accounting,
+            titleTranslationKey: 'workspace.moreFeatures.connections.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.connections.subtitle',
+            isActive: !!policy?.areConnectionsEnabled,
+            pendingAction: policy?.pendingFields?.areConnectionsEnabled,
+            action: (isEnabled: boolean) => {
+                Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
         },
     ];
@@ -113,6 +135,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         },
     ];
 
+    if (canUseAccountingIntegrations) {
+        sections.push({
+            titleTranslationKey: 'workspace.moreFeatures.integrateSection.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.integrateSection.subtitle',
+            items: integrateItems,
+        });
+    }
+
     const renderItem = useCallback(
         (item: Item) => (
             <View
@@ -126,6 +156,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isActive={item.isActive}
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
+                    disabled={item.disabled}
                 />
             </View>
         ),
@@ -152,36 +183,38 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         [isSmallScreenWidth, styles, renderItem, translate],
     );
 
-    function fetchFeatures() {
+    const fetchFeatures = useCallback(() => {
         Policy.openPolicyMoreFeaturesPage(route.params.policyID);
-    }
+    }, [route.params.policyID]);
 
     useNetwork({onReconnect: fetchFeatures});
 
-    useEffect(() => {
-        fetchFeatures();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchFeatures();
+        }, [fetchFeatures]),
+    );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceMoreFeaturesPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
-                >
-                    <HeaderWithBackButton
-                        icon={Illustrations.Gears}
-                        title={translate('workspace.common.moreFeatures')}
-                        shouldShowBackButton={isSmallScreenWidth}
-                    />
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceMoreFeaturesPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    icon={Illustrations.Gears}
+                    title={translate('workspace.common.moreFeatures')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                />
 
-                    <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

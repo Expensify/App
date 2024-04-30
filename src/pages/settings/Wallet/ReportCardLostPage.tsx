@@ -11,11 +11,9 @@ import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import usePrivatePersonalDetails from '@hooks/usePrivatePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PublicScreensParamList} from '@libs/Navigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {ReplacementReason} from '@userActions/Card';
@@ -62,7 +60,7 @@ type ReportCardLostPageOnyxProps = {
     cardList: OnyxEntry<Record<string, Card>>;
 };
 
-type ReportCardLostPageProps = ReportCardLostPageOnyxProps & StackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
+type ReportCardLostPageProps = ReportCardLostPageOnyxProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED>;
 
 function ReportCardLostPage({
     privatePersonalDetails = {
@@ -77,15 +75,13 @@ function ReportCardLostPage({
     },
     cardList = {},
     route: {
-        params: {domain = ''},
+        params: {cardID = ''},
     },
     formData,
 }: ReportCardLostPageProps) {
     const styles = useThemeStyles();
-    usePrivatePersonalDetails();
 
-    const domainCards = CardUtils.getDomainCards(cardList ?? {})[domain];
-    const physicalCard = CardUtils.findPhysicalCard(domainCards);
+    const physicalCard = cardList?.[cardID];
 
     const {translate} = useLocalize();
 
@@ -103,8 +99,8 @@ function ReportCardLostPage({
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(domain));
-    }, [domain, formData?.isLoading, prevIsLoading, physicalCard?.errors]);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
+    }, [formData?.isLoading, prevIsLoading, physicalCard?.errors, cardID]);
 
     useEffect(() => {
         if (formData?.isLoading && isEmptyObject(physicalCard?.errors)) {
@@ -204,6 +200,7 @@ function ReportCardLostPage({
                             onSubmit={handleSubmitFirstStep}
                             message="reportCardLostOrDamaged.reasonError"
                             buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
+                            containerStyles={[styles.m5]}
                         />
                     </>
                 )}

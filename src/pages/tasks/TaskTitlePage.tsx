@@ -12,6 +12,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
@@ -32,7 +33,9 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
         if (!title) {
-            errors.title = 'newTaskPage.pleaseEnterTaskName';
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, 'newTaskPage.pleaseEnterTaskName');
+        } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
+            ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, ['common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}]);
         }
 
         return errors;

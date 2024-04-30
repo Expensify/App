@@ -1,6 +1,7 @@
 import {
     addDays,
     addHours,
+    addMilliseconds,
     addMinutes,
     eachDayOfInterval,
     eachMonthOfInterval,
@@ -269,7 +270,7 @@ function formatToLongDateWithWeekday(datetime: string | Date): string {
  * @returns Sunday
  */
 function formatToDayOfWeek(datetime: Date): string {
-    return format(new Date(datetime), CONST.DATE.WEEKDAY_TIME_FORMAT);
+    return format(datetime, CONST.DATE.WEEKDAY_TIME_FORMAT);
 }
 
 /**
@@ -322,7 +323,6 @@ function getMonthNames(preferredLocale: Locale): string[] {
         end: new Date(fullYear, 11, 31), // December 31st of the current year
     });
 
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
 }
 
@@ -338,7 +338,6 @@ function getDaysOfWeek(preferredLocale: Locale): string[] {
     const endOfCurrentWeek = endOfWeek(new Date(), {weekStartsOn});
     const daysOfWeek = eachDayOfInterval({start: startOfCurrentWeek, end: endOfCurrentWeek});
 
-    // eslint-disable-next-line rulesdir/prefer-underscore-method
     return daysOfWeek.map((date) => format(date, 'eeee'));
 }
 
@@ -380,16 +379,23 @@ function getDBTime(timestamp: string | number = ''): string {
 /**
  * Returns the current time plus skew in milliseconds in the format expected by the database
  */
-function getDBTimeWithSkew(): string {
+function getDBTimeWithSkew(timestamp: string | number = ''): string {
     if (networkTimeSkew > 0) {
-        return getDBTime(new Date().valueOf() + networkTimeSkew);
+        return getDBTime(new Date(timestamp).valueOf() + networkTimeSkew);
     }
-    return getDBTime();
+    return getDBTime(timestamp);
 }
 
 function subtractMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
     const date = zonedTimeToUtc(dateTime, 'UTC');
     const newTimestamp = subMilliseconds(date, milliseconds).valueOf();
+
+    return getDBTime(newTimestamp);
+}
+
+function addMillisecondsFromDateTime(dateTime: string, milliseconds: number): string {
+    const date = zonedTimeToUtc(dateTime, 'UTC');
+    const newTimestamp = addMilliseconds(date, milliseconds).valueOf();
 
     return getDBTime(newTimestamp);
 }
@@ -658,15 +664,6 @@ function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: st
 const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeString?: string; dateTimeString: string}): boolean => {
     let dateToCheck = dateTimeString;
     if (timeString) {
-        //  return false;
-        // Parse the hour and minute from the time input
-        const [hourStr] = timeString.split(/[:\s]+/);
-        const hour = parseInt(hourStr, 10);
-
-        if (hour === 0) {
-            return false;
-        }
-
         dateToCheck = combineDateAndTime(timeString, dateTimeString);
     }
 
@@ -778,20 +775,22 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
 function getFormattedDateRange(date1: Date, date2: Date): string {
+    const {translateLocal} = Localize;
+
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
         return format(date1, 'MMM d');
     }
     if (isSameMonth(date1, date2)) {
         // Dates in the same month and year, differ by days
-        return `${format(date1, 'MMM d')} - ${format(date2, 'd')}`;
+        return `${format(date1, 'MMM d')}-${format(date2, 'd')}`;
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
-        return `${format(date1, 'MMM d')} to ${format(date2, 'MMM d')}`;
+        return `${format(date1, 'MMM d')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d')}`;
     }
     // Dates differ by years, months, days
-    return `${format(date1, 'MMM d, yyyy')} to ${format(date2, 'MMM d, yyyy')}`;
+    return `${format(date1, 'MMM d, yyyy')} ${translateLocal('common.to').toLowerCase()} ${format(date2, 'MMM d, yyyy')}`;
 }
 
 /**
@@ -851,6 +850,7 @@ const DateUtils = {
     getDBTimeWithSkew,
     setLocale,
     subtractMillisecondsFromDateTime,
+    addMillisecondsFromDateTime,
     getDateStringFromISOTimestamp,
     getThirtyMinutesFromNow,
     getEndOfToday,
