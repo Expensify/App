@@ -166,7 +166,6 @@ function getAdaptedState(state: PartialState<NavigationState<RootStackParamList>
     const welcomeVideoModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR);
     const attachmentsScreen = state.routes.find((route) => route.name === SCREENS.ATTACHMENTS);
     const featureTrainingModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR);
-    const reportAttachmentsScreen = state.routes.find((route) => route.name === SCREENS.REPORT_ATTACHMENTS);
 
     if (isNarrowLayout) {
         metainfo.isFullScreenNavigatorMandatory = false;
