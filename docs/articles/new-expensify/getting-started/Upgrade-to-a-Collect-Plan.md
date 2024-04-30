@@ -15,9 +15,9 @@ The Collect plan is an enhanced version of the Free Plan and unlocks several new
 - Direct connection to Quickbooks Online
 - Direct connection to Xero (coming soon!)
 
-**The upgrade is free until June 1st!** To give you time to try the upgraded plan, you won't be charged for another 30 days. 
+**The upgrade is free until June 1st!** 
 
-Additionally, if you add a payment card by June 1st, you’ll qualify for a discount over the next year. The discount will be applied to your Expensify bill on a sliding scale for the first 12 months on the Collect plan.  
+To give you time to try the upgraded plan, you won't be charged for another 30 days. Additionally, if you add a payment card by June 1st, you’ll qualify for a discount over the next year. The discount will be applied to your Expensify bill on a sliding scale for the first 12 months on the Collect plan.  
 
 If you have questions, contact your dedicated Setup Specialist using the #admins room, or email Expensify Support at concierge@expensify.com.
 
