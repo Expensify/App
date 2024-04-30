@@ -7,7 +7,11 @@ import * as UserUtils from './UserUtils';
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
-        .map(([, value]) => value);
+        .map(([, value]) => {
+            value['from'] = data.personalDetailsList[value.accountID];
+            value['to'] = data.personalDetailsList[value.managerID];
+            return value;
+        });
 }
 
 const searchTypeToItemMap = {

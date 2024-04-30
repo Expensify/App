@@ -1,12 +1,11 @@
 import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
-import type { OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {usePersonalDetails} from '@components/OnyxProvider';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -53,18 +52,14 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
-    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
-    const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
-
-    const accountDetails = item.accountID ? personalDetails[item.accountID] : null;
-    const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
+    const shouldDisplayNarrowView = isMediumScreenWidth || isSmallScreenWidth;
     const date = item.modifiedCreated ? item.modifiedCreated : item.created ?? '';
     const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
     const description = item.comment?.comment ?? '';
     const amount = item.modifiedAmount ? item.modifiedAmount : item.amount ?? 0;
     const currency = item.modifiedCurrency ? item.modifiedCurrency : item.currency ?? CONST.CURRENCY.USD;
+    const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
     const dateCell = (
         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
@@ -141,7 +136,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
-    if (displayNarrowVersion) {
+    if (shouldDisplayNarrowView) {
         return (
             <BaseListItem
                 item={item}
@@ -180,7 +175,6 @@ function TransactionListItem<TItem extends ListItem>({
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             <View>
                                 {merchantCell}
-                                {categoryElement}
                             </View>
                             <View>
                                 {totalCell}
@@ -223,8 +217,8 @@ function TransactionListItem<TItem extends ListItem>({
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                     {dateCell}
                     {merchantCell}
-                    {userCell(accountDetails, CONST.SEARCH_TABLE_COLUMNS.FROM)}
-                    {userCell(managerDetails, CONST.SEARCH_TABLE_COLUMNS.TO)}
+                    {userCell(item.from, CONST.SEARCH_TABLE_COLUMNS.FROM)}
+                    {userCell(item.to, CONST.SEARCH_TABLE_COLUMNS.TO)}
                     {totalCell}
                     {typeCell}
                     {actionCell}

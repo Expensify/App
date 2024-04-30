@@ -1,5 +1,6 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
@@ -12,6 +13,7 @@ import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
+import {PersonalDetails} from '@src/types/onyx';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */
@@ -149,6 +151,10 @@ type ListItem = {
     merchant?: string;
 
     modifiedMerchant?: string;
+
+    from?: OnyxEntry<PersonalDetails> | undefined;
+
+    to?: OnyxEntry<PersonalDetails> | undefined;
 
     type?: string;
 };
