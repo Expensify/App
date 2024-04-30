@@ -26,8 +26,8 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {exportDate} = policy?.connections?.quickbooksOnline?.config ?? {};
     const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
-        text: translate(`workspace.qbo.${dateType}.label`),
-        alternateText: translate(`workspace.qbo.${dateType}.description`),
+        text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
+        alternateText: translate(`workspace.qbo.exportDate.values.${dateType}.description`),
         keyForList: dateType,
         isSelected: exportDate === dateType,
     }));
@@ -52,9 +52,9 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
                 includeSafeAreaPaddingBottom={false}
                 testID={QuickbooksExportDateSelectPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.exportDate')} />
+                <HeaderWithBackButton title={translate('workspace.qbo.exportDate.label')} />
                 <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDateDescription')}</Text>}
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportDate}
