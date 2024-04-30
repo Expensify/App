@@ -248,9 +248,9 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     mapStyle={styleURL}
                 >
                     <Marker
-                        id="Current-position"
-                        longitude={currentPosition?.longitude}
-                        latitude={currentPosition?.latitude}
+                        key="Current-position"
+                        longitude={currentPosition?.longitude ?? 0}
+                        latitude={currentPosition?.latitude ?? 0}
                     >
                         <View style={{backgroundColor: colors.blue400, width: 8, height: 8, borderRadius: 8}} />
                     </Marker>
