@@ -143,7 +143,7 @@ function ReportScreen({
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`, {allowStaleData: true});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID as string),
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, (reportOnyx?.parentReportActionID ?? '') as string),
     });
 
     /**
