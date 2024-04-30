@@ -34,6 +34,8 @@ type SearchTransaction = {
 
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
 
+type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
+
 type SearchResults = {
     search: SearchResultsInfo;
     data: Record<string, SearchTransaction>;
@@ -41,4 +43,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchTransaction, SearchTransactionType};
+export type {SearchTransaction, SearchTransactionType, SearchQuery};

@@ -3400,10 +3400,11 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
-        SHARED: 'shared',
-        DRAFTS: 'drafts',
-        WAITING_ON_YOU: 'waitingOnYou',
-        FINISHED: 'finished',
+        // @TODO: Uncomment when the queries below are implemented
+        // SHARED: 'shared',
+        // DRAFTS: 'drafts',
+        // WAITING_ON_YOU: 'waitingOnYou',
+        // FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
