@@ -28,9 +28,12 @@ type CategoryFormProps = {
 
     /** Function to validate the edited values of the form */
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
+
+    /** Should go back after submitting the form */
+    isShouldGoBackOnSubmit?: boolean;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, isShouldGoBackOnSubmit}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -60,9 +63,13 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             onSubmit(values);
             Keyboard.dismiss();
+            if (isShouldGoBackOnSubmit) {
+                Navigation.goBack();
+                return;
+            }
             Navigation.dismissModal();
         },
-        [onSubmit],
+        [isShouldGoBackOnSubmit, onSubmit],
     );
 
     return (

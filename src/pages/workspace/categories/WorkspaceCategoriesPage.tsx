@@ -21,9 +21,9 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/actions/Policy';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
@@ -52,7 +52,7 @@ type WorkspaceCategoriesPageOnyxProps = {
 type WorkspaceCategoriesPageProps = WithPolicyConnectionsProps & WorkspaceCategoriesPageOnyxProps;
 
 function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) {
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isInModal} = useResponsiveLayout();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -215,13 +215,13 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                     customText={translate('workspace.common.selected', {selectedNumber: selectedCategoriesArray.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    style={[isInModal && styles.flexGrow1, isInModal && styles.mb3]}
                 />
             );
         }
 
         return (
-            <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
+            <View style={[styles.w100, styles.flexRow, isInModal && styles.mb3]}>
                 {!PolicyUtils.hasAccountingConnections(policy) && (
                     <Button
                         medium
@@ -229,7 +229,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                         onPress={navigateToCreateCategoryPage}
                         icon={Expensicons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                        style={[styles.mr3, isInModal && styles.w50]}
                     />
                 )}
                 <Button
@@ -237,7 +237,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                     onPress={navigateToCategoriesSettings}
                     icon={Expensicons.Gear}
                     text={translate('common.settings')}
-                    style={[isSmallScreenWidth && styles.w50]}
+                    style={[isInModal && styles.w50]}
                 />
             </View>
         );
@@ -263,9 +263,9 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                 <HeaderWithBackButton
                     icon={Illustrations.FolderOpen}
                     title={translate('workspace.common.categories')}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={isInModal}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!isInModal && getHeaderButtons()}
                 </HeaderWithBackButton>
                 <ConfirmModal
                     isVisible={deleteCategoriesConfirmModalVisible}
@@ -277,7 +277,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {isInModal && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <View style={[styles.ph5, styles.pb5, styles.pt3]}>
                     {Object.keys(policy?.connections ?? {}).length > 0 ? (
                         <Text>

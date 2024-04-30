@@ -4,7 +4,9 @@ import {ActivityIndicator, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import Button from '@components/Button';
 import CategoryPicker from '@components/CategoryPicker';
+import FixedFooter from '@components/FixedFooter';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -153,7 +155,7 @@ function IOURequestStepCategory({
                 />
             )}
             {shouldShowEmptyState && (
-                <View style={[styles.flex1, styles.blockingViewContainer]}>
+                <View style={[styles.flex1]}>
                     <BlockingView
                         icon={Illustrations.EmptyStateExpenses}
                         iconWidth={variables.modalTopIconWidth}
@@ -161,6 +163,16 @@ function IOURequestStepCategory({
                         title={translate('workspace.categories.emptyCategories.title')}
                         subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                     />
+                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                        <Button
+                            large
+                            success
+                            style={[styles.w100]}
+                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORIES.getRoute(policy?.id ?? ''))}
+                            text={translate('workspace.categories.editCategory')}
+                            pressOnEnter
+                        />
+                    </FixedFooter>
                 </View>
             )}
             {!shouldShowEmptyState && !isLoading && (

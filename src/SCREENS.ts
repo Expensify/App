@@ -168,6 +168,7 @@ const SCREENS = {
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
         RECEIPT: 'Money_Request_Receipt',
+        CATEGORIES: 'Money_Request_Categories',
         STATE_SELECTOR: 'Money_Request_State_Selector',
     },
 
