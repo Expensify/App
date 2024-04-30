@@ -6,7 +6,10 @@ import CONST from '@src/CONST';
 import Text from './Text';
 
 type UnreadActionIndicatorProps = {
+    /** The ID of the report action */
     reportActionID: string;
+
+    /** Whether we should hide thread divider line */
     shouldHideThreadDividerLine?: boolean;
 };
 
