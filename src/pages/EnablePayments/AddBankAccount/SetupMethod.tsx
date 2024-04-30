@@ -35,31 +35,33 @@ function SetupMethod({isPlaidDisabled, user}: SetupMethodProps) {
     const {translate} = useLocalize();
 
     return (
-        <Section
-            icon={Illustrations.MoneyWings}
-            title={translate('walletPage.addYourBankAccount')}
-            titleStyles={[styles.textHeadlineLineHeightXXL]}
-        >
-            <View style={[styles.mv3]}>
-                <Text>{translate('walletPage.addBankAccountBody')}</Text>
-            </View>
-            {!!plaidDesktopMessage && (
-                <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
-                    <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
+        <View>
+            <Section
+                icon={Illustrations.MoneyWings}
+                title={translate('walletPage.addYourBankAccount')}
+                titleStyles={[styles.textHeadlineLineHeightXXL]}
+            >
+                <View style={[styles.mv3]}>
+                    <Text>{translate('walletPage.addBankAccountBody')}</Text>
                 </View>
-            )}
-            <Button
-                icon={Expensicons.Bank}
-                text={translate('bankAccount.addBankAccount')}
-                onPress={() => BankAccounts.openPersonalBankAccountSetupViewRefactor()}
-                isDisabled={isPlaidDisabled ?? !user?.validated}
-                style={[styles.mt4, styles.mb2]}
-                iconStyles={styles.buttonCTAIcon}
-                shouldShowRightIcon
-                success
-                large
-            />
-        </Section>
+                {!!plaidDesktopMessage && (
+                    <View style={[styles.mv3, styles.flexRow, styles.justifyContentBetween]}>
+                        <TextLink href={bankAccountRoute}>{translate(plaidDesktopMessage)}</TextLink>
+                    </View>
+                )}
+                <Button
+                    icon={Expensicons.Bank}
+                    text={translate('bankAccount.addBankAccount')}
+                    onPress={() => BankAccounts.openPersonalBankAccountSetupViewRefactor()}
+                    isDisabled={isPlaidDisabled ?? !user?.validated}
+                    style={[styles.mt4, styles.mb2]}
+                    iconStyles={styles.buttonCTAIcon}
+                    shouldShowRightIcon
+                    success
+                    large
+                />
+            </Section>
+        </View>
     );
 }
 
