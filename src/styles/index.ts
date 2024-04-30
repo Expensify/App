@@ -4859,7 +4859,7 @@ const styles = (theme: ThemeColors) =>
             height: 40,
             width: 36,
             borderRadius: variables.componentBorderRadiusSmall,
-        }
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

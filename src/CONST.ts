@@ -916,6 +916,9 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
     },
+    SEARCH_TABLE_COLUMNS: {
+        DATE: 'date',
+    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
