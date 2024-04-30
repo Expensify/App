@@ -27,6 +27,11 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const showAccountSelection = Boolean(autoCreateVendor || (!isVendorSelected && exportCompanyCard));
     const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
 
+    const updateAutoCreateVendor = (value: boolean) => {
+        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT, value ? vendors?.[0]?.name : undefined);
+        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, value);
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -72,19 +77,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                                 isActive={Boolean(autoCreateVendor)}
                                 onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR)}
-                                onToggle={(isOn) => {
-                                    if (!isOn) {
-                                        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT);
-                                    } else {
-                                        Connections.updatePolicyConnectionConfig(
-                                            policyID,
-                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                            CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT,
-                                            vendors?.[0]?.name,
-                                        );
-                                    }
-                                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, isOn);
-                                }}
+                                onToggle={updateAutoCreateVendor}
                                 pendingAction={pendingFields?.autoCreateVendor}
                             />
                         </>
