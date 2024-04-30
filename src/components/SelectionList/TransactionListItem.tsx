@@ -98,6 +98,14 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
+    const tagElement = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={item.tag ?? ''}
+            style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+
     const descriptionElement = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
@@ -259,13 +267,7 @@ function TransactionListItem<TItem extends ListItem>({
                         <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{fromElement}</View>
                         <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{toElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
-                                text={item?.tag ?? ''}
-                                style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
-                            />
-                        </View>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{tagElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsEnd]}>{amountElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <Icon
