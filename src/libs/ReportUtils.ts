@@ -998,6 +998,10 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.GROUP;
 }
 
+function isSystemChat(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.SYSTEM;
+}
+
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
@@ -2685,24 +2689,9 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
 
     const transaction = getLinkedTransaction(reportAction);
 
-    if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
-        if (isEmptyObject(transaction)) {
-            return Localize.translateLocal('iou.trackExpense');
-        }
-        const transactionDetails = getTransactionDetails(transaction);
-        return Localize.translateLocal('iou.threadTrackReportName', {
-            formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
-            comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
-        });
-    }
-
     if (isEmptyObject(transaction)) {
-        // Transaction data might be empty on app's first load, if so we fallback to Expense
-        return Localize.translateLocal('iou.expense');
-    }
-
-    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
-        return Localize.translateLocal('iou.fieldPending');
+        // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
+        return ReportActionsUtils.isTrackExpenseAction(reportAction) ? Localize.translateLocal('iou.trackExpense') : Localize.translateLocal('iou.expense');
     }
 
     if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
@@ -2713,12 +2702,21 @@ function getTransactionReportName(reportAction: OnyxEntry<ReportAction | Optimis
         return Localize.translateLocal('iou.receiptMissingDetails');
     }
 
+    if (TransactionUtils.isFetchingWaypointsFromServer(transaction)) {
+        return Localize.translateLocal('iou.fieldPending');
+    }
+
     const transactionDetails = getTransactionDetails(transaction);
 
-    return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadPaySomeoneReportName' : 'iou.threadExpenseReportName', {
-        formattedAmount: CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '',
-        comment: (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '',
-    });
+    const formattedAmount = CurrencyUtils.convertToDisplayString(transactionDetails?.amount ?? 0, transactionDetails?.currency) ?? '';
+    const comment = (!TransactionUtils.isMerchantMissing(transaction) ? transactionDetails?.merchant : transactionDetails?.comment) ?? '';
+    if (ReportActionsUtils.isTrackExpenseAction(reportAction)) {
+        return Localize.translateLocal('iou.threadTrackReportName', {formattedAmount, comment});
+    }
+    if (ReportActionsUtils.isSentMoneyReportAction(reportAction)) {
+        return Localize.translateLocal('iou.threadPaySomeoneReportName', {formattedAmount, comment});
+    }
+    return Localize.translateLocal('iou.threadExpenseReportName', {formattedAmount, comment});
 }
 
 /**
@@ -6637,6 +6635,7 @@ export {
     isReportParticipant,
     isSelfDM,
     isSettled,
+    isSystemChat,
     isTaskReport,
     isThread,
     isThreadFirstChat,
