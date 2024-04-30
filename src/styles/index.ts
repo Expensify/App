@@ -531,6 +531,10 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.buttonBorderRadius,
         },
 
+        borderRadiusComponentLarge: {
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         bottomTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
@@ -1662,9 +1666,10 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionReportActionCompose: (windowHeight: number) =>
+        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
-                horizontal: 18 + variables.sideBarWidth,
+                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
+                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
@@ -3405,30 +3410,10 @@ const styles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
-        floatingMessageCounterWrapperAndroid: {
-            left: 0,
-            width: '100%',
-            alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            zIndex: 100,
-            ...visibility.hidden,
-        },
-
-        floatingMessageCounterSubWrapperAndroid: {
-            left: '50%',
-            width: 'auto',
-        },
-
         floatingMessageCounter: {
             left: '-50%',
             ...visibility.visible,
         },
-
-        floatingMessageCounterTransformation: (translateY: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}],
-            } satisfies ViewStyle),
 
         confirmationAnimation: {
             height: 180,
@@ -4305,17 +4290,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        moneyRequestHeaderStatusBarBadge: {
-            width: 68,
-            height: variables.inputHeightSmall,
-            borderRadius: variables.componentBorderRadiusSmall,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.border,
-            marginRight: 12,
-        },
-
         staticHeaderImage: {
             minHeight: 240,
         },
@@ -4531,6 +4505,11 @@ const styles = (theme: ThemeColors) =>
 
             paddingHorizontal: 8,
             paddingVertical: 4,
+        },
+
+        walletCardLimit: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
         },
 
         walletCard: {
@@ -4888,12 +4867,6 @@ const styles = (theme: ThemeColors) =>
 
         textLineThrough: {
             textDecorationLine: 'line-through',
-        },
-
-        searchFiltersButtonText: {
-            marginLeft: 4,
-            marginRight: 4,
-            fontWeight: 'bold',
         },
     } satisfies Styles);
 

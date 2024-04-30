@@ -9,9 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -20,7 +19,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
+function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -38,7 +37,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
         [exportInvoice, accountsReceivable],
     );
 
-    const onSelectRow = useCallback(
+    const selectExportInvoice = useCallback(
         (row: CardListItem) => {
             if (row.value !== exportInvoice) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_INVOICE, row.value);
@@ -49,23 +48,22 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            >
-                <ScreenWrapper testID={QuickbooksExportInvoiceAccountSelectPage.displayName}>
-                    <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
-                    <SelectionList
-                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
-                        sections={[{data}]}
-                        ListItem={RadioListItem}
-                        onSelectRow={onSelectRow}
-                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    />
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper testID={QuickbooksExportInvoiceAccountSelectPage.displayName}>
+                <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
+                <SelectionList
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
+                    sections={[{data}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={selectExportInvoice}
+                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
