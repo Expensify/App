@@ -1,9 +1,8 @@
-import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import type {ReactElement, Ref} from 'react';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg/lib/typescript/ReactNativeSVG';
@@ -98,6 +97,9 @@ type PaymentMethodListProps = PaymentMethodListOnyxProps & {
     /** Whether the empty list message should be shown when the list is empty */
     shouldShowEmptyListMessage?: boolean;
 
+    /** Whether the right icon should be shown in PaymentMethodItem */
+    shouldShowRightIcon?: boolean;
+
     /** What to do when a menu item is pressed */
     onPress: (
         event?: GestureResponderEvent | KeyboardEvent,
@@ -114,6 +116,7 @@ type PaymentMethodItem = PaymentMethod & {
     title?: string;
     description: string;
     onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    isGroupedCardDomain?: boolean;
     canDismissError?: boolean;
     disabled?: boolean;
     shouldShowRightIcon?: boolean;
@@ -187,6 +190,7 @@ function PaymentMethodList({
     shouldEnableScroll = true,
     style = {},
     listItemStyle = {},
+    shouldShowRightIcon = true,
 }: PaymentMethodListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -196,36 +200,64 @@ function PaymentMethodList({
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(cardList ?? {})
-                // Filter by physical, active cards associated with a domain
-                .filter((card) => !card.nameValuePairs?.isVirtual && !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
-
-            const numberPhysicalExpensifyCards = assignedCards.filter((card) => CardUtils.isExpensifyCard(card.cardID)).length;
-
+                // Filter by active cards associated with a domain
+                .filter((card) => !!card.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0));
             const assignedCardsSorted = lodashSortBy(assignedCards, (card) => !CardUtils.isExpensifyCard(card.cardID));
 
-            return assignedCardsSorted.map((card) => {
-                const isExpensifyCard = CardUtils.isExpensifyCard(card.cardID);
+            const assignedCardsGrouped: PaymentMethodItem[] = [];
+            assignedCardsSorted.forEach((card) => {
                 const icon = getBankIcon({bankName: card.bank as BankName, isCard: true, styles});
 
-                // In the case a user has been assigned multiple physical Expensify Cards under one domain, display the Card with PAN
-                const expensifyCardDescription = numberPhysicalExpensifyCards > 1 ? CardUtils.getCardDescription(card.cardID) : translate('walletPage.expensifyCard');
-                const cartTitle = card.lastFourPAN ? `${card.bank} - ${card.lastFourPAN}` : card.bank;
-                return {
+                if (!CardUtils.isExpensifyCard(card.cardID)) {
+                    assignedCardsGrouped.push({
+                        key: card.cardID.toString(),
+                        title: card.bank,
+                        description: card.domainName,
+                        shouldShowRightIcon: false,
+                        interactive: false,
+                        canDismissError: false,
+                        errors: card.errors,
+                        brickRoadIndicator:
+                            card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
+                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                : undefined,
+                        ...icon,
+                    });
+                    return;
+                }
+
+                const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy;
+
+                // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
+                    const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
+                    assignedCardsGrouped[domainGroupIndex].errors = {...assignedCardsGrouped[domainGroupIndex].errors, ...card.errors};
+                    if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+                        assignedCardsGrouped[domainGroupIndex].brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                    }
+                    return;
+                }
+
+                // The card shouldn't be grouped or it's domain group doesn't exist yet
+                assignedCardsGrouped.push({
                     key: card.cardID.toString(),
-                    title: isExpensifyCard ? expensifyCardDescription : cartTitle,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    title: isAdminIssuedVirtualCard ? card?.nameValuePairs?.cardTitle || card.bank : card.bank,
                     description: card.domainName,
-                    onPress: isExpensifyCard ? () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(card.domainName ?? '')) : () => {},
-                    shouldShowRightIcon: isExpensifyCard,
-                    interactive: isExpensifyCard,
-                    canDismissError: isExpensifyCard,
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
+                    shouldShowRightIcon: true,
+                    interactive: true,
+                    canDismissError: true,
                     errors: card.errors,
                     brickRoadIndicator:
                         card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
                             ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                             : undefined,
                     ...icon,
-                };
+                });
             });
+            return assignedCardsGrouped;
         }
 
         const paymentCardList = fundList ?? {};
@@ -266,12 +298,24 @@ function PaymentMethodList({
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
                 iconRight: Expensicons.ThreeDots,
-                shouldShowRightIcon: true,
+                shouldShowRightIcon,
             };
         });
-
         return combinedPaymentMethods;
-    }, [shouldShowAssignedCards, fundList, bankAccountList, styles, filterType, isOffline, cardList, translate, actionPaymentMethodType, activePaymentMethodID, StyleUtils, onPress]);
+    }, [
+        shouldShowAssignedCards,
+        fundList,
+        bankAccountList,
+        styles,
+        filterType,
+        isOffline,
+        cardList,
+        actionPaymentMethodType,
+        activePaymentMethodID,
+        StyleUtils,
+        shouldShowRightIcon,
+        onPress,
+    ]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -336,8 +380,7 @@ function PaymentMethodList({
     return (
         <>
             <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
-                <FlashList
-                    estimatedItemSize={variables.optionRowHeight}
+                <FlatList
                     data={filteredPaymentMethods}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}

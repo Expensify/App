@@ -1,9 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -30,9 +29,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {Beta, InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
+import type {Beta, InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -40,9 +40,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 type MembersSection = SectionListData<MemberForList, Section<MemberForList>>;
 
 type WorkspaceInvitePageOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
     /** Beta features list */
     betas: OnyxEntry<Beta[]>;
 
@@ -55,15 +52,7 @@ type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WorkspaceInvitePageOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
 
-function WorkspaceInvitePage({
-    route,
-    policyMembers,
-    personalDetails: personalDetailsProp,
-    betas,
-    invitedEmailsToAccountIDsDraft,
-    policy,
-    isLoadingReportData = true,
-}: WorkspaceInvitePageProps) {
+function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
@@ -71,8 +60,10 @@ function WorkspaceInvitePage({
     const [personalDetails, setPersonalDetails] = useState<OptionData[]>([]);
     const [usersToInvite, setUsersToInvite] = useState<OptionData[]>([]);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const firstRenderRef = useRef(true);
+
     const openWorkspaceInvitePage = () => {
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetailsProp);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(policy?.employeeList);
         Policy.openWorkspaceInvitePage(route.params.policyID, Object.keys(policyMemberEmailsToAccountIDs));
     };
     const {options, areOptionsInitialized} = useOptionsList({
@@ -94,7 +85,7 @@ function WorkspaceInvitePage({
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
-    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policyMembers, personalDetailsProp), [policyMembers, personalDetailsProp]);
+    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(policy?.employeeList), [policy?.employeeList]);
 
     useEffect(() => {
         const newUsersToInviteDict: Record<number, OptionData> = {};
@@ -102,7 +93,7 @@ function WorkspaceInvitePage({
         const newSelectedOptionsDict: Record<number, MemberForList> = {};
 
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(options.personalDetails, betas ?? [], searchTerm, excludedUsers, true);
-        // Update selectedOptions with the latest personalDetails and policyMembers information
+        // Update selectedOptions with the latest personalDetails and policyEmployeeList information
         const detailsMap: Record<string, MemberForList> = {};
         inviteOptions.personalDetails.forEach((detail) => {
             if (!detail.login) {
@@ -113,12 +104,16 @@ function WorkspaceInvitePage({
         });
 
         const newSelectedOptions: MemberForList[] = [];
-        Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
-            if (!(login in detailsMap)) {
-                return;
-            }
-            newSelectedOptions.push({...detailsMap[login], isSelected: true});
-        });
+        if (firstRenderRef.current) {
+            // We only want to add the saved selected user on first render
+            firstRenderRef.current = false;
+            Object.keys(invitedEmailsToAccountIDsDraft ?? {}).forEach((login) => {
+                if (!(login in detailsMap)) {
+                    return;
+                }
+                newSelectedOptions.push({...detailsMap[login], isSelected: true});
+            });
+        }
         selectedOptions.forEach((option) => {
             newSelectedOptions.push(option.login && option.login in detailsMap ? {...detailsMap[option.login], isSelected: true} : option);
         });
@@ -152,7 +147,7 @@ function WorkspaceInvitePage({
         setSelectedOptions(Object.values(newSelectedOptionsDict));
 
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [options.personalDetails, policyMembers, betas, searchTerm, excludedUsers]);
+    }, [options.personalDetails, policy?.employeeList, betas, searchTerm, excludedUsers]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArr: MembersSection[] = [];
@@ -285,18 +280,17 @@ function WorkspaceInvitePage({
     );
 
     return (
-        <ScreenWrapper
-            shouldEnableMaxHeight
-            shouldUseCachedViewportHeight
-            testID={WorkspaceInvitePage.displayName}
-            includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
+        <AccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
-            <FullPageNotFoundView
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                shouldUseCachedViewportHeight
+                testID={WorkspaceInvitePage.displayName}
+                includeSafeAreaPaddingBottom={false}
+                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
@@ -326,8 +320,8 @@ function WorkspaceInvitePage({
                     shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                     footerContent={footerContent}
                 />
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
@@ -336,9 +330,6 @@ WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 export default withNavigationTransitionEnd(
     withPolicyAndFullscreenLoading(
         withOnyx<WorkspaceInvitePageProps, WorkspaceInvitePageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
             betas: {
                 key: ONYXKEYS.BETAS,
             },

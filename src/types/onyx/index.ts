@@ -37,9 +37,9 @@ import type PlaidData from './PlaidData';
 import type Policy from './Policy';
 import type {PolicyConnectionSyncProgress, PolicyReportField, TaxRate, TaxRates, TaxRatesWithDefault} from './Policy';
 import type {PolicyCategories, PolicyCategory} from './PolicyCategory';
+import type {PolicyEmployeeList} from './PolicyEmployee';
+import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
-import type {PolicyMembers} from './PolicyMember';
-import type PolicyMember from './PolicyMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagList, PolicyTags} from './PolicyTag';
 import type PreferredTheme from './PreferredTheme';
@@ -63,6 +63,7 @@ import type ReportUserIsTyping from './ReportUserIsTyping';
 import type Request from './Request';
 import type Response from './Response';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
@@ -117,9 +118,9 @@ export type {
     Policy,
     PolicyCategories,
     PolicyCategory,
+    PolicyEmployee,
+    PolicyEmployeeList,
     PolicyConnectionSyncProgress,
-    PolicyMember,
-    PolicyMembers,
     PolicyOwnershipChangeChecks,
     PolicyTag,
     PolicyTags,
@@ -177,4 +178,5 @@ export type {
     Log,
     PolicyJoinMember,
     CapturedLogs,
+    SearchResults,
 };

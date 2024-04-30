@@ -2,7 +2,6 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
@@ -22,13 +21,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -44,7 +41,7 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     WorkspacePolicyOnyxProps &
     StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
-function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, route}: WorkspaceMemberDetailsPageProps) {
+function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -57,14 +54,15 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     const accountID = Number(route.params.accountID);
     const policyID = route.params.policyID;
 
-    const member = policyMembers?.[accountID];
+    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const member = policy?.employeeList?.[memberLogin];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isSelectedMemberOwner = policy?.owner === details.login;
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
-    const isCurrentUserAdmin = policyMembers?.[currentUserPersonalDetails?.accountID]?.role === CONST.POLICY.ROLE.ADMIN;
+    const isCurrentUserAdmin = policy?.employeeList?.[personalDetails?.[currentUserPersonalDetails?.accountID]?.login ?? '']?.role === CONST.POLICY.ROLE.ADMIN;
     const isCurrentUserOwner = policy?.owner === currentUserPersonalDetails?.login;
 
     const roleItems: ListItemType[] = useMemo(
@@ -78,7 +76,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
             {
                 value: CONST.POLICY.ROLE.USER,
                 text: translate('common.member'),
-                isSelected: member?.role === CONST.POLICY.ROLE.USER,
+                isSelected: member?.role !== CONST.POLICY.ROLE.ADMIN,
                 keyForList: CONST.POLICY.ROLE.USER,
             },
         ],
@@ -130,98 +128,93 @@ function WorkspaceMemberDetailsPage({personalDetails, policyMembers, policy, rou
     }, [accountID, policyID]);
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
-                    <HeaderWithBackButton
-                        title={displayName}
-                        subtitle={policy?.name}
-                    />
-                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
-                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                                <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
-                                    source={UserUtils.getAvatar(avatar, accountID)}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
-                                    fallbackIcon={fallbackIcon}
-                                />
-                            </OfflineWithFeedback>
-                            {Boolean(details.displayName ?? '') && (
-                                <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
-                                    numberOfLines={1}
-                                >
-                                    {displayName}
-                                </Text>
-                            )}
-                            {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                <Button
-                                    text={translate('workspace.people.transferOwner')}
-                                    onPress={startChangeOwnershipFlow}
-                                    medium
-                                    isDisabled={isOffline}
-                                    icon={Expensicons.Transfer}
-                                    iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                    style={styles.mv5}
-                                />
-                            ) : (
-                                <Button
-                                    text={translate('workspace.people.removeMemberButtonTitle')}
-                                    onPress={askForConfirmationToRemove}
-                                    medium
-                                    isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                    icon={Expensicons.RemoveMembers}
-                                    iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                    style={styles.mv5}
-                                />
-                            )}
-                            <ConfirmModal
-                                danger
-                                title={translate('workspace.people.removeMemberTitle')}
-                                isVisible={isRemoveMemberConfirmModalVisible}
-                                onConfirm={removeUser}
-                                onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                                prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
-                                confirmText={translate('common.remove')}
-                                cancelText={translate('common.cancel')}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+        >
+            <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
+                <HeaderWithBackButton
+                    title={displayName}
+                    subtitle={policy?.name}
+                />
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+                    <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                        <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
+                            <Avatar
+                                containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
+                                imageStyles={[styles.avatarXLarge]}
+                                source={UserUtils.getAvatar(avatar, accountID)}
+                                size={CONST.AVATAR_SIZE.XLARGE}
+                                fallbackIcon={fallbackIcon}
                             />
-                        </View>
-                        <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
-                                description={translate('common.role')}
-                                shouldShowRightIcon
-                                onPress={openRoleSelectionModal}
+                        </OfflineWithFeedback>
+                        {Boolean(details.displayName ?? '') && (
+                            <Text
+                                style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                numberOfLines={1}
+                            >
+                                {displayName}
+                            </Text>
+                        )}
+                        {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
+                            <Button
+                                text={translate('workspace.people.transferOwner')}
+                                onPress={startChangeOwnershipFlow}
+                                medium
+                                isDisabled={isOffline}
+                                icon={Expensicons.Transfer}
+                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                style={styles.mv5}
                             />
-                            <MenuItem
-                                title={translate('common.profile')}
-                                icon={Expensicons.Info}
-                                onPress={navigateToProfile}
-                                shouldShowRightIcon
+                        ) : (
+                            <Button
+                                text={translate('workspace.people.removeMemberButtonTitle')}
+                                onPress={askForConfirmationToRemove}
+                                medium
+                                isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                icon={Expensicons.RemoveMembers}
+                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                style={styles.mv5}
                             />
-                            <WorkspaceMemberDetailsRoleSelectionModal
-                                isVisible={isRoleSelectionModalVisible}
-                                items={roleItems}
-                                onRoleChange={changeRole}
-                                onClose={() => setIsRoleSelectionModalVisible(false)}
-                            />
-                        </View>
+                        )}
+                        <ConfirmModal
+                            danger
+                            title={translate('workspace.people.removeMemberTitle')}
+                            isVisible={isRemoveMemberConfirmModalVisible}
+                            onConfirm={removeUser}
+                            onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
+                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                            confirmText={translate('common.remove')}
+                            cancelText={translate('common.cancel')}
+                        />
                     </View>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <View style={styles.w100}>
+                        <MenuItemWithTopDescription
+                            disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                            title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                            description={translate('common.role')}
+                            shouldShowRightIcon
+                            onPress={openRoleSelectionModal}
+                        />
+                        <MenuItem
+                            title={translate('common.profile')}
+                            icon={Expensicons.Info}
+                            onPress={navigateToProfile}
+                            shouldShowRightIcon
+                        />
+                        <WorkspaceMemberDetailsRoleSelectionModal
+                            isVisible={isRoleSelectionModalVisible}
+                            items={roleItems}
+                            onRoleChange={changeRole}
+                            onClose={() => setIsRoleSelectionModalVisible(false)}
+                        />
+                    </View>
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 WorkspaceMemberDetailsPage.displayName = 'WorkspaceMemberDetailsPage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceMemberDetailsPageProps, WorkspacePolicyOnyxProps>({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    })(WorkspaceMemberDetailsPage),
-);
+export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsPage);

@@ -8,8 +8,8 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import type {CurrentMoney} from '@pages/iou/steps/MoneyRequestAmountForm';
-import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
+import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
+import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,8 +84,8 @@ function IOURequestStepTaxAmountPage({
     };
 
     const navigateToCurrencySelectionPage = () => {
-        // If the money request being created is a distance request, don't allow the user to choose the currency.
-        // Only USD is allowed for distance requests.
+        // If the expense being created is a distance expense, don't allow the user to choose the currency.
+        // Only USD is allowed for distance expenses.
         // Remove query from the route and encode it.
         Navigation.navigate(
             ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
@@ -116,7 +116,7 @@ function IOURequestStepTaxAmountPage({
         IOU.setMoneyRequestTaxAmount(transactionID, amountInSmallestCurrencyUnits, true);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        IOU.setMoneyRequestCurrency_temporaryForRefactor(transactionID, currency || CONST.CURRENCY.USD);
+        IOU.setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         if (backTo) {
             Navigation.goBack(backTo);

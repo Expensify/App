@@ -63,7 +63,7 @@ function IOURequestStepMerchant({
     const merchant = ReportUtils.getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 
-    const isMerchantRequired = ReportUtils.isGroupPolicy(report) || transaction?.participants?.some((participant) => Boolean(participant.isPolicyExpenseChat));
+    const isMerchantRequired = ReportUtils.isReportInGroupPolicy(report) || transaction?.participants?.some((participant) => Boolean(participant.isPolicyExpenseChat));
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
@@ -99,7 +99,7 @@ function IOURequestStepMerchant({
         }
         IOU.setMoneyRequestMerchant(transactionID, newMerchant ?? '', !isEditing);
         if (isEditing) {
-            // When creating new money requests newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
+            // When creating a new expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
             IOU.updateMoneyRequestMerchant(transactionID, reportID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, policy, policyTags, policyCategories);
         }
         navigateBack();
@@ -111,6 +111,7 @@ function IOURequestStepMerchant({
             onBackButtonPress={navigateBack}
             shouldShowWrapper
             testID={IOURequestStepMerchant.displayName}
+            includeSafeAreaPaddingBottom
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}
