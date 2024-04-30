@@ -93,7 +93,7 @@ function TravelTerms() {
                         }}
                         message={errorMessage}
                         isAlertVisible={error || Boolean(errorMessage)}
-                        containerStyles={[styles.mh0, styles.mv4]}
+                        containerStyles={[styles.mh0, styles.mv5]}
                     />
                 </View>
             </FullPageNotFoundView>
