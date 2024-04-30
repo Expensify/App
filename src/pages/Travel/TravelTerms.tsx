@@ -5,6 +5,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -57,45 +58,48 @@ function TravelTerms() {
                     title={translate('travel.termsAndConditions.header')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView style={[styles.flex1, styles.flexGrow1, styles.ph5]}>
-                    <View style={styles.flex1}>
-                        <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
-                        <Text style={styles.mt4}>
-                            {`${translate('travel.termsAndConditions.subtitle')}`}
-                            <TextLink href="https://www.spotnana.com/terms/">{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
-                        </Text>
-                        <Text style={styles.mt6}>
-                            {`${translate('travel.termsAndConditions.helpDocIntro')}`}
-                            <TextLink href="https://use.expensify.com/esignagreement">{`${translate('travel.termsAndConditions.helpDoc')} `}</TextLink>
-                            {`${translate('travel.termsAndConditions.helpDocOutro')}`}
-                        </Text>
-                        <CheckboxWithLabel
-                            style={styles.mt6}
-                            accessibilityLabel={translate('travel.termsAndConditions.travelTermsAndConditions')}
-                            onInputChange={toggleTravelTerms}
-                            LabelComponent={AgreeToTheLabel}
-                        />
-                    </View>
-                </ScrollView>
-                <View style={styles.ph5}>
-                    <FormAlertWithSubmitButton
-                        buttonText={translate('common.continue')}
-                        isDisabled={!hasAcceptedTravelTerms}
-                        onSubmit={() => {
-                            if (!hasAcceptedTravelTerms) {
-                                setError(true);
-                                return;
-                            }
+                <SafeAreaConsumer>
+                    {({safeAreaPaddingBottomStyle}) => (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, safeAreaPaddingBottomStyle.paddingBottom ? safeAreaPaddingBottomStyle : styles.pb5]}>
+                            <View style={styles.flex1}>
+                                <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
+                                <Text style={styles.mt4}>
+                                    {`${translate('travel.termsAndConditions.subtitle')}`}
+                                    <TextLink href="https://www.spotnana.com/terms/">{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
+                                </Text>
+                                <Text style={styles.mt6}>
+                                    {`${translate('travel.termsAndConditions.helpDocIntro')}`}
+                                    <TextLink href="https://use.expensify.com/esignagreement">{`${translate('travel.termsAndConditions.helpDoc')} `}</TextLink>
+                                    {`${translate('travel.termsAndConditions.helpDocOutro')}`}
+                                </Text>
+                                <CheckboxWithLabel
+                                    style={styles.mt6}
+                                    accessibilityLabel={translate('travel.termsAndConditions.travelTermsAndConditions')}
+                                    onInputChange={toggleTravelTerms}
+                                    LabelComponent={AgreeToTheLabel}
+                                />
+                            </View>
 
-                            Travel.acceptSpotnanaTerms();
-                            setError(false);
-                            Navigation.resetToHome();
-                        }}
-                        message={errorMessage}
-                        isAlertVisible={error || Boolean(errorMessage)}
-                        containerStyles={[styles.mh0, styles.mv5]}
-                    />
-                </View>
+                            <FormAlertWithSubmitButton
+                                buttonText={translate('common.continue')}
+                                isDisabled={!hasAcceptedTravelTerms}
+                                onSubmit={() => {
+                                    if (!hasAcceptedTravelTerms) {
+                                        setError(true);
+                                        return;
+                                    }
+
+                                    Travel.acceptSpotnanaTerms();
+                                    setError(false);
+                                    Navigation.resetToHome();
+                                }}
+                                message={errorMessage}
+                                isAlertVisible={error || Boolean(errorMessage)}
+                                containerStyles={[styles.mh0, styles.mt5]}
+                            />
+                        </ScrollView>
+                    )}
+                </SafeAreaConsumer>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
