@@ -1382,7 +1382,7 @@ const styles = (theme: ThemeColors) =>
         formHelp: {
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
-            lineHeight: variables.lineHeightLarge,
+            lineHeight: variables.lineHeightNormal,
             marginBottom: 4,
         },
 
@@ -4458,10 +4458,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
         },
         menuItemError: {
-            position: 'absolute',
-            bottom: -4,
-            left: 20,
-            right: 20,
+            marginTop: 4,
+            marginBottom: 0,
         },
         formHelperMessage: {
             height: 32,
