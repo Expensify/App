@@ -74,56 +74,7 @@ function TransactionListItem<TItem extends ListItem>({
     const accountDetails = item.accountID ? personalDetails[item.accountID] : null;
     const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
 
-    const rowButtonElement = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
-            <Button
-                text={translate('common.view')} // Todo add translate
-                onPress={() => {
-                    onSelectRow(item);
-                }}
-                small
-                pressOnEnter
-            />
-        </View>
-    );
-
-    const amountElement = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
-                text={CurrencyUtils.convertToDisplayString(item.amount, item.currency)}
-                style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
-            />
-        </View>
-    );
-
-    const categoryElement = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={item.category ?? ''}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-        />
-    );
-
-    const tagElement = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={item.tag ?? ''}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-        />
-    );
-
-    const descriptionElement = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>
-            <TextWithTooltip
-                shouldShowTooltip={showTooltip}
-                text={item?.comment?.comment ?? ''}
-                style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-            />
-        </View>
-    );
-
-    const dateElement = (
+    const dateCell = (
         <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
             <TextWithTooltip
                 shouldShowTooltip={showTooltip}
@@ -133,16 +84,17 @@ function TransactionListItem<TItem extends ListItem>({
         </View>
     );
 
-    const typeElement = (
-        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE), styles.alignItemsCenter]}>
-            <Icon
-                src={typeIcon}
-                fill={theme.icon}
+    const descriptionCell = (
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>
+            <TextWithTooltip
+                shouldShowTooltip={showTooltip}
+                text={item?.comment?.comment ?? ''}
+                style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
             />
         </View>
-    )
+    );
 
-    const userElement = (userDetails: OnyxEntry<PersonalDetails>, columnName: string) => (
+    const userCell = (userDetails: OnyxEntry<PersonalDetails>, columnName: string) => (
         <View style={[StyleUtils.getSearchTableColumnStyles(columnName)]}>
             <View style={[styles.flexRow, styles.flex1, styles.gap1, styles.alignItemsCenter]}>
                 <Avatar
@@ -161,6 +113,39 @@ function TransactionListItem<TItem extends ListItem>({
             </View>
         </View>
     );
+
+    const totalCell = (
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
+            <TextWithTooltip
+                shouldShowTooltip={showTooltip}
+                text={CurrencyUtils.convertToDisplayString(item.amount, item.currency)}
+                style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
+            />
+        </View>
+    );
+
+    const typeCell = (
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE), styles.alignItemsCenter]}>
+            <Icon
+                src={typeIcon}
+                fill={theme.icon}
+            />
+        </View>
+    )
+
+    const actionCell = (
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
+            <Button
+                text={translate('common.view')} // Todo add translate
+                onPress={() => {
+                    onSelectRow(item);
+                }}
+                small
+                pressOnEnter
+            />
+        </View>
+    );
+    
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
@@ -198,21 +183,21 @@ function TransactionListItem<TItem extends ListItem>({
                                 />
                                 {toElement}
                             </View>
-                            {rowButtonElement}
+                            {actionCell}
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             <View>
-                                {descriptionElement}
+                                {descriptionCell}
                                 {categoryElement}
                             </View>
                             <View>
-                                {amountElement}
+                                {totalCell}
                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStretch, styles.gap2]}>
                                     <Icon
                                         src={typeIcon}
                                         fill={theme.icon}
                                     />
-                                    {dateElement}
+                                    {dateCell}
                                 </View>
                             </View>
                         </View>
@@ -266,13 +251,13 @@ function TransactionListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )} */}
                     <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                        {dateElement}
-                        {descriptionElement}
-                        {userElement(accountDetails, CONST.SEARCH_TABLE_COLUMNS.FROM)}
-                        {userElement(managerDetails, CONST.SEARCH_TABLE_COLUMNS.TO)}
-                        {amountElement}
-                        {typeElement}
-                        {rowButtonElement}
+                        {dateCell}
+                        {descriptionCell}
+                        {userCell(accountDetails, CONST.SEARCH_TABLE_COLUMNS.FROM)}
+                        {userCell(managerDetails, CONST.SEARCH_TABLE_COLUMNS.TO)}
+                        {totalCell}
+                        {typeCell}
+                        {actionCell}
                     </View>
                 </>
             )}
