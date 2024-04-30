@@ -2819,6 +2819,7 @@ const styles = (theme: ThemeColors) =>
         topUnreadIndicatorContainer: {
             position: 'relative',
             width: '100%',
+            /** 17 = height of the indicator 1px + 8px top and bottom */
             height: 17,
             paddingHorizontal: 20,
             flexDirection: 'row',
