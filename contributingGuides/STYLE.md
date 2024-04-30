@@ -1,5 +1,63 @@
 # Coding Standards
 
+## Table of Contents
+
+- [Introduction](#introduction)
+- [TypeScript guidelines](#typescript-guidelines)
+    - [General rules](#general-rules)
+    - [`d.ts` extension](#dts-extension)
+    - [Type Alias vs Interface](#type-alias-vs-interface)
+    - [Enum vs. Union Type](#enum-vs-union-type)
+    - [`unknown` vs. `any`](#unknown-vs-any)
+    - [`T[]` vs. `Array<T>`](#t-vs-arrayt)
+    - [`@ts-ignore`](#ts-ignore)
+    - [Type Inference](#type-inference)
+    - [Utility Types](#utility-types)
+    - [`object` type](#object-type)
+    - [Prop Types](#prop-types)
+    - [File organization](#file-organization)
+    - [Reusable Types](#reusable-types)
+    - [`tsx` extension](#tsx-extension)
+    - [No inline prop types](#no-inline-prop-types)
+    - [Satisfies Operator](#satisfies-operator)
+    - [Type imports/exports](#type-importsexports)
+    - [Exception to Rules](#exception-to-rules)
+    - [Communication Items](#communication-items)
+    - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
+- [Naming Conventions](#naming-conventions)
+    - [Type names](#type-names)
+    - [Prop callbacks](#prop-callbacks)
+    - [Event Handlers](#event-handlers)
+    - [Boolean variables and props](#boolean-variables-and-props)
+    - [Functions](#functions)
+    - [`var`, `const` and `let`](#var-const-and-let)
+- [Object / Array Methods](#object--array-methods)
+- [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
+- [JSDocs](#jsdocs)
+- [Component props](#component-props)
+- [Destructuring](#destructuring)
+- [Named vs Default Exports in ES6 - When to use what?](#named-vs-default-exports-in-es6---when-to-use-what)
+- [Classes and constructors](#classes-and-constructors)
+    - [Class syntax](#class-syntax)
+    - [Constructor](#constructor)
+- [ESNext: Are we allowed to use [insert new language feature]? Why or why not?](#esnext-are-we-allowed-to-use-insert-new-language-feature-why-or-why-not)
+- [React Coding Standards](#react-coding-standards)
+    - [Code Documentation](#code-documentation)
+    - [Inline Ternaries](#inline-ternaries)
+    - [Function component style](#function-component-style)
+    - [Forwarding refs](#forwarding-refs)
+    - [Hooks and HOCs](#hooks-and-hocs)
+    - [Stateless components vs Pure Components vs Class based components vs Render Props](#stateless-components-vs-pure-components-vs-class-based-components-vs-render-props---when-to-use-what)
+    - [Composition](#composition)
+    - [Use Refs Appropriately](#use-refs-appropriately)
+    - [Are we allowed to use [insert brand new React feature]?](#are-we-allowed-to-use-insert-brand-new-react-feature-why-or-why-not)
+- [React Hooks: Frequently Asked Questions](#react-hooks-frequently-asked-questions)
+- [Onyx Best Practices](#onyx-best-practices)
+    - [Collection Keys](#collection-keys)
+- [Learning Resources](#learning-resources)
+
+## Introduction
+
 <!-- Consider removing this as we moved to TS -->
 For almost all of our code style rules, refer to the [Airbnb JavaScript Style Guide](https://github.com/airbnb/javascript).
 
@@ -13,7 +71,7 @@ There are a few things that we have customized for our tastes which will take pr
 
 ## TypeScript guidelines
 
-### General Rules
+### General rules
 
 Strive to type as strictly as possible.
 
@@ -113,7 +171,7 @@ const e: string[] = ["a", "b"];
 const f: readonly string[] = ["a", "b"];
 ```
 
-### @ts-ignore
+### `@ts-ignore`
 
 Do not use `@ts-ignore` or its variant `@ts-nocheck` to suppress warnings and errors.
 
@@ -290,7 +348,7 @@ type Report = {...};
 export default Report;
 ```
 
-### tsx
+### `tsx` extension
 
 Use `.tsx` extension for files that contain React syntax.
 
@@ -408,7 +466,7 @@ declare module "external-library-name" {
 
 ## Naming Conventions
 
-### Types
+### Type names
 
   - Use PascalCase for type names. eslint: [`@typescript-eslint/naming-convention`](https://typescript-eslint.io/rules/naming-convention/)
 
@@ -548,7 +606,7 @@ const valid = props.something && props.somethingElse;
 const isValid = props.something && props.somethingElse;
 ```
 
-## Functions
+### Functions
 
 Any function declared in a library module should use the `function myFunction` keyword rather than `const myFunction`.
 
@@ -650,31 +708,31 @@ if (someCondition) {
 
 ## Object / Array Methods
 
-We have standardized on using [underscore.js](https://underscorejs.org/) methods for objects and collections instead of the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods). This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
+We have standardized on using the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods) instead of [underscore.js](https://underscorejs.org/) methods for objects and collections. As the vast majority of code is written in TypeScript, we can safaly use the native methods.
 
 ```ts
 // Bad
-myArray.forEach(item => doSomething(item));
-// Good
 _.each(myArray, item => doSomething(item));
+// Good
+myArray.forEach(item => doSomething(item));
 
 // Bad
-const myArray = Object.keys(someObject).map((key) => doSomething(someObject[key]));
-// Good
 const myArray = _.map(someObject, (value, key) => doSomething(value));
+// Good
+const myArray = Object.keys(someObject).map((key) => doSomething(someObject[key]));
 
 // Bad
-myCollection.includes('item');
-// Good
 _.contains(myCollection, 'item');
+// Good
+myCollection.includes('item');
 
 // Bad
-const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
-// Good
 const modifiedArray = _.chain(someArray)
     .filter(filterFunc)
     .map(mapFunc)
     .value();
+// Good
+const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
 ```
 
 ## Accessing Object Properties and Default Values
@@ -787,10 +845,10 @@ export {
 
 ## Classes and constructors
 
-#### Class syntax
+### Class syntax
 Using the `class` syntax is preferred wherever appropriate. Airbnb has clear [guidelines](https://github.com/airbnb/javascript#classes--constructors) in their JS style guide which promotes using the _class_ syntax. Don't manipulate the `prototype` directly. The `class` syntax is generally considered more concise and easier to understand.
 
-#### Constructor
+### Constructor
 Classes have a default constructor if one is not specified. No need to write a constructor function that is empty or just delegates to a parent class.
 
 ```js
@@ -831,11 +889,9 @@ Here are a couple of things we would ask that you *avoid* to help maintain consi
 - **Optional Chaining** - Yes, don't use `lodashGet()`
 - **Null Coalescing Operator** - Yes, don't use `lodashGet()` or `||` to set a default value for a possibly `undefined` or `null` variable
 
-# React Coding Standards
+## React Coding Standards
 
-# React specific styles
-
-## Code Documentation
+### Code Documentation
 
 * Add descriptions to all component props using a block comment above the definition. No need to document the types, but add some context for each property so that other developers understand the intended use.
 
@@ -872,7 +928,7 @@ type ComponentProps = {
 }
 ```
 
-## Inline Ternaries
+### Inline Ternaries
 * Use inline ternary statements when rendering optional pieces of templates. Notice the white space and formatting of the ternary.
 
 ```tsx
@@ -917,7 +973,7 @@ type ComponentProps = {
 }
 ```
 
-### Important Note:
+#### Important Note:
 
 In React Native, one **must not** attempt to falsey-check a string for an inline ternary. Even if it's in curly braces, React Native will try to render it as a `<Text>` node and most likely throw an error about trying to render text outside of a `<Text>` component. Use `!!` instead.
 
@@ -947,7 +1003,7 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 }
 ```
 
-## Function component style
+### Function component style
 
 When writing a function component, you must ALWAYS add a `displayName` property and give it the same value as the name of the component (this is so it appears properly in the React dev tools)
 
@@ -959,7 +1015,7 @@ Avatar.displayName = 'Avatar';
 export default Avatar;
 ```
 
-## Forwarding refs
+### Forwarding refs
 
 When forwarding a ref define named component and pass it directly to the `forwardRef`. By doing this, we remove potential extra layer in React tree in the form of anonymous component.
 
@@ -1003,7 +1059,7 @@ function FancyInput(props: FancyInputProps, ref: ForwardedRef<FancyInputHandle>)
 export default React.forwardRef(FancyInput)
 ```
 
-## Hooks and HOCs
+### Hooks and HOCs
 
 Use hooks whenever possible, avoid using HOCs.
 
@@ -1060,13 +1116,13 @@ export default withOnyx<ComponentProps, ComponentOnyxProps>({
 })(Component);
 ```
 
-## Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
+### Stateless components vs Pure Components vs Class based components vs Render Props - When to use what?
 
 Class components are DEPRECATED. Use function components and React hooks.
 
 [https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function](https://react.dev/reference/react/Component#migrating-a-component-with-lifecycle-methods-from-a-class-to-a-function)
 
-## Composition 
+### Composition 
 
 Avoid the usage of `compose` function to compose HOCs in TypeScript files. Use nesting instead.
 
@@ -1111,7 +1167,7 @@ From React's documentation -
 
 **Note:** If you find that none of these approaches work for you, please ask an Expensify engineer for guidance via Slack or GitHub.
 
-## Use Refs Appropriately
+### Use Refs Appropriately
 
 React's documentation explains refs in [detail](https://reactjs.org/docs/refs-and-the-dom.html). It's important to understand when to use them and how to use them to avoid bugs and hard to maintain code.
 
@@ -1119,41 +1175,41 @@ A common mistake with refs is using them to pass data back to a parent component
 
 There are several ways to use and declare refs and we prefer the [callback method](https://reactjs.org/docs/refs-and-the-dom.html#callback-refs).
 
-## Are we allowed to use [insert brand new React feature]? Why or why not?
+### Are we allowed to use [insert brand new React feature]? Why or why not?
 
 We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something, please ask us first.
 
-# React Hooks: Frequently Asked Questions
+## React Hooks: Frequently Asked Questions
 
-## Are Hooks a Replacement for HOCs or Render Props?
+### Are Hooks a Replacement for HOCs or Render Props?
 
 In most cases, a custom hook is a better pattern to use than an HOC or Render Prop. They are easier to create, understand, use and document. However, there might still be a case for a HOC e.g. if you have a component that abstracts some conditional rendering logic.
 
-## Should I wrap all my inline functions with `useCallback()` or move them out of the component if they have no dependencies?
+### Should I wrap all my inline functions with `useCallback()` or move them out of the component if they have no dependencies?
 
 The answer depends on whether you need a stable reference for the function. If there are no dependencies, you could move the function out of the component. If there are dependencies, you could use `useCallback()` to ensure the reference updates only when the dependencies change. However, it's important to note that using `useCallback()` may have a performance penalty, although the trade-off is still debated. You might choose to do nothing at all if there is no obvious performance downside to declaring a function inline. It's recommended to follow the guidance in the [React documentation](https://react.dev/reference/react/useCallback#should-you-add-usecallback-everywhere) and add the optimization only if necessary. If it's not obvious why such an optimization (i.e. `useCallback()` or `useMemo()`) would be used, leave a code comment explaining the reasoning to aid reviewers and future contributors.
 
-## Why does `useState()` sometimes get initialized with a function?
+### Why does `useState()` sometimes get initialized with a function?
 
 React saves the initial state once and ignores it on the next renders. However, if you pass the result of a function to `useState()` or call a function directly e.g. `useState(doExpensiveThings())` it will *still run on every render*. This can hurt performance depending on what work the function is doing. As an optimization, we can pass an initializer function instead of a value e.g. `useState(doExpensiveThings)` or `useState(() => doExpensiveThings())`.
 
-## Is there an equivalent to `componentDidUpdate()` when using hooks?
+### Is there an equivalent to `componentDidUpdate()` when using hooks?
 
 The short answer is no. A longer answer is that sometimes we need to check not only that a dependency has changed, but how it has changed in order to run a side effect. For example, a prop had a value of an empty string on a previous render, but now is non-empty. The generally accepted practice is to store the "previous" value in a `ref` so the comparison can be made in a `useEffect()` call.
 
-## Are `useCallback()` and `useMemo()` basically the same thing?
+### Are `useCallback()` and `useMemo()` basically the same thing?
 
 No! It is easy to confuse `useCallback()` with a memoization helper like `_.memoize()` or `useMemo()` but they are really not the same at all. [`useCallback()` will return a cached function _definition_](https://react.dev/reference/react/useCallback) and will not save us any computational cost of running that function. So, if you are wrapping something in a `useCallback()` and then calling it in the render, then it is better to use `useMemo()` to cache the actual **result** of calling that function and use it directly in the render.
 
-## What is the `exhaustive-deps` lint rule? Can I ignore it?
+### What is the `exhaustive-deps` lint rule? Can I ignore it?
 
 A `useEffect()` that does not include referenced props or state in its dependency array is [usually a mistake](https://legacy.reactjs.org/docs/hooks-faq.html#is-it-safe-to-omit-functions-from-the-list-of-dependencies) as often we want effects to re-run when those dependencies change. However, there are some cases where we might actually only want to re-run the effect when only some of those dependencies change. We determined the best practice here should be to allow disabling the “next line” with a comment `//eslint-disable-next-line react-hooks/exhaustive-deps` and an additional comment explanation so the next developer can understand why the rule was not used.
 
-## Should I declare my components with arrow functions (`const`) or the `function` keyword?
+### Should I declare my components with arrow functions (`const`) or the `function` keyword?
 
 There are pros and cons of each, but ultimately we have standardized on using the `function` keyword to align things more with modern React conventions. There are also some minor cognitive overhead benefits in that you don't need to think about adding and removing brackets when encountering an implicit return. The `function` syntax also has the benefit of being able to be hoisted where arrow functions do not.
 
-## How do I auto-focus a TextInput using `useFocusEffect()`?
+### How do I auto-focus a TextInput using `useFocusEffect()`?
 
 ```tsx
 const focusTimeoutRef = useRef(null);
@@ -1175,11 +1231,11 @@ This works better than using `onTransitionEnd` because -
 
 Note - This is a solution from [this PR](https://github.com/Expensify/App/pull/26415). You can find detailed discussion in comments.
 
-# Onyx Best Practices
+## Onyx Best Practices
 
 [Onyx Documentation](https://github.com/expensify/react-native-onyx)
 
-## Collection Keys
+### Collection Keys
 
 Our potentially larger collections of data (reports, policies, etc) are typically stored under collection keys. Collection keys let us group together individual keys vs. storing arrays with multiple objects. In general, **do not add a new collection key if it can be avoided**. There is most likely a more logical place to put the state. And failing to associate a state property with its logical owner is something we consider to be an anti-pattern (unnecessary data structure adds complexity for no value).
 
@@ -1189,7 +1245,7 @@ For example, if you are storing a boolean value that could be associated with a 
 
 If you're not sure whether something should have a collection key reach out in [`#expensify-open-source`](https://expensify.slack.com/archives/C01GTK53T8Q) for additional feedback.
 
-# Learning Resources
+## Learning Resources
 
 ### Quickest way to learn TypeScript
 
