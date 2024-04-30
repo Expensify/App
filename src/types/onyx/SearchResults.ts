@@ -8,6 +8,13 @@ type SearchResultsInfo = {
     hasMoreResults: boolean;
 };
 
+type SearchPersonalDetails = {
+    accountID: number;
+    avatar: string;
+    displayName?: string;
+    login?: string;
+};
+
 type SearchTransaction = {
     transactionID: string;
     parentTransactionID?: string;
@@ -39,7 +46,7 @@ type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
 
 type SearchResults = {
     search: SearchResultsInfo;
-    data: Record<string, SearchTransaction>;
+    data: Record<string, SearchTransaction & SearchPersonalDetails>;
 };
 
 export default SearchResults;

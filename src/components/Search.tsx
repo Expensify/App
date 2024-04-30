@@ -18,22 +18,6 @@ import SelectionList from './SelectionList';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 
-/**
- * Todo This is a temporary function that will pick search results from under `snapshot_` key
- * either api needs to be updated to key by `snapshot_hash` or app code calling search data needs to be refactored
- * remove this function once this is properly fixed
- */
-function getCleanSearchResults(searchResults: unknown) {
-    if (!searchResults) {
-        return {};
-    }
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    // eslint-disable-next-line no-underscore-dangle,@typescript-eslint/no-unsafe-return
-    return searchResults?.data;
-}
-
 type SearchProps = {
     query: string;
 };
@@ -56,14 +40,8 @@ function Search({query}: SearchProps) {
         SearchActions.search(query);
     }, [query, isOffline]);
 
-    const cleanResults = getCleanSearchResults(searchResults);
-
-    useEffect(() => {
-        SearchActions.addPersonalDetailsFromSearch(cleanResults?.personalDetailsList ?? {});
-    }, [cleanResults]);
-
-    const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || cleanResults === undefined;
-    const shouldShowEmptyState = !isLoading && isEmptyObject(cleanResults);
+    const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
+    const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
 
     if (isLoading) {
         return <TableListItemSkeleton shouldAnimate />;
@@ -84,7 +62,7 @@ function Search({query}: SearchProps) {
     };
 
     const ListItem = SearchUtils.getListItem();
-    const data = SearchUtils.getSections(cleanResults ?? {});
+    const data = SearchUtils.getSections(searchResults?.data ?? {});
 
     return (
         <SelectionList
