@@ -9,6 +9,7 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import ReceiptImage from '@components/ReceiptImage';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +20,7 @@ import CONST from '@src/CONST';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
+
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
@@ -67,6 +69,24 @@ function TransactionListItem<TItem extends ListItem>({
 
     const accountDetails = item.accountID ? personalDetails[item.accountID] : null;
     const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
+
+    const receiptCell = (
+        <View style={[styles.hoveredComponentBG, styles.alignItemsCenter, styles.justifyContentCenter, styles.receiptListItemStyle]}>
+            {!item?.receipt?.source ? (
+                <Icon
+                    src={Expensicons.Receipt}
+                    height={16}
+                    width={16}
+                    fill={theme.icon}
+                />
+            ) : (
+                <ReceiptImage
+                    source={item.receipt.source}
+                    isThumbnail
+                />
+            )}
+        </View>
+    )
 
     const rowButtonElement = (
         <Button
@@ -252,6 +272,7 @@ function TransactionListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )} */}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{receiptCell}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{dateElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>
                         <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{fromElement}</View>

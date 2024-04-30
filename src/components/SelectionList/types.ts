@@ -126,6 +126,8 @@ type ListItem = {
 
     managerID?: number;
 
+    receipt?: {source?: string};
+
     amount?: number;
 
     currency?: string;
