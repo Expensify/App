@@ -12,8 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -82,30 +81,29 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    testID={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
-                    <View style={styles.flex1}>
-                        <SelectionList
-                            containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
-                            sections={sections}
-                            ListItem={RadioListItem}
-                            onSelectRow={selectExportEntity}
-                            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                            footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
-                        />
-                    </View>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <HeaderWithBackButton title={translate('workspace.qbo.exportAs')} />
+                <View style={styles.flex1}>
+                    <SelectionList
+                        containerStyle={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.optionBelow')}</Text>}
+                        sections={sections}
+                        ListItem={RadioListItem}
+                        onSelectRow={selectExportEntity}
+                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                        footerContent={isTaxesEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+                    />
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

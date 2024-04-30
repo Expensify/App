@@ -19,6 +19,7 @@ import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
@@ -43,7 +44,7 @@ const useIsFocused = () => {
     return isFocused || (topmostCentralPane?.name === SCREENS.SEARCH.CENTRAL_PANE && isSmallScreenWidth);
 };
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatar' | 'name'>;
+type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatar' | 'name' | 'id'>;
 
 type FloatingActionButtonAndPopoverOnyxProps = {
     /** The list of policies the user has access to. */
@@ -87,6 +88,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
     (policy && {
         type: policy.type,
         role: policy.role,
+        id: policy.id,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
         avatar: policy.avatar,
@@ -177,6 +179,7 @@ function FloatingActionButtonAndPopover(
     const {isOffline} = useNetwork();
 
     const {canUseSpotnanaTravel} = usePermissions();
+    const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
         if (quickActionReport) {
@@ -330,7 +333,9 @@ function FloatingActionButtonAndPopover(
                                           ),
                                       );
                                       if (!hasSeenTrackTraining && !isOffline) {
-                                          Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                          setTimeout(() => {
+                                              Navigation.navigate(ROUTES.TRACK_TRAINING_MODAL);
+                                          }, CONST.ANIMATED_TRANSITION);
                                       }
                                   },
                               },
@@ -375,6 +380,23 @@ function FloatingActionButtonAndPopover(
                                 ),
                             ),
                     },
+                    ...(canSendInvoice
+                        ? [
+                              {
+                                  icon: Expensicons.InvoiceGeneric,
+                                  text: translate('workspace.invoices.sendInvoice'),
+                                  onSelected: () =>
+                                      interceptAnonymousUser(() =>
+                                          IOU.startMoneyRequest(
+                                              CONST.IOU.TYPE.INVOICE,
+                                              // When starting to create an invoice from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
+                                              // for all of the routes in the creation flow.
+                                              ReportUtils.generateReportID(),
+                                          ),
+                                      ),
+                              },
+                          ]
+                        : []),
                     {
                         icon: Expensicons.Task,
                         text: translate('newTaskPage.assignTask'),
