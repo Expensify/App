@@ -10,6 +10,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ReceiptImage from '@components/ReceiptImage';
+import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +50,7 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const theme = useTheme();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
 
@@ -71,8 +73,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const rowButtonElement = (
         <Button
-            success
-            text="View" // Todo add translate
+            text={translate('common.view')} // Todo add translate
             onPress={() => {
                 onSelectRow(item);
             }}
