@@ -892,11 +892,11 @@ function navigateToAndOpenReport(
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
     optimisticReportID?: string,
+    isGroupChat?: boolean,
 ) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
-    const isGroupChat = participantAccountIDs.length > 1;
 
     // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
     if (!isGroupChat) {
