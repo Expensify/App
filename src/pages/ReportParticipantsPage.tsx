@@ -236,7 +236,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
                 icon: Expensicons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.MEMBER),
-            })
+            });
         }
 
         const isAtleastOneMemberSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
@@ -247,7 +247,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
                 icon: Expensicons.MakeAdmin,
                 onSelected: () => changeUserRole(CONST.REPORT.ROLE.ADMIN),
-            })
+            });
         }
 
         return options;
