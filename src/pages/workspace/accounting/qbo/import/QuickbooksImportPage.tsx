@@ -8,8 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -58,47 +57,49 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             title: syncLocations,
             pendingAction: pendingFields?.syncLocations,
         },
-        {
+    ];
+
+    if (policy?.connections?.quickbooksOnline.data.country !== CONST.COUNTRY.US) {
+        sections.push({
             description: translate('workspace.qbo.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTaxes),
             title: syncTaxes,
             pendingAction: pendingFields?.syncTaxes,
-        },
-    ];
+        });
+    }
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={QuickbooksImportPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={QuickbooksImportPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.import')} />
-                    <ScrollView contentContainerStyle={styles.pb2}>
-                        <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
-                        {sections.map((section) => (
-                            <OfflineWithFeedback
-                                key={section.description}
-                                pendingAction={section.pendingAction}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={quickbooksOnlineConfigTitles[`${section.title ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`]}
-                                    description={section.description}
-                                    shouldShowRightIcon
-                                    onPress={section.action}
-                                    brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                />
-                            </OfflineWithFeedback>
-                        ))}
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <HeaderWithBackButton title={translate('workspace.qbo.import')} />
+                <ScrollView contentContainerStyle={styles.pb2}>
+                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
+                    {sections.map((section) => (
+                        <OfflineWithFeedback
+                            key={section.description}
+                            pendingAction={section.pendingAction}
+                        >
+                            <MenuItemWithTopDescription
+                                title={quickbooksOnlineConfigTitles[`${section.title ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE}`]}
+                                description={section.description}
+                                shouldShowRightIcon
+                                onPress={section.action}
+                                brickRoadIndicator={section.hasError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            />
+                        </OfflineWithFeedback>
+                    ))}
+                </ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
