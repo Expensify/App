@@ -11,6 +11,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import ROUTES from '@src/ROUTES';
+import getTripIllustrationStyle from './getTripIllustrationStyle';
 
 const tripsFeatures: FeatureListItem[] = [
     {
@@ -27,6 +28,7 @@ function ManageTrips() {
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const illustrationStyle = getTripIllustrationStyle();
 
     return (
         <ScrollView contentContainerStyle={styles.pt3}>
@@ -41,7 +43,7 @@ function ManageTrips() {
                         Navigation.navigate(ROUTES.TRAVEL_TCS);
                     }}
                     illustration={LottieAnimations.Plane}
-                    illustrationStyle={styles.travelIllustrationStyle}
+                    illustrationStyle={illustrationStyle}
                     illustrationBackgroundColor={colors.blue600}
                     titleStyles={styles.textHeadlineH1}
                     contentPaddingOnLargeScreens={styles.p5}
