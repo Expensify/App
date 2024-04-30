@@ -116,6 +116,7 @@ export default {
         buttonConfirm: 'Ok, entendido',
         name: 'Nombre',
         attachment: 'Archivo adjunto',
+        from: 'De',
         to: 'A',
         optional: 'Opcional',
         new: 'Nuevo',
@@ -318,6 +319,8 @@ export default {
             subtitleText3: '.',
         },
         businessName: 'Nombre de la empresa',
+        type: 'Tipo',
+        action: 'Acción',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
