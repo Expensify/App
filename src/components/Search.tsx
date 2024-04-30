@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -87,8 +88,11 @@ function Search({query}: SearchProps) {
 
     return (
         <SelectionList
-            canSelectMultiple
-            customListHeader={<SearchTableHeader />}
+            customListHeader={(
+                <View style={[styles.ph5, styles.pb3]}>
+                    <SearchTableHeader />
+                </View>
+            )}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
