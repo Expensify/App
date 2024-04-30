@@ -1535,7 +1535,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {flex: 1};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
-                columnWidth = {width: 106};
+                columnWidth = {width: 110};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TO:
                 columnWidth = {width: 110};

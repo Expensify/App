@@ -75,22 +75,26 @@ function TransactionListItem<TItem extends ListItem>({
     const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
 
     const rowButtonElement = (
-        <Button
-            text={translate('common.view')} // Todo add translate
-            onPress={() => {
-                onSelectRow(item);
-            }}
-            small
-            pressOnEnter
-        />
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
+            <Button
+                text={translate('common.view')} // Todo add translate
+                onPress={() => {
+                    onSelectRow(item);
+                }}
+                small
+                pressOnEnter
+            />
+        </View>
     );
 
     const amountElement = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={CurrencyUtils.convertToDisplayString(item.amount, item.currency)}
-            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
-        />
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
+            <TextWithTooltip
+                shouldShowTooltip={showTooltip}
+                text={CurrencyUtils.convertToDisplayString(item.amount, item.currency)}
+                style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
+            />
+        </View>
     );
 
     const categoryElement = (
@@ -110,36 +114,51 @@ function TransactionListItem<TItem extends ListItem>({
     );
 
     const descriptionElement = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={item?.comment?.comment ?? ''}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-        />
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>
+            <TextWithTooltip
+                shouldShowTooltip={showTooltip}
+                text={item?.comment?.comment ?? ''}
+                style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+            />
+        </View>
     );
 
     const dateElement = (
-        <TextWithTooltip
-            shouldShowTooltip={showTooltip}
-            text={item?.created ? format(new Date(item.created), 'MMM dd') : ''}
-            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
-        />
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
+            <TextWithTooltip
+                shouldShowTooltip={showTooltip}
+                text={item?.created ? format(new Date(item.created), 'MMM dd') : ''}
+                style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+            />
+        </View>
     );
 
-    const userElement = (userDetails: OnyxEntry<PersonalDetails>) => (
-        <View style={[styles.flexRow, styles.flex1, styles.gap1, styles.alignItemsCenter]}>
-            <Avatar
-                imageStyles={[styles.alignSelfCenter]}
-                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                source={userDetails?.avatar}
-                name={userDetails?.displayName}
-                type={CONST.ICON_TYPE_WORKSPACE}
+    const typeElement = (
+        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE), styles.alignItemsCenter]}>
+            <Icon
+                src={typeIcon}
+                fill={theme.icon}
             />
-            <Text
-                numberOfLines={1}
-                style={[styles.flex1, styles.flexGrow1, styles.textMicroBold]}
-            >
-                {userDetails?.displayName}
-            </Text>
+        </View>
+    )
+
+    const userElement = (userDetails: OnyxEntry<PersonalDetails>, columnName: string) => (
+        <View style={[StyleUtils.getSearchTableColumnStyles(columnName)]}>
+            <View style={[styles.flexRow, styles.flex1, styles.gap1, styles.alignItemsCenter]}>
+                <Avatar
+                    imageStyles={[styles.alignSelfCenter]}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    source={userDetails?.avatar}
+                    name={userDetails?.displayName}
+                    type={CONST.ICON_TYPE_WORKSPACE}
+                />
+                <Text
+                    numberOfLines={1}
+                    style={[styles.flex1, styles.flexGrow1, styles.textMicroBold]}
+                >
+                    {userDetails?.displayName}
+                </Text>
+            </View>
         </View>
     );
 
@@ -247,20 +266,13 @@ function TransactionListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )} */}
                     <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateElement}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>{descriptionElement}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userElement(accountDetails)}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userElement(managerDetails)}</View>
-                        {/* <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{tagElement}</View> */}
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{amountElement}</View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE), styles.alignItemsCenter]}>
-                            <Icon
-                                src={typeIcon}
-                                fill={theme.icon}
-                            />
-                        </View>
-                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{rowButtonElement}</View>
+                        {dateElement}
+                        {descriptionElement}
+                        {userElement(accountDetails, CONST.SEARCH_TABLE_COLUMNS.FROM)}
+                        {userElement(managerDetails, CONST.SEARCH_TABLE_COLUMNS.TO)}
+                        {amountElement}
+                        {typeElement}
+                        {rowButtonElement}
                     </View>
                 </>
             )}
