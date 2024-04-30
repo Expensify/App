@@ -411,7 +411,6 @@ function ReportScreen({
             return;
         }
 
-        console.log('fetch report', report);
         fetchReport();
     }, [report, fetchReport, reportIDFromRoute]);
 
