@@ -400,6 +400,9 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.TAGS_EDIT]: {
                             path: ROUTES.WORKSPACE_EDIT_TAGS.route,
+                            parse: {
+                                order: (order: string) => decodeURIComponent(order),
+                            },
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
                             path: ROUTES.WORKSPACE_TAG_CREATE.route,

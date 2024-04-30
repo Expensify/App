@@ -18,7 +18,7 @@ function RightElementRequiredStatus({required}: RightElementRequiredStatusProps)
 
     return (
         <View style={styles.flexRow}>
-            {!!required && <Text style={[styles.alignSelfCenter, styles.textSupporting, styles.pl2, styles.label]}>{translate('workspace.common.required')}</Text>}
+            {!!required && <Text style={[styles.alignSelfCenter, styles.textSupporting, styles.pl2, styles.label]}>{translate('common.required')}</Text>}
             <View style={[styles.p1, styles.pl2]}>
                 <Icon
                     src={Expensicons.ArrowRight}

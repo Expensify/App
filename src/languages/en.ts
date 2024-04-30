@@ -1846,7 +1846,6 @@ export default {
             disabled: 'Disabled',
             delete: 'Delete workspace',
             settings: 'Settings',
-            required: 'Required',
             reimburse: 'Reimbursements',
             categories: 'Categories',
             tags: 'Tags',

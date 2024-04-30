@@ -219,7 +219,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAGS_EDIT]: {
         policyID: string;
-        tagName: string;
+        order: string;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;

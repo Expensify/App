@@ -10,11 +10,14 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,10 +25,12 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -63,7 +68,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '';
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const currentTagName = PolicyUtils.getTagListName(policyTags, +route.params.order);
+    const currentTagListName = PolicyUtils.getTagListName(policyTags, +route.params.order);
+    const currentPolicyTag = policyTags?.[currentTagListName];
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
@@ -78,7 +84,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policy) => policy.name === currentTagName), [currentTagName, policyTags]);
+    if (!currentPolicyTag) {
+        return <NotFoundPage />;
+    }
+
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policy) => policy.name === currentTagListName), [currentTagListName, policyTags]);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
@@ -126,14 +136,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
         </View>
     );
-
-    const navigateToTagsSettings = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
-    };
-
-    const navigateToCreateTagPage = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
-    };
 
     const navigateToTagSettings = (tag: PolicyOption) => {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
@@ -220,27 +222,16 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             );
         }
 
-        return (
-            <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                <Button
-                    medium
-                    success
-                    onPress={navigateToCreateTagPage}
-                    icon={Expensicons.Plus}
-                    text={translate('workspace.tags.addTag')}
-                    style={[styles.mr3, isSmallScreenWidth && styles.w50]}
-                />
-                {policyTags && (
-                    <Button
-                        medium
-                        onPress={navigateToTagsSettings}
-                        icon={Expensicons.Gear}
-                        text={translate('common.settings')}
-                        style={[isSmallScreenWidth && styles.w50]}
-                    />
-                )}
-            </View>
-        );
+        return null;
+    };
+
+    const updateWorkspaceTagRequired = (value: boolean) => {
+        // TODO after API command is added
+        return;
+    };
+
+    const navigateToEditTag = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight.toString()));
     };
 
     return (
@@ -254,7 +245,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 shouldEnableMaxHeight
                 testID={WorkspaceViewTagsPage.displayName}
             >
-                <HeaderWithBackButton title={currentTagName}>{getHeaderButtons()}</HeaderWithBackButton>
+                <HeaderWithBackButton title={currentTagListName}>{getHeaderButtons()}</HeaderWithBackButton>
                 <ConfirmModal
                     isVisible={deleteTagsConfirmModalVisible}
                     onConfirm={handleDeleteTags}
@@ -265,6 +256,32 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                {/* TODO add errors and offline feedback after API command is added */}
+                <OfflineWithFeedback>
+                    <View style={[styles.mt2, styles.mh5]}>
+                        <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text>{translate('common.required')}</Text>
+                            <Switch
+                                isOn={currentPolicyTag.required}
+                                accessibilityLabel={translate('workspace.tags.enableTag')}
+                                onToggle={updateWorkspaceTagRequired}
+                                // TODO: enable switch after API command is added
+                                disabled
+                            />
+                        </View>
+                    </View>
+                </OfflineWithFeedback>
+                <OfflineWithFeedback
+                    errors={currentPolicyTag.errors}
+                    pendingAction={currentPolicyTag.pendingAction}
+                >
+                    <MenuItemWithTopDescription
+                        title={PolicyUtils.getCleanedTagName(currentPolicyTag.name)}
+                        description={translate(`workspace.tags.customTagName`)}
+                        onPress={navigateToEditTag}
+                        shouldShowRightIcon
+                    />
+                </OfflineWithFeedback>
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
