@@ -491,6 +491,10 @@ function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
+function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
+    return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
+}
+
 /**
  * Check if the transaction has a non-smartscanning receipt and is missing required fields
  */
@@ -606,6 +610,13 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
     );
 }
 
+/**
+ * Checks if any violations for the provided transaction are of type 'notice'
+ */
+function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
+}
+
 function getTransactionViolations(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): TransactionViolation[] | null {
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID] ?? null;
 }
@@ -691,6 +702,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    didRceiptScanSucceed,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -711,6 +723,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
 };
