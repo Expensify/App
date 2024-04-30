@@ -3350,7 +3350,7 @@ const styles = (theme: ThemeColors) =>
         shortTermsBorder: {
             borderWidth: 1,
             borderColor: theme.border,
-            borderRadius: 5,
+            borderRadius: variables.componentBorderRadius,
         },
 
         shortTermsHorizontalRule: {

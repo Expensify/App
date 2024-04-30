@@ -32,7 +32,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={[styles.shortTermsRow, styles.mb4]}>
                     <View style={[styles.flex2]}>
                         <View style={[styles.flexRow, styles.mb1]}>
-                            <Text style={[styles.textLabel, styles.textSupporting]}>{translate('termsStep.monthlyFee')}</Text>
+                            <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.monthlyFee')}</Text>
                         </View>
                         <View style={styles.flexRow}>
                             <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
@@ -41,7 +41,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                     <View style={[styles.flex2]}>
                         <View style={[styles.flex2]}>
                             <View style={[styles.flexRow, styles.mb1]}>
-                                <Text style={[styles.textLabel, styles.textSupporting]}>{translate('termsStep.shortTermsForm.perPurchase')}</Text>
+                                <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.shortTermsForm.perPurchase')}</Text>
                             </View>
                             <View style={styles.flexRow}>
                                 <Text style={styles.shortTermsHeadline}>{CurrencyUtils.convertToDisplayString(0, 'USD')}</Text>
@@ -53,7 +53,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                 <View style={[styles.shortTermsRow, styles.mb6]}>
                     <View style={styles.flex2}>
                         <View style={[styles.flexRow, styles.mb1]}>
-                            <Text style={[styles.textLabel, styles.textSupporting]}>{translate('termsStep.shortTermsForm.atmWithdrawal')}</Text>
+                            <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.shortTermsForm.atmWithdrawal')}</Text>
                         </View>
                         <View style={styles.flexRow}>
                             <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>
@@ -71,7 +71,7 @@ function ShortTermsForm(props: ShortTermsFormProps) {
                     <View style={[styles.flex2]}>
                         <View style={[styles.flex2]}>
                             <View style={[styles.flexRow, styles.mb1]}>
-                                <Text style={[styles.textLabel, styles.textSupporting]}>{translate('termsStep.shortTermsForm.cashReload')}</Text>
+                                <Text style={styles.mutedNormalTextLabel}>{translate('termsStep.shortTermsForm.cashReload')}</Text>
                             </View>
                             <View style={styles.flexRow}>
                                 <Text style={styles.shortTermsHeadline}>{translate('common.na')}</Text>

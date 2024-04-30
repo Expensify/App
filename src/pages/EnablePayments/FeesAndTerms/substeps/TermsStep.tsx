@@ -103,7 +103,7 @@ function TermsStep() {
                 message={errorMessage}
                 isAlertVisible={error || Boolean(errorMessage)}
                 isLoading={!!walletTerms?.isLoading}
-                containerStyles={[styles.mh0, styles.mv4]}
+                containerStyles={[styles.mh0, styles.mv5]}
             />
         </View>
     );
