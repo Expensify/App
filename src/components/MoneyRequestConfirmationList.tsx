@@ -422,14 +422,17 @@ function MoneyRequestConfirmationList({
         () => ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([payeePersonalDetails.accountID], personalDetails), false),
         [payeePersonalDetails.accountID, personalDetails],
     );
-    const payeeIcons = [
-        {
-            source: UserUtils.getAvatar(payeePersonalDetails.avatar, payeePersonalDetails.accountID) ?? '',
-            name: payeePersonalDetails.login ?? '',
-            type: CONST.ICON_TYPE_AVATAR,
-            id: payeePersonalDetails.accountID,
-        },
-    ];
+    const payeeIcons = useMemo(
+        () => [
+            {
+                source: UserUtils.getAvatar(payeePersonalDetails.avatar, payeePersonalDetails.accountID) ?? '',
+                name: payeePersonalDetails.login ?? '',
+                type: CONST.ICON_TYPE_AVATAR,
+                id: payeePersonalDetails.accountID,
+            },
+        ],
+        [payeePersonalDetails.accountID, payeePersonalDetails.avatar, payeePersonalDetails.login],
+    );
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
 
