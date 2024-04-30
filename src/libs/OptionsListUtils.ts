@@ -1455,8 +1455,18 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             }
 
             const isSelfDM = ReportUtils.isSelfDM(report);
-            // For selfDM we need to add the currentUser as participants.
-            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number).filter(accountID => accountID !== currentUserAccountID);
+            let accountIDs = [];
+
+            if (isSelfDM) {
+                // For selfDM we need to add the currentUser as participants.
+                accountIDs = [currentUserAccountID ?? 0];
+            } else {
+                accountIDs = Object.keys(report.participants ?? {}).map(Number);
+                if (ReportUtils.isOneOnOneChat(report)) {
+                    // For 1:1 chat, we don't want to include currentUser as participants
+                    accountIDs = accountIDs.filter(accountID => accountID !== currentUserAccountID);
+                }
+            }
 
             if (!accountIDs || accountIDs.length === 0) {
                 return;
@@ -1676,8 +1686,18 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        // For selfDM we need to add the currentUser as participants.
-        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number).filter(accountID => accountID !== currentUserAccountID);
+        let accountIDs = [];
+
+        if (isSelfDM) {
+            // For selfDM we need to add the currentUser as participants.
+            accountIDs = [currentUserAccountID ?? 0];
+        } else {
+            accountIDs = Object.keys(report.participants ?? {}).map(Number);
+            if (ReportUtils.isOneOnOneChat(report)) {
+                // For 1:1 chat, we don't want to include currentUser as participants
+                accountIDs = accountIDs.filter(accountID => accountID !== currentUserAccountID);
+            }
+        }
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
