@@ -423,13 +423,14 @@ function MenuItem(
     /**
      * Converts the given HTML text to Markdown and truncates it to the specified limit.
      * If the text is truncated, an ellipsis is added at the end.
-     * 
-     * @param htmlText 
-     * @param limit 
-     * @param addEllipsis 
-     * @returns 
+     *
+     * @param htmlText
+     * @param limit
+     * @param addEllipsis
+     * @returns
      */
     const truncateHTML = (htmlText: string, limit: number, addEllipsis = true) => {
+        console.log(title);
         const parser = new ExpensiMark();
         const markdownText = parser.htmlToMarkdown(htmlText);
 
@@ -443,7 +444,7 @@ function MenuItem(
         let characterCount = 0;
         let overallIndex = 0;
 
-        // we want to loop through our markdown characters until we reach the limit, avoiding any symbols 
+        // we want to loop through our markdown characters until we reach the limit, avoiding any symbols
         // that are not part of the text (like links, images, block quote, etc.)
         // this makes it so that we don't count the markdown syntax characters towards the limit (it needs to be char specific limit)
         for (const char of markdownChars) {
