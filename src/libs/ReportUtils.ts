@@ -4983,7 +4983,7 @@ function shouldReportBeInOptionList({
             !isTaskReport(report) &&
             !isSelfDM(report) &&
             !isGroupChat(report) &&
-            !isInvoiceRoom(report)) &&
+            !isInvoiceRoom(report) &&
             // TODO: this shouldn't be necessary if the system report has participants list filled
             !isSystemChat(report))
     ) {
