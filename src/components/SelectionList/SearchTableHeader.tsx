@@ -20,17 +20,17 @@ function SearchTableHeader() {
     }
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.gap3]}>
-            <Text style={[styles.searchInputStyle, StyleUtils.getSearchTableColumnWidth(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{translate('common.date')}</Text>
-            {showMerchantColumn && <Text style={[styles.searchInputStyle]}>{translate('common.merchant')}</Text>}
-            <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.description')}</Text>
-            <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.from')}</Text>
-            <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.to')}</Text>
+        <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.pl4]}>
+            <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{translate('common.date')}</Text>
+            {showMerchantColumn && <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{translate('common.merchant')}</Text>}
+            <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>{translate('common.description')}</Text>
+            <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{translate('common.from')}</Text>
+            <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{translate('common.to')}</Text>
             {/* <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.category')}</Text>
             <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.tag')}</Text> */}
-            <Text style={[styles.searchInputStyle, styles.flex1, styles.textAlignRight]}>{translate('common.total')}</Text>
-            <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.type')}</Text>
-            <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.action')}</Text>
+            <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{translate('common.total')}</Text>
+            <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{translate('common.type')}</Text>
+            <Text style={[styles.mutedNormalTextLabel, StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{translate('common.action')}</Text>
         </View>
     );
 }

@@ -1522,10 +1522,31 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getSearchTableColumnWidth: (columnName: string) => {
+    getSearchTableColumnStyles: (columnName: string) => {
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH_TABLE_COLUMNS.DATE:
+                columnWidth = {width: 40};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
+                columnWidth = {width: 40};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION:
+                columnWidth = {minWidth: 120};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.FROM:
+                columnWidth = {width: 40};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TO:
+                columnWidth = {width: 40};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
+                columnWidth = {width: 40};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TYPE:
+                columnWidth = {width: 40};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.ACTION:
                 columnWidth = {width: 40};
                 break;
             default:

@@ -918,6 +918,13 @@ const CONST = {
     },
     SEARCH_TABLE_COLUMNS: {
         DATE: 'date',
+        MERCHANT: 'merchant',
+        DESCRIPTION: 'description',
+        FROM: 'from',
+        TO: 'to',
+        TOTAL: 'total',
+        TYPE: 'type',
+        ACTION: 'action',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

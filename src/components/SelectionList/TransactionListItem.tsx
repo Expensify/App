@@ -261,21 +261,21 @@ function TransactionListItem<TItem extends ListItem>({
                             </View>
                         </PressableWithFeedback>
                     )} */}
-                    <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.justifyContentCenter]}>
-                        <View style={[styles.justifyContentCenter, StyleUtils.getSearchTableColumnWidth(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateElement}</View>
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>
-                        <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{fromElement}</View>
-                        <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{toElement}</View>
+                    <View style={[styles.flex1, styles.flexRow, styles.gap3]}>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateElement}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DESCRIPTION)]}>{descriptionElement}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{fromElement}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{toElement}</View>
                         {/* <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{tagElement}</View> */}
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsEnd]}>{amountElement}</View>
-                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{amountElement}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>
                             <Icon
                                 src={typeIcon}
                                 fill={theme.icon}
                             />
                         </View>
-                        <View style={[styles.flex1]}>{rowButtonElement}</View>
+                        <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{rowButtonElement}</View>
                     </View>
                 </>
             )}
