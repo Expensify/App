@@ -1940,7 +1940,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNScreens (3.30.1):
+  - RNScreens (3.31.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1954,13 +1954,14 @@ PODS:
     - React-ImageManager
     - React-NativeModulesApple
     - React-RCTFabric
+    - React-RCTImage
     - React-rendererdebug
     - React-utils
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 3.30.1)
+    - RNScreens/common (= 3.31.1)
     - Yoga
-  - RNScreens/common (3.30.1):
+  - RNScreens/common (3.31.1):
     - glog
     - hermes-engine
     - RCT-Folly (= 2022.05.16.00)
@@ -1974,6 +1975,7 @@ PODS:
     - React-ImageManager
     - React-NativeModulesApple
     - React-RCTFabric
+    - React-RCTImage
     - React-rendererdebug
     - React-utils
     - ReactCommon/turbomodule/bridging
@@ -2045,24 +2047,9 @@ PODS:
   - SocketRocket (0.6.1)
   - Turf (2.7.0)
   - VisionCamera (4.0.0-beta.13):
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2022.05.16.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Codegen
+    - React
+    - React-callinvoker
     - React-Core
-    - React-debug
-    - React-Fabric
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -2562,7 +2549,7 @@ SPEC CHECKSUMS:
   RNPermissions: 8990fc2c10da3640938e6db1647cb6416095b729
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 605409e0d0ced6f2e194ae585fedc2f8a1935bf2
-  RNScreens: 65a936f4e227b91e4a8e2a7d4c4607355bfefda0
+  RNScreens: e5204ceff1851ebae11578a43071358d37057a30
   RNShare: 2a4cdfc0626ad56b0ef583d424f2038f772afe58
   RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: db32cfcad0a221fd175e0882eff7bcba7690380a
@@ -2572,7 +2559,7 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: af09429398d99d524cae2fe00f6f0f6e491ed102
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
-  VisionCamera: 8c5c9c50b3d76018782a823cee2f0b8b628c8604
+  VisionCamera: 9f26224fce1233ffdad9fa4e56863e3de2190dc0
   Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
