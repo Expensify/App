@@ -95,6 +95,7 @@ function ReportFooter({
     const isSystemChat = ReportUtils.isSystemChat(report);
     const isAdminsOnlyPostingRoom = ReportUtils.isAdminsOnlyPostingRoom(report);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
+
     const allPersonalDetails = usePersonalDetails();
 
     const handleCreateTask = useCallback(
@@ -167,7 +168,6 @@ function ReportFooter({
                             shouldShowIcon
                         />
                     )}
-                    {!canWriteInReport && <SystemChatReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}
