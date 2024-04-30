@@ -1,8 +1,8 @@
 diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
-index dbd6d0b..1d043f2 100644
+index bf149f9..2d3441b 100644
 --- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
 +++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
-@@ -188,7 +188,7 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
+@@ -190,7 +190,7 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
  
      private fun setInitialCamera() {
          mDefaultStop?.let {
