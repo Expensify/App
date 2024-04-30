@@ -420,17 +420,32 @@ function MenuItem(
         }
     };
 
-    const truncateMarkdown = (htmlText: string, limit: number, addEllipsis = true) => {
+    /**
+     * Converts the given HTML text to Markdown and truncates it to the specified limit.
+     * If the text is truncated, an ellipsis is added at the end.
+     * 
+     * @param htmlText 
+     * @param limit 
+     * @param addEllipsis 
+     * @returns 
+     */
+    const truncateHTML = (htmlText: string, limit: number, addEllipsis = true) => {
         const parser = new ExpensiMark();
         const markdownText = parser.htmlToMarkdown(htmlText);
+
+        // if the text is already shorter than the limit, return it as is
         if (markdownText.length <= limit) {
-            return markdownText;
+            return htmlText;
         }
 
+        // here, we want to split the markdown by character, so that we are consistent with our character slicing
         const markdownChars = markdownText.split('');
         let characterCount = 0;
         let overallIndex = 0;
 
+        // we want to loop through our markdown characters until we reach the limit, avoiding any symbols 
+        // that are not part of the text (like links, images, block quote, etc.)
+        // this makes it so that we don't count the markdown syntax characters towards the limit (it needs to be char specific limit)
         for (const char of markdownChars) {
             if (/[a-zA-Z\s\n]/.test(char)) {
                 characterCount++;
@@ -441,6 +456,7 @@ function MenuItem(
             }
         }
 
+        // now that we have the index of the last character, we can slice the markdown text
         let truncatedText = markdownText.substring(0, overallIndex);
 
         // Avoid cutting the text in the middle of a Markdown element (like [link](url))
@@ -597,7 +613,7 @@ function MenuItem(
                                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                                 {!!title && (shouldRenderAsHTML || (shouldParseTitle && !!html.length)) && (
                                                     <View style={styles.renderHTMLTitle}>
-                                                        <RenderHTML html={truncateMarkdown(processedTitle, maxDescLength)} />
+                                                        <RenderHTML html={truncateHTML(processedTitle, maxDescLength)} />
                                                     </View>
                                                 )}
                                                 {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
