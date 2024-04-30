@@ -32,6 +32,22 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
         Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR, value);
     };
 
+    const navigateToSelectCompanyCardExpense = () => {
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID));
+    };
+
+    const navigateToSelectCompanyCardExpenseAccount = () => {
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID));
+    };
+
+    const navigateToSelectCompanyCardExpenseAccountPayable = () => {
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT.getRoute(policyID));
+    };
+
+    const closeQBOErrors = () => {
+        Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR);
+    };
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -50,7 +66,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                             title={exportCompanyCard ? translate(`workspace.qbo.${exportCompanyCard}`) : undefined}
                             description={translate('workspace.qbo.exportCompany')}
                             error={errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
+                            onPress={navigateToSelectCompanyCardExpense}
                             brickRoadIndicator={errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
                         />
@@ -65,7 +81,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                     title={exportAccountPayable}
                                     description={translate('workspace.qbo.accountsPayable')}
                                     error={errorFields?.exportAccountPayable ? translate('common.genericErrorMessage') : undefined}
-                                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT.getRoute(policyID))}
+                                    onPress={navigateToSelectCompanyCardExpenseAccountPayable}
                                     brickRoadIndicator={errorFields?.exportAccountPayable ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     shouldShowRightIcon
                                 />
@@ -76,7 +92,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                                 title={translate('workspace.qbo.defaultVendor')}
                                 wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                                 isActive={Boolean(autoCreateVendor)}
-                                onCloseError={() => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_CREATE_VENDOR)}
+                                onCloseError={closeQBOErrors}
                                 onToggle={updateAutoCreateVendor}
                                 pendingAction={pendingFields?.autoCreateVendor}
                             />
@@ -87,7 +103,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                             <MenuItemWithTopDescription
                                 title={exportCompanyCardAccount}
                                 description={isVendorSelected ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
-                                onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
+                                onPress={navigateToSelectCompanyCardExpenseAccount}
                                 brickRoadIndicator={errorFields?.exportCompanyCardAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 shouldShowRightIcon
                                 error={errorFields?.exportCompanyCardAccount ? translate('common.genericErrorMessage') : undefined}
