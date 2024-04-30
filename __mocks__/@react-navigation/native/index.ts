@@ -6,5 +6,4 @@ const useIsFocused: typeof realUseIsFocused = process.env.NODE_ENV === 'test' ? 
 const useTheme = process.env.NODE_ENV === 'test' ? realUseTheme : () => ({});
 
 export * from '@react-navigation/core';
-export * from '@react-navigation/native';
 export {useIsFocused, useTheme};
