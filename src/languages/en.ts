@@ -1922,7 +1922,7 @@ export default {
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
             [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'Credit card',
             [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
-            bill: 'Vendor bill',
+            [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Vendor bill',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
@@ -1946,7 +1946,8 @@ export default {
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
             [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
             optionBelow: 'Choose an option below:',
-            billError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+            [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
+                'Vendor Bills are not available when locations are enabled. Please select a different export option.',
             checkError: 'Check is not available when locations are enabled. Please select a different export option.',
             [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
             companyCardsLocationEnabledDescription:
