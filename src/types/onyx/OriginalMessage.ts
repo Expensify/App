@@ -317,7 +317,7 @@ type OriginalMessageDismissedViolation = {
         reason: string;
         violationName: string;
     };
-}
+};
 
 type OriginalMessage =
     | OriginalMessageApproved
