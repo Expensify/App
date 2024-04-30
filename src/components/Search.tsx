@@ -61,7 +61,7 @@ function Search({query}: SearchProps) {
     const cleanResults = getCleanSearchResults(searchResults);
 
     useEffect(() => {
-        SearchUtils.addPersonalDetailsFromSearch(cleanResults?.personalDetailsList ?? {});
+        SearchActions.addPersonalDetailsFromSearch(cleanResults?.personalDetailsList ?? {});
     }, [cleanResults]);
 
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || cleanResults === undefined;

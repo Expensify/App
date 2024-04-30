@@ -1,4 +1,3 @@
-import Onyx, {OnyxEntry} from 'react-native-onyx';
 import TransactionListItem from '@components/SelectionList/TransactionListItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -34,8 +33,4 @@ function getQueryHash(query: string): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-function addPersonalDetailsFromSearch(personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>) {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-}
-
-export {getQueryHash, getListItem, getSections, addPersonalDetailsFromSearch};
+export {getListItem, getQueryHash, getSections};
