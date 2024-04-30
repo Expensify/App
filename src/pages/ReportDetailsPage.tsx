@@ -315,7 +315,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                         </View>
                     </View>
                     {shouldShowReportDescription && (
-                        <OfflineWithFeedback style={{flex: 1}} pendingAction={report.pendingFields?.description}>
+                        <OfflineWithFeedback
+                            style={{flex: 1}}
+                            pendingAction={report.pendingFields?.description}
+                        >
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={canEditReportDescription}
                                 interactive={canEditReportDescription}

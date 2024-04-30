@@ -427,7 +427,6 @@ function MenuItem(
             return markdownText;
         }
 
-
         const markdownChars = markdownText.split('');
         let characterCount = 0;
         let overallIndex = 0;
@@ -473,7 +472,7 @@ function MenuItem(
         return parser.replace(truncatedText);
     };
 
-    const maxDescLength = 300;
+    const maxDescLength = 280;
 
     return (
         <View>
