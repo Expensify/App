@@ -242,7 +242,7 @@ describe('ValidationUtils', () => {
         });
 
         test('room name with 101 characters', () => {
-            expect(ValidationUtils.isValidRoomName('#1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890')).toBe(false);
+            expect(ValidationUtils.isValidRoomName('#12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901')).toBe(false);
         });
 
         test('room name with lowercase letters, numbers, and dashes', () => {
