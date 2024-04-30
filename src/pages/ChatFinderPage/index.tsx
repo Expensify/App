@@ -179,7 +179,6 @@ function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPa
                 textInputHint={offlineMessage}
                 onChangeText={setSearchValue}
                 headerMessage={headerMessage}
-                headerMessageStyle={headerMessage === translate('common.noResultsFound') ? [themeStyles.ph4, themeStyles.pb5] : undefined}
                 onLayout={setPerformanceTimersEnd}
                 onSelectRow={selectReport}
                 showLoadingPlaceholder={!areOptionsInitialized || !isScreenTransitionEnd}
