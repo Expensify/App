@@ -39,7 +39,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             description: translate('workspace.qbo.date'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: exportDate ? translate(`workspace.qbo.${exportDate}.label`) : undefined,
+            title: exportDate ? translate(`workspace.qbo.exportDate.values.${exportDate}.label`) : undefined,
             pendingAction: pendingFields?.exportDate,
             error: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
         },

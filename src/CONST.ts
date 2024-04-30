@@ -4698,9 +4698,9 @@ const CONST = {
     },
 
     QUICKBOOKS_EXPORT_DATE: {
-        LAST_EXPENSE: 'lastExpense',
-        EXPORTED_DATE: 'exportedDate',
-        SUBMITTED_DATA: 'submittedData',
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
     QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE: {
