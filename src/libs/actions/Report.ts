@@ -59,6 +59,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {NetworkStatus} from '@libs/NetworkConnection';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -71,6 +72,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import {doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import type {OptimisticAddCommentReportAction} from '@libs/ReportUtils';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
+import * as UserUtils from '@libs/UserUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingPurposeType} from '@src/CONST';
@@ -207,10 +209,12 @@ Onyx.connect({
 });
 
 let isNetworkOffline = false;
+let networkStatus: NetworkStatus;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (value) => {
         isNetworkOffline = value?.isOffline ?? false;
+        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
     },
 });
 
@@ -446,7 +450,7 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     if (text && !file) {
-        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text);
+        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -455,13 +459,13 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file);
+        const attachment = ReportUtils.buildOptimisticAddCommentReportAction(text, file, undefined, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
     }
 
     if (text && file) {
         // When there is both text and a file, the text for the report comment needs to be parsed)
-        reportCommentText = ReportUtils.getParsedComment(text ?? '');
+        reportCommentText = ReportUtils.getParsedComment(text ?? '', {reportID});
 
         // And the API command needs to go to the new API which supports combining both text and attachments in a single report action
         commandName = WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT;
@@ -738,7 +742,7 @@ function openReport(
     if (ReportUtils.isGroupChat(newReportObject)) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
         parameters.groupChatAdminLogins = currentUserEmail;
-        parameters.optimisticAccountIDList = participantAccountIDList.join(',');
+        parameters.optimisticAccountIDList = Object.keys(newReportObject.participants ?? {}).join(',');
         parameters.reportName = newReportObject.reportName ?? '';
 
         // If we have an avatar then include it with the parameters
@@ -820,6 +824,7 @@ function openReport(
             optimisticPersonalDetails[accountID] = allPersonalDetails?.[accountID] ?? {
                 login,
                 accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
                 isOptimisticPersonalDetail: true,
             };
@@ -1169,11 +1174,6 @@ function saveReportDraftComment(reportID: string, comment: string | null) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, prepareDraftComment(comment));
 }
 
-/** Saves the number of lines for the comment */
-function saveReportCommentNumberOfLines(reportID: string, numberOfLines: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`, numberOfLines);
-}
-
 /** Broadcasts whether or not a user is typing on a report over the report's private pusher channel. */
 function broadcastUserIsTyping(reportID: string) {
     const privateReportChannelName = getReportChannelName(reportID);
@@ -1504,11 +1504,6 @@ function deleteReportActionDraft(reportID: string, reportAction: ReportAction) {
 function saveReportActionDraft(reportID: string, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
-}
-
-/** Saves the number of lines for the report action draft */
-function saveReportActionDraftNumberOfLines(reportID: string, reportActionID: string, numberOfLines: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}_${reportActionID}`, numberOfLines);
 }
 
 function updateNotificationPreference(
@@ -1849,7 +1844,7 @@ function updateDescription(reportID: string, previousValue: string, newValue: st
         return;
     }
 
-    const parsedDescription = ReportUtils.getParsedComment(newValue);
+    const parsedDescription = ReportUtils.getParsedComment(newValue, {reportID});
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -2404,7 +2399,7 @@ function openReportFromDeepLink(url: string) {
         openReport(reportID, '', [], {}, '0', true);
 
         // Show the sign-in page if the app is offline
-        if (isNetworkOffline) {
+        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
             Onyx.set(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, false);
         }
     } else {
@@ -2467,11 +2462,13 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
     const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
+        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '');
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
         if (!isChatThread) {
-            Navigation.goBack();
+            // Fallback to the lastAccessedReportID route, if this is first route in the navigator
+            Navigation.goBack(lastAccessedReportRoute);
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
+        Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
@@ -2658,18 +2655,17 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                pendingChatMembers:
-                    pendingChatMembers.map((pendingChatMember) => {
-                        if (!inviteeAccountIDs.includes(Number(pendingChatMember.accountID))) {
-                            return pendingChatMember;
-                        }
-                        return {
-                            ...pendingChatMember,
-                            errors: ErrorUtils.getMicroSecondOnyxError('roomMembersPage.error.genericAdd'),
-                        };
-                    }) ?? null,
+                participantAccountIDs: report.participantAccountIDs,
+                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
+                participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
+                    // eslint-disable-next-line no-param-reassign
+                    revertedParticipants[accountID] = null;
+                    return revertedParticipants;
+                }, {}),
+                pendingChatMembers: report?.pendingChatMembers ?? null,
             },
         },
+        ...newPersonalDetailsOnyxData.finallyData,
     ];
 
     if (ReportUtils.isGroupChat(report)) {
@@ -2690,20 +2686,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(WRITE_COMMANDS.INVITE_TO_ROOM, parameters, {optimisticData, successData, failureData});
-}
-
-function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
-    const report = currentReportData?.[reportID];
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        pendingChatMembers: report?.pendingChatMembers?.filter((pendingChatMember) => pendingChatMember.accountID !== invitedAccountID),
-        participantAccountIDs: report?.parentReportActionIDs?.filter((parentReportActionID) => parentReportActionID !== Number(invitedAccountID)),
-        participants: {
-            [invitedAccountID]: null,
-        },
-    });
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [invitedAccountID]: null,
-    });
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
@@ -3722,7 +3704,6 @@ export {
     unsubscribeFromReportChannel,
     unsubscribeFromLeavingRoomReportChannel,
     saveReportDraftComment,
-    saveReportCommentNumberOfLines,
     broadcastUserIsTyping,
     broadcastUserIsLeavingRoom,
     togglePinnedState,
@@ -3730,7 +3711,6 @@ export {
     handleUserDeletedLinksInHtml,
     deleteReportActionDraft,
     saveReportActionDraft,
-    saveReportActionDraftNumberOfLines,
     deleteReportComment,
     navigateToConciergeChat,
     addPolicyReport,
@@ -3792,5 +3772,4 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
-    clearAddRoomMemberError,
 };
