@@ -80,7 +80,6 @@ import ReportActionItemMessageEdit from './ReportActionItemMessageEdit';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import ReportAttachmentsContext from './ReportAttachmentsContext';
-import {getDismissedViolationMessageText} from "@libs/ReportActionsUtils";
 
 const getDraftMessage = (drafts: OnyxCollection<OnyxTypes.ReportActionsDrafts>, reportID: string, action: OnyxTypes.ReportAction): string | undefined => {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, action);

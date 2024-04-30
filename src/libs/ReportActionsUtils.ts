@@ -21,6 +21,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {TranslationPaths} from '@src/languages/types';
 import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -30,7 +31,6 @@ import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
 import * as TransactionUtils from './TransactionUtils';
-import type {TranslationPaths} from '@src/languages/types';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
