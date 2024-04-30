@@ -1937,7 +1937,7 @@ export default {
             exportExpensifyCard: 'Exportar las transacciones de las tarjetas Expensify como',
             exportDate: {
                 label: 'Fecha de exportación',
-                description: 'Usar esta fecha al exportar informe a QuickBooks Online.',
+                description: 'Usa esta fecha al exportar informe a QuickBooks Online.',
                 values: {
                     [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
                         label: 'Fecha del último gasto',
