@@ -83,10 +83,11 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
+                accountID={policy?.id ?? ''}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [policy?.avatar, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [policy?.avatar, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -97,7 +98,6 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
         }
 
         Policy.deleteWorkspace(policy?.id, policyName);
-        PolicyUtils.goBackFromInvalidPolicy();
         setIsDeleteModalOpen(false);
 
         // If the workspace being deleted is the active workspace, switch to the "All Workspaces" view

@@ -1,27 +1,28 @@
 import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories, PolicyTagList, Transaction, TransactionViolation} from '@src/types/onyx';
 
 const categoryOutOfPolicyViolation = {
     name: 'categoryOutOfPolicy',
-    type: 'violation',
+    type: CONST.VIOLATION_TYPES.VIOLATION,
 };
 
 const missingCategoryViolation = {
     name: 'missingCategory',
-    type: 'violation',
+    type: CONST.VIOLATION_TYPES.VIOLATION,
 };
 
 const tagOutOfPolicyViolation = {
     name: 'tagOutOfPolicy',
-    type: 'violation',
+    type: CONST.VIOLATION_TYPES.VIOLATION,
 };
 
 const missingTagViolation = {
     name: 'missingTag',
-    type: 'violation',
+    type: CONST.VIOLATION_TYPES.VIOLATION,
 };
 
 describe('getViolationsOnyxData', () => {
@@ -53,8 +54,8 @@ describe('getViolationsOnyxData', () => {
 
     it('should handle multiple violations', () => {
         transactionViolations = [
-            {name: 'duplicatedTransaction', type: 'violation'},
-            {name: 'receiptRequired', type: 'violation'},
+            {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
+            {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
         ];
         const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
         expect(result.value).toEqual(expect.arrayContaining(transactionViolations));
@@ -84,11 +85,17 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(categoryOutOfPolicyViolation);
         });
 
+        it('should not add a category violation when the transaction is partial', () => {
+            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, category: undefined};
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).not.toContainEqual(missingCategoryViolation);
+        });
+
         it('should add categoryOutOfPolicy violation to existing violations if they exist', () => {
             transaction.category = 'Bananas';
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation'},
-                {name: 'receiptRequired', type: 'violation'},
+                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
+                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
@@ -99,8 +106,8 @@ describe('getViolationsOnyxData', () => {
         it('should add missingCategory violation to existing violations if they exist', () => {
             transaction.category = undefined;
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation'},
-                {name: 'receiptRequired', type: 'violation'},
+                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
+                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
@@ -161,11 +168,17 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual([]);
         });
 
+        it('should not add a tag violation when the transaction is partial', () => {
+            const partialTransaction = {...transaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, tag: undefined};
+            const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
+            expect(result.value).not.toContainEqual(missingTagViolation);
+        });
+
         it('should add tagOutOfPolicy violation to existing violations if transaction has tag that is not in the policy', () => {
             transaction.tag = 'Bananas';
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation'},
-                {name: 'receiptRequired', type: 'violation'},
+                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
+                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
@@ -176,8 +189,8 @@ describe('getViolationsOnyxData', () => {
         it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
             transaction.tag = undefined;
             transactionViolations = [
-                {name: 'duplicatedTransaction', type: 'violation'},
-                {name: 'receiptRequired', type: 'violation'},
+                {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION},
+                {name: 'receiptRequired', type: CONST.VIOLATION_TYPES.VIOLATION},
             ];
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
@@ -211,7 +224,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                     required: true,
-                    orderWeight: 1,
+                    orderWeight: 2,
                 },
                 Region: {
                     name: 'Region',
@@ -222,7 +235,7 @@ describe('getViolationsOnyxData', () => {
                         },
                     },
                     required: true,
-                    orderWeight: 2,
+                    orderWeight: 1,
                 },
                 Project: {
                     name: 'Project',
@@ -240,7 +253,7 @@ describe('getViolationsOnyxData', () => {
         it('should return someTagLevelsRequired when a required tag is missing', () => {
             const someTagLevelsRequiredViolation = {
                 name: 'someTagLevelsRequired',
-                type: 'violation',
+                type: CONST.VIOLATION_TYPES.VIOLATION,
                 data: {
                     errorIndexes: [0, 1, 2],
                 },
@@ -251,25 +264,25 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has 1 tag
-            transaction.tag = 'Accounting';
+            transaction.tag = 'Africa';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1, 2]};
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has 2 tags
-            transaction.tag = 'Accounting::Project1';
+            transaction.tag = 'Africa::Project1';
             someTagLevelsRequiredViolation.data = {errorIndexes: [1]};
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             expect(result.value).toEqual([someTagLevelsRequiredViolation]);
 
             // Test case where transaction has all tags
-            transaction.tag = 'Accounting:Africa:Project1';
+            transaction.tag = 'Africa:Accounting:Project1';
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             expect(result.value).toEqual([]);
         });
         it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
             policyTags.Department.tags.Accounting.enabled = false;
-            transaction.tag = 'Accounting:Africa:Project1';
+            transaction.tag = 'Africa:Accounting:Project1';
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policyRequiresTags, policyTags, policyRequiresCategories, policyCategories);
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
             expect(result.value).toEqual([violation]);

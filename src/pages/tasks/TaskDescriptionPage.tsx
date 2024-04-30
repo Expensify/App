@@ -17,10 +17,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import variables from '@styles/variables';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,8 +47,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            // report.description might contain CRLF from the server
-            if (StringUtils.normalizeCRLF(values.description) !== StringUtils.normalizeCRLF(report?.description) && !isEmptyObject(report)) {
+            if (parser.htmlToMarkdown(parser.replace(values.description)) !== parser.htmlToMarkdown(parser.replace(report?.description ?? '')) && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
                 Task.editTask(report, {description: values.description});
@@ -120,8 +119,9 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>

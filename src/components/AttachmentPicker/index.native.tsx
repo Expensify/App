@@ -1,11 +1,12 @@
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, Image as RNImage, View} from 'react-native';
+import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
+import ImageSize from 'react-native-image-size';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -235,7 +236,10 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
 
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
-            if (fileData.width === -1 || fileData.height === -1) {
+            // Check if the file dimensions indicate corruption
+            // The width/height for a corrupted file is -1 on android native and 0 on ios native
+            // We must check only numeric values because the width/height can be undefined for non-image files
+            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }
@@ -281,16 +285,18 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
             };
             /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
             if (fileDataName && Str.isImage(fileDataName)) {
-                RNImage.getSize(fileDataUri, (width, height) => {
-                    fileDataObject.width = width;
-                    fileDataObject.height = height;
-                    validateAndCompleteAttachmentSelection(fileDataObject);
-                });
+                ImageSize.getSize(fileDataUri)
+                    .then(({width, height}) => {
+                        fileDataObject.width = width;
+                        fileDataObject.height = height;
+                        validateAndCompleteAttachmentSelection(fileDataObject);
+                    })
+                    .catch(() => showImageCorruptionAlert());
             } else {
                 return validateAndCompleteAttachmentSelection(fileDataObject);
             }
         },
-        [validateAndCompleteAttachmentSelection],
+        [validateAndCompleteAttachmentSelection, showImageCorruptionAlert],
     );
 
     /**

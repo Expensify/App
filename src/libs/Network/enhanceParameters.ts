@@ -36,8 +36,5 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     finalParameters.isFromDevEnv = Environment.isDevelopment();
 
-    // idempotencyKey declared in JS is front-end-only. We delete it here so it doesn't interfere with idempotency in other layers.
-    delete finalParameters.idempotencyKey;
-
     return finalParameters;
 }

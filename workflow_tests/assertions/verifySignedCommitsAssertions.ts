@@ -14,4 +14,4 @@ function assertVerifySignedCommitsJobExecuted(workflowResult: Step[], didExecute
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {assertVerifySignedCommitsJobExecuted};
+export default {assertVerifySignedCommitsJobExecuted};

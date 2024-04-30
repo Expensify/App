@@ -54,4 +54,4 @@ function assertShellTestsJobExecuted(workflowResult: Step[], didExecute = true) 
     });
 }
 
-export {assertJestJobExecuted, assertShellTestsJobExecuted};
+export default {assertJestJobExecuted, assertShellTestsJobExecuted};

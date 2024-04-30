@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -9,8 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import * as PolicyActions from '@userActions/Policy';
@@ -25,15 +24,10 @@ type WorkspaceOwnerChangeWrapperPageProps = WithPolicyOnyxProps & StackScreenPro
 function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWrapperPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isTransitioning, setIsTransitioning] = useState(false);
 
     const policyID = route.params.policyID;
     const accountID = route.params.accountID;
     const error = route.params.error;
-
-    useEffect(() => {
-        setIsTransitioning(true);
-    }, []);
 
     useEffect(() => {
         if (!policy || policy?.isLoading) {
@@ -60,38 +54,34 @@ function WorkspaceOwnerChangeWrapperPage({route, policy}: WorkspaceOwnerChangeWr
     }, [accountID, policy, policy?.errorFields?.changeOwner, policyID]);
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper
-                    testID={WorkspaceOwnerChangeWrapperPage.displayName}
-                    onEntryTransitionEnd={() => {
-                        setIsTransitioning(false);
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+        >
+            <ScreenWrapper testID={WorkspaceOwnerChangeWrapperPage.displayName}>
+                <HeaderWithBackButton
+                    title={translate('workspace.changeOwner.changeOwnerPageTitle')}
+                    onBackButtonPress={() => {
+                        PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
+                        Navigation.goBack();
+                        Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
                     }}
-                >
-                    <HeaderWithBackButton
-                        title={translate('workspace.changeOwner.changeOwnerPageTitle')}
-                        onBackButtonPress={() => {
-                            PolicyActions.clearWorkspaceOwnerChangeFlow(policyID);
-                            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
-                        }}
-                    />
-                    <View style={[styles.containerWithSpaceBetween, styles.ph5, error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.pb0 : styles.pb5]}>
-                        {(policy?.isLoading ?? isTransitioning) && <FullScreenLoadingIndicator />}
-                        {!policy?.isLoading &&
-                            !isTransitioning &&
-                            (error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? (
-                                <WorkspaceOwnerPaymentCardForm policy={policy} />
-                            ) : (
-                                <WorkspaceOwnerChangeCheck
-                                    policy={policy}
-                                    accountID={accountID}
-                                    error={error}
-                                />
-                            ))}
-                    </View>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                />
+                <View style={[styles.containerWithSpaceBetween, styles.ph5, error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? styles.pb0 : styles.pb5]}>
+                    {policy?.isLoading && <FullScreenLoadingIndicator />}
+                    {!policy?.isLoading &&
+                        (error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD ? (
+                            <WorkspaceOwnerPaymentCardForm policy={policy} />
+                        ) : (
+                            <WorkspaceOwnerChangeCheck
+                                policy={policy}
+                                accountID={accountID}
+                                error={error}
+                            />
+                        ))}
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

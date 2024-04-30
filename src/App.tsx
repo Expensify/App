@@ -22,6 +22,7 @@ import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvide
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
+import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullScreenContext';
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
@@ -31,6 +32,7 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import Expensify from './Expensify';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import {ReportIDsContextProvider} from './hooks/useReportIDs';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
@@ -77,7 +79,9 @@ function App({url}: AppProps) {
                         CustomStatusBarAndBackgroundContextProvider,
                         ActiveElementRoleProvider,
                         ActiveWorkspaceContextProvider,
+                        ReportIDsContextProvider,
                         PlaybackContextProvider,
+                        FullScreenContextProvider,
                         VolumeContextProvider,
                         VideoPopoverMenuContextProvider,
                     ]}

@@ -19,6 +19,7 @@ import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
+import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
@@ -89,7 +90,7 @@ type Styles = Record<
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone: Pick<ViewStyle, 'WebkitTouchCallout'> = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 // to prevent vertical text offset in Safari for badges, new lineHeight values have been added
-const lineHeightBadge: Pick<ViewStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
+const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = Browser.isSafari() ? {lineHeight: variables.lineHeightXSmall} : {lineHeight: variables.lineHeightNormal};
 
 const picker = (theme: ThemeColors) =>
     ({
@@ -256,6 +257,7 @@ const styles = (theme: ThemeColors) =>
         ...objectFit,
         ...textDecorationLine,
         editedLabelStyles,
+        emojiDefaultStyles,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -378,6 +380,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightLarge,
         },
 
+        mutedNormalTextLabel: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeLabel,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textMicro: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
@@ -430,6 +438,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeHero,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             lineHeight: variables.lineHeightHero,
+        },
+
+        textNewKansasNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeNormal,
         },
 
         textStrong: {
@@ -523,6 +536,10 @@ const styles = (theme: ThemeColors) =>
 
         borderRadiusNormal: {
             borderRadius: variables.buttonBorderRadius,
+        },
+
+        borderRadiusComponentLarge: {
+            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         bottomTabBarContainer: {
@@ -836,16 +853,41 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        defaultBadge: {
+            backgroundColor: theme.transparent,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.buttonHoveredBG,
+            paddingHorizontal: 12,
+            minHeight: 28,
+            height: variables.iconSizeNormal,
+            flexDirection: 'row',
+            alignItems: 'center',
+        },
+
+        environmentBadge: {
+            minHeight: 12,
+            borderRadius: 14,
+            paddingHorizontal: 7,
+            minWidth: 22,
+            borderWidth: 0,
+        },
+
         badgeSuccess: {
+            borderColor: theme.success,
+        },
+
+        badgeEnvironmentSuccess: {
             backgroundColor: theme.success,
         },
 
         badgeSuccessPressed: {
-            backgroundColor: theme.successHover,
+            borderColor: theme.successHover,
         },
 
         badgeAdHocSuccess: {
             backgroundColor: theme.badgeAdHoc,
+            minWidth: 28,
         },
 
         badgeAdHocSuccessPressed: {
@@ -853,11 +895,15 @@ const styles = (theme: ThemeColors) =>
         },
 
         badgeDanger: {
+            borderColor: theme.danger,
+        },
+
+        badgeEnvironmentDanger: {
             backgroundColor: theme.danger,
         },
 
         badgeDangerPressed: {
-            backgroundColor: theme.dangerPressed,
+            borderColor: theme.dangerPressed,
         },
 
         badgeBordered: {
@@ -867,6 +913,14 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             paddingHorizontal: 12,
             minHeight: 28,
+        },
+
+        badgeSmall: {
+            backgroundColor: theme.border,
+            borderRadius: variables.componentBorderRadiusSmall,
+            borderColor: theme.border,
+            paddingHorizontal: 6,
+            minHeight: 20,
         },
 
         badgeText: {
@@ -1079,9 +1133,14 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
             height: '100%',
             backgroundColor: 'transparent',
+            overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
-            overflow: 'hidden',
+        },
+
+        textInputContainerBorder: {
+            borderBottomWidth: 2,
+            borderColor: theme.border,
         },
 
         textInputLabel: {
@@ -1092,6 +1151,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             width: '100%',
+            zIndex: 1,
         },
 
         textInputLabelBackground: {
@@ -1571,6 +1631,25 @@ const styles = (theme: ThemeColors) =>
                 right: 0,
             } satisfies ViewStyle),
 
+        onboardingNavigatorOuterView: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
+                height: shouldUseNarrowLayout ? 732 : '100%',
+                maxHeight: '100%',
+                borderRadius: shouldUseNarrowLayout ? 16 : 0,
+                overflow: 'hidden',
+            } satisfies ViewStyle),
+
+        welcomeVideoNarrowLayout: {
+            width: variables.onboardingModalWidth,
+        },
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,
@@ -1594,9 +1673,10 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionReportActionCompose: (windowHeight: number) =>
+        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
-                horizontal: 18 + variables.sideBarWidth,
+                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
+                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
@@ -1805,6 +1885,19 @@ const styles = (theme: ThemeColors) =>
                 }),
             } satisfies ViewStyle),
 
+        nativeOverlayStyles: (current: OverlayStylesParams) =>
+            ({
+                position: 'absolute',
+                backgroundColor: theme.overlay,
+                width: '100%',
+                height: '100%',
+                opacity: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, variables.overlayOpacity],
+                    extrapolate: 'clamp',
+                }),
+            } satisfies ViewStyle),
+
         appContent: {
             backgroundColor: theme.appBG,
             overflow: 'hidden',
@@ -1898,7 +1991,6 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             lineHeight: variables.lineHeightXLarge,
             maxWidth: '100%',
-            ...cursor.cursorAuto,
             ...whiteSpace.preWrap,
             ...wordBreak.breakWord,
         },
@@ -2238,7 +2330,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         avatarInnerText: {
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeSmall,
             lineHeight: undefined,
             marginLeft: -3,
@@ -2743,7 +2835,8 @@ const styles = (theme: ThemeColors) =>
             height: 1,
             backgroundColor: theme.border,
             flexGrow: 1,
-            marginHorizontal: 20,
+            marginLeft: 8,
+            marginRight: 20,
         },
 
         unreadIndicatorText: {
@@ -2751,6 +2844,12 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
             fontWeight: FontUtils.fontWeight.bold,
+            textTransform: 'capitalize',
+        },
+
+        threadDividerText: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
             textTransform: 'capitalize',
         },
 
@@ -2823,7 +2922,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         switchInactive: {
-            backgroundColor: theme.border,
+            backgroundColor: theme.icon,
         },
 
         switchThumb: {
@@ -2832,6 +2931,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 11,
             position: 'absolute',
             left: 4,
+            justifyContent: 'center',
+            alignItems: 'center',
             backgroundColor: theme.appBG,
         },
 
@@ -2849,6 +2950,11 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+
+        toggleSwitchLockIcon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
         },
 
         checkedContainer: {
@@ -2898,11 +3004,25 @@ const styles = (theme: ThemeColors) =>
                 ...headlineFont,
                 fontSize: variables.iouAmountTextSize,
                 color: theme.heading,
-                padding: 0,
                 lineHeight: undefined,
+                paddingHorizontal: 0,
+                paddingVertical: 0,
+                borderTopLeftRadius: 0,
+                borderBottomLeftRadius: 0,
+                borderTopRightRadius: 0,
+                borderBottomRightRadius: 0,
             },
             0,
         ),
+
+        iouAmountTextInputContainer: {
+            borderWidth: 0,
+            borderBottomWidth: 0,
+            borderTopLeftRadius: 0,
+            borderBottomLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomRightRadius: 0,
+        },
 
         moneyRequestConfirmationAmount: {
             ...headlineFont,
@@ -3153,8 +3273,18 @@ const styles = (theme: ThemeColors) =>
             marginLeft: 3,
         },
 
-        autoGrowHeightMultilineInput: {
-            maxHeight: 115,
+        workspaceRightColumn: {
+            marginLeft: 124,
+        },
+
+        workspaceThreeDotMenu: {
+            marginLeft: 84,
+        },
+
+        workspaceListBadge: {
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            marginTop: 6,
         },
 
         peopleRow: {
@@ -3204,6 +3334,15 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
+        },
+
+        emptyLHNWrapper: {
+            marginBottom: variables.bottomTabHeight,
+        },
+
+        emptyLHNAnimation: {
+            width: 180,
+            height: 180,
         },
 
         locationErrorLinkText: {
@@ -3278,30 +3417,10 @@ const styles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
-        floatingMessageCounterWrapperAndroid: {
-            left: 0,
-            width: '100%',
-            alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            zIndex: 100,
-            ...visibility.hidden,
-        },
-
-        floatingMessageCounterSubWrapperAndroid: {
-            left: '50%',
-            width: 'auto',
-        },
-
         floatingMessageCounter: {
             left: '-50%',
             ...visibility.visible,
         },
-
-        floatingMessageCounterTransformation: (translateY: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}],
-            } satisfies ViewStyle),
 
         confirmationAnimation: {
             height: 180,
@@ -3898,6 +4017,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: 7,
             fontWeight: FontUtils.fontWeight.bold,
             lineHeight: undefined,
+            color: theme.textLight,
         },
 
         expensifyQrLogo: {
@@ -4014,6 +4134,18 @@ const styles = (theme: ThemeColors) =>
             zIndex: -1,
         },
 
+        purposeMenuItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: 8,
+            paddingHorizontal: 8,
+            alignItems: 'center',
+            marginBottom: 8,
+        },
+
+        purposeMenuItemSelected: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
         willChangeTransform: {
             willChange: 'transform',
         },
@@ -4023,9 +4155,14 @@ const styles = (theme: ThemeColors) =>
             paddingLeft: 0,
         },
 
-        dropDownButtonArrowContain: {
+        dropDownMediumButtonArrowContain: {
             marginLeft: 12,
-            marginRight: 14,
+            marginRight: 16,
+        },
+
+        dropDownLargeButtonArrowContain: {
+            marginLeft: 16,
+            marginRight: 20,
         },
 
         dropDownButtonCartIconView: {
@@ -4160,17 +4297,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        moneyRequestHeaderStatusBarBadge: {
-            width: 68,
-            height: variables.inputHeightSmall,
-            borderRadius: variables.componentBorderRadiusSmall,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.border,
-            marginRight: 12,
-        },
-
         staticHeaderImage: {
             minHeight: 240,
         },
@@ -4186,6 +4312,11 @@ const styles = (theme: ThemeColors) =>
 
         emojiStatusLHN: {
             fontSize: 9,
+        },
+
+        onboardingVideoPlayer: {
+            borderRadius: 12,
+            backgroundColor: theme.highlightBG,
         },
 
         sidebarStatusAvatarContainer: {
@@ -4383,6 +4514,11 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 4,
         },
 
+        walletCardLimit: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
@@ -4460,6 +4596,26 @@ const styles = (theme: ThemeColors) =>
 
         singleOptionSelectorCircle: {
             borderColor: theme.icon,
+        },
+
+        headerProgressBarContainer: {
+            position: 'absolute',
+            width: '100%',
+            zIndex: -1,
+        },
+
+        headerProgressBar: {
+            width: variables.componentSizeMedium,
+            height: variables.iconSizeXXXSmall,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.border,
+            alignSelf: 'center',
+        },
+
+        headerProgressBarFill: {
+            borderRadius: variables.componentBorderRadiusRounded,
+            height: '100%',
+            backgroundColor: theme.success,
         },
 
         interactiveStepHeaderContainer: {
@@ -4592,6 +4748,8 @@ const styles = (theme: ThemeColors) =>
             fontWeight: '700',
             lineHeight: 16,
             color: theme.white,
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
         },
 
         volumeSliderContainer: {

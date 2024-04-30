@@ -41,8 +41,17 @@ type ReportActionsListProps = WithCurrentUserPersonalDetailsProps & {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
+    /** The transaction thread report associated with the current report, if any */
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+
+    /** Array of report actions for the current report */
+    reportActions: OnyxTypes.ReportAction[];
+
     /** The report's parentReportAction */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
+
+    /** The transaction thread report's parentReportAction */
+    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** Sorted actions prepared for display */
     sortedReportActions: OnyxTypes.ReportAction[];
@@ -125,6 +134,8 @@ const onScrollToIndexFailed = () => {};
 
 function ReportActionsList({
     report,
+    transactionThreadReport,
+    reportActions = [],
     parentReportAction,
     isLoadingInitialReportActions = false,
     isLoadingOlderReportActions = false,
@@ -140,6 +151,7 @@ function ReportActionsList({
     listID,
     onContentSizeChange,
     shouldEnableAutoScrollToTopThreshold,
+    parentReportActionForTransactionThread,
 }: ReportActionsListProps) {
     const personalDetailsList = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const styles = useThemeStyles();
@@ -189,7 +201,8 @@ function ReportActionsList({
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
     const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
-
+    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
     const isLastPendingActionIsDelete = sortedReportActions?.[0]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -314,14 +327,13 @@ function ReportActionsList({
         (isFromCurrentUser: boolean) => {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
-            if (!isFromCurrentUser || !hasNewestReportAction) {
+            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [hasNewestReportAction, reportScrollManager],
+        [reportScrollManager],
     );
-
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
@@ -340,12 +352,10 @@ function ReportActionsList({
         const unsubscribe = Report.subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
         const cleanup = () => {
-            if (unsubscribe) {
-                unsubscribe();
+            if (!unsubscribe) {
+                return;
             }
-            InteractionManager.runAfterInteractions(() => {
-                Report.unsubscribeFromReportChannel(report.reportID);
-            });
+            unsubscribe();
         };
 
         newActionUnsubscribeMap[report.reportID] = cleanup;
@@ -424,7 +434,7 @@ function ReportActionsList({
                 shouldDisplay = isCurrentMessageUnread && (!nextMessage || !isMessageUnread(nextMessage, lastReadTimeRef.current)) && !ReportActionsUtils.shouldHideNewMarker(reportAction);
                 if (shouldDisplay && !messageManuallyMarkedUnread) {
                     const isWithinVisibleThreshold = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < (userActiveSince.current ?? '') : true;
-                    // Prevent displaying a new marker line when report action is of type "REPORTPREVIEW" and last actor is the current user
+                    // Prevent displaying a new marker line when report action is of type "REPORT_PREVIEW" and last actor is the current user
                     shouldDisplay =
                         (ReportActionsUtils.isReportPreviewAction(reportAction) ? !reportAction.childLastActorAccountID : reportAction.actorAccountID) !== Report.getCurrentUserAccountID() &&
                         isWithinVisibleThreshold;
@@ -456,10 +466,10 @@ function ReportActionsList({
                 setCurrentUnreadMarker(reportAction.reportActionID);
             }
         });
-        if (!markerFound) {
+        if (!markerFound && !linkedReportActionID) {
             setCurrentUnreadMarker(null);
         }
-    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker]);
+    }, [sortedVisibleReportActions, report.reportID, shouldDisplayNewMarker, currentUnreadMarker, linkedReportActionID]);
 
     useEffect(() => {
         calculateUnreadMarker();
@@ -514,17 +524,33 @@ function ReportActionsList({
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => (
             <ReportActionsListItemRenderer
                 reportAction={reportAction}
+                reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 index={index}
                 report={report}
+                transactionThreadReport={transactionThreadReport}
                 linkedReportActionID={linkedReportActionID}
                 displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index)}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
+                shouldDisplayReplyDivider={sortedReportActions.length > 1}
             />
         ),
-        [report, linkedReportActionID, sortedVisibleReportActions, mostRecentIOUReportActionID, shouldHideThreadDividerLine, shouldDisplayNewMarker, parentReportAction],
+        [
+            report,
+            linkedReportActionID,
+            sortedVisibleReportActions,
+            sortedReportActions.length,
+            mostRecentIOUReportActionID,
+            shouldHideThreadDividerLine,
+            shouldDisplayNewMarker,
+            parentReportAction,
+            reportActions,
+            transactionThreadReport,
+            parentReportActionForTransactionThread,
+        ],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
