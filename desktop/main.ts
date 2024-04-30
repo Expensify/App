@@ -130,8 +130,8 @@ const quitAndInstallWithUpdate = () => {
 
 /** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWindow) => {
-    // Disable item until the check (and download) is complete
     if (menuItem) {
+        // Disable item until the check (and download) is complete
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
