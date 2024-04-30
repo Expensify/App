@@ -30,14 +30,15 @@ To see how much money you can save (and even earn!) by using the Expensify Card,
 {% include faq-begin.md %}
 
 ## What if we put less than 50% of our total spend on the Expensify Card?
-If you spend less than 50% of your total USD on your Expensify Card, your bill gets discounted on a sliding scale based on the percentage of use. So, if you don't use the Expensify Card at all, you'll be charged the full rate for each member based on your plan and subscription.
+If less than 50% of your total USD spend is on the Expensify Card, the bill is discounted on a sliding scale.
+
 **Example:**
 - Annual subscription discount: 50%
 - % of Expensify Card spend (USD) across all workspaces: 20% 
 - Expensify Card discount: 20%
 
-You save 70% on the price per member on your bill for that month.
+In that case, you'd save 70% on the price per member for that month's bill.
 
-Note: USD spend refers to approved USD transactions on the Expensify Card in any given month, compared to all approved USD spending on workspaces in that same month.
+Note: USD spend refers to approved USD transactions on the Expensify Card in any given month.
 
 {% include faq-end.md %}
