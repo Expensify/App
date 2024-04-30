@@ -50,7 +50,7 @@ function TransactionListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {isMediumScreenWidth, isSmallScreen} = useWindowDimensions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
@@ -110,7 +110,7 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const displayNarrowVersion = isMediumScreenWidth || isSmallScreen;
+    const displayNarrowVersion = isSmallScreenWidth;
 
     if (displayNarrowVersion) {
         return (

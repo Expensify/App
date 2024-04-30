@@ -19,44 +19,21 @@ import SelectionList from './SelectionList';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 import Text from './Text';
 
-const mockData = [
-    {
-        receipt: {source: 'http...'},
-        hasEReceipt: false,
-        created: '2024-04-11 00:00:00',
-        amount: 12500,
-        type: 'cash',
-        reportID: '3632789879960357',
-        transactionThreadReportID: '3632789879960357',
-        transactionID: '1234',
-        modifiedCreated: '2024-05-06 00:00:00',
-        description: 'description description description description',
-        accountID: '8392101',
-        managerID: '8392101',
-        currency: 'USD',
-        modifiedCurrency: '',
-        category: 'Bananas',
-        tag: 'Green',
-    },
-    {
-        receipt: {source: 'http...'},
-        hasEReceipt: false,
-        created: '2024-04-11 00:00:00',
-        amount: 12500,
-        type: 'card', // not present in live data (data outside of snapshot_)
-        reportID: '5768873634031661',
-        transactionThreadReportID: '3632789879960357',
-        transactionID: '5555',
-        modifiedCreated: '2024-05-06 00:00:00',
-        description: 'description',
-        accountID: '8392101',
-        managerID: '8392101',
-        currency: 'USD',
-        modifiedCurrency: '',
-        category: 'Bananas',
-        tag: 'Green',
-    },
-];
+/**
+ * Todo This is a temporary function that will pick search results from under `snapshot_` key
+ * either api needs to be updated to key by `snapshot_hash` or app code calling search data needs to be refactored
+ * remove this function once this is properly fixed
+ */
+function getCleanSearchResults(searchResults: unknown) {
+    if (!searchResults) {
+        return {};
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    // eslint-disable-next-line no-underscore-dangle,@typescript-eslint/no-unsafe-return
+    return searchResults.snapshot_?.data;
+}
 
 type SearchProps = {
     query: string;
@@ -70,16 +47,23 @@ function Search({query}: SearchProps) {
     // const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     useCustomBackHandler();
 
-    const hash = SearchUtils.getQueryHash(query);
-    const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    // Todo bring back hash when api is updated
+    // const hash = SearchUtils.getQueryHash(query);
+    // const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}`);
 
     useEffect(() => {
-        SearchActions.search(query);
-    }, [query]);
+        if (isOffline) {
+            return;
+        }
 
-    const isLoading = !isOffline && isLoadingOnyxValue(searchResultsMeta);
-    // Todo remove using mock data once api is done
-    const shouldShowEmptyState = !isEmptyObject(searchResults) || !mockData;
+        SearchActions.search(query);
+    }, [query, isOffline]);
+
+    const cleanResults = getCleanSearchResults(searchResults);
+
+    const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || cleanResults === undefined;
+    const shouldShowEmptyState = !isLoading && isEmptyObject(cleanResults);
 
     if (isLoading) {
         return <TableListItemSkeleton shouldAnimate />;
@@ -115,19 +99,22 @@ function Search({query}: SearchProps) {
     };
 
     const openReport = (reportID?: string) => {
-        if (reportID) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
+        if (!reportID) {
+            return;
         }
+
+        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
     };
 
     const ListItem = SearchUtils.getListItem();
+    const data = SearchUtils.getSections(cleanResults ?? {});
 
     return (
         <SelectionList
             canSelectMultiple
             customListHeader={getListHeader()}
             ListItem={ListItem}
-            sections={[{data: mockData, isDisabled: false}]}
+            sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
                 openReport(item.transactionThreadReportID);
             }}
