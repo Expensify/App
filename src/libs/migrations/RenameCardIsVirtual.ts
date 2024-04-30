@@ -19,7 +19,7 @@ export default function () {
                     Log.info('[Migrate Onyx] Skipped migration RenameCardIsVirtual because there are no cards linked to the account');
                     return resolve();
                 }
-                const cardsWithIsVirtualProp = Object.values(cardList).filter((card) => card.isVirtual !== undefined);
+                const cardsWithIsVirtualProp = Object.values(cardList).filter((card) => card?.nameValuePairs?.isVirtual !== undefined);
                 if (!cardsWithIsVirtualProp.length) {
                     Log.info('[Migrate Onyx] Skipped migration RenameCardIsVirtual because there were no cards with the isVirtual property');
                     return resolve();
@@ -34,7 +34,7 @@ export default function () {
                         ...result,
                         [card.cardID]: {
                             nameValuePairs: {
-                                isVirtual: card.isVirtual,
+                                isVirtual: card?.nameValuePairs?.isVirtual,
                             },
                             isVirtual: undefined,
                         },
