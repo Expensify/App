@@ -1,4 +1,4 @@
-import React, {useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
+import DateUtils from '@libs/DateUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -32,13 +33,14 @@ import type {AnchorPosition} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {Policy, PolicyConnectionSyncProgress,Locale} from '@src/types/onyx';
 import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
+    preferredLocale: OnyxEntry<Locale>;
 };
 
 type PolicyAccountingPageProps = WithPolicyProps &
@@ -100,7 +102,7 @@ function accountingIntegrationData(
     }
 }
 
-function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccountingPageProps) {
+function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}: PolicyAccountingPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -108,11 +110,13 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
+    const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
+    const datetime = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate ?? '';
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -130,6 +134,18 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         ],
         [translate, policyID, isOffline],
     );
+
+    useEffect(() => {
+        const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
+        setDateTimeToRelative(DateUtils.datetimeToRelative(locale, datetime));
+        const interval = setInterval(() => {
+            setDateTimeToRelative(DateUtils.datetimeToRelative(locale, datetime));
+        }, 60 * 1000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, [datetime, preferredLocale]);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
@@ -159,9 +175,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
-                description: isSyncInProgress
-                    ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
-                    : translate('workspace.accounting.lastSync'),
+                description: isSyncInProgress ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress) : datetimeToRelative,
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
@@ -225,6 +239,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         theme.spinner,
         threeDotsMenuPosition,
         translate,
+        datetimeToRelative,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -335,6 +350,9 @@ export default withPolicyConnections(
     withOnyx<PolicyAccountingPageProps, PolicyAccountingPageOnyxProps>({
         connectionSyncProgress: {
             key: (props) => `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${props.route.params.policyID}`,
+        },
+        preferredLocale: {
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     })(PolicyAccountingPage),
 );
