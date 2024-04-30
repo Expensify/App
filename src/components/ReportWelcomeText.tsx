@@ -40,7 +40,8 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
-    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
+    const isSystemDM = ReportUtils.isSystemChat(report);
+    const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom || isSystemDM);
     const participantAccountIDs = report?.participantAccountIDs ?? [];
     const isMultipleParticipant = participantAccountIDs.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
@@ -140,6 +141,11 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
                 {isSelfDM && (
                     <Text>
                         <Text>{translate('reportActionsView.beginningOfChatHistorySelfDM')}</Text>
+                    </Text>
+                )}
+                {isSystemDM && (
+                    <Text>
+                        <Text>{translate('reportActionsView.beginningOfChatHistorySystemDM')}</Text>
                     </Text>
                 )}
                 {isDefault && (

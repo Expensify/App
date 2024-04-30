@@ -1972,6 +1972,10 @@ function getIcons(
         return getIconsForParticipants([currentUserAccountID ?? 0], personalDetails);
     }
 
+    if (isSystemChat(report)) {
+        return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
+    }
+
     if (isGroupChat(report)) {
         const groupChatIcon = {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -3121,6 +3125,10 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
 
     if (isSelfDM(report)) {
         formattedName = getDisplayNameForParticipant(currentUserAccountID, undefined, undefined, true);
+    }
+
+    if (isSystemChat(report)) {
+        formattedName = getDisplayNameForParticipant(CONST.ACCOUNT_ID.NOTIFICATIONS);
     }
 
     if (isInvoiceRoom(report)) {
@@ -4973,8 +4981,6 @@ function shouldReportBeInOptionList({
         report?.reportName === undefined ||
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         report?.isHidden ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        report?.participantAccountIDs?.includes(CONST.ACCOUNT_ID.NOTIFICATIONS) ||
         (report?.participantAccountIDs?.length === 0 &&
             !isChatThread(report) &&
             !isPublicRoom(report) &&
@@ -5382,7 +5388,7 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
  */
 function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportParticipants: number[], canUseTrackExpense = true, filterDeprecatedTypes = false): IOUType[] {
     // In any thread or task report, we do not allow any new expenses yet
-    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report)) || isInvoiceRoom(report) || isInvoiceReport(report)) {
+    if (isChatThread(report) || isTaskReport(report) || (!canUseTrackExpense && isSelfDM(report)) || isInvoiceRoom(report) || isInvoiceReport(report) || isSystemChat(report)) {
         return [];
     }
 
