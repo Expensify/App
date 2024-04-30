@@ -1463,8 +1463,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             } else {
                 accountIDs = Object.keys(report.participants ?? {}).map(Number);
                 if (ReportUtils.isOneOnOneChat(report)) {
-                    // For 1:1 chat, we don't want to include currentUser as participants
-                    accountIDs = accountIDs.filter(accountID => accountID !== currentUserAccountID);
+                    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+                    accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
                 }
             }
 
@@ -1694,8 +1694,8 @@ function getOptions(
         } else {
             accountIDs = Object.keys(report.participants ?? {}).map(Number);
             if (ReportUtils.isOneOnOneChat(report)) {
-                // For 1:1 chat, we don't want to include currentUser as participants
-                accountIDs = accountIDs.filter(accountID => accountID !== currentUserAccountID);
+                // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+                accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
             }
         }
 
