@@ -13,7 +13,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
-import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
+import * as NetworkStore from './Network/NetworkStore';
+import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -29,7 +30,7 @@ Onyx.connect({
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
+function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
@@ -321,6 +322,38 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy> | EmptyObject, feature
     return Boolean(policy?.[featureName]);
 }
 
+function getApprovalWorkflow(policy: OnyxEntry<Policy> | EmptyObject): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+    if (policy?.type === CONST.POLICY.TYPE.PERSONAL) {
+        return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    }
+
+    return policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.ADVANCED;
+}
+
+function getDefaultApprover(policy: OnyxEntry<Policy> | EmptyObject): string {
+    return policy?.approver ?? policy?.owner ?? '';
+}
+
+/**
+ * Returns the accountID to whom the given employeeAccountID submits reports to in the given Policy.
+ */
+function getSubmitToAccountID(policy: OnyxEntry<Policy> | EmptyObject, employeeAccountID: number): number {
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID])[0];
+    const defaultApprover = getDefaultApprover(policy);
+
+    // For policy using the optional or basic workflow, the manager is the policy default approver.
+    if (([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy))) {
+        return getAccountIDsByLogins([defaultApprover])[0];
+    }
+
+    const employee = policy?.employeeList?.[employeeLogin];
+    if (!employee) {
+        return -1;
+    }
+
+    return getAccountIDsByLogins([employee.submitsTo ?? defaultApprover])[0];
+}
+
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
@@ -344,6 +377,17 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
         return {};
     }
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+}
+
+/** Return active policies where current user is an admin */
+function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
+    const activePolicies = getActivePolicies(policies);
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
+}
+
+/** Whether the user can send invoice */
+function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
+    return getActiveAdminWorkspaces(policies).length > 0;
 }
 
 export {
@@ -386,8 +430,11 @@ export {
     getTaxByID,
     hasPolicyCategoriesError,
     getPolicyIDFromNavigationState,
+    getSubmitToAccountID,
     getAdminEmployees,
     getPolicy,
+    getActiveAdminWorkspaces,
+    canSendInvoice,
 };
 
 export type {MemberEmailsToAccountIDs};
