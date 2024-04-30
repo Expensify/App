@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -69,7 +69,10 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policy?.id ?? ''}>
+        <AccessOrNotFoundWrapper
+            policyID={policy?.id ?? ''}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+        >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
@@ -111,7 +114,7 @@ function WorkspaceProfileDescriptionPage({policy}: Props) {
                     </View>
                 </FormProvider>
             </ScreenWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

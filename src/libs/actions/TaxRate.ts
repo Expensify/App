@@ -39,7 +39,7 @@ const validateTaxName = (policy: Policy, values: FormOnyxValues<typeof ONYXKEYS.
 
     const name = values[INPUT_IDS.NAME];
     if (policy?.taxRates?.taxes && ValidationUtils.isExistingTaxName(name, policy.taxRates.taxes)) {
-        errors[INPUT_IDS.NAME] = 'workspace.taxes.errors.taxRateAlreadyExists';
+        errors[INPUT_IDS.NAME] = 'workspace.taxes.error.taxRateAlreadyExists';
     }
 
     return errors;
@@ -53,7 +53,7 @@ const validateTaxValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE
 
     const value = values[INPUT_IDS.VALUE];
     if (!ValidationUtils.isValidPercentage(value)) {
-        errors[INPUT_IDS.VALUE] = 'workspace.taxes.errors.valuePercentageRange';
+        errors[INPUT_IDS.VALUE] = 'workspace.taxes.error.valuePercentageRange';
     }
 
     return errors;
@@ -123,7 +123,7 @@ function createPolicyTax(policyID: string, taxRate: TaxRate) {
                     taxRates: {
                         taxes: {
                             [taxRate.code]: {
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.createFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.createFailureMessage'),
                             },
                         },
                     },
@@ -231,7 +231,7 @@ function setPolicyTaxesEnabled(policyID: string, taxesIDsToUpdate: string[], isE
                             acc[taxID] = {
                                 isDisabled: !!originalTaxes[taxID].isDisabled,
                                 pendingFields: {isDisabled: null},
-                                errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.updateFailureMessage')},
+                                errorFields: {isDisabled: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
                             };
                             return acc;
                         }, {}),
@@ -312,7 +312,7 @@ function deletePolicyTaxes(policyID: string, taxesToDelete: string[]) {
                         taxes: taxesToDelete.reduce<TaxRateDeleteMap>((acc, taxID) => {
                             acc[taxID] = {
                                 pendingAction: null,
-                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.deleteFailureMessage'),
+                                errors: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.deleteFailureMessage'),
                             };
                             return acc;
                         }, {}),
@@ -376,7 +376,7 @@ function updatePolicyTaxValue(policyID: string, taxID: string, taxValue: number)
                             [taxID]: {
                                 value: originalTaxRate.value,
                                 pendingFields: {value: null},
-                                errorFields: {value: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.updateFailureMessage')},
+                                errorFields: {value: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },
@@ -438,7 +438,7 @@ function renamePolicyTax(policyID: string, taxID: string, newName: string) {
                             [taxID]: {
                                 name: originalTaxRate.name,
                                 pendingFields: {name: null},
-                                errorFields: {name: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.errors.updateFailureMessage')},
+                                errorFields: {name: ErrorUtils.getMicroSecondOnyxError('workspace.taxes.error.updateFailureMessage')},
                             },
                         },
                     },
