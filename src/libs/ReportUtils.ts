@@ -5064,7 +5064,6 @@ function shouldReportBeInOptionList({
 
 /**
  * Returns the system report from the list of reports.
- * TODO: this method may not be necessary if the participants list of the system report is filled correctly
  */
 function getSystemChat(): OnyxEntry<Report> {
     if (!allReports) {
