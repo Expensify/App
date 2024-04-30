@@ -12,15 +12,20 @@ import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {useOnyx} from 'react-native-onyx';
+import {isAnonymousUser} from '@libs/actions/Session';
 
 function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateAccountID, shiftHorizontal, children}: UserDetailsTooltipProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
     let userDisplayName = ReportUtils.getUserDetailTooltipText(accountID, userDetails.displayName ? userDetails.displayName.trim() : '');
-    let userLogin = userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
+    let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;
     let userAccountID = accountID;
