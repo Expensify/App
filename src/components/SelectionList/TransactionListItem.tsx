@@ -85,7 +85,7 @@ function TransactionListItem<TItem extends ListItem>({
     const amountElement = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={`${item.currency ? CurrencyUtils.getLocalizedCurrencySymbol(item?.currency) : ''}${item.amount}`}
+            text={CurrencyUtils.convertToDisplayString(item.amount, item.currency)}
             style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
         />
     );
