@@ -48,7 +48,7 @@ type ReportActionItemParentActionProps = {
     /** If this is the first visible report action */
     isFirstVisibleReportActionID: boolean;
 
-    /** IF the thread divider line will be used */
+    /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
 };
 
