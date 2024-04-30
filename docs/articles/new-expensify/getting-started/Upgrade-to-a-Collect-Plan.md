@@ -12,7 +12,8 @@ The Collect plan is an enhanced version of the Free Plan and unlocks several new
 - Invoicing and bill pay
 - Custom expense categories and tags
 - Multiple active expense reports at a time
-- Quickbooks Online + Xero integrations (coming soon)
+- Direct connection to Quickbooks Online
+- Direct connection to Xero (coming soon!)
 
 ## The upgrade comes at no extra cost until June 1st
 To give you time to try the upgraded plan, you won't be charged for another 30 days. 
@@ -20,8 +21,6 @@ To give you time to try the upgraded plan, you won't be charged for another 30 d
 Additionally, if you add a payment card by June 1st, you’ll qualify for a discount over the next year. The discount will be applied to your Expensify bill on a sliding scale for the first 12 months on the Collect plan.  
 
 If you have questions, contact your dedicated Setup Specialist using the #admins room, or email Expensify Support at concierge@expensify.com.
-
-# FAQs
 
 {% include faq-begin.md %}
 
@@ -35,7 +34,7 @@ Yes, but only if you want to continue using a workspace in Expensify. As always,
 
 **How does the sliding-scale discount work?**
 
-You’ll receive a discount on your Expensify bill that gradually decreases each month until you reach the full payment amount on June 1, 2025. For the first month, you’ll only pay 1/12 of the plan’s cost, and the price will gradually increase over the course of a year. 
+You’ll receive a discount on your Expensify bill that gradually decreases each month until you reach the full payment amount on June 1, 2025. For the first month, you’ll pay 1/12 of the Collect plan’s cost, and the price will gradually increase over the course of a year. 
 
 **Let's break that down:**
 - July 1: You'll receive a ~90% discount on your monthly bill
