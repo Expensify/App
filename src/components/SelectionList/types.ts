@@ -123,6 +123,24 @@ type ListItem = {
     badgeText?: string;
 
     brickRoadIndicator?: BrickRoad | '' | null;
+
+    managerID?: number;
+
+    amount?: number;
+
+    currency?: string;
+
+    tag?: string;
+
+    description?: string;
+
+    category?: string;
+
+    created?: string;
+
+    merchant?: string;
+
+    type?: string;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -367,22 +385,22 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
-    BaseSelectionListProps,
-    CommonListItemProps,
-    Section,
-    SectionWithIndexOffset,
     BaseListItemProps,
-    UserListItemProps,
-    RadioListItemProps,
-    TableListItemProps,
+    BaseSelectionListProps,
+    ButtonOrCheckBoxRoles,
+    CommonListItemProps,
+    FlattenedSectionsReturn,
     InviteMemberListItemProps,
-    TransactionListItemProps,
+    ItemLayout,
     ListItem,
     ListItemProps,
-    FlattenedSectionsReturn,
-    ItemLayout,
-    ButtonOrCheckBoxRoles,
+    RadioListItemProps,
+    Section,
     SectionListDataType,
+    SectionWithIndexOffset,
     SelectionListHandle,
+    TableListItemProps,
+    TransactionListItemProps,
+    UserListItemProps,
     ValidListItem,
 };

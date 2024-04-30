@@ -16,11 +16,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchTransaction, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
-import type {TransactionListItemProps} from './types';
+import type {ListItem, TransactionListItemProps} from './types';
 
-const getTypeIcon = (type: SearchTransactionType) => {
+const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
         case CONST.SEARCH_TRANSACTION_TYPE.CASH:
             return Expensicons.Cash;
@@ -33,7 +33,7 @@ const getTypeIcon = (type: SearchTransactionType) => {
     }
 };
 
-function TransactionListItem({
+function TransactionListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -43,10 +43,9 @@ function TransactionListItem({
     onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
-    rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
-}: TransactionListItemProps<SearchTransaction>) {
+}: TransactionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -56,7 +55,7 @@ function TransactionListItem({
     // const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     // const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
-    const typeIcon = getTypeIcon(item.type);
+    const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
     const handleCheckboxPress = useCallback(() => {
         if (onCheckboxPress) {
@@ -68,6 +67,9 @@ function TransactionListItem({
 
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
     const userFontStyle = displayNarrowVersion ? styles.textMicro : undefined;
+
+    const accountDetails = item.accountID ? personalDetails[item.accountID] : null;
+    const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
 
     const rowButtonElement = (
         <Button
@@ -84,7 +86,7 @@ function TransactionListItem({
     const amountElement = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={`${CurrencyUtils.getLocalizedCurrencySymbol(item.currency)}${item.amount}`}
+            text={`${item.currency ? CurrencyUtils.getLocalizedCurrencySymbol(item?.currency) : ''}${item.amount}`}
             style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -100,7 +102,7 @@ function TransactionListItem({
     const descriptionElement = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={item.description}
+            text={item?.description ?? ''}
             style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -108,7 +110,7 @@ function TransactionListItem({
     const dateElement = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={format(new Date(item.created), 'MMM dd')}
+            text={item?.created ? format(new Date(item.created), 'MMM dd') : ''}
             style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -118,15 +120,15 @@ function TransactionListItem({
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={CONST.AVATAR_SIZE.SMALL}
-                source={personalDetails[item.accountID]?.avatar}
-                name={personalDetails[item.accountID]?.displayName}
+                source={accountDetails?.avatar}
+                name={accountDetails?.displayName}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
             <Text
                 numberOfLines={1}
                 style={[styles.flex1, styles.flexGrow1, styles.textStrong, userFontStyle]}
             >
-                {personalDetails[item.accountID]?.displayName}
+                {accountDetails?.displayName}
             </Text>
         </View>
     );
@@ -136,15 +138,15 @@ function TransactionListItem({
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={CONST.AVATAR_SIZE.SMALL}
-                source={personalDetails[item.managerID]?.avatar}
-                name={personalDetails[item.managerID]?.displayName}
+                source={managerDetails?.avatar}
+                name={managerDetails?.displayName}
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
             <Text
                 numberOfLines={1}
                 style={[styles.flex1, styles.flexGrow1, styles.textStrong, userFontStyle]}
             >
-                {personalDetails[item.managerID]?.displayName}
+                {managerDetails?.displayName}
             </Text>
         </View>
     );
@@ -165,7 +167,6 @@ function TransactionListItem({
                 onSelectRow={() => {}}
                 onDismissError={onDismissError}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                rightHandSideComponent={rightHandSideComponent}
                 errors={item.errors}
                 pendingAction={item.pendingAction}
                 keyForList={item.keyForList}
@@ -223,7 +224,6 @@ function TransactionListItem({
             onSelectRow={() => {}}
             onDismissError={onDismissError}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-            rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
@@ -263,7 +263,7 @@ function TransactionListItem({
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={item.tag ?? ''}
+                                text={item?.tag ?? ''}
                                 style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
                             />
                         </View>

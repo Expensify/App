@@ -19,7 +19,7 @@ type SearchTransaction = {
     modifiedMerchant?: string;
     description: string;
     accountID: number;
-    managerID: string;
+    managerID: number;
     amount: number;
     modifiedAmount?: number;
     category?: string;
@@ -44,4 +44,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchTransaction, SearchTransactionType, SearchQuery};
+export type {SearchQuery, SearchTransaction, SearchTransactionType};

@@ -319,6 +319,8 @@ export default {
             subtitleText3: '.',
         },
         businessName: 'Nombre de la empresa',
+        type: 'Tipo',
+        action: 'Acción',
     },
     location: {
         useCurrent: 'Usar ubicación actual',

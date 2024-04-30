@@ -32,7 +32,7 @@ function getCleanSearchResults(searchResults: unknown) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
     // eslint-disable-next-line no-underscore-dangle,@typescript-eslint/no-unsafe-return
-    return searchResults.snapshot_?.data;
+    return searchResults?.data;
 }
 
 type SearchProps = {
@@ -47,10 +47,8 @@ function Search({query}: SearchProps) {
     // const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     useCustomBackHandler();
 
-    // Todo bring back hash when api is updated
-    // const hash = SearchUtils.getQueryHash(query);
-    // const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
-    const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}`);
+    const hash = SearchUtils.getQueryHash(query);
+    const [searchResults, searchResultsMeta] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
 
     useEffect(() => {
         if (isOffline) {
@@ -61,6 +59,10 @@ function Search({query}: SearchProps) {
     }, [query, isOffline]);
 
     const cleanResults = getCleanSearchResults(searchResults);
+
+    useEffect(() => {
+        SearchUtils.addPersonalDetailsFromSearch(cleanResults?.personalDetailsList ?? {});
+    }, [cleanResults]);
 
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || cleanResults === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(cleanResults);
