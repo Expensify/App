@@ -100,7 +100,6 @@ function MoneyRequestView({
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
-    const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
     const parentReportAction = parentReportActions?.[report.parentReportActionID ?? ''] ?? null;
