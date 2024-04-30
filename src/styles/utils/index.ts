@@ -1522,7 +1522,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getSearchTableColumnStyles: (columnName: string) => {
+    getSearchTableColumnStyles: (columnName: string): ViewStyle => {
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH_TABLE_COLUMNS.DATE:
@@ -1541,16 +1541,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {width: 110};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
-                columnWidth = {width: 96, alignItems: 'flex-end', textAlign: 'right'};
+                columnWidth = {width: 96, alignItems: 'flex-end'};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TYPE:
                 columnWidth = {width: 28};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.ACTION:
-                columnWidth = {width: 80, textAlign: 'center'};
+                columnWidth = {width: 80};
                 break;
             default:
-                columnWidth = styles.flex1;
+                columnWidth = {flex: 1};
         }
 
         return columnWidth;

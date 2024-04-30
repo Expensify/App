@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type { OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
@@ -7,10 +7,8 @@ import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxProvider';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import ReceiptImage from '@components/ReceiptImage';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,7 +44,6 @@ function TransactionListItem<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
     onDismissError,
     shouldPreventDefaultFocusOnSelectRow,
     onFocus,
@@ -60,16 +57,7 @@ function TransactionListItem<TItem extends ListItem>({
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
     const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
-
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
-    const userFontStyle = displayNarrowVersion ? styles.textMicro : undefined;
 
     const accountDetails = item.accountID ? personalDetails[item.accountID] : null;
     const managerDetails = item.managerID ? personalDetails[item.managerID] : null;
@@ -228,38 +216,15 @@ function TransactionListItem<TItem extends ListItem>({
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {() => (
-                <>
-                    {/* {canSelectMultiple && (
-                        <PressableWithFeedback
-                            accessibilityLabel={item.text ?? ''}
-                            role={CONST.ROLE.BUTTON}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            disabled={isDisabled || item.isDisabledCheckbox}
-                            onPress={handleCheckboxPress}
-                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
-                        >
-                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                {item.isSelected && (
-                                    <Icon
-                                        src={Expensicons.Checkmark}
-                                        fill={theme.textLight}
-                                        height={14}
-                                        width={14}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    )} */}
-                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                        {dateCell}
-                        {descriptionCell}
-                        {userCell(accountDetails, CONST.SEARCH_TABLE_COLUMNS.FROM)}
-                        {userCell(managerDetails, CONST.SEARCH_TABLE_COLUMNS.TO)}
-                        {totalCell}
-                        {typeCell}
-                        {actionCell}
-                    </View>
-                </>
+                <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                    {dateCell}
+                    {descriptionCell}
+                    {userCell(accountDetails, CONST.SEARCH_TABLE_COLUMNS.FROM)}
+                    {userCell(managerDetails, CONST.SEARCH_TABLE_COLUMNS.TO)}
+                    {totalCell}
+                    {typeCell}
+                    {actionCell}
+                </View>
             )}
         </BaseListItem>
     );
