@@ -28,6 +28,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import * as UserUtils from '@libs/UserUtils';
 import * as IOU from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -44,6 +45,8 @@ import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import {usePersonalDetails} from './OnyxProvider';
+import OptionsSelector from './OptionsSelector';
 import PDFThumbnail from './PDFThumbnail';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
@@ -225,6 +228,7 @@ function MoneyRequestConfirmationList({
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const {canUseP2PDistanceRequests, canUseViolations} = usePermissions(iouType);
     const {isOffline} = useNetwork();
 
@@ -411,6 +415,18 @@ function MoneyRequestConfirmationList({
 
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const payeePersonalDetails = useMemo(() => payeePersonalDetailsProp ?? currentUserPersonalDetails, [payeePersonalDetailsProp, currentUserPersonalDetails]);
+    const payeeTooltipDetails = useMemo(
+        () => ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs([payeePersonalDetails.accountID], personalDetails), false),
+        [payeePersonalDetails.accountID, personalDetails],
+    );
+    const payeeIcons = [
+        {
+            source: UserUtils.getAvatar(payeePersonalDetails.avatar, payeePersonalDetails.accountID) ?? '',
+            name: payeePersonalDetails.login ?? '',
+            type: CONST.ICON_TYPE_AVATAR,
+            id: payeePersonalDetails.accountID,
+        },
+    ];
     const canModifyParticipants = !isReadOnly && canModifyParticipantsProp && hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;
     const selectionListSections = useMemo(() => {
@@ -431,6 +447,7 @@ function MoneyRequestConfirmationList({
             }
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', true);
+
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
                 payeePersonalDetails,
                 iouAmount > 0 ? CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode) : '',
@@ -970,6 +987,25 @@ function MoneyRequestConfirmationList({
     );
 
     return (
+        <>
+            {/** Hide it temporarily, it will back when https://github.com/Expensify/App/pull/40386 is merged */}
+            {isTypeSplit && action === CONST.IOU.ACTION.CREATE && false && (
+                <MenuItem
+                    key={translate('moneyRequestConfirmationList.paidBy')}
+                    label={translate('moneyRequestConfirmationList.paidBy')}
+                    interactive={!isPolicyExpenseChat && !isReadOnly}
+                    description={payeePersonalDetails.login ?? ReportUtils.getDisplayNameForParticipant(payeePersonalDetails.accountID)}
+                    title={payeePersonalDetails.displayName ?? ReportUtils.getDisplayNameForParticipant(payeePersonalDetails.accountID)}
+                    icon={payeeIcons}
+                    onPress={() => {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
+                        );
+                    }}
+                    shouldShowRightIcon={!isPolicyExpenseChat && !isReadOnly}
+                    titleWithTooltips={payeePersonalDetails?.isOptimisticPersonalDetail ? undefined : payeeTooltipDetails}
+                />
+            )}
         <SelectionList
             canSelectMultiple={canModifyParticipants}
             sections={selectionListSections}
@@ -1042,6 +1078,7 @@ function MoneyRequestConfirmationList({
                 </>
             }
         />
+            </>
     );
 }
 
