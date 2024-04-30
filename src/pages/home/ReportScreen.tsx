@@ -141,9 +141,10 @@ function ReportScreen({
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {initialValue: null});
     const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${getReportID(route)}`, {initialValue: false});
     const [reportOnyx, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`, {allowStaleData: true});
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOnyx?.parentReportID || 0}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, (reportOnyx?.parentReportActionID ?? '') as string),
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID ?? ''),
     });
 
     /**
@@ -746,16 +747,16 @@ export default withCurrentReportID(
         },
         true,
     )(
-        memo(ReportScreen, (prevProps, nextProps) => {
-            return (
+        memo(
+            ReportScreen,
+            (prevProps, nextProps) =>
                 prevProps.isSidebarLoaded === nextProps.isSidebarLoaded &&
                 lodashIsEqual(prevProps.sortedAllReportActions, nextProps.sortedAllReportActions) &&
                 lodashIsEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
                 lodashIsEqual(prevProps.betas, nextProps.betas) &&
                 lodashIsEqual(prevProps.policies, nextProps.policies) &&
                 prevProps.currentReportID === nextProps.currentReportID &&
-                lodashIsEqual(prevProps.route, nextProps.route)
-            );
-        }),
+                lodashIsEqual(prevProps.route, nextProps.route),
+        ),
     ),
 );
