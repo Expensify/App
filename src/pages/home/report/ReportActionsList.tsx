@@ -559,7 +559,7 @@ function ReportActionsList({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
                 shouldDisplayReplyDivider={sortedReportActions.length > 1}
-                isFirstVisibleReportActionID={firstVisibleReportActionID === reportAction.reportActionID}
+                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             />
         ),

@@ -154,7 +154,7 @@ type ReportActionItemProps = {
     onPress?: () => void;
 
     /** If this is the first visible report action */
-    isFirstVisibleReportActionID: boolean;
+    isFirstVisibleReportAction: boolean;
 
     /** IF the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
@@ -182,7 +182,7 @@ function ReportActionItem({
     policy,
     transaction,
     onPress = undefined,
-    isFirstVisibleReportActionID = false,
+    isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
@@ -938,7 +938,7 @@ function ReportActionItem({
             >
                 {(hovered) => (
                     <View style={highlightedBackgroundColorIfNeeded}>
-                        {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportActionID) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
+                        {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={report.reportID}
                             reportActionID={action.reportActionID}
