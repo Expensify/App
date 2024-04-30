@@ -23,6 +23,7 @@ type SearchTransaction = {
     amount: number;
     modifiedAmount?: number;
     category?: string;
+    currency: string;
     tag?: string;
     type: SearchTransactionType;
     hasViolation: boolean;

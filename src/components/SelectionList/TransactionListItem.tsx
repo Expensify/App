@@ -72,12 +72,12 @@ function TransactionListItem({
     const rowButtonElement = (
         <Button
             success
+            text="View" // Todo add translate
             onPress={() => {
                 onSelectRow(item);
             }}
             small
             pressOnEnter
-            text="View"
         />
     );
 
@@ -114,7 +114,7 @@ function TransactionListItem({
     );
 
     const fromElement = (
-        <View style={[styles.flexRow, styles.flex2, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={CONST.AVATAR_SIZE.SMALL}
@@ -132,7 +132,7 @@ function TransactionListItem({
     );
 
     const toElement = (
-        <View style={[styles.flexRow, styles.gap3, styles.flex2, styles.alignItemsCenter]}>
+        <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
                 size={CONST.AVATAR_SIZE.SMALL}
@@ -176,7 +176,7 @@ function TransactionListItem({
                 {() => (
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2]}>
-                            <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex1]}>
                                 {fromElement}
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
@@ -257,8 +257,8 @@ function TransactionListItem({
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{dateElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>
-                        <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{toElement}</View>
                         <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{fromElement}</View>
+                        <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{toElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
                         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <TextWithTooltip
