@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
-import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -288,6 +288,7 @@ export default {
         nonBillable: 'No facturable',
         tag: 'Etiqueta',
         receipt: 'Recibo',
+        verified: 'Verificado',
         replace: 'Sustituir',
         distance: 'Distancia',
         mile: 'milla',
@@ -391,6 +392,7 @@ export default {
     moneyRequestConfirmationList: {
         paidBy: 'Pagado por',
         splitWith: 'Dividir con',
+        splitAmounts: 'Importes a dividir',
         whatsItFor: '¿Para qué es?',
     },
     optionsSelector: {
@@ -629,6 +631,7 @@ export default {
         canceled: 'Canceló',
         posted: 'Contabilizado',
         deleteReceipt: 'Eliminar recibo',
+        receiptIssuesFound: (count: number) => `${count === 1 ? 'Problema encontrado' : 'Problemas encontrados'}`,
         fieldPending: 'Pendiente...',
         defaultRate: 'Tasa predeterminada',
         receiptScanning: 'Escaneo en curso…',
@@ -651,6 +654,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pagar ${formattedAmount} de otra forma` : `Pagar de otra forma`),
         nextStep: 'Pasos Siguientes',
         finished: 'Finalizado',
+        sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
         trackAmount: ({amount}: RequestAmountParams) => `seguimiento de ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -699,6 +703,7 @@ export default {
             invalidSplit: 'La suma de las partes no equivale al importe total',
             other: 'Error inesperado, por favor inténtalo más tarde',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
+            genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura, inténtalo de nuevo más tarde',
             receiptFailureMessage: 'El recibo no se subió. ',
             saveFileMessage: 'Guarda el archivo ',
             loseFileMessage: 'o descarta este error y piérdelo',
@@ -1073,6 +1078,18 @@ export default {
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
         availableSpend: 'Límite restante',
+        smartLimit: {
+            name: 'Límite inteligente',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta al mes. El límite se restablecerá el primer día del mes.`,
+        },
+        fixedLimit: {
+            name: 'Límite fijo',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta, luego se desactivará.`,
+        },
+        monthlyLimit: {
+            name: 'Límite mensual',
+            title: (formattedLimit: string) => `Puedes gastar hasta ${formattedLimit} en esta tarjeta y el límite se restablecerá a medida que se aprueben tus gastos.`,
+        },
         virtualCardNumber: 'Número de la tarjeta virtual',
         physicalCardNumber: 'Número de la tarjeta física',
         getPhysicalCard: 'Obtener tarjeta física',
@@ -1716,6 +1733,14 @@ export default {
         address: 'Dirección',
         letsDoubleCheck: 'Revisemos que todo esté bien',
         byAddingThisBankAccount: 'Añadiendo esta cuenta bancaria, confirmas que has leído, entendido y aceptado',
+        whatsYourLegalName: '¿Cuál es tu nombre legal?',
+        whatsYourDOB: '¿Cuál es tu fecha de nacimiento?',
+        whatsYourAddress: '¿Cuál es tu dirección?',
+        noPOBoxesPlease: 'Nada de apartados de correos ni direcciones de envío, por favor.',
+        whatsYourSSN: '¿Cuáles son los últimos 4 dígitos de tu número de la seguridad social?',
+        noPersonalChecks: 'No te preocupes, no hacemos verificaciones de crédito personales.',
+        whatsYourPhoneNumber: '¿Cuál es tu número de teléfono?',
+        weNeedThisToVerify: 'Necesitamos esto para verificar tu billetera.',
     },
     businessInfoStep: {
         businessInfo: 'Información de la empresa',
@@ -1914,11 +1939,24 @@ export default {
             deepDiveExpensifyCard: 'Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con',
             deepDiveExpensifyCardIntegration: 'nuestra integración.',
             exportExpensifyCard: 'Exportar las transacciones de las tarjetas Expensify como',
-            exportDate: 'Fecha de exportación',
-            exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
-            lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
-            exportedDate: {label: 'Fecha de exportación', description: 'Fecha de exportación del informe a QuickBooks Online'},
-            submittedData: {label: 'Fecha de envío', description: 'Fecha en la que el informe se envió para su aprobación'},
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informe a QuickBooks Online.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a QuickBooks Online',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para su aprobación',
+                    },
+                },
+            },
             receivable: 'Cuentas por cobrar', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Archivo de cuentas por cobrar', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Las facturas se exportarán a esta cuenta en QuickBooks Online.',
@@ -2167,8 +2205,36 @@ export default {
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
-            disconnectTitle: 'Desconectar integración',
-            disconnectPrompt: '¿Estás seguro de que deseas desconectar esta intregración?',
+            disconnectTitle: (currentIntegration?: ConnectionName): string => {
+                switch (currentIntegration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Desconectar QuickBooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Desconectar Xero';
+                    default: {
+                        return 'Desconectar integración';
+                    }
+                }
+            },
+            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
+                switch (integrationToConnect) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return '¿Estás seguro de que quieres desconectar Xero para configurar QuickBooks Online?';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return '¿Estás seguro de que quieres desconectar QuickBooks Online para configurar Xero?';
+                    default: {
+                        switch (currentIntegration) {
+                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                                return '¿Estás seguro de que quieres desconectar QuickBooks Online?';
+                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                                return '¿Estás seguro de que quieres desconectar Xero?';
+                            default: {
+                                return '¿Estás seguro de que quieres desconectar integración?';
+                            }
+                        }
+                    }
+                }
+            },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
@@ -2195,6 +2261,18 @@ export default {
                             return 'Importando datos desde QuickBooks Online';
                         case 'startingImport':
                             return 'Importando datos desde QuickBooks Online';
+                        case 'quickbooksOnlineSyncTitle':
+                            return 'Sincronizando datos desde QuickBooks Online';
+                        case 'quickbooksOnlineSyncLoadData':
+                            return 'Cargando datos';
+                        case 'quickbooksOnlineSyncApplyCategories':
+                            return 'Actualizando categorías';
+                        case 'quickbooksOnlineSyncApplyCustomers':
+                            return 'Actualizando Clientes/Proyectos';
+                        case 'quickbooksOnlineSyncApplyEmployees':
+                            return 'Actualizando empleados';
+                        case 'quickbooksOnlineSyncApplyClassesLocations':
+                            return 'Actualizando clases';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2255,6 +2333,7 @@ export default {
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
             sendInvoice: 'Enviar factura',
+            sendFrom: 'Enviar desde',
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',
@@ -2442,9 +2521,6 @@ export default {
         memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro a la sala de chat, por favor, utiliza el botón Invitar que está más arriba.',
         notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte a la sala de chat? Comunícate con el propietario de esta sala de chat para que pueda añadirte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
-        error: {
-            genericAdd: 'Hubo un problema al añadir este miembro a la sala de chat.',
-        },
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
