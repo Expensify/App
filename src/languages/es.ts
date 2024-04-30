@@ -3389,7 +3389,7 @@ export default {
     },
     violationDismissal: {
         rter: {
-            manual: 'marcó este recibo como efectivo, confirmando que no corresponde a una transacción con tarjeta de crédito.',
+            manual: 'marcó el recibo como pagado en efectivo.',
         },
     },
     videoPlayer: {

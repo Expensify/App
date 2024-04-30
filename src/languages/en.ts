@@ -2893,7 +2893,7 @@ export default {
     },
     violationDismissal: {
         rter: {
-            manual: "marked this receipt as cash, confirming it doesn't match a credit card transaction",
+            manual: "marked this receipt as cash.",
         },
     },
     videoPlayer: {
