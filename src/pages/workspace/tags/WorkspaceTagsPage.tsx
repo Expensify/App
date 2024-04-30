@@ -13,6 +13,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
+import RightElementRequiredStatus from '@components/SelectionList/RightElementRequiredStatus';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -68,6 +69,8 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const policyTagsLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const isOnlyOneTagsLists = Object.keys(policyTagsLists).length === 1;
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
@@ -88,31 +91,39 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    // We currently don't support multi level tags, so let's only get the first level tags.
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).slice(0, 1), [policyTags]);
-    const tagList = useMemo<PolicyForList[]>(
-        () =>
-            policyTagLists
-                .map((policyTagList) =>
-                    lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
-                        const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
-                        const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                        return {
-                            value: tag.name,
-                            text: PolicyUtils.getCleanedTagName(tag.name),
-                            keyForList: tag.name,
-                            isSelected: !!selectedTags[tag.name],
-                            pendingAction: tag.pendingAction,
-                            errors: tag.errors ?? undefined,
-                            enabled: tag.enabled,
-                            isDisabled,
-                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
-                        };
-                    }),
-                )
-                .flat(),
-        [policyTagLists, selectedTags],
-    );
+    const tagList = useMemo<PolicyForList[]>(() => {
+        const policyTagLists = isOnlyOneTagsLists ? policyTagsLists.slice(0, 1) : policyTagsLists;
+        if (!isOnlyOneTagsLists) {
+            return Object.values(policyTagLists).map((policyTagList) => ({
+                value: policyTagList.name,
+                text: PolicyUtils.getCleanedTagName(policyTagList.name),
+                keyForList: policyTagList.orderWeight.toString(),
+                isSelected: !!selectedTags[policyTagList.name],
+                enabled: true,
+                required: policyTagList.required,
+                rightElement: <RightElementRequiredStatus required={policyTagList.required} />,
+            }));
+        }
+        return policyTagLists
+            .map((policyTagList) =>
+                lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
+                    const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
+                    const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                    return {
+                        value: tag.name,
+                        text: PolicyUtils.getCleanedTagName(tag.name),
+                        keyForList: tag.name,
+                        isSelected: !!selectedTags[tag.name],
+                        pendingAction: tag.pendingAction,
+                        errors: tag.errors ?? undefined,
+                        enabled: tag.enabled,
+                        isDisabled,
+                        rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
+                    };
+                }),
+            )
+            .flat();
+    }, [isOnlyOneTagsLists, policyTagsLists, selectedTags]);
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
         acc[tag.value] = tag;
@@ -147,6 +158,10 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: PolicyOption) => {
+        if (!isOnlyOneTagsLists) {
+            Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.keyForList));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
     };
 
@@ -233,14 +248,16 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
         return (
             <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                <Button
-                    medium
-                    success
-                    onPress={navigateToCreateTagPage}
-                    icon={Expensicons.Plus}
-                    text={translate('workspace.tags.addTag')}
-                    style={[styles.mr3, isSmallScreenWidth && styles.w50]}
-                />
+                {isOnlyOneTagsLists && (
+                    <Button
+                        medium
+                        success
+                        onPress={navigateToCreateTagPage}
+                        icon={Expensicons.Plus}
+                        text={translate('workspace.tags.addTag')}
+                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                    />
+                )}
                 {policyTags && (
                     <Button
                         medium
