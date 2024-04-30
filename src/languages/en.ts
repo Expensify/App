@@ -1928,10 +1928,10 @@ export default {
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportVendorBillDescription:
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            check: 'Check',
             accountsPayable: 'Accounts payable',
             account: 'Account',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
+            optionBelow: 'Choose an option below:',
             outOfPocketTaxEnabledDescription:
                 "Note: QuickBooks Online doesn't support a field for tax on Journal Entry exports. Because you have tax tracking enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledError: 'Journal entry is not available when taxes enabled. please select a different export option.',
@@ -1967,17 +1967,17 @@ export default {
                     "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
                 [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
                 [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
-                billAccountDescription: 'Select the vendor applied to all credit card transactions.',
             },
             outOfPocketExpenseAccountType: {
                 [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Vendor bill',
                 [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
-                optionBelow: 'Choose an option below:',
-                billDescription:
+                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'Check',
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Select the vendor applied to all credit card transactions.',
                 [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Vendor Bills are not available when locations are enabled. Please select a different export option.',
-                checkError: 'Check is not available when locations are enabled. Please select a different export option.',
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
                 [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
             },
         },
