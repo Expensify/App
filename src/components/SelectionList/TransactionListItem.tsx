@@ -16,9 +16,9 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
-import type {ListItem, TransactionListItemProps} from './types';
+import type {TransactionListItemProps} from './types';
 
 const getTypeIcon = (type: SearchTransactionType) => {
     switch (type) {
@@ -33,7 +33,7 @@ const getTypeIcon = (type: SearchTransactionType) => {
     }
 };
 
-function TransactionListItem<TItem extends ListItem>({
+function TransactionListItem({
     item,
     isFocused,
     showTooltip,
@@ -46,15 +46,15 @@ function TransactionListItem<TItem extends ListItem>({
     rightHandSideComponent,
     onFocus,
     shouldSyncFocus,
-}: TransactionListItemProps<TItem>) {
+}: TransactionListItemProps<SearchTransaction>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
 
     const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
+    // const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    // const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     const typeIcon = getTypeIcon(item.type);
 
@@ -65,6 +65,9 @@ function TransactionListItem<TItem extends ListItem>({
             onSelectRow(item);
         }
     }, [item, onCheckboxPress, onSelectRow]);
+
+    const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
+    const userFontStyle = displayNarrowVersion ? styles.textMicro : undefined;
 
     const rowButtonElement = (
         <Button
@@ -89,7 +92,7 @@ function TransactionListItem<TItem extends ListItem>({
     const categoryElement = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={item.category}
+            text={item.category ?? ''}
             style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -110,13 +113,49 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const displayNarrowVersion = isSmallScreenWidth;
+    const fromElement = (
+        <View style={[styles.flexRow, styles.flex2, styles.gap3, styles.alignItemsCenter]}>
+            <Avatar
+                imageStyles={[styles.alignSelfCenter]}
+                size={CONST.AVATAR_SIZE.SMALL}
+                source={personalDetails[item.accountID]?.avatar}
+                name={personalDetails[item.accountID]?.displayName}
+                type={CONST.ICON_TYPE_WORKSPACE}
+            />
+            <Text
+                numberOfLines={1}
+                style={[styles.flex1, styles.flexGrow1, styles.textStrong, userFontStyle]}
+            >
+                {personalDetails[item.accountID]?.displayName}
+            </Text>
+        </View>
+    );
+
+    const toElement = (
+        <View style={[styles.flexRow, styles.gap3, styles.flex2, styles.alignItemsCenter]}>
+            <Avatar
+                imageStyles={[styles.alignSelfCenter]}
+                size={CONST.AVATAR_SIZE.SMALL}
+                source={personalDetails[item.managerID]?.avatar}
+                name={personalDetails[item.managerID]?.displayName}
+                type={CONST.ICON_TYPE_WORKSPACE}
+            />
+            <Text
+                numberOfLines={1}
+                style={[styles.flex1, styles.flexGrow1, styles.textStrong, userFontStyle]}
+            >
+                {personalDetails[item.managerID]?.displayName}
+            </Text>
+        </View>
+    );
+
+    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     if (displayNarrowVersion) {
         return (
             <BaseListItem
                 item={item}
-                pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive]]}
+                pressableStyle={listItemPressableStyle}
                 wrapperStyle={[styles.flexColumn, styles.flex1, styles.userSelectNone, styles.alignItemsStretch]}
                 containerStyle={[styles.mb3]}
                 isFocused={isFocused}
@@ -134,48 +173,20 @@ function TransactionListItem<TItem extends ListItem>({
                 shouldSyncFocus={shouldSyncFocus}
                 hoverStyle={item.isSelected && styles.activeComponentBG}
             >
-                {(hovered) => (
+                {() => (
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2]}>
                             <View style={[styles.flexRow, styles.flex1, styles.alignItemsCenter, styles.gap3]}>
-                                <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Avatar
-                                        imageStyles={[styles.alignSelfCenter]}
-                                        size={CONST.AVATAR_SIZE.SMALL}
-                                        source={personalDetails[item.accountID]?.avatar}
-                                        name={personalDetails[item.accountID]?.displayName}
-                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                    />
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.flex1, styles.flexGrow1, styles.textStrong, styles.textMicro]}
-                                    >
-                                        {personalDetails[item.accountID]?.displayName}
-                                    </Text>
-                                </View>
+                                {fromElement}
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                <View style={[styles.flexRow, styles.flex1, styles.gap3, styles.alignItemsCenter]}>
-                                    <Avatar
-                                        imageStyles={[styles.alignSelfCenter]}
-                                        size={CONST.AVATAR_SIZE.SMALL}
-                                        source={personalDetails[item.managerID]?.avatar}
-                                        name={personalDetails[item.managerID]?.displayName}
-                                        type={CONST.ICON_TYPE_WORKSPACE}
-                                    />
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[styles.flex1, styles.flexGrow1, styles.textStrong, styles.textMicro]}
-                                    >
-                                        {personalDetails[item.managerID]?.displayName}
-                                    </Text>
-                                </View>
+                                {toElement}
                             </View>
-                            <View style={styles.flexShrink0}>{rowButtonElement}</View>
+                            {rowButtonElement}
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             <View>
@@ -202,7 +213,7 @@ function TransactionListItem<TItem extends ListItem>({
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive]]}
+            pressableStyle={listItemPressableStyle}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
             containerStyle={[styles.mb3]}
             isFocused={isFocused}
@@ -220,7 +231,7 @@ function TransactionListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
-            {(hovered) => (
+            {() => (
                 <>
                     {canSelectMultiple && (
                         <PressableWithFeedback
@@ -244,61 +255,27 @@ function TransactionListItem<TItem extends ListItem>({
                         </PressableWithFeedback>
                     )}
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{dateElement}</View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
-                                <Avatar
-                                    imageStyles={[styles.alignSelfCenter]}
-                                    size={CONST.AVATAR_SIZE.SMALL}
-                                    source={personalDetails[item.accountID]?.avatar}
-                                    name={personalDetails[item.accountID]?.displayName}
-                                    type={CONST.ICON_TYPE_WORKSPACE}
-                                />
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
-                                >
-                                    {personalDetails[item.accountID]?.displayName}
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                            <View style={[styles.flexRow, styles.gap3, styles.flex1, styles.alignItemsCenter]}>
-                                <Avatar
-                                    imageStyles={[styles.alignSelfCenter]}
-                                    size={CONST.AVATAR_SIZE.SMALL}
-                                    source={personalDetails[item.managerID]?.avatar}
-                                    name={personalDetails[item.managerID]?.displayName}
-                                    type={CONST.ICON_TYPE_WORKSPACE}
-                                />
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.flex1, styles.flexGrow1, styles.textStrong]}
-                                >
-                                    {personalDetails[item.managerID]?.displayName}
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{dateElement}</View>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{descriptionElement}</View>
+                        <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{toElement}</View>
+                        <View style={[styles.flex2, styles.justifyContentCenter, styles.alignItemsStretch]}>{fromElement}</View>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>{categoryElement}</View>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <TextWithTooltip
                                 shouldShowTooltip={showTooltip}
-                                text={item.tag}
+                                text={item.tag ?? ''}
                                 style={[styles.optionDisplayName, styles.textNormalThemeText, styles.pre, styles.justifyContentCenter]}
                             />
                         </View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsEnd]}>{amountElement}</View>
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsEnd]}>{amountElement}</View>
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsStretch]}>
                             <Icon
                                 src={typeIcon}
                                 fill={theme.icon}
                             />
                         </View>
-
-                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>{rowButtonElement}</View>
+                        <View style={[styles.flex1]}>{rowButtonElement}</View>
                     </View>
-                    {!!item.rightElement && item.rightElement}
                 </>
             )}
         </BaseListItem>

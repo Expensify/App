@@ -1,5 +1,5 @@
-import {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {Receipt} from './Transaction';
 
 type SearchResultsInfo = {
@@ -18,8 +18,8 @@ type SearchTransaction = {
     modifiedCreated?: string;
     modifiedMerchant?: string;
     description: string;
-    from: {displayName: string; avatarURL: string};
-    to: {displayName: string; avatarURL: string};
+    accountID: number;
+    managerID: string;
     amount: number;
     modifiedAmount?: number;
     category?: string;

@@ -7,10 +7,10 @@ import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type TransactionListItem from './TransactionListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
+import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {

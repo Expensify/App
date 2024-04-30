@@ -43,7 +43,7 @@ function Search({query}: SearchProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     // const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     useCustomBackHandler();
 
@@ -73,13 +73,15 @@ function Search({query}: SearchProps) {
         return <EmptySearchView />;
     }
 
+    const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
+
     const getListHeader = () => {
-        if (isSmallScreenWidth) {
+        if (displayNarrowVersion) {
             return;
         }
 
         // const showMerchantColumn = ReportUtils.shouldShowMerchantColumn(data);
-        const showMerchantColumn = isSmallScreenWidth && true;
+        const showMerchantColumn = displayNarrowVersion && true;
 
         return (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.gap3]}>
@@ -87,8 +89,8 @@ function Search({query}: SearchProps) {
                 <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.date')}</Text>
                 {showMerchantColumn && <Text style={[styles.searchInputStyle]}>{translate('common.merchant')}</Text>}
                 <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.description')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.from')}</Text>
-                <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.to')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.from')}</Text>
+                <Text style={[styles.searchInputStyle, styles.flex2]}>{translate('common.to')}</Text>
                 <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.category')}</Text>
                 <Text style={[styles.searchInputStyle, styles.flex1]}>{translate('common.tag')}</Text>
                 <Text style={[styles.searchInputStyle, styles.flex1, styles.textAlignRight]}>{translate('common.total')}</Text>
@@ -118,7 +120,7 @@ function Search({query}: SearchProps) {
             onSelectRow={(item) => {
                 openReport(item.transactionThreadReportID);
             }}
-            onSelectAll={!isSmallScreenWidth ? () => {} : undefined}
+            onSelectAll={!displayNarrowVersion ? () => {} : undefined}
             onCheckboxPress={() => {}}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
