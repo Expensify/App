@@ -463,8 +463,7 @@ function ReportActionsList({
         }
 
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
-            const isReversedTransaction = ReportActionsUtils.isReversedTransaction(parentReportAction);
-            return !(ReportActionsUtils.isDeletedParentAction(parentReportAction) || isReversedTransaction);
+            return !ReportActionsUtils.isDeletedParentAction(parentReportAction) && !ReportActionsUtils.isReversedTransaction(parentReportAction);
         }
 
         if (ReportUtils.isTaskReport(report)) {
