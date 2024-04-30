@@ -156,7 +156,7 @@ function ChatFinderPage({betas, navigation}: ChatFinderPageProps) {
     useEffect(() => {
         Report.searchInServer(debouncedSearchValue.trim());
     }, [debouncedSearchValue]);
-    
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
