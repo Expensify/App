@@ -3,8 +3,7 @@ import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,22 +38,13 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import SearchInputManager from './workspace/SearchInputManager';
 
-type RoomInvitePageOnyxProps = {
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-type RoomInvitePageProps = WithReportOrNotFoundProps &
-    WithNavigationTransitionEndProps &
-    RoomInvitePageOnyxProps &
-    StackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & StackScreenProps<RoomInviteNavigatorParamList, typeof SCREENS.ROOM_INVITE_ROOT>;
 
 type Sections = Array<SectionListData<OptionsListUtils.MemberForList, Section<OptionsListUtils.MemberForList>>>;
-
 function RoomInvitePage({
     betas,
     report,
     policies,
-    isSearchingForReports,
     route: {
         params: {role},
     },
@@ -65,6 +55,7 @@ function RoomInvitePage({
     const [selectedOptions, setSelectedOptions] = useState<ReportUtils.OptionData[]>([]);
     const [invitePersonalDetails, setInvitePersonalDetails] = useState<ReportUtils.OptionData[]>([]);
     const [userToInvite, setUserToInvite] = useState<ReportUtils.OptionData | null>(null);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList();
 
     useEffect(() => {
@@ -281,13 +272,4 @@ function RoomInvitePage({
 
 RoomInvitePage.displayName = 'RoomInvitePage';
 
-export default withNavigationTransitionEnd(
-    withReportOrNotFound()(
-        withOnyx<RoomInvitePageProps, RoomInvitePageOnyxProps>({
-            isSearchingForReports: {
-                key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-                initWithStoredValues: false,
-            },
-        })(RoomInvitePage),
-    ),
-);
+export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));

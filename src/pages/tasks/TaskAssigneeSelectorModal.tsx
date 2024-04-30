@@ -3,7 +3,7 @@ import type {RouteProp} from '@react-navigation/native';
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,9 +39,6 @@ type TaskAssigneeSelectorModalOnyxProps = {
 
     /** Grab the Share destination of the Task */
     task: OnyxEntry<Task>;
-
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: OnyxEntry<boolean>;
 };
 
 type TaskAssigneeSelectorModalProps = TaskAssigneeSelectorModalOnyxProps & WithCurrentUserPersonalDetailsProps & WithNavigationTransitionEndProps;
@@ -93,11 +90,12 @@ function useOptions() {
     return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
 }
 
-function TaskAssigneeSelectorModal({reports, task, isSearchingForReports}: TaskAssigneeSelectorModalProps) {
+function TaskAssigneeSelectorModal({reports, task}: TaskAssigneeSelectorModalProps) {
     const styles = useThemeStyles();
     const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
     const session = useSession();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
 
@@ -235,10 +233,6 @@ function TaskAssigneeSelectorModal({reports, task, isSearchingForReports}: TaskA
 TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
 const TaskAssigneeSelectorModalWithOnyx = withOnyx<TaskAssigneeSelectorModalProps, TaskAssigneeSelectorModalOnyxProps>({
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },

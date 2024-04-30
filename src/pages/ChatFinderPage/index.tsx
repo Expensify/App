@@ -2,7 +2,7 @@ import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -30,9 +30,6 @@ import ChatFinderPageFooter from './ChatFinderPageFooter';
 type ChatFinderPageOnyxProps = {
     /** Beta features list */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: OnyxEntry<boolean>;
 };
 
 type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
@@ -51,11 +48,12 @@ const setPerformanceTimersEnd = () => {
 
 const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
-function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
+function ChatFinderPage({betas, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: isScreenTransitionEnd,
     });
@@ -195,9 +193,5 @@ ChatFinderPage.displayName = 'ChatFinderPage';
 export default withOnyx<ChatFinderPageProps, ChatFinderPageOnyxProps>({
     betas: {
         key: ONYXKEYS.BETAS,
-    },
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
     },
 })(ChatFinderPage);

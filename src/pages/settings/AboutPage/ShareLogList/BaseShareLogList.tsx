@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useBetas} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -18,19 +17,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {BaseShareLogListProps as BaseShareLogListTypeProps} from './types';
+import type {BaseShareLogListProps} from './types';
 
-type BaseShareLogListOnyxProps = {
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: OnyxEntry<boolean>;
-};
-
-type BaseShareLogListProps = BaseShareLogListTypeProps & BaseShareLogListOnyxProps;
-function BaseShareLogList({onAttachLogToReport, isSearchingForReports}: BaseShareLogListProps) {
+function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const betas = useBetas();
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList();
 
     const searchOptions = useMemo(() => {
@@ -127,9 +121,4 @@ function BaseShareLogList({onAttachLogToReport, isSearchingForReports}: BaseShar
 
 BaseShareLogList.displayName = 'ShareLogPage';
 
-export default withOnyx<BaseShareLogListProps, BaseShareLogListOnyxProps>({
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(BaseShareLogList);
+export default BaseShareLogList;

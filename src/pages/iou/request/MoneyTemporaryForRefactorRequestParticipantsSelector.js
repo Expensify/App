@@ -7,7 +7,7 @@ import lodashSome from 'lodash/some';
 import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {usePersonalDetails} from '@components/OnyxProvider';
@@ -55,18 +55,14 @@ const propTypes = {
 
     /** The action of the IOU, i.e. create, split, move */
     action: PropTypes.oneOf(lodashValues(CONST.IOU.ACTION)),
-
-    /** Whether or not we are searching for reports on the server */
-    isSearchingForReports: PropTypes.bool,
 };
 
 const defaultProps = {
     participants: [],
     action: CONST.IOU.ACTION.CREATE,
-    isSearchingForReports: false,
 };
 
-function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onFinish, onParticipantsAdded, iouType, iouRequestType, action, isSearchingForReports}) {
+function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onFinish, onParticipantsAdded, iouType, iouRequestType, action}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -78,6 +74,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
@@ -371,19 +368,11 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.propTypes = propTypes;
 MoneyTemporaryForRefactorRequestParticipantsSelector.defaultProps = defaultProps;
 MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTemporaryForRefactorRequestParticipantsSelector';
 
-export default withOnyx({
-    isSearchingForReports: {
-        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
-        initWithStoredValues: false,
-    },
-})(
-    memo(
-        MoneyTemporaryForRefactorRequestParticipantsSelector,
-        (prevProps, nextProps) =>
-            lodashIsEqual(prevProps.participants, nextProps.participants) &&
-            prevProps.iouRequestType === nextProps.iouRequestType &&
-            prevProps.iouType === nextProps.iouType &&
-            lodashIsEqual(prevProps.betas, nextProps.betas) &&
-            prevProps.isSearchingForReports === nextProps.isSearchingForReports,
-    ),
+export default memo(
+    MoneyTemporaryForRefactorRequestParticipantsSelector,
+    (prevProps, nextProps) =>
+        lodashIsEqual(prevProps.participants, nextProps.participants) &&
+        prevProps.iouRequestType === nextProps.iouRequestType &&
+        prevProps.iouType === nextProps.iouType &&
+        lodashIsEqual(prevProps.betas, nextProps.betas),
 );
