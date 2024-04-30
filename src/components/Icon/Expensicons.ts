@@ -88,6 +88,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
+import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
@@ -250,6 +251,7 @@ export {
     ImageCropSquareMask,
     Info,
     Invoice,
+    InvoiceGeneric,
     Key,
     Keyboard,
     Link,
