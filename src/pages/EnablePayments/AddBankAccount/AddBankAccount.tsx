@@ -54,6 +54,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
     const exitFlow = (shouldContinue = false) => {
         const exitReportID = personalBankAccount?.exitReportID;
+        // TODO: https://github.com/Expensify/App/issues/36648 This should be updated to the correct route once the refactor is complete
         const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute ?? '';
 
         if (exitReportID) {
@@ -64,7 +65,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
             PaymentMethods.continueSetup(onSuccessFallbackRoute);
             return;
         }
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack();
     };
 
     const handleBackButtonPress = () => {
@@ -92,23 +93,25 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
                 onBackButtonPress={handleBackButtonPress}
                 title={translate('bankAccount.addBankAccount')}
             />
-            {isSetupTypeChosen ? (
-                <>
-                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                        <InteractiveStepSubHeader
-                            startStepIndex={0}
-                            stepNames={CONST.WALLET.STEP_NAMES}
+            <View style={styles.flex1}>
+                {isSetupTypeChosen ? (
+                    <>
+                        <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                            <InteractiveStepSubHeader
+                                startStepIndex={0}
+                                stepNames={CONST.WALLET.STEP_NAMES}
+                            />
+                        </View>
+                        <SubStep
+                            isEditing={isEditing}
+                            onNext={nextScreen}
+                            onMove={moveTo}
                         />
-                    </View>
-                    <SubStep
-                        isEditing={isEditing}
-                        onNext={nextScreen}
-                        onMove={moveTo}
-                    />
-                </>
-            ) : (
-                <SetupMethod />
-            )}
+                    </>
+                ) : (
+                    <SetupMethod />
+                )}
+            </View>
         </ScreenWrapper>
     );
 }
@@ -119,6 +122,7 @@ export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBank
     plaidData: {
         key: ONYXKEYS.PLAID_DATA,
     },
+    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
     personalBankAccount: {
         key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },

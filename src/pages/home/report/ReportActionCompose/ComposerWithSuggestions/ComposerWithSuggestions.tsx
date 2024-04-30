@@ -63,9 +63,6 @@ type AnimatedRef = ReturnType<typeof useAnimatedRef>;
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
 
 type ComposerWithSuggestionsOnyxProps = {
-    /** The number of lines the comment should take up */
-    numberOfLines: OnyxEntry<number>;
-
     /** The parent report actions for the report */
     parentReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 
@@ -171,6 +168,12 @@ type ComposerWithSuggestionsProps = ComposerWithSuggestionsOnyxProps &
         /** The parent report ID */
         // eslint-disable-next-line react/no-unused-prop-types -- its used in the withOnyx HOC
         parentReportID: string | undefined;
+
+        /** Whether report is from group policy */
+        isGroupPolicyReport: boolean;
+
+        /** policy ID of the report */
+        policyID: string;
     };
 
 const {RNTextInputReset} = NativeModules;
@@ -209,7 +212,6 @@ function ComposerWithSuggestions(
         modal,
         preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
         parentReportActions,
-        numberOfLines,
 
         // Props: Report
         reportID,
@@ -217,6 +219,8 @@ function ComposerWithSuggestions(
         isEmptyChat,
         lastReportAction,
         parentReportActionID,
+        isGroupPolicyReport,
+        policyID,
 
         // Focus
         onFocus,
@@ -449,19 +453,6 @@ function ComposerWithSuggestions(
             debouncedSaveReportComment,
             selection.end,
         ],
-    );
-
-    /**
-     * Update the number of lines for a comment in Onyx
-     */
-    const updateNumberOfLines = useCallback(
-        (newNumberOfLines: number) => {
-            if (newNumberOfLines === numberOfLines) {
-                return;
-            }
-            Report.saveReportCommentNumberOfLines(reportID, newNumberOfLines);
-        },
-        [reportID, numberOfLines],
     );
 
     const prepareCommentAndResetComposer = useCallback((): string => {
@@ -752,8 +743,6 @@ function ComposerWithSuggestions(
                     isComposerFullSize={isComposerFullSize}
                     value={value}
                     testID="composer"
-                    numberOfLines={numberOfLines ?? undefined}
-                    onNumberOfLinesChange={updateNumberOfLines}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
@@ -769,6 +758,8 @@ function ComposerWithSuggestions(
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge={isAutoSuggestionPickerLarge}
+                isGroupPolicyReport={isGroupPolicyReport}
+                policyID={policyID}
                 // Input
                 value={value}
                 setValue={setValue}
@@ -798,12 +789,6 @@ ComposerWithSuggestions.displayName = 'ComposerWithSuggestions';
 const ComposerWithSuggestionsWithRef = forwardRef(ComposerWithSuggestions);
 
 export default withOnyx<ComposerWithSuggestionsProps & RefAttributes<ComposerRef>, ComposerWithSuggestionsOnyxProps>({
-    numberOfLines: {
-        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${reportID}`,
-        // We might not have number of lines in onyx yet, for which the composer would be rendered as null
-        // during the first render, which we want to avoid:
-        initWithStoredValues: false,
-    },
     modal: {
         key: ONYXKEYS.MODAL,
     },

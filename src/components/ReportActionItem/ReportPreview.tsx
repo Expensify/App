@@ -36,7 +36,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ReportActionItemImages from './ReportActionItemImages';
 
 type ReportPreviewOnyxProps = {
-    /** The policy tied to the money request report */
+    /** The policy tied to the expense report */
     policy: OnyxEntry<Policy>;
 
     /** ChatReport associated with iouReport */
@@ -165,7 +165,7 @@ function ReportPreview({
             return translate('iou.receiptScanning');
         }
         if (hasOnlyTransactionsWithPendingRoutes) {
-            return translate('iou.routePending');
+            return translate('iou.fieldPending');
         }
 
         // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
@@ -210,17 +210,17 @@ function ReportPreview({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(iouReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(iouReport) && (shouldShowPayButton || shouldShowApproveButton);
 
     const shouldPromptUserToAddBankAccount = ReportUtils.hasMissingPaymentMethod(userWallet, iouReportID);
     const shouldShowRBR = !iouSettled && hasErrors;
 
     /*
-     Show subtitle if at least one of the money requests is not being smart scanned, and either:
-     - There is more than one money request – in this case, the "X requests, Y scanning" subtitle is shown;
-     - There is only one money request, it has a receipt and is not being smart scanned – in this case, the request merchant or description is shown;
+     Show subtitle if at least one of the expenses is not being smart scanned, and either:
+     - There is more than one expense – in this case, the "X expenses, Y scanning" subtitle is shown;
+     - There is only one expense, it has a receipt and is not being smart scanned – in this case, the expense merchant or description is shown;
 
-     * There is an edge case when there is only one distance request with a pending route and amount = 0.
+     * There is an edge case when there is only one distance expense with a pending route and amount = 0.
        In this case, we don't want to show the merchant or description because it says: "Pending route...", which is already displayed in the amount field.
      */
     const shouldShowSingleRequestMerchantOrDescription =
@@ -237,7 +237,7 @@ function ReportPreview({
         }
         return {
             isSupportTextHtml: false,
-            supportText: translate('iou.requestCount', {
+            supportText: translate('iou.expenseCount', {
                 count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,

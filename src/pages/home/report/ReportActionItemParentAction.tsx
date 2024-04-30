@@ -2,11 +2,13 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Report from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +60,7 @@ function ReportActionItemParentAction({
     const {isSmallScreenWidth} = useWindowDimensions();
     const ancestorIDs = useRef(ReportUtils.getAllAncestorReportActionIDs(report));
     const [allAncestors, setAllAncestors] = useState<ReportUtils.Ancestor[]>([]);
+    const {isOffline} = useNetwork();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -108,7 +111,15 @@ function ReportActionItemParentAction({
                     <ReportActionItem
                         onPress={
                             ReportUtils.canCurrentUserOpenReport(ReportUtils.getReport(ancestor?.report?.parentReportID))
-                                ? () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''))
+                                ? () => {
+                                      const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
+                                      // Pop the thread report screen before navigating to the chat report.
+                                      Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''));
+                                      if (isVisibleAction && !isOffline) {
+                                          // Pop the chat report screen before navigating to the linked report action.
+                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID));
+                                      }
+                                  }
                                 : undefined
                         }
                         parentReportAction={parentReportAction}

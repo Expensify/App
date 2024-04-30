@@ -94,7 +94,6 @@ module.exports = {
             rules: {
                 'prefer-regex-literals': 'off',
                 'rulesdir/no-multiple-onyx-in-file': 'off',
-                'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
                 'react/jsx-no-constructed-context-values': 'error',
                 'react-native-a11y/has-valid-accessibility-descriptors': [
@@ -123,6 +122,7 @@ module.exports = {
                         },
                     },
                 ],
+                'rulesdir/avoid-anonymous-functions': 'off',
             },
         },
         // This helps disable the `prefer-alias` rule to be enabled for specific directories
@@ -261,13 +261,7 @@ module.exports = {
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: [
-                            ...restrictedImportPaths,
-                            {
-                                name: 'underscore',
-                                message: 'Please use the corresponding method from lodash instead',
-                            },
-                        ],
+                        paths: restrictedImportPaths,
                         patterns: restrictedImportPatterns,
                     },
                 ],
@@ -281,6 +275,12 @@ module.exports = {
                 '@lwc/lwc/no-async-await': 'off',
                 'no-await-in-loop': 'off',
                 'no-restricted-syntax': ['error', 'ForInStatement', 'LabeledStatement', 'WithStatement'],
+            },
+        },
+        {
+            files: ['en.ts', 'es.ts'],
+            rules: {
+                'rulesdir/use-periods-for-error-messages': 'error',
             },
         },
     ],
