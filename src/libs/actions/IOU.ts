@@ -321,6 +321,7 @@ function initMoneyRequest(reportID: string, policy: OnyxEntry<OnyxTypes.Policy>,
         transactionID: newTransactionID,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        splitPayerAccountIDs: [currentUserPersonalDetails.accountID],
     });
 }
 
@@ -397,6 +398,10 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
 
 function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = []) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
+}
+
+function setSplitPayer(transactionID: string, payerAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
 }
 
 function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
@@ -3618,6 +3623,7 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    splitPayerAccountIDs: number[] = [],
 ): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -3791,11 +3797,17 @@ function createSplitsAndOnyxData(
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const splits: Split[] = [
+        {
+            email: currentUserEmailForIOUSplit,
+            accountID: currentUserAccountID,
+            amount: IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountIDs.includes(currentUserAccountID)),
+        },
+    ];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
+        const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountIDs.includes(participant.accountID ?? 0));
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
 
@@ -3936,6 +3948,7 @@ function createSplitsAndOnyxData(
         const individualSplit = {
             email,
             accountID,
+            isOptimisticAccount: ReportUtils.isOptimisticPersonalDetail(accountID),
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
@@ -3987,6 +4000,7 @@ type SplitBillActionsParams = {
     billable?: boolean;
     iouRequestType?: IOURequestType;
     existingSplitChatReportID?: string;
+    splitPayerAccountIDs?: number[];
 };
 
 /**
@@ -4007,6 +4021,7 @@ function splitBill({
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     existingSplitChatReportID = '',
+    splitPayerAccountIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4023,6 +4038,7 @@ function splitBill({
         existingSplitChatReportID,
         billable,
         iouRequestType,
+        splitPayerAccountIDs,
     );
 
     const parameters: SplitBillParams = {
@@ -4041,6 +4057,7 @@ function splitBill({
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
         chatType: splitData.chatType,
+        splitPayerAccountIDs,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
@@ -4065,6 +4082,7 @@ function splitBillAndOpenReport({
     tag = '',
     billable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    splitPayerAccountIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4081,6 +4099,7 @@ function splitBillAndOpenReport({
         '',
         billable,
         iouRequestType,
+        splitPayerAccountIDs,
     );
 
     const parameters: SplitBillParams = {
@@ -4099,6 +4118,7 @@ function splitBillAndOpenReport({
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
         chatType: splitData.chatType,
+        splitPayerAccountIDs,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
@@ -6285,7 +6305,7 @@ function replaceReceipt(transactionID: string, file: File, source: string) {
  * @param report attached to the transaction
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>): Participant[] {
-    // If the report is iou or expense report, we should get the chat report to set participant for expense
+    // If the report is iou or expense report, we should get the chat report to set participant for request money
     const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report?.chatReportID) : report;
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldAddAsReport = !isEmptyObject(chatReport) && ReportUtils.isSelfDM(chatReport);
@@ -6520,6 +6540,7 @@ export {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     setMoneyRequestReceipt,
+    setSplitPayer,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
