@@ -1,26 +1,51 @@
-import React, {forwardRef, lazy, Suspense} from 'react';
-import ErrorBoundary from '@components/ErrorBoundary';
+import React, {forwardRef, lazy, Suspense, useEffect, useMemo, useState} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {MapViewHandle} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import type {ComponentProps} from './types';
 
-const MapViewImpl = lazy(() => import('./MapViewImpl.website'));
-
 const MapView = forwardRef<MapViewHandle, ComponentProps>((props, ref) => {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [errorResetKey, setErrorResetKey] = useState(0);
+
+    // Retry the error when reconnecting.
+    const wasOffline = usePrevious(isOffline);
+    useEffect(() => {
+        if (!wasOffline || isOffline) {
+            return;
+        }
+        setErrorResetKey((key) => key + 1);
+    }, [isOffline, wasOffline]);
+
+    // The only way to retry loading the module is to call `React.lazy` again.
+    const MapViewImpl = useMemo(
+        () => lazy(() => import('./MapViewImpl.website')),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [errorResetKey],
+    );
 
     return (
-        <ErrorBoundary errorMessage="Failed to load MapView">
+        <ErrorBoundary
+            resetKeys={[errorResetKey]}
+            fallback={
+                <PendingMapView
+                    title={translate('distance.mapPending.title')}
+                    subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.errorSubtitle')}
+                    style={styles.mapEditView}
+                />
+            }
+        >
             <Suspense
                 fallback={
                     <PendingMapView
                         title={translate('distance.mapPending.title')}
-                        subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
+                        subtitle={translate('distance.mapPending.onlineSubtitle')}
                         style={styles.mapEditView}
                     />
                 }

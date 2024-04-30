@@ -2730,6 +2730,7 @@ export default {
             title: 'Map pending',
             subtitle: 'The map will be generated when you go back online',
             onlineSubtitle: 'One moment while we set up the map',
+            errorSubtitle: 'There was an error loading the map. Please try again.',
         },
         errors: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
