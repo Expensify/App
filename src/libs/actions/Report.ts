@@ -351,7 +351,10 @@ function subscribeToReportTypingEvents(reportID: string) {
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
     }).catch((error) => {
-        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {
+            errorType: error.type,
+            pusherChannelName,
+        });
     });
 }
 
@@ -382,7 +385,10 @@ function subscribeToReportLeavingEvents(reportID: string) {
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
     }).catch((error) => {
-        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {
+            errorType: error.type,
+            pusherChannelName,
+        });
     });
 }
 
@@ -3038,8 +3044,6 @@ function completeOnboarding(
 ) {
     const isAccountIDOdd = AccountUtils.isAccountIDOddNumber(currentUserAccountID ?? 0);
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
-
-    console.log({currentUserAccountID});
 
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
     // TODO: using getSystemChat is rather not necessary if we could have participants list filled correctly

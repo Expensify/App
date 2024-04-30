@@ -42,7 +42,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {accountID} = useSession();
 
     useDisableModalDismissOnEscape();
-    console.log({accountID});
 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -68,7 +67,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             });
 
             Navigation.dismissModal();
-            console.log({accountID});
 
             // Only navigate to concierge chat when central pane is visible
             // Otherwise stay on the chats screen.
