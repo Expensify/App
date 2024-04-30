@@ -270,8 +270,8 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
-    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
+function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -862,18 +862,17 @@ const shouldPreventScroll = shouldPreventScrollOnAutoCompleteSuggestion();
 /**
  * Gets the correct position for auto complete suggestion container
  */
-function getAutoCompleteSuggestionContainerStyle(itemsHeight: number, shouldBeDisplayedBelowParentContainer: boolean, isEditComposer: boolean): ViewStyle {
+function getAutoCompleteSuggestionContainerStyle(itemsHeight: number): ViewStyle {
     'worklet';
 
     const borderWidth = 2;
     const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + (shouldPreventScroll ? borderWidth : 0);
-    const suggestionsPadding = isEditComposer ? CONST.AUTO_COMPLETE_SUGGESTER.EDIT_SUGGESTER_PADDING : CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(height + (shouldBeDisplayedBelowParentContainer ? -2 : 1) * (suggestionsPadding + (shouldPreventScroll ? 0 : borderWidth))),
+        top: -(height + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING + (shouldPreventScroll ? 0 : borderWidth)),
         height,
         minHeight: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
     };
@@ -941,17 +940,11 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): TextStyle {
+function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
     let paddingValue = 5;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
-        if (numberOfLines === 1) {
-            paddingValue = 9;
-        }
-        // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
-        else if (numberOfLines === 3) {
-            paddingValue = 8;
-        }
+        paddingValue = 8;
     }
     return {
         paddingTop: paddingValue,
@@ -1476,6 +1469,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...positioning.r4,
             ...styles.cursorDefault,
             ...styles.userSelectNone,
+            overflowAnchor: 'none',
             position: 'absolute',
             zIndex: 8,
         }),

@@ -107,7 +107,7 @@ function WorkspaceSwitcherPage() {
         }
 
         return Object.values(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline))
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, !!isOffline) && !policy?.isJoinRequestPending)
             .map((policy) => ({
                 text: policy?.name ?? '',
                 policyID: policy?.id ?? '',
@@ -118,6 +118,7 @@ function WorkspaceSwitcherPage() {
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
+                        id: policy?.id,
                     },
                 ],
                 isBold: hasUnreadData(policy?.id),
