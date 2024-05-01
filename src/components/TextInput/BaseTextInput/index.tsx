@@ -32,16 +32,17 @@ function percentage(percentageValue: number, totalValue: number) {
     return (totalValue / 100) * percentageValue;
 }
 function calculateSize(string: string, size: number) {
-    if (+string === 1 || string === '.') {
+    const number = +string;
+    if (number === 1 || string === '.') {
         return percentage(62.5, size);
     }
-    if (+string >= 2 && +string <= 5) {
+    if (number >= 2 && number <= 5) {
         return size;
     }
-    if ((+string >= 6 && +string <= 9) || +string === 0) {
+    if ((number >= 6 && number <= 9) || number === 0) {
         return percentage(112.5, size);
     }
-    if (+string === 7) {
+    if (number === 7) {
         return percentage(87.5, size);
     }
     return size;
@@ -302,10 +303,10 @@ function BaseTextInput(
     const prevTextValue = useRef('');
     const newSymbol = useRef('');
     useLayoutEffect(() => {
-        if (!autoGrow || prevTextValue.current.length === value?.length) {
+        const currentValue = value ?? '';
+        if (!autoGrow || prevTextValue.current.length === currentValue.length) {
             return;
         }
-        const currentValue = value ?? '';
         if (prevTextValue.current.length > currentValue.length || currentValue.length === 1 || currentValue.startsWith('0')) {
             const diff = getDifference(currentValue, prevTextValue.current);
             requestAnimationFrame(() => {
