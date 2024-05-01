@@ -1113,6 +1113,9 @@ function buildOnyxDataForTrackExpense(
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = CONST.QUICK_ACTIONS.TRACK_MANUAL;
     if (isScanRequest) {
         newQuickAction = CONST.QUICK_ACTIONS.TRACK_SCAN;
@@ -1120,6 +1123,15 @@ function buildOnyxDataForTrackExpense(
         newQuickAction = CONST.QUICK_ACTIONS.TRACK_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
+
+    const isDraftReport = ReportUtils.isDraftReport(chatReport?.reportID);
+
+    if (isDraftReport) {
+        const workspaceData = Policy.buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID);
+        optimisticData.push(...workspaceData.optimisticData);
+        successData.push(...workspaceData.successData);
+        failureData.push(...workspaceData.failureData);
+    }
 
     if (chatReport) {
         optimisticData.push(
@@ -1226,8 +1238,6 @@ function buildOnyxDataForTrackExpense(
         });
     }
 
-    const successData: OnyxUpdate[] = [];
-
     if (iouReport) {
         successData.push(
             {
@@ -1309,8 +1319,6 @@ function buildOnyxDataForTrackExpense(
             },
         });
     }
-
-    const failureData: OnyxUpdate[] = [];
 
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
