@@ -1,5 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationAction, NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+import {omitBy} from 'lodash';
 import type {Writable} from 'type-fest';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import shallowCompare from '@libs/ObjectUtils';
@@ -154,10 +155,9 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
 
         const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== action.payload.params?.screen);
         const areParamsDifferent = !shallowCompare(
-            topmostCentralPaneRoute?.params as Record<string, unknown> | undefined,
-            action.payload.params?.params as Record<string, unknown> | undefined,
+            omitBy(topmostCentralPaneRoute?.params as Record<string, unknown> | undefined, (value) => value === undefined),
+            omitBy(action.payload.params?.params as Record<string, unknown> | undefined, (value) => value === undefined),
         );
-
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
             action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;

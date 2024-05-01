@@ -57,4 +57,10 @@ function appendParam(url: string, paramName: string, paramValue: string) {
     return `${url}${separator}${paramName}=${paramValue}` as Route;
 }
 
-export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam};
+function hasURL(text: string) {
+    const urlPattern = /((https|http)?:\/\/[^\s]+)/g;
+
+    return urlPattern.test(text);
+}
+
+export {addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL};
