@@ -41,7 +41,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                         <OfflineWithFeedback pendingAction={pendingFields?.syncTax}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
-                                    accessibilityLabel={translate('workspace.accounting.taxes')}
+                                    accessibilityLabel={translate('workspace.qbo.taxes')}
                                     isOn={!!syncTax}
                                     onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
                                 />
