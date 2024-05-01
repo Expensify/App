@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
-import CONST from '@src/CONST';
 import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import CONST from '@src/CONST';
 
 type SearchTableHeaderProps = {
     /** Whether we should show the merchant or description column */

@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
+import {PersonalDetails} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -13,7 +14,6 @@ import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
 import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
-import {PersonalDetails} from '@src/types/onyx';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
     /** Component to display on the right side */

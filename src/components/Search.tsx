@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
@@ -14,8 +14,8 @@ import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
-import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
+import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
@@ -40,7 +40,6 @@ function Search({query}: SearchProps) {
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
 
-
     if (isLoading) {
         return <TableListItemSkeleton shouldAnimate />;
     }
@@ -62,9 +61,7 @@ function Search({query}: SearchProps) {
 
     return (
         <SelectionList
-            customListHeader={(
-                <SearchTableHeader shouldShowMerchant />
-            )}
+            customListHeader={<SearchTableHeader shouldShowMerchant />}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {

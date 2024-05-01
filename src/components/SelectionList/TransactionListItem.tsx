@@ -8,7 +8,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -17,6 +16,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
@@ -110,7 +110,7 @@ function TransactionListItem<TItem extends ListItem>({
             height={isNarrowView ? 12 : 20}
             width={isNarrowView ? 12 : 20}
         />
-    )
+    );
 
     const actionCell = (
         <Button
@@ -122,7 +122,6 @@ function TransactionListItem<TItem extends ListItem>({
             pressOnEnter
         />
     );
-    
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
@@ -160,9 +159,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 />
                                 {userCell(item.to)}
                             </View>
-                            <View style={[{width: 80}]}>
-                                {actionCell}
-                            </View>
+                            <View style={[{width: 80}]}>{actionCell}</View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             {merchantCell}
@@ -202,27 +199,13 @@ function TransactionListItem<TItem extends ListItem>({
         >
             {() => (
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>
-                        {dateCell}
-                    </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>
-                        {merchantCell}
-                    </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
-                        {userCell(item.from)}
-                    </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>
-                        {userCell(item.to)}
-                    </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
-                        {totalCell}
-                    </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>
-                        {typeCell}
-                    </View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
-                        {actionCell}
-                    </View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(item.from)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(item.to)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{typeCell}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>
                 </View>
             )}
         </BaseListItem>
