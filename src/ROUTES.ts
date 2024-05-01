@@ -55,6 +55,7 @@ const ROUTES = {
 
     TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
+    CONNECTION_COMPLETE: 'connection-complete',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
         getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
