@@ -153,7 +153,10 @@ export default function linkTo(navigation: NavigationContainerRef<RootStackParam
         const isTargetNavigatorOnTop = topRouteName === action.payload.name;
 
         const isTargetScreenDifferentThanCurrent = Boolean(topmostCentralPaneRoute && topmostCentralPaneRoute.name !== action.payload.params?.screen);
-        const areParamsDifferent = !shallowCompare(topmostCentralPaneRoute?.params, action.payload.params?.params);
+        const areParamsDifferent = !shallowCompare(
+            topmostCentralPaneRoute?.params as Record<string, unknown> | undefined,
+            action.payload.params?.params as Record<string, unknown> | undefined,
+        );
 
         // In case if type is 'FORCED_UP' we replace current screen with the provided. This means the current screen no longer exists in the stack
         if (type === CONST.NAVIGATION.TYPE.FORCED_UP) {
