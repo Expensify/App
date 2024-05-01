@@ -42,7 +42,7 @@ You can format the text in a chat message using markdown.
 - **Bold**: Add two asterisks ** on both sides of the text.
 - ~~Strikethrough~~: Add two tildes ~~ on both sides of the text.
 - Heading: Add a number sign # in front of the text.
-- Inline image: Add “![Alt text](image URL)” and add the URL to the image and alt text that describes the image.
+- Inline image: Add `![Alt text](image URL)` and add the URL to the image and alt text that describes the image.
 - Tag another member: Add an at symbol @ and enter the member's name, username, or email address.
 - Mention a room: Add a number sign # and enter the room name
 - > Blockquote: Add an angled bracket > in front of the text.
