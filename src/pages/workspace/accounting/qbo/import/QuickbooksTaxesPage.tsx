@@ -43,14 +43,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                 <Switch
                                     accessibilityLabel={translate('workspace.accounting.taxes')}
                                     isOn={!!syncTax}
-                                    onToggle={() =>
-                                        Connections.updatePolicyConnectionConfig(
-                                            policyID,
-                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                            CONST.QUICK_BOOKS_CONFIG.SYNC_TAX,
-                                            !syncTax,
-                                        )
-                                    }
+                                    onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
                                 />
                             </View>
                         </OfflineWithFeedback>
