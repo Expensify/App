@@ -76,7 +76,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     ];
 
     const organizeItems: Item[] = [
-        //TODO: Get errors from the relevant policy fields
         {
             icon: Illustrations.FolderOpen,
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
