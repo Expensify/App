@@ -239,7 +239,7 @@ const SCREENS = {
             XERO_TAXES: 'Policy_Accounting_Xero_Taxes',
             XERO_TRACK_CATEGORIES: 'Policy_Accounting_Xero_Track_Categories',
             XERO_MAP_COST_CENTERS: 'Policy_Accounting_Xero_Map_Cost_Centers',
-            XERO_MAP_REGIONS: 'Policy_Accounting_Xero_Map_Regions'
+            XERO_MAP_REGIONS: 'Policy_Accounting_Xero_Map_Regions',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',

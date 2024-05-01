@@ -1268,7 +1268,7 @@ const CONST = {
 
     XERO_CONFIG: {
         IMPORT_TAX_RATES: 'importTaxRates',
-        TRACK_CATEGORIES: 'trackCategories',
+        IMPORT_TRACK_CATEGORIES: 'importTrackingCategories',
     },
 
     QUICKBOOKS_EXPORT_ENTITY: {
