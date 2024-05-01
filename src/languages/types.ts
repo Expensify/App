@@ -134,10 +134,6 @@ type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
 
-type PluralFormParams = {
-    count: number;
-};
-
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type CanceledRequestParams = {amount: string; submitterDisplayName: string};

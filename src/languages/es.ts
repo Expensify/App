@@ -12,6 +12,7 @@ import type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
+    CommonSelectedParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -1899,7 +1900,7 @@ export default {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: ({selectedNumber}) => {
+            selected: ({selectedNumber}: CommonSelectedParams) => {
                 const pluralForm = esPluralRules.select(selectedNumber);
                 switch (pluralForm) {
                     case 'one':
@@ -2398,7 +2399,7 @@ export default {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
-            deleteRates: ({count}: Record<string, number>) => {
+            deleteRates: ({count}: DistanceRateOperationsParams) => {
                 const pluralForm = esPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
@@ -2409,7 +2410,7 @@ export default {
                         return `Eliminar ${count} tasas`;
                 }
             },
-            enableRates: ({count}) => {
+            enableRates: ({count}: DistanceRateOperationsParams) => {
                 const pluralForm = esPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
@@ -2420,7 +2421,7 @@ export default {
                         return `Activar ${count} tasas`;
                 }
             },
-            disableRates: ({count}) => {
+            disableRates: ({count}: DistanceRateOperationsParams) => {
                 const pluralForm = esPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':

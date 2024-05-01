@@ -50,7 +50,6 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
-    PluralFormParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
@@ -2367,7 +2366,7 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
-            deleteRates: ({count}: PluralFormParams) => {
+            deleteRates: ({count}: DistanceRateOperationsParams) => {
                 const pluralForm = enPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
@@ -2378,7 +2377,7 @@ export default {
                         return `Delete ${count} rates`;
                 }
             },
-            enableRates: ({count}: PluralFormParams) => {
+            enableRates: ({count}: DistanceRateOperationsParams) => {
                 const pluralForm = enPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
@@ -2389,7 +2388,7 @@ export default {
                         return `Enable ${count} rates`;
                 }
             },
-            disableRates: ({count}: PluralFormParams) => {
+            disableRates: ({count}: DistanceRateOperationsParams) => {
                 const pluralForm = enPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
