@@ -36,6 +36,7 @@ import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {PolicyConnectionName, Tenant} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import usePermissions from '@hooks/usePermissions';
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -63,6 +64,7 @@ function accountingIntegrationData(
     translate: LocaleContextProps['translate'],
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
+    canUseXeroIntegration?: boolean,
 ): AccountingIntegration | undefined {
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -81,6 +83,10 @@ function accountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            if (!canUseXeroIntegration) {
+                return undefined;
+            }
+
             return {
                 title: translate('workspace.accounting.xero'),
                 icon: Expensicons.XeroSquare,
@@ -105,6 +111,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseXeroIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
@@ -146,7 +153,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
-                const integrationData = accountingIntegrationData(integration, policyID, translate);
+                const integrationData = accountingIntegrationData(integration, policyID, translate, false, connectedIntegration, canUseXeroIntegration);
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
                 return {
                     ...iconProps,
@@ -162,7 +169,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
+        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, true, connectedIntegration, canUseXeroIntegration);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -258,6 +265,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         theme.spinner,
         threeDotsMenuPosition,
         translate,
+        canUseXeroIntegration,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
