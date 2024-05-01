@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
