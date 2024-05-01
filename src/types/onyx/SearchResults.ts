@@ -46,7 +46,8 @@ type SearchTransaction = {
     reportID: string;
     reportType: string;
     policyID: string;
-    transactionThreadReportID: string; // Not present in live transactions_
+    transactionThreadReportID: string;
+    shouldShowMerchant: boolean;
     action: string;
 };
 

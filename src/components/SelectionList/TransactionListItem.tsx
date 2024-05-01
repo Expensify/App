@@ -45,7 +45,6 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     shouldPreventDefaultFocusOnSelectRow,
     onFocus,
     shouldSyncFocus,
-    shouldShowMerchant = true,
 }: TransactionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,7 +77,7 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     const merchantCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={shouldShowMerchant ? merchant : description}
+            text={item.shouldShowMerchant ? merchant : description}
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );

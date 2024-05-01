@@ -57,10 +57,11 @@ function Search({query}: SearchProps) {
 
     const ListItem = SearchUtils.getListItem();
     const data = SearchUtils.getSections(searchResults?.data ?? {});
-
+    const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data ?? {});
+    console.log('over here', shouldShowMerchant)
     return (
         <SelectionList
-            customListHeader={<SearchTableHeader shouldShowMerchant />}
+            customListHeader={<SearchTableHeader shouldShowMerchant={shouldShowMerchant} />}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {

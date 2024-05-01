@@ -179,6 +179,9 @@ type TransactionListItemType = ListItem & {
 
     /** The type of report the transaction is associated with */
     reportType: string;
+
+    /** Whether we should show the merchant column */
+    shouldShowMerchant: boolean;
 }
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -205,8 +208,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
      * When we type something into the text input, the first element found is focused, in this situation we should not synchronize the focus on the element because we will lose the focus from the text input.
      */
     shouldSyncFocus?: boolean;
-
-    shouldShowMerchant?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
