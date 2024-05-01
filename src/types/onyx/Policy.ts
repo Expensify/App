@@ -178,7 +178,6 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
     syncAccounts: IntegrationEntityMap;
-    syncTaxes: IntegrationEntityMap;
     lastConfigurationTime: number;
     exportCompanyCardAccount?: string;
     syncTax: boolean;
