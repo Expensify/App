@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import Text from '@components/Text';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -42,14 +42,15 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
                 shouldEnableMaxHeight
                 testID={XeroMapCostCentersToConfigurationPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.xero.trackingCategories')} />
+                <HeaderWithBackButton title={translate('workspace.xero.mapXeroCostCentersTo')} />
                 <View style={[styles.pb2, styles.ph5]}>
-                    <SelectionList
+                    <Text style={styles.pb5}>{translate('workspace.xero.mapXeroCostCentersToDescription')}</Text>
+                </View>
+                <SelectionList
                         sections={[{data: optionsList}]}
                         ListItem={RadioListItem}
                         onSelectRow={() => {}}
                     />
-                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
