@@ -12,6 +12,8 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import type {Tenant} from '@src/types/onyx/Policy';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -41,7 +43,9 @@ function XeroImportPage({policy}: WithPolicyProps) {
             },
             {
                 description: translate('workspace.xero.customers'),
-                action: () => {},
+                action: () => {
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID))
+                },
                 hasError: !!policy?.errors?.importCustomers,
                 title: importCustomers ? translate('workspace.accounting.importedAsTags') : '',
                 pendingAction: pendingFields?.importCustomers,
