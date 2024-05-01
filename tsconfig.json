@@ -30,7 +30,7 @@
         "strict": true,
         "moduleResolution": "node",
         "resolveJsonModule": true,
-								"noImplicitThis": false,
+        "noImplicitThis": false,
         "allowSyntheticDefaultImports": true,
         "skipLibCheck": true,
         "incremental": true,
