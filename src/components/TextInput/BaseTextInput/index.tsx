@@ -33,17 +33,20 @@ function percentage(percentageValue: number, totalValue: number) {
 }
 function calculateSize(string: string, size: number) {
     const number = +string;
-    if (number === 1 || string === '.') {
+    if (string === '.') {
+        return percentage(25, size);
+    }
+    if (number === 1) {
         return percentage(62.5, size);
     }
     if (number >= 2 && number <= 5) {
         return size;
     }
-    if ((number >= 6 && number <= 9) || number === 0) {
-        return percentage(112.5, size);
-    }
     if (number === 7) {
         return percentage(87.5, size);
+    }
+    if ((number >= 6 && number <= 9) || number === 0) {
+        return percentage(112.5, size);
     }
     return size;
 }
