@@ -17,7 +17,7 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -35,7 +35,7 @@ type Item = {
     disabled?: boolean;
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
-    //TODO: add errros field as an optional field
+    errors?: Errors;
 };
 
 type SectionObject = {
@@ -87,6 +87,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
+            errors: policy?.errorFields?.areConnectionsEnabled ?? undefined,
         },
         {
             icon: Illustrations.Tag,
@@ -160,6 +161,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
                     disabled={item.disabled}
+                    errors={item.errors}
                 />
             </View>
         ),
