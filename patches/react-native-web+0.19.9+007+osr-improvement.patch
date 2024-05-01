@@ -1,0 +1,70 @@
+diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+index b05da08..80aea85 100644
+--- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+@@ -332,7 +332,7 @@ class VirtualizedList extends StateSafePureComponent {
+       zoomScale: 1
+     };
+     this._scrollRef = null;
+-    this._sentStartForContentLength = 0;
++    this._sentStartForFirstVisibleItemKey = null;
+     this._sentEndForContentLength = 0;
+     this._totalCellLength = 0;
+     this._totalCellsMeasured = 0;
+@@ -1397,8 +1397,8 @@ class VirtualizedList extends StateSafePureComponent {
+     // Next check if the user just scrolled within the start threshold
+     // and call onStartReached only once for a given content length,
+     // and only if onEndReached is not being executed
+-    else if (onStartReached != null && this.state.cellsAroundViewport.first === 0 && isWithinStartThreshold && this._scrollMetrics.contentLength !== this._sentStartForContentLength) {
+-      this._sentStartForContentLength = this._scrollMetrics.contentLength;
++    else if (onStartReached != null && this.state.cellsAroundViewport.first === 0 && isWithinStartThreshold && this.state.firstVisibleItemKey !== this._sentStartForFirstVisibleItemKey) {
++      this._sentStartForFirstVisibleItemKey = this.state.firstVisibleItemKey;
+       onStartReached({
+         distanceFromStart
+       });
+@@ -1407,7 +1407,7 @@ class VirtualizedList extends StateSafePureComponent {
+     // If the user scrolls away from the start or end and back again,
+     // cause onStartReached or onEndReached to be triggered again
+     else {
+-      this._sentStartForContentLength = isWithinStartThreshold ? this._sentStartForContentLength : 0;
++      this._sentStartForFirstVisibleItemKey = isWithinStartThreshold ? this._sentStartForFirstVisibleItemKey : null;
+       this._sentEndForContentLength = isWithinEndThreshold ? this._sentEndForContentLength : 0;
+     }
+   }
+diff --git a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
+index 459f017..799a6ee 100644
+--- a/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/src/vendor/react-native/VirtualizedList/index.js
+@@ -1325,7 +1325,7 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+     zoomScale: 1,
+   };
+   _scrollRef: ?React.ElementRef<any> = null;
+-  _sentStartForContentLength = 0;
++  _sentStartForFirstVisibleItemKey: ?string = null;
+   _sentEndForContentLength = 0;
+   _totalCellLength = 0;
+   _totalCellsMeasured = 0;
+@@ -1675,18 +1675,18 @@ class VirtualizedList extends StateSafePureComponent<Props, State> {
+       onStartReached != null &&
+       this.state.cellsAroundViewport.first === 0 &&
+       isWithinStartThreshold &&
+-      this._scrollMetrics.contentLength !== this._sentStartForContentLength
++      this.state.firstVisibleItemKey !== this._sentStartForFirstVisibleItemKey
+     ) {
+-      this._sentStartForContentLength = this._scrollMetrics.contentLength;
++      this._sentStartForFirstVisibleItemKey = this.state.firstVisibleItemKey;
+       onStartReached({distanceFromStart});
+     }
+ 
+     // If the user scrolls away from the start or end and back again,
+     // cause onStartReached or onEndReached to be triggered again
+     else {
+-      this._sentStartForContentLength = isWithinStartThreshold
+-        ? this._sentStartForContentLength
+-        : 0;
++      this._sentStartForFirstVisibleItemKey = isWithinStartThreshold
++        ? this._sentStartForFirstVisibleItemKey
++        : null;
+       this._sentEndForContentLength = isWithinEndThreshold
+         ? this._sentEndForContentLength
+         : 0;
