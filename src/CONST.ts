@@ -1266,6 +1266,10 @@ const CONST = {
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
     },
 
+    XERO_CONFIG: {
+        IMPORT_TAX_RATES: 'importTaxRates',
+    },
+
     QUICKBOOKS_EXPORT_ENTITY: {
         VENDOR_BILL: 'vendorBill',
         CHECK: 'check',

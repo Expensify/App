@@ -7,10 +7,12 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {Tenant} from '@src/types/onyx/Policy';
 
 function XeroImportPage({policy}: WithPolicyProps) {
@@ -48,7 +50,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             },
             {
                 description: translate('workspace.accounting.taxes'),
-                action: () => {},
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
                 hasError: !!policy?.errors?.importTaxes,
                 title: importTaxRates ? translate('workspace.accounting.imported') : '',
                 pendingAction: pendingFields?.importTaxRates,
@@ -67,6 +69,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             policy?.errors?.importCustomers,
             policy?.errors?.importTaxes,
             translate,
+            policyID,
         ],
     );
 
