@@ -19,8 +19,8 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncTaxes, pendingFields} = policy?.connections?.xero?.config ?? {};
-    const isSwitchOn = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const {importTaxRates, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const isSwitchOn = Boolean(importTaxRates);
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -39,18 +39,13 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
                         <View style={styles.flex1}>
                             <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
                         </View>
-                        <OfflineWithFeedback pendingAction={pendingFields?.syncTaxes}>
+                        <OfflineWithFeedback pendingAction={pendingFields?.importTaxRates}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
                                     accessibilityLabel={translate('workspace.accounting.taxes')}
                                     isOn={isSwitchOn}
                                     onToggle={() =>
-                                        Connections.updatePolicyConnectionConfig(
-                                            policyID,
-                                            CONST.POLICY.CONNECTIONS.NAME.XERO,
-                                            CONST.XERO_CONFIG.SYNC_TAXES,
-                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                                        )
+                                        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_TAX_RATES, !importTaxRates)
                                     }
                                 />
                             </View>

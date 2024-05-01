@@ -235,7 +235,6 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     importCustomers: boolean;
     importTaxRates: boolean;
     importTrackingCategories: boolean;
-    syncTaxes: IntegrationEntityMap;
     isConfigured: boolean;
     mappings: {
         customer: string;

@@ -1266,7 +1266,7 @@ const CONST = {
     },
 
     XERO_CONFIG: {
-        SYNC_TAXES: 'syncTaxes',
+        IMPORT_TAX_RATES: 'importTaxRates',
     },
 
     QUICKBOOKS_EXPORT_ENTITY: {
