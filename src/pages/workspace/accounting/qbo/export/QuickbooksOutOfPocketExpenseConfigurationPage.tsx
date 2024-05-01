@@ -40,9 +40,9 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                     {!isLocationEnabled && <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>}
                     <OfflineWithFeedback pendingAction={pendingFields?.exportEntity}>
                         <MenuItemWithTopDescription
-                            title={exportEntity ? translate(`workspace.qbo.exportCompanyCardAccountType.${exportEntity}`) : undefined}
+                            title={exportEntity ? translate(`workspace.qbo.accounts.${exportEntity}`) : undefined}
                             description={translate('workspace.qbo.exportAs')}
-                            error={hasErrors && exportEntity ? translate(`workspace.qbo.exportCompanyCardAccountType.${exportEntity}Error`) : undefined}
+                            error={hasErrors && exportEntity ? translate(`workspace.qbo.accounts.${exportEntity}Error`) : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                             brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon

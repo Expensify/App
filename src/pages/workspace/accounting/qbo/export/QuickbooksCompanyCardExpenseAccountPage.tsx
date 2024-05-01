@@ -37,7 +37,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>
                     <OfflineWithFeedback pendingAction={pendingFields?.exportCompanyCard}>
                         <MenuItemWithTopDescription
-                            title={exportCompanyCard ? translate(`workspace.qbo.exportCompanyCardAccountType.${exportCompanyCard}`) : undefined}
+                            title={exportCompanyCard ? translate(`workspace.qbo.accounts.${exportCompanyCard}`) : undefined}
                             description={translate('workspace.qbo.exportCompany')}
                             error={errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
@@ -46,9 +46,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                         />
                     </OfflineWithFeedback>
                     {!!exportCompanyCard && (
-                        <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>
-                            {translate(`workspace.qbo.exportCompanyCardAccountType.${exportCompanyCard}Description`)}
-                        </Text>
+                        <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>{translate(`workspace.qbo.accounts.${exportCompanyCard}Description`)}</Text>
                     )}
                     {isVendorSelected && (
                         <>

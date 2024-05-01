@@ -73,11 +73,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
                     title={exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
                 />
                 <SelectionList
-                    headerContent={
-                        exportCompanyCard ? (
-                            <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.exportCompanyCardAccountType.${exportCompanyCard}AccountDescription`)}</Text>
-                        ) : null
-                    }
+                    headerContent={exportCompanyCard ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbo.accounts.${exportCompanyCard}AccountDescription`)}</Text> : null}
                     sections={[{data}]}
                     ListItem={RadioListItem}
                     onSelectRow={selectExportAccount}
