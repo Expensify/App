@@ -70,6 +70,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
     const doesPolicyContainOnlyOneTagList = policyTagLists.length === 1;
+    const canSelectMultiple = doesPolicyContainOnlyOneTagList;
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
@@ -147,15 +148,15 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
     const getCustomListHeader = () => {
         const header = (
-            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3, styles.pr9]}>
                 <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
                 <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
             </View>
         );
-        if (doesPolicyContainOnlyOneTagList) {
+        if (canSelectMultiple) {
             return header;
         }
-        return <View style={[styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+        return <View style={[styles.flexRow, styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
     };
 
     const navigateToTagsSettings = () => {
@@ -342,7 +343,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                 )}
                 {tagList.length > 0 && !isLoading && (
                     <SelectionList
-                        canSelectMultiple={doesPolicyContainOnlyOneTagList}
+                        canSelectMultiple={canSelectMultiple}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
