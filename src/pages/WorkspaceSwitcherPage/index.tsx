@@ -118,6 +118,7 @@ function WorkspaceSwitcherPage() {
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
+                        id: policy?.id,
                     },
                 ],
                 isBold: hasUnreadData(policy?.id),
