@@ -32,17 +32,17 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksTaxesPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.taxes')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.taxes')} />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                     <Text style={styles.pb5}>{translate('workspace.qbo.taxesDescription')}</Text>
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
-                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
                         </View>
                         <OfflineWithFeedback pendingAction={pendingFields?.syncTaxes}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
-                                    accessibilityLabel={translate('workspace.qbo.taxes')}
+                                    accessibilityLabel={translate('workspace.accounting.taxes')}
                                     isOn={isSwitchOn}
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(
