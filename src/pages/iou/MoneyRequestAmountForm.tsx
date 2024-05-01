@@ -97,7 +97,6 @@ function MoneyRequestAmountForm(
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInput = useRef<MoneyRequestAmountInputRef | null>(null);
-    const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
 
     const [formError, setFormError] = useState<MaybePhraseKey>('');
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -205,6 +204,8 @@ function MoneyRequestAmountForm(
      */
     const submitAndNavigateToNextPage = useCallback(
         (iouPaymentType?: PaymentMethodType | undefined) => {
+            const isTaxAmountForm = Navigation.getActiveRoute().includes('taxAmount');
+
             // Skip the check for tax amount form as 0 is a valid input
             const currentAmount = moneyRequestAmountInput.current?.getAmount() ?? '';
             if (!currentAmount.length || (!isTaxAmountForm && isAmountInvalid(currentAmount))) {
@@ -224,7 +225,7 @@ function MoneyRequestAmountForm(
 
             onSubmitButtonPress({amount: currentAmount, currency, paymentMethod: iouPaymentType});
         },
-        [taxAmount, isTaxAmountForm, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount],
+        [taxAmount, onSubmitButtonPress, currency, formattedTaxAmount, initializeAmount],
     );
 
     const buttonText: string = useMemo(() => {

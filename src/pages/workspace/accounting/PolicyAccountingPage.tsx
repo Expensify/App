@@ -33,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
-import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {PolicyConnectionName, Tenant} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -91,7 +91,7 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                onImportPagePress: () => {},
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => {},
                 onAdvancedPagePress: () => {},
             };
@@ -113,6 +113,18 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
+
+    const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
+
+    const tenants = useMemo<Tenant[]>(() => {
+        // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
+        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+        if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
+            return [];
+        }
+        return policy?.connections?.xero?.data?.tenants ?? [];
+    }, [policy]);
+    const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -185,6 +197,24 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
+            ...(policyConnectedToXero
+                ? [
+                      {
+                          description: translate('workspace.xero.organization'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: currentXeroOrganization?.name,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          shouldShowRightIcon: tenants.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          onPress: () => {
+                              if (!(tenants.length > 1)) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
+                          },
+                      },
+                  ]
+                : []),
             ...(isEmptyObject(policy?.connections)
                 ? []
                 : [
@@ -217,9 +247,12 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     }, [
         connectedIntegration,
         connectionSyncProgress?.stageInProgress,
+        currentXeroOrganization,
+        tenants,
         isSyncInProgress,
         overflowMenu,
         policy?.connections,
+        policyConnectedToXero,
         policyID,
         styles,
         theme.spinner,

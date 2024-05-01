@@ -33,7 +33,6 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -271,15 +270,6 @@ export default {
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
-        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => {
-            const pluralForm = enPluralRules.select(count);
-            switch (pluralForm) {
-                case 'one':
-                    return `You've selected the maximum number (${count}) of participants.`;
-                default:
-                    return `You've selected the maximum number (${count}) of participants.`;
-            }
-        },
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
@@ -369,6 +359,10 @@ export default {
         notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+    },
+    connectionComplete: {
+        title: 'Connection Complete',
+        supportingText: 'You can close this window and head back to the Expensify app.',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -1361,10 +1355,9 @@ export default {
         purpose: {
             title: 'What do you want to do today?',
             error: 'Please make a selection before continuing.',
-            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
         },
@@ -1905,17 +1898,12 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         qbo: {
-            import: 'Import',
             importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
             classes: 'Classes',
-            accounts: 'Chart of accounts',
             locations: 'Locations',
-            taxes: 'Taxes',
             customers: 'Customers/Projects',
-            imported: 'Imported',
             displayedAs: 'Displayed as',
             notImported: 'Not imported',
-            importedAsTags: 'Imported, displayed as tags',
             importedAsReportFields: 'Imported, displayed as report fields',
             accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
             accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
@@ -2014,6 +2002,14 @@ export default {
                 invoiceAccountSelectDescription:
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
+        },
+        xero: {
+            organization: 'Xero organization',
+            organizationDescription: 'Select the organization in Xero you are importing data from.',
+            importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
+            trackingCategories: 'Tracking categories',
+            customers: 'Re-bill customers',
+            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
         },
         type: {
             free: 'Free',
@@ -2243,6 +2239,10 @@ export default {
                     }
                 }
             },
+            accounts: 'Chart of accounts',
+            taxes: 'Taxes',
+            imported: 'Imported',
+            importedAsTags: 'Imported, displayed as tags',
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
