@@ -112,6 +112,7 @@ const WRITE_COMMANDS = {
     FLAG_COMMENT: 'FlagComment',
     UPDATE_REPORT_PRIVATE_NOTE: 'UpdateReportPrivateNote',
     RESOLVE_ACTIONABLE_MENTION_WHISPER: 'ResolveActionableMentionWhisper',
+    RESOLVE_ACTIONABLE_ROOM_MENTION_WHISPER: 'ResolveActionableRoomMentionWhisper',
     DELETE_WORKSPACE: 'DeleteWorkspace',
     DELETE_MEMBERS_FROM_WORKSPACE: 'DeleteMembersFromWorkspace',
     ADD_MEMBERS_TO_WORKSPACE: 'AddMembersToWorkspace',
