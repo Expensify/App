@@ -3642,15 +3642,9 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
 }
 
 function resolveActionableRoomMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_ROOM_MENTION_WHISPER_RESOLUTION>) {
-    const message = reportAction?.message?.[0];
-    if (!message) {
+    if (!reportAction) {
         return;
     }
-
-    const updatedMessage: Message = {
-        ...message,
-        resolution,
-    };
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -3658,7 +3652,6 @@ function resolveActionableRoomMentionWhisper(reportId: string, reportAction: Ony
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
             value: {
                 [reportAction.reportActionID]: {
-                    message: [updatedMessage],
                     originalMessage: {
                         resolution,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3674,9 +3667,7 @@ function resolveActionableRoomMentionWhisper(reportId: string, reportAction: Ony
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
             value: {
                 [reportAction.reportActionID]: {
-                    message: [updatedMessage],
                     originalMessage: {
-                        resolution: message?.resolution,
                         pendingAction: null,
                     },
                 },
@@ -3690,7 +3681,6 @@ function resolveActionableRoomMentionWhisper(reportId: string, reportAction: Ony
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
             value: {
                 [reportAction.reportActionID]: {
-                    message: [message],
                     originalMessage: {
                         resolution: null,
                         pendingAction: null,
