@@ -178,9 +178,7 @@ function MoneyRequestView({
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     // A flag for showing tax rate
-    const shouldShowTax = isDistanceRequest
-        ? isTaxTrackingEnabled(isPolicyExpenseChat, policy) && policy?.customUnits?.[customUnitRateID]?.attributes?.taxEnabled
-        : isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, customUnitRateID, isDistanceRequest);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
