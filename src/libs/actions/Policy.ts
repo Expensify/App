@@ -3987,6 +3987,9 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+    }
 }
 
 function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
