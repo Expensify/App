@@ -53,7 +53,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                     </OfflineWithFeedback>
                 </View>
                 {isSwitchOn && (
-                    <OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={pendingFields?.syncCustomers}>
                         <MenuItemWithTopDescription
                             interactive={false}
                             title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
