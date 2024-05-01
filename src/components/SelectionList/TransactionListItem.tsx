@@ -1,7 +1,6 @@
 import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -16,8 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
-import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchTransactionType, SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps} from './types';
 
@@ -77,7 +75,7 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const userCell = (userDetails: OnyxEntry<PersonalDetails>) => (
+    const userCell = (userDetails: SearchPersonalDetails | undefined) => (
         <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
             <Avatar
                 imageStyles={[styles.alignSelfCenter]}
@@ -150,14 +148,14 @@ function TransactionListItem<TItem extends ListItem>({
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
-                                {userCell(item.from)}
+                                {userCell(item?.from)}
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                {userCell(item.to)}
+                                {userCell(item?.to)}
                             </View>
                             <View style={[{width: 80}]}>{actionCell}</View>
                         </View>

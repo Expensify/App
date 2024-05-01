@@ -53,4 +53,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchQuery, SearchTransaction, SearchTransactionType};
+export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails};

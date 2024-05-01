@@ -1,13 +1,12 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
-import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
@@ -167,10 +166,10 @@ type ListItem = {
     modifiedMerchant?: string;
 
     /** The personal details of the user requesting money */
-    from: OnyxEntry<PersonalDetails>;
+    from?: SearchPersonalDetails;
 
     /** The personal details of the user paying the request */
-    to: OnyxEntry<PersonalDetails>;
+    to?: SearchPersonalDetails;
 
     /** The type of request */
     type?: string;
