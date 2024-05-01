@@ -385,7 +385,10 @@ function ReportActionItem({
 
         if (
             !(
-                ((ReportActionsUtils.isActionableMentionWhisper(action) || ReportActionsUtils.isActionableTrackExpense(action)) && isWhisperResolution) ||
+                ((ReportActionsUtils.isActionableMentionWhisper(action) ||
+                    ReportActionsUtils.isActionableTrackExpense(action) ||
+                    ReportActionsUtils.isActionableRoomMentionWhisper(action)) &&
+                    isWhisperResolution) ||
                 (ReportActionsUtils.isActionableJoinRequest(action) && isJoinChoice)
             )
         ) {
@@ -445,6 +448,23 @@ function ReportActionItem({
                 },
             ];
         }
+
+        if (ReportActionsUtils.isActionableRoomMentionWhisper(action)) {
+            return [
+                {
+                    text: 'actionableRoomMentionWhisperOptions.create',
+                    key: `${action.reportActionID}-actionableRoomMentionWhisper-${CONST.REPORT.ACTIONABLE_ROOM_MENTION_WHISPER_RESOLUTION.YES}`,
+                    onPress: () => Report.resolveActionableRoomMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_ROOM_MENTION_WHISPER_RESOLUTION.YES),
+                    isPrimary: true,
+                },
+                {
+                    text: 'actionableRoomMentionWhisperOptions.nothing',
+                    key: `${action.reportActionID}-actionableRoomMentionWhisper-${CONST.REPORT.ACTIONABLE_ROOM_MENTION_WHISPER_RESOLUTION.NO}`,
+                    onPress: () => Report.resolveActionableRoomMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_ROOM_MENTION_WHISPER_RESOLUTION.NO),
+                },
+            ];
+        }
+
         return [
             {
                 text: 'actionableMentionWhisperOptions.invite',

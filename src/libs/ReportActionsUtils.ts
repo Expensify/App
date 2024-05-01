@@ -1026,6 +1026,14 @@ function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): repo
 }
 
 /**
+ * Checks if a given report action corresponds to an actionable room mention whisper.
+ * @param reportAction
+ */
+function isActionableRoomMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableMentionWhisper {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ROOM_MENTION_WHISPER;
+}
+
+/**
  * Constructs a message for an actionable mention whisper report action.
  * @param reportAction
  * @returns the actionable mention whisper message.
@@ -1171,6 +1179,7 @@ export {
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
     isActionableMentionWhisper,
+    isActionableRoomMentionWhisper,
     getActionableMentionWhisperMessage,
     isCurrentActionUnread,
     isActionableJoinRequest,
