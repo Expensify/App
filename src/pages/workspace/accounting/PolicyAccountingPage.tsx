@@ -19,6 +19,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -36,7 +37,6 @@ import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
 import type {PolicyConnectionName, Tenant} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import usePermissions from '@hooks/usePermissions';
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -47,8 +47,6 @@ type PolicyAccountingPageProps = WithPolicyProps &
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
     };
-
-const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
 
 type AccountingIntegration = {
     title: string;
@@ -64,7 +62,6 @@ function accountingIntegrationData(
     translate: LocaleContextProps['translate'],
     isConnectedToIntegration?: boolean,
     integrationToDisconnect?: PolicyConnectionName,
-    canUseXeroIntegration?: boolean,
 ): AccountingIntegration | undefined {
     switch (connectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -83,10 +80,6 @@ function accountingIntegrationData(
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID)),
             };
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
-            if (!canUseXeroIntegration) {
-                return undefined;
-            }
-
             return {
                 title: translate('workspace.accounting.xero'),
                 icon: Expensicons.XeroSquare,
@@ -118,6 +111,14 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => {
+        if (name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration) {
+            return false;
+        }
+
+        return true;
+    });
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
 
@@ -153,7 +154,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
             return accountingIntegrations.map((integration) => {
-                const integrationData = accountingIntegrationData(integration, policyID, translate, false, connectedIntegration, canUseXeroIntegration);
+                const integrationData = accountingIntegrationData(integration, policyID, translate);
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
                 return {
                     ...iconProps,
@@ -169,7 +170,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         if (!connectedIntegration) {
             return [];
         }
-        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate, true, connectedIntegration, canUseXeroIntegration);
+        const integrationData = accountingIntegrationData(connectedIntegration, policyID, translate);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
         return [
             {
@@ -265,7 +266,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         theme.spinner,
         threeDotsMenuPosition,
         translate,
-        canUseXeroIntegration,
+        accountingIntegrations,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -287,7 +288,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: styles.sectionMenuItemTopDescription,
             };
         });
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, styles.sectionMenuItemTopDescription, translate]);
+    }, [
+        connectedIntegration,
+        connectionSyncProgress?.connectionName,
+        isSyncInProgress,
+        policy?.connections,
+        policyID,
+        styles.sectionMenuItemTopDescription,
+        translate,
+        accountingIntegrations,
+    ]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
