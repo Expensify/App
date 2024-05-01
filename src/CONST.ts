@@ -91,10 +91,6 @@ const CONST = {
     },
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
-    INPUT_AUTOGROW_DIRECTION: {
-        LEFT: 'right',
-        RIGHT: 'left',
-    },
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     ARROW_HIDE_DELAY: 3000,
 
@@ -1126,6 +1122,11 @@ const CONST = {
         SEARCH: 'search',
         EMAIL: 'email',
         URL: 'url',
+    },
+
+    INPUT_AUTOGROW_DIRECTION: {
+        LEFT: 'right',
+        RIGHT: 'left',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
