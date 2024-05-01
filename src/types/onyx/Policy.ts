@@ -170,28 +170,22 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     collectionAccountID?: string;
     reimbursementAccountID?: string;
-    reimbursableExpensesAccount?: string;
-    nonReimbursableExpensesAccount?: string;
+    reimbursableExpensesAccount?: Account;
+    nonReimbursableExpensesAccount?: Account;
+    receivableAccount?: Account;
     autoCreateVendor: boolean;
     hasChosenAutoSyncOption: boolean;
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
-    syncAccounts: IntegrationEntityMap;
     lastConfigurationTime: number;
-    exportCompanyCardAccount?: string;
     syncTax: boolean;
     enableNewCategories: IntegrationEntityMap;
     errors?: OnyxCommon.Errors;
-    exporter: string;
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
-    outOfPocketExpenses: string;
-    exportInvoice: string;
-    exportAccount: string;
-    exportAccountPayable: string;
-    accountPayable: string;
-    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE>;
-    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>;
+    export: {
+        exporter: string;
+    }
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
