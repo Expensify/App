@@ -41,22 +41,9 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                         <OfflineWithFeedback pendingAction={pendingFields?.syncTax}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
-<<<<<<< HEAD
-                                    accessibilityLabel={translate('workspace.qbo.taxes')}
-                                    isOn={isSwitchOn}
-                                    onToggle={() =>
-                                        Connections.updatePolicyConnectionConfig(
-                                            policyID,
-                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                            CONST.QUICK_BOOKS_CONFIG.SYNC_TAXES,
-                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                                        )
-                                    }
-=======
                                     accessibilityLabel={translate('workspace.accounting.taxes')}
                                     isOn={!!syncTax}
                                     onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
->>>>>>> 46fc95a (Merge pull request #41283 from Expensify/aldo_fix-taxes)
                                 />
                             </View>
                         </OfflineWithFeedback>
