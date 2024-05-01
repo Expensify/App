@@ -55,6 +55,11 @@ type CustomBaseTextInputProps = {
     autoGrow?: boolean;
 
     /**
+     * Is this input right-aligned and has to grow to the left or vice-versa?
+     */
+    autoGrowDirection?: 'right' | 'left';
+
+    /**
      * Autogrow input container height based on the entered text
      */
     autoGrowHeight?: boolean;
