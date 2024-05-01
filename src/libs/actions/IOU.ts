@@ -3541,11 +3541,10 @@ function trackExpense(
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
-    if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.dismissModal();
+    Navigation.dismissModal(activeReportID);
+
+    if (action === CONST.IOU.ACTION.SHARE) {        
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
-    } else {
-        Navigation.dismissModal(activeReportID);
     }
 
     Report.notifyNewAction(activeReportID, payeeAccountID);
