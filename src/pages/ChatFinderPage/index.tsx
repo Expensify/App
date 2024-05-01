@@ -12,7 +12,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
 import type {MaybePhraseKey} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList} from '@libs/Navigation/types';
@@ -53,7 +52,6 @@ const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
 function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
-    const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {options, areOptionsInitialized} = useOptionsList({
