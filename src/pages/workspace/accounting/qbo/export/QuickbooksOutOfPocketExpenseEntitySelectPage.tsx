@@ -27,9 +27,9 @@ type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
 function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {exportEntity, syncTaxes, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {exportEntity, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const isTaxesEnabled = Boolean(syncTax);
     const isTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const isLocationError = isLocationsEnabled && exportEntity !== CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const policyID = policy?.id ?? '';

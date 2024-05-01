@@ -65,7 +65,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                 ref={qrCodeRef}
                                 url={url}
                                 title={policyName}
-                                logo={(policy?.avatar ? policy.avatar : expensifyLogo) as ImageSourcePropType}
+                                logo={(policy?.avatarURL ? policy.avatarURL : expensifyLogo) as ImageSourcePropType}
                                 logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                                 logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                             />

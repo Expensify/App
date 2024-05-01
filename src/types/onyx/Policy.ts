@@ -178,7 +178,6 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
     syncAccounts: IntegrationEntityMap;
-    syncTaxes: IntegrationEntityMap;
     lastConfigurationTime: number;
     exportCompanyCardAccount?: string;
     syncTax: boolean;
@@ -377,7 +376,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         address?: CompanyAddress;
 
         /** The URL for the policy avatar */
-        avatar?: string;
         avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */

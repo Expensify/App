@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -10,11 +10,14 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyConnectionConfig} from '@libs/actions/connections';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type XeroOrganizationConfigurationPageProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION>;
@@ -26,6 +29,8 @@ function XeroOrganizationConfigurationPage({
 }: XeroOrganizationConfigurationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
+    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
 
     const policyID = policy?.id ?? '';
 
@@ -42,6 +47,7 @@ function XeroOrganizationConfigurationPage({
         }
 
         updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, 'tenantID', keyForList);
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
     };
 
     return (
@@ -62,7 +68,7 @@ function XeroOrganizationConfigurationPage({
                         ListItem={RadioListItem}
                         onSelectRow={saveSelection}
                         sections={[{data: sections}]}
-                        initiallyFocusedOptionKey={organizationID}
+                        initiallyFocusedOptionKey={currentXeroOrganization?.id}
                     />
                 </ScrollView>
             </ScreenWrapper>
