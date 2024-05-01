@@ -1267,6 +1267,7 @@ const CONST = {
     },
 
     XERO_CONFIG: {
+        IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
     },
 

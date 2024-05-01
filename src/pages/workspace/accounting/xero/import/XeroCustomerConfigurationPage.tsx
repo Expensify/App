@@ -17,10 +17,10 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncCustomers, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const {importCustomers, pendingFields} = policy?.connections?.xero?.config ?? {};
 
-    const isSwitchOn = Boolean(syncCustomers && syncCustomers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isReportFieldsSelected = syncCustomers === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
+    const isSwitchOn = Boolean(importCustomers);
+
     return (
         <ConnectionLayout
             displayName={XeroCustomerConfigurationPage.displayName}
@@ -35,28 +35,21 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                     <View style={styles.flex1}>
                         <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
                     </View>
-                    <OfflineWithFeedback pendingAction={pendingFields?.syncCustomers}>
+                    <OfflineWithFeedback pendingAction={pendingFields?.importCustomers}>
                         <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                             <Switch
                                 accessibilityLabel={translate('workspace.xero.customers')}
                                 isOn={isSwitchOn}
-                                onToggle={() =>
-                                    Connections.updatePolicyConnectionConfig(
-                                        policyID,
-                                        CONST.POLICY.CONNECTIONS.NAME.XERO,
-                                        CONST.QUICK_BOOKS_CONFIG.SYNC_CUSTOMERS,
-                                        isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                                    )
-                                }
+                                onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.IMPORT_CUSTOMERS, !importCustomers)}
                             />
                         </View>
                     </OfflineWithFeedback>
                 </View>
                 {isSwitchOn && (
-                    <OfflineWithFeedback pendingAction={pendingFields?.syncCustomers}>
+                    <OfflineWithFeedback pendingAction={pendingFields?.importCustomers}>
                         <MenuItemWithTopDescription
                             interactive={false}
-                            title={isReportFieldsSelected ? translate('workspace.common.reportFields') : translate('workspace.common.tags')}
+                            title={translate('workspace.common.tags')}
                             description={translate('workspace.qbo.displayedAs')}
                             wrapperStyle={styles.sectionMenuItemTopDescription}
                         />
