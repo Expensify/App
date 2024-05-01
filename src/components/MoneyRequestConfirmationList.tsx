@@ -298,7 +298,9 @@ function MoneyRequestConfirmationList({
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
     // A flag for showing tax rate
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
+    const shouldShowTax = isDistanceRequest
+        ? isTaxTrackingEnabled(isPolicyExpenseChat, policy) && policy?.customUnits?.[0]?.attributes?.taxEnabled
+        : isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
     // A flag for showing the billable field
     const shouldShowBillable = policy?.disabledFields?.defaultBillable === false;
