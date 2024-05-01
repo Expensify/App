@@ -12,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Log from '@libs/Log';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
@@ -299,6 +300,17 @@ function ReportActionsView({
      * displaying.
      */
     const loadOlderChats = useCallback(() => {
+        Log.info(
+            `[ReportActionsView] loadOlderChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                oldestReportActionID: oldestReportAction?.reportActionID,
+                hasCreatedAction,
+                isTransactionThread: !isEmptyObject(transactionThreadReport),
+            })}`,
+        );
+
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (!!network.isOffline || isLoadingOlderReportActions || isLoadingInitialReportActions) {
             return;
@@ -324,12 +336,32 @@ function ReportActionsView({
     }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
     const loadNewerChats = useCallback(() => {
-        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
         // Determines if loading older reports is necessary when the content is smaller than the list
         // and there are fewer than 23 items, indicating we've reached the oldest message.
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
+
+        Log.info(
+            `[ReportActionsView] loadNewerChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                newestReportAction: newestReportAction.pendingAction,
+                firstReportActionID: newestReportAction?.reportActionID,
+                isLoadingOlderReportsFirstNeeded,
+                reportActionID,
+            })}`,
+        );
+
+        if (
+            !reportActionID ||
+            !isFocused ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
+            return;
+        }
 
         if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
@@ -344,6 +376,7 @@ function ReportActionsView({
         network.isOffline,
         reportActions.length,
         newestReportAction,
+        isFocused,
     ]);
 
     /**
