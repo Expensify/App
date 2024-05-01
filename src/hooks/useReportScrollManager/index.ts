@@ -6,30 +6,28 @@ function useReportScrollManager(): ReportScrollManagerData {
     const {flatListRef} = useContext(ActionListContext);
 
     /**
-     * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
+     * Scroll to the provided index.
+     * On non-native implementations we do not want to scroll when we are scrolling because
      * we are editing a comment.
+     * @param viewPosition (optional) - `0`: top, `0.5`: center, `1`: bottom
      */
-    const scrollToIndex = (index: number, isEditing?: boolean) => {
+    const scrollToIndex = (index: number, isEditing?: boolean, viewPosition?: number) => {
         if (!flatListRef?.current || isEditing) {
             return;
         }
 
-        flatListRef.current.scrollToIndex({index, animated: true});
+        flatListRef.current.scrollToIndex({index, animated: true, viewPosition});
     };
 
     /**
      * Scroll to the bottom of the flatlist.
      */
     const scrollToBottom = useCallback(() => {
-        // We're deferring execution here because on iOS: mWeb (WebKit based browsers)
-        // scrollToOffset method doesn't work unless called on the next tick
-        requestAnimationFrame(() => {
-            if (!flatListRef?.current) {
-                return;
-            }
+        if (!flatListRef?.current) {
+            return;
+        }
 
-            flatListRef.current.scrollToOffset({animated: false, offset: 0});
-        });
+        flatListRef.current.scrollToOffset({animated: false, offset: 0});
     }, [flatListRef]);
 
     return {ref: flatListRef, scrollToIndex, scrollToBottom};
