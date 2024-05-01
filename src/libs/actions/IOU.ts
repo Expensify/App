@@ -3543,7 +3543,7 @@ function trackExpense(
     }
     Navigation.dismissModal(activeReportID);
 
-    if (action === CONST.IOU.ACTION.SHARE) {        
+    if (action === CONST.IOU.ACTION.SHARE) {
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
     }
 
