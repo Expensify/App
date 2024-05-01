@@ -124,38 +124,55 @@ type ListItem = {
     /** What text to show inside the badge (if none present the badge will be omitted) */
     badgeText?: string;
 
+    /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
 
+    /** The accountID of the report manager */
     managerID?: number;
 
+    /** The receipt object */
     receipt?: {source?: string};
 
+    /** The transaction amount */
     amount?: number;
 
+    /** The edited transaction amount */
     modifiedAmount?: number;
 
+    /** The transaction currency */
     currency?: string;
 
+    /** The edited transaction currency */
     modifiedCurrency?: string;
 
+    /** The transaction tag */
     tag?: string;
 
+    /** The transaction description */
     comment?: {comment?: string};
 
+    /** The transaction category */
     category?: string;
 
+    /** The transaction created date */
     created?: string;
 
+    /** The edited transaction created date */
     modifiedCreated?: string;
 
+    /** The transaction merchant */
     merchant?: string;
 
+    /** The edited transaction merchant */
     modifiedMerchant?: string;
 
+    /** The personal details of the user requesting money */
     from?: OnyxEntry<PersonalDetails> | undefined;
 
+    /** The personal details of the user paying the request */
     to?: OnyxEntry<PersonalDetails> | undefined;
 
+    /** The type of request */
     type?: string;
 };
 

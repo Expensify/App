@@ -3,7 +3,6 @@ import {useOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as SearchUtils from '@libs/SearchUtils';
@@ -25,8 +24,6 @@ type SearchProps = {
 function Search({query}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
-    // const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     useCustomBackHandler();
 
     const hash = SearchUtils.getQueryHash(query);
@@ -43,6 +40,7 @@ function Search({query}: SearchProps) {
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
 
+
     if (isLoading) {
         return <TableListItemSkeleton shouldAnimate />;
     }
@@ -50,8 +48,6 @@ function Search({query}: SearchProps) {
     if (shouldShowEmptyState) {
         return <EmptySearchView />;
     }
-
-    const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
     const openReport = (reportID?: string) => {
         if (!reportID) {
@@ -67,17 +63,13 @@ function Search({query}: SearchProps) {
     return (
         <SelectionList
             customListHeader={(
-                <View style={[styles.ph5, styles.pb3]}>
-                    <SearchTableHeader />
-                </View>
+                <SearchTableHeader shouldShowMerchant />
             )}
             ListItem={ListItem}
             sections={[{data, isDisabled: false}]}
             onSelectRow={(item) => {
                 openReport(item.transactionThreadReportID);
             }}
-            onSelectAll={!displayNarrowVersion ? () => {} : undefined}
-            onCheckboxPress={() => {}}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
         />
