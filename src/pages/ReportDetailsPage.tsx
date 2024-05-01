@@ -261,6 +261,14 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
         ReportUtils.isDeprecatedGroupDM(report) || ReportUtils.isGroupChat(report)
             ? ReportUtils.getGroupChatName(undefined, false, report.reportID ?? '')
             : ReportUtils.getReportName(report);
+
+    const roomFurtherDetails =
+        (ReportUtils.isPolicyExpenseChat(report) && !!report?.isOwnPolicyExpenseChat) || ReportUtils.isExpenseReport(report)
+            ? chatRoomSubtitle
+            : `${translate('threads.in')} ${chatRoomSubtitle}`;
+
+    const roomTitle = ReportUtils.isPolicyExpenseChat(report) && !report?.isOwnPolicyExpenseChat ? reportName : report?.reportName ?? reportName;
+
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
@@ -326,11 +334,11 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon={!shouldDisableRename}
                                 interactive={!shouldDisableRename}
-                                title={report?.reportName === '' ? reportName : report?.reportName}
+                                title={roomTitle}
                                 titleStyle={styles.newKansasLarge}
                                 shouldCheckActionAllowedOnPress={false}
                                 description={isGroupChat ? translate('groupConfirmPage.groupName') : translate('newRoomPage.roomName')}
-                                furtherDetails={chatRoomSubtitle && !isGroupChat ? `${translate('threads.in')} ${chatRoomSubtitle}` : ''} // "in Workspace X"
+                                furtherDetails={chatRoomSubtitle && !isGroupChat ? roomFurtherDetails : ''}
                                 onPress={() =>
                                     isGroupChat
                                         ? Navigation.navigate(ROUTES.REPORT_SETTINGS_GROUP_NAME.getRoute(report.reportID))
