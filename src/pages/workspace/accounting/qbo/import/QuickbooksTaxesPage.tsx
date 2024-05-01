@@ -19,8 +19,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const {syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -39,9 +38,10 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                         <View style={styles.flex1}>
                             <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
                         </View>
-                        <OfflineWithFeedback pendingAction={pendingFields?.syncTaxes}>
+                        <OfflineWithFeedback pendingAction={pendingFields?.syncTax}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
+<<<<<<< HEAD
                                     accessibilityLabel={translate('workspace.qbo.taxes')}
                                     isOn={isSwitchOn}
                                     onToggle={() =>
@@ -52,6 +52,11 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                         )
                                     }
+=======
+                                    accessibilityLabel={translate('workspace.accounting.taxes')}
+                                    isOn={!!syncTax}
+                                    onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
+>>>>>>> 46fc95a (Merge pull request #41283 from Expensify/aldo_fix-taxes)
                                 />
                             </View>
                         </OfflineWithFeedback>
