@@ -33,7 +33,7 @@ import type {
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
-    ResolveActionableRoomMentionWhisperParams,
+    ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
     SetNameValuePairParams,
@@ -3641,7 +3641,11 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
-function resolveActionableRoomMentionWhisper(reportId: string, reportAction: OnyxEntry<ReportAction>, resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_ROOM_MENTION_WHISPER_RESOLUTION>) {
+function resolveActionableReportMentionWhisper(
+    reportId: string,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
+) {
     if (!reportAction) {
         return;
     }
@@ -3690,12 +3694,12 @@ function resolveActionableRoomMentionWhisper(reportId: string, reportAction: Ony
         },
     ];
 
-    const parameters: ResolveActionableRoomMentionWhisperParams = {
+    const parameters: ResolveActionableReportMentionWhisperParams = {
         reportActionID: reportAction.reportActionID,
         resolution,
     };
 
-    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_ROOM_MENTION_WHISPER, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, successData, failureData});
 }
 
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
@@ -3819,7 +3823,7 @@ export {
     deleteReportField,
     clearReportFieldErrors,
     resolveActionableMentionWhisper,
-    resolveActionableRoomMentionWhisper,
+    resolveActionableReportMentionWhisper,
     updateRoomVisibility,
     dismissTrackExpenseActionableWhisper,
     setGroupDraft,

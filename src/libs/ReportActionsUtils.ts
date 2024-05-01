@@ -11,7 +11,7 @@ import type {
     ChangeLog,
     IOUMessage,
     OriginalMessageActionableMentionWhisper,
-    OriginalMessageActionableRoomMentionWhisper,
+    OriginalMessageActionableReportMentionWhisper,
     OriginalMessageActionableTrackedExpenseWhisper,
     OriginalMessageIOU,
     OriginalMessageJoinPolicyChangeLog,
@@ -1028,11 +1028,11 @@ function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): repo
 }
 
 /**
- * Checks if a given report action corresponds to an actionable room mention whisper.
+ * Checks if a given report action corresponds to an actionable report mention whisper.
  * @param reportAction
  */
-function isActionableRoomMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableRoomMentionWhisper {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ROOM_MENTION_WHISPER;
+function isActionableReportMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableReportMentionWhisper {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER;
 }
 
 /**
@@ -1179,7 +1179,7 @@ export {
     getMemberChangeMessagePlainText,
     isReimbursementDeQueuedAction,
     isActionableMentionWhisper,
-    isActionableRoomMentionWhisper,
+    isActionableReportMentionWhisper,
     getActionableMentionWhisperMessage,
     isCurrentActionUnread,
     isActionableJoinRequest,

@@ -3194,7 +3194,7 @@ export default {
         invite: 'Invitar',
         nothing: 'No hacer nada',
     },
-    actionableRoomMentionWhisperOptions: {
+    actionableReportMentionWhisperOptions: {
         create: 'Créalo',
         nothing: 'No hacer nada',
     },

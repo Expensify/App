@@ -2724,7 +2724,7 @@ export default {
         invite: 'Invite them',
         nothing: 'Do nothing',
     },
-    actionableRoomMentionWhisperOptions: {
+    actionableReportMentionWhisperOptions: {
         create: 'Create it',
         nothing: 'Do nothing',
     },
