@@ -36,7 +36,7 @@ function SearchPageBottomTab() {
                 shouldShowLink={false}
             >
                 <TopBar
-                    breadcrumbLabel={translate('common.search')}
+                    breadcrumbLabel={translate('common.searchText')}
                     shouldDisplaySearch={false}
                 />
                 <SearchFilters query={query} />

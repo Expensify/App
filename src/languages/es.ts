@@ -68,6 +68,7 @@ import type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
+    SyncStageNameParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,
@@ -2264,7 +2265,7 @@ export default {
             },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
-                syncStageName: ({stage}: {stage: PolicyConnectionSyncStage}) => {
+                syncStageName: ({stage}: SyncStageNameParams) => {
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                             return 'Importando clientes';

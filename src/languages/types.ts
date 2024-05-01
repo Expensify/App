@@ -1,5 +1,5 @@
 import type {ReportAction} from '@src/types/onyx';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {PolicyConnectionSyncStage, Unit} from '@src/types/onyx/Policy';
 import type en from './en';
 
 type AddressLineParams = {
@@ -200,6 +200,8 @@ type SetTheRequestParams = {valueName: string; newValueToDisplay: string};
 
 type SetTheDistanceParams = {newDistanceToDisplay: string; newAmountToDisplay: string};
 
+type SyncStageNameParams = {stage: PolicyConnectionSyncStage};
+
 type RemovedTheRequestParams = {valueName: string; oldValueToDisplay: string};
 
 type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
@@ -363,6 +365,7 @@ export type {
     SizeExceededParams,
     SplitAmountParams,
     StepCounterParams,
+    SyncStageNameParams,
     TaskCreatedActionParams,
     TermsParams,
     ThreadRequestReportNameParams,

@@ -49,12 +49,6 @@ describe('translate', () => {
         expect(Localize.translate(CONST.LOCALES.ES_ES, 'testKey4' as TranslationPaths)).toBe('testKey4');
         asMutable(CONFIG).IS_IN_PRODUCTION = ORIGINAL_IS_IN_PRODUCTION;
     });
-
-    // it('Test when translation value is a function', () => {
-    //     const expectedValue = 'With variable Test Variable';
-    //     const testVariable = 'Test Variable';
-    //     expect(Localize.translate(CONST.LOCALES.EN, 'testKeyGroup.testFunction' as TranslationPaths, {testVariable})).toBe(expectedValue);
-    // });
 });
 
 describe('Translation Keys', () => {
