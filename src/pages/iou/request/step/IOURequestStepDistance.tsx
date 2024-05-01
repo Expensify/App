@@ -426,7 +426,7 @@ function IOURequestStepDistance({
                 <View style={styles.flex1}>
                     <DraggableList
                         data={waypointsList}
-                        keyExtractor={(item) => item}
+                        keyExtractor={(item) => (waypoints[item]?.address ?? '') + item || item}
                         shouldUsePortal
                         onDragEnd={updateWaypoints}
                         ref={scrollViewRef}
