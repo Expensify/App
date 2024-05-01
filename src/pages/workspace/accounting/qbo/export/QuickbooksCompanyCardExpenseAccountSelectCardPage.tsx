@@ -34,15 +34,15 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     const defaultCards = useMemo<Card[]>(
         () => [
             {
-                name: translate(`workspace.qbo.exportCompanyCardAccountType.creditCard`),
+                name: translate(`workspace.qbo.exportCompanyCardAccountType.credit_card`),
                 id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD,
             },
             {
-                name: translate(`workspace.qbo.exportCompanyCardAccountType.debitCard`),
+                name: translate(`workspace.qbo.exportCompanyCardAccountType.debit_card`),
                 id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD,
             },
             {
-                name: translate(`workspace.qbo.exportCompanyCardAccountType.vendorBill`),
+                name: translate(`workspace.qbo.exportCompanyCardAccountType.bill`),
                 id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL,
             },
         ],
