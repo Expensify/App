@@ -30,6 +30,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, ReportAction, ReportActionReactions, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
@@ -360,6 +361,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(mentionWhisperMessage);
                 } else if (ReportActionsUtils.isActionableTrackExpense(reportAction)) {
                     setClipboardMessage('What would you like to do with this expense?');
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+                    const expenseReport = ReportUtils.getReport(reportID);
+                    const formattedAmount = CurrencyUtils.convertToDisplayString(Math.abs(expenseReport?.total ?? 0), expenseReport?.currency);
+                    setClipboardMessage(Localize.translateLocal('iou.submittedAmount', {formattedAmount}));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(Localize.translateLocal('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
