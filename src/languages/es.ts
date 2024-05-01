@@ -2000,23 +2000,24 @@ export default {
             exportCompanyCardAccountType: {
                 [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',
                 [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
+                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
+                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
+                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'Cheque',
+
                 [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
                 [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
+                    'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
+
                 [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
                     'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
                 [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
                     'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
-            },
-            outOfPocketExpenseAccountType: {
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'Cheque',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
-                    'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
                 [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]:
                     'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+
                 [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
                 [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK}Error`]:
@@ -2024,6 +2025,7 @@ export default {
                 [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
+            outOfPocketExpenseAccountType: {},
         },
         xero: {
             organization: 'Organización Xero',
