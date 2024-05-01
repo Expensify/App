@@ -7,7 +7,6 @@ import lodashSet from 'lodash/set';
 import lodashSortBy from 'lodash/sortBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import type {SelectedTagOption} from '@components/TagPicker';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -311,14 +310,13 @@ function getAvatarsForAccountIDs(accountIDs: number[], personalDetails: OnyxEntr
     Object.entries(defaultValues).forEach((item) => {
         reversedDefaultValues[item[1]] = item[0];
     });
-
     return accountIDs.map((accountID) => {
         const login = reversedDefaultValues[accountID] ?? '';
-        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID};
+        const userPersonalDetail = personalDetails?.[accountID] ?? {login, accountID, avatar: ''};
 
         return {
             id: accountID,
-            source: userPersonalDetail.avatar ?? FallbackAvatar,
+            source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
             type: CONST.ICON_TYPE_AVATAR,
             name: userPersonalDetail.login ?? '',
         };
@@ -341,7 +339,9 @@ function getPersonalDetailsForAccountIDs(accountIDs: number[] | undefined, perso
         }
         let personalDetail: OnyxEntry<PersonalDetails> = personalDetails[accountID];
         if (!personalDetail) {
-            personalDetail = {} as PersonalDetails;
+            personalDetail = {
+                avatar: UserUtils.getDefaultAvatar(cleanAccountID),
+            } as PersonalDetails;
         }
 
         if (cleanAccountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -370,7 +370,6 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const login = detail?.login || participant.login || '';
     const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail, LocalePhoneNumber.formatPhoneNumber(login));
-
     return {
         keyForList: String(detail?.accountID),
         login,
@@ -381,7 +380,7 @@ function getParticipantsOption(participant: ReportUtils.OptionData | Participant
         alternateText: LocalePhoneNumber.formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: detail?.avatar ?? FallbackAvatar,
+                source: UserUtils.getAvatar(detail?.avatar ?? '', detail?.accountID ?? -1),
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
@@ -748,7 +747,13 @@ function createOption(
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     result.searchText = getSearchText(report, reportName, personalDetailList, !!result.isChatRoom || !!result.isPolicyExpenseChat, !!result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, personalDetail?.avatar, personalDetail?.login, personalDetail?.accountID);
+    result.icons = ReportUtils.getIcons(
+        report,
+        personalDetails,
+        UserUtils.getAvatar(personalDetail?.avatar ?? '', personalDetail?.accountID),
+        personalDetail?.login,
+        personalDetail?.accountID,
+    );
     result.subtitle = subtitle;
 
     return result;
@@ -1858,6 +1863,7 @@ function getOptions(
             [optimisticAccountID]: {
                 accountID: optimisticAccountID,
                 login: searchValue,
+                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
             },
         };
         userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
@@ -1870,10 +1876,10 @@ function getOptions(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.alternateText = userToInvite.alternateText || searchValue;
 
-        // If user doesn't exist, use a fallback avatar
+        // If user doesn't exist, use a default avatar
         userToInvite.icons = [
             {
-                source: FallbackAvatar,
+                source: UserUtils.getAvatar('', optimisticAccountID),
                 name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
@@ -1947,12 +1953,17 @@ function getShareLogOptions(options: OptionList, searchValue = '', betas: Beta[]
  */
 function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: PersonalDetails | EmptyObject, amountText?: string): PayeePersonalDetails {
     const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
-    const icons = [{source: personalDetail.avatar ?? FallbackAvatar, name: personalDetail.login ?? '', type: CONST.ICON_TYPE_AVATAR, id: personalDetail.accountID}];
-
     return {
         text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
         alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-        icons,
+        icons: [
+            {
+                source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
+                name: personalDetail.login ?? '',
+                type: CONST.ICON_TYPE_AVATAR,
+                id: personalDetail.accountID,
+            },
+        ],
         descriptiveText: amountText ?? '',
         login: personalDetail.login ?? '',
         accountID: personalDetail.accountID,
@@ -2121,11 +2132,7 @@ function getMemberInviteOptions(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, maxParticipantsReached = false, hasMatchedParticipant = false): string {
-    if (maxParticipantsReached) {
-        return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
-    }
-
+function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
     const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
@@ -2177,14 +2184,13 @@ function formatSectionsFromSearchTerm(
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: ReportUtils.OptionData[],
-    maxOptionsSelected: boolean,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '' || maxOptionsSelected) {
+    if (searchTerm === '') {
         return {
             section: {
                 title: undefined,
