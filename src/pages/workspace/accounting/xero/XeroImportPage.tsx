@@ -13,7 +13,7 @@ import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Tenant} from '@src/types/onyx/Policy';
+import { getXeroTenants } from '@libs/PolicyUtils';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -22,7 +22,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const {importCustomers, importTaxRates, importTrackingCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
 
-    const tenants = useMemo<Tenant[]>(() => policy?.connections?.xero?.data?.tenants ?? [], [policy?.connections?.xero.data.tenants]);
+    const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
     const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
 
     const sections = useMemo(

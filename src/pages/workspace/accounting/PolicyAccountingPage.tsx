@@ -33,9 +33,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
-import type {PolicyConnectionName, Tenant} from '@src/types/onyx/Policy';
+import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import { findCurrentXeroOrganization, getXeroTenants } from '@libs/PolicyUtils';
 
 type PolicyAccountingPageOnyxProps = {
     connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
@@ -116,15 +117,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
-    const tenants = useMemo<Tenant[]>(() => {
-        // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
-            return [];
-        }
-        return policy?.connections?.xero?.data?.tenants ?? [];
-    }, [policy]);
-    const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
+    const tenants = useMemo(() => getXeroTenants(policy), [policy]);
+
+    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
