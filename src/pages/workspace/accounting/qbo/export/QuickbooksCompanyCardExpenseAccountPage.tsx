@@ -20,8 +20,9 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {exportCompanyCardAccount, exportAccountPayable, autoCreateVendor, errorFields, pendingFields, exportCompanyCard} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isVendorSelected = exportCompanyCard === CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL;
+    const {reimbursableExpensesExportDestination, autoCreateVendor, errorFields, pendingFields, nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} =
+        policy?.connections?.quickbooksOnline?.config ?? {};
+    const isVendorSelected = nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -35,28 +36,30 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                 <HeaderWithBackButton title={translate('workspace.qbo.exportCompany')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportCompanyCardsDescription')}</Text>
-                    <OfflineWithFeedback pendingAction={pendingFields?.exportCompanyCard}>
+                    <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesExportDestination}>
                         <MenuItemWithTopDescription
-                            title={exportCompanyCard ? translate(`workspace.qbo.accounts.${exportCompanyCard}`) : undefined}
+                            title={nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined}
                             description={translate('workspace.qbo.exportCompany')}
-                            error={errorFields?.exportCompanyCard ? translate('common.genericErrorMessage') : undefined}
+                            error={errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT.getRoute(policyID))}
-                            brickRoadIndicator={errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={errorFields?.nonReimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    {!!exportCompanyCard && (
-                        <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>{translate(`workspace.qbo.accounts.${exportCompanyCard}Description`)}</Text>
+                    {!!nonReimbursableExpensesExportDestination && (
+                        <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>
+                            {translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}Description`)}
+                        </Text>
                     )}
                     {isVendorSelected && (
                         <>
-                            <OfflineWithFeedback pendingAction={pendingFields?.exportAccountPayable}>
+                            <OfflineWithFeedback pendingAction={pendingFields?.reimbursableExpensesExportDestination}>
                                 <MenuItemWithTopDescription
-                                    title={exportAccountPayable}
+                                    title={reimbursableExpensesExportDestination}
                                     description={translate('workspace.qbo.accountsPayable')}
-                                    error={errorFields?.exportAccountPayable ? translate('common.genericErrorMessage') : undefined}
+                                    error={errorFields?.reimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT.getRoute(policyID))}
-                                    brickRoadIndicator={errorFields?.exportAccountPayable ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                    brickRoadIndicator={errorFields?.reimbursableExpensesExportDestination ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                     shouldShowRightIcon
                                 />
                             </OfflineWithFeedback>
@@ -71,14 +74,14 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                             />
                         </>
                     )}
-                    <OfflineWithFeedback pendingAction={pendingFields?.exportCompanyCardAccount}>
+                    <OfflineWithFeedback pendingAction={pendingFields?.nonReimbursableExpensesAccount}>
                         <MenuItemWithTopDescription
-                            title={exportCompanyCardAccount}
+                            title={nonReimbursableExpensesAccount?.name}
                             description={isVendorSelected ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
-                            brickRoadIndicator={errorFields?.exportCompanyCardAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            brickRoadIndicator={errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
-                            error={errorFields?.exportCompanyCardAccount ? translate('common.genericErrorMessage') : undefined}
+                            error={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
                         />
                     </OfflineWithFeedback>
                 </ScrollView>

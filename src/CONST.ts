@@ -1252,13 +1252,10 @@ const CONST = {
         SYNC_TAX: 'syncTax',
         PREFERRED_EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
-        OUT_OF_POCKET_EXPENSES: 'outOfPocketExpenses',
-        EXPORT_INVOICE: 'exportInvoice',
-        EXPORT_ENTITY: 'exportEntity',
-        EXPORT_ACCOUNT: 'exportAccount',
-        EXPORT_ACCOUNT_PAYABLE: 'exportAccountPayable',
-        EXPORT_COMPANY_CARD_ACCOUNT: 'exportCompanyCardAccount',
-        EXPORT_COMPANY_CARD: 'exportCompanyCard',
+        EXPORT_NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'nonReimbursableExpensesAccount',
+        EXPORT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonReimbursableExpensesExportDestination',
+        EXPORT_REIMBURSABLE_EXPENSES_ACCOUNT: 'reimbursableExpensesAccount',
+        EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         AUTO_SYNC: 'autoSync',
         SYNC_PEOPLE: 'syncPeople',
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
@@ -4662,7 +4659,7 @@ const CONST = {
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
-    QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE: {
+    QUICKBOOKS_EXPORT_ACCOUNT_TYPE: {
         CREDIT_CARD: 'credit_card',
         DEBIT_CARD: 'debit_card',
         VENDOR_BILL: 'bill',
