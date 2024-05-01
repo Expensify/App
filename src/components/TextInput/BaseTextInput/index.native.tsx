@@ -91,6 +91,7 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
+        autoGrowDirection = CONST.INPUT_AUTOGROW_DIRECTION.RIGHT,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -301,12 +302,12 @@ function BaseTextInput(
     const previousValue = useRef('');
     const nexCharacter = useRef('');
 
-    // When using autoGrow and the amount input is right aligned, the input is going to grow to the left of the view
+    // When using autoGrow and the amount input is right aligned, the input is going to grow to the left of the view and for a brief second the new character will be displayed outside of the input
     // This logic below allows us to calculate the exact width we need to add to the input when a new digit is entered
-    // Each charact (1 to 9 and '.') have a sepcific length
+    // Each charact (1 to 9 and '.') have a sepcific width
     useLayoutEffect(() => {
         const currentValue = value ?? '';
-        if (!autoGrow || previousValue.current.length === currentValue.length) {
+        if (autoGrowDirection !== CONST.INPUT_AUTOGROW_DIRECTION.LEFT || !autoGrow || previousValue.current.length === currentValue.length) {
             return;
         }
 
@@ -325,7 +326,7 @@ function BaseTextInput(
         if (nexCharacter.current.length) {
             setTextInputWidth((currentWidth) => currentWidth + calculateCharacterWidth(nexCharacter.current));
         }
-    }, [autoGrow, value]);
+    }, [autoGrow, autoGrowDirection, value]);
 
     return (
         <>
