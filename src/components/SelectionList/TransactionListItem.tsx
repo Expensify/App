@@ -54,11 +54,11 @@ function TransactionListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
 
     const isNarrowView = isMediumScreenWidth || isSmallScreenWidth;
-    const date = (item.modifiedCreated || item.created) ?? '';
-    const merchant = (item.modifiedMerchant || item.merchant) ?? '';
+    const date = (item.modifiedCreated ? item.modifiedCreated : item.created) ?? '';
+    const merchant = (item.modifiedMerchant ? item.modifiedMerchant : item.merchant) ?? '';
     const description = item.comment?.comment ?? '';
-    const amount = (item.modifiedAmount || item.amount) ?? 0;
-    const currency = (item.modifiedCurrency || item.currency) ?? CONST.CURRENCY.USD;
+    const amount = (item.modifiedAmount ? item.modifiedAmount : item.amount) ?? 0;
+    const currency = (item.modifiedCurrency ? item.modifiedCurrency : item.currency) ?? CONST.CURRENCY.USD;
     const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
 
     const dateCell = (

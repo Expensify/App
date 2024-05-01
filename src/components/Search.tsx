@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';

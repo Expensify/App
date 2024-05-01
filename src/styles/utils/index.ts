@@ -1529,16 +1529,16 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {width: 40};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
-                columnWidth = {flex: 1};
+                columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
-                columnWidth = {flex: 1};
+                columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TO:
-                columnWidth = {flex: 1};
+                columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
-                columnWidth = {width: 96, alignItems: 'flex-end'};
+                columnWidth = {width: 96, ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TYPE:
                 columnWidth = {width: 28};
@@ -1547,7 +1547,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {width: 80};
                 break;
             default:
-                columnWidth = {flex: 1};
+                columnWidth = styles.flex1;
         }
 
         return columnWidth;

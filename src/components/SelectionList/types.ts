@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
-import {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -167,10 +167,10 @@ type ListItem = {
     modifiedMerchant?: string;
 
     /** The personal details of the user requesting money */
-    from?: OnyxEntry<PersonalDetails> | undefined;
+    from: OnyxEntry<PersonalDetails>;
 
     /** The personal details of the user paying the request */
-    to?: OnyxEntry<PersonalDetails> | undefined;
+    to: OnyxEntry<PersonalDetails>;
 
     /** The type of request */
     type?: string;

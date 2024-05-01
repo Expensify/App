@@ -27,6 +27,8 @@ type SearchTransaction = {
     description: string;
     accountID: number;
     managerID: number;
+    from: SearchPersonalDetails;
+    to: SearchPersonalDetails;
     amount: number;
     modifiedAmount?: number;
     category?: string;
@@ -46,7 +48,7 @@ type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
 
 type SearchResults = {
     search: SearchResultsInfo;
-    data: Record<string, SearchTransaction & SearchPersonalDetails>;
+    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>>;
 };
 
 export default SearchResults;
