@@ -8,21 +8,24 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 type ListItemRightCaretWithLabelProps = {
     labelText?: string;
+    shouldShowCaret?: boolean;
 };
 
-function ListItemRightCaretWithLabel({labelText}: ListItemRightCaretWithLabelProps) {
+function ListItemRightCaretWithLabel({labelText, shouldShowCaret = true}: ListItemRightCaretWithLabelProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
     return (
         <View style={styles.flexRow}>
             {!!labelText && <Text style={[styles.alignSelfCenter, styles.textSupporting, styles.pl2, styles.label]}>{labelText}</Text>}
-            <View style={[styles.p1, styles.pl2]}>
-                <Icon
-                    src={Expensicons.ArrowRight}
-                    fill={theme.icon}
-                />
-            </View>
+            {shouldShowCaret && (
+                <View style={[styles.pl2]}>
+                    <Icon
+                        src={Expensicons.ArrowRight}
+                        fill={theme.icon}
+                    />
+                </View>
+            )}
         </View>
     );
 }

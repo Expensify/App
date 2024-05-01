@@ -99,7 +99,12 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                 isSelected: selectedTags[policyTagList.name],
                 enabled: true,
                 required: policyTagList.required,
-                rightElement: <ListItemRightCaretWithLabel labelText={policyTagList.required ? translate('common.required') : undefined} />,
+                rightElement: (
+                    <ListItemRightCaretWithLabel
+                        labelText={policyTagList.required ? translate('common.required') : undefined}
+                        shouldShowCaret={false}
+                    />
+                ),
             }));
         }
         return policyTagLists
