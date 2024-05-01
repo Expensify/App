@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -27,6 +27,38 @@ import useNativeDriver from '@libs/useNativeDriver';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
+
+function percentage(percentageValue: number, totalValue: number) {
+    return (totalValue / 100) * percentageValue;
+}
+function calculateSize(string: string, size: number) {
+    const number = +string;
+    if (string === '.') {
+        return percentage(25, size);
+    }
+    if (number === 1) {
+        return percentage(62.5, size);
+    }
+    if (number >= 2 && number <= 5) {
+        return size;
+    }
+    if (number === 7) {
+        return percentage(87.5, size);
+    }
+    if ((number >= 6 && number <= 9) || number === 0) {
+        return percentage(112.5, size);
+    }
+    return size;
+}
+
+function getDifference(s: string, t: string) {
+    let sum = t.charCodeAt(t.length - 1);
+    for (let j = 0; j < s.length; j++) {
+        sum -= s.charCodeAt(j);
+        sum += t.charCodeAt(j);
+    }
+    return String.fromCharCode(sum);
+}
 
 function BaseTextInput(
     {
@@ -271,6 +303,32 @@ function BaseTextInput(
         return undefined;
     }, [inputStyle]);
 
+    const prevTextValue = useRef('');
+    const newSymbol = useRef('');
+
+    useLayoutEffect(() => {
+        const currentValue = value ?? '';
+        if (!autoGrow || prevTextValue.current.length === currentValue.length) {
+            return;
+        }
+        if (prevTextValue.current.length > currentValue.length) {
+            if (currentValue.length === 0) {
+                return;
+            }
+            const diff = getDifference(currentValue, prevTextValue.current);
+            requestAnimationFrame(() => {
+                setTextInputWidth((currentWidth) => currentWidth - calculateSize(diff, 8));
+            });
+            prevTextValue.current = currentValue;
+            return;
+        }
+
+        prevTextValue.current = currentValue;
+        requestAnimationFrame(() => {
+            setTextInputWidth((currentWidth) => currentWidth + calculateSize(newSymbol.current, 8));
+        });
+    }, [autoGrow, value]);
+
     return (
         <>
             <View
@@ -389,6 +447,9 @@ function BaseTextInput(
                                 showSoftInputOnFocus={!disableKeyboard}
                                 inputMode={inputProps.inputMode}
                                 value={value}
+                                onChange={(e) => {
+                                    newSymbol.current = e.nativeEvent?.text ?? '';
+                                }}
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
