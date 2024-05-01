@@ -48,7 +48,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
                                         Connections.updatePolicyConnectionConfig(
                                             policyID,
                                             CONST.POLICY.CONNECTIONS.NAME.XERO,
-                                            CONST.QUICK_BOOKS_CONFIG.SYNC_TAXES,
+                                            CONST.XERO_CONFIG.SYNC_TAXES,
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                         )
                                     }

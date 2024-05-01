@@ -1265,6 +1265,10 @@ const CONST = {
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
     },
 
+    XERO_CONFIG: {
+        SYNC_TAXES: 'syncTaxes',
+    },
+
     QUICKBOOKS_EXPORT_ENTITY: {
         VENDOR_BILL: 'vendorBill',
         CHECK: 'check',
