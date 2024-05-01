@@ -31,6 +31,7 @@ import type {BaseTextInputProps, BaseTextInputRef} from './types';
 function percentage(percentageValue: number, totalValue: number) {
     return (totalValue / 100) * percentageValue;
 }
+
 /**
  * Calculates the width in px of characters from 0 to 9 and '.'
  */
@@ -91,6 +92,7 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
+        autoGrowDirection = CONST.INPUT_AUTOGROW_DIRECTION.RIGHT,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -318,10 +320,10 @@ function BaseTextInput(
 
     // When using autoGrow and the amount input is right aligned, the input is going to grow to the left of the view
     // This logic below allows us to calculate the exact width we need to add to the input when a new digit is entered
-    // Each charact (1 to 9 and '.') have a sepcific length
+    // Each character (1 to 9 and '.') have a sepcific length
     useLayoutEffect(() => {
         const currentValue = value ?? '';
-        if (!autoGrow || previousValue.current.length === currentValue.length) {
+        if (autoGrowDirection !== CONST.INPUT_AUTOGROW_DIRECTION.LEFT || !autoGrow || previousValue.current.length === currentValue.length) {
             return;
         }
 
@@ -340,7 +342,7 @@ function BaseTextInput(
         if (nexCharacter.current.length) {
             setTextInputWidth((currentWidth) => currentWidth + calculateCharacterWidth(nexCharacter.current));
         }
-    }, [autoGrow, value]);
+    }, [autoGrow, autoGrowDirection, value]);
 
     return (
         <>
