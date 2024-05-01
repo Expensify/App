@@ -335,7 +335,6 @@ function deleteWorkspace(policyID: string, policyName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                avatar: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: null,
             },
@@ -366,6 +365,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 oldPolicyName: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '',
+                oldPolicyAvatar: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatar ?? '',
                 policyName: '',
             },
         });
@@ -414,7 +414,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
     ];
 
     reportsToArchive.forEach((report) => {
-        const {reportID, stateNum, statusNum, oldPolicyName} = report ?? {};
+        const {reportID, stateNum, statusNum, oldPolicyName, oldPolicyAvatar} = report ?? {};
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -423,6 +423,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
                 statusNum,
                 oldPolicyName,
                 policyName: report?.policyName,
+                oldPolicyAvatar,
             },
         });
     });
