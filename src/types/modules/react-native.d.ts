@@ -368,4 +368,11 @@ declare module 'react-native' {
         BootSplash: BootSplashModule;
         HybridAppModule: HybridAppModule;
     }
+
+    namespace Animated {
+        interface AnimatedInterpolation<OutputT extends number | string> extends AnimatedWithChildren {
+            interpolate(config: InterpolationConfigType): AnimatedInterpolation<OutputT>;
+            __getValue: () => OutputT;
+        }
+    }
 }
