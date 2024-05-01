@@ -140,12 +140,18 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         setSelectedTags(isAllSelected ? {} : Object.fromEntries(tagList.map((item) => [item.value, true])));
     };
 
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
-            <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
-            <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
-        </View>
-    );
+    const getCustomListHeader = () => {
+        const header = (
+            <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3, styles.pr9]}>
+                <Text style={styles.searchInputStyle}>{translate('common.name')}</Text>
+                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('statusPage.status')}</Text>
+            </View>
+        );
+        if (doesPolicyContainOnlyOneTagList) {
+            return header;
+        }
+        return <View style={[styles.ph9, styles.pv3, styles.pb5]}>{header}</View>;
+    };
 
     const navigateToTagsSettings = () => {
         Navigation.navigate(ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
@@ -331,7 +337,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                 )}
                 {tagList.length > 0 && !isLoading && (
                     <SelectionList
-                        canSelectMultiple
+                        canSelectMultiple={doesPolicyContainOnlyOneTagList}
                         sections={[{data: tagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
