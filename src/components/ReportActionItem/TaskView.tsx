@@ -22,7 +22,6 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import * as Url from '@libs/Url';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -146,8 +145,6 @@ function TaskView({report, ...props}: TaskViewProps) {
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
                         interactive={!isDisableInteractive}
-                        shouldRenderAsHTML
-                        shouldEscapeText={Url.hasURL(report.description ?? '') ? undefined : false}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
