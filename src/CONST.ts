@@ -358,6 +358,7 @@ const CONST = {
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
+        XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
