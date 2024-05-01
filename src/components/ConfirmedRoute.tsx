@@ -26,9 +26,12 @@ type ConfirmedRoutePropsOnyxProps = {
 type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     /** Transaction that stores the distance expense data */
     transaction: OnyxEntry<Transaction>;
+
+    /** Whether the map is interactable or not */
+    interactive?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
+function ConfirmedRoute({mapboxAccessToken, transaction, interactive}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -89,6 +92,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction}: ConfirmedRouteProps) {
 
     return !isOffline && Boolean(mapboxAccessToken?.token) ? (
         <DistanceMapView
+            interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}
             mapPadding={CONST.MAP_PADDING}
             pitchEnabled={false}

@@ -34,7 +34,6 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -270,7 +269,6 @@ export default {
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
-        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `You've selected the maximum number (${count}) of participants.`,
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
@@ -360,6 +358,10 @@ export default {
         notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+    },
+    connectionComplete: {
+        title: 'Connection Complete',
+        supportingText: 'You can close this window and head back to the Expensify app.',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -1348,10 +1350,9 @@ export default {
         purpose: {
             title: 'What do you want to do today?',
             error: 'Please make a selection before continuing.',
-            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
         },

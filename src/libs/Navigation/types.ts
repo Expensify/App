@@ -813,6 +813,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
     [SCREENS.SAML_SIGN_IN]: undefined;
+    [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
@@ -847,6 +848,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         reportID: string;
         transactionID: string;
     };
+    [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
 type SearchReportParamList = {
