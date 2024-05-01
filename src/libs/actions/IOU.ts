@@ -1832,7 +1832,7 @@ function getMoneyRequestInformation(
         category,
         tag,
         taxCode,
-        taxAmount,
+        ReportUtils.isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
