@@ -2117,11 +2117,7 @@ function getMemberInviteOptions(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, maxParticipantsReached = false, hasMatchedParticipant = false): string {
-    if (maxParticipantsReached) {
-        return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
-    }
-
+function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
     const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
@@ -2173,14 +2169,13 @@ function formatSectionsFromSearchTerm(
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: ReportUtils.OptionData[],
-    maxOptionsSelected: boolean,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '' || maxOptionsSelected) {
+    if (searchTerm === '') {
         return {
             section: {
                 title: undefined,

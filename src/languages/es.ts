@@ -33,7 +33,6 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -260,7 +259,6 @@ export default {
         youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
-        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
@@ -321,6 +319,10 @@ export default {
         businessName: 'Nombre de la empresa',
         type: 'Tipo',
         action: 'Acción',
+    },
+    connectionComplete: {
+        title: 'Conexión Completa',
+        supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -1347,10 +1349,9 @@ export default {
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             error: 'Por favor, haga una selección antes de continuar.',
-            [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento fiscal de los gastos de las empresas',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
@@ -1906,17 +1907,12 @@ export default {
                 `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         qbo: {
-            import: 'Importación',
             importDescription: 'Elige que configuraciónes de codificación son importadas desde QuickBooks Online a Expensify.',
             classes: 'Clases',
-            accounts: 'Plan de cuentas',
             locations: 'Lugares',
-            taxes: 'Impuestos',
             customers: 'Clientes/Proyectos',
-            imported: 'Importado',
             displayedAs: 'Mostrado como',
             notImported: 'No importado',
-            importedAsTags: 'Importado, mostrado como etiqueta',
             importedAsReportFields: 'Importado, mostrado como campo de informe',
             accountsDescription: 'Los planes de cuentas se importan como categorías cuando está conectado con una integración de contaduría, esto no se puede desactivar.',
             accountsSwitchTitle: 'Habilita el plan de cuentas recien importado',
@@ -2018,6 +2014,15 @@ export default {
                 invoiceAccountSelectDescription:
                     'Si está exportando facturas de Expensify a Quickbooks Online, ésta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
             },
+        },
+        xero: {
+            organization: 'Organización Xero',
+            organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
+            importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
+            trackingCategories: 'Categorías de seguimiento',
+            customers: 'Volver a facturar a los clientes',
+            taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
+            notImported: 'No importado',
         },
         type: {
             free: 'Gratis',
@@ -2215,6 +2220,10 @@ export default {
                     }
                 }
             },
+            accounts: 'Plan de cuentas',
+            taxes: 'Impuestos',
+            imported: 'Importado',
+            importedAsTags: 'Importado, mostrado como etiqueta',
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
