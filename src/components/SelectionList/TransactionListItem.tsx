@@ -64,7 +64,7 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     const currency = TransactionUtils.getCurrency(item as OnyxEntry<Transaction>);
     const description = TransactionUtils.getDescription(item as OnyxEntry<Transaction>);
     const merchant = getMerchant();
-    const typeIcon = getTypeIcon(item?.type);
+    const typeIcon = getTypeIcon(item.type);
 
     const dateCell = (
         <TextWithTooltip

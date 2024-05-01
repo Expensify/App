@@ -23,6 +23,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchT
                 from: data.personalDetailsList?.[value.accountID],
                 to: isExpenseReport ? data[`${ONYXKEYS.COLLECTION.POLICY}${value.policyID}`] : data.personalDetailsList?.[value.managerID],
                 shouldShowMerchant,
+                keyForList: value.transactionID,
             };
         });
 }
