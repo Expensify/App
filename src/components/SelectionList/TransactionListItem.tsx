@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
-import type {TransactionListItemProps, TransactionListItemType} from './types';
+import type {TransactionListItemProps, ListItem, TransactionListItemType} from './types';
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
@@ -34,7 +34,7 @@ const getTypeIcon = (type?: SearchTransactionType) => {
     }
 };
 
-function TransactionListItem<TItem extends TransactionListItemType>({
+function TransactionListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -46,6 +46,7 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     onFocus,
     shouldSyncFocus,
 }: TransactionListItemProps<TItem>) {
+    const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -53,18 +54,18 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     const StyleUtils = useStyleUtils();
 
     function getMerchant() {
-        const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
+        const merchant = TransactionUtils.getMerchant(transactionItem as OnyxEntry<Transaction>);
         return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
     }
 
     const isNarrowView = isMediumScreenWidth || isSmallScreenWidth;
-    const isFromExpenseReport = item.reportType === CONST.REPORT.TYPE.EXPENSE;
-    const date = TransactionUtils.getCreated(item as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const amount = TransactionUtils.getAmount(item as OnyxEntry<Transaction>, isFromExpenseReport);
-    const currency = TransactionUtils.getCurrency(item as OnyxEntry<Transaction>);
-    const description = TransactionUtils.getDescription(item as OnyxEntry<Transaction>);
+    const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
+    const date = TransactionUtils.getCreated(transactionItem as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const amount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
+    const currency = TransactionUtils.getCurrency(transactionItem as OnyxEntry<Transaction>);
+    const description = TransactionUtils.getDescription(transactionItem as OnyxEntry<Transaction>);
     const merchant = getMerchant();
-    const typeIcon = getTypeIcon(item.type);
+    const typeIcon = getTypeIcon(transactionItem.type);
 
     const dateCell = (
         <TextWithTooltip
@@ -77,7 +78,7 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     const merchantCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={item.shouldShowMerchant ? merchant : description}
+            text={transactionItem.shouldShowMerchant ? merchant : description}
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
     );
@@ -161,14 +162,14 @@ function TransactionListItem<TItem extends TransactionListItemType>({
                     <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
-                                {userCell(item?.from)}
+                                {userCell(transactionItem.from)}
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                {userCell(item?.to)}
+                                {userCell(transactionItem.to)}
                             </View>
                             <View style={[{width: 80}]}>{actionCell}</View>
                         </View>
@@ -212,8 +213,8 @@ function TransactionListItem<TItem extends TransactionListItemType>({
                 <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(item.from)}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(item.to)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.to)}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{typeCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>
