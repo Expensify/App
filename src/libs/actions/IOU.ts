@@ -1603,7 +1603,7 @@ function getSendInvoiceInformation(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', billable, comment, participants} = transaction ?? {};
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID ?? '';
     const receiverParticipant = participants?.find((participant) => participant?.accountID);
@@ -1649,6 +1649,8 @@ function getSendInvoiceInformation(
         undefined,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
     );
 
@@ -1746,6 +1748,8 @@ function getMoneyRequestInformation(
     existingTransactionID: string | undefined,
     category: string | undefined,
     tag: string | undefined,
+    taxCode: string | undefined,
+    taxAmount: number | undefined,
     billable: boolean | undefined,
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
@@ -1827,6 +1831,8 @@ function getMoneyRequestInformation(
         existingTransactionID,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
     );
@@ -1957,6 +1963,8 @@ function getTrackExpenseInformation(
     receipt: Receipt | undefined,
     category: string | undefined,
     tag: string | undefined,
+    taxCode: string | undefined,
+    taxAmount: number | undefined,
     billable: boolean | undefined,
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
@@ -2037,6 +2045,8 @@ function getTrackExpenseInformation(
         existingTransactionID ?? null,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
         false,
@@ -2177,6 +2187,8 @@ function createDistanceRequest(
         undefined,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         policy,
         policyTagList,
@@ -3260,6 +3272,8 @@ function requestMoney(
         isMovingTransactionFromTrackExpense ? (linkedTrackedExpenseReportAction?.originalMessage as IOUMessage)?.IOUTransactionID : undefined,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         policy,
         policyTagList,
@@ -3444,6 +3458,8 @@ function trackExpense(
         receipt,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         policy,
         policyTagList,
@@ -3652,6 +3668,8 @@ function createSplitsAndOnyxData(
         undefined,
         category,
         tag,
+        undefined,
+        undefined,
         billable,
     );
 
@@ -3880,6 +3898,8 @@ function createSplitsAndOnyxData(
             undefined,
             category,
             tag,
+            undefined,
+            undefined,
             billable,
         );
 
@@ -4187,6 +4207,8 @@ function startSplitBill({
         undefined,
         category,
         tag,
+        undefined,
+        undefined,
         billable,
     );
 
@@ -4574,6 +4596,8 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             undefined,
             updatedTransaction?.category,
             updatedTransaction?.tag,
+            undefined,
+            undefined,
             updatedTransaction?.billable,
         );
 
