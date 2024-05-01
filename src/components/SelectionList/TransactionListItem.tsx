@@ -160,7 +160,7 @@ function TransactionListItem<TItem extends ListItem>({
             >
                 {() => (
                     <>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap1]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
                                 {userCell(transactionItem.from)}
                                 <Icon
@@ -171,10 +171,12 @@ function TransactionListItem<TItem extends ListItem>({
                                 />
                                 {userCell(transactionItem.to)}
                             </View>
-                            <View style={[{width: 80}]}>{actionCell}</View>
+                            <View style={[styles.width80]}>{actionCell}</View>
                         </View>
-                        <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                            {merchantCell}
+                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
+                            <View style={[styles.flex1]}>
+                                {merchantCell}
+                            </View>
                             <View style={[styles.alignItemsEnd, styles.gap1]}>
                                 {totalCell}
                                 <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>

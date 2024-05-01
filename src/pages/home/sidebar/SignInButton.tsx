@@ -17,7 +17,7 @@ function SignInButton() {
             role={CONST.ROLE.BUTTON}
             onPress={() => Session.signOutAndRedirectToSignIn()}
         >
-            <View style={styles.signInButtonAvatar}>
+            <View style={styles.width80}>
                 <Button
                     medium
                     success

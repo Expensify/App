@@ -2665,7 +2665,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeMedium,
             color: theme.text,
         },
-        signInButtonAvatar: {
+        width80: {
             width: 80,
         },
 
