@@ -31,6 +31,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
     const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
 
     const shouldDisableSettings = isEmptyObject(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isSelfDM(report);
+    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report) && !ReportUtils.isInvoiceRoom(report);
     const notificationPreference =
         report?.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN
             ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`)
@@ -102,6 +103,7 @@ function ReportSettingsPage({report, policies}: ReportSettingsPageProps) {
                         )}
                     </View>
                     {!!report?.visibility &&
+                        report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

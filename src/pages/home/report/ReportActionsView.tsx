@@ -238,6 +238,24 @@ function ReportActionsView({
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 
     useEffect(() => {
+        if (reportActionID) {
+            return;
+        }
+
+        const interactionTask = InteractionManager.runAfterInteractions(() => {
+            openReportIfNecessary();
+        });
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        if (interactionTask) {
+            return () => {
+                interactionTask.cancel();
+            };
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
         if (!reportActionID || indexOfLinkedAction > -1) {
             return;
         }
