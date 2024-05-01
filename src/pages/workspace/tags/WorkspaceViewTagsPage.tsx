@@ -38,7 +38,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PolicyForList = {
+type TagForList = {
     value: string;
     text: string;
     keyForList: string;
@@ -65,7 +65,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const isFocused = useIsFocused();
     const policyID = route.params.policyID ?? '';
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const currentTagListName = PolicyUtils.getTagListName(policyTags, +route.params.order);
+    const currentTagListName = useMemo(() => PolicyUtils.getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
 
     const fetchTags = useCallback(() => {
@@ -82,7 +82,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }, [isFocused]);
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policy) => policy.name === currentTagListName), [currentTagListName, policyTags]);
-    const tagList = useMemo<PolicyForList[]>(
+    const tagList = useMemo<TagForList[]>(
         () =>
             policyTagLists
                 .map((policyTagList) =>
@@ -93,7 +93,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             value: tag.name,
                             text: PolicyUtils.getCleanedTagName(tag.name),
                             keyForList: tag.name,
-                            isSelected: !!selectedTags[tag.name],
+                            isSelected: selectedTags[tag.name],
                             pendingAction: tag.pendingAction,
                             errors: tag.errors ?? undefined,
                             enabled: tag.enabled,
@@ -110,12 +110,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         return <NotFoundPage />;
     }
 
-    const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
+    const tagListKeyedByName = tagList.reduce<Record<string, TagForList>>((acc, tag) => {
         acc[tag.value] = tag;
         return acc;
     }, {});
 
-    const toggleTag = (tag: PolicyForList) => {
+    const toggleTag = (tag: TagForList) => {
         setSelectedTags((prev) => ({
             ...prev,
             [tag.value]: !prev[tag.value],
@@ -223,7 +223,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const navigateToEditTag = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight.toString()));
+        Navigation.navigate(ROUTES.WORKSPACE_EDIT_TAGS.getRoute(route.params.policyID, currentPolicyTag?.orderWeight));
     };
 
     return (

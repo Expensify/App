@@ -401,7 +401,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_EDIT]: {
                             path: ROUTES.WORKSPACE_EDIT_TAGS.route,
                             parse: {
-                                order: (order: string) => decodeURIComponent(order),
+                                orderWeight: Number,
                             },
                         },
                         [SCREENS.WORKSPACE.TAG_CREATE]: {
@@ -422,7 +422,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
                             path: ROUTES.WORKSPACE_TAG_LIST_VIEW.route,
                             parse: {
-                                order: (order: string) => decodeURIComponent(order),
+                                orderWeight: Number,
                             },
                         },
                         [SCREENS.WORKSPACE.TAXES_SETTINGS]: {

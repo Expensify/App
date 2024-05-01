@@ -215,11 +215,11 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.TAG_LIST_VIEW]: {
         policyID: string;
-        order: string;
+        orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAGS_EDIT]: {
         policyID: string;
-        order: string;
+        orderWeight: number;
     };
     [SCREENS.WORKSPACE.TAG_EDIT]: {
         policyID: string;

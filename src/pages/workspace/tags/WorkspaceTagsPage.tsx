@@ -39,7 +39,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PolicyForList = {
+type TagForList = {
     value: string;
     text: string;
     keyForList: string;
@@ -68,8 +68,8 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const policyTagsLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
-    const isOnlyOneTagsLists = Object.keys(policyTagsLists).length === 1;
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags), [policyTags]);
+    const doesPolicyContainOnlyOneTagList = policyTagLists.length === 1;
 
     const fetchTags = useCallback(() => {
         Policy.openPolicyTagsPage(policyID);
@@ -90,17 +90,16 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const tagList = useMemo<PolicyForList[]>(() => {
-        const policyTagLists = isOnlyOneTagsLists ? policyTagsLists.slice(0, 1) : policyTagsLists;
-        if (!isOnlyOneTagsLists) {
-            return Object.values(policyTagLists).map((policyTagList) => ({
+    const tagList = useMemo<TagForList[]>(() => {
+        if (!doesPolicyContainOnlyOneTagList) {
+            return policyTagLists.map((policyTagList) => ({
                 value: policyTagList.name,
                 text: PolicyUtils.getCleanedTagName(policyTagList.name),
-                keyForList: policyTagList.orderWeight.toString(),
-                isSelected: !!selectedTags[policyTagList.name],
+                keyForList: String(policyTagList.orderWeight),
+                isSelected: selectedTags[policyTagList.name],
                 enabled: true,
                 required: policyTagList.required,
-                rightElement: <ListItemRightCaretWithLabel labelText={policyTagList.required ? translate('workspace.common.enabled') : undefined} />,
+                rightElement: <ListItemRightCaretWithLabel labelText={policyTagList.required ? translate('common.required') : undefined} />,
             }));
         }
         return policyTagLists
@@ -112,7 +111,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                         value: tag.name,
                         text: PolicyUtils.getCleanedTagName(tag.name),
                         keyForList: tag.name,
-                        isSelected: !!selectedTags[tag.name],
+                        isSelected: selectedTags[tag.name],
                         pendingAction: tag.pendingAction,
                         errors: tag.errors ?? undefined,
                         enabled: tag.enabled,
@@ -122,14 +121,14 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                 }),
             )
             .flat();
-    }, [isOnlyOneTagsLists, policyTagsLists, selectedTags, translate]);
+    }, [doesPolicyContainOnlyOneTagList, policyTagLists, selectedTags, translate]);
 
-    const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
+    const tagListKeyedByName = tagList.reduce<Record<string, TagForList>>((acc, tag) => {
         acc[tag.value] = tag;
         return acc;
     }, {});
 
-    const toggleTag = (tag: PolicyForList) => {
+    const toggleTag = (tag: TagForList) => {
         setSelectedTags((prev) => ({
             ...prev,
             [tag.value]: !prev[tag.value],
@@ -157,8 +156,8 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     };
 
     const navigateToTagSettings = (tag: PolicyOption) => {
-        if (!isOnlyOneTagsLists) {
-            Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.keyForList));
+        if (!doesPolicyContainOnlyOneTagList) {
+            Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, Number(tag.keyForList)));
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
@@ -247,7 +246,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
         return (
             <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                {isOnlyOneTagsLists && (
+                {doesPolicyContainOnlyOneTagList && (
                     <Button
                         medium
                         success
