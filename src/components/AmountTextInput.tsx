@@ -66,7 +66,7 @@ function AmountTextInput(
             ref={ref}
             value={formattedAmount}
             placeholder={placeholder}
-            inputMode={CONST.INPUT_MODE.NUMERIC}
+            inputMode={CONST.INPUT_MODE.DECIMAL}
             blurOnSubmit={false}
             selection={selection}
             onSelectionChange={onSelectionChange}
