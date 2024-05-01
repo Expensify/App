@@ -53,13 +53,18 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
+    function getMerchant() {
+        const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
+        return (merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT) ? '' : merchant;
+    }
+
     const isNarrowView = isMediumScreenWidth || isSmallScreenWidth;
     const isFromExpenseReport = item.reportType === CONST.REPORT.TYPE.EXPENSE;
     const date = TransactionUtils.getCreated(item as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
-    const description = TransactionUtils.getDescription(item as OnyxEntry<Transaction>);
     const amount = TransactionUtils.getAmount(item as OnyxEntry<Transaction>, isFromExpenseReport);
     const currency = TransactionUtils.getCurrency(item as OnyxEntry<Transaction>);
+    const description = TransactionUtils.getDescription(item as OnyxEntry<Transaction>);
+    const merchant = getMerchant();
     const typeIcon = getTypeIcon(item?.type);
 
     const dateCell = (
