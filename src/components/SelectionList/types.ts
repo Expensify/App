@@ -5,7 +5,7 @@ import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchPolicyDetails} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -151,34 +151,34 @@ type TransactionListItemType = ListItem & {
     modifiedCurrency: string;
 
     /** The transaction merchant */
-    merchant?: string;
+    merchant: string;
 
     /** The edited transaction merchant */
-    modifiedMerchant?: string;
+    modifiedMerchant: string;
 
     /** The receipt object */
     receipt?: {source?: string};
 
     /** The personal details of the user requesting money */
-    from?: SearchPersonalDetails;
+    from: SearchPersonalDetails & SearchPolicyDetails;
 
     /** The personal details of the user paying the request */
-    to?: SearchPersonalDetails;
+    to: SearchPersonalDetails & SearchPolicyDetails;
 
     /** The transaction tag */
-    tag?: string;
+    tag: string;
 
     /** The transaction description */
-    comment?: {comment?: string};
+    comment: {comment: string};
 
     /** The transaction category */
-    category?: string;
+    category: string;
 
     /** The type of request */
-    type?: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+    type: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
 
     /** The type of report the transaction is associated with */
-    reportType?: string;
+    reportType: string;
 }
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
