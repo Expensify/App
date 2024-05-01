@@ -320,6 +320,10 @@ export default {
         type: 'Tipo',
         action: 'Acción',
     },
+    connectionComplete: {
+        title: 'Conexión Completa',
+        supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',
+    },
     location: {
         useCurrent: 'Usar ubicación actual',
         notFound: 'No pudimos encontrar tu ubicación, inténtalo de nuevo o introduce una dirección manualmente.',

@@ -20,6 +20,7 @@ const SCREENS = {
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
+    CONNECTION_COMPLETE: 'ConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
