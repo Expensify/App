@@ -604,7 +604,7 @@ function getReport(reportID: string | undefined): OnyxEntry<Report> {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 
-    return report ?? draftReport;
+    return report ?? draftReport ?? null;
 }
 
 /**
