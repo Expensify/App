@@ -2893,7 +2893,7 @@ export default {
     },
     violationDismissal: {
         rter: {
-            manual: "marked this receipt as cash.",
+            manual: 'marked this receipt as cash.',
         },
     },
     videoPlayer: {
