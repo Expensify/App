@@ -234,6 +234,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_ADVANCED: 'Policy_Accounting_Quickbooks_Online_Advanced',
             QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Account_Selector',
             QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Quickbooks_Online_Invoice_Account_Selector',
+            XERO_IMPORT: 'Policy_Accounting_Xero_Import',
+            XERO_ORGANIZATION: 'Policy_Accounting_Xero_Customers',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
