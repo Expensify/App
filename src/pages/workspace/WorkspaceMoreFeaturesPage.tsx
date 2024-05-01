@@ -86,7 +86,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyCategories(policy?.id ?? '', isEnabled);
             },
-            errors: policy?.errorFields?.areConnectionsEnabled ?? undefined,
         },
         {
             icon: Illustrations.Tag,
@@ -122,6 +121,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
+            errors: policy?.errorFields?.areConnectionsEnabled ?? undefined,
         },
     ];
 
