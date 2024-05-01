@@ -8,12 +8,12 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getXeroTenants} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import { getXeroTenants } from '@libs/PolicyUtils';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();

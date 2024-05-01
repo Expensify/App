@@ -393,12 +393,12 @@ function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
 /** Get the Xero organizations connected to the policy */
 function getXeroTenants(policy: Policy | undefined): Tenant[] {
     // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain    
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
         return [];
     }
     return policy.connections.xero.data.tenants ?? [];
-};
+}
 
 function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
     return tenants?.find((tenant) => tenant.id === organizationID);

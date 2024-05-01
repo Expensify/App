@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, { useMemo } from 'react';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -10,15 +10,15 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyConnectionConfig} from '@libs/actions/connections';
+import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
-import type SCREENS from '@src/SCREENS';
 import ROUTES from '@src/ROUTES';
-import { findCurrentXeroOrganization, getXeroTenants } from '@libs/PolicyUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import type SCREENS from '@src/SCREENS';
 
 type XeroOrganizationConfigurationPageProps = WithPolicyProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION>;
 function XeroOrganizationConfigurationPage({
