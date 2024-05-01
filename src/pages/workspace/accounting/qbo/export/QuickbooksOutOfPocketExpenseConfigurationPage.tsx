@@ -18,11 +18,11 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncLocations, exportAccount, exportEntity, errorFields, syncTaxes, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncLocations, exportAccount, exportEntity, errorFields, syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const isTaxesEnabled = Boolean(syncTaxes && syncTaxes !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const shouldShowTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
-    const shouldShowLocationError = isLocationEnabled && exportEntity !== CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY;
+    const isTaxesEnabled = Boolean(syncTax);
+    const shouldShowTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const shouldShowLocationError = isLocationEnabled && exportEntity !== CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const hasErrors = Boolean(errorFields?.exportEntity) || shouldShowTaxError || shouldShowLocationError;
 
     return (
@@ -40,15 +40,15 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                     {!isLocationEnabled && <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportOutOfPocketExpensesDescription')}</Text>}
                     <OfflineWithFeedback pendingAction={pendingFields?.exportEntity}>
                         <MenuItemWithTopDescription
-                            title={exportEntity ? translate(`workspace.qbo.${exportEntity}`) : undefined}
+                            title={exportEntity ? translate(`workspace.qbo.accounts.${exportEntity}`) : undefined}
                             description={translate('workspace.qbo.exportAs')}
-                            error={hasErrors && exportEntity ? translate(`workspace.qbo.${exportEntity}Error`) : undefined}
+                            error={hasErrors && exportEntity ? translate(`workspace.qbo.accounts.${exportEntity}Error`) : undefined}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID))}
                             brickRoadIndicator={hasErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                    {exportEntity === CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL && !isLocationEnabled && (
+                    {exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL && !isLocationEnabled && (
                         <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1, styles.pb2]}>{translate('workspace.qbo.exportVendorBillDescription')}</Text>
                     )}
                     {isLocationEnabled && <Text style={[styles.ph5, styles.mutedNormalTextLabel, styles.pt1]}>{translate('workspace.qbo.outOfPocketLocationEnabledDescription')}</Text>}

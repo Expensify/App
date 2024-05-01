@@ -10,10 +10,6 @@ type CharacterLimitParams = {
     limit: number;
 };
 
-type MaxParticipantsReachedParams = {
-    count: number;
-};
-
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -333,7 +329,6 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,

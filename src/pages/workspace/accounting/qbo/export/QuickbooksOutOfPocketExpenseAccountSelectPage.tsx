@@ -30,13 +30,13 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
     const data: CardListItem[] = useMemo(() => {
         let accounts: Account[];
         switch (exportEntity) {
-            case CONST.QUICKBOOKS_EXPORT_ENTITY.CHECK:
+            case CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK:
                 accounts = bankAccounts ?? [];
                 break;
-            case CONST.QUICKBOOKS_EXPORT_ENTITY.VENDOR_BILL:
+            case CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL:
                 accounts = accountsPayable ?? [];
                 break;
-            case CONST.QUICKBOOKS_EXPORT_ENTITY.JOURNAL_ENTRY:
+            case CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 accounts = journalEntryAccounts ?? [];
                 break;
             default:
