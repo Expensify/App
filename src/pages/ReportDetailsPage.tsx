@@ -267,7 +267,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             ? chatRoomSubtitle
             : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
-    const roomTitle = ReportUtils.isPolicyExpenseChat(report) && !report?.isOwnPolicyExpenseChat ? reportName : report?.reportName ?? reportName;
+    const roomTitle = ReportUtils.isPolicyExpenseChat(report) || isGroupChat ? reportName : report?.reportName ?? reportName;
 
     return (
         <ScreenWrapper testID={ReportDetailsPage.displayName}>
