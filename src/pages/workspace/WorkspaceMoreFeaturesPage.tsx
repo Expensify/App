@@ -35,6 +35,7 @@ type Item = {
     disabled?: boolean;
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
+    //TODO: add errros field as an optional field
 };
 
 type SectionObject = {
@@ -75,6 +76,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     ];
 
     const organizeItems: Item[] = [
+        //TODO: Get errors from the relevant policy fields
         {
             icon: Illustrations.FolderOpen,
             titleTranslationKey: 'workspace.moreFeatures.categories.title',
