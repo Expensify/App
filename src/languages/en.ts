@@ -2724,6 +2724,10 @@ export default {
         invite: 'Invite them',
         nothing: 'Do nothing',
     },
+    actionableRoomMentionWhisperOptions: {
+        create: 'Create it',
+        nothing: 'Do nothing',
+    },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accept',
         decline: 'Decline',
