@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as Url from '@libs/Url';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
@@ -39,7 +39,10 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
     const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(id, adminEmail)}`;
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={id}>
+        <AccessOrNotFoundWrapper
+            policyID={id}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+        >
             <ScreenWrapper
                 testID={WorkspaceProfileSharePage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -62,7 +65,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                                 ref={qrCodeRef}
                                 url={url}
                                 title={policyName}
-                                logo={(policy?.avatar ? policy.avatar : expensifyLogo) as ImageSourcePropType}
+                                logo={(policy?.avatarURL ? policy.avatarURL : expensifyLogo) as ImageSourcePropType}
                                 logoRatio={CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                                 logoMarginRatio={CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                             />
@@ -83,7 +86,7 @@ function WorkspaceProfileSharePage({policy}: WithPolicyProps) {
                     </View>
                 </ScrollView>
             </ScreenWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

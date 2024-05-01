@@ -7,9 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceRequiresCategory} from '@libs/actions/Policy';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -32,35 +30,32 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
 
     const hasEnabledOptions = OptionsListUtils.hasEnabledOptions(policyCategories ?? {});
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={WorkspaceCategoriesSettingsPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate('common.settings')} />
-                        <View style={styles.flexGrow1}>
-                            <ToggleSettingOptionRow
-                                title={translate('workspace.categories.requiresCategory')}
-                                subtitle={isConnectedToAccounting ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}` : ''}
-                                isActive={policy?.requiresCategory ?? false}
-                                onToggle={updateWorkspaceRequiresCategory}
-                                pendingAction={policy?.pendingFields?.requiresCategory}
-                                disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
-                                wrapperStyle={[styles.mt2, styles.mh4]}
-                                errors={policy?.errorFields?.requiresCategory ?? undefined}
-                                onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'requiresCategory')}
-                            />
-                        </View>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceCategoriesSettingsPage.displayName}
+            >
+                <HeaderWithBackButton title={translate('common.settings')} />
+                <View style={styles.flexGrow1}>
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.categories.requiresCategory')}
+                        subtitle={isConnectedToAccounting ? `${translate('workspace.categories.needCategoryForExportToIntegration')} ${translate('workspace.accounting.qbo')}` : ''}
+                        isActive={policy?.requiresCategory ?? false}
+                        onToggle={updateWorkspaceRequiresCategory}
+                        pendingAction={policy?.pendingFields?.requiresCategory}
+                        disabled={!policy?.areCategoriesEnabled || !hasEnabledOptions || isConnectedToAccounting}
+                        wrapperStyle={[styles.mt2, styles.mh4]}
+                        errors={policy?.errorFields?.requiresCategory ?? undefined}
+                        onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'requiresCategory')}
+                    />
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
