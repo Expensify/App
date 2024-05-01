@@ -1995,6 +1995,7 @@ export default {
             trackingCategories: 'Tracking categories',
             customers: 'Re-bill customers',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            notImported: 'Not imported',
         },
         type: {
             free: 'Free',
