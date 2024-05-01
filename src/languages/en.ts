@@ -1,7 +1,7 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -14,6 +14,7 @@ import type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
+    CommonSelectedParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -49,6 +50,7 @@ import type {
     PayerPaidParams,
     PayerSettledParams,
     PaySomeoneParams,
+    PluralFormParams,
     ReimbursementRateParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
@@ -1870,7 +1872,7 @@ export default {
             testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
-            selected: ({selectedNumber}) => {
+            selected: ({selectedNumber}: CommonSelectedParams) => {
                 const pluralForm = enPluralRules.select(selectedNumber);
                 switch (pluralForm) {
                     case 'one':
@@ -2365,7 +2367,7 @@ export default {
             centrallyManage: 'Centrally manage rates, choose to track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
-            deleteRates: ({count}) => {
+            deleteRates: ({count}: PluralFormParams) => {
                 const pluralForm = enPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
@@ -2376,7 +2378,7 @@ export default {
                         return `Delete ${count} rates`;
                 }
             },
-            enableRates: ({count}) => {
+            enableRates: ({count}: PluralFormParams) => {
                 const pluralForm = enPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':
@@ -2387,7 +2389,7 @@ export default {
                         return `Enable ${count} rates`;
                 }
             },
-            disableRates: ({count}) => {
+            disableRates: ({count}: PluralFormParams) => {
                 const pluralForm = enPluralRules.select(count);
                 switch (pluralForm) {
                     case 'one':

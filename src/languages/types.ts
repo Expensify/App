@@ -30,6 +30,10 @@ type AlreadySignedInParams = {
     email: string;
 };
 
+type CommonSelectedParams = {
+    selectedNumber: number;
+};
+
 type GoBackMessageParams = {
     provider: string;
 };
@@ -129,6 +133,10 @@ type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 type PayerPaidParams = {payer: string};
 
 type PayerSettledParams = {amount: number | string};
+
+type PluralFormParams = {
+    count: number;
+};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
@@ -312,6 +320,7 @@ export type {
     BeginningOfChatHistoryDomainRoomPartOneParams,
     CanceledRequestParams,
     CharacterLimitParams,
+    CommonSelectedParams,
     ConfirmThatParams,
     DateShouldBeAfterParams,
     DateShouldBeBeforeParams,
@@ -346,6 +355,7 @@ export type {
     PayerPaidAmountParams,
     PayerPaidParams,
     PayerSettledParams,
+    PluralFormParams,
     RemovedTheRequestParams,
     RenamedRoomActionParams,
     ReportArchiveReasonsClosedParams,
