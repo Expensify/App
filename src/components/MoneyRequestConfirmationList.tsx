@@ -299,7 +299,7 @@ function MoneyRequestConfirmationList({
 
     // A flag for showing tax rate
     const shouldShowTax = isDistanceRequest
-        ? isTaxTrackingEnabled(isPolicyExpenseChat, policy) && policy?.customUnits?.[0]?.attributes?.taxEnabled
+        ? isTaxTrackingEnabled(isPolicyExpenseChat, policy) && policy?.customUnits?.[customUnitRateID]?.attributes?.taxEnabled
         : isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
     // A flag for showing the billable field
