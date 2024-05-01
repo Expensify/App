@@ -1,5 +1,6 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
@@ -125,24 +126,44 @@ type ListItem = {
 
     /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
+};
 
-    /** The accountID of the report manager */
-    managerID?: number;
+type TransactionListItemType = ListItem & {
+    /** The ID of the transaction */
+    transactionID: string;
+
+    /** The transaction created date */
+    created: string;
+
+    /** The edited transaction created date */
+    modifiedCreated: string;
+
+    /** The transaction amount */
+    amount: number;
+
+    /** The edited transaction amount */
+    modifiedAmount: number;
+
+    /** The transaction currency */
+    currency: string;
+
+    /** The edited transaction currency */
+    modifiedCurrency: string;
+
+    /** The transaction merchant */
+    merchant?: string;
+
+    /** The edited transaction merchant */
+    modifiedMerchant?: string;
 
     /** The receipt object */
     receipt?: {source?: string};
 
-    /** The transaction amount */
-    amount?: number;
+    /** The personal details of the user requesting money */
+    from?: SearchPersonalDetails;
 
-    /** The edited transaction amount */
-    modifiedAmount?: number;
-
-    /** The transaction currency */
-    currency?: string;
-
-    /** The edited transaction currency */
-    modifiedCurrency?: string;
+    /** The personal details of the user paying the request */
+    to?: SearchPersonalDetails;
 
     /** The transaction tag */
     tag?: string;
@@ -153,27 +174,12 @@ type ListItem = {
     /** The transaction category */
     category?: string;
 
-    /** The transaction created date */
-    created?: string;
-
-    /** The edited transaction created date */
-    modifiedCreated?: string;
-
-    /** The transaction merchant */
-    merchant?: string;
-
-    /** The edited transaction merchant */
-    modifiedMerchant?: string;
-
-    /** The personal details of the user requesting money */
-    from?: SearchPersonalDetails;
-
-    /** The personal details of the user paying the request */
-    to?: SearchPersonalDetails;
-
     /** The type of request */
-    type?: string;
-};
+    type?: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+
+    /** The type of report the transaction is associated with */
+    reportType?: string;
+}
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -437,4 +443,5 @@ export type {
     TransactionListItemProps,
     UserListItemProps,
     ValidListItem,
+    TransactionListItemType,
 };

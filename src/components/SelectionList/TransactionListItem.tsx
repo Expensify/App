@@ -1,4 +1,3 @@
-import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
@@ -12,12 +11,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {SearchPersonalDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {Transaction} from '@src/types/onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import BaseListItem from './BaseListItem';
-import type {ListItem, TransactionListItemProps} from './types';
+import type {TransactionListItemProps, TransactionListItemType} from './types';
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
@@ -32,7 +34,7 @@ const getTypeIcon = (type?: SearchTransactionType) => {
     }
 };
 
-function TransactionListItem<TItem extends ListItem>({
+function TransactionListItem<TItem extends TransactionListItemType>({
     item,
     isFocused,
     showTooltip,
@@ -52,17 +54,18 @@ function TransactionListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
 
     const isNarrowView = isMediumScreenWidth || isSmallScreenWidth;
-    const date = (item.modifiedCreated ? item.modifiedCreated : item.created) ?? '';
-    const merchant = (item.modifiedMerchant ? item.modifiedMerchant : item.merchant) ?? '';
-    const description = item.comment?.comment ?? '';
-    const amount = (item.modifiedAmount ? item.modifiedAmount : item.amount) ?? 0;
-    const currency = (item.modifiedCurrency ? item.modifiedCurrency : item.currency) ?? CONST.CURRENCY.USD;
-    const typeIcon = getTypeIcon(item?.type as SearchTransactionType);
+    const isFromExpenseReport = item.reportType === CONST.REPORT.TYPE.EXPENSE;
+    const date = TransactionUtils.getCreated(item as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
+    const description = TransactionUtils.getDescription(item as OnyxEntry<Transaction>);
+    const amount = TransactionUtils.getAmount(item as OnyxEntry<Transaction>, isFromExpenseReport);
+    const currency = TransactionUtils.getCurrency(item as OnyxEntry<Transaction>);
+    const typeIcon = getTypeIcon(item?.type);
 
     const dateCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={item?.created ? format(new Date(date), 'MMM dd') : ''}
+            text={date}
             style={[styles.label, styles.pre, styles.justifyContentCenter, isNarrowView ? [styles.textMicro, styles.textSupporting] : undefined]}
         />
     );
