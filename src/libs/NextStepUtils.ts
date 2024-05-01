@@ -1,14 +1,13 @@
 import {format, lastDayOfMonth, setDate} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
@@ -71,23 +70,19 @@ type BuildNextStepParameters = {
  * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
  * @returns nextStep
  */
-function buildNextStep(
-    report: Report | EmptyObject,
-    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>,
-    {isPaidWithExpensify}: BuildNextStepParameters = {},
-): ReportNextStep | null {
+function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, {isPaidWithExpensify}: BuildNextStepParameters = {}): ReportNextStep | null {
     if (!ReportUtils.isExpenseReport(report)) {
         return null;
     }
 
-    const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
+    // const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? ''}`] ?? ({} as Policy);
     const {harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
-    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
-    const isOwner = currentUserAccountID === ownerAccountID;
-    const isManager = currentUserAccountID === managerID;
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, report?.ownerAccountID ?? -1);
+    const isOwner = currentUserAccountID === report?.ownerAccountID ?? -1;
+    const isManager = currentUserAccountID === report?.managerID ?? -1;
     const isSelfApproval = currentUserAccountID === submitToAccountID;
-    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
+    const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([report?.ownerAccountID ?? -1])[0] ?? '';
     const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitToAccountID) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;

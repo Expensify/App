@@ -29,7 +29,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
@@ -565,7 +564,7 @@ function ReportActionsList({
         [isLoadingNewerReportActions, styles.chatContentScrollView, styles.chatContentScrollViewWithHeaderLoader, canShowHeader],
     );
 
-    const lastReportAction: OnyxTypes.ReportAction | EmptyObject = useMemo(() => sortedReportActions.at(-1) ?? {}, [sortedReportActions]);
+    const lastReportAction: OnyxEntry<OnyxTypes.ReportAction> = useMemo(() => sortedReportActions.at(-1) ?? null, [sortedReportActions]);
 
     const listFooterComponent = useCallback(() => {
         // Skip this hook on the first render (when online), as we are not sure if more actions are going to be loaded,
@@ -581,10 +580,10 @@ function ReportActionsList({
                 type={CONST.LIST_COMPONENTS.FOOTER}
                 isLoadingOlderReportActions={isLoadingOlderReportActions}
                 isLoadingInitialReportActions={isLoadingInitialReportActions}
-                lastReportActionName={lastReportAction.actionName}
+                lastReportActionName={lastReportAction?.actionName}
             />
         );
-    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction.actionName, isOffline]);
+    }, [isLoadingInitialReportActions, isLoadingOlderReportActions, lastReportAction?.actionName, isOffline]);
 
     const onLayoutInner = useCallback(
         (event: LayoutChangeEvent) => {

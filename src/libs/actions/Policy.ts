@@ -96,7 +96,6 @@ import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback, PendingAction} f
 import type {OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import type {Attributes, CustomUnit, Rate, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type AnnounceRoomMembersOnyxData = {
@@ -271,11 +270,11 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Returns the policy of the report
  */
-function getPolicy(policyID: string | undefined): Policy | EmptyObject {
+function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
     if (!allPolicies || !policyID) {
-        return {};
+        return null;
     }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
+    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /**
@@ -517,11 +516,11 @@ function setWorkspaceAutoReporting(policyID: string, enabled: boolean, frequency
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReporting: policy.autoReporting ?? null,
+                autoReporting: policy?.autoReporting ?? null,
                 harvesting: {
-                    enabled: policy.harvesting?.enabled ?? null,
+                    enabled: policy?.harvesting?.enabled ?? null,
                 },
-                autoReportingFrequency: policy.autoReportingFrequency ?? null,
+                autoReportingFrequency: policy?.autoReportingFrequency ?? null,
                 pendingFields: {autoReporting: null},
                 errorFields: {autoReporting: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingErrorMessage')},
             },
@@ -562,7 +561,7 @@ function setWorkspaceAutoReportingFrequency(policyID: string, frequency: ValueOf
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReportingFrequency: policy.autoReportingFrequency ?? null,
+                autoReportingFrequency: policy?.autoReportingFrequency ?? null,
                 pendingFields: {autoReportingFrequency: null},
                 errorFields: {autoReportingFrequency: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
@@ -603,7 +602,7 @@ function setWorkspaceAutoReportingMonthlyOffset(policyID: string, autoReportingO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                autoReportingOffset: policy.autoReportingOffset ?? null,
+                autoReportingOffset: policy?.autoReportingOffset ?? null,
                 pendingFields: {autoReportingOffset: null},
                 errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxError('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
             },
@@ -648,8 +647,8 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                approver: policy.approver ?? null,
-                approvalMode: policy.approvalMode ?? null,
+                approver: policy?.approver ?? null,
+                approvalMode: policy?.approvalMode ?? null,
                 pendingFields: {approvalMode: null},
                 errorFields: {approvalMode: ErrorUtils.getMicroSecondOnyxError('workflowsApprovalPage.genericErrorMessage')},
             },
@@ -708,7 +707,7 @@ function setWorkspacePayer(policyID: string, reimburserEmail: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
+                achAccount: {reimburser: policy?.achAccount?.reimburser ?? null},
                 errorFields: {reimburser: ErrorUtils.getMicroSecondOnyxError('workflowsPayerPage.genericErrorMessage')},
                 pendingFields: {reimburser: null},
             },
@@ -760,8 +759,8 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                reimbursementChoice: policy.reimbursementChoice ?? null,
-                achAccount: {reimburser: policy.achAccount?.reimburser ?? null},
+                reimbursementChoice: policy?.reimbursementChoice ?? null,
+                achAccount: {reimburser: policy?.achAccount?.reimburser ?? null},
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxError('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
             },
@@ -851,9 +850,11 @@ function removeMembers(accountIDs: number[], policyID: string) {
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     const emailList = accountIDs.map((accountID) => allPersonalDetails?.[accountID]?.login).filter((login) => !!login) as string[];
-    const optimisticClosedReportActions = workspaceChats.map(() => ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy.name, CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY));
+    const optimisticClosedReportActions = workspaceChats.map(() =>
+        ReportUtils.buildOptimisticClosedReportAction(sessionEmail, policy?.name ?? '', CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY),
+    );
 
-    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy.id, policy.name, accountIDs);
+    const announceRoomMembers = removeOptimisticAnnounceRoomMembers(policy?.id ?? '', policy?.name ?? '', accountIDs);
 
     const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
     const successMembersState: OnyxCollection<PolicyEmployee> = {};
@@ -900,7 +901,7 @@ function removeMembers(accountIDs: number[], policyID: string) {
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                oldPolicyName: policy.name,
+                oldPolicyName: policy?.name,
                 pendingChatMembers,
             },
         });
@@ -936,8 +937,8 @@ function removeMembers(accountIDs: number[], policyID: string) {
         const remainingLogins = employeeListEmails.filter((email) => !emailList.includes(email));
         const invitedPrimaryToSecondaryLogins: Record<string, string> = {};
 
-        if (policy.primaryLoginsInvited) {
-            Object.keys(policy.primaryLoginsInvited).forEach((key) => (invitedPrimaryToSecondaryLogins[policy.primaryLoginsInvited?.[key] ?? ''] = key));
+        if (policy?.primaryLoginsInvited) {
+            Object.keys(policy?.primaryLoginsInvited).forEach((key) => (invitedPrimaryToSecondaryLogins[policy?.primaryLoginsInvited?.[key] ?? ''] = key));
         }
 
         // Then, if no remaining members exist that were invited by a secondary login, clear the informative messages
@@ -2639,7 +2640,7 @@ function buildOptimisticPolicyRecentlyUsedTags(policyID?: string, transactionTag
  *
  * @returns policyID of the workspace we have created
  */
-function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string | undefined {
+function createWorkspaceFromIOUPayment(iouReport: Report): string | undefined {
     // This flow only works for IOU reports
     if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
         return;
@@ -2965,12 +2966,12 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview.reportActionID]: null},
+        value: {[reportPreview?.reportActionID ?? '']: null},
     });
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChatReportID}`,
-        value: {[reportPreview.reportActionID]: reportPreview},
+        value: {[reportPreview?.reportActionID ?? '']: reportPreview},
     });
 
     // To optimistically remove the GBR from the DM we need to update the hasOutstandingChildRequest param to false
@@ -3000,7 +3001,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage(expenseReport, {}, false, false, newWorkspace),
+                            text: ReportUtils.getReportPreviewMessage(expenseReport, null, false, false, newWorkspace),
                         },
                     ],
                     created: DateUtils.getDBTime(),
@@ -3012,7 +3013,7 @@ function createWorkspaceFromIOUPayment(iouReport: Report | EmptyObject): string 
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberData.workspaceChatReportID}`,
-        value: {[reportPreview.reportActionID]: null},
+        value: {[reportPreview?.reportActionID ?? '']: null},
     });
 
     // Create the MOVED report action and add it to the DM chat which indicates to the user where the report has been moved
@@ -4270,10 +4271,10 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                     areWorkflowsEnabled: !enabled,
                     ...(!enabled
                         ? {
-                              approvalMode: policy.approvalMode,
-                              autoReporting: policy.autoReporting,
-                              harvesting: policy.harvesting,
-                              reimbursementChoice: policy.reimbursementChoice,
+                              approvalMode: policy?.approvalMode,
+                              autoReporting: policy?.autoReporting,
+                              harvesting: policy?.harvesting,
+                              reimbursementChoice: policy?.reimbursementChoice,
                           }
                         : {}),
                     pendingFields: {

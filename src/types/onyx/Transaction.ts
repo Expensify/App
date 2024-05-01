@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {KeysOfUnion, ValueOf} from 'type-fest';
 import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
@@ -165,7 +166,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         participants?: Participant[];
 
         /** The receipt object associated with the transaction */
-        receipt?: Receipt;
+        receipt?: OnyxEntry<Receipt>;
 
         /** The iouReportID associated with the transaction */
         reportID: string;

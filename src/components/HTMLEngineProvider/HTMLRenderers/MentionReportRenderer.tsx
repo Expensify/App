@@ -16,7 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type MentionReportOnyxProps = {
@@ -28,7 +27,7 @@ type MentionReportRendererProps = MentionReportOnyxProps & CustomRendererProps<T
 
 const removeLeadingLTRAndHash = (value: string) => value.replace(CONST.UNICODE.LTR, '').replace('#', '');
 
-const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEntry<Report> | EmptyObject, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
+const getMentionDetails = (htmlAttributeReportID: string, currentReport: OnyxEntry<Report>, reports: OnyxCollection<Report>, tnode: TText | TPhrasing) => {
     let reportID: string | undefined;
     let mentionDisplayText: string;
 
