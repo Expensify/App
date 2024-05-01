@@ -311,7 +311,10 @@ function BaseTextInput(
         if (!autoGrow || prevTextValue.current.length === currentValue.length) {
             return;
         }
-        if (prevTextValue.current.length > currentValue.length || currentValue.length === 1 || currentValue.startsWith('0')) {
+        if (prevTextValue.current.length > currentValue.length) {
+            if (currentValue.length === 0) {
+                return;
+            }
             const diff = getDifference(currentValue, prevTextValue.current);
             requestAnimationFrame(() => {
                 setTextInputWidth((currentWidth) => currentWidth - calculateSize(diff, 8));
