@@ -124,7 +124,6 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         }
         return policy?.connections?.xero?.data?.tenants ?? [];
     }, [policy]);
-please remove as this is unnecessary
     const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
