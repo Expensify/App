@@ -1125,8 +1125,8 @@ const CONST = {
     },
 
     INPUT_AUTOGROW_DIRECTION: {
-        LEFT: 'right',
-        RIGHT: 'left',
+        LEFT: 'left',
+        RIGHT: 'right',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
