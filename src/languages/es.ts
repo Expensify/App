@@ -2025,7 +2025,6 @@ export default {
                 [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
-            outOfPocketExpenseAccountType: {},
         },
         xero: {
             organization: 'Organización Xero',
