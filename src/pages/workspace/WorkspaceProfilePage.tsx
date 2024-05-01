@@ -137,7 +137,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[
-                                policy?.errorFields?.avatar ?? isSmallScreenWidth ? styles.mb1 : styles.mb3,
+                                policy?.errorFields?.avatarURL ?? isSmallScreenWidth ? styles.mb1 : styles.mb3,
                                 isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
                                 styles.alignItemsStart,
                                 styles.sectionMenuItemTopDescription,
@@ -148,7 +148,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                             editorMaskImage={Expensicons.ImageCropSquareMask}
                             pendingAction={policy?.pendingFields?.avatarURL}
-                            errors={policy?.errorFields?.avatar}
+                            errors={policy?.errorFields?.avatarURL}
                             onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
                             previewSource={UserUtils.getFullSizeAvatar(policy?.avatarURL ?? '')}
                             headerTitle={translate('workspace.common.workspaceAvatar')}

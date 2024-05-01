@@ -136,7 +136,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
-    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
+    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);

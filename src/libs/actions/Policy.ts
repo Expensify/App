@@ -1502,7 +1502,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
                 avatarURL: file.uri,
                 originalFileName: file.name,
                 errorFields: {
-                    avatar: null,
+                    avatarURL: null,
                 },
                 pendingFields: {
                     avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
