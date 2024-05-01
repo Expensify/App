@@ -1,5 +1,6 @@
 import TransactionListItem from '@components/SelectionList/TransactionListItem';
 import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as UserUtils from './UserUtils';
@@ -7,11 +8,14 @@ import * as UserUtils from './UserUtils';
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
-        .map(([, value]) => ({
-            ...value,
-            from: data.personalDetailsList?.[value.accountID],
-            t0: data.personalDetailsList?.[value.managerID],
-        }));
+        .map(([, value]) => {
+            const isExpenseReport = value.reportType === CONST.REPORT.TYPE.EXPENSE;
+            return ({
+                ...value,
+                from: data.personalDetailsList?.[value.accountID],
+                to: isExpenseReport ? data[`${ONYXKEYS.COLLECTION.POLICY}${value.policyID}`] : data.personalDetailsList?.[value.managerID],
+            })
+        });
 }
 
 const searchTypeToItemMap = {

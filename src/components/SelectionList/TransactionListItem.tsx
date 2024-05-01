@@ -15,7 +15,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchPersonalDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import type {Transaction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import BaseListItem from './BaseListItem';
@@ -45,7 +45,7 @@ function TransactionListItem<TItem extends TransactionListItemType>({
     shouldPreventDefaultFocusOnSelectRow,
     onFocus,
     shouldSyncFocus,
-    shouldShowMerchant,
+    shouldShowMerchant = true,
 }: TransactionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,23 +78,24 @@ function TransactionListItem<TItem extends TransactionListItemType>({
         />
     );
 
-    const userCell = (userDetails: SearchPersonalDetails | undefined) => (
-        <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-            <Avatar
-                imageStyles={[styles.alignSelfCenter]}
-                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                source={userDetails?.avatar}
-                name={userDetails?.displayName ?? userDetails?.login}
-                type={CONST.ICON_TYPE_WORKSPACE}
-            />
-            <Text
-                numberOfLines={1}
-                style={[styles.textMicroBold]}
-            >
-                {userDetails?.displayName ?? userDetails?.login}
-            </Text>
-        </View>
-    );
+    const userCell = (participant: SearchPersonalDetails & SearchPolicyDetails) => {
+        const displayName = participant.name ?? participant.displayName ?? participant.login;
+        const avatarURL = participant.avatarURL ?? participant.avatar;
+        const iconType = participant.avatarURL !== undefined ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
+
+        return (
+            <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
+                <Avatar
+                    imageStyles={[styles.alignSelfCenter]}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    source={avatarURL}
+                    name={displayName}
+                    type={iconType}
+                />
+                <Text numberOfLines={1} style={[styles.textMicroBold]}>{displayName}</Text>
+            </View>
+        );
+    };
 
     const totalCell = (
         <TextWithTooltip

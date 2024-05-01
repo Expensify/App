@@ -1526,7 +1526,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH_TABLE_COLUMNS.DATE:
-                columnWidth = {width: 40};
+                columnWidth = {width: 44};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
                 columnWidth = styles.flex1;
@@ -1541,7 +1541,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {width: 96, ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TYPE:
-                columnWidth = {width: 28};
+                columnWidth = {width: 28, ...styles.alignItemsCenter};
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.ACTION:
                 columnWidth = {width: 80};
