@@ -302,6 +302,7 @@ function BaseTextInput(
 
     const prevTextValue = useRef('');
     const newSymbol = useRef('');
+
     useLayoutEffect(() => {
         const currentValue = value ?? '';
         if (!autoGrow || prevTextValue.current.length === currentValue.length) {
