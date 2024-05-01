@@ -136,7 +136,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
 
     const hasMembersError = PolicyUtils.hasEmployeeListError(policy);
     const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
-    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatar ?? {});
+    const hasGeneralSettingsError = !isEmptyObject(policy?.errorFields?.generalSettings ?? {}) || !isEmptyObject(policy?.errorFields?.avatarURL ?? {});
     const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy);
     const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
     const isFreeGroupPolicy = PolicyUtils.isFreeGroupPolicy(policy);
@@ -310,11 +310,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
-        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
+            id: policy.id ?? '',
         };
     }, [policy]);
 
