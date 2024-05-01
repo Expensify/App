@@ -146,8 +146,6 @@ function TaskView({report, ...props}: TaskViewProps) {
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
                         interactive={!isDisableInteractive}
-                        shouldRenderAsHTML
-                        shouldEscapeText={Url.hasURL(report.description ?? '') ? undefined : false}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
