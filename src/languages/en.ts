@@ -1997,7 +1997,7 @@ export default {
             mapXeroCostCentersTo: 'Map Xero cost centers to',
             mapXeroRegionsTo: 'Map Xero regions to',
             mapXeroCostCentersToDescription: 'Choose where to map cost centers to when exporting to Xero.',
-            mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero',
+            mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero.',
             xeroContactDefault: 'Xero contact default',
             customers: 'Re-bill customers',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
