@@ -322,11 +322,12 @@ function BaseTextInput(
             prevTextValue.current = currentValue;
             return;
         }
-
         prevTextValue.current = currentValue;
-        requestAnimationFrame(() => {
-            setTextInputWidth((currentWidth) => currentWidth + calculateSize(newSymbol.current, 8));
-        });
+        if (newSymbol.current.length) {
+            requestAnimationFrame(() => {
+                setTextInputWidth((currentWidth) => currentWidth + calculateSize(newSymbol.current, 8));
+            });
+        }
     }, [autoGrow, value]);
 
     return (
