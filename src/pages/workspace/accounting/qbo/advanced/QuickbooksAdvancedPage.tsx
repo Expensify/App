@@ -87,10 +87,10 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             isActive: Boolean(syncPeople),
-            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE, !syncPeople),
+            onToggle: () => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE, !syncPeople),
             pendingAction: pendingFields?.syncPeople,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
-            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.SYNCE_PEOPLE),
+            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE),
+            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.SYNC_PEOPLE),
             wrapperStyle: styles.mv3,
         },
         {
