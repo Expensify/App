@@ -271,6 +271,9 @@ type BaseSelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Input mode for the text input */
     inputMode?: InputModeOptions;
 
+    /** Whether the text input should intercept swipes or not */
+    shouldTextInputInterceptSwipe?: boolean;
+
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null;
 
