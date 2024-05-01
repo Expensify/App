@@ -52,7 +52,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             },
             {
                 description: translate('workspace.accounting.taxes'),
-                action: () => {},
+                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TAXES.getRoute(policyID)),
                 hasError: !!policy?.errors?.importTaxes,
                 title: importTaxRates ? translate('workspace.accounting.imported') : '',
                 pendingAction: pendingFields?.importTaxRates,

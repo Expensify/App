@@ -163,6 +163,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
+    [SCREENS.WORKSPACE.ADDRESS]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -316,6 +317,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {
         policyID: string;
         organizationID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: {
+        policyID: string;
     };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;

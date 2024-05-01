@@ -357,6 +357,7 @@ const CONST = {
         TRACK_EXPENSE: 'trackExpense',
         P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
+        SPOTNANA_TRAVEL: 'spotnanaTravel',
         ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
     },
     BUTTON_STATES: {
@@ -1263,6 +1264,10 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+    },
+
+    XERO_CONFIG: {
+        IMPORT_TAX_RATES: 'importTaxRates',
     },
 
     QUICKBOOKS_EXPORT_ENTITY: {

@@ -2023,6 +2023,7 @@ export default {
             customers: 'Volver a facturar a los clientes',
             customersDescription:
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
+            taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
         },
         type: {
             free: 'Gratis',
