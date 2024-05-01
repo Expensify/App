@@ -40,6 +40,10 @@ function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ACCOUNTING_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
+function canUseXeroIntegration(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.XERO_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+}
+
 /**
  * Link previews are temporarily disabled.
  */
@@ -57,4 +61,5 @@ export default {
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
     canUseAccountingIntegrations,
+    canUseXeroIntegration,
 };
