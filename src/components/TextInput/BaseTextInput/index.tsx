@@ -28,6 +28,34 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
+function percentage(percentageValue: number, totalValue: number) {
+    return (totalValue / 100) * percentageValue;
+}
+function calculateSize(string: string, size: number) {
+    if (+string === 1 || string === '.') {
+        return percentage(62.5, size);
+    }
+    if (+string >= 2 && +string <= 5) {
+        return size;
+    }
+    if ((+string >= 6 && +string <= 9) || +string === 0) {
+        return percentage(112.5, size);
+    }
+    if (+string === 7) {
+        return percentage(87.5, size);
+    }
+    return size;
+}
+
+function getDifference(s: string, t: string) {
+    let sum = t.charCodeAt(t.length - 1);
+    for (let j = 0; j < s.length; j++) {
+        sum -= s.charCodeAt(j);
+        sum += t.charCodeAt(j);
+    }
+    return String.fromCharCode(sum);
+}
+
 function BaseTextInput(
     {
         label = '',
@@ -272,19 +300,24 @@ function BaseTextInput(
     }, [inputStyle]);
 
     const prevTextValue = useRef('');
+    const newSymbol = useRef('');
     useLayoutEffect(() => {
         if (!autoGrow || prevTextValue.current.length === value?.length) {
             return;
         }
         const currentValue = value ?? '';
         if (prevTextValue.current.length > currentValue.length || currentValue.length === 1 || currentValue.startsWith('0')) {
+            const diff = getDifference(currentValue, prevTextValue.current);
+            requestAnimationFrame(() => {
+                setTextInputWidth((currentWidth) => currentWidth - calculateSize(diff, 8));
+            });
             prevTextValue.current = currentValue;
             return;
         }
 
         prevTextValue.current = currentValue;
         requestAnimationFrame(() => {
-            setTextInputWidth((currentWidth) => currentWidth + 8);
+            setTextInputWidth((currentWidth) => currentWidth + calculateSize(newSymbol.current, 8));
         });
     }, [autoGrow, value]);
 
@@ -406,6 +439,9 @@ function BaseTextInput(
                                 showSoftInputOnFocus={!disableKeyboard}
                                 inputMode={inputProps.inputMode}
                                 value={value}
+                                onChange={(e) => {
+                                    newSymbol.current = e.nativeEvent?.data ?? '';
+                                }}
                                 selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
