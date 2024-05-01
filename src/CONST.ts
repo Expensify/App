@@ -1250,7 +1250,7 @@ const CONST = {
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_TAX: 'syncTax',
-        PREFERRED_EXPORTER: 'exporter',
+        EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
         EXPORT_NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'nonReimbursableExpensesAccount',
         EXPORT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonReimbursableExpensesExportDestination',
