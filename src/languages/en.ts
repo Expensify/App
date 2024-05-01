@@ -1883,17 +1883,12 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         qbo: {
-            import: 'Import',
             importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
             classes: 'Classes',
-            accounts: 'Chart of accounts',
             locations: 'Locations',
-            taxes: 'Taxes',
             customers: 'Customers/Projects',
-            imported: 'Imported',
             displayedAs: 'Displayed as',
             notImported: 'Not imported',
-            importedAsTags: 'Imported, displayed as tags',
             importedAsReportFields: 'Imported, displayed as report fields',
             accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
             accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
@@ -1992,6 +1987,13 @@ export default {
                 invoiceAccountSelectDescription:
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
+        },
+        xero: {
+            organization: 'Xero organization',
+            organizationDescription: 'Select the organization in Xero you are importing data from.',
+            importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
+            trackingCategories: 'Tracking categories',
+            customers: 'Re-bill customers',
         },
         type: {
             free: 'Free',
@@ -2221,6 +2223,10 @@ export default {
                     }
                 }
             },
+            accounts: 'Chart of accounts',
+            taxes: 'Taxes',
+            imported: 'Imported',
+            importedAsTags: 'Imported, displayed as tags',
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

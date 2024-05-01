@@ -186,6 +186,71 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
+
+type BillStatusValues = 'DRAFT' | 'AWT_APPROVAL' | 'AWT_PAYMENT';
+
+type ExpenseTypesValues = 'BILL' | 'BANK_TRANSACTION' | 'SALES_INVOICE' | 'NOTHING';
+
+type BillDateValues = 'REPORT_SUBMITTED' | 'REPORT_EXPORTED' | 'LAST_EXPENSE';
+
+type Tenant = {
+    id: string;
+    name: string;
+    value: string;
+};
+
+type XeroConnectionData = {
+    bankAccounts: unknown[];
+    countryCode: string;
+    organisationID: string;
+    revenueAccounts: Array<{
+        id: string;
+        name: string;
+    }>;
+    tenants: Tenant[];
+    trackingCategories: unknown[];
+};
+
+/**
+ * User configuration for the Xero accounting integration.
+ */
+type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    autoSync: {
+        enabled: boolean;
+        jobID: string;
+    };
+    enableNewCategories: boolean;
+    export: {
+        billDate: BillDateValues;
+        billStatus: {
+            purchase: BillStatusValues;
+            sales: BillStatusValues;
+        };
+        billable: ExpenseTypesValues;
+        exporter: string;
+        nonReimbursable: ExpenseTypesValues;
+        nonReimbursableAccount: string;
+        reimbursable: ExpenseTypesValues;
+    };
+    importCustomers: boolean;
+    importTaxRates: boolean;
+    importTrackingCategories: boolean;
+    isConfigured: boolean;
+    mappings: {
+        customer: string;
+    };
+    sync: {
+        hasChosenAutoSyncOption: boolean;
+        hasChosenSyncReimbursedReportsOption: boolean;
+        invoiceCollectionsAccountID: string;
+        reimbursementAccountID: string;
+        syncReimbursedReports: boolean;
+    };
+    tenantID: string;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -194,7 +259,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
-    xero: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
 
 type ConnectionName = keyof Connections;
@@ -479,5 +544,6 @@ export type {
     PolicyConnectionSyncProgress,
     Connections,
     ConnectionName,
+    Tenant,
     Account,
 };
