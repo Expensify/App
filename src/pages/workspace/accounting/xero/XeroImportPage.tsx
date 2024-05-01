@@ -7,13 +7,13 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import CONST from '@src/CONST';
-import type {Tenant} from '@src/types/onyx/Policy';
-import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import type {Tenant} from '@src/types/onyx/Policy';
 
 function XeroImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -44,7 +44,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             {
                 description: translate('workspace.xero.customers'),
                 action: () => {
-                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID))
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
                 },
                 hasError: !!policy?.errors?.importCustomers,
                 title: importCustomers ? translate('workspace.accounting.importedAsTags') : '',

@@ -1,14 +1,41 @@
-import type { ParamListBase } from '@react-navigation/routers';
-import type { StackNavigationOptions } from '@react-navigation/stack';
-import { createStackNavigator } from '@react-navigation/stack';
+import type {ParamListBase} from '@react-navigation/routers';
+import type {StackNavigationOptions} from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import type { AddPersonalBankAccountNavigatorParamList, ChatFinderNavigatorParamList, DetailsNavigatorParamList, EditRequestNavigatorParamList, EnablePaymentsNavigatorParamList, FlagCommentNavigatorParamList, MoneyRequestNavigatorParamList, NewChatNavigatorParamList, NewTaskNavigatorParamList, ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ProfileNavigatorParamList, ReferralDetailsNavigatorParamList, ReimbursementAccountNavigatorParamList, ReportDescriptionNavigatorParamList, ReportDetailsNavigatorParamList, ReportSettingsNavigatorParamList, RoomInviteNavigatorParamList, RoomMembersNavigatorParamList, SearchReportParamList, SettingsNavigatorParamList, SignInNavigatorParamList, SplitDetailsNavigatorParamList, TaskDetailsNavigatorParamList, TeachersUniteNavigatorParamList, WalletStatementNavigatorParamList, WorkspaceSwitcherNavigatorParamList } from '@navigation/types';
-import type { ThemeStyles } from '@styles/index';
-import type { Screen } from '@src/SCREENS';
+import type {
+    AddPersonalBankAccountNavigatorParamList,
+    ChatFinderNavigatorParamList,
+    DetailsNavigatorParamList,
+    EditRequestNavigatorParamList,
+    EnablePaymentsNavigatorParamList,
+    FlagCommentNavigatorParamList,
+    MoneyRequestNavigatorParamList,
+    NewChatNavigatorParamList,
+    NewTaskNavigatorParamList,
+    ParticipantsNavigatorParamList,
+    PrivateNotesNavigatorParamList,
+    ProfileNavigatorParamList,
+    ReferralDetailsNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
+    ReportDetailsNavigatorParamList,
+    ReportSettingsNavigatorParamList,
+    RoomInviteNavigatorParamList,
+    RoomMembersNavigatorParamList,
+    SearchReportParamList,
+    SettingsNavigatorParamList,
+    SignInNavigatorParamList,
+    SplitDetailsNavigatorParamList,
+    TaskDetailsNavigatorParamList,
+    TeachersUniteNavigatorParamList,
+    WalletStatementNavigatorParamList,
+    WorkspaceSwitcherNavigatorParamList,
+} from '@navigation/types';
+import type {ThemeStyles} from '@styles/index';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import useModalScreenOptions from './useModalScreenOptions';
 import WorkspaceSettingsModalStackNavigator from './WorkspaceSettingsModalStackNavigator';
-
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 

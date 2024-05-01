@@ -111,6 +111,8 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
     return callOrReturn(props.children, props);
 }
 
+export type {PolicyAccessVariant};
+
 export default withOnyx<AccessOrNotFoundWrapperProps, AccessOrNotFoundWrapperOnyxProps>({
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? ''}`,
