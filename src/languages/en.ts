@@ -1994,6 +1994,7 @@ export default {
             importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
             trackingCategories: 'Tracking categories',
             customers: 'Re-bill customers',
+            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
         },
         type: {
             free: 'Free',

@@ -34,7 +34,7 @@ function XeroTaxesConfigurationPage({policy}: WithPolicyProps) {
             >
                 <HeaderWithBackButton title={translate('workspace.accounting.taxes')} />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                    <Text style={styles.pb5}>{translate('workspace.qbo.taxesDescription')}</Text>
+                    <Text style={styles.pb5}>{translate('workspace.xero.taxesDescription')}</Text>
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
                             <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
