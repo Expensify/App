@@ -11,6 +11,8 @@ import type {
     ChangeLog,
     IOUMessage,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageActionableRoomMentionWhisper,
+    OriginalMessageActionableTrackedExpenseWhisper,
     OriginalMessageIOU,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageReimbursementDequeued,
@@ -1029,7 +1031,7 @@ function isActionableMentionWhisper(reportAction: OnyxEntry<ReportAction>): repo
  * Checks if a given report action corresponds to an actionable room mention whisper.
  * @param reportAction
  */
-function isActionableRoomMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableMentionWhisper {
+function isActionableRoomMentionWhisper(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableRoomMentionWhisper {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ROOM_MENTION_WHISPER;
 }
 
@@ -1085,11 +1087,11 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
  * Checks if a given report action corresponds to a join request action.
  * @param reportAction
  */
-function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageJoinPolicyChangeLog {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
 }
 
-function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
+function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): reportAction is ReportActionBase & OriginalMessageActionableTrackedExpenseWhisper {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
 }
 
@@ -1099,9 +1101,7 @@ function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolea
  */
 function isActionableJoinRequestPending(reportID: string): boolean {
     const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(reportID)));
-    const findPendingRequest = sortedReportActions.find(
-        (reportActionItem) => isActionableJoinRequest(reportActionItem) && (reportActionItem as OriginalMessageJoinPolicyChangeLog)?.originalMessage?.choice === '',
-    );
+    const findPendingRequest = sortedReportActions.find((reportActionItem) => isActionableJoinRequest(reportActionItem) && reportActionItem.originalMessage.choice === '');
     return !!findPendingRequest;
 }
 
