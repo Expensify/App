@@ -11,7 +11,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -23,6 +22,7 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as Url from '@libs/Url';
 import * as Session from '@userActions/Session';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -39,12 +39,9 @@ type TaskViewProps = TaskViewOnyxProps &
     WithCurrentUserPersonalDetailsProps & {
         /** The report currently being looked at */
         report: Report;
-
-        /** Whether we should display the horizontal rule below the component */
-        shouldShowHorizontalRule: boolean;
     };
 
-function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
+function TaskView({report, ...props}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     useEffect(() => {
@@ -149,6 +146,8 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                         shouldGreyOutWhenDisabled={false}
                         numberOfLinesTitle={0}
                         interactive={!isDisableInteractive}
+                        shouldRenderAsHTML
+                        shouldEscapeText={Url.hasURL(report.description ?? '') ? undefined : false}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
@@ -156,7 +155,7 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                         <MenuItem
                             label={translate('task.assignee')}
                             title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
+                            icon={OptionsListUtils.getAvatarsForAccountIDs(report.managerID ? [report.managerID] : [], personalDetails)}
                             iconType={CONST.ICON_TYPE_AVATAR}
                             avatarSize={CONST.AVATAR_SIZE.SMALLER}
                             titleStyle={styles.assigneeTextStyle}
@@ -182,10 +181,6 @@ function TaskView({report, shouldShowHorizontalRule, ...props}: TaskViewProps) {
                     )}
                 </OfflineWithFeedback>
             </OfflineWithFeedback>
-            <SpacerView
-                shouldShow={shouldShowHorizontalRule}
-                style={shouldShowHorizontalRule && styles.reportHorizontalRule}
-            />
         </View>
     );
 }

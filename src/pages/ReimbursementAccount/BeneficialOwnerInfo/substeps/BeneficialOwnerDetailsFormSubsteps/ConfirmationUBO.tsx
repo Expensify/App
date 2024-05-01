@@ -29,7 +29,7 @@ type ConfirmationUBOOnyxProps = {
 };
 type ConfirmationUBOProps = SubStepProps & ConfirmationUBOOnyxProps & {beneficialOwnerBeingModifiedID: string};
 
-const UBO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.UBO;
+const UBO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.UBO;
 
 function ConfirmationUBO({reimbursementAccount, reimbursementAccountDraft, onNext, onMove, beneficialOwnerBeingModifiedID}: ConfirmationUBOProps) {
     const {translate} = useLocalize();

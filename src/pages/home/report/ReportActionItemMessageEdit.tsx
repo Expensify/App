@@ -318,7 +318,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -380,8 +380,8 @@ function ReportActionItemMessageEdit(
     const focus = focusComposerWithDelay(textInputRef.current);
 
     useEffect(() => {
-        validateCommentMaxLength(draft);
-    }, [draft, validateCommentMaxLength]);
+        validateCommentMaxLength(draft, {reportID});
+    }, [draft, reportID, validateCommentMaxLength]);
 
     return (
         <>
