@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
@@ -11,13 +12,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as TransactionUtils from '@libs/TransactionUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
+import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import type {Transaction} from '@src/types/onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import type {TransactionListItemProps, TransactionListItemType} from './types';
 
@@ -54,7 +54,7 @@ function TransactionListItem<TItem extends TransactionListItemType>({
 
     function getMerchant() {
         const merchant = TransactionUtils.getMerchant(item as OnyxEntry<Transaction>);
-        return (merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT) ? '' : merchant;
+        return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
     }
 
     const isNarrowView = isMediumScreenWidth || isSmallScreenWidth;
@@ -96,7 +96,12 @@ function TransactionListItem<TItem extends TransactionListItemType>({
                     name={displayName}
                     type={iconType}
                 />
-                <Text numberOfLines={1} style={[styles.textMicroBold]}>{displayName}</Text>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.textMicroBold]}
+                >
+                    {displayName}
+                </Text>
             </View>
         );
     };

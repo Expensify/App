@@ -1,15 +1,15 @@
 import TransactionListItem from '@components/SelectionList/TransactionListItem';
-import ONYXKEYS from '@src/ONYXKEYS';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as UserUtils from './UserUtils';
 
-function getShouldShowMerchant (data: OnyxTypes.SearchResults['data']): boolean {
-    return Object.values(data).some(item => {
+function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
+    return Object.values(data).some((item) => {
         const merchant = item.modifiedMerchant ?? item.merchant ?? '';
         return merchant && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
-    })
+    });
 }
 
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
@@ -18,12 +18,12 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchT
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
         .map(([, value]) => {
             const isExpenseReport = value.reportType === CONST.REPORT.TYPE.EXPENSE;
-            return ({
+            return {
                 ...value,
                 from: data.personalDetailsList?.[value.accountID],
                 to: isExpenseReport ? data[`${ONYXKEYS.COLLECTION.POLICY}${value.policyID}`] : data.personalDetailsList?.[value.managerID],
                 shouldShowMerchant,
-            })
+            };
         });
 }
 

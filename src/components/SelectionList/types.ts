@@ -182,7 +182,7 @@ type TransactionListItemType = ListItem & {
 
     /** Whether we should show the merchant column */
     shouldShowMerchant: boolean;
-}
+};
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
