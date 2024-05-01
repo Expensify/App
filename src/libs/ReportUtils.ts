@@ -5935,6 +5935,9 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
     );
 }
 
+/**
+ * Check if a report is a group chat and isn't a thread
+ */
 function isRootGroupChat(report: OnyxEntry<Report>): boolean {
     return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report));
 }
