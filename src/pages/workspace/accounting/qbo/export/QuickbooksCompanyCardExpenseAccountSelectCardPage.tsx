@@ -16,13 +16,13 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {QBOExportAccountType} from '@src/types/onyx/Policy';
+import type {QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
-    value: QBOExportAccountType;
+    value: QBONonReimbursableExportAccountType;
 };
 type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
-type Card = {name: string; id: QBOExportAccountType};
+type Card = {name: string; id: QBONonReimbursableExportAccountType};
 
 function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -35,15 +35,15 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
         () => [
             {
                 name: translate(`workspace.qbo.accounts.credit_card`),
-                id: CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                id: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
             },
             {
                 name: translate(`workspace.qbo.accounts.debit_card`),
-                id: CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                id: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
             },
             {
                 name: translate(`workspace.qbo.accounts.bill`),
-                id: CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+                id: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
             },
         ],
         [translate],

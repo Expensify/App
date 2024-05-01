@@ -22,7 +22,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     const policyID = policy?.id ?? '';
     const {reimbursableExpensesExportDestination, autoCreateVendor, errorFields, pendingFields, nonReimbursableExpensesExportDestination, nonReimbursableExpensesAccount} =
         policy?.connections?.quickbooksOnline?.config ?? {};
-    const isVendorSelected = nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
+    const isVendorSelected = nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL;
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}

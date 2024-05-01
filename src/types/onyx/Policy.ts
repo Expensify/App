@@ -152,7 +152,8 @@ type QBOConnectionData = {
 
 type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
 
-type QBOExportAccountType = (typeof CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE];
+type QBONonReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE];
+type QBOReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
@@ -167,8 +168,8 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncPeople: boolean;
     syncItems: boolean;
     markChecksToBePrinted: boolean;
-    reimbursableExpensesExportDestination: QBOExportAccountType;
-    nonReimbursableExpensesExportDestination: QBOExportAccountType;
+    reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
+    nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
 
     collectionAccountID?: string;
     reimbursementAccountID?: string;
@@ -553,6 +554,7 @@ export type {
     ConnectionName,
     Tenant,
     Account,
-    QBOExportAccountType,
+    QBONonReimbursableExportAccountType,
+    QBOReimbursableExportAccountType,
     QBOConnectionConfig,
 };

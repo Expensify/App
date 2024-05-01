@@ -31,13 +31,13 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
     const data: CardListItem[] = useMemo(() => {
         let accounts: Account[];
         switch (nonReimbursableExpensesExportDestination) {
-            case CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
+            case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD:
                 accounts = creditCards ?? [];
                 break;
-            case CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
+            case CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD:
                 accounts = bankAccounts ?? [];
                 break;
-            case CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL:
+            case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
                 accounts = vendors ?? [];
                 break;
             default:
@@ -71,7 +71,9 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}>
                 <HeaderWithBackButton
                     title={
-                        nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_EXPORT_ACCOUNT_TYPE.VENDOR_BILL ? translate('workspace.qbo.vendor') : translate('workspace.qbo.account')
+                        nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
+                            ? translate('workspace.qbo.vendor')
+                            : translate('workspace.qbo.account')
                     }
                 />
                 <SelectionList
