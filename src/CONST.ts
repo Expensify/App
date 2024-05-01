@@ -3716,8 +3716,9 @@ const CONST = {
                     type: 'submitExpense',
                     autoCompleted: false,
                     title: 'Submit an expense',
-                    subtitle: '<strong>Submit an expense</strong> by entering an amount or scanning a receipt.',
-                    message:
+                    description:
+                        '<strong>Submit an expense</strong> by entering an amount or scanning a receipt.\n' +
+                        '\n' +
                         'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3731,8 +3732,9 @@ const CONST = {
                     type: 'enableWallet',
                     autoCompleted: false,
                     title: 'Enable your wallet',
-                    subtitle: 'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!',
-                    message:
+                    description:
+                        'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!\n' +
+                        '\n' +
                         'Here’s how to set up your wallet:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3757,8 +3759,9 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    subtitle: '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.',
-                    message:
+                    description:
+                        '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.\n' +
+                        '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3770,8 +3773,7 @@ const CONST = {
                     type: 'meetGuide',
                     autoCompleted: false,
                     title: 'Meet your setup specialist',
-                    subtitle: '',
-                    message: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
+                    description: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}) or [schedule a call](${guideCalendarLink}) today.`,
@@ -3780,8 +3782,9 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    subtitle: '<strong>Set up categories</strong> so your team can code expenses for easy reporting.',
-                    message:
+                    description:
+                        '<strong>Set up categories</strong> so your team can code expenses for easy reporting.\n' +
+                        '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3796,8 +3799,9 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    subtitle: '<strong>Add expense approvals</strong> to review your team’s spend and keep it under control.',
-                    message:
+                    description:
+                        '<strong>Add expense approvals</strong> to review your team’s spend and keep it under control.\n' +
+                        '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3812,8 +3816,9 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    subtitle: '<strong>Invite your team</strong> to Expensify so they can start tracking expenses today.',
-                    message:
+                    description:
+                        '<strong>Invite your team</strong> to Expensify so they can start tracking expenses today.\n' +
+                        '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3840,8 +3845,9 @@ const CONST = {
                     type: 'trackExpense',
                     autoCompleted: false,
                     title: 'Track an expense',
-                    subtitle: '<strong>Track an expense</strong> in any currency, whether you have a receipt or not.',
-                    message:
+                    description:
+                        '<strong>Track an expense</strong> in any currency, whether you have a receipt or not.\n' +
+                        '\n' +
                         'Here’s how to track an expense:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3867,8 +3873,9 @@ const CONST = {
                     type: 'startChat',
                     autoCompleted: false,
                     title: 'Start a chat',
-                    subtitle: '<strong>Start a chat</strong> with a friend or group using their email or phone number.',
-                    message:
+                    description:
+                        '<strong>Start a chat</strong> with a friend or group using their email or phone number.\n' +
+                        '\n' +
                         'Here’s how to start a chat:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3883,8 +3890,9 @@ const CONST = {
                     type: 'splitExpense',
                     autoCompleted: false,
                     title: 'Split an expense',
-                    subtitle: '<strong>Split an expense</strong> right in your chat with one or more friends.',
-                    message:
+                    description:
+                        '<strong>Split an expense</strong> right in your chat with one or more friends.\n' +
+                        '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3898,8 +3906,9 @@ const CONST = {
                     type: 'enableWallet',
                     autoCompleted: false,
                     title: 'Enable your wallet',
-                    subtitle: 'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!',
-                    message:
+                    description:
+                        'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!\n' +
+                        '\n' +
                         'Here’s how to enable your wallet:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
