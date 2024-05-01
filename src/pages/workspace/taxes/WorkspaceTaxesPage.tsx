@@ -232,7 +232,7 @@ function WorkspaceTaxesPage({
             shouldAlwaysShowDropdownMenu
             pressOnEnter
             isSplitButton={false}
-            style={[isSmallScreenWidth && styles.w50, isSmallScreenWidth && styles.mb3]}
+            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
         />
     );
 
