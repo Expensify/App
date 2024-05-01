@@ -1,17 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -28,8 +24,8 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
     return (
         <ConnectionLayout
             displayName={XeroCustomerConfigurationPage.displayName}
-            headerTitle="workspace.qbo.customers"
-            title="workspace.qbo.customersDescription"
+            headerTitle="workspace.xero.customers"
+            title="workspace.xero.customersDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -42,7 +38,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
                     <OfflineWithFeedback pendingAction={pendingFields?.syncCustomers}>
                         <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                             <Switch
-                                accessibilityLabel={translate('workspace.qbo.customers')}
+                                accessibilityLabel={translate('workspace.xero.customers')}
                                 isOn={isSwitchOn}
                                 onToggle={() =>
                                     Connections.updatePolicyConnectionConfig(
