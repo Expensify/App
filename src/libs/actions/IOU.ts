@@ -1124,15 +1124,6 @@ function buildOnyxDataForTrackExpense(
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
 
-    const isDraftReport = ReportUtils.isDraftReport(chatReport?.reportID);
-
-    if (isDraftReport) {
-        const workspaceData = Policy.buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID);
-        optimisticData.push(...workspaceData.optimisticData);
-        successData.push(...workspaceData.successData);
-        failureData.push(...workspaceData.failureData);
-    }
-
     if (chatReport) {
         optimisticData.push(
             {
@@ -1976,6 +1967,10 @@ function getTrackExpenseInformation(
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     existingTransactionID?: string,
 ): TrackExpenseInformation | EmptyObject {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
     // STEP 1: Get existing chat report
@@ -1990,6 +1985,16 @@ function getTrackExpenseInformation(
     // Maybe later, we can build an optimistic selfDM chat.
     if (!chatReport) {
         return {};
+    }
+
+    // Check if the report is a draft
+    const isDraftReport = ReportUtils.isDraftReport(chatReport?.reportID);
+
+    if (isDraftReport) {
+        const workspaceData = Policy.buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID);
+        optimisticData.push(...workspaceData.optimisticData);
+        successData.push(...workspaceData.successData);
+        failureData.push(...workspaceData.failureData);
     }
 
     // STEP 2: If not in the self-DM flow, we need to use the expense report.
@@ -2099,7 +2104,7 @@ function getTrackExpenseInformation(
     }
 
     // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForTrackExpense(
+    const trackExpenseOnyxData = buildOnyxDataForTrackExpense(
         chatReport,
         iouReport,
         optimisticTransaction,
@@ -2125,9 +2130,9 @@ function getTrackExpenseInformation(
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
         onyxData: {
-            optimisticData,
-            successData,
-            failureData,
+            optimisticData: [...optimisticData, ...trackExpenseOnyxData[0]],
+            successData: [...successData, ...trackExpenseOnyxData[1]],
+            failureData: [...failureData, ...trackExpenseOnyxData[2]],
         },
     };
 }
