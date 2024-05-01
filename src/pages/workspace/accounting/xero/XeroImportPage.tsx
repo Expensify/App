@@ -69,6 +69,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
             policy?.errors?.importCustomers,
             policy?.errors?.importTaxes,
             translate,
+            policyID,
         ],
     );
 
