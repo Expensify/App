@@ -12,8 +12,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
-import RightElementRequiredStatus from '@components/SelectionList/RightElementRequiredStatus';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -101,7 +100,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                 isSelected: !!selectedTags[policyTagList.name],
                 enabled: true,
                 required: policyTagList.required,
-                rightElement: <RightElementRequiredStatus required={policyTagList.required} />,
+                rightElement: <ListItemRightCaretWithLabel labelText={policyTagList.required ? translate('workspace.common.enabled') : undefined} />,
             }));
         }
         return policyTagLists
@@ -118,12 +117,12 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
                         errors: tag.errors ?? undefined,
                         enabled: tag.enabled,
                         isDisabled,
-                        rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
+                        rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                     };
                 }),
             )
             .flat();
-    }, [isOnlyOneTagsLists, policyTagsLists, selectedTags]);
+    }, [isOnlyOneTagsLists, policyTagsLists, selectedTags, translate]);
 
     const tagListKeyedByName = tagList.reduce<Record<string, PolicyForList>>((acc, tag) => {
         acc[tag.value] = tag;

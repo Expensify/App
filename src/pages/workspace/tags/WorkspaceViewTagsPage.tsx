@@ -13,7 +13,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RightElementEnabledStatus from '@components/SelectionList/RightElementEnabledStatus';
+import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -98,12 +98,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             errors: tag.errors ?? undefined,
                             enabled: tag.enabled,
                             isDisabled,
-                            rightElement: <RightElementEnabledStatus enabled={tag.enabled} />,
+                            rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                         };
                     }),
                 )
                 .flat(),
-        [policyTagLists, selectedTags],
+        [policyTagLists, selectedTags, translate],
     );
 
     if (!currentPolicyTag) {
