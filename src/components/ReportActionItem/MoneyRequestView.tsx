@@ -134,6 +134,7 @@ function MoneyRequestView({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
@@ -332,7 +333,7 @@ function MoneyRequestView({
     );
 
     const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
-    const shouldShowReceiptEmptyState = !hasReceipt && (canEditReceipt || isAdmin || isApprover);
+    const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
     const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
@@ -340,10 +341,12 @@ function MoneyRequestView({
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                <ReceiptAuditHeader
-                    notes={noticeTypeViolations}
-                    shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
-                />
+                {!isInvoice && (
+                    <ReceiptAuditHeader
+                        notes={noticeTypeViolations}
+                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                    />
+                )}
                 {shouldShowMapOrReceipt && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
@@ -358,7 +361,10 @@ function MoneyRequestView({
                     >
                         <View style={styles.moneyRequestViewImage}>
                             {showMapAsImage ? (
-                                <ConfirmedRoute transaction={transaction} />
+                                <ConfirmedRoute
+                                    transaction={transaction}
+                                    interactive={false}
+                                />
                             ) : (
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}

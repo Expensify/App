@@ -33,7 +33,6 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -260,7 +259,6 @@ export default {
         youAfterPreposition: 'ti',
         your: 'tu',
         conciergeHelp: 'Por favor, contacta con Concierge para obtener ayuda.',
-        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `Has seleccionado el número máximo (${count}) de participantes.`,
         youAppearToBeOffline: 'Parece que estás desconectado.',
         thisFeatureRequiresInternet: 'Esta función requiere una conexión a Internet activa para ser utilizada.',
         areYouSure: '¿Estás seguro?',
@@ -321,6 +319,10 @@ export default {
         businessName: 'Nombre de la empresa',
         type: 'Tipo',
         action: 'Acción',
+    },
+    connectionComplete: {
+        title: 'Conexión Completa',
+        supportingText: 'Ya puedes cerrar esta página y volver a la App de Expensify.',
     },
     location: {
         useCurrent: 'Usar ubicación actual',
@@ -1347,10 +1349,9 @@ export default {
         purpose: {
             title: '¿Qué quieres hacer hoy?',
             error: 'Por favor, haga una selección antes de continuar.',
-            [CONST.ONBOARDING_CHOICES.TRACK]: 'Seguimiento fiscal de los gastos de las empresas',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar los gastos personales',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatea y divide gastos con tus amigos',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Algo más',
         },
