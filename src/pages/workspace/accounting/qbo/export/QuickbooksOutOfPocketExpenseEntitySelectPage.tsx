@@ -45,21 +45,21 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
         () => [
             {
                 value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK,
-                text: translate(`workspace.qbo.outOfPocketExpenseAccountType.check`),
+                text: translate(`workspace.qbo.exportCompanyCardAccountType.check`),
                 keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK,
                 isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK,
                 isShown: !isLocationsEnabled,
             },
             {
                 value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                text: translate(`workspace.qbo.outOfPocketExpenseAccountType.journal_entry`),
+                text: translate(`workspace.qbo.exportCompanyCardAccountType.journal_entry`),
                 keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isShown: !isTaxesEnabled || isLocationsEnabled,
             },
             {
                 value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL,
-                text: translate(`workspace.qbo.outOfPocketExpenseAccountType.bill`),
+                text: translate(`workspace.qbo.exportCompanyCardAccountType.bill`),
                 keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: !isLocationsEnabled,
