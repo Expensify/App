@@ -114,7 +114,7 @@ export default withOnyx<ReportActionItemCreatedProps, ReportActionItemCreatedOny
         ReportActionItemCreated,
         (prevProps, nextProps) =>
             prevProps.policy?.name === nextProps.policy?.name &&
-            prevProps.policy?.avatar === nextProps.policy?.avatar &&
+            prevProps.policy?.avatarURL === nextProps.policy?.avatarURL &&
             prevProps.report?.stateNum === nextProps.report?.stateNum &&
             prevProps.report?.statusNum === nextProps.report?.statusNum &&
             prevProps.report?.lastReadTime === nextProps.report?.lastReadTime &&
