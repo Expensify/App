@@ -10,6 +10,7 @@ import Section from '@components/Section';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyConnections from '@hooks/usePolicyWithConnections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
@@ -44,6 +45,7 @@ type SectionObject = {
 };
 
 function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPageProps) {
+    usePolicyConnections(policy?.id ?? '');
     const styles = useThemeStyles();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
