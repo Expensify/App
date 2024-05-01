@@ -294,6 +294,8 @@ function MoneyRequestConfirmationList({
 
     const canUpdateSenderWorkspace = useMemo(() => PolicyUtils.canSendInvoice(allPolicies) && !!transaction?.isFromGlobalCreate, [allPolicies, transaction?.isFromGlobalCreate]);
 
+    const canModifyTaxFields = !isReadOnly && !isDistanceRequest;
+
     // A flag for showing the tags field
     const shouldShowTags = useMemo(() => isPolicyExpenseChat && OptionsListUtils.hasEnabledTags(policyTagLists), [isPolicyExpenseChat, policyTagLists]);
 
@@ -905,14 +907,14 @@ function MoneyRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates?.name}${taxRateTitle}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={taxRateTitle}
                     description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
@@ -922,14 +924,14 @@ function MoneyRequestConfirmationList({
             item: (
                 <MenuItemWithTopDescription
                     key={`${taxRates?.name}${formattedTaxAmount}`}
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()))}
                     disabled={didConfirm}
-                    interactive={!isReadOnly}
+                    interactive={canModifyTaxFields}
                 />
             ),
             shouldShow: shouldShowTax,
