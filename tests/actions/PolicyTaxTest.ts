@@ -29,8 +29,6 @@ describe('actions/PolicyTax', () => {
     describe('SetPolicyCustomTaxName', () => {
         it('Set policy`s custom tax name', () => {
             const customTaxName = 'Custom tag name';
-            const originalCustomTaxName = fakePolicy?.taxRates?.name;
-
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
             Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
@@ -776,13 +774,6 @@ describe('actions/PolicyTax', () => {
         });
 
         it('Delete tax that is foreignTaxDefault', () => {
-            const fakePolicy: PolicyType = {
-                ...createRandomPolicy(0),
-                taxRates: {
-                    ...CONST.DEFAULT_TAX,
-                    foreignTaxDefault: 'id_TAX_RATE_1',
-                },
-            };
             const taxID = 'id_TAX_RATE_1';
             const firstTaxID = 'id_TAX_EXEMPT';
 
