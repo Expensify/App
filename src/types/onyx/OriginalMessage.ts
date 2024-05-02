@@ -311,6 +311,11 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageMergedWithCashTranasction = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
+    originalMessage: Record<string, never>;
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -334,7 +339,8 @@ type OriginalMessage =
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
-    | OriginalMessageActionableTrackedExpenseWhisper;
+    | OriginalMessageActionableTrackedExpenseWhisper
+    | OriginalMessageMergedWithCashTranasction;
 
 export default OriginalMessage;
 export type {
