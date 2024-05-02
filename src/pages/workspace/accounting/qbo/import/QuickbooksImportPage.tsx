@@ -59,7 +59,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         },
     ];
 
-    if (policy?.connections?.quickbooksOnline.data.country !== CONST.COUNTRY.US) {
+    if (policy?.connections?.quickbooksOnline?.data?.country !== CONST.COUNTRY.US) {
         sections.push({
             description: translate('workspace.accounting.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
