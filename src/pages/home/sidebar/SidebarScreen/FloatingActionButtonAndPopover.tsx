@@ -34,6 +34,7 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getDisplayNameOrDefault} from "@libs/PersonalDetailsUtils";
 
 // On small screen we hide the search page from central pane to show the search bottom tab page with bottom tab bar.
 // We need to take this in consideration when checking if the screen is focused.
@@ -141,7 +142,7 @@ const getQuickActionTitle = (action: QuickActionName): TranslationPaths => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return 'quickAction.trackDistance';
         case CONST.QUICK_ACTIONS.SEND_MONEY:
-            return 'quickAction.sendMoney';
+            return 'quickAction.paySomeone';
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
             return 'quickAction.assignTask';
         default:
@@ -191,6 +192,10 @@ function FloatingActionButtonAndPopover(
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
 
     const quickActionTitle = useMemo(() => {
+        if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY) {
+            const name = getDisplayNameOrDefault(personalDetails?.[session?.accountID]);
+            return translate('quickAction.paySomeone', {name})
+        }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
     }, [quickAction, translate]);
