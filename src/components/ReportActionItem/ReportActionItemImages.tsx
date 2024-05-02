@@ -84,7 +84,7 @@ function ReportActionItemImages({images, size, total, isHovered = false}: Report
                                 transaction={transaction}
                                 isThumbnail={isThumbnail}
                                 isSingleImage={numberOfShownImages === 1}
-                                shouldMapHaveNoBorderRadius
+                                shouldMapHaveBorderRadius={false}
                             />
                         </View>
                     );

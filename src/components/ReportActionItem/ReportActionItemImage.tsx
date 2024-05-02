@@ -49,8 +49,8 @@ type ReportActionItemImageProps = {
     /** Whether there are other images displayed in the same parent container */
     isSingleImage?: boolean;
 
-    /** Whether the map view should not have border radius  */
-    shouldMapHaveNoBorderRadius?: boolean;
+    /** Whether the map view should have border radius  */
+    shouldMapHaveBorderRadius?: boolean;
 };
 
 /**
@@ -69,7 +69,7 @@ function ReportActionItemImage({
     fileExtension,
     filename,
     isSingleImage = true,
-    shouldMapHaveNoBorderRadius: shouldHaveNoBorderRadius = false,
+    shouldMapHaveBorderRadius,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -83,7 +83,7 @@ function ReportActionItemImage({
                 <ConfirmedRoute
                     transaction={transaction}
                     isSmallIcon={!isSingleImage}
-                    shouldHaveNoBorderRadius={shouldHaveNoBorderRadius}
+                    shouldHaveBorderRadius={shouldMapHaveBorderRadius}
                     interactive={false}
                 />
             </View>
