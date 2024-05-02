@@ -1872,13 +1872,13 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.11):
+  - rnmapbox-maps (10.1.12):
     - MapboxMaps (~> 10.16.4)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.11)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.12)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.11):
+  - rnmapbox-maps/DynamicLibrary (10.1.12):
     - hermes-engine
     - MapboxMaps (~> 10.16.4)
     - RCT-Folly
@@ -2558,7 +2558,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: bfabd5938e5af5afc1e60e4e34286b17f8308184
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 51aee278cc2af8af9298f91a2aad7210739785b4
+  rnmapbox-maps: 211f3cb9d33b3b8737d6d21c16bd49e9d97be2f8
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 51db0fff543694d931bd3b7cab1a3b36bd86c738
@@ -2573,8 +2573,8 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
+  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
 
-COCOAPODS: 1.13.0
+COCOAPODS: 1.14.3
