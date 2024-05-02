@@ -5,6 +5,7 @@ import type {ComponentType} from 'react';
 import {measurePerformance} from 'reassure';
 import type {WithLocalizeProps} from '@components/withLocalize';
 import type {WithNavigationFocusProps} from '@components/withNavigationFocus';
+import type Navigation from '@libs/Navigation/Navigation';
 import OptionsSelector from '@src/components/OptionsSelector';
 import variables from '@src/styles/variables';
 
@@ -36,6 +37,18 @@ jest.mock('@src/components/withNavigationFocus', () => (Component: ComponentType
     WithNavigationFocus.displayName = 'WithNavigationFocus';
 
     return WithNavigationFocus;
+});
+
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual('@react-navigation/native');
+    return {
+        ...actualNav,
+        useNavigation: () => ({
+            navigate: jest.fn(),
+            addListener: () => jest.fn(),
+        }),
+        useIsFocused: () => true,
+    } as typeof Navigation;
 });
 
 type GenerateSectionsProps = Array<{numberOfItems: number; shouldShow?: boolean}>;

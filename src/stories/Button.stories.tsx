@@ -1,19 +1,19 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import type {ComponentMeta, ComponentStory} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react';
 import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {ButtonProps} from '@components/Button';
 import Button from '@components/Button';
 import Text from '@components/Text';
 
-type ButtonStory = ComponentStory<typeof Button>;
+type ButtonStory = StoryFn<typeof Button>;
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-const story: ComponentMeta<typeof Button> = {
+const story: Meta<typeof Button> = {
     title: 'Components/Button',
     component: Button,
 };

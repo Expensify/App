@@ -11,7 +11,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
-import type {ListItem} from './SelectionList/types';
 
 type TaxPickerOnyxProps = {
     /** The policy which the user has access to and which the report is tied to */
@@ -33,7 +32,7 @@ type TaxPickerProps = TaxPickerOnyxProps & {
     insets?: EdgeInsets;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: ListItem) => void;
+    onSubmit: (tax: OptionsListUtils.TaxRatesOption) => void;
 };
 
 function TaxPicker({selectedTaxRate = '', policy, insets, onSubmit}: TaxPickerProps) {

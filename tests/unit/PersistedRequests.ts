@@ -22,25 +22,6 @@ describe('PersistedRequests', () => {
         expect(PersistedRequests.getAll().length).toBe(2);
     });
 
-    it('save a new request with conflict resolution', () => {
-        const handleConflictingRequest = jest.fn();
-        const newRequest = {
-            command: 'ThingA',
-            getConflictingRequests: (requests: Request[]) => requests,
-            handleConflictingRequest,
-        };
-        const secondRequest = {
-            command: 'ThingB',
-            getConflictingRequests: (requests: Request[]) => requests,
-            shouldIncludeCurrentRequest: true,
-        };
-        PersistedRequests.save(newRequest);
-        PersistedRequests.save(secondRequest);
-        expect(PersistedRequests.getAll().length).toBe(1);
-        expect(handleConflictingRequest).toHaveBeenCalledWith(request);
-        expect(handleConflictingRequest).toHaveBeenCalledTimes(1);
-    });
-
     it('remove a request from the PersistedRequests array', () => {
         PersistedRequests.remove(request);
         expect(PersistedRequests.getAll().length).toBe(0);

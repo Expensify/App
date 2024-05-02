@@ -3,8 +3,8 @@ import {useIsFocused, useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useInitialValue from '@hooks/useInitialValue';
 import useNetwork from '@hooks/useNetwork';
@@ -12,13 +12,14 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Log from '@libs/Log';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
 import Performance from '@libs/Performance';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 import shouldFetchReport from '@libs/shouldFetchReport';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
@@ -32,6 +33,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialPaginationSize from './getInitialPaginationSize';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
+import UserTypingEventListener from './UserTypingEventListener';
 
 type ReportActionsViewOnyxProps = {
     /** Session info for the currently logged in user. */
@@ -93,7 +95,6 @@ function ReportActionsView({
     const route = useRoute<RouteProp<CentralPaneNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportActionID = route?.params?.reportActionID;
     const didLayout = useRef(false);
-    const didSubscribeToReportTypingEvents = useRef(false);
 
     // triggerListID is used when navigating to a chat with messages loaded from LHN. Typically, these include thread actions, task actions, etc. Since these messages aren't the latest,we don't maintain their position and instead trigger a recalculation of their positioning in the list.
     // we don't set currentReportActionID on initial render as linkedID as it should trigger visibleReportActions after linked message was positioned
@@ -137,20 +138,22 @@ function ReportActionsView({
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
-    const combinedReportActions = useMemo(() => {
+    const [combinedReportActions, parentReportActionForTransactionThread] = useMemo(() => {
         if (isEmptyObject(transactionThreadReportActions)) {
-            return allReportActions;
+            return [allReportActions, null];
         }
 
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+        const moneyRequestAction = allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID);
 
-        // Filter out "created" IOU report actions because we don't want to show any preview actions for one transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter(
-            (action) => ((action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '') !== CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        );
-        return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-    }, [allReportActions, transactionThreadReportActions]);
+        // Filter out the expense actions because we don't want to show any preview actions for one-transaction reports
+        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
+            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
+        });
+        return [ReportActionsUtils.getSortedReportActions(filteredReportActions, true), moneyRequestAction ?? null];
+    }, [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID]);
 
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID) {
@@ -286,27 +289,6 @@ function ReportActionsView({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth, reportActions, isReportFullyVisible]);
 
-    useEffect(() => {
-        // Ensures the optimistic report is created successfully
-        if (route?.params?.reportID !== reportID) {
-            return;
-        }
-        // Ensures subscription event succeeds when the report/workspace room is created optimistically.
-        // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
-        // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
-        // Existing reports created will have empty fields for `pendingFields`.
-        const didCreateReportSuccessfully = !report.pendingFields || (!report.pendingFields.addWorkspaceRoom && !report.pendingFields.createChat);
-        if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            const interactionTask = InteractionManager.runAfterInteractions(() => {
-                Report.subscribeToReportTypingEvents(reportID);
-                didSubscribeToReportTypingEvents.current = true;
-            });
-            return () => {
-                interactionTask.cancel();
-            };
-        }
-    }, [report.pendingFields, didSubscribeToReportTypingEvents, route, reportID]);
-
     const onContentSizeChange = useCallback((w: number, h: number) => {
         contentListHeight.current = h;
     }, []);
@@ -318,6 +300,17 @@ function ReportActionsView({
      * displaying.
      */
     const loadOlderChats = useCallback(() => {
+        Log.info(
+            `[ReportActionsView] loadOlderChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                oldestReportActionID: oldestReportAction?.reportActionID,
+                hasCreatedAction,
+                isTransactionThread: !isEmptyObject(transactionThreadReport),
+            })}`,
+        );
+
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (!!network.isOffline || isLoadingOlderReportActions || isLoadingInitialReportActions) {
             return;
@@ -343,17 +336,34 @@ function ReportActionsView({
     }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
     const loadNewerChats = useCallback(() => {
-        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
         // Determines if loading older reports is necessary when the content is smaller than the list
         // and there are fewer than 23 items, indicating we've reached the oldest message.
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
 
+        Log.info(
+            `[ReportActionsView] loadNewerChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                newestReportAction: newestReportAction.pendingAction,
+                firstReportActionID: newestReportAction?.reportActionID,
+                isLoadingOlderReportsFirstNeeded,
+                reportActionID,
+            })}`,
+        );
+
         if (
-            (reportActionID && indexOfLinkedAction > -1 && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded) ||
-            (!reportActionID && !hasNewestReportAction && !isLoadingOlderReportsFirstNeeded)
+            !reportActionID ||
+            !isFocused ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
         ) {
+            return;
+        }
+
+        if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
         }
     }, [
@@ -362,11 +372,11 @@ function ReportActionsView({
         checkIfContentSmallerThanList,
         reportActionID,
         indexOfLinkedAction,
-        hasNewestReportAction,
         handleReportActionPagination,
         network.isOffline,
         reportActions.length,
         newestReportAction,
+        isFocused,
     ]);
 
     /**
@@ -380,6 +390,7 @@ function ReportActionsView({
         didLayout.current = true;
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
+            Performance.markEnd(CONST.TIMING.OPEN_REPORT);
             Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
             Timing.end(CONST.TIMING.REPORT_INITIAL_RENDER);
             ReportActionsView.initMeasured = true;
@@ -390,11 +401,11 @@ function ReportActionsView({
     }, [hasCachedActionOnFirstRender]);
 
     useEffect(() => {
-        // Temporary solution for handling REPORTPREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
-        // This code should be removed once REPORTPREVIEW is no longer repositioned.
-        // We need to call openReport for gaps created by moving REPORTPREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
+        // Temporary solution for handling REPORT_PREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
+        // This code should be removed once REPORT_PREVIEW is no longer repositioned.
+        // We need to call openReport for gaps created by moving REPORT_PREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
         const shouldOpenReport =
-            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
+            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             !hasCreatedAction &&
             isReadyForCommentLinking &&
             reportActions.length < 24 &&
@@ -443,11 +454,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    // When we are offline before opening a money request report,
-    // the total of the report and sometimes the money request aren't displayed because these actions aren't returned until `OpenReport` API is complete.
+    // When we are offline before opening an IOU/Expense report,
+    // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
-    // to display at least one money request action to match the total data.
+    // and we also generate an expense action if the number of expenses in reportActions is less than the total number of expenses
+    // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
             return reportActions;
@@ -508,7 +519,6 @@ function ReportActionsView({
     }
     // AutoScroll is disabled when we do linking to a specific reportAction
     const shouldEnableAutoScroll = hasNewestReportAction && (!reportActionID || !isNavigatingToLinkedMessage);
-
     return (
         <>
             <ReportActionsList
@@ -516,6 +526,7 @@ function ReportActionsView({
                 transactionThreadReport={transactionThreadReport}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActionsToDisplay}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
@@ -528,6 +539,7 @@ function ReportActionsView({
                 onContentSizeChange={onContentSizeChange}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
+            <UserTypingEventListener report={report} />
             <PopoverReactionList ref={reactionListRef} />
         </>
     );

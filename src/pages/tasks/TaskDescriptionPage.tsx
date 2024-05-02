@@ -20,6 +20,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
+import variables from '@styles/variables';
 import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,8 +119,9 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                                 updateMultilineInputRange(inputRef.current);
                             }}
                             autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             shouldSubmitForm
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            isMarkdownEnabled
                         />
                     </View>
                 </FormProvider>

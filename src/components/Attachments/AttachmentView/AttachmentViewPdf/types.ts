@@ -1,4 +1,4 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'isUsedInCarousel' | 'isFocused' | 'onToggleKeyboard'> & {
@@ -9,7 +9,7 @@ type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'is
     style?: StyleProp<ViewStyle>;
 
     /** Styles for the error label */
-    errorLabelStyles?: StyleProp<ViewStyle>;
+    errorLabelStyles?: StyleProp<TextStyle>;
 
     /** Triggered when the PDF's onScaleChanged event is triggered */
     onScaleChanged?: (scale: number) => void;

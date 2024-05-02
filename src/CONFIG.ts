@@ -48,6 +48,7 @@ export default {
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
+        SECURE_EXPENSIFY_URL: secureExpensifyUrl,
         NEW_EXPENSIFY_URL: newExpensifyURL,
 
         // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (defined below)
@@ -72,7 +73,7 @@ export default {
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: get(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
-        SUFFIX: get(Config, 'PUSHER_DEV_SUFFIX', ''),
+        SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
     SITE_TITLE: 'New Expensify',

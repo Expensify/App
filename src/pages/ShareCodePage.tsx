@@ -7,8 +7,8 @@ import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
-import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
+import QRShare from '@components/QRShare';
+import type {QRShareHandle} from '@components/QRShare/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -16,7 +16,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
-import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as Url from '@libs/Url';
@@ -36,7 +35,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const qrCodeRef = useRef<QRShareWithDownloadHandle>(null);
+    const qrCodeRef = useRef<QRShareHandle>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isReport = !!report?.reportID;
@@ -48,7 +47,7 @@ function ShareCodePage({report}: ShareCodePageProps) {
             }
             if (ReportUtils.isMoneyRequestReport(report)) {
                 // generate subtitle from participants
-                return ReportUtils.getVisibleMemberIDs(report)
+                return ReportUtils.getVisibleChatMemberAccountIDs(report.reportID)
                     .map((accountID) => ReportUtils.getDisplayNameForParticipant(accountID))
                     .join(' & ');
             }
@@ -64,8 +63,6 @@ function ShareCodePage({report}: ShareCodePageProps) {
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
         : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? '')}`;
-    const platform = getPlatform();
-    const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
 
     return (
         <ScreenWrapper testID={ShareCodePage.displayName}>
@@ -76,7 +73,14 @@ function ShareCodePage({report}: ShareCodePageProps) {
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
                 <View style={[themeStyles.workspaceSectionMobile, themeStyles.ph5]}>
-                    <QRShareWithDownload
+                    {/* 
+                    Right now QR code download button is not shown anymore
+                    This is a temporary measure because right now it's broken because of the Fabric update.
+                    We need to wait for react-native v0.74 to be released so react-native-view-shot gets fixed.
+                    
+                    Please see https://github.com/Expensify/App/issues/40110 to see if it can be re-enabled.
+                */}
+                    <QRShare
                         ref={qrCodeRef}
                         url={url}
                         title={title}
@@ -97,16 +101,6 @@ function ShareCodePage({report}: ShareCodePageProps) {
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}
                     />
-
-                    {isNative && (
-                        <MenuItem
-                            isAnonymousAction
-                            title={translate('common.download')}
-                            icon={Expensicons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onPress={() => qrCodeRef.current?.download?.()}
-                        />
-                    )}
 
                     <MenuItem
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}

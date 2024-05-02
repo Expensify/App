@@ -81,6 +81,7 @@ function ReportActionItemImage({
             source: thumbnailSource,
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
+            isAuthTokenRequired: true,
         };
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
@@ -88,6 +89,8 @@ function ReportActionItemImage({
         propsObj = {
             isThumbnail,
             ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
+            shouldUseThumbnailImage: true,
+            isAuthTokenRequired: false,
             source: thumbnail ?? image ?? '',
         };
     }
@@ -95,10 +98,12 @@ function ReportActionItemImage({
     if (enablePreviewModal) {
         return (
             <ShowContextMenuContext.Consumer>
-                {({report}) => (
+                {({report, transactionThreadReport}) => (
                     <PressableWithoutFocus
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                        onPress={() => Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID ?? '', transaction?.transactionID ?? ''))}
+                        onPress={() =>
+                            Navigation.navigate(ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID ?? '', transaction?.transactionID ?? ''))
+                        }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         accessibilityRole={CONST.ROLE.BUTTON}
                     >

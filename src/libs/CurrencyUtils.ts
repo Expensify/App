@@ -90,7 +90,6 @@ function convertToBackendAmount(amountAsFloat: number): number {
 function convertToFrontendAmount(amountAsInt: number): number {
     return Math.trunc(amountAsInt) / 100.0;
 }
-
 /**
  * Given an amount in the "cents", convert it to a string for display in the UI.
  * The backend always handle things in "cents" (subunit equal to 1/100)

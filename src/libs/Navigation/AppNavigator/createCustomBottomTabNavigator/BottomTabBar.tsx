@@ -13,6 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Session from '@libs/actions/Session';
 import getTopmostBottomTabRoute from '@libs/Navigation/getTopmostBottomTabRoute';
+import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RootStackParamList, State} from '@libs/Navigation/types';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
@@ -43,16 +44,23 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
         const navigationState = navigation.getState() as State<RootStackParamList> | undefined;
         const routes = navigationState?.routes;
         const currentRoute = routes?.[navigationState?.index ?? 0];
+
         if (Boolean(currentRoute && currentRoute.name !== NAVIGATORS.BOTTOM_TAB_NAVIGATOR && currentRoute.name !== NAVIGATORS.CENTRAL_PANE_NAVIGATOR) || Session.isAnonymousUser()) {
             return;
         }
 
-        Welcome.show(routes, () => Navigation.navigate(ROUTES.ONBOARD));
+        Welcome.isOnboardingFlowCompleted({onNotCompleted: () => Navigation.navigate(ROUTES.ONBOARDING_ROOT)});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingApp]);
 
     // Parent navigator of the bottom tab bar is the root navigator.
     const currentTabName = useNavigationState<RootStackParamList, string | undefined>((state) => {
+        const topmostCentralPaneRoute = getTopmostCentralPaneRoute(state);
+
+        if (topmostCentralPaneRoute && topmostCentralPaneRoute.name === SCREENS.SEARCH.CENTRAL_PANE) {
+            return SCREENS.SEARCH.CENTRAL_PANE;
+        }
+
         const topmostBottomTabRoute = getTopmostBottomTabRoute(state);
         return topmostBottomTabRoute?.name ?? SCREENS.HOME;
     });
@@ -84,7 +92,6 @@ function BottomTabBar({isLoadingApp = false}: PurposeForUsingExpensifyModalProps
                     </View>
                 </PressableWithFeedback>
             </Tooltip>
-
             <BottomTabBarFloatingActionButton />
             <BottomTabAvatar isSelected={currentTabName === SCREENS.SETTINGS.ROOT} />
         </View>
