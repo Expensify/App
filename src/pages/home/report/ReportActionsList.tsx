@@ -249,8 +249,9 @@ function ReportActionsList({
         if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
+        const isFromNotification = (route?.params as {referrer?: string})?.referrer === 'notification';
         if (ReportUtils.isUnread(report)) {
-            if ((Visibility.isVisible() || (route?.params as { referrer?: string })?.referrer === 'notification') && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if ((Visibility.isVisible() || isFromNotification) && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
                 Navigation.setParams({referrer: undefined});
             } else {
