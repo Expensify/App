@@ -262,9 +262,7 @@ function OptionRow({
                                         formatAmountOnBlur
                                         touchableInputWrapperStyle={[styles.amountInputWithPrefix]}
                                         prefixContainerStyle={[styles.pv0]}
-                                        inputStyle={[
-                                            StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
-                                        ]}
+                                        inputStyle={[StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + 2) as TextStyle]}
                                         containerStyle={styles.iouAmountTextInputContainer}
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {...option.amountInputProps}
