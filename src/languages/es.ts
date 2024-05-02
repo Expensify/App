@@ -608,6 +608,7 @@ export default {
         trackManual: 'Crear gasto',
         trackScan: 'Crear gasto por recibo',
         trackDistance: 'Crear gasto por desplazamiento',
+        noLongerHaveReportAccess: 'Ya no tienes acceso a este informe. Escoge un nuevo destino para tu acción rápida.',
     },
     iou: {
         amount: 'Importe',
