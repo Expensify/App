@@ -2621,7 +2621,7 @@ function setWorkspaceInviteMessageDraft(policyID: string, message: string | null
 }
 
 function clearErrors(policyID: string) {
-    setWorkspaceErrors(policyID, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
     hideWorkspaceAlertMessage(policyID);
 }
 
