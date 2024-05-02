@@ -123,6 +123,11 @@ platforms:
         title: Expensify Card
         icon: /assets/images/hand-card.svg
         description: Explore the perks and benefits of the Expensify Card.
+      
+      - href: connections
+        title: Connections
+        icon: /assets/images/workflow.svg
+        description: Connect to accounting software to streamline expense approvals.
 
       - href: settings
         title: Settings
