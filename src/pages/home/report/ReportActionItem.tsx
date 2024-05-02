@@ -64,6 +64,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {OriginalMessageActionableMentionWhisper, OriginalMessageActionableTrackedExpenseWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -106,6 +107,9 @@ type ReportActionItemOnyxProps = {
 
     /** Transaction associated with this report, if any */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** The transaction (linked with the report action) route error */
+    linkedTransactionRouteError: Errors;
 };
 
 type ReportActionItemProps = {
@@ -184,6 +188,7 @@ function ReportActionItem({
     onPress = undefined,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
+    linkedTransactionRouteError,
 }: ReportActionItemProps) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -961,7 +966,7 @@ function ReportActionItem({
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!ReportActionsUtils.isThreadParentMessage(action, report.reportID)}
-                                errors={ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
+                                errors={linkedTransactionRouteError ?? ErrorUtils.getLatestErrorMessageField(action as ErrorUtils.OnyxDataWithErrors)}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
@@ -1033,6 +1038,10 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
         },
     },
+    linkedTransactionRouteError: {
+        key: ({action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${(action as OnyxTypes.OriginalMessageIOU)?.originalMessage?.IOUTransactionID ?? 0}`,
+        selector: (transaction) => transaction?.errorFields?.route ?? null,
+    },
 })(
     memo(ReportActionItem, (prevProps, nextProps) => {
         const prevParentReportAction = prevProps.parentReportAction;
@@ -1067,6 +1076,7 @@ export default withOnyx<ReportActionItemProps, ReportActionItemOnyxProps>({
             lodashIsEqual(prevProps.transactionThreadReport, nextProps.transactionThreadReport) &&
             lodashIsEqual(prevProps.reportActions, nextProps.reportActions) &&
             lodashIsEqual(prevProps.transaction, nextProps.transaction) &&
+            lodashIsEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
             lodashIsEqual(prevParentReportAction, nextParentReportAction)
         );
     }),
