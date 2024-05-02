@@ -13,12 +13,13 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyConnections from '@hooks/usePolicyWithConnections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -36,6 +37,8 @@ type Item = {
     disabled?: boolean;
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
+    errors?: Errors;
+    onCloseError?: () => void;
 };
 
 type SectionObject = {
@@ -123,6 +126,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
             disabled: hasAccountingConnection,
+            errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
         },
     ];
 
@@ -161,6 +166,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
                     disabled={item.disabled}
+                    errors={item.errors}
+                    onCloseError={item.onCloseError}
                 />
             </View>
         ),
