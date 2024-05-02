@@ -89,8 +89,8 @@ function FeatureList({
                             <MenuItem
                                 title={translate(translationKey)}
                                 icon={icon}
-                                iconWidth={variables.avatarSizeMedium}
-                                iconHeight={variables.avatarSizeMedium}
+                                iconWidth={variables.menuIconSizeMedium}
+                                iconHeight={variables.menuIconSizeMedium}
                                 interactive={false}
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
