@@ -77,7 +77,7 @@ type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & Workspace
 type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
 
 function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
-    if (!policyID || pendingAction == CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+    if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         PolicyUtils.goBackFromInvalidPolicy();
         Policy.removeWorkspace(policyID);
     } else {
