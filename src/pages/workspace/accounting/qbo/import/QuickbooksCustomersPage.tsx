@@ -39,7 +39,7 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
                     <Text style={styles.pb5}>{translate('workspace.qbo.customersDescription')}</Text>
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
-                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.import')}</Text>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
                         </View>
                         <OfflineWithFeedback pendingAction={pendingFields?.syncCustomers}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
