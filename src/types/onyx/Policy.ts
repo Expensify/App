@@ -266,8 +266,8 @@ type Connection<ConnectionData, ConnectionConfig> = {
 };
 
 type Connections = {
-    quickbooksOnline?: Connection<QBOConnectionData, QBOConnectionConfig>;
-    xero?: Connection<QBOConnectionData, QBOConnectionConfig>;
+    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
 
 type ConnectionName = keyof Connections;

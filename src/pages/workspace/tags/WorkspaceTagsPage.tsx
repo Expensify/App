@@ -64,11 +64,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchTags();
-        }, [fetchTags]),
-    );
+    useFocusEffect(fetchTags);
 
     useEffect(() => {
         if (isFocused) {
@@ -96,24 +92,20 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
             }));
         }
         return policyTagLists
-            .map((policyTagList) =>
-                lodashSortBy(Object.values(policyTagList.tags || []), 'name', localeCompare).map((value) => {
-                    const tag = value as OnyxCommon.OnyxValueWithOfflineFeedback<OnyxTypes.PolicyTag>;
-                    const isDisabled = tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                    return {
-                        value: tag.name,
-                        text: PolicyUtils.getCleanedTagName(tag.name),
-                        keyForList: tag.name,
-                        isSelected: selectedTags[tag.name],
-                        pendingAction: tag.pendingAction,
-                        errors: tag.errors ?? undefined,
-                        enabled: tag.enabled,
-                        isDisabled,
-                        rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                    };
-                }),
-            )
-            .flat();
+            .map((policyTagList) => Object.values(policyTagList.tags))
+            .flat()
+            .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
+            .map((tag) => ({
+                value: tag.name,
+                text: PolicyUtils.getCleanedTagName(tag.name),
+                keyForList: tag.name,
+                isSelected: selectedTags[tag.name],
+                pendingAction: tag.pendingAction,
+                errors: tag.errors ?? undefined,
+                enabled: tag.enabled,
+                isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
+            }));
     }, [doesPolicyContainOnlyOneTagList, policyTagLists, selectedTags, translate]);
 
     const tagListKeyedByName = tagList.reduce<Record<string, TagListItem>>((acc, tag) => {

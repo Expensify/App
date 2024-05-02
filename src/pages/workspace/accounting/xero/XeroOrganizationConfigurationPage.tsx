@@ -35,7 +35,7 @@ function XeroOrganizationConfigurationPage({
     const policyID = policy?.id ?? '';
 
     const sections =
-        policy?.connections?.xero.data.tenants.map((tenant) => ({
+        policy?.connections?.xero?.data?.tenants.map((tenant) => ({
             text: tenant.name,
             keyForList: tenant.id,
             isSelected: tenant.id === organizationID,
