@@ -133,7 +133,11 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 }
 
                 if (waypoints.length === 1) {
-                    toggleCenterButton(true);
+                    if (utils.areSameCoordinate([currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0], [...waypoints[0].coordinate])) {
+                        toggleCenterButton(false);
+                    } else {
+                        toggleCenterButton(true);
+                    }
                     cameraRef.current?.setCamera({
                         zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
                         animationDuration: 1500,
