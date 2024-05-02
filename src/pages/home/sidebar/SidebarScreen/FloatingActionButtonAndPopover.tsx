@@ -197,7 +197,8 @@ function FloatingActionButtonAndPopover(
     }, [quickAction, translate]);
 
     const navigateToQuickAction = () => {
-        const quickActionReportID = isEmptyObject(quickActionReport) || isArchivedRoom(quickActionReport) ? ReportUtils.generateReportID() : quickActionReportID?.reportID ?? '';
+        const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedRoom(quickActionReport));
+        const quickActionReportID = isValidReport ? quickActionReportID?.reportID ?? '' : ReportUtils.generateReportID();
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
@@ -221,7 +222,7 @@ function FloatingActionButtonAndPopover(
                 IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(quickActionReportID, quickActionReport, quickAction.targetAccountID ?? 0, true);
+                Task.clearOutTaskInfoAndNavigate(isValidReport ? quickActionReportID : '', isValidReport ? quickActionReport : undefined, quickAction.targetAccountID ?? 0, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);

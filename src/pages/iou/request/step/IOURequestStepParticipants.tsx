@@ -19,7 +19,6 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import {withOnyx} from "react-native-onyx";
 import ONYXKEYS from "@src/ONYXKEYS";
-import Text from "@components/Text";
 import useThemeStyles from "@hooks/useThemeStyles";
 import FormHelpMessage from "@components/FormHelpMessage";
 import {isEmptyObject} from "@src/types/utils/EmptyObject";

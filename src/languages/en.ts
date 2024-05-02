@@ -36,7 +36,6 @@ import type {
     ManagerApprovedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
-    NoLongerHaveReportAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
     OOOEventSummaryFullDayParams,
@@ -616,7 +615,7 @@ export default {
         trackManual: 'Track expense',
         trackScan: 'Track receipt',
         trackDistance: 'Track distance',
-        noLongerHaveReportAccess: ({reportName}: NoLongerHaveReportAccessParams) => `If you no longer have access to ${reportName}. Pick a new destination for your quick action`,
+        noLongerHaveReportAccess: 'You no longer have access to this report. Pick a new destination for your quick action.',
     },
     iou: {
         amount: 'Amount',
