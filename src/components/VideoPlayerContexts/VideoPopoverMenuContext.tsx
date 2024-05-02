@@ -30,12 +30,16 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     );
 
     const downloadAttachment = useCallback(() => {
-        if (currentlyPlayingURL === null) {
+        if (videoPopoverMenuPlayerRef.current === null) {
             return;
         }
-        const sourceURI = addEncryptedAuthTokenToURL(currentlyPlayingURL);
+        const {source} = videoPopoverMenuPlayerRef.current?.props ?? {};
+        if (typeof source === 'number' || !source) {
+            return;
+        }
+        const sourceURI = addEncryptedAuthTokenToURL(source.uri);
         fileDownload(sourceURI);
-    }, [currentlyPlayingURL]);
+    }, [videoPopoverMenuPlayerRef]);
 
     const menuItems = useMemo(() => {
         const items: PopoverMenuItem[] = [];
