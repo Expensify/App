@@ -2941,6 +2941,15 @@ export default {
         mute: 'Mute',
         unmute: 'Unmute',
     },
+    travel: {
+        flight: 'Flight',
+        hotel: 'Hotel',
+        car: 'Car',
+        misc: 'Miscellaneous',
+        rail: 'Rail',
+        viewTrip: 'View trip',
+        trip: 'Trip',
+    },
     exitSurvey: {
         header: 'Before you go',
         reasonPage: {

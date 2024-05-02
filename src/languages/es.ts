@@ -3443,6 +3443,15 @@ export default {
         mute: 'Silenciar',
         unmute: 'Activar sonido',
     },
+    travel: {
+        flight: 'Vuelo',
+        hotel: 'Hotel',
+        car: 'Auto',
+        misc: 'Misceláneo',
+        rail: 'Carril',
+        viewTrip: 'Ver viaje',
+        trip: 'Viaje',
+    },
     exitSurvey: {
         header: 'Antes de irte',
         reasonPage: {
