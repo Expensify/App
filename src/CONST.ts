@@ -1271,6 +1271,7 @@ const CONST = {
         SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
+        INVOICE_COLLECTION_ACCOUNT_ID: 'invoiceCollectionsAccountID',
     },
 
     QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE: {

@@ -1,20 +1,18 @@
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -94,7 +92,9 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            onPress={() => {}}
+                            onPress={() => {
+                                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR.getRoute(policyID));
+                            }}
                         />
                     </OfflineWithFeedback>
                 </>

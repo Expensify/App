@@ -2012,6 +2012,7 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+                invoiceAccountSelectDescription: "As you've enabled exporting Invoices from Expensify to Xero, this is the account the Invoice will appear against once marked as Paid.",
             },
         },
         type: {
