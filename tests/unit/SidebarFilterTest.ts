@@ -1,4 +1,4 @@
-import {cleanup, screen} from '@testing-library/react-native';
+import {screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import * as Localize from '@libs/Localize';
@@ -45,11 +45,8 @@ xdescribe('Sidebar', () => {
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
-    // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        cleanup();
-        return Onyx.clear();
-    });
+    // clear out Onyx after each test so that each test starts with a clean slate
+    afterEach(() => Onyx.clear());
 
     describe('in default (most recent) mode', () => {
         it('excludes a report with no participants', () => {
@@ -365,7 +362,7 @@ xdescribe('Sidebar', () => {
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                     expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                     expect(displayNames).toHaveLength(1);
-                                    expect(displayNames[0].props.children[0]).toBe('Three, Four');
+                                    expect(screen.getByText('One, Two')).toBeOnTheScreen();
                                 } else {
                                     // Both reports visible
                                     const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
@@ -410,8 +407,9 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(displayNames[0].props.children[0]).toBe('One, Two');
-                        expect(displayNames[1].props.children[0]).toBe('Three, Four');
+
+                        expect(screen.getByText('One, Two')).toBeOnTheScreen();
+                        expect(screen.getByText('Three, Four')).toBeOnTheScreen();
                     })
 
                     // When report3 becomes unread
@@ -484,8 +482,9 @@ xdescribe('Sidebar', () => {
                         const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                         const displayNames = screen.queryAllByLabelText(hintText);
                         expect(displayNames).toHaveLength(2);
-                        expect(displayNames[0].props.children[0]).toBe('Three, Four');
-                        expect(displayNames[1].props.children[0]).toBe('One, Two');
+
+                        expect(screen.getByText('One, Two')).toBeOnTheScreen();
+                        expect(screen.getByText('Three, Four')).toBeOnTheScreen();
                     })
             );
         });
@@ -711,7 +710,7 @@ xdescribe('Sidebar', () => {
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                                 expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                 expect(displayNames).toHaveLength(1);
-                                expect(displayNames[0].props.children[0]).toBe('Three, Four');
+                                expect(screen.getByText('One, Two')).toBeOnTheScreen();
                             } else {
                                 // Both reports visible
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
