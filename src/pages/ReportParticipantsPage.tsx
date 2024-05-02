@@ -87,20 +87,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 roleBadge = <Badge text={translate('common.admin')} />;
             }
 
-            const participantsPendingFields = report.participants?.[accountID]?.pendingFields;
-            let pendingAction;
-
-            if (pendingChatMember?.pendingAction) {
-                pendingAction = pendingChatMember.pendingAction;
-            } else if (participantsPendingFields) {
-                // We can have multiple Pending Fields in participant
-                for (const key in participantsPendingFields) {
-                    if (key in participantsPendingFields) {
-                        pendingAction = participantsPendingFields[key];
-                        break;
-                    }
-                }
-            }
+            const pendingAction = pendingChatMember?.pendingAction ?? report.participants?.[accountID]?.pendingAction;
 
             result.push({
                 keyForList: `${accountID}`,
