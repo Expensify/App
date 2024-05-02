@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {SectionListData} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
