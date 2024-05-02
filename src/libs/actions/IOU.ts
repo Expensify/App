@@ -3089,6 +3089,7 @@ function categorizeTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
+    expenseReportID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3116,6 +3117,7 @@ function categorizeTrackedExpense(
         transactionID,
         moneyRequestPreviewReportActionID,
         moneyRequestReportID,
+        policyExpenseChatReportID: expenseReportID,
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
@@ -3159,6 +3161,7 @@ function shareTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
+    expenseReportID?: string,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3190,6 +3193,7 @@ function shareTrackedExpense(
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
         reportPreviewReportActionID,
+        policyExpenseChatReportID: expenseReportID,
         amount,
         currency,
         comment,
@@ -3490,6 +3494,7 @@ function trackExpense(
                 taxAmount,
                 billable,
                 receipt,
+                chatReport.isPolicyExpenseChat ? chatReport.reportID : undefined,
             );
             break;
         }
@@ -3520,6 +3525,7 @@ function trackExpense(
                 taxAmount,
                 billable,
                 receipt,
+                chatReport.isPolicyExpenseChat ? chatReport.reportID : undefined,
             );
             break;
         }
