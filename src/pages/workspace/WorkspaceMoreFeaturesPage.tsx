@@ -37,6 +37,7 @@ type Item = {
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
     errors?: Errors;
+    onCloseError?: () => void;
 };
 
 type SectionObject = {
@@ -123,6 +124,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
             errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
         },
     ];
 
@@ -162,7 +164,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     onToggle={item.action}
                     disabled={item.disabled}
                     errors={item.errors}
-                    onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
+                    onCloseError={item.onCloseError}
                 />
             </View>
         ),
