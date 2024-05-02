@@ -12,6 +12,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as PolicyUtils from './PolicyUtils';
 import * as ReportUtils from './ReportUtils';
 
 let currentUserAccountID = -1;
@@ -81,12 +82,13 @@ function buildNextStep(
 
     const {policyID = '', ownerAccountID = -1, managerID = -1} = report;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {submitsTo, harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
+    const {harvesting, preventSelfApproval, autoReportingFrequency, autoReportingOffset} = policy;
+    const submitToAccountID = PolicyUtils.getSubmitToAccountID(policy, ownerAccountID);
     const isOwner = currentUserAccountID === ownerAccountID;
     const isManager = currentUserAccountID === managerID;
-    const isSelfApproval = currentUserAccountID === submitsTo;
+    const isSelfApproval = currentUserAccountID === submitToAccountID;
     const ownerLogin = PersonalDetailsUtils.getLoginsByAccountIDs([ownerAccountID])[0] ?? '';
-    const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitsTo) ?? '';
+    const managerDisplayName = isSelfApproval ? 'you' : ReportUtils.getDisplayNameForParticipant(submitToAccountID) ?? '';
     const type: ReportNextStep['type'] = 'neutral';
     let optimisticNextStep: ReportNextStep | null;
 
@@ -230,7 +232,7 @@ function buildNextStep(
             };
 
             // Self review & another reviewer
-            if (isOwner) {
+            if (!isSelfApproval || (isSelfApproval && isOwner)) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',

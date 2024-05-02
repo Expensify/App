@@ -21,6 +21,9 @@ type VideoPlayerPreviewProps = {
     /** Url to a video. */
     videoUrl: string;
 
+    /** reportID of the video */
+    reportID: string;
+
     /** Dimension of a video. */
     videoDimensions: VideoDimensions;
 
@@ -37,10 +40,10 @@ type VideoPlayerPreviewProps = {
     onShowModalPress: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 };
 
-function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, videoDuration, onShowModalPress}: VideoPlayerPreviewProps) {
+function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentlyPlayingURL, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
     const {isSmallScreenWidth} = useWindowDimensions();
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
@@ -60,11 +63,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
     };
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL) {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, updateCurrentlyPlayingURL, videoUrl]);
+    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
@@ -75,13 +78,14 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                     accessibilityLabel={fileName}
                 />
             ) : (
-                <>
+                <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
                         onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
+                        videoPlayerStyle={styles.videoPlayerPreview}
                     />
                     <View style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
@@ -92,7 +96,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, fileName, videoDimensions, 
                             small
                         />
                     </View>
-                </>
+                </View>
             )}
         </View>
     );

@@ -35,7 +35,7 @@ if (!appInstanceId) {
 // import your test here, define its name and config first in e2e/config.js
 const tests: Tests = {
     [E2EConfig.TEST_NAMES.AppStartTime]: require('./tests/appStartTimeTest.e2e').default,
-    [E2EConfig.TEST_NAMES.OpenSearchPage]: require('./tests/openSearchPageTest.e2e').default,
+    [E2EConfig.TEST_NAMES.OpenChatFinderPage]: require('./tests/openChatFinderPageTest.e2e').default,
     [E2EConfig.TEST_NAMES.ChatOpening]: require('./tests/chatOpeningTest.e2e').default,
     [E2EConfig.TEST_NAMES.ReportTyping]: require('./tests/reportTypingTest.e2e').default,
     [E2EConfig.TEST_NAMES.Linking]: require('./tests/linkingTest.e2e').default,
@@ -66,6 +66,7 @@ E2EClient.getTestConfig()
             console.error(`[E2E] Test '${config.name}' not found`);
             // instead of throwing, report the error to the server, which is better for DX
             return E2EClient.submitTestResults({
+                branch: Config.E2E_BRANCH,
                 name: config.name,
                 error: `Test '${config.name}' not found`,
                 isCritical: false, 

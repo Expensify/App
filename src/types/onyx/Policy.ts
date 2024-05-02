@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -29,6 +30,14 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
+
+type CompanyAddress = {
+    addressStreet: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: Country | '';
+};
 
 type DisabledFields = {
     defaultBillable?: boolean;
@@ -159,6 +168,8 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     reimbursableExpensesExportDestination: IntegrationEntityMap;
     nonReimbursableExpensesExportDestination: IntegrationEntityMap;
 
+    collectionAccountID?: string;
+    reimbursementAccountID?: string;
     reimbursableExpensesAccount?: string;
     nonReimbursableExpensesAccount?: string;
     autoCreateVendor: boolean;
@@ -167,17 +178,87 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
     syncAccounts: IntegrationEntityMap;
-    syncTaxes: IntegrationEntityMap;
-    exportDate: string;
     lastConfigurationTime: number;
+    exportCompanyCardAccount?: string;
     syncTax: boolean;
     enableNewCategories: IntegrationEntityMap;
     errors?: OnyxCommon.Errors;
+    exporter: string;
+    exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
+    outOfPocketExpenses: string;
+    exportInvoice: string;
+    exportAccount: string;
+    exportAccountPayable: string;
+    accountPayable: string;
+    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE>;
+    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>;
     errorFields?: OnyxCommon.ErrorFields;
-    export: {
-        exporter: string;
-    };
 }>;
+
+type BillStatusValues = 'DRAFT' | 'AWT_APPROVAL' | 'AWT_PAYMENT';
+
+type ExpenseTypesValues = 'BILL' | 'BANK_TRANSACTION' | 'SALES_INVOICE' | 'NOTHING';
+
+type BillDateValues = 'REPORT_SUBMITTED' | 'REPORT_EXPORTED' | 'LAST_EXPENSE';
+
+type Tenant = {
+    id: string;
+    name: string;
+    value: string;
+};
+
+type XeroConnectionData = {
+    bankAccounts: unknown[];
+    countryCode: string;
+    organisationID: string;
+    revenueAccounts: Array<{
+        id: string;
+        name: string;
+    }>;
+    tenants: Tenant[];
+    trackingCategories: unknown[];
+};
+
+/**
+ * User configuration for the Xero accounting integration.
+ */
+type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    autoSync: {
+        enabled: boolean;
+        jobID: string;
+    };
+    enableNewCategories: boolean;
+    export: {
+        billDate: BillDateValues;
+        billStatus: {
+            purchase: BillStatusValues;
+            sales: BillStatusValues;
+        };
+        billable: ExpenseTypesValues;
+        exporter: string;
+        nonReimbursable: ExpenseTypesValues;
+        nonReimbursableAccount: string;
+        reimbursable: ExpenseTypesValues;
+    };
+    importCustomers: boolean;
+    importTaxRates: boolean;
+    importTrackingCategories: boolean;
+    isConfigured: boolean;
+    mappings: {
+        customer: string;
+    };
+    sync: {
+        hasChosenAutoSyncOption: boolean;
+        hasChosenSyncReimbursedReportsOption: boolean;
+        invoiceCollectionsAccountID: string;
+        reimbursementAccountID: string;
+        syncReimbursedReports: boolean;
+    };
+    tenantID: string;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -186,6 +267,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
 
 type ConnectionName = keyof Connections;
@@ -290,8 +372,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The output currency for the policy */
         outputCurrency: string;
 
+        /** The address of the company */
+        address?: CompanyAddress;
+
         /** The URL for the policy avatar */
-        avatar?: string;
         avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
@@ -333,7 +417,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         submitsTo?: number;
 
         /** The employee list of the policy */
-        employeeList?: OnyxTypes.PolicyMembers | [];
+        employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** The reimbursement choice for policy */
         reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
@@ -446,7 +530,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 type PolicyConnectionSyncStage = ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME>;
 type PolicyConnectionName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
 type PolicyConnectionSyncProgress = {
-    status: ValueOf<typeof CONST.POLICY.CONNECTIONS.SYNC_STATUS>;
     stageInProgress: PolicyConnectionSyncStage;
     connectionName: PolicyConnectionName;
 };
@@ -463,11 +546,15 @@ export type {
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
+    CompanyAddress,
     IntegrationEntityMap,
     PolicyFeatureName,
     PendingJoinRequestPolicy,
+    PolicyConnectionName,
     PolicyConnectionSyncStage,
     PolicyConnectionSyncProgress,
     Connections,
     ConnectionName,
+    Tenant,
+    Account,
 };
