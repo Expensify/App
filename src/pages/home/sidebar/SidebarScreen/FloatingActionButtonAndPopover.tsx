@@ -178,6 +178,7 @@ function FloatingActionButtonAndPopover(
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
+    const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
@@ -401,6 +402,15 @@ function FloatingActionButtonAndPopover(
                         text: translate('newTaskPage.assignTask'),
                         onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                     },
+                    ...(canUseSpotnanaTravel
+                        ? [
+                              {
+                                  icon: Expensicons.Suitcase,
+                                  text: translate('travel.bookTravel'),
+                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                              },
+                          ]
+                        : []),
                     ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
                         ? [
                               {

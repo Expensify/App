@@ -707,6 +707,12 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.PROCESS_MONEY_REQUEST_HOLD]: NavigatorScreenParams<ProcessMoneyRequestHoldNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REFERRAL]: NavigatorScreenParams<ReferralDetailsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PRIVATE_NOTES]: NavigatorScreenParams<PrivateNotesNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
+};
+
+type TravelNavigatorParamList = {
+    [SCREENS.TRAVEL.MY_TRIPS]: undefined;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
 };
 
@@ -931,6 +937,7 @@ export type {
     State,
     StateOrRoute,
     SwitchPolicyIDParams,
+    TravelNavigatorParamList,
     TaskDetailsNavigatorParamList,
     TeachersUniteNavigatorParamList,
     WalletStatementNavigatorParamList,
