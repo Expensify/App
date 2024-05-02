@@ -3658,21 +3658,6 @@ function resolveActionableReportMentionWhisper(
                 [reportAction.reportActionID]: {
                     originalMessage: {
                         resolution,
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
-            value: {
-                [reportAction.reportActionID]: {
-                    originalMessage: {
-                        pendingAction: null,
                     },
                 },
             },
@@ -3687,7 +3672,6 @@ function resolveActionableReportMentionWhisper(
                 [reportAction.reportActionID]: {
                     originalMessage: {
                         resolution: null,
-                        pendingAction: null,
                     },
                 },
             },
@@ -3699,7 +3683,7 @@ function resolveActionableReportMentionWhisper(
         resolution,
     };
 
-    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
