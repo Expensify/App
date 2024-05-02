@@ -268,6 +268,22 @@ function ReportScreen({
         return ReportActionsUtils.getContinuousReportActionChain(sortedAllReportActions, reportActionIDFromRoute);
     }, [reportActionIDFromRoute, sortedAllReportActions]);
 
+    if (reportActions.length !== sortedAllReportActions.length && !reportActionIDFromRoute) {
+        Log.client(
+            `[ReportScreen] Debug reportActions - ${JSON.stringify({
+                sortedAllReportActions: reportActions.map((a) => ({
+                    reportActionID: a.reportActionID,
+                    actionName: a.actionName,
+                    pendingAction: a.pendingAction,
+                    isOptimisticAction: a.isOptimisticAction,
+                    whisperedToAccountIDsLength: a.whisperedToAccountIDs?.length,
+                    previousReportActionID: a.previousReportActionID,
+                })),
+                reportActions: reportActions.map((a) => a.reportActionID),
+            })}`,
+        );
+    }
+
     // Define here because reportActions are recalculated before mount, allowing data to display faster than useEffect can trigger.
     // If we have cached reportActions, they will be shown immediately.
     // We aim to display a loader first, then fetch relevant reportActions, and finally show them.
