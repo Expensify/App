@@ -48,6 +48,14 @@ Onyx.connect({
     },
 });
 
+let currentUserAccountID: number | undefined;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserAccountID = value?.accountID;
+    },
+});
+
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
     if (a < b) {
         return -1;
@@ -237,12 +245,10 @@ function getOptionData({
         isDeletedParentAction: false,
     };
 
-    let participantAccountIDs = Object.keys(report.participants ?? {}).map(Number);
-
-    // Currently, currentUser is not included in participantAccountIDs, so for selfDM we need to add the currentUser(report owner) as participants.
-    if (ReportUtils.isSelfDM(report)) {
-        participantAccountIDs = [report.ownerAccountID ?? 0];
-    }
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+    const participantAccountIDs = Object.keys(report.participants ?? {})
+        .map(Number)
+        .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
@@ -281,6 +287,7 @@ function getOptionData({
     result.chatType = report.chatType;
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
+    result.isOneOnOneChat = isOneOnOneChat;
 
     const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
         .filter(([, participant]) => participant && !participant.hidden)

@@ -440,6 +440,7 @@ type OptionData = {
     isDisabled?: boolean | null;
     name?: string | null;
     isSelfDM?: boolean;
+    isOneOnOneChat?: boolean;
     reportID?: string;
     enabled?: boolean;
     data?: Partial<TaxRate>;
@@ -1022,7 +1023,9 @@ function isSystemChat(report: OnyxEntry<Report>): boolean {
  * Only returns true if this is our main 1:1 DM report with Concierge
  */
 function isConciergeChatReport(report: OnyxEntry<Report>): boolean {
-    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
+    const participantAccountIDs = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserAccountID);
     return participantAccountIDs.length === 1 && participantAccountIDs[0] === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
@@ -1278,17 +1281,6 @@ function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): bool
 }
 
 /**
- * Returns true if report has a single participant.
- */
-function hasSingleOtherParticipant(report: OnyxEntry<Report>): boolean {
-    return (
-        Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== currentUserAccountID).length === 1
-    );
-}
-
-/**
  * Checks whether all the transactions linked to the IOU report are of the Distance Request type with pending routes
  */
 function hasOnlyTransactionsWithPendingRoutes(iouReportID: string | undefined): boolean {
@@ -1400,7 +1392,9 @@ function isOneTransactionThread(reportID: string, parentReportID: string): boole
  *
  */
 function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
-    const participantAccountIDs = Object.keys(report?.participants ?? {});
+    const participantAccountIDs = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserAccountID);
     return (
         !isChatRoom(report) &&
         !isExpenseRequest(report) &&
@@ -1582,7 +1576,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
     // get parent report and use its participants array.
     if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        if (hasSingleOtherParticipant(parentReport)) {
+        if (isOneOnOneChat(parentReport)) {
             finalReport = parentReport;
         }
     }
@@ -2046,6 +2040,13 @@ function getIcons(
         }
 
         return icons;
+    }
+
+    if (isOneOnOneChat(report)) {
+        const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID);
+        return getIconsForParticipants(otherParticipantsAccountIDs, personalDetails);
     }
 
     const participantAccountIDs = Object.keys(report.participants ?? {}).map(Number);
@@ -3183,8 +3184,8 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         .map(Number)
         .filter((accountID) => accountID !== currentUserAccountID)
         .slice(0, 5);
-    const hasMultipleOtherParticipants = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, hasMultipleOtherParticipants)).join(', ');
+    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
+    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
 }
 
 /**
@@ -3265,16 +3266,19 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>): ParentNavigatio
  * Navigate to the details page of a given report
  */
 function navigateToDetailsPage(report: OnyxEntry<Report>) {
-    if (isSelfDM(report)) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(currentUserAccountID ?? 0));
+    const isSelfDMReport = isSelfDM(report);
+    const isOneOnOneChatReport = isOneOnOneChat(report);
+
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const participantAccountID = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => !isOneOnOneChatReport || accountID !== currentUserAccountID);
+
+    if (isSelfDMReport || isOneOnOneChatReport) {
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
         return;
     }
 
-    if (isOneOnOneChat(report)) {
-        const participantAccountID = Object.keys(report?.participants ?? {})[0];
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID));
-        return;
-    }
     if (report?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID));
     }
@@ -3284,11 +3288,18 @@ function navigateToDetailsPage(report: OnyxEntry<Report>) {
  * Go back to the details page of a given report
  */
 function goBackToDetailsPage(report: OnyxEntry<Report>) {
-    if (isOneOnOneChat(report)) {
-        const participantAccountID = Object.keys(report?.participants ?? {})[0];
-        Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountID));
+    const isOneOnOneChatReport = isOneOnOneChat(report);
+
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const participantAccountID = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => !isOneOnOneChatReport || accountID !== currentUserAccountID);
+
+    if (isOneOnOneChatReport) {
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID[0]));
         return;
     }
+
     Navigation.goBack(ROUTES.REPORT_SETTINGS.getRoute(report?.reportID ?? ''));
 }
 
@@ -5444,7 +5455,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     const otherParticipants = reportParticipants.filter((accountID) => currentUserPersonalDetails?.accountID !== accountID);
-    const hasSingleOtherParticipantInReport = otherParticipants.length === 1;
+    const hasSingleParticipantInReport = otherParticipants.length === 1;
     let options: IOUType[] = [];
 
     if (isSelfDM(report)) {
@@ -5477,7 +5488,7 @@ function getMoneyRequestOptions(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     }
 
     // Pay someone option should be visible only in 1:1 DMs
-    if (isDM(report) && hasSingleOtherParticipantInReport) {
+    if (isDM(report) && hasSingleParticipantInReport) {
         options = [...options, CONST.IOU.TYPE.PAY];
         if (!filterDeprecatedTypes) {
             options = [...options, CONST.IOU.TYPE.SEND];
@@ -5978,11 +5989,6 @@ function isValidReport(report?: OnyxEntry<Report>): boolean {
 function isReportParticipant(accountID: number, report: OnyxEntry<Report>): boolean {
     if (!accountID) {
         return false;
-    }
-
-    // If we have a DM AND the accountID we are checking is the current user THEN we won't find them as a participant and must assume they are a participant
-    if (isDM(report) && accountID === currentUserAccountID) {
-        return true;
     }
 
     const possibleAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
@@ -6634,7 +6640,6 @@ export {
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
     hasReportNameError,
-    hasSingleOtherParticipant,
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,

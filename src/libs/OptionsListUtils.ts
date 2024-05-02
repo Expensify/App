@@ -694,6 +694,7 @@ function createOption(
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
+        result.isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
             .filter(([, participant]) => participant && !participant.hidden)
@@ -1467,19 +1468,12 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 return;
             }
 
-            const isSelfDM = ReportUtils.isSelfDM(report);
-            let accountIDs = [];
+            const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
-            if (isSelfDM) {
-                // For selfDM we need to add the currentUser as participants.
-                accountIDs = [currentUserAccountID ?? 0];
-            } else {
-                accountIDs = Object.keys(report.participants ?? {}).map(Number);
-                if (ReportUtils.isOneOnOneChat(report)) {
-                    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-                    accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
-                }
-            }
+            // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+            const accountIDs = Object.keys(report.participants ?? {})
+                .map(Number)
+                .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
 
             if (!accountIDs || accountIDs.length === 0) {
                 return;
@@ -1511,8 +1505,11 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 }
 
 function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
-    const isSelfDM = ReportUtils.isSelfDM(report);
-    const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number);
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const accountIDs = Object.keys(report.participants ?? {})
+        .map(Number)
+        .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
 
     return {
         item: report,
@@ -1699,18 +1696,12 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        let accountIDs = [];
+        const isOneOnOneChat = option.isOneOnOneChat;
 
-        if (isSelfDM) {
-            // For selfDM we need to add the currentUser as participants.
-            accountIDs = [currentUserAccountID ?? 0];
-        } else {
-            accountIDs = Object.keys(report.participants ?? {}).map(Number);
-            if (ReportUtils.isOneOnOneChat(report)) {
-                // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
-                accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
-            }
-        }
+        // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+        const accountIDs = Object.keys(report.participants ?? {})
+            .map(Number)
+            .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;

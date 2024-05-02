@@ -41,18 +41,16 @@ function ReportWelcomeText({report, policy, personalDetails}: ReportWelcomeTextP
     const isChatRoom = ReportUtils.isChatRoom(report);
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isInvoiceRoom = ReportUtils.isInvoiceRoom(report);
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isInvoiceRoom);
-    const otherParticipantsAccountIDs = Object.keys(report?.participants ?? {})
+    const participantAccountIDs = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== session?.accountID);
-    const hasMultipleOtherParticipants = otherParticipantsAccountIDs.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(otherParticipantsAccountIDs, personalDetails),
-        hasMultipleOtherParticipants,
-    );
+        .filter((accountID) => !isOneOnOneChat || accountID !== session?.accountID);
+    const isMultipleParticipant = participantAccountIDs.length > 1;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const isUserPolicyAdmin = PolicyUtils.isPolicyAdmin(policy);
     const roomWelcomeMessage = ReportUtils.getRoomWelcomeMessage(report, isUserPolicyAdmin);
-    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, otherParticipantsAccountIDs, canUseTrackExpense);
+    const moneyRequestOptions = ReportUtils.temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, canUseTrackExpense);
     const additionalText = moneyRequestOptions
         .filter((item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.INVOICE> => item !== CONST.IOU.TYPE.INVOICE)
         .map((item) => translate(`reportActionsView.iouTypes.${item}`))
