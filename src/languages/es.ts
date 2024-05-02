@@ -2037,6 +2037,7 @@ export default {
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
             advancedConfig: {
+                advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
                 autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
                 purchaseBillStatusTitle: 'Set purchase bill status (optional)',

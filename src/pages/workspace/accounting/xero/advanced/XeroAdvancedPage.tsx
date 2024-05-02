@@ -1,4 +1,5 @@
 import React from 'react';
+import ConnectionLayout from '@components/ConnectionLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,88 +26,81 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const xeroData = policy?.connections?.xero?.data;
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
+        <ConnectionLayout
+            displayName={XeroAdvancedPage.displayName}
+            headerTitle="workspace.xero.advancedConfig.advanced"
+            title="workspace.xero.advancedConfig.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={XeroAdvancedPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
-
-                <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
-                    <ToggleSettingOptionRow
-                        key={translate('workspace.xero.advancedConfig.autoSync')}
-                        title={translate('workspace.xero.advancedConfig.autoSync')}
-                        subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={styles.mv3}
-                        isActive={Boolean(autoSync?.enabled)}
-                        onToggle={() =>
-                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.AUTO_SYNC, {
-                                enabled: !autoSync?.enabled,
-                            })
-                        }
-                        pendingAction={pendingFields?.autoSync}
-                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
-                        onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.AUTO_SYNC)}
-                    />
-                    <OfflineWithFeedback pendingAction={pendingFields?.export}>
+            <ToggleSettingOptionRow
+                key={translate('workspace.xero.advancedConfig.autoSync')}
+                title={translate('workspace.xero.advancedConfig.autoSync')}
+                subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={styles.mv3}
+                isActive={Boolean(autoSync?.enabled)}
+                onToggle={() =>
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.AUTO_SYNC, {
+                        enabled: !autoSync?.enabled,
+                    })
+                }
+                pendingAction={pendingFields?.autoSync}
+                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
+                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.AUTO_SYNC)}
+            />
+            <OfflineWithFeedback pendingAction={pendingFields?.export}>
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon
+                    title={xeroConfig?.export.billStatus.purchase}
+                    description={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
+                    key={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
+                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    onPress={() => {}}
+                />
+            </OfflineWithFeedback>
+            <ToggleSettingOptionRow
+                key={translate('workspace.xero.advancedConfig.reimbursedReports')}
+                title={translate('workspace.xero.advancedConfig.reimbursedReports')}
+                subtitle={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
+                shouldPlaceSubtitleBelowSwitch
+                wrapperStyle={styles.mv3}
+                isActive={Boolean(sync?.syncReimbursedReports)}
+                onToggle={() =>
+                    Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
+                        syncReimbursedReports: !sync?.syncReimbursedReports,
+                    })
+                }
+                pendingAction={pendingFields?.sync}
+                errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC)}
+                onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC)}
+            />
+            {sync?.syncReimbursedReports && (
+                <>
+                    <OfflineWithFeedback pendingAction={pendingFields?.sync}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={xeroConfig?.export.billStatus.purchase}
-                            description={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
-                            key={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
+                            title={String(xeroData?.bankAccounts)}
+                            description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
+                            key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             onPress={() => {}}
                         />
                     </OfflineWithFeedback>
-                    <ToggleSettingOptionRow
-                        key={translate('workspace.xero.advancedConfig.reimbursedReports')}
-                        title={translate('workspace.xero.advancedConfig.reimbursedReports')}
-                        subtitle={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
-                        shouldPlaceSubtitleBelowSwitch
-                        wrapperStyle={styles.mv3}
-                        isActive={Boolean(sync?.syncReimbursedReports)}
-                        onToggle={() =>
-                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
-                                syncReimbursedReports: !sync?.syncReimbursedReports,
-                            })
-                        }
-                        pendingAction={pendingFields?.sync}
-                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC)}
-                        onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC)}
-                    />
-                    {sync?.syncReimbursedReports && (
-                        <>
-                            <OfflineWithFeedback pendingAction={pendingFields?.sync}>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={String(xeroData?.bankAccounts)}
-                                    description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
-                                    key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    onPress={() => {}}
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={pendingFields?.sync}>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={String(xeroData?.bankAccounts)}
-                                    description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
-                                    key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
-                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                    onPress={() => {}}
-                                />
-                            </OfflineWithFeedback>
-                        </>
-                    )}
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+                    <OfflineWithFeedback pendingAction={pendingFields?.sync}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={String(xeroData?.bankAccounts)}
+                            description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
+                            key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
+                            wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                            onPress={() => {}}
+                        />
+                    </OfflineWithFeedback>
+                </>
+            )}
+        </ConnectionLayout>
     );
 }
 

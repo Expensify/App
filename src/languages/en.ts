@@ -2004,6 +2004,7 @@ export default {
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
             advancedConfig: {
+                advanced: 'Advanced',
                 autoSync: 'Auto-Sync',
                 autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
                 purchaseBillStatusTitle: 'Set purchase bill status (optional)',
