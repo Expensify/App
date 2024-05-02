@@ -128,7 +128,7 @@ function MoneyRequestHeader({
         const isHoldCreator = ReportUtils.isHoldCreator(transaction, report?.reportID) && isRequestIOU;
         const isTrackExpenseReport = ReportUtils.isTrackExpenseReport(report);
         const canModifyStatus = !isTrackExpenseReport && (isPolicyAdmin || isActionOwner || isApprover);
-        if (isOnHold && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
+        if (isOnHold && !isDuplicate && (isHoldCreator || (!isRequestIOU && canModifyStatus))) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.unholdExpense'),
