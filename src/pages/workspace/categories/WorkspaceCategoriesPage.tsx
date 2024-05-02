@@ -153,12 +153,15 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [];
 
         if (selectedCategoriesArray.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
-                value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
-            });
+            // If the workspace is connected to an accounting software, the user can't delete categories
+            if (Object.keys(policy?.connections ?? {}).length === 0) {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
+                    onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
+                });
+            }
 
             const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
