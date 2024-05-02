@@ -11,6 +11,7 @@ import type {Country} from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Waypoint} from '@src/types/onyx/Transaction';
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
 import FormProvider from './Form/FormProvider';
@@ -132,7 +133,9 @@ function AddressForm({
 
         return errors;
     }, []);
-
+    const selectAddress = (values: Waypoint) => {
+        onAddressChanged(values, 'addressLine1');
+    };
     return (
         <FormProvider
             style={[styles.flexGrow1, styles.mh5]}
@@ -152,6 +155,7 @@ function AddressForm({
                         // This enforces the country selector to use the country from address instead of the country from URL
                         Navigation.setParams({country: undefined});
                     }}
+                    onPress={selectAddress}
                     defaultValue={street1}
                     renamedInputKeys={{
                         street: INPUT_IDS.ADDRESS_LINE_1,
@@ -163,6 +167,7 @@ function AddressForm({
                     }}
                     maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     shouldSaveDraft={shouldSaveDraft}
+                    predefinedPlaces={[]}
                 />
             </View>
             <View style={styles.formSpaceVertical} />

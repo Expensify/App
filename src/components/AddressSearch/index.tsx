@@ -82,6 +82,7 @@ function AddressSearch(
     const containerRef = useRef<View>(null);
     const [maxIndex, setMaxIndex] = useState(0);
     const resultRef = useRef();
+    const isRowSelectedRef = useRef(false);
     const query = useMemo(
         () => ({
             language: preferredLocale,
@@ -94,7 +95,7 @@ function AddressSearch(
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex,
+        maxIndex: shouldShowCurrentLocationButton ? maxIndex : maxIndex - 1,
     });
     const saveLocationDetails = useCallback(
         (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
@@ -104,12 +105,29 @@ function AddressSearch(
                 // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
                 // amount of data massaging needs to happen for what the parent expects to get from this function.
                 if (details) {
-                    onPress?.({
+                    const data = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
+
+                    const values = {
                         address: autocompleteData.description ?? '',
                         lat: details.geometry?.location.lat ?? 0,
                         lng: details.geometry?.location.lng ?? 0,
                         name: details?.name,
-                    });
+                        street: data?.street ?? '',
+                        city: data?.city ?? '',
+                        state: data?.state ?? '',
+                    };
+                    if (inputID) {
+                        Object.entries(values).forEach(([key, inputValue]) => {
+                            const inputKey = renamedInputKeys?.[key as keyof Address] ?? key;
+                            if (!inputKey) {
+                                return;
+                            }
+                            onInputChange?.(inputValue, inputKey);
+                        });
+                    } else {
+                        onInputChange?.(values);
+                    }
+                    onPress?.(values);
                 }
                 return;
             }
@@ -298,6 +316,7 @@ function AddressSearch(
         }
         saveLocationDetails(data, data);
         setIsTyping(false);
+        isRowSelectedRef.current = true;
 
         // After we select an option, we set displayListViewBorder to false to prevent UI flickering
         setDisplayListViewBorder(false);
@@ -388,7 +407,6 @@ function AddressSearch(
                             return (
                                 <Hoverable>
                                     {(isHovered) => (
-                                        // <View style={[styles.pv4, styles.ph3, StyleUtils.getBackgroundAndBorderStyle(isHovered || focusedIndex === index ? theme.border : theme.appBG)]}>
                                         <View style={[styles.pv4, styles.ph3, StyleUtils.getBackgroundAndBorderStyle(isHovered || isRowFocused ? theme.border : theme.appBG)]}>
                                             {!!title && <Text style={[styles.googleSearchText]}>{title}</Text>}
                                             <Text style={[title ? styles.textLabelSupporting : styles.googleSearchText]}>{subtitle}</Text>
@@ -432,6 +450,7 @@ function AddressSearch(
                                     setDisplayListViewBorder(false);
                                     setIsFocused(false);
                                     setIsTyping(false);
+                                    isRowSelectedRef.current = false;
                                 }
                                 onBlur?.();
                             },
@@ -439,6 +458,7 @@ function AddressSearch(
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
+                                isRowSelectedRef.current = false;
                                 // Whenever the search term changes, focus the first result. That way, the best match is always initially highlighted.
                                 setFocusedIndex(0);
                                 if (inputID) {
@@ -468,6 +488,9 @@ function AddressSearch(
                         listHoverColor={theme.border}
                         listUnderlayColor={theme.buttonPressedBG}
                         onLayout={(event: LayoutChangeEvent) => {
+                            if (isRowSelectedRef.current) {
+                                return;
+                            }
                             // We use the height of the element to determine if we should hide the border of the listView dropdown
                             // to prevent a lingering border when there are no address suggestions.
                             setDisplayListViewBorder(event.nativeEvent.layout.height > variables.googleEmptyListViewHeight);
