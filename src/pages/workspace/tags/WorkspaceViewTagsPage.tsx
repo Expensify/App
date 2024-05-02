@@ -85,10 +85,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [policyTagLists, selectedTags, translate],
     );
 
-    if (!currentPolicyTag) {
-        return <NotFoundPage />;
-    }
-
     const tagListKeyedByName = useMemo(
         () =>
             tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
@@ -97,6 +93,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             }, {}),
         [tagList],
     );
+
+    if (!currentPolicyTag) {
+        return <NotFoundPage />;
+    }
 
     const toggleTag = (tag: TagListItem) => {
         setSelectedTags((prev) => ({
