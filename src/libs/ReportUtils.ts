@@ -5970,7 +5970,7 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
 }
 
 /**
- * Check if a report is a group chat and isn't a thread
+ * A "root" group chat is the top level group chat and does not refer to any threads off of a Group Chat
  */
 function isRootGroupChat(report: OnyxEntry<Report>): boolean {
     return !isChatThread(report) && (isGroupChat(report) || isDeprecatedGroupDM(report));
