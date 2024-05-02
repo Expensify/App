@@ -28,8 +28,8 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     /** Transaction that stores the distance expense data */
     transaction: OnyxEntry<Transaction>;
 
-    /** Whether the size of the route pending icon is small. */
-    isSmallIcon?: boolean;
+    /** Whether the size of the route pending icon is smaller. */
+    isSmallerIcon?: boolean;
 
     /** Whether it should have border radius */
     shouldHaveBorderRadius?: boolean;
@@ -38,7 +38,7 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
     interactive?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon, shouldHaveBorderRadius = true, interactive}: ConfirmedRouteProps) {
+function ConfirmedRoute({mapboxAccessToken, transaction, isSmallerIcon, shouldHaveBorderRadius = true, interactive}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -115,7 +115,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon, shouldHave
         />
     ) : (
         <PendingMapView
-            isSmallIcon={isSmallIcon}
+            isSmallerIcon={isSmallerIcon}
             style={!shouldHaveBorderRadius && StyleUtils.getBorderRadiusStyle(0)}
         />
     );

@@ -82,7 +82,7 @@ function ReportActionItemImage({
             <View style={[styles.w100, styles.h100]}>
                 <ConfirmedRoute
                     transaction={transaction}
-                    isSmallIcon={!isSingleImage}
+                    isSmallerIcon={!isSingleImage}
                     shouldHaveBorderRadius={shouldMapHaveBorderRadius}
                     interactive={false}
                 />
