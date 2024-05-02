@@ -332,11 +332,10 @@ function MoneyRequestView({
     const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
-    const errors = {...(transaction?.errors ?? {})};
-    if (parentReportAction?.errors) {
-        // Merging parentReportAction.errors into errors
-        Object.assign(errors, parentReportAction.errors);
-    }
+    const errors = {
+        ...(transaction?.errors ?? {}),
+        ...(parentReportAction?.errors ?? {})
+    };
 
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
