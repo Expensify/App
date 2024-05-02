@@ -82,7 +82,6 @@ function LocationPermissionModal({startPermissionFlow, onDeny, onGrant}: Locatio
             iconWidth={140}
             iconHeight={120}
             shouldCenterIcon
-            shouldShowDismissIcon
             shouldReverseStackedButtons
         />
     );
