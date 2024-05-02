@@ -211,7 +211,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
-    menuIconSizeMedium: 48,
+    menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 
