@@ -14,38 +14,37 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Account} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
-    value: Account;
+    value: string;
 };
 
-function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPolicyConnectionsProps) {
+function QuickbooksNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const {nonReimbursableExpensesAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {nonReimbursableBillDefaultVendor} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const policyID = policy?.id ?? '';
     const sections = useMemo(() => {
         const data: CardListItem[] =
-            accountPayable?.map((account) => ({
-                value: account,
-                text: account.name,
-                keyForList: account.name,
-                isSelected: account.id === nonReimbursableExpensesAccount?.id,
+            vendors?.map((vendor) => ({
+                value: vendor.id,
+                text: vendor.name,
+                keyForList: vendor.name,
+                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
             })) ?? [];
         return [{data}];
-    }, [nonReimbursableExpensesAccount, accountPayable]);
+    }, [nonReimbursableBillDefaultVendor, vendors]);
 
-    const selectAccountPayable = useCallback(
+    const selectVendor = useCallback(
         (row: CardListItem) => {
-            if (row.value.id !== nonReimbursableExpensesAccount?.id) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
+            if (row.value !== nonReimbursableBillDefaultVendor) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [nonReimbursableExpensesAccount, policyID],
+        [nonReimbursableBillDefaultVendor, policyID],
     );
 
     return (
@@ -54,13 +53,13 @@ function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPoli
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <ScreenWrapper testID={QuickbooksCompanyCardExpenseAccountPayableSelectPage.displayName}>
-                <HeaderWithBackButton title={translate('workspace.qbo.accountsPayable')} />
+            <ScreenWrapper testID={QuickbooksNonReimbursableDefaultVendorSelectPage.displayName}>
+                <HeaderWithBackButton title={translate('workspace.qbo.defaultVendor')} />
                 <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.defaultVendorDescription')}</Text>}
                     sections={sections}
                     ListItem={RadioListItem}
-                    onSelectRow={selectAccountPayable}
+                    onSelectRow={selectVendor}
                     initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>
@@ -68,6 +67,6 @@ function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPoli
     );
 }
 
-QuickbooksCompanyCardExpenseAccountPayableSelectPage.displayName = 'QuickbooksCompanyCardExpenseAccountPayableSelectPage';
+QuickbooksNonReimbursableDefaultVendorSelectPage.displayName = 'QuickbooksNonReimbursableDefaultVendorSelectPage';
 
-export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountPayableSelectPage);
+export default withPolicyConnections(QuickbooksNonReimbursableDefaultVendorSelectPage);

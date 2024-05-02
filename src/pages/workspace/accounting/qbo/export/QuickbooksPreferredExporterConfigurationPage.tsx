@@ -23,7 +23,7 @@ type CardListItem = ListItem & {
 function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {exporter} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {export: exportConfiguration} = policy?.connections?.quickbooksOnline?.config ?? {};
     const exporters = getAdminEmployees(policy);
 
     const policyID = policy?.id ?? '';
@@ -35,22 +35,22 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsPr
                         value: vendor.email,
                         text: vendor.email,
                         keyForList: vendor.email,
-                        isSelected: exporter === vendor.email,
+                        isSelected: exportConfiguration?.exporter === vendor.email,
                     });
                 }
                 return vendors;
             }, []),
-        [exporter, exporters],
+        [exportConfiguration, exporters],
     );
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exporter) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.PREFERRED_EXPORTER, row.value);
+            if (row.value !== exportConfiguration?.exporter) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT, {exporter: row.value});
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID));
         },
-        [policyID, exporter],
+        [policyID, exportConfiguration],
     );
 
     return (

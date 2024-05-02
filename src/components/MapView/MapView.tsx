@@ -144,6 +144,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
         };
 
+        const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
@@ -161,9 +162,12 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     <Mapbox.Camera
                         ref={cameraRef}
                         defaultSettings={{
-                            centerCoordinate: currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location,
+                            centerCoordinate,
                             zoomLevel: initialState?.zoom,
                         }}
+                        // Include centerCoordinate here as well to address the issue of incorrect coordinates
+                        // displayed after the first render when the app's storage is cleared.
+                        centerCoordinate={centerCoordinate}
                     />
 
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
