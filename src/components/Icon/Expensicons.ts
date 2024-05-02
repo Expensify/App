@@ -42,6 +42,7 @@ import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
+import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crosshair from '@assets/images/crosshair.svg';
@@ -89,6 +90,7 @@ import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Info from '@assets/images/info.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
+import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
 import Keyboard from '@assets/images/keyboard.svg';
@@ -202,6 +204,7 @@ export {
     ConciergeAvatar,
     Connect,
     Crosshair,
+    ConnectionComplete,
     Copy,
     CreditCard,
     DeletedRoomAvatar,
@@ -252,6 +255,7 @@ export {
     ImageCropSquareMask,
     Info,
     Invoice,
+    InvoiceGeneric,
     Key,
     Keyboard,
     Link,

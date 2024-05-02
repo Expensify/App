@@ -27,7 +27,7 @@ import type {ComponentProps, MapViewOnyxProps} from './types';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, ComponentProps>(
-    ({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady}, ref) => {
+    ({accessToken, style, mapPadding, userLocation: cachedUserLocation, styleURL, pitchEnabled, initialState, waypoints, directionCoordinates, onMapReady, interactive = true}, ref) => {
         const navigation = useNavigation();
         const {isOffline} = useNetwork();
         const {translate} = useLocalize();
@@ -189,7 +189,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const onTouchEnd = useCallback(() => toggleCenterButton(true), [toggleCenterButton]);
 
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
-            <View style={style}>
+            <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
                     onTouchEnd={onTouchEnd}
                     style={{flex: 1}}

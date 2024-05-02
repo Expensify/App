@@ -6,13 +6,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getPolicyIDFromState from './Navigation/getPolicyIDFromState';
 import Navigation, {navigationRef} from './Navigation/Navigation';
 import type {RootStackParamList, State} from './Navigation/types';
+import * as NetworkStore from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
@@ -29,7 +30,7 @@ Onyx.connect({
  * Filter out the active policies, which will exclude policies with pending deletion
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] | undefined {
+function getActivePolicies(policies: OnyxCollection<Policy>): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy => policy !== null && policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id,
     );
@@ -378,6 +379,31 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
     return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? {};
 }
 
+/** Return active policies where current user is an admin */
+function getActiveAdminWorkspaces(policies: OnyxCollection<Policy>): Policy[] {
+    const activePolicies = getActivePolicies(policies);
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, NetworkStore.isOffline()) && isPolicyAdmin(policy));
+}
+
+/** Whether the user can send invoice */
+function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
+    return getActiveAdminWorkspaces(policies).length > 0;
+}
+
+/** Get the Xero organizations connected to the policy */
+function getXeroTenants(policy: Policy | undefined): Tenant[] {
+    // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
+        return [];
+    }
+    return policy.connections.xero.data.tenants ?? [];
+}
+
+function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
+    return tenants?.find((tenant) => tenant.id === organizationID);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -421,6 +447,10 @@ export {
     getSubmitToAccountID,
     getAdminEmployees,
     getPolicy,
+    getActiveAdminWorkspaces,
+    canSendInvoice,
+    getXeroTenants,
+    findCurrentXeroOrganization,
 };
 
 export type {MemberEmailsToAccountIDs};
