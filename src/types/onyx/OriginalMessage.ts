@@ -325,6 +325,14 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageDismissedViolation = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION;
+    originalMessage: {
+        reason: string;
+        violationName: string;
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -349,7 +357,8 @@ type OriginalMessage =
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
-    | OriginalMessageActionableTrackedExpenseWhisper;
+    | OriginalMessageActionableTrackedExpenseWhisper
+    | OriginalMessageDismissedViolation;
 
 export default OriginalMessage;
 export type {
@@ -376,4 +385,5 @@ export type {
     DecisionName,
     PaymentMethodType,
     OriginalMessageActionableTrackedExpenseWhisper,
+    OriginalMessageDismissedViolation,
 };

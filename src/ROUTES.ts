@@ -55,6 +55,7 @@ const ROUTES = {
 
     TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
+    CONNECTION_COMPLETE: 'connection-complete',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
         getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
@@ -380,6 +381,11 @@ const ROUTES = {
         getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '', action: IOUAction = 'create') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
     },
+    MONEY_REQUEST_STEP_SPLIT_PAYER: {
+        route: ':action/:iouType/confirmation/:transactionID/:reportID/payer',
+        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action}/${iouType}/confirmation/${transactionID}/${reportID}/payer`, backTo),
+    },
     MONEY_REQUEST_STEP_SCAN: {
         route: ':action/:iouType/scan/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
@@ -465,6 +471,10 @@ const ROUTES = {
     WORKSPACE_PROFILE: {
         route: 'settings/workspaces/:policyID/profile',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
+    },
+    WORKSPACE_PROFILE_ADDRESS: {
+        route: 'settings/workspaces/:policyID/profile/address',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/address` as const,
     },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
@@ -755,6 +765,22 @@ const ROUTES = {
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
+    },
+    POLICY_ACCOUNTING_XERO_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,
+    },
+    POLICY_ACCOUNTING_XERO_ORGANIZATION: {
+        route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
+        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+    },
+    POLICY_ACCOUNTING_XERO_CUSTOMER: {
+        route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
+        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TAXES: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
