@@ -162,7 +162,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 directionCoordinates,
             );
             map.fitBounds([northEast, southWest], {padding: mapPadding});
-        }, [waypoints, mapRef, mapPadding, directionCoordinates, toggleCenterButton]);
+        }, [waypoints, mapRef, mapPadding, directionCoordinates, toggleCenterButton, currentPosition]);
 
         useEffect(resetBoundaries, [resetBoundaries]);
 

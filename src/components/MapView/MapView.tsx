@@ -151,7 +151,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     );
                     cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
                 }
-            }, [mapPadding, waypoints, isIdle, directionCoordinates, toggleCenterButton]),
+            }, [mapPadding, waypoints, isIdle, directionCoordinates, toggleCenterButton, currentPosition]),
         );
 
         useEffect(() => {
