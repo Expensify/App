@@ -4,8 +4,10 @@ import dateSubtract from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
+import BankAccount from './libs/models/BankAccount';
 import * as Url from './libs/Url';
 import SCREENS from './SCREENS';
+import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 import type {Unit} from './types/onyx/Policy';
 
 type RateAndUnit = {
@@ -53,13 +55,14 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
+    INVOICE: 'invoice',
+    SYSTEM: 'system',
 } as const;
 
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const onboardingChoices = {
-    TRACK: 'newDotTrack',
     EMPLOYER: 'newDotEmployer',
     MANAGE_TEAM: 'newDotManageTeam',
     PERSONAL_SPEND: 'newDotPersonalSpend',
@@ -631,7 +634,6 @@ const CONST = {
             MEMBER: 'member',
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
-        MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
@@ -798,6 +800,7 @@ const CONST = {
             EXPENSE: 'expense',
             IOU: 'iou',
             TASK: 'task',
+            INVOICE: 'invoice',
         },
         CHAT_TYPE: chatTypes,
         WORKSPACE_CHAT_ROOMS: {
@@ -841,6 +844,16 @@ const CONST = {
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
+        PERMISSIONS: {
+            READ: 'read',
+            WRITE: 'write',
+            SHARE: 'share',
+            OWN: 'own',
+        },
+        INVOICE_RECEIVER_TYPE: {
+            INDIVIDUAL: 'individual',
+            BUSINESS: 'policy',
+        },
     },
     NEXT_STEP: {
         FINISHED: 'Finished!',
@@ -849,9 +862,8 @@ const CONST = {
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
         MAX_LINES_FULL: -1,
-
-        // The minimum number of typed lines needed to enable the full screen composer
-        FULL_COMPOSER_MIN_LINES: 3,
+        // The minimum height needed to enable the full screen composer
+        FULL_COMPOSER_MIN_HEIGHT: 60,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -1007,6 +1019,11 @@ const CONST = {
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
         MAX_REQUEST_RETRIES: 10,
+        NETWORK_STATUS: {
+            ONLINE: 'online',
+            OFFLINE: 'offline',
+            UNKNOWN: 'unknown',
+        },
     },
     WEEK_STARTS_ON: 1, // Monday
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
@@ -1346,8 +1363,9 @@ const CONST = {
             PERSONAL_INFO: {
                 LEGAL_NAME: 0,
                 DATE_OF_BIRTH: 1,
-                SSN: 2,
-                ADDRESS: 3,
+                ADDRESS: 2,
+                PHONE_NUMBER: 3,
+                SSN: 4,
             },
         },
         TIER_NAME: {
@@ -1371,6 +1389,13 @@ const CONST = {
         EVENT: {
             ERROR: 'ERROR',
             EXIT: 'EXIT',
+        },
+        DEFAULT_DATA: {
+            bankName: '',
+            plaidAccessToken: '',
+            bankAccounts: [] as PlaidBankAccount[],
+            isLoading: false,
+            errors: {},
         },
     },
 
@@ -1450,6 +1475,7 @@ const CONST = {
             PAY: 'pay',
             SPLIT: 'split',
             REQUEST: 'request',
+            INVOICE: 'invoice',
             SUBMIT: 'submit',
             TRACK: 'track',
         },
@@ -1668,6 +1694,7 @@ const CONST = {
             NAME: {
                 // Here we will add other connections names when we add support for them
                 QBO: 'quickbooksOnline',
+                XERO: 'xero',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT: 'startingImport',
@@ -1681,8 +1708,27 @@ const CONST = {
                 QBO_SYNC_PAYMENTS: 'quickbooksOnlineSyncBillPayments',
                 QBO_IMPORT_TAX_CODES: 'quickbooksOnlineSyncTaxCodes',
                 QBO_CHECK_CONNECTION: 'quickbooksOnlineCheckConnection',
+                QBO_SYNC_TITLE: 'quickbooksOnlineSyncTitle',
+                QBO_SYNC_LOAD_DATA: 'quickbooksOnlineSyncLoadData',
+                QBO_SYNC_APPLY_CATEGORIES: 'quickbooksOnlineSyncApplyCategories',
+                QBO_SYNC_APPLY_CUSTOMERS: 'quickbooksOnlineSyncApplyCustomers',
+                QBO_SYNC_APPLY_PEOPLE: 'quickbooksOnlineSyncApplyEmployees',
+                QBO_SYNC_APPLY_CLASSES_LOCATIONS: 'quickbooksOnlineSyncApplyClassesLocations',
                 JOB_DONE: 'jobDone',
+                XERO_SYNC_STEP: 'xeroSyncStep',
+                XERO_SYNC_XERO_REIMBURSED_REPORTS: 'xeroSyncXeroReimbursedReports',
+                XERO_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'xeroSyncExpensifyReimbursedReports',
+                XERO_SYNC_IMPORT_CHART_OF_ACCOUNTS: 'xeroSyncImportChartOfAccounts',
+                XERO_SYNC_IMPORT_CATEGORIES: 'xeroSyncImportCategories',
+                XERO_SYNC_IMPORT_TRACKING_CATEGORIES: 'xeroSyncImportTrackingCategories',
+                XERO_SYNC_IMPORT_CUSTOMERS: 'xeroSyncImportCustomers',
+                XERO_SYNC_IMPORT_BANK_ACCOUNTS: 'xeroSyncImportBankAccounts',
+                XERO_SYNC_IMPORT_TAX_RATES: 'xeroSyncImportTaxRates',
             },
+        },
+        ACCESS_VARIANTS: {
+            PAID: 'paid',
+            ADMIN: 'admin',
         },
     },
 
@@ -3352,10 +3398,11 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
-        SHARED: 'shared',
-        DRAFTS: 'drafts',
-        WAITING_ON_YOU: 'waitingOnYou',
-        FINISHED: 'finished',
+        // @TODO: Uncomment when the queries below are implemented
+        // SHARED: 'shared',
+        // DRAFTS: 'drafts',
+        // WAITING_ON_YOU: 'waitingOnYou',
+        // FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
@@ -3438,6 +3485,16 @@ const CONST = {
         REVENUE: 250,
         LEARN_MORE_LINK: 'https://help.expensify.com/articles/new-expensify/expenses/Referral-Program',
         LINK: 'https://join.my.expensify.com',
+    },
+
+    FEATURE_TRAINING: {
+        CONTENT_TYPES: {
+            TRACK_EXPENSE: 'track-expenses',
+        },
+        'track-expenses': {
+            VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business.mp4`,
+            LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
+        },
     },
 
     /**
@@ -3579,7 +3636,6 @@ const CONST = {
     },
 
     INTRO_CHOICES: {
-        TRACK: 'newDotTrack',
         SUBMIT: 'newDotSubmit',
         MANAGE_TEAM: 'newDotManageTeam',
         CHAT_SPLIT: 'newDotSplitChat',
@@ -3606,19 +3662,6 @@ const CONST = {
     ONBOARDING_CHOICES: {...onboardingChoices},
 
     ONBOARDING_CONCIERGE: {
-        [onboardingChoices.TRACK]:
-            "# Let's start tracking your expenses!\n" +
-            '\n' +
-            "To track your expenses, create a workspace to keep everything in one place. Here's how:\n" +
-            '1. From the home screen, click the green + button > *New Workspace*\n' +
-            '2. Give your workspace a name (e.g. "My business expenses").\n' +
-            '\n' +
-            'Then, add expenses to your workspace:\n' +
-            '1. Find your workspace using the search field.\n' +
-            '2. Click the gray + button next to the message field.\n' +
-            '3. Click Request money, then add your expense type.\n' +
-            '\n' +
-            "We'll store all expenses in your new workspace for easy access. Let me know if you have any questions!",
         [onboardingChoices.EMPLOYER]:
             '# Expensify is the fastest way to get paid back!\n' +
             '\n' +
@@ -3659,46 +3702,6 @@ const CONST = {
     },
 
     ONBOARDING_MESSAGES: {
-        [onboardingChoices.TRACK]: {
-            message: 'Here are some essential tasks to keep your business spend in shape for tax season.',
-            video: {
-                url: `${CLOUDFRONT_URL}/videos/guided-setup-track-business.mp4`,
-                thumbnailUrl: `${CLOUDFRONT_URL}/images/guided-setup-track-business.jpg`,
-                duration: 55,
-                width: 1280,
-                height: 960,
-            },
-            tasks: [
-                {
-                    type: 'createWorkspace',
-                    autoCompleted: true,
-                    title: 'Create a workspace',
-                    subtitle: '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.',
-                    message:
-                        'Here’s how to create a workspace:\n' +
-                        '\n' +
-                        '1. Click your profile picture.\n' +
-                        '2. Click <strong>Workspaces</strong> > <strong>New workspace</strong>.\n' +
-                        '\n' +
-                        '<strong>Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.</strong>',
-                },
-                {
-                    type: 'trackExpense',
-                    autoCompleted: false,
-                    title: 'Track an expense',
-                    subtitle: '<strong>Track an expense</strong> in any currency, in just a few clicks.',
-                    message:
-                        'Here’s how to track an expense:\n' +
-                        '\n' +
-                        '1. Click the green <strong>+</strong> button.\n' +
-                        '2. Choose <strong>Track expense</strong>.\n' +
-                        '3. Enter an amount or scan a receipt.\n' +
-                        '4. Click <strong>Track</strong>.\n' +
-                        '\n' +
-                        'And you’re done! Yep, it’s that easy.',
-                },
-            ],
-        },
         [onboardingChoices.EMPLOYER]: {
             message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
             video: {
@@ -3713,8 +3716,9 @@ const CONST = {
                     type: 'submitExpense',
                     autoCompleted: false,
                     title: 'Submit an expense',
-                    subtitle: '<strong>Submit an expense</strong> by entering an amount or scanning a receipt.',
-                    message:
+                    description:
+                        '<strong>Submit an expense</strong> by entering an amount or scanning a receipt.\n' +
+                        '\n' +
                         'Here’s how to submit an expense:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3728,8 +3732,9 @@ const CONST = {
                     type: 'enableWallet',
                     autoCompleted: false,
                     title: 'Enable your wallet',
-                    subtitle: 'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!',
-                    message:
+                    description:
+                        'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!\n' +
+                        '\n' +
                         'Here’s how to set up your wallet:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3754,8 +3759,9 @@ const CONST = {
                     type: 'createWorkspace',
                     autoCompleted: true,
                     title: 'Create a workspace',
-                    subtitle: '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.',
-                    message:
+                    description:
+                        '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.\n' +
+                        '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3767,8 +3773,7 @@ const CONST = {
                     type: 'meetGuide',
                     autoCompleted: false,
                     title: 'Meet your setup specialist',
-                    subtitle: '',
-                    message: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
+                    description: ({adminsRoomLink, guideCalendarLink}: {adminsRoomLink: string; guideCalendarLink: string}) =>
                         `Meet your setup specialist, who can answer any questions as you get started with Expensify. Yes, a real human!\n` +
                         '\n' +
                         `Chat with the specialist in your [#admins room](${adminsRoomLink}) or [schedule a call](${guideCalendarLink}) today.`,
@@ -3777,8 +3782,9 @@ const CONST = {
                     type: 'setupCategories',
                     autoCompleted: false,
                     title: 'Set up categories',
-                    subtitle: '<strong>Set up categories</strong> so your team can code expenses for easy reporting.',
-                    message:
+                    description:
+                        '<strong>Set up categories</strong> so your team can code expenses for easy reporting.\n' +
+                        '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3793,8 +3799,9 @@ const CONST = {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
-                    subtitle: '<strong>Add expense approvals</strong> to review your team’s spend and keep it under control.',
-                    message:
+                    description:
+                        '<strong>Add expense approvals</strong> to review your team’s spend and keep it under control.\n' +
+                        '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3809,8 +3816,9 @@ const CONST = {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     title: 'Invite your team',
-                    subtitle: '<strong>Invite your team</strong> to Expensify so they can start tracking expenses today.',
-                    message:
+                    description:
+                        '<strong>Invite your team</strong> to Expensify so they can start tracking expenses today.\n' +
+                        '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3837,8 +3845,9 @@ const CONST = {
                     type: 'trackExpense',
                     autoCompleted: false,
                     title: 'Track an expense',
-                    subtitle: '<strong>Track an expense</strong> in any currency, whether you have a receipt or not.',
-                    message:
+                    description:
+                        '<strong>Track an expense</strong> in any currency, whether you have a receipt or not.\n' +
+                        '\n' +
                         'Here’s how to track an expense:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3864,8 +3873,9 @@ const CONST = {
                     type: 'startChat',
                     autoCompleted: false,
                     title: 'Start a chat',
-                    subtitle: '<strong>Start a chat</strong> with a friend or group using their email or phone number.',
-                    message:
+                    description:
+                        '<strong>Start a chat</strong> with a friend or group using their email or phone number.\n' +
+                        '\n' +
                         'Here’s how to start a chat:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3880,8 +3890,9 @@ const CONST = {
                     type: 'splitExpense',
                     autoCompleted: false,
                     title: 'Split an expense',
-                    subtitle: '<strong>Split an expense</strong> right in your chat with one or more friends.',
-                    message:
+                    description:
+                        '<strong>Split an expense</strong> right in your chat with one or more friends.\n' +
+                        '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
                         '1. Click the green <strong>+</strong> button.\n' +
@@ -3895,8 +3906,9 @@ const CONST = {
                     type: 'enableWallet',
                     autoCompleted: false,
                     title: 'Enable your wallet',
-                    subtitle: 'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!',
-                    message:
+                    description:
+                        'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!\n' +
+                        '\n' +
                         'Here’s how to enable your wallet:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
@@ -3933,31 +3945,43 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
-    REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX: {
-        BANK_ACCOUNT: {
-            ACCOUNT_NUMBERS: 0,
+    REIMBURSEMENT_ACCOUNT: {
+        DEFAULT_DATA: {
+            achData: {
+                state: BankAccount.STATE.SETUP,
+            },
+            isLoading: false,
+            errorFields: {},
+            errors: {},
+            maxAttemptsReached: false,
+            shouldShowResetModal: false,
         },
-        PERSONAL_INFO: {
-            LEGAL_NAME: 0,
-            DATE_OF_BIRTH: 1,
-            SSN: 2,
-            ADDRESS: 3,
-        },
-        BUSINESS_INFO: {
-            BUSINESS_NAME: 0,
-            TAX_ID_NUMBER: 1,
-            COMPANY_WEBSITE: 2,
-            PHONE_NUMBER: 3,
-            COMPANY_ADDRESS: 4,
-            COMPANY_TYPE: 5,
-            INCORPORATION_DATE: 6,
-            INCORPORATION_STATE: 7,
-        },
-        UBO: {
-            LEGAL_NAME: 0,
-            DATE_OF_BIRTH: 1,
-            SSN: 2,
-            ADDRESS: 3,
+        SUBSTEP_INDEX: {
+            BANK_ACCOUNT: {
+                ACCOUNT_NUMBERS: 0,
+            },
+            PERSONAL_INFO: {
+                LEGAL_NAME: 0,
+                DATE_OF_BIRTH: 1,
+                SSN: 2,
+                ADDRESS: 3,
+            },
+            BUSINESS_INFO: {
+                BUSINESS_NAME: 0,
+                TAX_ID_NUMBER: 1,
+                COMPANY_WEBSITE: 2,
+                PHONE_NUMBER: 3,
+                COMPANY_ADDRESS: 4,
+                COMPANY_TYPE: 5,
+                INCORPORATION_DATE: 6,
+                INCORPORATION_STATE: 7,
+            },
+            UBO: {
+                LEGAL_NAME: 0,
+                DATE_OF_BIRTH: 1,
+                SSN: 2,
+                ADDRESS: 3,
+            },
         },
     },
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
@@ -4628,9 +4652,9 @@ const CONST = {
     },
 
     QUICKBOOKS_EXPORT_DATE: {
-        LAST_EXPENSE: 'lastExpense',
-        EXPORTED_DATE: 'exportedDate',
-        SUBMITTED_DATA: 'submittedData',
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
     QUICKBOOKS_EXPORT_COMPANY_CARD: {
@@ -4664,6 +4688,12 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+
+    SEARCH_TRANSACTION_TYPE: {
+        CASH: 'cash',
+        CARD: 'card',
+        DISTANCE: 'distance',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

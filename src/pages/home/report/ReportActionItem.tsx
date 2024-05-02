@@ -66,6 +66,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OriginalMessageActionableMentionWhisper, OriginalMessageActionableTrackedExpenseWhisper, OriginalMessageJoinPolicyChangeLog} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
+import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -804,7 +805,7 @@ function ReportActionItem({
                 </View>
             );
         }
-        if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report)) {
+        if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
                     {transactionThreadReport && !isEmptyObject(transactionThreadReport) ? (
@@ -914,12 +915,12 @@ function ReportActionItem({
                             originalReportID={originalReportID ?? ''}
                             isArchivedRoom={ReportUtils.isArchivedRoom(report)}
                             displayAsGroup={displayAsGroup}
+                            disabledActions={!ReportUtils.canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []}
                             isVisible={hovered && draftMessage === undefined && !hasErrors}
                             draftMessage={draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(originalReport)}
                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
-                            transactionThreadReportID={transactionThreadReport?.reportID ?? '0'}
                         />
                         <View style={StyleUtils.getReportActionItemStyle(hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined, !!onPress)}>
                             <OfflineWithFeedback

@@ -14,12 +14,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from './PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import ToggleSettingOptionRow from './workflows/ToggleSettingsOptionRow';
@@ -101,7 +101,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
-            disabled: isSyncTaxEnabled,
+            disabled: isSyncTaxEnabled || policy?.connections?.quickbooksOnline?.data?.country === CONST.COUNTRY.US,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
@@ -196,24 +196,25 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    style={[styles.defaultModalContainer]}
-                    testID={WorkspaceMoreFeaturesPage.displayName}
-                    shouldShowOfflineIndicatorInWideScreen
-                >
-                    <HeaderWithBackButton
-                        icon={Illustrations.Gears}
-                        title={translate('workspace.common.moreFeatures')}
-                        shouldShowBackButton={isSmallScreenWidth}
-                    />
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={WorkspaceMoreFeaturesPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    icon={Illustrations.Gears}
+                    title={translate('workspace.common.moreFeatures')}
+                    shouldShowBackButton={isSmallScreenWidth}
+                />
 
-                    <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <ScrollView contentContainerStyle={styles.pb2}>{sections.map(renderSection)}</ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

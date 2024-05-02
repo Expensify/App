@@ -20,11 +20,13 @@ const SCREENS = {
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     VALIDATE_LOGIN: 'ValidateLogin',
+    CONNECTION_COMPLETE: 'ConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
+        REPORT_RHP: 'Search_Report_RHP',
         BOTTOM_TAB: 'Search_Bottom_Tab',
     },
     SETTINGS: {
@@ -84,6 +86,7 @@ const SCREENS = {
             TRANSFER_BALANCE: 'Settings_Wallet_Transfer_Balance',
             CHOOSE_TRANSFER_ACCOUNT: 'Settings_Wallet_Choose_Transfer_Account',
             ENABLE_PAYMENTS: 'Settings_Wallet_EnablePayments',
+            ENABLE_PAYMENTS_REFACTOR: 'Settings_Wallet_EnablePayments_Refactor',
             CARD_ACTIVATE: 'Settings_Wallet_Card_Activate',
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
@@ -130,6 +133,7 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        SEARCH_REPORT: 'SearchReport',
     },
     ONBOARDING_MODAL: {
         ONBOARDING: 'Onboarding',
@@ -159,6 +163,8 @@ const SCREENS = {
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',
         STEP_TAX_AMOUNT: 'Money_Request_Step_Tax_Amount',
         STEP_TAX_RATE: 'Money_Request_Step_Tax_Rate',
+        STEP_SPLIT_PAYER: 'Money_Request_Step_Split_Payer',
+        STEP_SEND_FROM: 'Money_Request_Step_Send_From',
         CURRENCY: 'Money_Request_Currency',
         WAYPOINT: 'Money_Request_Waypoint',
         EDIT_WAYPOINT: 'Money_Request_Edit_Waypoint',
@@ -339,6 +345,7 @@ const SCREENS = {
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     TRANSACTION_RECEIPT: 'TransactionReceipt',
+    FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
 } as const;
 
 type Screen = DeepValueOf<typeof SCREENS>;

@@ -11,8 +11,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import * as Link from '@userActions/Link';
@@ -40,7 +39,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             description: translate('workspace.qbo.date'),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: exportDate ? translate(`workspace.qbo.${exportDate}.label`) : undefined,
+            title: exportDate ? translate(`workspace.qbo.exportDate.values.${exportDate}.label`) : undefined,
             pendingAction: pendingFields?.exportDate,
             error: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
         },
@@ -77,49 +76,48 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
     ];
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID={QuickbooksExportConfigurationPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    testID={QuickbooksExportConfigurationPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.export')} />
-                    <ScrollView contentContainerStyle={styles.pb2}>
-                        <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDescription')}</Text>
-                        {menuItems.map((menuItem) => (
-                            <OfflineWithFeedback
-                                key={menuItem.description}
-                                pendingAction={menuItem.pendingAction}
-                            >
-                                <MenuItemWithTopDescription
-                                    title={menuItem.title}
-                                    interactive={menuItem?.interactive ?? true}
-                                    description={menuItem.description}
-                                    shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
-                                    onPress={menuItem?.onPress}
-                                    brickRoadIndicator={menuItem?.brickRoadIndicator}
-                                    // TODO uncomment when errorText will be fixed
-                                    // errorText={menuItem?.errorText}
-                                    error={menuItem?.error}
-                                />
-                            </OfflineWithFeedback>
-                        ))}
-                        <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
-                            <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
-                            <TextLink
-                                onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
-                                style={[styles.mutedNormalTextLabel, styles.link]}
-                            >
-                                {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
-                            </TextLink>
-                        </Text>
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <HeaderWithBackButton title={translate('workspace.qbo.export')} />
+                <ScrollView contentContainerStyle={styles.pb2}>
+                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDescription')}</Text>
+                    {menuItems.map((menuItem) => (
+                        <OfflineWithFeedback
+                            key={menuItem.description}
+                            pendingAction={menuItem.pendingAction}
+                        >
+                            <MenuItemWithTopDescription
+                                title={menuItem.title}
+                                interactive={menuItem?.interactive ?? true}
+                                description={menuItem.description}
+                                shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                                onPress={menuItem?.onPress}
+                                brickRoadIndicator={menuItem?.brickRoadIndicator}
+                                // TODO uncomment when errorText will be fixed
+                                // errorText={menuItem?.errorText}
+                                error={menuItem?.error}
+                            />
+                        </OfflineWithFeedback>
+                    ))}
+                    <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
+                        <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
+                        <TextLink
+                            onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
+                            style={[styles.mutedNormalTextLabel, styles.link]}
+                        >
+                            {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
+                        </TextLink>
+                    </Text>
+                </ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
