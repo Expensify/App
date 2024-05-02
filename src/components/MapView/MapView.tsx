@@ -162,7 +162,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     <Mapbox.Camera
                         ref={cameraRef}
                         defaultSettings={{
-                            centerCoordinate: centerCoordinate,
+                            centerCoordinate,
                             zoomLevel: initialState?.zoom,
                         }}
                         // Include centerCoordinate here as well to address the issue of incorrect coordinates
