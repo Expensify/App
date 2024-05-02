@@ -19,8 +19,8 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncTax, pendingFields, exportEntity} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isJournalExportEntity = exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const {syncTax, pendingFields, reimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isJournalExportEntity = reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const isTaxSwitchOn = !!syncTax && !isJournalExportEntity;
 
     return (
