@@ -10,6 +10,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type RadioListItem from './RadioListItem';
 import type TableListItem from './TableListItem';
+import type TransactionListItem from './TransactionListItem';
 import type UserListItem from './UserListItem';
 
 type TRightHandSideComponent<TItem extends ListItem> = {
@@ -122,6 +123,24 @@ type ListItem = {
     badgeText?: string;
 
     brickRoadIndicator?: BrickRoad | '' | null;
+
+    managerID?: number;
+
+    amount?: number;
+
+    currency?: string;
+
+    tag?: string;
+
+    description?: string;
+
+    category?: string;
+
+    created?: string;
+
+    merchant?: string;
+
+    type?: string;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -137,6 +156,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether the default focus should be prevented on row selection */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
+    /** Prevent the submission of the list item when enter key is pressed */
+    shouldPreventEnterKeySubmit?: boolean;
+
     /** Key used internally by React */
     keyForList?: string;
 
@@ -150,6 +172,7 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+    shouldPreventEnterKeySubmit?: boolean;
     keyForList?: string | null;
     errors?: Errors | ReceiptErrors | null;
     pendingAction?: PendingAction | null;
@@ -176,7 +199,9 @@ type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
 type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
-type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem;
+type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
+type ValidListItem = typeof RadioListItem | typeof UserListItem | typeof TableListItem | typeof InviteMemberListItem | typeof TransactionListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -360,21 +385,22 @@ type ExtendedSectionListData<TItem extends ListItem, TSection extends SectionWit
 type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem, SectionWithIndexOffset<TItem>>;
 
 export type {
-    BaseSelectionListProps,
-    CommonListItemProps,
-    Section,
-    SectionWithIndexOffset,
     BaseListItemProps,
-    UserListItemProps,
-    RadioListItemProps,
-    TableListItemProps,
+    BaseSelectionListProps,
+    ButtonOrCheckBoxRoles,
+    CommonListItemProps,
+    FlattenedSectionsReturn,
     InviteMemberListItemProps,
+    ItemLayout,
     ListItem,
     ListItemProps,
-    FlattenedSectionsReturn,
-    ItemLayout,
-    ButtonOrCheckBoxRoles,
+    RadioListItemProps,
+    Section,
     SectionListDataType,
+    SectionWithIndexOffset,
     SelectionListHandle,
+    TableListItemProps,
+    TransactionListItemProps,
+    UserListItemProps,
     ValidListItem,
 };

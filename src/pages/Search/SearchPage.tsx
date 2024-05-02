@@ -1,19 +1,41 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import Search from '@components/Search';
+import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import SearchResults from './SearchResults';
-import useCustomBackHandler from './useCustomBackHandler';
+import type {SearchQuery} from '@src/types/onyx/SearchResults';
 
 type SearchPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.SEARCH.CENTRAL_PANE>;
 
 function SearchPage({route}: SearchPageProps) {
-    useCustomBackHandler();
+    const currentQuery = route?.params && 'query' in route.params ? route?.params?.query : '';
+    const query = currentQuery as SearchQuery;
+    const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
+
+    const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
 
     return (
-        <ScreenWrapper testID={SearchPage.displayName}>
-            <SearchResults query={route.params.query} />
+        <ScreenWrapper testID={Search.displayName}>
+            <FullPageNotFoundView
+                shouldForceFullScreen
+                shouldShow={!isValidQuery}
+                onBackButtonPress={handleOnBackButtonPress}
+                shouldShowLink={false}
+            >
+                <HeaderWithBackButton
+                    title="All"
+                    icon={Illustrations.MoneyReceipts}
+                    shouldShowBackButton={false}
+                />
+                <Search query={query} />
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

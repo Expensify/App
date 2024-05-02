@@ -184,6 +184,14 @@ function RoomInvitePage({
         Navigation.navigate(backRoute);
     }, [selectedOptions, backRoute, reportID, validate]);
 
+    const goBack = useCallback(() => {
+        if (role === CONST.IOU.SHARE.ROLE.ACCOUNTANT) {
+            Navigation.dismissModal(reportID);
+            return;
+        }
+        Navigation.goBack(backRoute);
+    }, [role, reportID, backRoute]);
+
     const headerMessage = useMemo(() => {
         const searchValue = searchTerm.trim().toLowerCase();
         const expensifyEmails = CONST.EXPENSIFY_EMAILS as string[];
@@ -212,14 +220,12 @@ function RoomInvitePage({
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report)}
                 subtitleKey={isEmptyObject(report) ? undefined : 'roomMembersPage.notAuthorized'}
-                onBackButtonPress={() => Navigation.goBack(backRoute)}
+                onBackButtonPress={goBack}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
                     subtitle={reportName}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(backRoute);
-                    }}
+                    onBackButtonPress={goBack}
                 />
                 <SelectionList
                     canSelectMultiple

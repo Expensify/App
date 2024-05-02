@@ -36,9 +36,6 @@ type Account = {
     /** The message to be displayed when code requested */
     message?: string;
 
-    /** Accounts that are on a domain with an Approved Accountant */
-    doesDomainHaveApprovedAccountant?: boolean;
-
     /** Form that is being loaded */
     loadingForm?: ValueOf<typeof CONST.FORMS>;
 
