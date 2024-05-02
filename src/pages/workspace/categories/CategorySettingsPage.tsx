@@ -61,8 +61,9 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
         Navigation.dismissModal();
     };
 
+    const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const threeDotsMenuItems = [];
-    if (Object.keys(policy?.connections ?? {}).length === 0) {
+    if (isThereAnyAccountingConnection) {
         threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: translate('workspace.categories.deleteCategory'),
