@@ -96,6 +96,8 @@ function buildOptimisticTransaction(
     existingTransactionID: string | null = null,
     category = '',
     tag = '',
+    taxCode = '',
+    taxAmount = 0,
     billable = false,
     pendingFields: Partial<{[K in TransactionPendingFieldsKey]: ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>}> | undefined = undefined,
     reimbursable = true,
@@ -126,6 +128,8 @@ function buildOptimisticTransaction(
         filename,
         category,
         tag,
+        taxCode,
+        taxAmount,
         billable,
         reimbursable,
     };
