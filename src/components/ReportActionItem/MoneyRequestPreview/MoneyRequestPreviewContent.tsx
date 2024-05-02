@@ -89,14 +89,16 @@ function MoneyRequestPreviewContent({
     const isSettlementOrApprovalPartial = Boolean(iouReport?.pendingFields?.partial);
     const isPartialHold = isSettlementOrApprovalPartial && isOnHold;
     const hasViolations = TransactionUtils.hasViolation(transaction?.transactionID ?? '', transactionViolations);
+    const hasNoticeTypeViolations = TransactionUtils.hasNoticeTypeViolation(transaction?.transactionID ?? '', transactionViolations);
     const hasFieldErrors = TransactionUtils.hasMissingSmartscanFields(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const isFetchingWaypointsFromServer = TransactionUtils.isFetchingWaypointsFromServer(transaction);
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const isSettled = ReportUtils.isSettled(iouReport?.reportID);
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const shouldShowRBR =
-        hasViolations || hasFieldErrors || (!(isSettled && !isSettlementOrApprovalPartial) && !(ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial) && isOnHold);
+    const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
+    const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
+    const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -178,6 +180,8 @@ function MoneyRequestPreviewContent({
             } else if (!(isSettled && !isSettlementOrApprovalPartial) && isOnHold) {
                 message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.hold')}`;
             }
+        } else if (hasNoticeTypeViolations && transaction && !ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID)) {
+            message += ` • ${translate('violations.reviewRequired')}`;
         } else if (ReportUtils.isPaidGroupPolicyExpenseReport(iouReport) && ReportUtils.isReportApproved(iouReport) && !ReportUtils.isSettled(iouReport?.reportID) && !isPartialHold) {
             message += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (iouReport?.isWaitingOnBankAccount) {
@@ -196,7 +200,7 @@ function MoneyRequestPreviewContent({
         }
 
         if (isFetchingWaypointsFromServer && !requestAmount) {
-            return translate('iou.routePending');
+            return translate('iou.fieldPending');
         }
 
         return CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency);
@@ -230,7 +234,10 @@ function MoneyRequestPreviewContent({
                 >
                     {showMapAsImage && (
                         <View style={styles.reportActionItemImages}>
-                            <ConfirmedRoute transaction={transaction} />
+                            <ConfirmedRoute
+                                transaction={transaction}
+                                interactive={false}
+                            />
                         </View>
                     )}
                     {!showMapAsImage && hasReceipt && (

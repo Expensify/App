@@ -47,8 +47,12 @@ function ReportActionItemCreated(props: ReportActionItemCreatedProps) {
         return null;
     }
 
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    let icons = ReportUtils.getIcons(props.report, props.personalDetails);
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
+
+    if (ReportUtils.isInvoiceRoom(props.report) && ReportUtils.isCurrentUserInvoiceReceiver(props.report)) {
+        icons = [...icons].reverse();
+    }
 
     return (
         <OfflineWithFeedback
