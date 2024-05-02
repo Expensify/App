@@ -272,12 +272,13 @@ function MoneyRequestConfirmationList({
 
     const {unit, rate} = mileageRate ?? {};
 
+    const distance = TransactionUtils.getDistance(transaction);
     const prevRate = usePrevious(rate);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
+    const prevDistance = usePrevious(distance);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
-    const distance = TransactionUtils.getDistance(transaction);
     const taxRates = policy?.taxRates ?? null;
 
     // A flag for showing the categories field
@@ -1053,7 +1054,7 @@ function MoneyRequestConfirmationList({
                         key={translate('workspace.invoices.sendFrom')}
                         shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                         title={senderWorkspace?.name}
-                        icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                        icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
                         iconType={CONST.ICON_TYPE_WORKSPACE}
                         description={translate('workspace.common.workspace')}
                         label={translate('workspace.invoices.sendFrom')}
