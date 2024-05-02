@@ -135,7 +135,7 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
+    const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     if (isNarrowView) {
         return (
