@@ -154,7 +154,7 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
         if (selectedCategoriesArray.length > 0) {
-            if (isThereAnyAccountingConnection) {
+            if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,
                     text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
