@@ -19,11 +19,13 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
+import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -46,8 +48,6 @@ type PolicyAccountingPageProps = WithPolicyProps &
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
     };
-
-const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
 
 type AccountingIntegration = {
     title: string;
@@ -91,7 +91,7 @@ function accountingIntegrationData(
                         integrationToDisconnect={integrationToDisconnect}
                     />
                 ),
-                onImportPagePress: () => {},
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => {},
                 onAdvancedPagePress: () => {},
             };
@@ -105,14 +105,23 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseXeroIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
+
+    const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
+
+    const tenants = useMemo(() => getXeroTenants(policy), [policy]);
+
+    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -185,6 +194,24 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     </View>
                 ),
             },
+            ...(policyConnectedToXero
+                ? [
+                      {
+                          description: translate('workspace.xero.organization'),
+                          iconRight: Expensicons.ArrowRight,
+                          title: currentXeroOrganization?.name,
+                          wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          shouldShowRightIcon: tenants.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          onPress: () => {
+                              if (!(tenants.length > 1)) {
+                                  return;
+                              }
+                              Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ORGANIZATION.getRoute(policyID, currentXeroOrganization?.id ?? ''));
+                          },
+                      },
+                  ]
+                : []),
             ...(isEmptyObject(policy?.connections)
                 ? []
                 : [
@@ -217,14 +244,18 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     }, [
         connectedIntegration,
         connectionSyncProgress?.stageInProgress,
+        currentXeroOrganization,
+        tenants,
         isSyncInProgress,
         overflowMenu,
         policy?.connections,
+        policyConnectedToXero,
         policyID,
         styles,
         theme.spinner,
         threeDotsMenuPosition,
         translate,
+        accountingIntegrations,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -246,7 +277,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: styles.sectionMenuItemTopDescription,
             };
         });
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, styles.sectionMenuItemTopDescription, translate]);
+    }, [
+        connectedIntegration,
+        connectionSyncProgress?.connectionName,
+        isSyncInProgress,
+        policy?.connections,
+        policyID,
+        styles.sectionMenuItemTopDescription,
+        translate,
+        accountingIntegrations,
+    ]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {

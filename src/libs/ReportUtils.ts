@@ -1669,7 +1669,7 @@ function getDefaultWorkspaceAvatarTestID(workspaceName: string): string {
 
 function getWorkspaceAvatar(report: OnyxEntry<Report>): UserUtils.AvatarSource {
     const workspaceName = getPolicyName(report, false, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]);
-    const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar ?? '';
+    const avatar = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL ?? '';
     return !isEmpty(avatar) ? avatar : getDefaultWorkspaceAvatar(workspaceName);
 }
 
@@ -1733,8 +1733,8 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxCo
  */
 function getWorkspaceIcon(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = null): Icon {
     const workspaceName = getPolicyName(report, false, policy);
-    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
-        ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatar
+    const policyExpenseChatAvatarSource = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
+        ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.avatarURL
         : getDefaultWorkspaceAvatar(workspaceName);
 
     const workspaceIcon: Icon = {
@@ -3516,12 +3516,6 @@ function buildOptimisticTaskCommentReportAction(
     parentReportID: string,
     actorAccountID?: number,
     createdOffset = 0,
-    repliesConfig?: {
-        childVisibleActionCount?: number;
-        childCommenterCount?: number;
-        childLastVisibleActionCreated?: string;
-        childOldestFourAccountIDs?: string;
-    },
 ): OptimisticReportAction {
     const reportAction = buildOptimisticAddCommentReportAction(text, undefined, undefined, createdOffset, undefined, taskReportID);
     if (reportAction.reportAction.message?.[0]) {
@@ -3544,22 +3538,6 @@ function buildOptimisticTaskCommentReportAction(
 
     if (actorAccountID) {
         reportAction.reportAction.actorAccountID = actorAccountID;
-    }
-
-    if (repliesConfig?.childVisibleActionCount) {
-        reportAction.reportAction.childVisibleActionCount = repliesConfig.childVisibleActionCount;
-    }
-
-    if (repliesConfig?.childCommenterCount) {
-        reportAction.reportAction.childCommenterCount = repliesConfig.childCommenterCount;
-    }
-
-    if (repliesConfig?.childLastVisibleActionCreated) {
-        reportAction.reportAction.childLastVisibleActionCreated = repliesConfig.childLastVisibleActionCreated;
-    }
-
-    if (repliesConfig?.childOldestFourAccountIDs) {
-        reportAction.reportAction.childOldestFourAccountIDs = repliesConfig.childOldestFourAccountIDs;
     }
 
     return reportAction;
