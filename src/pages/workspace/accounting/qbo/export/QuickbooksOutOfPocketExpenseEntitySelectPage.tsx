@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {SectionListData} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -30,16 +30,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const {reimbursableExpensesExportDestination, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTax);
-    const isTaxError = isTaxesEnabled && reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const isLocationError = isLocationsEnabled && reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const policyID = policy?.id ?? '';
-
-    useEffect(() => {
-        if (!isTaxError && !isLocationError) {
-            return;
-        }
-        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
-    }, [policyID, isTaxError, isLocationError]);
 
     const data: CardListItem[] = useMemo(
         () => [
