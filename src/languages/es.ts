@@ -1922,7 +1922,7 @@ export default {
             locationsDescription: 'Elige si quieres importar lugares y donde los lugares son mostrados.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             taxesJournalEntrySwitchNote:
-                'Nota: QuickBooks Online no admite un campo para impuestos en las exportaciones de Anotación en el diario. Change your export preference to Vendor Bill or Check to import taxes.',
+                'Nota: QuickBooks Online no admite un campo para impuestos en las exportaciones de Anotación en el diario. Cambie su preferencia de exportación a Factura de proveedor o Cheque para importar impuestos.',
             locationsAdditionalDescription:
                 'Los lugares son importados como Etiquegas. Esto limita a exportar los informes de gastos como Factura del Proveedor o Cheques a Quicbooks Online. Para desbloquear estas opciones de exportación desactiva la importación de Lugares o cambia al Plan Control para exportar Lugares como Campos de Informes.',
             export: 'Exportar',
