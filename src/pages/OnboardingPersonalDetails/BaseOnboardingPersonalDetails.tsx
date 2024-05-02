@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,6 +10,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -27,13 +28,15 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.TRACK, CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
+const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
 
     useDisableModalDismissOnEscape();
 
@@ -80,10 +83,14 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+        if (!shouldValidateOnChange) {
+            setShouldValidateOnChange(true);
+        }
+
         const errors = {};
 
         // First we validate the first name field
-        if (values.firstName.length === 0) {
+        if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
             ErrorUtils.addErrorMessage(errors, 'firstName', 'onboarding.error.requiredFirstName');
         }
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
@@ -96,9 +103,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         }
 
         // Then we validate the last name field
-        if (values.lastName.length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', 'onboarding.error.requiredLastName');
-        }
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
             ErrorUtils.addErrorMessage(errors, 'lastName', 'personalDetails.error.hasInvalidCharacter');
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
@@ -133,16 +137,17 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     submitButtonText={translate('common.continue')}
                     enabledWhenOffline
                     submitFlexEnabled
-                    shouldValidateOnBlur
-                    shouldValidateOnChange
+                    shouldValidateOnBlur={false}
+                    shouldValidateOnChange={shouldValidateOnChange}
                     shouldTrimValues={false}
                 >
                     <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                        <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.whatsYourName')}</Text>
+                        <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
                     </View>
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={TextInput}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.FIRST_NAME}
                             name="fname"
                             label={translate('common.firstName')}
@@ -152,7 +157,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                             shouldSaveDraft
                             maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                             spellCheck={false}
-                            autoFocus
                         />
                     </View>
                     <View>

@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -29,6 +30,14 @@ type CustomUnit = OnyxCommon.OnyxValueWithOfflineFeedback<{
     errors?: OnyxCommon.Errors;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
+
+type CompanyAddress = {
+    addressStreet: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: Country | '';
+};
 
 type DisabledFields = {
     defaultBillable?: boolean;
@@ -169,8 +178,8 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
     syncAccounts: IntegrationEntityMap;
-    syncTaxes: IntegrationEntityMap;
     lastConfigurationTime: number;
+    exportCompanyCardAccount?: string;
     syncTax: boolean;
     enableNewCategories: IntegrationEntityMap;
     errors?: OnyxCommon.Errors;
@@ -179,10 +188,77 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     outOfPocketExpenses: string;
     exportInvoice: string;
     exportAccount: string;
-    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
-    exportCompanyCard: string;
+    exportAccountPayable: string;
+    accountPayable: string;
+    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE>;
+    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
+
+type BillStatusValues = 'DRAFT' | 'AWT_APPROVAL' | 'AWT_PAYMENT';
+
+type ExpenseTypesValues = 'BILL' | 'BANK_TRANSACTION' | 'SALES_INVOICE' | 'NOTHING';
+
+type BillDateValues = 'REPORT_SUBMITTED' | 'REPORT_EXPORTED' | 'LAST_EXPENSE';
+
+type Tenant = {
+    id: string;
+    name: string;
+    value: string;
+};
+
+type XeroConnectionData = {
+    bankAccounts: unknown[];
+    countryCode: string;
+    organisationID: string;
+    revenueAccounts: Array<{
+        id: string;
+        name: string;
+    }>;
+    tenants: Tenant[];
+    trackingCategories: unknown[];
+};
+
+/**
+ * User configuration for the Xero accounting integration.
+ */
+type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    autoSync: {
+        enabled: boolean;
+        jobID: string;
+    };
+    enableNewCategories: boolean;
+    export: {
+        billDate: BillDateValues;
+        billStatus: {
+            purchase: BillStatusValues;
+            sales: BillStatusValues;
+        };
+        billable: ExpenseTypesValues;
+        exporter: string;
+        nonReimbursable: ExpenseTypesValues;
+        nonReimbursableAccount: string;
+        reimbursable: ExpenseTypesValues;
+    };
+    importCustomers: boolean;
+    importTaxRates: boolean;
+    importTrackingCategories: boolean;
+    isConfigured: boolean;
+    mappings: {
+        customer: string;
+    };
+    sync: {
+        hasChosenAutoSyncOption: boolean;
+        hasChosenSyncReimbursedReportsOption: boolean;
+        invoiceCollectionsAccountID: string;
+        reimbursementAccountID: string;
+        syncReimbursedReports: boolean;
+    };
+    tenantID: string;
+    errors?: OnyxCommon.Errors;
+    errorFields?: OnyxCommon.ErrorFields;
+}>;
+
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
     data: ConnectionData;
@@ -191,6 +267,7 @@ type Connection<ConnectionData, ConnectionConfig> = {
 
 type Connections = {
     quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero: Connection<XeroConnectionData, XeroConnectionConfig>;
 };
 
 type ConnectionName = keyof Connections;
@@ -295,8 +372,10 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The output currency for the policy */
         outputCurrency: string;
 
+        /** The address of the company */
+        address?: CompanyAddress;
+
         /** The URL for the policy avatar */
-        avatar?: string;
         avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
@@ -467,6 +546,7 @@ export type {
     TaxRate,
     TaxRates,
     TaxRatesWithDefault,
+    CompanyAddress,
     IntegrationEntityMap,
     PolicyFeatureName,
     PendingJoinRequestPolicy,
@@ -475,4 +555,6 @@ export type {
     PolicyConnectionSyncProgress,
     Connections,
     ConnectionName,
+    Tenant,
+    Account,
 };
