@@ -255,6 +255,7 @@ function OptionRow({
                                 ) : null}
                                 {option.shouldShowAmountInput && option.amountInputProps ? (
                                     <MoneyRequestAmountInput
+                                        autoGrowDirection={CONST.INPUT_AUTOGROW_DIRECTION.LEFT}
                                         disableKeyboard={false}
                                         isCurrencyPressable={false}
                                         hideCurrencySymbol

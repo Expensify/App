@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -71,6 +72,8 @@ type MoneyRequestAmountInputProps = {
 
     /** Whether to format display amount when the `amount` prop changes from the outside */
     formatAmountOnChange?: boolean;
+
+    autoGrowDirection?: ValueOf<typeof CONST.INPUT_AUTOGROW_DIRECTION>;
 };
 
 type Selection = {
@@ -100,6 +103,7 @@ function MoneyRequestAmountInput(
         disableKeyboard = true,
         formatAmountOnBlur,
         formatAmountOnChange,
+        autoGrowDirection = CONST.INPUT_AUTOGROW_DIRECTION.RIGHT,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -273,6 +277,7 @@ function MoneyRequestAmountInput(
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            autoGrowDirection={autoGrowDirection}
         />
     );
 }

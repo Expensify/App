@@ -18,19 +18,19 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const quickbooksOnlineConfigTitles = {
-        [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: translate('workspace.qbo.imported'),
-        [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: translate('workspace.qbo.imported'),
+        [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: translate('workspace.accounting.imported'),
+        [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: translate('workspace.accounting.imported'),
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: translate('workspace.qbo.notImported'),
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: translate('workspace.qbo.notImported'),
-        [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: translate('workspace.qbo.importedAsTags'),
+        [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: translate('workspace.accounting.importedAsTags'),
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: translate('workspace.qbo.importedAsReportFields'),
     };
     const policyID = policy?.id ?? '';
-    const {syncClasses, syncCustomers, syncLocations, syncTaxes, enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncClasses, syncCustomers, syncLocations, syncTax, enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const sections = [
         {
-            description: translate('workspace.qbo.accounts'),
+            description: translate('workspace.accounting.accounts'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.enableNewCategories),
             title: enableNewCategories,
@@ -61,11 +61,11 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
 
     if (policy?.connections?.quickbooksOnline.data.country !== CONST.COUNTRY.US) {
         sections.push({
-            description: translate('workspace.qbo.taxes'),
+            description: translate('workspace.accounting.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncTaxes),
-            title: syncTaxes,
-            pendingAction: pendingFields?.syncTaxes,
+            hasError: Boolean(policy?.errors?.syncTax),
+            title: syncTax ? CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED : CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED,
+            pendingAction: pendingFields?.syncTax,
         });
     }
 
@@ -80,7 +80,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksImportPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.import')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.import')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
                     {sections.map((section) => (

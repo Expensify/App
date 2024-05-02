@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -47,8 +48,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
-    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax;
+    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
 
     const spendItems: Item[] = [
         {

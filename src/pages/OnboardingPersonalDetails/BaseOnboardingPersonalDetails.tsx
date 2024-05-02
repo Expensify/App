@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.TRACK, CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
+const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();

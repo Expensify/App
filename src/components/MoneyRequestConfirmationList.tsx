@@ -575,6 +575,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
+        // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired]);
 
@@ -592,7 +593,9 @@ function MoneyRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, transactionID, policyTags, canUseViolations]);
+        // Keep 'transaction' out to ensure that we autoselect the option only once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyTagLists, policyTags, canUseViolations]);
 
     /**
      */
@@ -1098,7 +1101,7 @@ function MoneyRequestConfirmationList({
                         key={translate('workspace.invoices.sendFrom')}
                         shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                         title={senderWorkspace?.name}
-                        icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                        icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
                         iconType={CONST.ICON_TYPE_WORKSPACE}
                         description={translate('workspace.common.workspace')}
                         label={translate('workspace.invoices.sendFrom')}

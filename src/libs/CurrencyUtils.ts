@@ -127,7 +127,7 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
 /**
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
-function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
+function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD, removeCommas = false) {
     const convertedAmount = convertToFrontendAmount(amountInCents);
     return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
         style: 'currency',
@@ -139,6 +139,7 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
     })
         .filter((x) => x.type !== 'currency')
         .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .filter((x) => (removeCommas ? x.type !== 'group' : true))
         .map((x) => x.value)
         .join('');
 }
