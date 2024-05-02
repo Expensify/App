@@ -442,14 +442,14 @@ function ReportActionItem({
             return [
                 {
                     text: 'actionableReportMentionWhisperOptions.create',
-                    key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.YES}`,
-                    onPress: () => Report.resolveActionableReportMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.YES),
+                    key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
+                    onPress: () => Report.resolveActionableReportMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableReportMentionWhisperOptions.nothing',
-                    key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NO}`,
-                    onPress: () => Report.resolveActionableReportMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NO),
+                    key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
+                    onPress: () => Report.resolveActionableReportMentionWhisper(report.reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
                 },
             ];
         }
@@ -870,7 +870,7 @@ function ReportActionItem({
         return null;
     }
 
-    // if action is actionable mention whisper or track expense whisper and resolved by user, then we don't want to render anything
+    // If action is actionable whisper and resolved by user, then we don't want to render anything
     if (isActionableWhisper && (action.originalMessage.resolution ?? null)) {
         return null;
     }

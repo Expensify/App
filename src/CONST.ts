@@ -782,8 +782,8 @@ const CONST = {
             NOTHING: 'nothing',
         },
         ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION: {
-            YES: 'yes',
-            NO: 'no',
+            CREATE: 'created',
+            NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
             ACCEPT: 'accept',
