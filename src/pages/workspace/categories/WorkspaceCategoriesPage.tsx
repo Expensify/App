@@ -1,8 +1,8 @@
 import {useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
+import {StackScreenProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -28,26 +28,24 @@ import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@libs/acti
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
+import {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
+import SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {PolicyRoute} from '../withPolicy';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
     keyForList: string;
 };
 
-type WorkspaceCategoriesPageOnyxProps = {
-    /** The policy the user is accessing. */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-};
-function WorkspaceCategoriesPage() {
+type WorkspaceCategoriesPageProps = StackScreenProps<WorkspacesCentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+
+function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -57,8 +55,6 @@ function WorkspaceCategoriesPage() {
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
-    const routes = useNavigationState((state) => state.routes || []);
-    const route = routes?.at(-1) as PolicyRoute;
     const policyId = route.params.policyID ?? '';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
