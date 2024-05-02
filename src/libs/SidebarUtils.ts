@@ -99,7 +99,7 @@ function getOrderedReportIDs(
         if (hasErrorsOtherThanFailedReceipt) {
             return true;
         }
-        
+
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
