@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
 import {ReceiptAuditHeader, ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
-import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
@@ -77,9 +76,6 @@ type MoneyRequestViewPropsWithoutTransaction = MoneyRequestViewOnyxPropsWithoutT
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean;
-
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground: boolean;
 };
@@ -91,7 +87,6 @@ function MoneyRequestView({
     parentReport,
     parentReportActions,
     policyCategories,
-    shouldShowHorizontalRule,
     transaction,
     policyTagList,
     policy,
@@ -134,6 +129,7 @@ function MoneyRequestView({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
@@ -164,7 +160,7 @@ function MoneyRequestView({
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
-    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
+    const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
@@ -195,11 +191,11 @@ function MoneyRequestView({
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID as string] ?? {};
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
     const {unit} = mileageRate;
-    const rate = (transaction?.comment?.customUnit?.defaultP2PRate as number) ?? mileageRate.rate;
+    const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.convertToDistanceInMeters((transaction?.comment?.customUnit?.quantity as number) ?? 0, unit);
+    const distance = DistanceRequestUtils.convertToDistanceInMeters(TransactionUtils.getDistance(transaction), unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
@@ -332,7 +328,7 @@ function MoneyRequestView({
     );
 
     const shouldShowMapOrReceipt = showMapAsImage || hasReceipt;
-    const shouldShowReceiptEmptyState = !hasReceipt && (canEditReceipt || isAdmin || isApprover);
+    const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
     const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
     const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
 
@@ -346,14 +342,16 @@ function MoneyRequestView({
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                <ReceiptAuditHeader
-                    notes={noticeTypeViolations}
-                    shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
-                />
+                {!isInvoice && (
+                    <ReceiptAuditHeader
+                        notes={noticeTypeViolations}
+                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                    />
+                )}
                 {(shouldShowMapOrReceipt || errors) && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
-                        errors={errors}
+                        errors={transaction?.errors}
                         errorRowStyles={[styles.ml4]}
                         onClose={() => {
                             if (!transaction?.transactionID) {
@@ -365,7 +363,10 @@ function MoneyRequestView({
                         {shouldShowMapOrReceipt && (
                             <View style={styles.moneyRequestViewImage}>
                                 {showMapAsImage ? (
-                                    <ConfirmedRoute transaction={transaction} />
+                                    <ConfirmedRoute
+                                        transaction={transaction}
+                                        interactive={false}
+                                    />
                                 ) : (
                                     <ReportActionItemImage
                                         thumbnail={receiptURIs?.thumbnail}
@@ -568,10 +569,6 @@ function MoneyRequestView({
                     </View>
                 )}
             </View>
-            <SpacerView
-                shouldShow={shouldShowHorizontalRule}
-                style={[shouldShowHorizontalRule ? styles.reportHorizontalRule : {}]}
-            />
         </View>
     );
 }
