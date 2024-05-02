@@ -26,7 +26,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: translate('workspace.qbo.importedAsReportFields'),
     };
     const policyID = policy?.id ?? '';
-    const {syncClasses, syncCustomers, syncLocations, syncTaxes, enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncClasses, syncCustomers, syncLocations, syncTax, enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const sections = [
         {
@@ -63,9 +63,9 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
         sections.push({
             description: translate('workspace.accounting.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
-            hasError: Boolean(policy?.errors?.syncTaxes),
-            title: syncTaxes,
-            pendingAction: pendingFields?.syncTaxes,
+            hasError: Boolean(policy?.errors?.syncTax),
+            title: syncTax ? CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED : CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED,
+            pendingAction: pendingFields?.syncTax,
         });
     }
 

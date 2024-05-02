@@ -178,7 +178,6 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
     syncAccounts: IntegrationEntityMap;
-    syncTaxes: IntegrationEntityMap;
     lastConfigurationTime: number;
     exportCompanyCardAccount?: string;
     syncTax: boolean;
@@ -191,8 +190,8 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     exportAccount: string;
     exportAccountPayable: string;
     accountPayable: string;
-    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_ENTITY>;
-    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD>;
+    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE>;
+    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>;
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
@@ -377,7 +376,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         address?: CompanyAddress;
 
         /** The URL for the policy avatar */
-        avatar?: string;
         avatarURL?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */

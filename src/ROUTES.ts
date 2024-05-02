@@ -786,6 +786,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import/trackCategories/mapRegions',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/trackCategories/mapRegions` as const,
     },
+    POLICY_ACCOUNTING_XERO_CUSTOMER: {
+        route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
+        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
+    },
     POLICY_ACCOUNTING_XERO_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
