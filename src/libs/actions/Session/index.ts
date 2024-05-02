@@ -23,7 +23,6 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Fullstory from '@libs/fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,11 +62,6 @@ Onyx.connect({
             authPromiseResolver = null;
         }
     },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: Fullstory.consentAndIdentify,
 });
 
 let stashedSession: Session = {};

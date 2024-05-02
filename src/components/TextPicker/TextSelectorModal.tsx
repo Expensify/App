@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelectorModalProps} from './types';
@@ -17,6 +18,8 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
 
     const [currentValue, setValue] = useState(value);
 
+    const {paddingTop, paddingBottom} = useStyledSafeAreaInsets();
+
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -25,12 +28,14 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
+                style={{paddingTop, paddingBottom}}
             >
                 <HeaderWithBackButton
                     title={description}

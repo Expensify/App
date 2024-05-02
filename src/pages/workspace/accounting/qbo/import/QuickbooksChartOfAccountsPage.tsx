@@ -9,10 +9,9 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import withPolicy from '@pages/workspace/withPolicy';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -24,50 +23,49 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const isSwitchOn = Boolean(enableNewCategories && enableNewCategories !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={QuickbooksChartOfAccountsPage.displayName}
             >
-                <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
-                    shouldEnableMaxHeight
-                    testID={QuickbooksChartOfAccountsPage.displayName}
-                >
-                    <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
-                    <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
-                        <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <View style={styles.flex1}>
-                                <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
-                            </View>
-                            <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
-                                <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
-                                    <Switch
-                                        accessibilityLabel={translate('workspace.qbo.accounts')}
-                                        isOn={isSwitchOn}
-                                        onToggle={() =>
-                                            Connections.updatePolicyConnectionConfig(
-                                                policyID,
-                                                CONST.POLICY.CONNECTIONS.NAME.QBO,
-                                                CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
-                                                isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                                            )
-                                        }
-                                    />
-                                </View>
-                            </OfflineWithFeedback>
-                        </View>
+                <HeaderWithBackButton title={translate('workspace.accounting.accounts')} />
+                <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
+                    <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
+                    <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
-                            <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
                         </View>
-                    </ScrollView>
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                        <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
+                            <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
+                                <Switch
+                                    accessibilityLabel={translate('workspace.accounting.accounts')}
+                                    isOn={isSwitchOn}
+                                    onToggle={() =>
+                                        Connections.updatePolicyConnectionConfig(
+                                            policyID,
+                                            CONST.POLICY.CONNECTIONS.NAME.QBO,
+                                            CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
+                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                        )
+                                    }
+                                />
+                            </View>
+                        </OfflineWithFeedback>
+                    </View>
+                    <View style={styles.flex1}>
+                        <Text style={styles.mutedTextLabel}>{translate('workspace.qbo.accountsSwitchDescription')}</Text>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 QuickbooksChartOfAccountsPage.displayName = 'QuickbooksChartOfAccountsPage';
 
-export default withPolicy(QuickbooksChartOfAccountsPage);
+export default withPolicyConnections(QuickbooksChartOfAccountsPage);

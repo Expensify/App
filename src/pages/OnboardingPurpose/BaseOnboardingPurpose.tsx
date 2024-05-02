@@ -28,7 +28,6 @@ import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
 
 const menuIcons = {
-    [CONST.ONBOARDING_CHOICES.TRACK]: Illustrations.CompanyCard,
     [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
     [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
     [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
