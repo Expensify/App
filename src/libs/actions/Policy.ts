@@ -279,6 +279,16 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 }
 
 /**
+ * Returns a primary policy for the user
+ */
+function getPrimaryPolicy(activePolicyID?: string): Policy | undefined {
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? ''];
+
+    return primaryPolicy ?? activeAdminWorkspaces[0];
+}
+
+/**
  * Check if the user has any active free policies (aka workspaces)
  */
 function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyFreePolicies = false): boolean {
@@ -2200,6 +2210,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         errors: {},
                     },
                 },
+                chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
             },
         },
         {
@@ -5118,6 +5129,7 @@ export {
     updatePolicyDistanceRateValue,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
+    getPrimaryPolicy,
 };
 
 export type {NewCustomUnit};

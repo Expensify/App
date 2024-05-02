@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import useActiveRoute from '@hooks/useActiveRoute';
 import useLocalize from '@hooks/useLocalize';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,17 +13,20 @@ import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SearchFiltersNarrow from './SearchFiltersNarrow';
 
+type SearchFiltersProps = {
+    query: string;
+};
+
 type SearchMenuFilterItem = {
     title: string;
     icon: IconAsset;
     route: Route;
 };
 
-function SearchFilters() {
+function SearchFilters({query}: SearchFiltersProps) {
     const styles = useThemeStyles();
-    const {singleExecution} = useSingleExecution();
-    const activeRoute = useActiveRoute();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
 
     const filterItems: SearchMenuFilterItem[] = [
@@ -35,15 +37,11 @@ function SearchFilters() {
         },
     ];
 
-    const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
-
     if (isSmallScreenWidth) {
-        const activeItemLabel = String(currentQuery);
-
         return (
             <SearchFiltersNarrow
                 filterItems={filterItems}
-                activeItemLabel={activeItemLabel}
+                activeItemLabel={String(query)}
             />
         );
     }
@@ -51,7 +49,7 @@ function SearchFilters() {
     return (
         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
             {filterItems.map((item) => {
-                const isActive = item.title.toLowerCase() === currentQuery;
+                const isActive = item.title.toLowerCase() === query;
                 const onPress = singleExecution(() => Navigation.navigate(item.route));
 
                 return (

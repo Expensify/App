@@ -33,9 +33,12 @@ type ConfirmedRouteProps = ConfirmedRoutePropsOnyxProps & {
 
     /** Whether it should not have border radius */
     shouldHaveNoBorderRadius?: boolean;
+
+    /** Whether the map is interactable or not */
+    interactive?: boolean;
 };
 
-function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon, shouldHaveNoBorderRadius = false}: ConfirmedRouteProps) {
+function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon, shouldHaveNoBorderRadius = false, interactive}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
     const {route0: route} = transaction?.routes ?? {};
     const waypoints = transaction?.comment?.waypoints ?? {};
@@ -97,6 +100,7 @@ function ConfirmedRoute({mapboxAccessToken, transaction, isSmallIcon, shouldHave
 
     return !isOffline && Boolean(mapboxAccessToken?.token) ? (
         <DistanceMapView
+            interactive={interactive}
             accessToken={mapboxAccessToken?.token ?? ''}
             mapPadding={CONST.MAP_PADDING}
             pitchEnabled={false}

@@ -270,8 +270,8 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
-    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
+function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -947,17 +947,11 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
 /**
  * Returns padding vertical based on number of lines
  */
-function getComposeTextAreaPadding(numberOfLines: number, isComposerFullSize: boolean): TextStyle {
+function getComposeTextAreaPadding(isComposerFullSize: boolean): TextStyle {
     let paddingValue = 5;
     // Issue #26222: If isComposerFullSize paddingValue will always be 5 to prevent padding jumps when adding multiple lines.
     if (!isComposerFullSize) {
-        if (numberOfLines === 1) {
-            paddingValue = 9;
-        }
-        // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
-        else if (numberOfLines === 3) {
-            paddingValue = 8;
-        }
+        paddingValue = 8;
     }
     return {
         paddingTop: paddingValue,
@@ -1483,6 +1477,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             ...positioning.r4,
             ...styles.cursorDefault,
             ...styles.userSelectNone,
+            overflowAnchor: 'none',
             position: 'absolute',
             zIndex: 8,
         }),

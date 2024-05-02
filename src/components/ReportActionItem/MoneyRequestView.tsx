@@ -5,6 +5,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useSession} from '@components/OnyxProvider';
+import {ReceiptAuditHeader, ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import SpacerView from '@components/SpacerView';
 import Switch from '@components/Switch';
@@ -98,6 +100,7 @@ function MoneyRequestView({
 }: MoneyRequestViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const session = useSession();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -128,6 +131,7 @@ function MoneyRequestView({
     const isCardTransaction = TransactionUtils.isCardTransaction(transaction);
     const cardProgramName = isCardTransaction && transactionCardID !== undefined ? CardUtils.getCardDescription(transactionCardID) : '';
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
+    const isInvoice = ReportUtils.isInvoiceReport(moneyRequestReport);
     const taxRates = policy?.taxRates;
     const formattedTaxAmount = CurrencyUtils.convertToDisplayString(transactionTaxAmount, transactionCurrency);
 
@@ -148,12 +152,17 @@ function MoneyRequestView({
     const canEditMerchant = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT);
     const canEditDate = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE);
     const canEditReceipt = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
+    const hasReceipt = TransactionUtils.hasReceipt(transaction);
+    const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
+    const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
     // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
     const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
 
+    const isAdmin = policy?.role === 'admin';
+    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
-    const isPolicyExpenseChat = ReportUtils.isGroupPolicy(report);
+    const isPolicyExpenseChat = ReportUtils.isReportInGroupPolicy(report);
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTagList), [policyTagList]);
 
@@ -184,14 +193,19 @@ function MoneyRequestView({
 
     const currency = policy ? policy.outputCurrency : PolicyUtils.getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID as string] ?? {};
+    const mileageRate = TransactionUtils.isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(currency) : distanceRates[rateID] ?? {};
     const {unit} = mileageRate;
-    const rate = (transaction?.comment?.customUnit?.defaultP2PRate as number) ?? mileageRate.rate;
+    const rate = transaction?.comment?.customUnit?.defaultP2PRate ?? mileageRate.rate;
 
-    const distance = DistanceRequestUtils.convertToDistanceInMeters((transaction?.comment?.customUnit?.quantity as number) ?? 0, unit);
+    const distance = DistanceRequestUtils.convertToDistanceInMeters(TransactionUtils.getDistance(transaction), unit);
     const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
-
+    let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
+    let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
+    if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+        merchantTitle = translate('iou.receiptStatusTitle');
+        amountTitle = translate('iou.receiptStatusTitle');
+    }
     const saveBillable = useCallback(
         (newBillable: boolean) => {
             // If the value hasn't changed, don't request to save changes on the server and just close the modal
@@ -230,7 +244,6 @@ function MoneyRequestView({
         }
     }
 
-    const hasReceipt = TransactionUtils.hasReceipt(transaction);
     let receiptURIs;
     const hasErrors = canEdit && TransactionUtils.hasMissingSmartscanFields(transaction);
     if (hasReceipt) {
@@ -316,11 +329,20 @@ function MoneyRequestView({
         </OfflineWithFeedback>
     );
 
+    const shouldShowReceiptEmptyState = !hasReceipt && !isInvoice && (canEditReceipt || isAdmin || isApprover);
+    const noticeTypeViolations = transactionViolations?.filter((violation) => violation.type === 'notice').map((v) => ViolationsUtils.getViolationTranslation(v, translate)) ?? [];
+    const shouldShowNotesViolations = !isReceiptBeingScanned && canUseViolations && ReportUtils.isPaidGroupPolicy(report);
+
     return (
         <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth, true, shouldShowAnimatedBackground)]}>
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                {!isInvoice && (
+                    <ReceiptAuditHeader
+                        notes={noticeTypeViolations}
+                        shouldShowAuditMessage={Boolean(shouldShowNotesViolations && didRceiptScanSucceed)}
+                    />
+                )}
                 {hasReceipt && (
                     <OfflineWithFeedback
                         pendingAction={pendingAction}
@@ -347,9 +369,10 @@ function MoneyRequestView({
                         </View>
                     </OfflineWithFeedback>
                 )}
-                {!hasReceipt && canEditReceipt && (
+                {shouldShowReceiptEmptyState && (
                     <ReceiptEmptyState
                         hasError={hasErrors}
+                        disabled={!canEditReceipt}
                         onPress={() =>
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -363,10 +386,12 @@ function MoneyRequestView({
                         }
                     />
                 )}
+                {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
+                {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />}
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
-                        title={formattedTransactionAmount ? formattedTransactionAmount.toString() : ''}
+                        title={amountTitle}
                         shouldShowTitleIcon={isSettled}
                         titleIcon={Expensicons.Checkmark}
                         description={amountDescription}
@@ -399,7 +424,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
                         <MenuItemWithTopDescription
                             description={translate('common.merchant')}
-                            title={isEmptyMerchant ? '' : transactionMerchant}
+                            title={merchantTitle}
                             interactive={canEditMerchant}
                             shouldShowRightIcon={canEditMerchant}
                             titleStyle={styles.flex1}

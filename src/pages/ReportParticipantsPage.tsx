@@ -13,7 +13,6 @@ import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/Bu
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
@@ -28,6 +27,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -99,7 +99,7 @@ function ReportParticipantsPage({report, personalDetails, session}: ReportPartic
                 pendingAction: pendingChatMember?.pendingAction,
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: UserUtils.getAvatar(details?.avatar, accountID),
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
