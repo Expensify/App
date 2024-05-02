@@ -2699,7 +2699,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
     const optimisticParticipants: Participants = {};
     const successParticipants: Participants = {};
 
-    Object.keys(participants).forEach(accountID => {
+    Object.keys(participants).forEach((accountID) => {
         const participantID = Number(accountID);
         optimisticParticipants[participantID] = {
             ...participants[participantID],
@@ -2721,7 +2721,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: { participants: optimisticParticipants },
+            value: {participants: optimisticParticipants},
         },
     ];
 
@@ -2729,7 +2729,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: { participants: successParticipants },
+            value: {participants: successParticipants},
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
