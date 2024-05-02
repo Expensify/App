@@ -1,8 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx, withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
