@@ -5474,6 +5474,40 @@ function temporary_getMoneyRequestOptions(
 }
 
 /**
+ * Invoice sender, invoice receiver and auto-invited admins cannot leave
+ */
+function canJoinOrLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
+    if (!isInvoiceRoom(report)) {
+        return false;
+    } 
+
+    const invoiceReport = getReport(report?.iouReportID ?? '');
+
+    if (invoiceReport?.ownerAccountID === currentUserAccountID) {
+        return false;
+    }
+
+    if (invoiceReport?.managerID === currentUserAccountID) {
+        return false;
+    }
+
+    const isSenderPolicyAdmin = getPolicy(report?.policyID)?.role === CONST.POLICY.ROLE.ADMIN;
+
+    if (isSenderPolicyAdmin) {
+        return false;
+    }
+
+    const isReceiverPolicyAdmin =
+        report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? getPolicy(report?.invoiceReceiver?.policyID)?.role === CONST.POLICY.ROLE.ADMIN : false;
+
+    if (isReceiverPolicyAdmin) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Allows a user to leave a policy room according to the following conditions of the visibility or chatType rNVP:
  * `public` - Anyone can leave (because anybody can join)
  * `public_announce` - Only non-policy members can leave (it's auto-shared with policy members)
@@ -6374,7 +6408,15 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
         return false;
     }
 
-    return isChatReport(report) || canLeaveRoom(report, !isEmptyObject(policy)) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
+    if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
+        return false;
+    }
+
+    if (canJoinOrLeaveInvoiceRoom(report)) {
+        return true;
+    }
+
+    return isChatThread(report) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
 /**
@@ -6385,7 +6427,15 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return false;
     }
 
-    return (isChatThread(report) && !!report?.notificationPreference?.length) || canLeaveRoom(report, !isEmptyObject(policy)) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
+    if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
+        return false;
+    }
+
+    if (canJoinOrLeaveInvoiceRoom(report)) {
+        return true;
+    }
+
+    return (isChatThread(report) && !!report?.notificationPreference?.length) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
 function getReportActionActorAccountID(reportAction: OnyxEntry<ReportAction>, iouReport: OnyxEntry<Report> | undefined): number | undefined {
