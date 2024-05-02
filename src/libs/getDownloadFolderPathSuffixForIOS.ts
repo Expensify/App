@@ -8,10 +8,10 @@ function getDownloadFolderPathSuffixForIOS(environment: string) {
             folderSuffix = '';
             break;
         case CONST.ENVIRONMENT.ADHOC:
-            folderSuffix = ' AdHoc';
+            folderSuffix = CONST.ENVIRONMENT.ADHOC_SUFFIX;
             break;
         case CONST.ENVIRONMENT.DEV:
-            folderSuffix = ' Dev';
+            folderSuffix = CONST.ENVIRONMENT.DEV_SUFFIX;
             break;
         default:
             folderSuffix = '';
