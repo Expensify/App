@@ -1,6 +1,7 @@
+import {isEqual} from 'lodash';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -51,6 +52,8 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         shouldInitialize: didScreenTransitionEnd,
     });
 
+    const combinedListRef = useRef<Array<OptionData | null>>([]);
+
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.getFilteredOptions(
             listOptions.reports ?? [],
@@ -98,6 +101,10 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             return;
         }
         const combinedList = [...options.personalDetails, ...selectedOptions, options.userToInvite];
+        if (isEqual(combinedList, combinedListRef.current)) {
+            return;
+        }
+        combinedListRef.current = combinedList;
         const selectedAccountIDs = newGroupDraft.participants.map((participant) => participant.accountID);
         const selectedParticipants = combinedList.filter((option) => option?.accountID && selectedAccountIDs.includes(option?.accountID));
         const newSelectedOptions = selectedParticipants.map((participant) => ({
@@ -106,8 +113,7 @@ function useOptions({isGroupChat}: NewChatPageProps) {
             isSelected: true,
         }));
         setSelectedOptions(newSelectedOptions);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newGroupDraft, personalData, personalDetails]);
+    }, [newGroupDraft, personalData, options, selectedOptions, personalDetails]);
 
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
 }
