@@ -151,10 +151,10 @@ function WorkspaceCategoriesPage({policy, route}: WorkspaceCategoriesPageProps) 
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [];
+        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
         if (selectedCategoriesArray.length > 0) {
-            // If the workspace is connected to an accounting software, the user can't delete categories
-            if (Object.keys(policy?.connections ?? {}).length === 0) {
+            if (isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,
                     text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
