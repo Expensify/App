@@ -1,5 +1,4 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -34,8 +33,6 @@ import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type * as OnyxTypes from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
@@ -108,10 +105,14 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
             }));
     }, [doesPolicyContainOnlyOneTagList, policyTagLists, selectedTags, translate]);
 
-    const tagListKeyedByName = tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
-        acc[tag.value] = tag;
-        return acc;
-    }, {});
+    const tagListKeyedByName = useMemo(
+        () =>
+            tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+                acc[tag.value] = tag;
+                return acc;
+            }, {}),
+        [tagList],
+    );
 
     const toggleTag = (tag: TagListItem) => {
         setSelectedTags((prev) => ({
