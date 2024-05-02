@@ -85,4 +85,8 @@ function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop};
+function getModalVisibleCount() {
+    return closeModals.length;
+}
+
+export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, getModalVisibleCount};
