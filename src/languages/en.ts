@@ -2234,9 +2234,9 @@ export default {
             notImported: 'Not imported',
             importAsCategory: 'Imported, displayed as categories',
             importTypes: {
-                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Imported, displayed as tags',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Imported, displayed as tags',
-                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Imported, displayed as tags',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported, displayed as report fields',
