@@ -27,7 +27,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {autoSync, pendingFields, errorFields} = xeroConfig ?? {};
+    const {autoSync, pendingFields, errorFields, sync} = xeroConfig ?? {};
 
     return (
         <AccessOrNotFoundWrapper
@@ -69,6 +69,22 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             onPress={() => {}}
                         />
                     </OfflineWithFeedback>
+                    <ToggleSettingOptionRow
+                        key={translate('workspace.xero.advancedConfig.reimbursedReports')}
+                        title={translate('workspace.xero.advancedConfig.reimbursedReports')}
+                        subtitle={translate('workspace.xero.advancedConfig.reimbursedReportsDescription')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={styles.mv3}
+                        isActive={Boolean(sync?.syncReimbursedReports)}
+                        onToggle={() =>
+                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
+                                syncReimbursedReports: !sync?.syncReimbursedReports,
+                            })
+                        }
+                        pendingAction={pendingFields?.sync}
+                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC)}
+                        onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC)}
+                    />
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
