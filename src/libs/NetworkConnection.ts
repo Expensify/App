@@ -50,6 +50,16 @@ function setOfflineStatus(isCurrentlyOffline: boolean): void {
     isOffline = isCurrentlyOffline;
 }
 
+function setNetWorkStatus(isInternetReachable: boolean | null): void {
+    let networkStatus;
+    if (!isBoolean(isInternetReachable)) {
+        networkStatus = CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
+    } else {
+        networkStatus = isInternetReachable ? CONST.NETWORK.NETWORK_STATUS.ONLINE : CONST.NETWORK.NETWORK_STATUS.OFFLINE;
+    }
+    NetworkActions.setNetWorkStatus(networkStatus);
+}
+
 // Update the offline status in response to changes in shouldForceOffline
 let shouldForceOffline = false;
 Onyx.connect({
@@ -104,12 +114,14 @@ function subscribeToBackendAndInternetReachability(): () => void {
                 }
                 checkInternetReachability().then((isInternetReachable: boolean) => {
                     setOfflineStatus(!isInternetReachable);
+                    setNetWorkStatus(isInternetReachable);
                     NetworkActions.setIsBackendReachable(false);
                 });
             })
             .catch(() => {
                 checkInternetReachability().then((isInternetReachable: boolean) => {
                     setOfflineStatus(!isInternetReachable);
+                    setNetWorkStatus(isInternetReachable);
                     NetworkActions.setIsBackendReachable(false);
                 });
             });
@@ -139,13 +151,7 @@ function subscribeToNetworkStatus(): () => void {
             return;
         }
         setOfflineStatus((state.isInternetReachable ?? false) === false);
-        let networkStatus;
-        if (!isBoolean(state.isInternetReachable)) {
-            networkStatus = CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
-        } else {
-            networkStatus = state.isInternetReachable ? CONST.NETWORK.NETWORK_STATUS.ONLINE : CONST.NETWORK.NETWORK_STATUS.OFFLINE;
-        }
-        NetworkActions.setNetWorkStatus(networkStatus);
+        setNetWorkStatus(state.isInternetReachable);
     });
 
     return () => {
