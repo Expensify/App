@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -38,6 +38,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {PolicyRoute} from '../withPolicy';
 
 type PolicyForList = {
     value: string;
@@ -53,9 +54,7 @@ type PolicyOption = ListItem & {
     keyForList: string;
 };
 
-type WorkspaceTagsPageProps = WithPolicyConnectionsProps;
-
-function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
+function WorkspaceTagsPage() {
     const {isSmallScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -64,7 +63,10 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
     const dropdownButtonRef = useRef(null);
     const [deleteTagsConfirmModalVisible, setDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
+    const routes = useNavigationState((state) => state.routes || []);
+    const route = routes?.at(-1) as PolicyRoute;
     const policyID = route.params.policyID ?? '';
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const {environmentURL} = useEnvironment();
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
@@ -336,4 +338,4 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
 WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
 
-export default withPolicyConnections(WorkspaceTagsPage);
+export default WorkspaceTagsPage;
