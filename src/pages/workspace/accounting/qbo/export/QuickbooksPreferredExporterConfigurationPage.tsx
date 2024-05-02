@@ -20,7 +20,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsProps) {
+function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {export: exportConfiguration} = policy?.connections?.quickbooksOnline?.config ?? {};
@@ -59,7 +59,7 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsPr
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <ScreenWrapper testID={QuickBooksExportPreferredExporterPage.displayName}>
+            <ScreenWrapper testID={QuickbooksPreferredExporterConfigurationPage.displayName}>
                 <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
                 <SelectionList
                     headerContent={
@@ -78,6 +78,6 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsPr
     );
 }
 
-QuickBooksExportPreferredExporterPage.displayName = 'QuickBooksExportPreferredExporterPage';
+QuickbooksPreferredExporterConfigurationPage.displayName = 'QuickbooksPreferredExporterConfigurationPage';
 
-export default withPolicyConnections(QuickBooksExportPreferredExporterPage);
+export default withPolicyConnections(QuickbooksPreferredExporterConfigurationPage);
