@@ -6404,10 +6404,12 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
         return false;
     }
 
+    // Anyone viewing these chat types is already a participant and therefore cannot join
     if (isRootGroupChat(report) || isSelfDM(report)) {
         return false;
     }
 
+    // The user who is a member of the workspace has already joined the public announce room.
     if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
         return false;
     }
@@ -6423,10 +6425,12 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
  * Whether the user can leave a report
  */
 function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    // Anyone viewing these chat types is already a participant and therefore cannot leave
     if (isSelfDM(report) || isRootGroupChat(report)) {
         return false;
     }
 
+    // The user who is a member of the workspace cannot leave the public announce room.
     if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
         return false;
     }
