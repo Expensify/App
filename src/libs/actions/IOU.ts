@@ -3596,7 +3596,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
 }
 
 /**
- * Build the Onyx data and IOU split necessary for splitting a bill with 3+ users.
+ * Build the Onyx data and IOU split necessary for splitting a bill with 2+ users.
  * 1. Build the optimistic Onyx data for the group chat, i.e. chatReport and iouReportAction creating the former if it doesn't yet exist.
  * 2. Loop over the group chat participant list, building optimistic or updating existing chatReports, iouReports and iouReportActions between the user and each participant.
  * We build both Onyx data and the IOU split that is sent as a request param and is used by Auth to create the chatReports, iouReports and iouReportActions in the database.
