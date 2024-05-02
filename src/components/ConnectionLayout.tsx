@@ -51,7 +51,7 @@ function ConnectionLayout({displayName, headerTitle, children, title, subtitle, 
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                    <View style={[styles.pb2]}>{title && <Text style={styles.pb5}>{translate(title)}</Text>}</View>
+                    {title && <View style={[styles.pb2]}>{title && <Text style={styles.pb5}>{translate(title)}</Text>}</View>}
                     {subtitle && <Text style={styles.textLabelSupporting}>{translate(subtitle)}</Text>}
                     {children}
                 </ScrollView>

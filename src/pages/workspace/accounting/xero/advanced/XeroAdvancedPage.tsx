@@ -29,7 +29,6 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         <ConnectionLayout
             displayName={XeroAdvancedPage.displayName}
             headerTitle="workspace.xero.advancedConfig.advanced"
-            title="workspace.xero.advancedConfig.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
