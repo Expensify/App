@@ -1045,7 +1045,7 @@ function MoneyRequestConfirmationList({
                         key={translate('workspace.invoices.sendFrom')}
                         shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                         title={senderWorkspace?.name}
-                        icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                        icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
                         iconType={CONST.ICON_TYPE_WORKSPACE}
                         description={translate('workspace.common.workspace')}
                         label={translate('workspace.invoices.sendFrom')}
