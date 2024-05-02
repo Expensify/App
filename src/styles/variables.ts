@@ -230,4 +230,9 @@ export default {
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
     textInputAutoGrowMaxHeight: 115,
+
+    w28: 28,
+    w44: 44,
+    w80: 80,
+    w96: 96,
 } as const;
