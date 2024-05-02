@@ -45,7 +45,6 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
                     <ToggleSettingOptionRow
                         key={translate('workspace.xero.advancedConfig.autoSync')}
-                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
                         title={translate('workspace.xero.advancedConfig.autoSync')}
                         subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
                         shouldPlaceSubtitleBelowSwitch
@@ -57,6 +56,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             })
                         }
                         pendingAction={pendingFields?.autoSync}
+                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
+                        onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.AUTO_SYNC)}
                     />
                 </ScrollView>
             </ScreenWrapper>
