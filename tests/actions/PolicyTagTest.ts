@@ -125,6 +125,43 @@ describe('actions/Policy', () => {
                     )
             );
         });
+
+        it('reset require tag when api returns an error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.requiresTag = true;
+
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            fetch.pause();
+
+            return (
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                    .then(() => {
+                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                        fetch.fail();
+                        Policy.setPolicyRequiresTag(fakePolicy.id, false);
+                        return waitForBatchedUpdates();
+                    })
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                    .then(fetch.resume)
+                    .then(waitForBatchedUpdates)
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (policy) => {
+                                        Onyx.disconnect(connectionID);
+                                        expect(policy?.pendingFields?.requiresTag).toBeFalsy();
+                                        expect(policy?.errors).toBeTruthy();
+                                        expect(policy?.requiresTag).toBeTruthy();
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
+        });
     });
 
     describe('RenamePolicyTaglist', () => {
@@ -196,6 +233,59 @@ describe('actions/Policy', () => {
                     )
             );
         });
+
+        it('reset the policy tag list name when api returns error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const oldTagListName = 'Old tag list name';
+            const newTagListName = 'New tag list name';
+            const fakePolicyTags = createRandomPolicyTags(oldTagListName);
+
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            fetch.pause();
+
+            return (
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                    .then(() => {
+                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                    })
+                    .then(() => {
+                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                        fetch.fail();
+
+                        Policy.renamePolicyTaglist(
+                            fakePolicy.id,
+                            {
+                                oldName: oldTagListName,
+                                newName: newTagListName,
+                            },
+                            fakePolicyTags,
+                        );
+                        return waitForBatchedUpdates();
+                    })
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                    .then(fetch.resume)
+                    .then(waitForBatchedUpdates)
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (policyTags) => {
+                                        Onyx.disconnect(connectionID);
+
+                                        expect(policyTags?.[newTagListName]).toBeFalsy();
+                                        expect(policyTags?.[oldTagListName]).toBeTruthy();
+
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
+        });
     });
 
     describe('CreatePolicyTag', () => {
@@ -254,6 +344,52 @@ describe('actions/Policy', () => {
                                         const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
                                         expect(newTag?.errors).toBeFalsy();
                                         expect(newTag?.pendingAction).toBeFalsy();
+
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
+        });
+
+        it('reset new policy tag when api returns error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const newTagName = 'new tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName);
+
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            fetch.pause();
+
+            return (
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                    .then(() => {
+                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                    })
+                    .then(() => {
+                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                        fetch.fail();
+
+                        Policy.createPolicyTag(fakePolicy.id, newTagName);
+                        return waitForBatchedUpdates();
+                    })
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                    .then(fetch.resume)
+                    .then(waitForBatchedUpdates)
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (policyTags) => {
+                                        Onyx.disconnect(connectionID);
+
+                                        const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
+                                        expect(newTag?.errors).toBeTruthy();
 
                                         resolve();
                                     },
@@ -339,6 +475,62 @@ describe('actions/Policy', () => {
                     )
             );
         });
+
+        it('reset policy tag enable when api returns error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagsToUpdate = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {}).reduce<PolicyTags>((acc, key) => {
+                acc[key] = {
+                    name: fakePolicyTags?.[tagListName]?.tags[key].name,
+                    enabled: false,
+                };
+                return acc;
+            }, {});
+
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            fetch.pause();
+
+            return (
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                    .then(() => {
+                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                    })
+                    .then(() => {
+                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                        fetch.fail();
+
+                        Policy.setWorkspaceTagEnabled(fakePolicy.id, tagsToUpdate);
+                        return waitForBatchedUpdates();
+                    })
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                    .then(fetch.resume)
+                    .then(waitForBatchedUpdates)
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (policyTags) => {
+                                        Onyx.disconnect(connectionID);
+
+                                        Object.keys(tagsToUpdate).forEach((key) => {
+                                            const updatedTag = policyTags?.[tagListName]?.tags[key];
+                                            expect(updatedTag?.errors).toBeTruthy();
+                                            expect(updatedTag?.pendingAction).toBeFalsy();
+                                            expect(updatedTag?.pendingFields?.enabled).toBeFalsy();
+                                        });
+
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
+        });
     });
 
     describe('RenamePolicyTag', () => {
@@ -409,6 +601,57 @@ describe('actions/Policy', () => {
                     )
             );
         });
+
+        it('reset policy tag name when api returns error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const oldTagName = Object.keys(fakePolicyTags?.[tagListName]?.tags)[0];
+            const newTagName = 'New tag';
+
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            fetch.pause();
+
+            return (
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                    .then(() => {
+                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                    })
+                    .then(() => {
+                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                        fetch.fail();
+
+                        Policy.renamePolicyTag(fakePolicy.id, {
+                            oldName: oldTagName,
+                            newName: newTagName,
+                        });
+                        return waitForBatchedUpdates();
+                    })
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                    .then(fetch.resume)
+                    .then(waitForBatchedUpdates)
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (policyTags) => {
+                                        Onyx.disconnect(connectionID);
+
+                                        const tags = policyTags?.[tagListName]?.tags;
+                                        expect(tags?.[newTagName]).toBeFalsy();
+                                        expect(tags?.[oldTagName]?.errors).toBeTruthy();
+
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
+        });
     });
 
     describe('DeletePolicyTags', () => {
@@ -464,6 +707,54 @@ describe('actions/Policy', () => {
 
                                         tagsToDelete.forEach((tagName) => {
                                             expect(policyTags?.[tagListName]?.tags[tagName]).toBeFalsy();
+                                        });
+
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+            );
+        });
+
+        it('reset the deleted policy tag when api returns error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+
+            const tagListName = 'Fake tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 2);
+            const tagsToDelete = Object.keys(fakePolicyTags?.[tagListName]?.tags ?? {});
+
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            fetch.pause();
+
+            return (
+                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                    .then(() => {
+                        Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+                    })
+                    .then(() => {
+                        // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                        fetch.fail();
+
+                        Policy.deletePolicyTags(fakePolicy.id, tagsToDelete);
+                        return waitForBatchedUpdates();
+                    })
+                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+                    .then(fetch.resume)
+                    .then(waitForBatchedUpdates)
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connectionID = Onyx.connect({
+                                    key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                                    waitForCollectionCallback: false,
+                                    callback: (policyTags) => {
+                                        Onyx.disconnect(connectionID);
+
+                                        tagsToDelete.forEach((tagName) => {
+                                            expect(policyTags?.[tagListName]?.tags[tagName].pendingAction).toBeFalsy();
+                                            expect(policyTags?.[tagListName]?.tags[tagName].errors).toBeTruthy();
                                         });
 
                                         resolve();
