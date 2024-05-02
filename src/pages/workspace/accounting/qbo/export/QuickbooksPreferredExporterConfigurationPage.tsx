@@ -38,13 +38,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
                 }
 
                 // Don't show guides if the current user is not a guide themselves or an Expensify employee
-                if (
-                    PolicyUtils.isExpensifyTeam(exporter.email) &&
-                    policy?.owner &&
-                    currentUserLogin &&
-                    !PolicyUtils.isExpensifyTeam(policy?.owner) &&
-                    !PolicyUtils.isExpensifyTeam(currentUserLogin)
-                ) {
+                if (PolicyUtils.isExpensifyTeam(exporter.email) && !PolicyUtils.isExpensifyTeam(policy?.owner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
                     return options;
                 }
                 options.push({
