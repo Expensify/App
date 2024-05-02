@@ -2293,6 +2293,28 @@ export default {
                             return 'Updating people list';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Updating report fields';
+                        case 'xeroSyncImportChartOfAccounts':
+                            return 'Syncing chart of accounts';
+                        case 'xeroSyncImportCategories':
+                            return 'Syncing categories';
+                        case 'xeroSyncImportCustomers':
+                            return 'Syncing customers';
+                        case 'xeroSyncXeroReimbursedReports':
+                            return 'Marking Expensify reports as reimbursed';
+                        case 'xeroSyncExpensifyReimbursedReports':
+                            return 'Marking Xero bills and invoices as paid';
+                        case 'xeroSyncImportTrackingCategories':
+                            return 'Syncing tracking categories';
+                        case 'xeroSyncImportBankAccounts':
+                            return 'Syncing bank accounts';
+                        case 'xeroSyncImportTaxRates':
+                            return 'Syncing tax rates';
+                        case 'xeroCheckConnection':
+                            return 'Checking Xero connection';
+                        case 'xeroSyncTitle':
+                            return 'Synchronizing Xero data';
+                        case 'xeroSyncStep':
+                            return 'Loading data';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
