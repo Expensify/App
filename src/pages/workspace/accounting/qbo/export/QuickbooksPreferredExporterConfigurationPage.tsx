@@ -10,8 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import {getAdminEmployees} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -55,28 +54,27 @@ function QuickBooksExportPreferredExporterPage({policy}: WithPolicyConnectionsPr
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            >
-                <ScreenWrapper testID={QuickBooksExportPreferredExporterPage.displayName}>
-                    <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
-                    <SelectionList
-                        headerContent={
-                            <>
-                                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>
-                                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterSubNote')}</Text>
-                            </>
-                        }
-                        sections={[{data}]}
-                        ListItem={RadioListItem}
-                        onSelectRow={selectExporter}
-                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    />
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper testID={QuickBooksExportPreferredExporterPage.displayName}>
+                <HeaderWithBackButton title={translate('workspace.qbo.preferredExporter')} />
+                <SelectionList
+                    headerContent={
+                        <>
+                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterNote')}</Text>
+                            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportPreferredExporterSubNote')}</Text>
+                        </>
+                    }
+                    sections={[{data}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={selectExporter}
+                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
