@@ -313,7 +313,15 @@ type OriginalMessageMoved = {
 
 type OriginalMessageMergedWithCashTranasction = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
-    originalMessage: Record<string, never>;
+    originalMessage: Record<string, never>; // No data is sent with this action
+}
+
+type OriginalMessageDismissedViolation = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION;
+    originalMessage: {
+        reason: string;
+        violationName: string;
+    };
 };
 
 type OriginalMessage =
@@ -340,7 +348,8 @@ type OriginalMessage =
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
     | OriginalMessageActionableTrackedExpenseWhisper
-    | OriginalMessageMergedWithCashTranasction;
+    | OriginalMessageMergedWithCashTranasction
+    | OriginalMessageDismissedViolation;
 
 export default OriginalMessage;
 export type {
@@ -366,4 +375,5 @@ export type {
     DecisionName,
     PaymentMethodType,
     OriginalMessageActionableTrackedExpenseWhisper,
+    OriginalMessageDismissedViolation,
 };

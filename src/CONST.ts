@@ -359,6 +359,7 @@ const CONST = {
         WORKFLOWS_DELAYED_SUBMISSION: 'workflowsDelayedSubmission',
         SPOTNANA_TRAVEL: 'spotnanaTravel',
         ACCOUNTING_ON_NEW_EXPENSIFY: 'accountingOnNewExpensify',
+        XERO_ON_NEW_EXPENSIFY: 'xeroOnNewExpensify',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -653,6 +654,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // OldDot Action
                 EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
@@ -1268,6 +1270,7 @@ const CONST = {
     },
 
     XERO_CONFIG: {
+        IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
     },
 

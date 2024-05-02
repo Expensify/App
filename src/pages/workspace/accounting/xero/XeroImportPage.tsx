@@ -43,7 +43,9 @@ function XeroImportPage({policy}: WithPolicyProps) {
             },
             {
                 description: translate('workspace.xero.customers'),
-                action: () => {},
+                action: () => {
+                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_CUSTOMER.getRoute(policyID));
+                },
                 hasError: !!policy?.errors?.importCustomers,
                 title: importCustomers ? translate('workspace.accounting.importedAsTags') : translate('workspace.xero.notImported'),
                 pendingAction: pendingFields?.importCustomers,
