@@ -1843,7 +1843,7 @@ export default {
         subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in one place.',
         features: {
             saveMoney: 'Save money on your bookings',
-            alerts: 'Get real time updates and alerts',
+            alerts: 'Get realtime updates and alerts',
         },
         bookTravel: 'Book travel',
         termsAndConditions: {
