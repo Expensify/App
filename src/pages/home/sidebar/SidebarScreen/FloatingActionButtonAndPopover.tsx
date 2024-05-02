@@ -179,14 +179,6 @@ function FloatingActionButtonAndPopover(
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
-    const hideQABSubtitle = useMemo(() => {
-        if (isEmptyObject(quickActionReport)) {
-            return true;
-        }
-        const displayName = personalDetails?.[session?.accountID ?? 0]?.displayName ?? '';
-        return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length > 0;
-    }, [personalDetails, session?.accountID, quickActionReport, quickAction?.action]);
-
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
@@ -200,13 +192,27 @@ function FloatingActionButtonAndPopover(
     }, [personalDetails, session?.accountID, quickActionReport, quickActionPolicy]);
 
     const quickActionTitle = useMemo(() => {
-        if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY) {
-            const name = getDisplayNameOrDefault(personalDetails?.[session?.accountID]);
+        if (isEmptyObject(quickActionReport)) {
+            return '';
+        }
+        if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
+            const name = getDisplayNameOrDefault(personalDetails?.[quickActionAvatars[0]?.id ?? 0]);
             return translate('quickAction.paySomeone', {name})
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
         return titleKey ? translate(titleKey) : '';
-    }, [quickAction, translate]);
+    }, [quickAction, translate, quickActionAvatars]);
+
+    const hideQABSubtitle = useMemo(() => {
+        if (isEmptyObject(quickActionReport)) {
+            return true;
+        }
+        if (quickActionAvatars.length === 0) {
+            return false;
+        }
+        const displayName = personalDetails?.[quickActionAvatars[0]?.id ?? 0]?.firstName ?? '';
+        return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length === 0;
+    }, [personalDetails, session?.accountID, quickActionReport, quickAction?.action, quickActionAvatars]);
 
     const navigateToQuickAction = () => {
         switch (quickAction?.action) {
