@@ -27,7 +27,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {autoSync, pendingFields, sync, errorFields} = xeroConfig ?? {};
+    const {autoSync, pendingFields} = xeroConfig ?? {};
 
     return (
         <AccessOrNotFoundWrapper

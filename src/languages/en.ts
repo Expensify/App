@@ -2005,6 +2005,11 @@ export default {
             advancedConfig: {
                 autoSync: 'Auto-Sync',
                 autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
+                xeroBillPaymentAccount: 'QuickBooks bill payment account',
+                xeroInvoiceCollectionAccount: 'QuickBooks invoice collections account',
             },
         },
         type: {
