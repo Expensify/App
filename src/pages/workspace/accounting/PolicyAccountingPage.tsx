@@ -113,11 +113,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
 
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => {
-        if (name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration) {
-            return false;
-        }
-
-        return true;
+        return !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration);
     });
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
