@@ -3623,9 +3623,8 @@ function createSplitsAndOnyxData(
     existingSplitChatReportID = '',
     billable = false,
     iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
-    splitPayerAccountIDs: number[] = [],
 ): SplitsAndOnyxData {
-    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
+    const formattedSplitPayerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(splitPayerEmail);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, splitPayerAccountID);
@@ -3796,26 +3795,33 @@ function createSplitsAndOnyxData(
         );
     }
 
-    // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splits: Split[] = [
-        {
-            email: currentUserEmailForIOUSplit,
-            accountID: currentUserAccountID,
-            amount: IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountIDs.includes(currentUserAccountID)),
-        },
-    ];
-
     const hasMultipleParticipants = participants.length > 1;
-    participants.forEach((participant) => {
-        const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountIDs.includes(participant.accountID ?? 0));
+    const currentUserParticipant: Participant = {
+        login: currentUserEmail,
+        accountID: userAccountID,
+    };
+    const splits: Split[] = [];
+
+    [currentUserParticipant, ...participants].forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
-        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
-        const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
-        if (email === currentUserEmailForIOUSplit) {
+        const participantEmail = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
+        const participantAccountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
+        const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountID === participantAccountID);
+
+        // FIXME: This condition seems to be useless - we only ever include users in the participants array
+        // who are NOT the current user 🤔
+        const shouldCreateOptimisticReports = userAccountID === splitPayerAccountID || userAccountID === participantAccountID;
+        if (participantEmail === splitPayerEmail || !shouldCreateOptimisticReports) {
+            splits.push({
+                email: participantEmail,
+                accountID: participantAccountID,
+                isOptimisticAccount: ReportUtils.isOptimisticPersonalDetail(participantAccountID), // TODO: is this line right?
+                amount: splitAmount,
+            });
             return;
         }
 
@@ -3824,7 +3830,7 @@ function createSplitsAndOnyxData(
         let oneOnOneChatReport: OnyxTypes.Report | OptimisticChatReport;
         let isNewOneOnOneChatReport = false;
         let shouldCreateOptimisticPersonalDetails = false;
-        const personalDetailExists = accountID in allPersonalDetails;
+        const personalDetailExists = participantAccountID in allPersonalDetails;
 
         // If this is a split between two people only and the function
         // wasn't provided with an existing group chat report id
@@ -3835,10 +3841,10 @@ function createSplitsAndOnyxData(
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && !personalDetailExists;
         } else {
-            const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
+            const existingChatReport = ReportUtils.getChatByParticipants([participantAccountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && !personalDetailExists;
-            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport([accountID]);
+            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport([participantAccountID]);
         }
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
@@ -3897,12 +3903,12 @@ function createSplitsAndOnyxData(
         // Add optimistic personal details for new participants
         const oneOnOnePersonalDetailListAction: OnyxTypes.PersonalDetailsList = shouldCreateOptimisticPersonalDetails
             ? {
-                  [accountID]: {
-                      accountID,
-                      avatar: UserUtils.getDefaultAvatarURL(accountID),
+                  [participantAccountID]: {
+                      accountID: participantAccountID,
+                      avatar: UserUtils.getDefaultAvatarURL(participantAccountID),
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
+                      displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || participantEmail),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },
@@ -3946,9 +3952,9 @@ function createSplitsAndOnyxData(
         );
 
         const individualSplit = {
-            email,
-            accountID,
-            isOptimisticAccount: ReportUtils.isOptimisticPersonalDetail(accountID),
+            email: participantEmail,
+            accountID: participantAccountID,
+            isOptimisticAccount: ReportUtils.isOptimisticPersonalDetail(participantAccountID),
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
@@ -4061,7 +4067,7 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
     Navigation.dismissModal(existingSplitChatReportID);
-    Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
+    Report.notifyNewAction(splitData.chatReportID, userAccountID);
 }
 
 /**
@@ -4122,7 +4128,7 @@ function splitBillAndOpenReport({
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
 
     Navigation.dismissModal(splitData.chatReportID);
-    Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
+    Report.notifyNewAction(splitData.chatReportID, userAccountID);
 }
 
 type StartSplitBilActionParams = {
