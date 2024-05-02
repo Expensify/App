@@ -14,6 +14,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -35,9 +36,29 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.accounting.accounts')} />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                     <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
+                    <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        <View style={styles.flex1}>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
+                        </View>
+                        <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
+                            <Switch
+                                accessibilityLabel={translate('workspace.accounting.accounts')}
+                                isOn={true}
+                                disabled={true}
+                                onToggle={() => {}}
+                            />
+                        </View>
+                    </View>
+                    <MenuItemWithTopDescription
+                        interactive={false}
+                        title={translate('workspace.common.categories')}
+                        description={translate('workspace.qbo.displayedAs')}
+                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                    />
+                    <Text style={styles.pv5}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
                     <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
-                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.common.enabled')}</Text>
                         </View>
                         <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
