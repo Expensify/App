@@ -170,6 +170,8 @@ type ToValidateLoginParams = {primaryLogin: string; secondaryLogin: string};
 
 type NoLongerHaveAccessParams = {primaryLogin: string};
 
+type NoLongerHaveReportAccessParams = {reportName: string};
+
 type OurEmailProviderParams = {login: string};
 
 type ConfirmThatParams = {login: string};
@@ -331,6 +333,7 @@ export type {
     ManagerApprovedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
+    NoLongerHaveReportAccessParams,
     NotAllowedExtensionParams,
     NotYouParams,
     OOOEventSummaryFullDayParams,
