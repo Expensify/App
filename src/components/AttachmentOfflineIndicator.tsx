@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -20,7 +20,17 @@ function AttachmentOfflineIndicator({isPreview = false}: AttachmentOfflineIndica
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
-    if (!isOffline) {
+    // We don't want to show the offline indicator when the attachment is a cached one, so
+    // we delay the display by 200 ms to ensure it is not a cached one.
+    const [onCacheDelay, setOnCacheDelay] = useState(true);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => setOnCacheDelay(false), 200);
+
+        return () => clearTimeout(timeout);
+    }, []);
+
+    if (!isOffline || onCacheDelay) {
         return null;
     }
 
