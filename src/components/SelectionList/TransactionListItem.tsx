@@ -164,14 +164,14 @@ function TransactionListItem<TItem extends ListItem>({
                     <>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap1]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
-                                <View style={[styles.flexGrow0, styles.flexShrink1]}>{userCell(transactionItem.from)}</View>
+                                <View style={[styles.flexGrow0, styles.flexShrink1, styles.mw50]}>{userCell(transactionItem.from)}</View>
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                <View style={[styles.flexGrow0, styles.flexShrink1]}>{userCell(transactionItem.to)}</View>
+                                <View style={[styles.flexGrow0, styles.flexShrink1, styles.mw50]}>{userCell(transactionItem.to)}</View>
                             </View>
                             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>{actionCell}</View>
                         </View>
