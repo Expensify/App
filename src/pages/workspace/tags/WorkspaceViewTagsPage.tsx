@@ -15,7 +15,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,20 +36,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-
-type TagForList = {
-    value: string;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-    rightElement: React.ReactNode;
-    enabled: boolean;
-};
-
-type PolicyOption = ListItem & {
-    /** Tag name is used as a key for the selectedTags state */
-    keyForList: string;
-};
+import type {TagListItem} from './types';
 
 type WorkspaceViewTagsProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
 
@@ -82,7 +68,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     }, [isFocused]);
 
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policy) => policy.name === currentTagListName), [currentTagListName, policyTags]);
-    const tagList = useMemo<TagForList[]>(
+    const tagList = useMemo<TagListItem[]>(
         () =>
             policyTagLists
                 .map((policyTagList) =>
@@ -110,12 +96,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         return <NotFoundPage />;
     }
 
-    const tagListKeyedByName = tagList.reduce<Record<string, TagForList>>((acc, tag) => {
+    const tagListKeyedByName = tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
         acc[tag.value] = tag;
         return acc;
     }, {});
 
-    const toggleTag = (tag: TagForList) => {
+    const toggleTag = (tag: TagListItem) => {
         setSelectedTags((prev) => ({
             ...prev,
             [tag.value]: !prev[tag.value],
@@ -134,8 +120,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         </View>
     );
 
-    const navigateToTagSettings = (tag: PolicyOption) => {
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
+    const navigateToTagSettings = (tag: TagListItem) => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.value));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);

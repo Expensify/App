@@ -14,7 +14,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
@@ -38,20 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-
-type TagForList = {
-    value: string;
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-    rightElement: React.ReactNode;
-    enabled: boolean;
-};
-
-type PolicyOption = ListItem & {
-    /** Tag name is used as a key for the selectedTags state */
-    keyForList: string;
-};
+import type {TagListItem} from './types';
 
 type WorkspaceTagsPageProps = WithPolicyConnectionsProps;
 
@@ -91,10 +77,11 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const tagList = useMemo<TagForList[]>(() => {
+    const tagList = useMemo<TagListItem[]>(() => {
         if (!doesPolicyContainOnlyOneTagList) {
             return policyTagLists.map((policyTagList) => ({
                 value: policyTagList.name,
+                orderWeight: policyTagList.orderWeight,
                 text: PolicyUtils.getCleanedTagName(policyTagList.name),
                 keyForList: String(policyTagList.orderWeight),
                 isSelected: selectedTags[policyTagList.name],
@@ -129,12 +116,12 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
             .flat();
     }, [doesPolicyContainOnlyOneTagList, policyTagLists, selectedTags, translate]);
 
-    const tagListKeyedByName = tagList.reduce<Record<string, TagForList>>((acc, tag) => {
+    const tagListKeyedByName = tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
         acc[tag.value] = tag;
         return acc;
     }, {});
 
-    const toggleTag = (tag: TagForList) => {
+    const toggleTag = (tag: TagListItem) => {
         setSelectedTags((prev) => ({
             ...prev,
             [tag.value]: !prev[tag.value],
@@ -167,12 +154,12 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
 
-    const navigateToTagSettings = (tag: PolicyOption) => {
-        if (!doesPolicyContainOnlyOneTagList) {
-            Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, Number(tag.keyForList)));
+    const navigateToTagSettings = (tag: TagListItem) => {
+        if (tag.orderWeight != null) {
+            Navigation.navigate(ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight));
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.keyForList));
+        Navigation.navigate(ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, tag.value));
     };
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);

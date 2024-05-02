@@ -188,13 +188,13 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 type Connection<ConnectionData, ConnectionConfig> = {
     lastSync?: ConnectionLastSync;
-    data: ConnectionData;
+    data?: ConnectionData;
     config: ConnectionConfig;
 };
 
 type Connections = {
-    quickbooksOnline: Connection<QBOConnectionData, QBOConnectionConfig>;
-    xero: Connection<QBOConnectionData, QBOConnectionConfig>;
+    quickbooksOnline?: Connection<QBOConnectionData, QBOConnectionConfig>;
+    xero?: Connection<QBOConnectionData, QBOConnectionConfig>;
 };
 
 type ConnectionName = keyof Connections;
