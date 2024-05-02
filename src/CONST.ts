@@ -1256,6 +1256,7 @@ const CONST = {
         EXPORT_NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonReimbursableExpensesExportDestination',
         EXPORT_REIMBURSABLE_EXPENSES_ACCOUNT: 'reimbursableExpensesAccount',
         EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
         AUTO_SYNC: 'autoSync',
         SYNC_PEOPLE: 'syncPeople',
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
