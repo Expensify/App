@@ -1552,7 +1552,7 @@ function getUserToInviteOption({
 
     /**
      * We create a new user option if the following conditions are satisfied:
-     * - there's no match recent report and personal detail option
+     * - There's no matching recent report and personal detail option
      * - The searchValue is a valid email or phone number
      * - The searchValue isn't the current personal detail login
      * - We can use chronos or the search value is not the chronos email
