@@ -210,11 +210,9 @@ const ROUTES = {
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
         getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
-            let route = reportActionID ? `r/${reportID}/${reportActionID}` : `r/${reportID}`;
-            if (referrer) {
-                route += `?referrer=${referrer}`;
-            }
-            return route as ReportWithIdRoute;
+            const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
+            const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
+            return `${baseRoute}${referrerParam}` as const;
         },
     },
     REPORT_AVATAR: {
@@ -809,8 +807,6 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },
 } as const;
-
-type ReportWithIdRoute = `r/${string}` | `r/${string}/${string}` | `r/${string}?referrer=${string}` | `r/${string}/${string}?referrer=${string}`;
 
 /**
  * Proxy routes can be used to generate a correct url with dynamic values

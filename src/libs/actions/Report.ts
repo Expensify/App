@@ -2429,7 +2429,7 @@ function openReportFromDeepLink(url: string) {
                     return;
                 }
 
-                Navigation.navigate(route , CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                Navigation.navigate(route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
     });
