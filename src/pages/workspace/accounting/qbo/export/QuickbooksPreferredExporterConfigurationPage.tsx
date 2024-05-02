@@ -32,28 +32,28 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
     const policyID = policy?.id ?? '';
     const data: CardListItem[] = useMemo(
         () =>
-            exporters?.reduce<CardListItem[]>((vendors, vendor) => {
-                if (!vendor.email) {
-                    return vendors;
+            exporters?.reduce<CardListItem[]>((options, exporter) => {
+                if (!exporter.email) {
+                    return options;
                 }
 
                 // Don't show guides if the current user is not a guide themselves or an Expensify employee
                 if (
-                    PolicyUtils.isExpensifyTeam(vendor.email) &&
+                    PolicyUtils.isExpensifyTeam(exporter.email) &&
                     policy?.owner &&
                     currentUserLogin &&
                     !PolicyUtils.isExpensifyTeam(policy?.owner) &&
                     !PolicyUtils.isExpensifyTeam(currentUserLogin)
                 ) {
-                    return vendors;
+                    return options;
                 }
-                vendors.push({
-                    value: vendor.email,
-                    text: vendor.email,
-                    keyForList: vendor.email,
-                    isSelected: exportConfiguration?.exporter === vendor.email,
+                options.push({
+                    value: exporter.email,
+                    text: exporter.email,
+                    keyForList: exporter.email,
+                    isSelected: exportConfiguration?.exporter === exporter.email,
                 });
-                return vendors;
+                return options;
             }, []),
         [exportConfiguration, exporters],
     );
