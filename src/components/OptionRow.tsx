@@ -164,7 +164,7 @@ function OptionRow({
                     needsOffscreenAlphaCompositing
                 >
                     <PressableWithFeedback
-                        nativeID={keyForList}
+                        id={keyForList}
                         ref={pressableRef}
                         onPress={(e) => {
                             if (!onSelectRow) {
