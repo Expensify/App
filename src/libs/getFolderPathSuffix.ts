@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-function getFolderPathSuffix(environment: string) {
+function getDownloadFolderPathSuffixForIOS(environment: string) {
     let folderSuffix = '';
 
     switch (environment) {
