@@ -28,6 +28,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
     const {autoSync, pendingFields, errorFields, sync} = xeroConfig ?? {};
+    const xeroData = policy?.connections?.xero?.data;
 
     return (
         <AccessOrNotFoundWrapper
@@ -85,6 +86,30 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.SYNC)}
                         onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.SYNC)}
                     />
+                    {sync?.syncReimbursedReports && (
+                        <>
+                            <OfflineWithFeedback pendingAction={pendingFields?.sync}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={String(xeroData?.bankAccounts)}
+                                    description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
+                                    key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                    onPress={() => {}}
+                                />
+                            </OfflineWithFeedback>
+                            <OfflineWithFeedback pendingAction={pendingFields?.sync}>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={String(xeroData?.bankAccounts)}
+                                    description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
+                                    key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                                    onPress={() => {}}
+                                />
+                            </OfflineWithFeedback>
+                        </>
+                    )}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
