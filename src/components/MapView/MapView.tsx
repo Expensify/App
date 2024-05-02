@@ -146,7 +146,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
 
         const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
-        <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
+            <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
                     style={{flex: 1}}
                     styleURL={styleURL}
@@ -165,7 +165,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                             centerCoordinate: centerCoordinate,
                             zoomLevel: initialState?.zoom,
                         }}
-                        // Include centerCoordinate here as well to address the issue of incorrect coordinates 
+                        // Include centerCoordinate here as well to address the issue of incorrect coordinates
                         // displayed after the first render when the app's storage is cleared.
                         centerCoordinate={centerCoordinate}
                     />
