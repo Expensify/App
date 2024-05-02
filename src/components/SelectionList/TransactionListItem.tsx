@@ -132,6 +132,7 @@ function TransactionListItem<TItem extends ListItem>({
             }}
             small
             pressOnEnter
+            style={[styles.p0]}
         />
     );
 
