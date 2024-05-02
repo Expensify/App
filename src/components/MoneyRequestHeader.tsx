@@ -18,7 +18,6 @@ import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} 
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
@@ -50,9 +49,21 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
     /** The report action the transaction is tied to from the parent report */
     parentReportAction: OnyxEntry<ReportAction>;
+
+    /** Whether we should display the header as in narrow layout */
+    shouldUseNarrowLayout?: boolean;
 };
 
-function MoneyRequestHeader({session, parentReport, report, parentReportAction, transaction, shownHoldUseExplanation = false, policy}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({
+    session,
+    parentReport,
+    report,
+    parentReportAction,
+    transaction,
+    shownHoldUseExplanation = false,
+    policy,
+    shouldUseNarrowLayout = false,
+}: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -61,12 +72,12 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
     const isSettled = ReportUtils.isSettled(moneyRequestReport?.reportID);
     const isApproved = ReportUtils.isReportApproved(moneyRequestReport);
     const isOnHold = TransactionUtils.isOnHold(transaction);
-    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+    const {windowWidth} = useWindowDimensions();
 
     // Only the requestor can take delete the expense, admins can only edit it.
     const isActionOwner = typeof parentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && parentReportAction.actorAccountID === session?.accountID;
     const isPolicyAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && (session?.accountID ?? null) === moneyRequestReport?.managerID;
+    const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
 
     const deleteTransaction = useCallback(() => {
         if (parentReportAction) {
@@ -96,12 +107,8 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
         if (isOnHold) {
             IOU.unholdRequest(iouTransactionID, report?.reportID);
         } else {
-            if (!policy?.type) {
-                return;
-            }
-
             const activeRoute = encodeURIComponent(Navigation.getActiveRouteWithoutParams());
-            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy.type, iouTransactionID, report?.reportID, activeRoute));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, iouTransactionID, report?.reportID, activeRoute));
         }
     };
 
@@ -126,7 +133,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || canModifyStatus)) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.holdExpense'),
@@ -144,14 +151,14 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
             return;
         }
 
-        if (isSmallScreenWidth) {
+        if (shouldUseNarrowLayout) {
             if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD) {
                 Navigation.goBack();
             }
         } else {
             Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD);
         }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
+    }, [shouldUseNarrowLayout, shouldShowHoldMenu]);
 
     const handleHoldRequestClose = () => {
         IOU.setShownHoldUseExplanation();
@@ -180,7 +187,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                         ownerAccountID: parentReport?.ownerAccountID,
                     }}
                     policy={policy}
-                    shouldShowBackButton={isSmallScreenWidth}
+                    shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
                 />
                 {isPending && (
@@ -194,10 +201,17 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                     <MoneyRequestHeaderStatusBar
                         title={translate('iou.receiptStatusTitle')}
                         description={translate('iou.receiptStatusText')}
-                        shouldShowBorderBottom
+                        shouldShowBorderBottom={!isOnHold}
                     />
                 )}
-                {isOnHold && <HoldBanner />}
+                {isOnHold && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.hold')}
+                        description={translate('iou.expenseOnHold')}
+                        shouldShowBorderBottom
+                        danger
+                    />
+                )}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteExpense')}
@@ -209,7 +223,7 @@ function MoneyRequestHeader({session, parentReport, report, parentReportAction, 
                 cancelText={translate('common.cancel')}
                 danger
             />
-            {isSmallScreenWidth && shouldShowHoldMenu && (
+            {shouldUseNarrowLayout && shouldShowHoldMenu && (
                 <ProcessMoneyRequestHoldMenu
                     onClose={handleHoldRequestClose}
                     onConfirm={handleHoldRequestClose}

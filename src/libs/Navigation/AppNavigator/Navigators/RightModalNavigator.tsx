@@ -133,6 +133,10 @@ function RightModalNavigator({navigation}: RightModalNavigatorProps) {
                         name="ProcessMoneyRequestHold"
                         component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
                     />
+                    <Stack.Screen
+                        name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                        component={ModalStackNavigators.SearchReportModalStackNavigator}
+                    />
                 </Stack.Navigator>
             </View>
         </NoDropZone>

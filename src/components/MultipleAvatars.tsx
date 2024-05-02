@@ -156,9 +156,9 @@ function MultipleAvatars({
                         size={size}
                         fill={icons[0].fill}
                         name={icons[0].name}
+                        accountID={icons[0].id}
                         type={icons[0].type}
                         fallbackIcon={icons[0].fallbackIcon}
-                        accountID={icons[0].id}
                     />
                 </View>
             </UserDetailsTooltip>
@@ -206,9 +206,9 @@ function MultipleAvatars({
                                 source={icon.source ?? fallbackIcon}
                                 size={size}
                                 name={icon.name}
+                                accountID={icon.id}
                                 type={icon.type}
                                 fallbackIcon={icon.fallbackIcon}
-                                accountID={icon.id}
                             />
                         </View>
                     </UserDetailsTooltip>
@@ -265,6 +265,7 @@ function MultipleAvatars({
                             imageStyles={[singleAvatarStyle]}
                             name={icons[0].name}
                             type={icons[0].type}
+                            accountID={icons[0].id}
                             fallbackIcon={icons[0].fallbackIcon}
                         />
                     </View>
@@ -284,6 +285,7 @@ function MultipleAvatars({
                                     size={avatarSize}
                                     imageStyles={[singleAvatarStyle]}
                                     name={icons[1].name}
+                                    accountID={icons[1].id}
                                     type={icons[1].type}
                                     fallbackIcon={icons[1].fallbackIcon}
                                 />
