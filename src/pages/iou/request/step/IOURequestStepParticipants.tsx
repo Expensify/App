@@ -19,6 +19,11 @@ import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotF
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import {withOnyx} from "react-native-onyx";
 import ONYXKEYS from "@src/ONYXKEYS";
+import Text from "@components/Text";
+import useThemeStyles from "@hooks/useThemeStyles";
+import FormHelpMessage from "@components/FormHelpMessage";
+import {isEmptyObject} from "@src/types/utils/EmptyObject";
+import * as ReportUtils from "@libs/ReportUtils";
 
 type IOURequestStepParticipantsOnyxProps = {
     /** Whether the confirmation step should be skipped */
@@ -33,10 +38,13 @@ function IOURequestStepParticipants({
     route: {
         params: {iouType, reportID, transactionID, action},
     },
+    report,
     transaction,
+    skipConfirmation,
 }: IOURequestStepParticipantsProps) {
     const participants = transaction?.participants;
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const selectedReportID = useRef<string>(reportID);
     const numberOfParticipants = useRef(participants?.length ?? 0);
     const iouRequestType = TransactionUtils.getRequestType(transaction);
@@ -124,6 +132,14 @@ function IOURequestStepParticipants({
             testID={IOURequestStepParticipants.displayName}
             includeSafeAreaPaddingBottom={false}
         >
+            {skipConfirmation && (
+                <FormHelpMessage
+                    style={[styles.ph4, styles.mb4]}
+                    isError={false}
+                    shouldShowRedDotIndicator={false}
+                    message={translate('quickAction.noLongerHaveReportAccess', {reportName: !isEmptyObject(report) ? ReportUtils.getReportName(report) : ''})}
+                />
+            )}
             <MoneyRequestParticipantsSelector
                 participants={isSplitRequest ? participants : []}
                 onParticipantsAdded={addParticipant}
