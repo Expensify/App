@@ -96,6 +96,10 @@ function getOrderedReportIDs(
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
         const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned;
+        if (hasErrorsOtherThanFailedReceipt) {
+            return true;
+        }
+        
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
