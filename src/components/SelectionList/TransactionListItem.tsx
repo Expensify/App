@@ -50,7 +50,7 @@ function TransactionListItem<TItem extends ListItem>({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
+    const {isLargeScreenWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
 
     function getMerchant() {
@@ -58,7 +58,6 @@ function TransactionListItem<TItem extends ListItem>({
         return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
     }
 
-    const isNarrowView = isMediumScreenWidth || isSmallScreenWidth;
     const isFromExpenseReport = transactionItem.reportType === CONST.REPORT.TYPE.EXPENSE;
     const date = TransactionUtils.getCreated(transactionItem as OnyxEntry<Transaction>, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
     const amount = TransactionUtils.getAmount(transactionItem as OnyxEntry<Transaction>, isFromExpenseReport);
@@ -71,7 +70,7 @@ function TransactionListItem<TItem extends ListItem>({
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={date}
-            style={[styles.label, styles.pre, styles.justifyContentCenter, isNarrowView ? [styles.textMicro, styles.textSupporting] : undefined]}
+            style={[styles.label, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
 
@@ -111,7 +110,7 @@ function TransactionListItem<TItem extends ListItem>({
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={CurrencyUtils.convertToDisplayString(amount, currency)}
-            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isNarrowView ? styles.textAlignRight : undefined]}
+            style={[styles.optionDisplayName, styles.textNewKansasNormal, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.textAlignRight]}
         />
     );
 
@@ -119,8 +118,8 @@ function TransactionListItem<TItem extends ListItem>({
         <Icon
             src={typeIcon}
             fill={theme.icon}
-            height={isNarrowView ? 12 : 20}
-            width={isNarrowView ? 12 : 20}
+            height={isLargeScreenWidth ? 20 : 12}
+            width={isLargeScreenWidth ? 20 : 12}
         />
     );
 
@@ -138,7 +137,7 @@ function TransactionListItem<TItem extends ListItem>({
 
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
-    if (isNarrowView) {
+    if (!isLargeScreenWidth) {
         return (
             <BaseListItem
                 item={item}
