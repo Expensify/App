@@ -106,7 +106,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
         case CONST.QUICK_ACTIONS.SPLIT_SCAN:
         case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-            return Expensicons.Transfer;
+            return getIconForAction(CONST.IOU.TYPE.SPLIT);
         case CONST.QUICK_ACTIONS.SEND_MONEY:
             return getIconForAction(CONST.IOU.TYPE.SEND);
         case CONST.QUICK_ACTIONS.ASSIGN_TASK:
