@@ -20,7 +20,9 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncTax, pendingFields, exportEntity} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isTaxSwitchOn = !!syncTax && exportEntity !== CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const isJournalExportEntity = exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const isTaxSwitchOn = !!syncTax && !isJournalExportEntity;
+    
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -49,6 +51,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                             </View>
                         </OfflineWithFeedback>
                     </View>
+                    {isJournalExportEntity && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote')}</Text>}
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
