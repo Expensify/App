@@ -84,6 +84,7 @@ function ReportActionItemImage({
                     transaction={transaction}
                     isSmallIcon={!isSingleImage}
                     shouldHaveNoBorderRadius={shouldHaveNoBorderRadius}
+                    interactive={false}
                 />
             </View>
         );
