@@ -50,6 +50,7 @@ function BaseTextInput(
         disableKeyboard = false,
         autoGrow = false,
         autoGrowHeight = false,
+        maxAutoGrowHeight,
         hideFocusedState = false,
         maxLength = undefined,
         hint = '',
@@ -61,6 +62,8 @@ function BaseTextInput(
         prefixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
+        prefixContainerStyle = [],
+        prefixStyle = [],
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -234,35 +237,19 @@ function BaseTextInput(
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
     }, []);
 
-    // When adding a new prefix character, adjust this method to add expected character width.
-    // This is because character width isn't known before it's rendered to the screen, and once it's rendered,
-    // it's too late to calculate it's width because the change in padding would cause a visible jump.
-    // Some characters are wider than the others when rendered, e.g. '@' vs '#'. Chosen font-family and font-size
-    // also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
-    // this method will produce reliable results.
-    const getCharacterPadding = (prefix: string): number => {
-        switch (prefix) {
-            case CONST.POLICY.ROOM_PREFIX:
-                return 10;
-            default:
-                throw new Error(`Prefix ${prefix} has no padding assigned.`);
-        }
-    };
-
     const hasLabel = Boolean(label?.length);
     const isReadOnly = inputProps.readOnly ?? inputProps.disabled;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and errorText can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const inputHelpText = errorText || hint;
     const newPlaceholder = !!prefixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
-    const maxHeight = StyleSheet.flatten(containerStyles).maxHeight;
     const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
         styles.textInputContainer,
         textInputContainerStyles,
         autoGrow && StyleUtils.getWidthStyle(textInputWidth),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
-        autoGrowHeight && {scrollPaddingTop: typeof maxHeight === 'number' ? 2 * maxHeight : undefined},
+        autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
@@ -296,16 +283,16 @@ function BaseTextInput(
                     onPress={onPress}
                     tabIndex={-1}
                     accessibilityLabel={label}
+                    // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
+                    // or if multiline is not supplied we calculate the textinput height, using onLayout.
+                    onLayout={onLayout}
                     style={[
-                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxHeight === 'number' ? maxHeight : 0),
+                        autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
                         !isMultiline && styles.componentHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
                 >
                     <View
-                        // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
-                        // or if multiline is not supplied we calculate the textinput height, using onLayout.
-                        onLayout={onLayout}
                         style={[
                             newTextInputContainerStyles,
 
@@ -339,10 +326,10 @@ function BaseTextInput(
                                 </View>
                             )}
                             {Boolean(prefixCharacter) && (
-                                <View style={styles.textInputPrefixWrapper}>
+                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
                                         tabIndex={-1}
-                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone]}
+                                        style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         {prefixCharacter}
@@ -372,7 +359,7 @@ function BaseTextInput(
                                     styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
-                                    !!prefixCharacter && StyleUtils.getPaddingLeft(getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
+                                    !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft),
                                     inputProps.secureTextEntry && styles.secureInput,
 
                                     // Explicitly remove `lineHeight` from single line inputs so that long text doesn't disappear
@@ -385,7 +372,7 @@ function BaseTextInput(
 
                                     // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
                                     ...(autoGrowHeight
-                                        ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxHeight === 'number' ? maxHeight : 0), styles.verticalAlignTop]
+                                        ? [StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0), styles.verticalAlignTop]
                                         : []),
 
                                     // Add disabled color theme when field is not editable.
@@ -461,7 +448,7 @@ function BaseTextInput(
                 <Text
                     style={[
                         inputStyle,
-                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxHeight === 'number' ? maxHeight : undefined),
+                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
                     ]}

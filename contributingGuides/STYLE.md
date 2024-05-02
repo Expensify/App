@@ -68,14 +68,48 @@ export {
 }
 ```
 
-Using arrow functions is the preferred way to write an anonymous function such as a callback method.
+Using named functions is the preferred way to write a callback method.
 
 ```javascript
 // Bad
-someArray.map(function (item) {...});
+people.map(function (item) {/* Long and complex logic */});
+people.map((item) => {/* Long and complex logic with many inner loops*/});
+useEffect/useMemo/useCallback(() => {/* Long and complex logic */}, []);
 
 // Good
-someArray.map((item) => {...});
+function mappingPeople(person) {/* Long and complex logic */};
+people.map(mappingPeople);
+useEffect/useMemo/useCallback(function handlingConnection() {/* Long and complex logic */}, []);
+```
+
+You can still use arrow function for declarations or simple logics to keep them readable.
+
+```javascript
+// Bad
+randomList.push({
+     onSelected: Utils.checkIfAllowed(function checkTask() { return Utils.canTeamUp(people); }),
+});
+routeList.filter(function checkIsActive(route) { 
+    return route.isActive; 
+});
+
+// Good
+randomList.push({
+     onSelected: Utils.checkIfAllowed(() => Utils.canTeamUp(people)),
+});
+routeList.filter((route) => route.isActive);
+const myFunction = () => {...};
+const person = { getName: () => {} };
+Utils.connect({
+    callback: (val) => {},
+});
+useEffect(() => {
+    if (isFocused) {
+        return;
+    }
+    setError(null, {});
+}, [isFocused]);
+
 ```
 
 Empty functions (noop) should be declare as arrow functions with no whitespace inside. Avoid _.noop()
@@ -112,9 +146,38 @@ if (someCondition) {
 }
 ```
 
+## Object / Array Methods
+
+We have standardized on using [underscore.js](https://underscorejs.org/) methods for objects and collections instead of the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods). This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
+
+```javascript
+// Bad
+myArray.forEach(item => doSomething(item));
+// Good
+_.each(myArray, item => doSomething(item));
+
+// Bad
+const myArray = Object.keys(someObject).map((key) => doSomething(someObject[key]));
+// Good
+const myArray = _.map(someObject, (value, key) => doSomething(value));
+
+// Bad
+myCollection.includes('item');
+// Good
+_.contains(myCollection, 'item');
+
+// Bad
+const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
+// Good
+const modifiedArray = _.chain(someArray)
+    .filter(filterFunc)
+    .map(mapFunc)
+    .value();
+```
+
 ## Accessing Object Properties and Default Values
 
-Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type.
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this, then be explicit about this in your code and check for the type.
 
 ```javascript
 // Bad
@@ -134,11 +197,11 @@ const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 
 - Always document parameters and return values.
 - Optional parameters should be enclosed by `[]` e.g. `@param {String} [optionalText]`.
 - Document object parameters with separate lines e.g. `@param {Object} parameters` followed by `@param {String} parameters.field`.
-- If a parameter accepts more than one type use `*` to denote there is no single type.
+- If a parameter accepts more than one type, use `*` to denote there is no single type.
 - Use uppercase when referring to JS primitive values (e.g. `Boolean` not `bool`, `Number` not `int`, etc).
-- When specifying a return value use `@returns` instead of `@return`. If there is no return value do not include one in the doc.
+- When specifying a return value use `@returns` instead of `@return`. If there is no return value, do not include one in the doc.
 
-- Avoid descriptions that don't add any additional information. Method descriptions should only be added when it's behavior is unclear.
+- Avoid descriptions that don't add any additional information. Method descriptions should only be added when its behavior is unclear.
 - Do not use block tags other than `@param` and `@returns` (e.g. `@memberof`, `@constructor`, etc).
 - Do not document default parameters. They are already documented by adding them to a declared function's arguments.
 - Do not use record types e.g. `{Object.<string, number>}`.
@@ -191,6 +254,7 @@ function UserInfo(props) {
             <Text>Name: {props.name}</Text>
             <Text>Email: {props.email}</Text>
         </View>
+    );
 }
 
 UserInfo.defaultProps = {
@@ -272,7 +336,7 @@ class Rey extends Jedi {
 
 JavaScript is always changing. We are excited whenever it does! However, we tend to take our time considering whether to adopt the latest and greatest language features. The main reason for this is **consistency**. We have a style guide so that we don't have to have endless conversations about how our code looks and can focus on how it runs.
 
-So, if a new language feature isn't something we have agreed to support it's off the table. Sticking to just one way to do things reduces cognitive load in reviews and also makes sure our knowledge of language features progresses at the same pace. If a new language feature will cause considerable effort for everyone to adapt to or we're just not quite sold on the value of it yet we won't support it.
+So, if a new language feature isn't something we have agreed to support it's off the table. Sticking to just one way to do things reduces cognitive load in reviews and also makes sure our knowledge of language features progresses at the same pace. If a new language feature will cause considerable effort for everyone to adapt to or we're just not quite sold on the value of it yet, we won't support it.
 
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
@@ -449,10 +513,9 @@ In React Native, one **must not** attempt to falsey-check a string for an inline
 
 ## Function component style
 
-When writing a function component you must ALWAYS add a `displayName` property and give it the same value as the name of the component (this is so it appears properly in the React dev tools)
+When writing a function component, you must ALWAYS add a `displayName` property and give it the same value as the name of the component (this is so it appears properly in the React dev tools)
 
 ```javascript
-
     function Avatar(props) {...};
 
     Avatar.propTypes = propTypes;
@@ -464,7 +527,7 @@ When writing a function component you must ALWAYS add a `displayName` property a
 
 ## Forwarding refs
 
-When forwarding a ref define named component and pass it directly to the `forwardRef`. By doing this we remove potential extra layer in React tree in form of anonymous component.
+When forwarding a ref define named component and pass it directly to the `forwardRef`. By doing this, we remove potential extra layer in React tree in the form of anonymous component.
 
 ```javascript
     function FancyInput(props, ref) {
@@ -489,7 +552,7 @@ From React's documentation -
 
 Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
 
-If several HOC need to be combined there is a `compose()` utility. But we should not use this utility when there is only one HOC.
+If several HOC need to be combined, there is a `compose()` utility. But we should not use this utility when there is only one HOC.
 
 ```javascript
 // Bad
@@ -519,7 +582,7 @@ There are several ways to use and declare refs and we prefer the [callback metho
 
 ## Are we allowed to use [insert brand new React feature]? Why or why not?
 
-We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something please ask us first.
+We love React and learning about all the new features that are regularly being added to the API. However, we try to keep our organization's usage of React limited to the most stable set of features that React offers. We do this mainly for **consistency** and so our engineers don't have to spend extra time trying to figure out how everything is working. That said, if you aren't sure if we have adopted something, please ask us first.
 
 # React Hooks: Frequently Asked Questions
 
@@ -541,7 +604,7 @@ The short answer is no. A longer answer is that sometimes we need to check not o
 
 ## Are `useCallback()` and `useMemo()` basically the same thing?
 
-No! It is easy to confuse `useCallback()` with a memoization helper like `_.memoize()` or `useMemo()` but they are really not the same at all. [`useCallback()` will return a cached function _definition_](https://react.dev/reference/react/useCallback) and will not save us any computational cost of running that function. So, if you are wrapping something in a `useCallback()` and then calling it in the render then it is better to use `useMemo()` to cache the actual **result** of calling that function and use it directly in the render.
+No! It is easy to confuse `useCallback()` with a memoization helper like `_.memoize()` or `useMemo()` but they are really not the same at all. [`useCallback()` will return a cached function _definition_](https://react.dev/reference/react/useCallback) and will not save us any computational cost of running that function. So, if you are wrapping something in a `useCallback()` and then calling it in the render, then it is better to use `useMemo()` to cache the actual **result** of calling that function and use it directly in the render.
 
 ## What is the `exhaustive-deps` lint rule? Can I ignore it?
 
@@ -579,10 +642,10 @@ Note - This is a solution from [this PR](https://github.com/Expensify/App/pull/2
 
 ## Collection Keys
 
-Our potentially larger collections of data (reports, policies, etc) are typically stored under collection keys. Collection keys let us group together individual keys vs. storing arrays with multiple objects. In general, **do not add a new collection key if it can be avoided**. There is most likely a more logical place to put the state. And failing to associate a state property with it's logical owner is something we consider to be an anti-pattern (unnecessary data structure adds complexity for no value).
+Our potentially larger collections of data (reports, policies, etc) are typically stored under collection keys. Collection keys let us group together individual keys vs. storing arrays with multiple objects. In general, **do not add a new collection key if it can be avoided**. There is most likely a more logical place to put the state. And failing to associate a state property with its logical owner is something we consider to be an anti-pattern (unnecessary data structure adds complexity for no value).
 
-For example, if you are storing a boolean value that could be associated with a `report` object under a new collection key it is better to associate this information with the report itself and not create a new collection key.
+For example, if you are storing a boolean value that could be associated with a `report` object under a new collection key, it is better to associate this information with the report itself and not create a new collection key.
 
-**Exception:** There are some [gotchas](https://github.com/expensify/react-native-onyx#merging-data) when working with complex nested array values in Onyx. So, this could be another valid reason to break a property off of it's parent object (e.g. `reportActions` are easier to work with as a separate collection).
+**Exception:** There are some [gotchas](https://github.com/expensify/react-native-onyx#merging-data) when working with complex nested array values in Onyx. So, this could be another valid reason to break a property off of its parent object (e.g. `reportActions` are easier to work with as a separate collection).
 
-If you're not sure whether something should have a collection key reach out in [`#expensify-open-source`](https://expensify.slack.com/archives/C01GTK53T8Q) for additional feedback.
+If you're not sure whether something should have a collection key, reach out in [`#expensify-open-source`](https://expensify.slack.com/archives/C01GTK53T8Q) for additional feedback.
