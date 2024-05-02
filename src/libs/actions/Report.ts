@@ -2696,21 +2696,32 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
         participants[accountID] = {role};
     });
 
+    const optimisticParticipants: Participants = {};
+    const successParticipants: Participants = {};
+
+    Object.keys(participants).forEach(accountID => {
+        const participantID = Number(accountID);
+        optimisticParticipants[participantID] = {
+            ...participants[participantID],
+            pendingFields: {
+                role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+
+        successParticipants[participantID] = {
+            pendingFields: {
+                role: null,
+            },
+            pendingAction: null,
+        };
+    });
+
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: Object.keys(participants).reduce((acc, accountID) => {
-                    acc[Number(accountID)] = {
-                        ...participants[Number(accountID)],
-                        pendingFields: {
-                            role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                    };
-                    return acc;
-                }, {} as Participants),
-            },
+            value: { participants: optimisticParticipants },
         },
     ];
 
@@ -2718,16 +2729,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants: Object.keys(participants).reduce((acc, accountID) => {
-                    acc[Number(accountID)] = {
-                        pendingFields: {
-                            role: null,
-                        },
-                    };
-                    return acc;
-                }, {} as Participants),
-            },
+            value: { participants: successParticipants },
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
