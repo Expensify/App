@@ -190,7 +190,8 @@ function ProfilePage({route}: ProfilePageProps) {
                                     </View>
                                 )}
 
-                                {login ? (
+                                {/* Don't display email if current user is anonymous */}
+                                {!(isCurrentUser && SessionActions.isAnonymousUser()) && login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mb1]}

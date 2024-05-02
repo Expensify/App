@@ -212,6 +212,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                         {({hovered}) => (
                             <WorkspacesListRow
                                 title={item.title}
+                                policyID={item.policyID}
                                 menuItems={threeDotsMenuItems}
                                 workspaceIcon={item.icon}
                                 ownerAccountID={item.ownerAccountID}
@@ -333,7 +334,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                 }
                 return {
                     title: policy.name,
-                    icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                    icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                     action: () => Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policy.id)),
                     brickRoadIndicator: reimbursementAccountBrickRoadIndicator ?? PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy),
                     pendingAction: policy.pendingAction,
@@ -345,7 +346,7 @@ function WorkspacesListPage({policies, reimbursementAccount, reports, session}: 
                         dismissWorkspaceError(policy.id, policy.pendingAction);
                     },
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     iconFill: theme.textLight,
                     fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                     policyID: policy.id,

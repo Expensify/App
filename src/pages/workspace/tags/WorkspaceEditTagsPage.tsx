@@ -16,9 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -57,42 +55,39 @@ function WorkspaceEditTagsPage({route, policyTags}: WorkspaceEditTagsPageProps) 
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={WorkspaceEditTagsPage.displayName}
+            >
+                <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
+                <FormProvider
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
+                    onSubmit={updateTaglistName}
+                    validate={validateTagName}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
                 >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={WorkspaceEditTagsPage.displayName}
-                    >
-                        <HeaderWithBackButton title={translate(`workspace.tags.customTagName`)} />
-                        <FormProvider
-                            style={[styles.flexGrow1, styles.ph5]}
-                            formID={ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM}
-                            onSubmit={updateTaglistName}
-                            validate={validateTagName}
-                            submitButtonText={translate('common.save')}
-                            enabledWhenOffline
-                        >
-                            <View style={styles.mb4}>
-                                <InputWrapper
-                                    InputComponent={TextInput}
-                                    inputID={INPUT_IDS.POLICY_TAGS_NAME}
-                                    label={translate(`workspace.tags.customTagName`)}
-                                    accessibilityLabel={translate(`workspace.tags.customTagName`)}
-                                    defaultValue={PolicyUtils.getCleanedTagName(taglistName)}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    ref={inputCallbackRef}
-                                />
-                            </View>
-                        </FormProvider>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.POLICY_TAGS_NAME}
+                            label={translate(`workspace.tags.customTagName`)}
+                            accessibilityLabel={translate(`workspace.tags.customTagName`)}
+                            defaultValue={PolicyUtils.getCleanedTagName(taglistName)}
+                            role={CONST.ROLE.PRESENTATION}
+                            ref={inputCallbackRef}
+                        />
+                    </View>
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

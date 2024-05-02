@@ -216,7 +216,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                     },
                 ],
                 pendingAction: pendingChatMember?.pendingAction,
-                errors: pendingChatMember?.errors,
             });
         });
 
@@ -224,13 +223,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
 
         return result;
     };
-
-    const dismissError = useCallback(
-        (item: ListItem) => {
-            Report.clearAddRoomMemberError(report.reportID, String(item.accountID ?? ''));
-        },
-        [report.reportID],
-    );
 
     const isPolicyEmployee = useMemo(() => {
         if (!report?.policyID || policies === null) {
@@ -240,7 +232,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
     }, [report?.policyID, policies]);
     const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? translate('roomMembersPage.memberNotFound') : '';
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -309,7 +300,6 @@ function RoomMembersPage({report, session, policies}: RoomMembersPageProps) {
                             showScrollIndicator
                             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                             ListItem={UserListItem}
-                            onDismissError={dismissError}
                         />
                     </View>
                 </View>

@@ -11,9 +11,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -44,36 +42,33 @@ function WorkspaceTaxesSettingsForeignCurrency({
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
-                        style={styles.defaultModalContainer}
-                    >
-                        {({insets}) => (
-                            <>
-                                <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
+                style={styles.defaultModalContainer}
+            >
+                {({insets}) => (
+                    <>
+                        <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
 
-                                <View style={[styles.mb4, styles.flex1]}>
-                                    <TaxPicker
-                                        selectedTaxRate={selectedTaxRate}
-                                        policyID={policyID}
-                                        insets={insets}
-                                        onSubmit={submit}
-                                    />
-                                </View>
-                            </>
-                        )}
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                        <View style={[styles.mb4, styles.flex1]}>
+                            <TaxPicker
+                                selectedTaxRate={selectedTaxRate}
+                                policyID={policyID}
+                                insets={insets}
+                                onSubmit={submit}
+                            />
+                        </View>
+                    </>
+                )}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

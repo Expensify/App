@@ -33,7 +33,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
-    | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY;
+    | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY
+    | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM;
 
 type Route<T extends MoneyRequestRouteName> = PlatformStackRouteProp<MoneyRequestNavigatorParamList, T>;
 

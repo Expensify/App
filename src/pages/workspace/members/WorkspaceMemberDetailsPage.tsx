@@ -21,8 +21,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import * as Policy from '@userActions/Policy';
@@ -129,89 +128,90 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     }, [accountID, policyID]);
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
-                    <HeaderWithBackButton
-                        title={displayName}
-                        subtitle={policy?.name}
-                    />
-                    <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
-                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
-                            <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
-                                <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
-                                    source={UserUtils.getAvatar(avatar, accountID)}
-                                    size={CONST.AVATAR_SIZE.XLARGE}
-                                    fallbackIcon={fallbackIcon}
-                                />
-                            </OfflineWithFeedback>
-                            {Boolean(details.displayName ?? '') && (
-                                <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
-                                    numberOfLines={1}
-                                >
-                                    {displayName}
-                                </Text>
-                            )}
-                            {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                <Button
-                                    text={translate('workspace.people.transferOwner')}
-                                    onPress={startChangeOwnershipFlow}
-                                    medium
-                                    isDisabled={isOffline}
-                                    icon={Expensicons.Transfer}
-                                    iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                    style={styles.mv5}
-                                />
-                            ) : (
-                                <Button
-                                    text={translate('workspace.people.removeMemberButtonTitle')}
-                                    onPress={askForConfirmationToRemove}
-                                    medium
-                                    isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                    icon={Expensicons.RemoveMembers}
-                                    iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                    style={styles.mv5}
-                                />
-                            )}
-                            <ConfirmModal
-                                danger
-                                title={translate('workspace.people.removeMemberTitle')}
-                                isVisible={isRemoveMemberConfirmModalVisible}
-                                onConfirm={removeUser}
-                                onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                                prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
-                                confirmText={translate('common.remove')}
-                                cancelText={translate('common.cancel')}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+        >
+            <ScreenWrapper testID={WorkspaceMemberDetailsPage.displayName}>
+                <HeaderWithBackButton
+                    title={displayName}
+                    subtitle={policy?.name}
+                />
+                <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+                    <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                        <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
+                            <Avatar
+                                containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
+                                imageStyles={[styles.avatarXLarge]}
+                                source={UserUtils.getAvatar(avatar, accountID)}
+                                size={CONST.AVATAR_SIZE.XLARGE}
+                                fallbackIcon={fallbackIcon}
                             />
-                        </View>
-                        <View style={styles.w100}>
-                            <MenuItemWithTopDescription
-                                disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
-                                title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
-                                description={translate('common.role')}
-                                shouldShowRightIcon
-                                onPress={openRoleSelectionModal}
+                        </OfflineWithFeedback>
+                        {Boolean(details.displayName ?? '') && (
+                            <Text
+                                style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                numberOfLines={1}
+                            >
+                                {displayName}
+                            </Text>
+                        )}
+                        {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
+                            <Button
+                                text={translate('workspace.people.transferOwner')}
+                                onPress={startChangeOwnershipFlow}
+                                medium
+                                isDisabled={isOffline}
+                                icon={Expensicons.Transfer}
+                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                style={styles.mv5}
                             />
-                            <MenuItem
-                                title={translate('common.profile')}
-                                icon={Expensicons.Info}
-                                onPress={navigateToProfile}
-                                shouldShowRightIcon
+                        ) : (
+                            <Button
+                                text={translate('workspace.people.removeMemberButtonTitle')}
+                                onPress={askForConfirmationToRemove}
+                                medium
+                                isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                                icon={Expensicons.RemoveMembers}
+                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                                style={styles.mv5}
                             />
-                            <WorkspaceMemberDetailsRoleSelectionModal
-                                isVisible={isRoleSelectionModalVisible}
-                                items={roleItems}
-                                onRoleChange={changeRole}
-                                onClose={() => setIsRoleSelectionModalVisible(false)}
-                            />
-                        </View>
+                        )}
+                        <ConfirmModal
+                            danger
+                            title={translate('workspace.people.removeMemberTitle')}
+                            isVisible={isRemoveMemberConfirmModalVisible}
+                            onConfirm={removeUser}
+                            onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
+                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                            confirmText={translate('common.remove')}
+                            cancelText={translate('common.cancel')}
+                        />
                     </View>
-                </ScreenWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    <View style={styles.w100}>
+                        <MenuItemWithTopDescription
+                            disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
+                            title={member?.role === CONST.POLICY.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                            description={translate('common.role')}
+                            shouldShowRightIcon
+                            onPress={openRoleSelectionModal}
+                        />
+                        <MenuItem
+                            title={translate('common.profile')}
+                            icon={Expensicons.Info}
+                            onPress={navigateToProfile}
+                            shouldShowRightIcon
+                        />
+                        <WorkspaceMemberDetailsRoleSelectionModal
+                            isVisible={isRoleSelectionModalVisible}
+                            items={roleItems}
+                            onRoleChange={changeRole}
+                            onClose={() => setIsRoleSelectionModalVisible(false)}
+                        />
+                    </View>
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -19,9 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,64 +69,61 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     ];
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={CategorySettingsPage.displayName}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={CategorySettingsPage.displayName}
+            >
+                <HeaderWithBackButton
+                    shouldShowThreeDotsButton
+                    title={route.params.categoryName}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                />
+                <ConfirmModal
+                    isVisible={deleteCategoryConfirmModalVisible}
+                    onConfirm={deleteCategory}
+                    onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
+                    title={translate('workspace.categories.deleteCategory')}
+                    prompt={translate('workspace.categories.deleteCategoryPrompt')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                <View style={styles.flexGrow1}>
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
+                        pendingAction={policyCategory?.pendingFields?.enabled}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => Policy.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
                     >
-                        <HeaderWithBackButton
-                            shouldShowThreeDotsButton
-                            title={route.params.categoryName}
-                            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
-                            threeDotsMenuItems={threeDotsMenuItems}
-                        />
-                        <ConfirmModal
-                            isVisible={deleteCategoryConfirmModalVisible}
-                            onConfirm={deleteCategory}
-                            onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
-                            title={translate('workspace.categories.deleteCategory')}
-                            prompt={translate('workspace.categories.deleteCategoryPrompt')}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                        <View style={styles.flexGrow1}>
-                            <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorMessageField(policyCategory)}
-                                pendingAction={policyCategory?.pendingFields?.enabled}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => Policy.clearCategoryErrors(route.params.policyID, route.params.categoryName)}
-                            >
-                                <View style={[styles.mt2, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
-                                        <Switch
-                                            isOn={policyCategory.enabled}
-                                            accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                            onToggle={updateWorkspaceRequiresCategory}
-                                        />
-                                    </View>
-                                </View>
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
-                                <MenuItemWithTopDescription
-                                    title={policyCategory.name}
-                                    description={translate(`workspace.categories.categoryName`)}
-                                    onPress={navigateToEditCategory}
-                                    shouldShowRightIcon
+                        <View style={[styles.mt2, styles.mh5]}>
+                            <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
+                                <Switch
+                                    isOn={policyCategory.enabled}
+                                    accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                    onToggle={updateWorkspaceRequiresCategory}
                                 />
-                            </OfflineWithFeedback>
+                            </View>
                         </View>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
+                        <MenuItemWithTopDescription
+                            title={policyCategory.name}
+                            description={translate(`workspace.categories.categoryName`)}
+                            onPress={navigateToEditCategory}
+                            shouldShowRightIcon
+                        />
+                    </OfflineWithFeedback>
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

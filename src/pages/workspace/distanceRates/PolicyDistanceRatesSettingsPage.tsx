@@ -13,9 +13,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,53 +66,50 @@ function PolicyDistanceRatesSettingsPage({policy, policyCategories, route}: Poli
     };
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={PolicyDistanceRatesSettingsPage.displayName}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={PolicyDistanceRatesSettingsPage.displayName}
+            >
+                <HeaderWithBackButton title={translate('workspace.common.settings')} />
+                <View style={styles.flexGrow1}>
+                    <OfflineWithFeedback
+                        errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'attributes')}
+                        pendingAction={customUnits[customUnitID].pendingFields?.attributes}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('attributes')}
                     >
-                        <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                        <View style={styles.flexGrow1}>
-                            <OfflineWithFeedback
-                                errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'attributes')}
-                                pendingAction={customUnits[customUnitID].pendingFields?.attributes}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearErrorFields('attributes')}
-                            >
-                                <UnitSelector
-                                    label={translate('workspace.distanceRates.unit')}
-                                    defaultValue={defaultUnit}
-                                    wrapperStyle={[styles.ph5, styles.mt3]}
-                                    setNewUnit={setNewUnit}
-                                />
-                            </OfflineWithFeedback>
-                            {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
-                                <OfflineWithFeedback
-                                    errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'defaultCategory')}
-                                    pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
-                                    errorRowStyles={styles.mh5}
-                                    onClose={() => clearErrorFields('defaultCategory')}
-                                >
-                                    <CategorySelector
-                                        policyID={policyID}
-                                        label={translate('workspace.distanceRates.defaultCategory')}
-                                        defaultValue={defaultCategory}
-                                        wrapperStyle={[styles.ph5, styles.mt3]}
-                                        setNewCategory={setNewCategory}
-                                    />
-                                </OfflineWithFeedback>
-                            )}
-                        </View>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                        <UnitSelector
+                            label={translate('workspace.distanceRates.unit')}
+                            defaultValue={defaultUnit}
+                            wrapperStyle={[styles.ph5, styles.mt3]}
+                            setNewUnit={setNewUnit}
+                        />
+                    </OfflineWithFeedback>
+                    {policy?.areCategoriesEnabled && OptionsListUtils.hasEnabledOptions(policyCategories ?? {}) && (
+                        <OfflineWithFeedback
+                            errors={ErrorUtils.getLatestErrorField(customUnits[customUnitID], 'defaultCategory')}
+                            pendingAction={customUnits[customUnitID].pendingFields?.defaultCategory}
+                            errorRowStyles={styles.mh5}
+                            onClose={() => clearErrorFields('defaultCategory')}
+                        >
+                            <CategorySelector
+                                policyID={policyID}
+                                label={translate('workspace.distanceRates.defaultCategory')}
+                                defaultValue={defaultCategory}
+                                wrapperStyle={[styles.ph5, styles.mt3]}
+                                setNewCategory={setNewCategory}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

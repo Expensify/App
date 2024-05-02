@@ -9,9 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,32 +58,29 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={route.params.policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={route.params.policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        style={[styles.defaultModalContainer]}
-                        testID={EditCategoryPage.displayName}
-                        shouldEnableMaxHeight
-                    >
-                        <HeaderWithBackButton
-                            title={translate('workspace.categories.editCategory')}
-                            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
-                        />
-                        <CategoryForm
-                            onSubmit={editCategory}
-                            validateEdit={validate}
-                            categoryName={currentCategoryName}
-                            policyCategories={policyCategories}
-                        />
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                style={[styles.defaultModalContainer]}
+                testID={EditCategoryPage.displayName}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.categories.editCategory')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))}
+                />
+                <CategoryForm
+                    onSubmit={editCategory}
+                    validateEdit={validate}
+                    categoryName={currentCategoryName}
+                    policyCategories={policyCategories}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
