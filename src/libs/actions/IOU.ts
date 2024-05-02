@@ -3810,16 +3810,22 @@ function createSplitsAndOnyxData(
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
         const participantEmail = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
         const participantAccountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
+
+        // The last parameter means the split payer always pays the extra penny
         const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, splitPayerAccountID === participantAccountID);
 
-        // FIXME: This condition seems to be useless - we only ever include users in the participants array
-        // who are NOT the current user 🤔
+        // If the current user is involved with the split, either because they are the payer or the delegated
+        // payer is splitting with them (i.e. they are the current `participant`, we can create optimistic data
+        // for them.
         const shouldCreateOptimisticReports = currentUserAccountID === splitPayerAccountID || currentUserAccountID === participantAccountID;
+
+        // Don't try to create optimistic reports if we know we can't OR if the current participant is the
+        // payer themselves.
         if (participantEmail === splitPayerEmail || !shouldCreateOptimisticReports) {
             splits.push({
                 email: participantEmail,
                 accountID: participantAccountID,
-                isOptimisticAccount: ReportUtils.isOptimisticPersonalDetail(participantAccountID), // TODO: is this line right?
+                isOptimisticAccount: ReportUtils.isOptimisticPersonalDetail(participantAccountID),
                 amount: splitAmount,
             });
             return;
