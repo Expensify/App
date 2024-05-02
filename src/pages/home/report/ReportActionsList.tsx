@@ -252,7 +252,7 @@ function ReportActionsList({
         if (ReportUtils.isUnread(report)) {
             if ((Visibility.isVisible() || route?.params?.referrer === 'notification') && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
-                Navigation.setParams({ referrer: undefined });
+                Navigation.setParams({referrer: undefined});
             } else {
                 readActionSkipped.current = true;
             }
