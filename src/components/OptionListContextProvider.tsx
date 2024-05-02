@@ -5,6 +5,7 @@ import usePrevious from '@hooks/usePrevious';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
@@ -50,7 +51,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         personalDetails: [],
     });
 
-    const personalDetails = usePersonalDetails();
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
     const prevPersonalDetails = usePrevious(personalDetails);
     const prevReports = usePrevious(reports);
 

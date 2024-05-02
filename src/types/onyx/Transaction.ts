@@ -48,10 +48,18 @@ type Comment = {
     waypoints?: WaypointCollection;
     isLoading?: boolean;
     type?: string;
-    customUnit?: Record<string, unknown>;
+    customUnit?: TransactionCustomUnit;
     source?: string;
     originalTransactionID?: string;
     splits?: Split[];
+};
+
+type TransactionCustomUnit = {
+    customUnitID?: string;
+    customUnitRateID?: string;
+    quantity?: number;
+    name?: string;
+    defaultP2PRate?: number;
 };
 
 type GeometryType = 'LineString';

@@ -33,7 +33,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksChartOfAccountsPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.accounts')} />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                     <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
                     <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -43,7 +43,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                         <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
-                                    accessibilityLabel={translate('workspace.qbo.accounts')}
+                                    accessibilityLabel={translate('workspace.accounting.accounts')}
                                     isOn={isSwitchOn}
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(
