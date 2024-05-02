@@ -78,7 +78,6 @@ import CONFIG from '@src/CONFIG';
 import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
@@ -102,6 +101,7 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as CachedPDFPaths from './CachedPDFPaths';
 import * as Modal from './Modal';
+import navigateFromNotification from './navigateFromNotification';
 import * as Session from './Session';
 import * as Welcome from './Welcome';
 
@@ -2242,7 +2242,7 @@ function showReportActionNotification(reportID: string, reportAction: ReportActi
             if (!reportBelongsToWorkspace) {
                 Navigation.navigateWithSwitchPolicyID({route: ROUTES.HOME});
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, 'notification'));
+            navigateFromNotification(reportID);
         });
 
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
@@ -2429,7 +2429,7 @@ function openReportFromDeepLink(url: string) {
                     return;
                 }
 
-                Navigation.navigate(route as Route, CONST.NAVIGATION.ACTION_TYPE.PUSH);
+                Navigation.navigate(route , CONST.NAVIGATION.ACTION_TYPE.PUSH);
             });
         });
     });
