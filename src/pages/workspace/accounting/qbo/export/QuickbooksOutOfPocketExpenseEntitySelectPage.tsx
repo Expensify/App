@@ -38,7 +38,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
         if (!isTaxError && !isLocationError) {
             return;
         }
-        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
+        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
     }, [policyID, isTaxError, isLocationError]);
 
     const data: CardListItem[] = useMemo(
@@ -73,7 +73,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const selectExportEntity = useCallback(
         (row: CardListItem) => {
             if (row.value !== reimbursableExpensesExportDestination) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, row.value);
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },

@@ -142,7 +142,7 @@ type QBOConnectionData = {
     bankAccounts: Account[];
     creditCards: Account[];
     accountsReceivable: Account[];
-    accountsPayable: Account[];
+    accountPayable: Account[];
     otherCurrentAssetAccounts: Account[];
 
     taxCodes: TaxCode[];
@@ -170,7 +170,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     markChecksToBePrinted: boolean;
     reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
     nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
-
+    nonReimbursableBillDefaultVendor: string;
     collectionAccountID?: string;
     reimbursementAccountID?: string;
     reimbursableExpensesAccount?: Account;

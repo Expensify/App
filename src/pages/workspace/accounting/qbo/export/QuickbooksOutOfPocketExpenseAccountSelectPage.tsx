@@ -23,7 +23,7 @@ type CardListItem = ListItem & {
 function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {bankAccounts, journalEntryAccounts, accountsPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {bankAccounts, journalEntryAccounts, accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
 
     const {reimbursableExpensesExportDestination, reimbursableExpensesAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
@@ -34,7 +34,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                 accounts = bankAccounts ?? [];
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
-                accounts = accountsPayable ?? [];
+                accounts = accountPayable ?? [];
                 break;
             case CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 accounts = journalEntryAccounts ?? [];
@@ -49,14 +49,14 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
             keyForList: account.name,
             isSelected: account.id === reimbursableExpensesAccount?.id,
         }));
-    }, [accountsPayable, bankAccounts, reimbursableExpensesExportDestination, reimbursableExpensesAccount, journalEntryAccounts]);
+    }, [accountPayable, bankAccounts, reimbursableExpensesExportDestination, reimbursableExpensesAccount, journalEntryAccounts]);
 
     const policyID = policy?.id ?? '';
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
             if (row.value.id !== reimbursableExpensesAccount?.id) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },

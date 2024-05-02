@@ -226,6 +226,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Account_Payable_Select',
+            QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Non_Reimbursable_Default_Vendor_Select',
             QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Online_Export_Company_Card_Expense_Select',
             QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER: 'Workspace_Accounting_Quickbooks_Online_Export_Preferred_Exporter',
             QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
