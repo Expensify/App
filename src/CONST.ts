@@ -1269,6 +1269,7 @@ const CONST = {
     XERO_CONFIG: {
         AUTO_SYNC: 'autoSync',
         SYNC: 'sync',
+        IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
     },
 

@@ -295,6 +295,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
 
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: () => require('../../../../pages/workspace/accounting/xero/XeroImportPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: () => require('../../../../pages/workspace/accounting/xero/XeroOrganizationConfigurationPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_CUSTOMER]: () => require('../../../../pages/workspace/accounting/xero/import/XeroCustomerConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: () => require('../../../../pages/workspace/accounting/xero/XeroTaxesConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: () => require('../../../../pages/workspace/accounting/xero/advanced/XeroAdvancedPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,

@@ -2000,6 +2000,7 @@ export default {
             importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
             trackingCategories: 'Tracking categories',
             customers: 'Re-bill customers',
+            customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
             advancedConfig: {
