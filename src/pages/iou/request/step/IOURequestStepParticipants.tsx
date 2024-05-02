@@ -17,10 +17,12 @@ import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNo
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
+import {withOnyx} from "react-native-onyx";
+import ONYXKEYS from "@src/ONYXKEYS";
 
 type IOURequestStepParticipantsOnyxProps = {
-    /** The transaction object being modified in Onyx */
-    transaction: OnyxEntry<Transaction>;
+    /** Whether the confirmation step should be skipped */
+    skipConfirmation: OnyxEntry<boolean>;
 };
 
 type IOURequestStepParticipantsProps = IOURequestStepParticipantsOnyxProps &
@@ -136,4 +138,13 @@ function IOURequestStepParticipants({
 
 IOURequestStepParticipants.displayName = 'IOURequestStepParticipants';
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipants));
+const IOURequestStepParticipantsWithOnyx = withOnyx<IOURequestStepParticipantsProps, IOURequestStepParticipantsOnyxProps>({
+    skipConfirmation: {
+        key: ({route}) => {
+            const transactionID = route.params.transactionID ?? 0;
+            return `${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`;
+        },
+    },
+})(IOURequestStepParticipants);
+
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepParticipantsWithOnyx));
