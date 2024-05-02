@@ -27,12 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import ChatFinderPageFooter from './ChatFinderPageFooter';
 
-type ChatFinderPageOnyxProps = {
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-};
-
-type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
+type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];
@@ -48,11 +43,12 @@ const setPerformanceTimersEnd = () => {
 
 const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
-function ChatFinderPage({betas, navigation}: ChatFinderPageProps) {
+function ChatFinderPage({navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: isScreenTransitionEnd,
@@ -190,8 +186,4 @@ function ChatFinderPage({betas, navigation}: ChatFinderPageProps) {
 
 ChatFinderPage.displayName = 'ChatFinderPage';
 
-export default withOnyx<ChatFinderPageProps, ChatFinderPageOnyxProps>({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
-})(ChatFinderPage);
+export default ChatFinderPage;

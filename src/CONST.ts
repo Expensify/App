@@ -1249,7 +1249,7 @@ const CONST = {
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
-        SYNC_TAXES: 'syncTaxes',
+        SYNC_TAX: 'syncTax',
         PREFERRED_EXPORTER: 'exporter',
         EXPORT_DATE: 'exportDate',
         OUT_OF_POCKET_EXPENSES: 'outOfPocketExpenses',
@@ -1260,20 +1260,21 @@ const CONST = {
         EXPORT_COMPANY_CARD_ACCOUNT: 'exportCompanyCardAccount',
         EXPORT_COMPANY_CARD: 'exportCompanyCard',
         AUTO_SYNC: 'autoSync',
-        SYNCE_PEOPLE: 'syncPeople',
+        SYNC_PEOPLE: 'syncPeople',
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
     },
 
     XERO_CONFIG: {
+        IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
     },
 
-    QUICKBOOKS_EXPORT_ENTITY: {
-        VENDOR_BILL: 'vendorBill',
+    QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE: {
+        VENDOR_BILL: 'bill',
         CHECK: 'check',
-        JOURNAL_ENTRY: 'journalEntry',
+        JOURNAL_ENTRY: 'journal_entry',
     },
 
     ACCOUNT_ID: {
@@ -3722,12 +3723,12 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Submit an expense',
                     description:
-                        '<strong>Submit an expense</strong> by entering an amount or scanning a receipt.\n' +
+                        '*Submit an expense* by entering an amount or scanning a receipt.\n' +
                         '\n' +
                         'Here’s how to submit an expense:\n' +
                         '\n' +
-                        '1. Click the green <strong>+</strong> button.\n' +
-                        '2. Choose <strong>Submit expense</strong>.\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Submit expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
                         '4. Add your reimburser to the request.\n' +
                         '\n' +
@@ -3738,12 +3739,12 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Enable your wallet',
                     description:
-                        'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!\n' +
+                        'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
                         '\n' +
                         'Here’s how to set up your wallet:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Click <strong>Wallet</strong> > <strong>Enable wallet</strong>.\n' +
+                        '2. Click *Wallet* > *Enable wallet*.\n' +
                         '3. Connect your bank account.\n' +
                         '\n' +
                         'Once that’s done, you can request money from anyone and get paid back right into your personal bank account.',
@@ -3765,14 +3766,14 @@ const CONST = {
                     autoCompleted: true,
                     title: 'Create a workspace',
                     description:
-                        '<strong>Create a workspace</strong> to track expenses, scan receipts, chat, and more.\n' +
+                        '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
                         '\n' +
                         'Here’s how to create a workspace:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Click <strong>Workspaces<strong> > <strong>New workspace<strong>.\n' +
+                        '2. Click *Workspaces* > *New workspace*.\n' +
                         '\n' +
-                        '<strong>Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.</strong>',
+                        '*Your new workspace is ready! It’ll keep all of your spend (and chats) in one place.*',
                 },
                 {
                     type: 'meetGuide',
@@ -3788,32 +3789,32 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Set up categories',
                     description:
-                        '<strong>Set up categories</strong> so your team can code expenses for easy reporting.\n' +
+                        '*Set up categories* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         'Here’s how to set up categories:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to <strong>Workspaces</strong> > [your workspace].\n' +
-                        '3. Click <strong>Categories</strong>.\n' +
+                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        '3. Click *Categories*.\n' +
                         '4. Enable and disable default categories.\n' +
-                        '5. Click <strong>Add categories</strong> to make your own.\n' +
+                        '5. Click *Add categories* to make your own.\n' +
                         '\n' +
-                        'For more controls like requiring a category for every expense, click <strong>Settings</strong>.',
+                        'For more controls like requiring a category for every expense, click *Settings*.',
                 },
                 {
                     type: 'addExpenseApprovals',
                     autoCompleted: false,
                     title: 'Add expense approvals',
                     description:
-                        '<strong>Add expense approvals</strong> to review your team’s spend and keep it under control.\n' +
+                        '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
                         '\n' +
                         'Here’s how to add expense approvals:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to <strong>Workspaces</strong> > [your workspace].\n' +
-                        '3. Click <strong>More features</strong>.\n' +
-                        '4. Enable <strong>Workflows</strong>.\n' +
-                        '5. In <strong>Workflows</strong>, enable <strong>Add approvals</strong>.\n' +
+                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        '3. Click *More features*.\n' +
+                        '4. Enable *Workflows*.\n' +
+                        '5. In *Workflows*, enable *Add approvals*.\n' +
                         '\n' +
                         'You’ll be set as the expense approver. You can change this to any admin once you invite your team.',
                 },
@@ -3822,13 +3823,13 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Invite your team',
                     description:
-                        '<strong>Invite your team</strong> to Expensify so they can start tracking expenses today.\n' +
+                        '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. Go to <strong>Workspaces</strong> > [your workspace].\n' +
-                        '3. Click <strong>Members</strong> > <strong>Invite member</strong>.\n' +
+                        '2. Go to *Workspaces* > [your workspace].\n' +
+                        '3. Click *Members* > *Invite member*.\n' +
                         '4. Enter emails or phone numbers. \n' +
                         '5. Add an invite message if you want.\n' +
                         '\n' +
@@ -3851,14 +3852,14 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Track an expense',
                     description:
-                        '<strong>Track an expense</strong> in any currency, whether you have a receipt or not.\n' +
+                        '*Track an expense* in any currency, whether you have a receipt or not.\n' +
                         '\n' +
                         'Here’s how to track an expense:\n' +
                         '\n' +
-                        '1. Click the green <strong>+</strong> button.\n' +
-                        '2. Choose <strong>Track expense</strong>.\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Track expense*.\n' +
                         '3. Enter an amount or scan a receipt.\n' +
-                        '4. Click <strong>Track</strong>.\n' +
+                        '4. Click *Track*.\n' +
                         '\n' +
                         'And you’re done! Yep, it’s that easy.',
                 },
@@ -3879,12 +3880,12 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Start a chat',
                     description:
-                        '<strong>Start a chat</strong> with a friend or group using their email or phone number.\n' +
+                        '*Start a chat* with a friend or group using their email or phone number.\n' +
                         '\n' +
                         'Here’s how to start a chat:\n' +
                         '\n' +
-                        '1. Click the green <strong>+</strong> button.\n' +
-                        '2. Choose <strong>Start chat</strong>.\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Start chat*.\n' +
                         '3. Enter emails or phone numbers.\n' +
                         '\n' +
                         'If any of your friends aren’t using Expensify already, they’ll be invited automatically.\n' +
@@ -3896,12 +3897,12 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Split an expense',
                     description:
-                        '<strong>Split an expense</strong> right in your chat with one or more friends.\n' +
+                        '*Split an expense* right in your chat with one or more friends.\n' +
                         '\n' +
                         'Here’s how to request money:\n' +
                         '\n' +
-                        '1. Click the green <strong>+</strong> button.\n' +
-                        '2. Choose <strong>Split expense</strong>.\n' +
+                        '1. Click the green *+* button.\n' +
+                        '2. Choose *Split expense*.\n' +
                         '3. Scan a receipt or enter an amount.\n' +
                         '4. Add your friend(s) to the request.\n' +
                         '\n' +
@@ -3912,12 +3913,12 @@ const CONST = {
                     autoCompleted: false,
                     title: 'Enable your wallet',
                     description:
-                        'You’ll need to <strong>enable your Expensify Wallet</strong> to get paid back. Don’t worry, it’s easy!\n' +
+                        'You’ll need to *enable your Expensify Wallet* to get paid back. Don’t worry, it’s easy!\n' +
                         '\n' +
                         'Here’s how to enable your wallet:\n' +
                         '\n' +
                         '1. Click your profile picture.\n' +
-                        '2. <strong>Click Wallet</strong> > <strong>Enable wallet</strong>.\n' +
+                        '2. *Click Wallet* > *Enable wallet*.\n' +
                         '3. Add your bank account.\n' +
                         '\n' +
                         'Once that’s done, you can request money from anyone and get paid right into your personal bank account.',
@@ -4662,10 +4663,10 @@ const CONST = {
         REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
-    QUICKBOOKS_EXPORT_COMPANY_CARD: {
-        CREDIT_CARD: 'creditCard',
-        DEBIT_CARD: 'debitCard',
-        VENDOR_BILL: 'vendorBill',
+    QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'bill',
     },
 
     SESSION_STORAGE_KEYS: {

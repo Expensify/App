@@ -88,7 +88,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                 containerStyles={styles.avatarXLarge}
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-                source={policy?.avatar || ReportUtils.getDefaultWorkspaceAvatar(policyName)}
+                source={policy?.avatarURL || ReportUtils.getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
@@ -96,7 +96,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [policy?.avatar, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
+        [policy?.avatarURL, policy?.id, policyName, styles.alignSelfCenter, styles.avatarXLarge],
     );
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -139,7 +139,7 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                         />
                         <AvatarWithImagePicker
                             onViewPhotoPress={() => Navigation.navigate(ROUTES.WORKSPACE_AVATAR.getRoute(policy?.id ?? ''))}
-                            source={policy?.avatar ?? ''}
+                            source={policy?.avatarURL ?? ''}
                             size={CONST.AVATAR_SIZE.XLARGE}
                             avatarStyle={styles.avatarXLarge}
                             enablePreview
@@ -147,20 +147,20 @@ function WorkspaceProfilePage({policy, currencyList = {}, route}: WorkSpaceProfi
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
                             style={[
-                                policy?.errorFields?.avatar ?? isSmallScreenWidth ? styles.mb1 : styles.mb3,
+                                policy?.errorFields?.avatarURL ?? isSmallScreenWidth ? styles.mb1 : styles.mb3,
                                 isSmallScreenWidth ? styles.mtn17 : styles.mtn20,
                                 styles.alignItemsStart,
                                 styles.sectionMenuItemTopDescription,
                             ]}
                             editIconStyle={styles.smallEditIconWorkspace}
-                            isUsingDefaultAvatar={!policy?.avatar ?? null}
+                            isUsingDefaultAvatar={!policy?.avatarURL ?? false}
                             onImageSelected={(file) => Policy.updateWorkspaceAvatar(policy?.id ?? '', file as File)}
                             onImageRemoved={() => Policy.deleteWorkspaceAvatar(policy?.id ?? '')}
                             editorMaskImage={Expensicons.ImageCropSquareMask}
-                            pendingAction={policy?.pendingFields?.avatar}
-                            errors={policy?.errorFields?.avatar}
+                            pendingAction={policy?.pendingFields?.avatarURL}
+                            errors={policy?.errorFields?.avatarURL}
                             onErrorClose={() => Policy.clearAvatarErrors(policy?.id ?? '')}
-                            previewSource={UserUtils.getFullSizeAvatar(policy?.avatar ?? '')}
+                            previewSource={UserUtils.getFullSizeAvatar(policy?.avatarURL ?? '')}
                             headerTitle={translate('workspace.common.workspaceAvatar')}
                             originalFileName={policy?.originalFileName}
                             disabled={readOnly}
