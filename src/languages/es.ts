@@ -1912,8 +1912,6 @@ export default {
             locations: 'Lugares',
             customers: 'Clientes/Proyectos',
             displayedAs: 'Mostrado como',
-            notImported: 'No importado',
-            importedAsReportFields: 'Importado, mostrado como campo de informe',
             accountsDescription: 'Los planes de cuentas se importan como categorías cuando está conectado con una integración de contaduría, esto no se puede desactivar.',
             accountsSwitchTitle: 'Habilita el plan de cuentas recien importado',
             accountsSwitchDescription: 'Las nuevas categorías importadas desde QuickBooks Online a Expensify serán activadas o desactivadas por defecto.',
@@ -2233,7 +2231,15 @@ export default {
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
-            importedAsTags: 'Importado, mostrado como etiqueta',
+            importAsCategory: 'Importado, mostrado as categoría',
+            importTypes: {
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Importado, mostrado como etiqueta',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Importado, mostrado como etiqueta',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Importado, mostrado como etiqueta',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado, mostrado como campo de informe',
+            },
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

@@ -183,7 +183,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncLocations: IntegrationEntityMap;
     lastConfigurationTime: number;
     syncTax: boolean;
-    enableNewCategories: IntegrationEntityMap;
+    enableNewCategories: boolean;
     errors?: OnyxCommon.Errors;
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
     export: {

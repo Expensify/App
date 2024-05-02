@@ -1888,8 +1888,6 @@ export default {
             locations: 'Locations',
             customers: 'Customers/Projects',
             displayedAs: 'Displayed as',
-            notImported: 'Not imported',
-            importedAsReportFields: 'Imported, displayed as report fields',
             accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
             accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
             accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
@@ -2233,7 +2231,15 @@ export default {
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
-            importedAsTags: 'Imported, displayed as tags',
+            importAsCategory: 'Imported, displayed as categories',
+            importTypes: {
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Imported, displayed as tags',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Imported, displayed as tags',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Imported, displayed as tags',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'Not imported',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported, displayed as report fields',
+            },
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

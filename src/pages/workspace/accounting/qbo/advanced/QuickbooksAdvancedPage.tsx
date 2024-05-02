@@ -27,7 +27,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID,  errorFields} = qboConfig ?? {};
+    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID, errorFields} = qboConfig ?? {};
     const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
 
     const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
