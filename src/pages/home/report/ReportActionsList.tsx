@@ -250,7 +250,7 @@ function ReportActionsList({
             return;
         }
         if (ReportUtils.isUnread(report)) {
-            if ((Visibility.isVisible() || route?.params?.referrer === 'notification') && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
+            if ((Visibility.isVisible() || (route?.params as { referrer?: string })?.referrer === 'notification') && scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
                 Navigation.setParams({referrer: undefined});
             } else {
