@@ -83,7 +83,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                 testID={CategorySettingsPage.displayName}
             >
                 <HeaderWithBackButton
-                    shouldShowThreeDotsButton
+                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     title={route.params.categoryName}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
