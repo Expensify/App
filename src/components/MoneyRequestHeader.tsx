@@ -19,7 +19,6 @@ import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
@@ -136,7 +135,7 @@ function MoneyRequestHeader({
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || canModifyStatus)) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.holdExpense'),
@@ -212,24 +211,16 @@ function MoneyRequestHeader({
                     <MoneyRequestHeaderStatusBar
                         title={translate('iou.receiptStatusTitle')}
                         description={translate('iou.receiptStatusText')}
-                        shouldShowBorderBottom
+                        shouldShowBorderBottom={!isOnHold}
                     />
                 )}
                 {isOnHold && (
-                    <HoldBanner
-                        isRequestDuplicate={isDuplicate}
-                        shouldShowBorderBottom={!isDuplicate || !isSmallScreenWidth}
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.hold')}
+                        description={isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold')}
+                        shouldShowBorderBottom
+                        danger
                     />
-                )}
-                {isDuplicate && isSmallScreenWidth && (
-                    <View style={[styles.ph5, styles.pb2, styles.borderBottom]}>
-                        <Button
-                            success
-                            medium
-                            text={translate('iou.reviewDuplicates')}
-                            style={[styles.w100, styles.pr0]}
-                        />
-                    </View>
                 )}
             </View>
             <ConfirmModal
