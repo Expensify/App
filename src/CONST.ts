@@ -1302,8 +1302,6 @@ const CONST = {
         STAGING: 'staging',
         PRODUCTION: 'production',
         ADHOC: 'adhoc',
-        DEV_SUFFIX: ' Dev',
-        ADHOC_SUFFIX: ' AdHoc',
     },
 
     // Used to delay the initial fetching of reportActions when the app first inits or reconnects (e.g. returning
@@ -4699,6 +4697,11 @@ const CONST = {
 
     DOWNLOADS_PATH: '/Downloads',
     NEW_EXPENSIFY_PATH: '/New Expensify',
+
+    ENVIRONMENT_SUFFIX: {
+        DEV: ' Dev',
+        ADHOC: ' AdHoc',
+    },
 
     SEARCH_TRANSACTION_TYPE: {
         CASH: 'cash',
