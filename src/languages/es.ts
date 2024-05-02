@@ -730,7 +730,7 @@ export default {
         explainHold: 'Explica la razón para bloquear esta solicitud.',
         reason: 'Razón',
         holdReasonRequired: 'Se requiere una razón para bloquear.',
-        expenseOnHold: 'Este gasto quedó en suspenso. Revise los comentarios para los próximos pasos.',
+        expenseOnHold: 'Este gasto está bloqueado. Revisa los comentarios para saber como proceder.',
         expenseDuplicate: 'Esta solicitud tiene los mismos detalles que otra. Revise los duplicados para eliminar la retención.',
         reviewDuplicates: 'Revisar duplicados',
         confirmApprove: 'Confirma que quieres aprobar',
