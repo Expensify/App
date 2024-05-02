@@ -179,6 +179,14 @@ function FloatingActionButtonAndPopover(
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
+    const hideQABSubtitle = useMemo(() => {
+        if (isEmptyObject(quickActionReport)) {
+            return true;
+        }
+        const displayName = personalDetails?.[session?.accountID ?? 0]?.displayName ?? '';
+        return quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && displayName.length > 0;
+    }, [personalDetails, session?.accountID, quickActionReport, quickAction?.action]);
+
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
@@ -429,7 +437,7 @@ function FloatingActionButtonAndPopover(
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-                                  description: !isEmptyObject(quickActionReport) ? ReportUtils.getReportName(quickActionReport) : '',
+                                  description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) : '',
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
