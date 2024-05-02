@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -16,6 +17,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as UserUtils from '@libs/UserUtils';
@@ -56,6 +58,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
+    const prevMember = usePrevious(member);
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
     const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
@@ -95,6 +98,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         }
     }, [accountID, policy?.errorFields?.changeOwner, policy?.isChangeOwnerSuccessful, policyID]);
 
+    useEffect(() => {
+        if (!prevMember || prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+        Navigation.goBack();
+    }, [member, prevMember]);
+
     const askForConfirmationToRemove = () => {
         setIsRemoveMemberConfirmModalVisible(true);
     };
@@ -102,7 +112,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const removeUser = useCallback(() => {
         Policy.removeMembers([accountID], policyID);
         setIsRemoveMemberConfirmModalVisible(false);
-        Navigation.goBack();
     }, [accountID, policyID]);
 
     const navigateToProfile = useCallback(() => {
@@ -126,6 +135,14 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         Policy.requestWorkspaceOwnerChange(policyID);
         Navigation.navigate(ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.getRoute(policyID, accountID, 'amountOwed' as ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>));
     }, [accountID, policyID]);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage =
+        !member || (member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && prevMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+    if (shouldShowNotFoundPage) {
+        return <FullPageNotFoundView shouldShow={shouldShowNotFoundPage} />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
