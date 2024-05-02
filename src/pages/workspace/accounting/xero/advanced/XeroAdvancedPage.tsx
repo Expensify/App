@@ -1,5 +1,4 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -10,15 +9,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -27,7 +23,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const policyID = policy?.id ?? '';
     const xeroConfig = policy?.connections?.xero?.config;
-    const {autoSync, pendingFields, errorFields, sync} = xeroConfig ?? {};
+    const {autoSync, pendingFields, sync} = xeroConfig ?? {};
     const xeroData = policy?.connections?.xero?.data;
 
     return (
