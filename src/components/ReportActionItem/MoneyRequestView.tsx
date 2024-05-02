@@ -334,7 +334,7 @@ function MoneyRequestView({
 
     const errors = {
         ...(transaction?.errors ?? {}),
-        ...(parentReportAction?.errors ?? {})
+        ...(parentReportAction?.errors ?? {}),
     };
 
     return (
