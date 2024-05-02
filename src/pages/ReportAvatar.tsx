@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import AttachmentModal from '@components/AttachmentModal';
@@ -35,7 +35,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
             }}
             isWorkspaceAvatar
             maybeIcon
-            originalFileName={policy?.originalFileName ?? policyName}
+            originalFileName={policy?.originalFileName ?? policy?.id}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
