@@ -89,15 +89,19 @@ function HeaderView({
     const styles = useThemeStyles();
     const isSelfDM = ReportUtils.isSelfDM(report);
     const isGroupChat = ReportUtils.isGroupChat(report) || ReportUtils.isDeprecatedGroupDM(report);
-    // Currently, currentUser is not included in participantAccountIDs, so for selfDM, we need to add the currentUser as participants.
-    const participants = isSelfDM
-        ? [session?.accountID ?? -1]
-        : Object.keys(report.participants ?? {})
-              .map(Number)
-              .slice(0, 5);
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails);
-    const isMultipleParticipant = participants.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, undefined, isSelfDM);
+
+    const allParticipantsAccountIDs = useMemo(() => Object.keys(report.participants ?? {}).map(Number), [report.participants]);
+    const isMultipleParticipant = allParticipantsAccountIDs.length > 1;
+
+    const shouldIncludeCurrentUser = isSelfDM || isGroupChat;
+    const participantsAccountIDs = useMemo(
+        () => allParticipantsAccountIDs.filter((accountID) => shouldIncludeCurrentUser || accountID !== session?.accountID).slice(0, 5),
+        [shouldIncludeCurrentUser, allParticipantsAccountIDs, session?.accountID],
+    );
+
+    const shouldUseShortFormInTooltip = participantsAccountIDs.length > 1;
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participantsAccountIDs, personalDetails);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, shouldUseShortFormInTooltip, undefined, isSelfDM);
 
     const isChatThread = ReportUtils.isChatThread(report);
     const isChatRoom = ReportUtils.isChatRoom(report);
@@ -108,7 +112,7 @@ function HeaderView({
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const isConcierge = ReportUtils.hasSingleParticipant(report) && participants.includes(CONST.ACCOUNT_ID.CONCIERGE);
+    const isConcierge = ReportUtils.hasSingleOtherParticipant(report) && participantsAccountIDs.includes(CONST.ACCOUNT_ID.CONCIERGE);
     const isCanceledTaskReport = ReportUtils.isCanceledTaskReport(report, parentReportAction);
     const isWhisperAction = ReportActionsUtils.isWhisperAction(parentReportAction);
     const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(report);

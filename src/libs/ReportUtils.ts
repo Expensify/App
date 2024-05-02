@@ -1280,8 +1280,12 @@ function isPolicyAdmin(policyID: string, policies: OnyxCollection<Policy>): bool
 /**
  * Returns true if report has a single participant.
  */
-function hasSingleParticipant(report: OnyxEntry<Report>): boolean {
-    return Object.keys(report?.participants ?? {}).length === 1;
+function hasSingleOtherParticipant(report: OnyxEntry<Report>): boolean {
+    return (
+        Object.keys(report?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID).length === 1
+    );
 }
 
 /**
@@ -1578,7 +1582,7 @@ function getReportRecipientAccountIDs(report: OnyxEntry<Report>, currentLoginAcc
     // get parent report and use its participants array.
     if (isThread(report) && !(isTaskReport(report) || isMoneyRequestReport(report))) {
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`] ?? null;
-        if (hasSingleParticipant(parentReport)) {
+        if (hasSingleOtherParticipant(parentReport)) {
             finalReport = parentReport;
         }
     }
@@ -2050,7 +2054,7 @@ function getIcons(
 
 function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
-    isMultipleParticipantReport: boolean,
+    shouldUseShortForm: boolean,
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -2060,7 +2064,7 @@ function getDisplayNamesWithTooltips(
         .map((user) => {
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport, shouldFallbackToHidden, shouldAddCurrentUserPostfix) || user?.login || '';
+            const displayName = getDisplayNameForParticipant(accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix) || user?.login || '';
             const avatar = UserUtils.getDefaultAvatar(accountID);
 
             let pronouns = user?.pronouns ?? undefined;
@@ -3179,8 +3183,8 @@ function getReportName(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> = nu
         .map(Number)
         .filter((accountID) => accountID !== currentUserAccountID)
         .slice(0, 5);
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
+    const hasMultipleOtherParticipants = participantsWithoutCurrentUser.length > 1;
+    return participantsWithoutCurrentUser.map((accountID) => getDisplayNameForParticipant(accountID, hasMultipleOtherParticipants)).join(', ');
 }
 
 /**
@@ -5955,7 +5959,9 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
             !isMoneyRequestReport(report) &&
             !isArchivedRoom(report) &&
             !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
-            Object.keys(report.participants ?? {}).length > 1,
+            Object.keys(report.participants ?? {})
+                .map(Number)
+                .filter((accountID) => accountID !== currentUserAccountID).length > 1,
     );
 }
 
@@ -6628,7 +6634,7 @@ export {
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
     hasReportNameError,
-    hasSingleParticipant,
+    hasSingleOtherParticipant,
     hasSmartscanError,
     hasUpdatedTotal,
     hasViolations,

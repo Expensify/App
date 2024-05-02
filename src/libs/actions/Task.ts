@@ -762,13 +762,19 @@ function getAssignee(assigneeAccountID: number, personalDetails: OnyxEntry<OnyxT
 function getShareDestination(reportID: string, reports: OnyxCollection<OnyxTypes.Report>, personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>): ShareDestination {
     const report = reports?.[`report_${reportID}`] ?? null;
 
-    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
-    const isMultipleParticipant = participantAccountIDs.length > 1;
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
+    const otherParticipantsAccountIDs = Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserAccountID);
+
+    const hasMultipleOtherParticipants = otherParticipantsAccountIDs.length > 1;
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+        OptionsListUtils.getPersonalDetailsForAccountIDs(otherParticipantsAccountIDs, personalDetails),
+        hasMultipleOtherParticipants,
+    );
 
     let subtitle = '';
-    if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
-        const participantAccountID = participantAccountIDs[0] ?? -1;
+    if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleOtherParticipant(report)) {
+        const participantAccountID = otherParticipantsAccountIDs[0] ?? -1;
 
         const displayName = personalDetails?.[participantAccountID]?.displayName ?? '';
         const login = personalDetails?.[participantAccountID]?.login ?? '';
