@@ -26,81 +26,8 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const {autoSync, syncPeople, autoCreateVendor, pendingFields, collectionAccountID, reimbursementAccountID, errorFields} = qboConfig ?? {};
-    const {bankAccounts, creditCards, otherCurrentAssetAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
-
-    const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
-    const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
-
-    const isSyncReimbursedSwitchOn = !!collectionAccountID;
-
-    const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
-    const selectedInvoiceCollectionAccountName = useMemo(
-        () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
-        [invoiceAccountCollectionOptions, collectionAccountID],
-    );
-
-    const syncReimbursedSubMenuItems = () => (
-        <View style={[styles.mt3]}>
-            <OfflineWithFeedback pendingAction={pendingFields?.reimbursementAccountID}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={selectedQboAccountName}
-                    description={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                    error={errorFields?.reimbursementAccountID ? translate('common.genericErrorMessage') : undefined}
-                    brickRoadIndicator={errorFields?.reimbursementAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-
-            <OfflineWithFeedback pendingAction={pendingFields?.collectionAccountID}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={selectedInvoiceCollectionAccountName}
-                    description={translate('workspace.qbo.advancedConfig.qboInvoiceCollectionAccount')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR.getRoute(policyID)))}
-                    error={errorFields?.collectionAccountID ? translate('common.genericErrorMessage') : undefined}
-                    brickRoadIndicator={errorFields?.collectionAccountID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
-            </OfflineWithFeedback>
-        </View>
-    );
-
-    const qboToggleSettingItems: ToggleSettingOptionRowProps[] = [
-        {
-            title: translate('workspace.qbo.advancedConfig.autoSync'),
-            subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: Boolean(autoSync?.enabled),
-            onToggle: () =>
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC, {
-                    enabled: !autoSync?.enabled,
-                }),
-            pendingAction: pendingFields?.autoSync,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC),
-            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.AUTO_SYNC),
-            wrapperStyle: styles.mv3,
-        },
-        {
-            title: translate('workspace.qbo.advancedConfig.reimbursedReports'),
-            subtitle: translate('workspace.qbo.advancedConfig.reimbursedReportsDescription'),
-            isActive: isSyncReimbursedSwitchOn,
-            onToggle: () =>
-                Connections.updatePolicyConnectionConfig(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID,
-                    isSyncReimbursedSwitchOn ? '' : [...qboAccountOptions, ...invoiceAccountCollectionOptions][0].id,
-                ),
-            pendingAction: pendingFields?.collectionAccountID,
-            errors: ErrorUtils.getLatestErrorField(qboConfig ?? {}, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
-            onCloseError: () => Policy.clearQBOErrorField(policyID, CONST.QUICK_BOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
-            subMenuItems: syncReimbursedSubMenuItems(),
-            wrapperStyle: styles.mv3,
-        },
-    ];
+    const xeroConfig = policy?.connections?.xero?.config;
+    const {autoSync, pendingFields, sync, errorFields} = xeroConfig ?? {};
 
     return (
         <AccessOrNotFoundWrapper
@@ -116,21 +43,21 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <HeaderWithBackButton title={translate('workspace.qbo.advancedConfig.advanced')} />
 
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pb5]}>
-                    {qboToggleSettingItems.map((item) => (
-                        <ToggleSettingOptionRow
-                            key={item.title}
-                            errors={item.errors}
-                            onCloseError={item.onCloseError}
-                            title={item.title}
-                            subtitle={item.subtitle}
-                            shouldPlaceSubtitleBelowSwitch
-                            wrapperStyle={item.wrapperStyle}
-                            isActive={item.isActive}
-                            onToggle={item.onToggle}
-                            pendingAction={item.pendingAction}
-                            subMenuItems={item.subMenuItems}
-                        />
-                    ))}
+                    <ToggleSettingOptionRow
+                        key={translate('workspace.xero.advancedConfig.autoSync')}
+                        errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
+                        title={translate('workspace.xero.advancedConfig.autoSync')}
+                        subtitle={translate('workspace.xero.advancedConfig.autoSyncDescription')}
+                        shouldPlaceSubtitleBelowSwitch
+                        wrapperStyle={styles.mv3}
+                        isActive={Boolean(autoSync?.enabled)}
+                        onToggle={() =>
+                            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.AUTO_SYNC, {
+                                enabled: !autoSync?.enabled,
+                            })
+                        }
+                        pendingAction={pendingFields?.autoSync}
+                    />
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

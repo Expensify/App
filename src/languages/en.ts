@@ -2002,6 +2002,10 @@ export default {
             customers: 'Re-bill customers',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
+            advancedConfig: {
+                autoSync: 'Auto-Sync',
+                autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
+            },
         },
         type: {
             free: 'Free',

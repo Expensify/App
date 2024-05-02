@@ -2034,6 +2034,10 @@ export default {
             customers: 'Volver a facturar a los clientes',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
+            advancedConfig: {
+                autoSync: 'Autosincronización',
+                autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
+            },
         },
         type: {
             free: 'Gratis',
