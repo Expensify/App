@@ -56,7 +56,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
             description: translate('workspace.accounting.taxes'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.syncTax),
-            title: translate(`workspace.accounting.importTypes.${syncTax ? CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED : CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED}`),
+            title: translate(syncTax ? 'workspace.accounting.imported' : 'workspace.accounting.notImported'),
             pendingAction: pendingFields?.syncTax,
         });
     }

@@ -2231,6 +2231,7 @@ export default {
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
+            notImported: 'Not imported',
             importAsCategory: 'Imported, displayed as categories',
             importTypes: {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Imported, displayed as tags',

@@ -2231,6 +2231,7 @@ export default {
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
+            notImported: 'No importado',
             importAsCategory: 'Importado, mostrado as categoría',
             importTypes: {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Importado, mostrado como etiqueta',
