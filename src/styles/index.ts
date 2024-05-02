@@ -4854,12 +4854,6 @@ const styles = (theme: ThemeColors) =>
         textLineThrough: {
             textDecorationLine: 'line-through',
         },
-
-        receiptListItemStyle: {
-            height: 40,
-            width: 36,
-            borderRadius: variables.componentBorderRadiusSmall,
-        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
