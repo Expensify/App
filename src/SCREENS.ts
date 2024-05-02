@@ -270,7 +270,6 @@ const SCREENS = {
         TAG_CREATE: 'Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         CURRENCY: 'Workspace_Profile_Currency',
-        ADDRESS: 'Workspace_Profile_Address',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',
         WORKFLOWS_APPROVER: 'Workspace_Workflows_Approver',
