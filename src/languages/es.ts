@@ -3423,6 +3423,11 @@ export default {
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },
+    violationDismissal: {
+        rter: {
+            manual: 'marcó el recibo como pagado en efectivo.',
+        },
+    },
     videoPlayer: {
         play: 'Reproducir',
         pause: 'Pausar',

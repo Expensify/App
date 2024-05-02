@@ -2921,6 +2921,11 @@ export default {
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
     },
+    violationDismissal: {
+        rter: {
+            manual: 'marked this receipt as cash.',
+        },
+    },
     videoPlayer: {
         play: 'Play',
         pause: 'Pause',
