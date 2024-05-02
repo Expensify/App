@@ -14,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Travel from '@userActions/Travel';
+import CONST from '@src/CONST';
 
 function TravelTerms() {
     const styles = useThemeStyles();
@@ -40,7 +41,7 @@ function TravelTerms() {
         () => (
             <Text>
                 {`${translate('travel.termsAndConditions.agree')}`}
-                <TextLink href="https://www.spotnana.com/terms/">{`${translate('travel.termsAndConditions.travelTermsAndConditions')}`}</TextLink>
+                <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.travelTermsAndConditions')}`}</TextLink>
             </Text>
         ),
         [translate],
@@ -65,7 +66,7 @@ function TravelTerms() {
                                 <Text style={styles.headerAnonymousFooter}>{`${translate('travel.termsAndConditions.title')}`}</Text>
                                 <Text style={styles.mt4}>
                                     {`${translate('travel.termsAndConditions.subtitle')}`}
-                                    <TextLink href="https://www.spotnana.com/terms/">{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
+                                    <TextLink href={CONST.TRAVEL_TERMS_URL}>{`${translate('travel.termsAndConditions.termsconditions')}.`}</TextLink>
                                 </Text>
                                 <Text style={styles.mt6}>
                                     {`${translate('travel.termsAndConditions.helpDocIntro')}`}
