@@ -252,7 +252,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         longitude={currentPosition?.longitude ?? 0}
                         latitude={currentPosition?.latitude ?? 0}
                     >
-                        <View style={{backgroundColor: colors.blue400, width: 8, height: 8, borderRadius: 8}} />
+                        <View style={{backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16}} />
                     </Marker>
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
