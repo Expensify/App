@@ -9,8 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -49,23 +48,22 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <FeatureEnabledAccessOrNotFoundWrapper
-                policyID={policyID}
-                featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            >
-                <ScreenWrapper testID={QuickbooksExportInvoiceAccountSelectPage.displayName}>
-                    <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
-                    <SelectionList
-                        headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
-                        sections={[{data}]}
-                        ListItem={RadioListItem}
-                        onSelectRow={selectExportInvoice}
-                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                    />
-                </ScreenWrapper>
-            </FeatureEnabledAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+        >
+            <ScreenWrapper testID={QuickbooksExportInvoiceAccountSelectPage.displayName}>
+                <HeaderWithBackButton title={translate('workspace.qbo.exportInvoices')} />
+                <SelectionList
+                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
+                    sections={[{data}]}
+                    ListItem={RadioListItem}
+                    onSelectRow={selectExportInvoice}
+                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

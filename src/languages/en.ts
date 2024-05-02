@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-import type {PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
+import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
@@ -34,7 +34,6 @@ import type {
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -126,6 +125,7 @@ export default {
         buttonConfirm: 'Got it',
         name: 'Name',
         attachment: 'Attachment',
+        from: 'From',
         to: 'To',
         optional: 'Optional',
         new: 'New',
@@ -226,20 +226,20 @@ export default {
         conjunctionAt: 'at',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
-            invalidAmount: 'Invalid amount',
-            acceptTerms: 'You must accept the Terms of Service to continue',
+            invalidAmount: 'Invalid amount.',
+            acceptTerms: 'You must accept the Terms of Service to continue.',
             phoneNumber: `Please enter a valid phone number, with the country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'This field is required.',
             requestModified: 'This request is being modified by another member.',
             characterLimit: ({limit}: CharacterLimitParams) => `Exceeds the maximum length of ${limit} characters`,
             characterLimitExceedCounter: ({length, limit}) => `Character limit exceeded (${length}/${limit})`,
-            dateInvalid: 'Please select a valid date',
+            dateInvalid: 'Please select a valid date.',
             invalidDateShouldBeFuture: 'Please choose today or a future date.',
             invalidTimeShouldBeFuture: 'Please choose a time at least one minute ahead.',
-            invalidCharacter: 'Invalid character',
-            enterMerchant: 'Enter a merchant name',
-            enterAmount: 'Enter an amount',
-            enterDate: 'Enter a date',
+            invalidCharacter: 'Invalid character.',
+            enterMerchant: 'Enter a merchant name.',
+            enterAmount: 'Enter an amount.',
+            enterDate: 'Enter a date.',
             invalidTimeRange: 'Please enter a time using the 12-hour clock format (e.g., 2:30 PM).',
         },
         comma: 'comma',
@@ -269,7 +269,6 @@ export default {
         youAfterPreposition: 'you',
         your: 'your',
         conciergeHelp: 'Please reach out to Concierge for help.',
-        maxParticipantsReached: ({count}: MaxParticipantsReachedParams) => `You've selected the maximum number (${count}) of participants.`,
         youAppearToBeOffline: 'You appear to be offline.',
         thisFeatureRequiresInternet: 'This feature requires an active internet connection to be used.',
         areYouSure: 'Are you sure?',
@@ -297,6 +296,7 @@ export default {
         nonBillable: 'Non-billable',
         tag: 'Tag',
         receipt: 'Receipt',
+        verified: 'Verified',
         replace: 'Replace',
         distance: 'Distance',
         mile: 'mile',
@@ -327,6 +327,8 @@ export default {
             subtitleText3: 'button below.',
         },
         businessName: 'Business name',
+        type: 'Type',
+        action: 'Action',
     },
     location: {
         useCurrent: 'Use current location',
@@ -343,8 +345,8 @@ export default {
         cameraPermissionRequired: 'Camera access',
         expensifyDoesntHaveAccessToCamera: "Expensify can't take photos without access to your camera. Tap Settings to update permissions.",
         attachmentError: 'Attachment error',
-        errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
-        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
+        errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again.',
+        errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file.',
         takePhoto: 'Take photo',
         chooseFromGallery: 'Choose from gallery',
         chooseDocument: 'Choose document',
@@ -356,6 +358,10 @@ export default {
         notAllowedExtension: 'This file type is not allowed',
         folderNotAllowedMessage: 'Uploading a folder is not allowed. Try a different file.',
         protectedPDFNotSupported: 'Password-protected PDF is not supported',
+    },
+    connectionComplete: {
+        title: 'Connection Complete',
+        supportingText: 'You can close this window and head back to the Expensify app.',
     },
     avatarCropModal: {
         title: 'Edit photo',
@@ -399,6 +405,7 @@ export default {
     moneyRequestConfirmationList: {
         paidBy: 'Paid by',
         splitWith: 'Split with',
+        splitAmounts: 'Split amounts',
         whatsItFor: "What's it for?",
     },
     optionsSelector: {
@@ -585,7 +592,7 @@ export default {
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera Error',
-        cameraErrorMessage: 'An error occurred while taking a photo, please try again',
+        cameraErrorMessage: 'An error occurred while taking a photo, please try again.',
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
@@ -635,6 +642,7 @@ export default {
         canceled: 'Canceled',
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
+        receiptIssuesFound: (count: number) => `${count === 1 ? 'Issue' : 'Issues'} found`,
         fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptScanning: 'Scan in progress…',
@@ -657,6 +665,7 @@ export default {
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `Pay ${formattedAmount} elsewhere` : `Pay elsewhere`),
         nextStep: 'Next Steps',
         finished: 'Finished',
+        sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
         submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
         trackAmount: ({amount}: RequestAmountParams) => `track ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -700,17 +709,20 @@ export default {
             invalidCategoryLength: 'The length of the category chosen exceeds the maximum allowed (255). Please choose a different or shorten the category name first.',
             invalidAmount: 'Please enter a valid amount before continuing.',
             invalidTaxAmount: ({amount}: RequestAmountParams) => `Maximum tax amount is ${amount}`,
-            invalidSplit: 'Split amounts do not equal total amount',
-            other: 'Unexpected error, please try again later',
+            invalidSplit: 'Split amounts do not equal total amount.',
+            other: 'Unexpected error, please try again later.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
+            genericCreateInvoiceFailureMessage: 'Unexpected error sending invoice, please try again later.',
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             receiptFailureMessage: "The receipt didn't upload. ",
+            // eslint-disable-next-line rulesdir/use-periods-for-error-messages
             saveFileMessage: 'Download the file ',
-            loseFileMessage: 'or dismiss this error and lose it',
-            genericDeleteFailureMessage: 'Unexpected error deleting this expense, please try again later',
-            genericEditFailureMessage: 'Unexpected error editing this expense, please try again later',
-            genericSmartscanFailureMessage: 'Transaction is missing fields',
-            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints',
-            atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses',
+            loseFileMessage: 'or dismiss this error and lose it.',
+            genericDeleteFailureMessage: 'Unexpected error deleting this expense, please try again later.',
+            genericEditFailureMessage: 'Unexpected error editing this expense, please try again later.',
+            genericSmartscanFailureMessage: 'Transaction is missing fields.',
+            duplicateWaypointsErrorMessage: 'Please remove duplicate waypoints.',
+            atLeastTwoDifferentWaypoints: 'Please enter at least two different addresses.',
             splitExpenseMultipleParticipantsErrorMessage: 'An expense cannot be split between a workspace and other members. Please update your selection.',
             invalidMerchant: 'Please enter a correct merchant.',
         },
@@ -955,11 +967,6 @@ export default {
         currentPassword: 'Current password',
         newPassword: 'New password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
-        errors: {
-            currentPassword: 'Current password is required',
-            newPasswordSameAsOld: 'New password must be different than your old password',
-            newPassword: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
-        },
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
@@ -987,7 +994,7 @@ export default {
     },
     recoveryCodeForm: {
         error: {
-            pleaseFillRecoveryCode: 'Please enter your recovery code',
+            pleaseFillRecoveryCode: 'Please enter your recovery code.',
             incorrectRecoveryCode: 'Incorrect recovery code. Please try again.',
         },
         useRecoveryCode: 'Use recovery code',
@@ -996,7 +1003,7 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code.',
             incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
         },
     },
@@ -1011,7 +1018,7 @@ export default {
         composerLabel: 'Notes',
         myNote: 'My note',
         error: {
-            genericFailureMessage: "Private notes couldn't be saved",
+            genericFailureMessage: "Private notes couldn't be saved.",
         },
     },
     addDebitCardPage: {
@@ -1026,15 +1033,15 @@ export default {
         expensifyPassword: 'Expensify password',
         error: {
             invalidName: 'Name can only include letters.',
-            addressZipCode: 'Please enter a valid zip code',
-            debitCardNumber: 'Please enter a valid debit card number',
-            expirationDate: 'Please select a valid expiration date',
-            securityCode: 'Please enter a valid security code',
-            addressStreet: 'Please enter a valid billing address that is not a PO Box',
-            addressState: 'Please select a state',
-            addressCity: 'Please enter a city',
-            genericFailureMessage: 'An error occurred while adding your card, please try again',
-            password: 'Please enter your Expensify password',
+            addressZipCode: 'Please enter a valid zip code.',
+            debitCardNumber: 'Please enter a valid debit card number.',
+            expirationDate: 'Please select a valid expiration date.',
+            securityCode: 'Please enter a valid security code.',
+            addressStreet: 'Please enter a valid billing address that is not a PO Box.',
+            addressState: 'Please select a state.',
+            addressCity: 'Please enter a city.',
+            genericFailureMessage: 'An error occurred while adding your card, please try again.',
+            password: 'Please enter your Expensify password.',
         },
     },
     walletPage: {
@@ -1299,9 +1306,9 @@ export default {
         requestNewCode: 'Request a new code in ',
         requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
-            pleaseFillMagicCode: 'Please enter your magic code',
+            pleaseFillMagicCode: 'Please enter your magic code.',
             incorrectMagicCode: 'Incorrect magic code.',
-            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code.',
         },
     },
     passwordForm: {
@@ -1342,16 +1349,15 @@ export default {
         whereYouWork: 'Where do you work?',
         purpose: {
             title: 'What do you want to do today?',
-            error: 'Please make a selection before continuing',
-            [CONST.ONBOARDING_CHOICES.TRACK]: 'Track business spend for taxes',
+            error: 'Please make a selection before continuing.',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget personal spend',
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
         },
         error: {
-            requiredFirstName: 'Please input your first name to continue',
+            requiredFirstName: 'Please input your first name to continue.',
         },
     },
     featureTraining: {
@@ -1359,8 +1365,8 @@ export default {
     },
     personalDetails: {
         error: {
-            containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
-            hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
+            containsReservedWord: 'Name cannot contain the words Expensify or Concierge.',
+            hasInvalidCharacter: 'Name cannot contain a comma or semicolon.',
         },
     },
     privatePersonalDetails: {
@@ -1494,35 +1500,35 @@ export default {
         },
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
-        hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again',
+        hasCurrencyError: 'Oops! It appears that your workspace currency is set to a different currency than USD. To proceed, please set it to USD and try again.',
         error: {
             youNeedToSelectAnOption: 'You need to select an option to proceed.',
-            noBankAccountAvailable: 'Sorry, no bank account is available',
-            noBankAccountSelected: 'Please choose an account',
-            taxID: 'Please enter a valid tax ID number',
+            noBankAccountAvailable: 'Sorry, no bank account is available.',
+            noBankAccountSelected: 'Please choose an account.',
+            taxID: 'Please enter a valid tax ID number.',
             website: 'Please enter a valid website. The website should be in lowercase.',
             zipCode: `Incorrect zip code format. Acceptable format: ${CONST.COUNTRY_ZIP_REGEX_DATA.US.samples}`,
-            phoneNumber: 'Please enter a valid phone number',
-            companyName: 'Please enter a valid legal business name',
-            addressCity: 'Please enter a valid city',
-            addressStreet: 'Please enter a valid street address that is not a PO box',
-            addressState: 'Please select a valid state',
-            incorporationDateFuture: 'Incorporation date cannot be in the future',
-            incorporationState: 'Please select a valid state',
+            phoneNumber: 'Please enter a valid phone number.',
+            companyName: 'Please enter a valid legal business name.',
+            addressCity: 'Please enter a valid city.',
+            addressStreet: 'Please enter a valid street address that is not a PO box.',
+            addressState: 'Please select a valid state.',
+            incorporationDateFuture: 'Incorporation date cannot be in the future.',
+            incorporationState: 'Please select a valid state.',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
-            restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
-            routingNumber: 'Please enter a valid routing number',
-            accountNumber: 'Please enter a valid account number',
-            routingAndAccountNumberCannotBeSame: 'The routing number and account number cannot be the same',
-            companyType: 'Please select a valid company type',
+            restrictedBusiness: 'Please confirm company is not on the list of restricted businesses.',
+            routingNumber: 'Please enter a valid routing number.',
+            accountNumber: 'Please enter a valid account number.',
+            routingAndAccountNumberCannotBeSame: 'The routing number and account number cannot be the same.',
+            companyType: 'Please select a valid company type.',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
-            address: 'Please enter a valid address',
-            dob: 'Please select a valid date of birth',
-            age: 'Must be over 18 years old',
-            ssnLast4: 'Please enter valid last 4 digits of SSN',
-            firstName: 'Please enter a valid first name',
-            lastName: 'Please enter a valid last name',
-            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
+            address: 'Please enter a valid address.',
+            dob: 'Please select a valid date of birth.',
+            age: 'Must be over 18 years old.',
+            ssnLast4: 'Please enter valid last 4 digits of SSN.',
+            firstName: 'Please enter a valid first name.',
+            lastName: 'Please enter a valid last name.',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card.',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
     },
@@ -1578,7 +1584,7 @@ export default {
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
         selectAnswer: 'You need to select a response to proceed.',
-        ssnFull9Error: 'Please enter a valid 9 digit SSN',
+        ssnFull9Error: 'Please enter a valid 9 digit SSN.',
         needSSNFull9: "We're having trouble verifying your SSN. Please enter the full 9 digits of your SSN.",
         weCouldNotVerify: 'We could not verify',
         pleaseFixIt: 'Please fix this information before continuing.',
@@ -1705,6 +1711,14 @@ export default {
         address: 'Address',
         letsDoubleCheck: "Let's double check that everything looks right.",
         byAddingThisBankAccount: 'By adding this bank account, you confirm that you have read, understand and accept',
+        whatsYourLegalName: 'What’s your legal name?',
+        whatsYourDOB: 'What’s your date of birth?',
+        whatsYourAddress: 'What’s your address?',
+        noPOBoxesPlease: 'No PO boxes or mail-drop addresses, please.',
+        whatsYourSSN: 'What are the last four digits of your Social Security Number?',
+        noPersonalChecks: 'Don’t worry, no personal credit checks here!',
+        whatsYourPhoneNumber: 'What’s your phone number?',
+        weNeedThisToVerify: 'We need this to verify your wallet.',
     },
     businessInfoStep: {
         businessInfo: 'Business info',
@@ -1785,7 +1799,7 @@ export default {
         termsAndConditions: 'terms and conditions',
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
         error: {
-            certify: 'Must certify information is true and accurate',
+            certify: 'Must certify information is true and accurate.',
         },
     },
     completeVerificationStep: {
@@ -1869,17 +1883,12 @@ export default {
                 `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         qbo: {
-            import: 'Import',
             importDescription: 'Choose which coding configurations are imported from QuickBooks Online to Expensify.',
             classes: 'Classes',
-            accounts: 'Chart of accounts',
             locations: 'Locations',
-            taxes: 'Taxes',
             customers: 'Customers/Projects',
-            imported: 'Imported',
             displayedAs: 'Displayed as',
             notImported: 'Not imported',
-            importedAsTags: 'Imported, displayed as tags',
             importedAsReportFields: 'Imported, displayed as report fields',
             accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
             accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
@@ -1901,44 +1910,40 @@ export default {
             exportExpensifyCard: 'Export Expensify Card transactions as',
             deepDiveExpensifyCard: 'Expensify Card transactions automatically export to a "Expensify Card Liability Account" created with',
             deepDiveExpensifyCardIntegration: 'our integration.',
-            exportDate: 'Export date',
-            exportDateDescription: 'Use this date when exporting reports to QuickBooks Online.',
-            lastExpense: {label: 'Date of last expense', description: 'The date of the most recent expense on the report'},
-            exportedDate: {label: 'Export date', description: 'The date the report was exported to QuickBooks Online'},
-            submittedData: {label: 'Submitted date', description: 'The date the report was submitted for approval'},
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to QuickBooks Online.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'The date of the most recent expense on the report',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'The date the report was exported to QuickBooks Online',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'The date the report was submitted for approval',
+                    },
+                },
+            },
             receivable: 'Accounts receivable', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             archive: 'Accounts receivable archive', // This is an account name that will come directly from QBO, so I don't know why we need a translation for it. It should take whatever the name of the account is in QBO. Leaving this note for CS.
             exportInvoicesDescription: 'Invoices will be exported to this account in QuickBooks Online.',
             exportCompanyCardsDescription: 'Set how company card purchases export to QuickBooks Online.',
-            creditCard: 'Credit card',
-            debitCard: 'Debit card',
-            vendorBill: 'Vendor bill',
             vendor: 'Vendor',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: 'Set a default vendor that will apply to all credit card transactions upon export.',
-            debitCardDescription:
-                "We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.",
-            creditCardDescription:
-                "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
-            vendorBillDescription:
-                "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            debitCardAccountDescription: 'Debit card transactions will export to the bank account below.”',
-            creditCardAccountDescription: 'Credit card transactions will export to the bank account below.',
-            vendorBillAccountDescription: 'Select the vendor applied to all credit card transactions.',
             exportPreferredExporterNote: 'This can be any workspace admin, but must be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportOutOfPocketExpensesDescription: 'Set how out-of-pocket expenses export to QuickBooks Online.',
             exportVendorBillDescription:
                 "We'll create a single itemized vendor bill for each Expensify report. If the period of the bill is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
-            check: 'Check',
             accountsPayable: 'Accounts payable',
             account: 'Account',
             accountsPayableDescription: 'This is your chosen A/P account, against which vendor bills for each report are created.',
-            journalEntry: 'Journal entry',
             optionBelow: 'Choose an option below:',
-            vendorBillError: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
-            checkError: 'Check is not available when locations are enabled. Please select a different export option.',
-            journalEntryError: 'Journal entry is not available when taxes enabled. please select a different export option.',
             companyCardsLocationEnabledDescription:
                 'Note: QuickBooks Online does not support a field for Locations as Tags on Vendor Bills exports. As you import Locations from, this this export option is unavailable.',
             outOfPocketTaxEnabledDescription:
@@ -1965,6 +1970,39 @@ export default {
                 invoiceAccountSelectDescription:
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
+            accounts: {
+                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
+                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'Credit card',
+                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Vendor bill',
+                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
+                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'Check',
+
+                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
+                    "We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.",
+                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
+                    "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
+                    "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
+
+                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
+                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Select the vendor applied to all credit card transactions.',
+
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
+                    'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
+                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
+            },
+        },
+        xero: {
+            organization: 'Xero organization',
+            organizationDescription: 'Select the organization in Xero you are importing data from.',
+            importDescription: 'Choose which coding configurations are imported from Xero to Expensify.',
+            trackingCategories: 'Tracking categories',
+            customers: 'Re-bill customers',
+            customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
+            taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
+            notImported: 'Not imported',
         },
         type: {
             free: 'Free',
@@ -2076,7 +2114,7 @@ export default {
             foreignDefault: 'Foreign currency default',
             customTaxName: 'Custom tax name',
             value: 'Value',
-            errors: {
+            error: {
                 taxRateAlreadyExists: 'This tax name is already in use.',
                 valuePercentageRange: 'Please enter a valid percentage between 0 and 100.',
                 customNameRequired: 'Custom tax name is required.',
@@ -2166,8 +2204,8 @@ export default {
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: "You're all set to reimburse receipts from your bank account!",
             updateCustomUnitError: "Your changes couldn't be saved. The workspace was modified while you were offline, please try again.",
-            invalidRateError: 'Please enter a valid rate',
-            lowRateError: 'Rate must be greater than 0',
+            invalidRateError: 'Please enter a valid rate.',
+            lowRateError: 'Rate must be greater than 0.',
         },
         accounting: {
             settings: 'settings',
@@ -2183,8 +2221,40 @@ export default {
             other: 'Other integrations',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
-            disconnectTitle: 'Disconnect integration',
-            disconnectPrompt: 'Are you sure you want to disconnect this integration?',
+            disconnectTitle: (integration?: ConnectionName): string => {
+                switch (integration) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Disconnect QuickBooks Online';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Disconnect Xero';
+                    default: {
+                        return 'Disconnect integration';
+                    }
+                }
+            },
+            accounts: 'Chart of accounts',
+            taxes: 'Taxes',
+            imported: 'Imported',
+            importedAsTags: 'Imported, displayed as tags',
+            disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
+                switch (integrationToConnect) {
+                    case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                        return 'Are you sure you want to disconnect Xero to set up QuickBooks Online?';
+                    case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                        return 'Are you sure you want to disconnect QuickBooks Online to set up Xero?';
+                    default: {
+                        switch (currentIntegration) {
+                            case CONST.POLICY.CONNECTIONS.NAME.QBO:
+                                return 'Are you sure you want to disconnect QuickBooks Online?';
+                            case CONST.POLICY.CONNECTIONS.NAME.XERO:
+                                return 'Are you sure you want to disconnect Xero?';
+                            default: {
+                                return 'Are you sure you want to disconnect this integration?';
+                            }
+                        }
+                    }
+                }
+            },
             enterCredentials: 'Enter your credentials',
             connections: {
                 syncStageName: (stage: PolicyConnectionSyncStage) => {
@@ -2211,6 +2281,18 @@ export default {
                             return 'Importing your QuickBooks Online data';
                         case 'startingImport':
                             return 'Importing your QuickBooks Online data';
+                        case 'quickbooksOnlineSyncTitle':
+                            return 'Synchronizing QuickBooks Online data';
+                        case 'quickbooksOnlineSyncLoadData':
+                            return 'Loading data';
+                        case 'quickbooksOnlineSyncApplyCategories':
+                            return 'Updating categories';
+                        case 'quickbooksOnlineSyncApplyCustomers':
+                            return 'Updating Customers/Projects';
+                        case 'quickbooksOnlineSyncApplyEmployees':
+                            return 'Updating people list';
+                        case 'quickbooksOnlineSyncApplyClassesLocations':
+                            return 'Updating report fields';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
@@ -2238,6 +2320,7 @@ export default {
             unlockVBACopy: "You're all set to accept payments by ACH or credit card!",
             viewUnpaidInvoices: 'View unpaid invoices',
             sendInvoice: 'Send invoice',
+            sendFrom: 'Send from',
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
@@ -2265,7 +2348,7 @@ export default {
             inviteMessagePrompt: 'Make your invitation extra special by adding a message below',
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            inviteNoMembersError: 'Please select at least one member to invite',
+            inviteNoMembersError: 'Please select at least one member to invite.',
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
@@ -2400,11 +2483,11 @@ export default {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         public_announceDescription: 'Anyone can find this room',
         createRoom: 'Create room',
-        roomAlreadyExistsError: 'A room with this name already exists',
+        roomAlreadyExistsError: 'A room with this name already exists.',
         roomNameReservedError: ({reservedName}: RoomNameReservedErrorParams) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
-        roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens',
-        pleaseEnterRoomName: 'Please enter a room name',
-        pleaseSelectWorkspace: 'Please select a workspace',
+        roomNameInvalidError: 'Room names can only include lowercase letters, numbers and hyphens.',
+        pleaseEnterRoomName: 'Please enter a room name.',
+        pleaseSelectWorkspace: 'Please select a workspace.',
         renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => ` renamed this room from ${oldName} to ${newName}`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
@@ -2422,9 +2505,6 @@ export default {
         memberNotFound: 'Member not found. To invite a new member to the room, please use the Invite button above.',
         notAuthorized: `You do not have access to this page. Are you trying to join the room? Please reach out to a member of this room so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
         removeMembersPrompt: 'Are you sure you want to remove the selected members from the room?',
-        error: {
-            genericAdd: 'There was a problem adding this room member.',
-        },
     },
     newTaskPage: {
         assignTask: 'Assign task',
@@ -2501,7 +2581,7 @@ export default {
         },
         generalError: {
             title: 'Attachment Error',
-            message: 'Attachment cannot be downloaded',
+            message: 'Attachment cannot be downloaded.',
         },
         permissionError: {
             title: 'Storage access',
@@ -2571,15 +2651,15 @@ export default {
             okay: 'Okay',
         },
         error: {
-            title: 'Update Check Failed',
-            message: "We couldn't look for an update. Please check again in a bit!",
+            title: 'Update Check Failed.',
+            message: "We couldn't look for an update. Please check again in a bit!.",
         },
     },
     report: {
-        genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later',
-        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later',
-        genericUpdateReportFieldFailureMessage: 'Unexpected error while updating the field, please try again later',
-        genericUpdateReporNameEditFailureMessage: 'Unexpected error while renaming the report, please try again later',
+        genericCreateReportFailureMessage: 'Unexpected error creating this chat, please try again later.',
+        genericAddCommentFailureMessage: 'Unexpected error while posting the comment, please try again later.',
+        genericUpdateReportFieldFailureMessage: 'Unexpected error while updating the field, please try again later.',
+        genericUpdateReporNameEditFailureMessage: 'Unexpected error while renaming the report, please try again later.',
         noActivityYet: 'No activity yet',
     },
     chronos: {
@@ -2703,10 +2783,10 @@ export default {
         contactMethods: 'Contact methods.',
         schoolMailAsDefault: 'Before you move forward, please make sure to set your school email as your default contact method. You can do so in Settings > Profile > ',
         error: {
-            enterPhoneEmail: 'Enter a valid email or phone number',
-            enterEmail: 'Enter an email',
-            enterValidEmail: 'Enter a valid email',
-            tryDifferentEmail: 'Please try a different email',
+            enterPhoneEmail: 'Enter a valid email or phone number.',
+            enterEmail: 'Enter an email.',
+            enterValidEmail: 'Enter a valid email.',
+            tryDifferentEmail: 'Please try a different email.',
         },
     },
     cardTransactions: {
@@ -2728,8 +2808,8 @@ export default {
             subtitle: 'The map will be generated when you go back online',
             onlineSubtitle: 'One moment while we set up the map',
         },
-        errors: {
-            selectSuggestedAddress: 'Please select a suggested address or use current location',
+        error: {
+            selectSuggestedAddress: 'Please select a suggested address or use current location.',
         },
     },
     reportCardLostOrDamaged: {
