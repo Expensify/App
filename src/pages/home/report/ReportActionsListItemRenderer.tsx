@@ -46,6 +46,12 @@ type ReportActionsListItemRendererProps = {
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
+
+    /** If this is the first visible report action */
+    isFirstVisibleReportAction: boolean;
+
+    /** If the thread divider line will be used */
+    shouldUseThreadDividerLine?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -61,6 +67,8 @@ function ReportActionsListItemRenderer({
     shouldDisplayNewMarker,
     linkedReportActionID = '',
     shouldDisplayReplyDivider,
+    isFirstVisibleReportAction = false,
+    shouldUseThreadDividerLine = false,
     parentReportActionForTransactionThread,
 }: ReportActionsListItemRendererProps) {
     const shouldDisplayParentAction =
@@ -144,6 +152,8 @@ function ReportActionsListItemRenderer({
             reportActions={reportActions}
             transactionThreadReport={transactionThreadReport}
             index={index}
+            isFirstVisibleReportAction={isFirstVisibleReportAction}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     ) : (
         <ReportActionItem
@@ -158,13 +168,15 @@ function ReportActionsListItemRenderer({
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
             shouldShowSubscriptAvatar={
-                (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
+                ReportUtils.isPolicyExpenseChat(report) &&
                 [CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, CONST.REPORT.ACTIONS.TYPE.APPROVED].some(
                     (type) => type === reportAction.actionName,
                 )
             }
             isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
+            isFirstVisibleReportAction={isFirstVisibleReportAction}
+            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
         />
     );
 }

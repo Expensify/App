@@ -1,13 +1,15 @@
 import lodashGet from 'lodash/get';
+import lodashIsEqual from 'lodash/isEqual';
+import lodashMap from 'lodash/map';
+import lodashPick from 'lodash/pick';
+import lodashReject from 'lodash/reject';
+import lodashSome from 'lodash/some';
+import lodashValues from 'lodash/values';
 import PropTypes from 'prop-types';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
-import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineIndicator from '@components/OfflineIndicator';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -20,15 +22,12 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
-import variables from '@styles/variables';
+import * as Policy from '@userActions/Policy';
 import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 const propTypes = {
     /** Callback to request parent modal to go to next step, which should be split */
@@ -49,13 +48,13 @@ const propTypes = {
     ),
 
     /** The type of IOU report, i.e. split, request, send, track */
-    iouType: PropTypes.oneOf(_.values(CONST.IOU.TYPE)).isRequired,
+    iouType: PropTypes.oneOf(lodashValues(CONST.IOU.TYPE)).isRequired,
 
     /** The expense type, ie. manual, scan, distance */
-    iouRequestType: PropTypes.oneOf(_.values(CONST.IOU.REQUEST_TYPE)).isRequired,
+    iouRequestType: PropTypes.oneOf(lodashValues(CONST.IOU.REQUEST_TYPE)).isRequired,
 
     /** The action of the IOU, i.e. create, split, move */
-    action: PropTypes.oneOf(_.values(CONST.IOU.ACTION)),
+    action: PropTypes.oneOf(lodashValues(CONST.IOU.ACTION)),
 };
 
 const defaultProps = {
@@ -74,16 +73,17 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const {canUseP2PDistanceRequests} = usePermissions();
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
-    const {isSmallScreenWidth} = useWindowDimensions();
-
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
+    const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
+
+    const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
 
     useEffect(() => {
         Report.searchInServer(debouncedSearchTerm.trim());
@@ -111,51 +111,45 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             {},
             [],
             false,
             {},
             [],
-            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && ![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action),
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            !isCategorizeOrShareAction,
+            isCategorizeOrShareAction ? 0 : undefined,
         );
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
-            participants,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            maxParticipantsReached,
-            personalDetails,
-            true,
-        );
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, participants, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
 
         newSections.push(formatResults.section);
-
-        if (maxParticipantsReached) {
-            return [newSections, {}];
-        }
 
         newSections.push({
             title: translate('common.recents'),
             data: chatOptions.recentReports,
-            shouldShow: !_.isEmpty(chatOptions.recentReports),
+            shouldShow: chatOptions.recentReports.length > 0,
         });
 
-        if (![CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action)) {
-            newSections.push({
-                title: translate('common.contacts'),
-                data: chatOptions.personalDetails,
-                shouldShow: !_.isEmpty(chatOptions.personalDetails),
-            });
-        }
+        newSections.push({
+            title: translate('common.contacts'),
+            data: chatOptions.personalDetails,
+            shouldShow: chatOptions.personalDetails.length > 0,
+        });
 
         if (chatOptions.userToInvite && !OptionsListUtils.isCurrentUser(chatOptions.userToInvite)) {
             newSections.push({
                 title: undefined,
-                data: _.map([chatOptions.userToInvite], (participant) => {
+                data: lodashMap([chatOptions.userToInvite], (participant) => {
                     const isPolicyExpenseChat = lodashGet(participant, 'isPolicyExpenseChat', false);
                     return isPolicyExpenseChat ? OptionsListUtils.getPolicyExpenseReportOption(participant) : OptionsListUtils.getParticipantsOption(participant, personalDetails);
                 }),
@@ -175,10 +169,10 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         action,
         canUseP2PDistanceRequests,
         iouRequestType,
-        maxParticipantsReached,
         personalDetails,
         translate,
         didScreenTransitionEnd,
+        isCategorizeOrShareAction,
     ]);
 
     /**
@@ -188,13 +182,26 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
      */
     const addSingleParticipant = useCallback(
         (option) => {
-            onParticipantsAdded([
+            const newParticipants = [
                 {
-                    ..._.pick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
+                    ...lodashPick(option, 'accountID', 'login', 'isPolicyExpenseChat', 'reportID', 'searchText', 'policyID'),
                     selected: true,
                     iouType,
                 },
-            ]);
+            ];
+
+            if (iouType === CONST.IOU.TYPE.INVOICE) {
+                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID);
+
+                newParticipants.push({
+                    policyID: primaryPolicy.id,
+                    isSender: true,
+                    selected: false,
+                    iouType,
+                });
+            }
+
+            onParticipantsAdded(newParticipants);
             onFinish();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to trigger this callback when iouType changes
@@ -218,11 +225,11 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
                 return false;
             };
-            const isOptionInList = _.some(participants, isOptionSelected);
+            const isOptionInList = lodashSome(participants, isOptionSelected);
             let newSelectedOptions;
 
             if (isOptionInList) {
-                newSelectedOptions = _.reject(participants, isOptionSelected);
+                newSelectedOptions = lodashReject(participants, isOptionSelected);
             } else {
                 newSelectedOptions = [
                     ...participants,
@@ -247,26 +254,24 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const headerMessage = useMemo(
         () =>
             OptionsListUtils.getHeaderMessage(
-                _.get(newChatOptions, 'personalDetails', []).length + _.get(newChatOptions, 'recentReports', []).length !== 0,
+                lodashGet(newChatOptions, 'personalDetails', []).length + lodashGet(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
-                maxParticipantsReached,
-                _.some(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
+                lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
+        [newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split an expense with a workspace and other additional participants
     // This is getting properly fixed in https://github.com/Expensify/App/issues/27508, but as a stop-gap to prevent
     // the app from crashing on native when you try to do this, we'll going to hide the button if you have a workspace and other participants
-    const hasPolicyExpenseChatParticipant = _.some(participants, (participant) => participant.isPolicyExpenseChat);
+    const hasPolicyExpenseChatParticipant = lodashSome(participants, (participant) => participant.isPolicyExpenseChat);
     const shouldShowSplitBillErrorMessage = participants.length > 1 && hasPolicyExpenseChatParticipant;
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
         (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
-        iouType !== CONST.IOU.TYPE.PAY &&
-        iouType !== CONST.IOU.TYPE.TRACK &&
+        ![CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE].includes(iouType) &&
         ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].includes(action);
 
     const handleConfirmSelection = useCallback(
@@ -293,7 +298,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
 
         return (
             <>
-                {!isDismissed && (
+                {shouldShowReferralBanner && (
                     <ReferralProgramCTA
                         referralContentType={referralContentType}
                         style={[styles.flexShrink0, !!participants.length && !shouldShowSplitBillErrorMessage && styles.mb5]}
@@ -320,38 +325,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 )}
             </>
         );
-    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate]);
-
-    const renderEmptyWorkspaceView = () => (
-        <>
-            <BlockingView
-                icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyWorkspaceIconWidth}
-                iconHeight={variables.emptyWorkspaceIconHeight}
-                title={translate('workspace.emptyWorkspace.notFound')}
-                shouldShowLink={false}
-            />
-            <Button
-                success
-                large
-                text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                style={[styles.mh5, styles.mb5]}
-            />
-            {isSmallScreenWidth && <OfflineIndicator />}
-        </>
-    );
-
-    const isAllSectionsEmpty = _.every(sections, (section) => section.data.length === 0);
-    if (
-        [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action) &&
-        isAllSectionsEmpty &&
-        didScreenTransitionEnd &&
-        debouncedSearchTerm.trim() === '' &&
-        areOptionsInitialized
-    ) {
-        return renderEmptyWorkspaceView();
-    }
+    }, [handleConfirmSelection, participants.length, isDismissed, referralContentType, shouldShowSplitBillErrorMessage, styles, translate, shouldShowReferralBanner]);
 
     return (
         <SelectionList
@@ -379,8 +353,8 @@ MoneyTemporaryForRefactorRequestParticipantsSelector.displayName = 'MoneyTempora
 export default memo(
     MoneyTemporaryForRefactorRequestParticipantsSelector,
     (prevProps, nextProps) =>
-        _.isEqual(prevProps.participants, nextProps.participants) &&
+        lodashIsEqual(prevProps.participants, nextProps.participants) &&
         prevProps.iouRequestType === nextProps.iouRequestType &&
         prevProps.iouType === nextProps.iouType &&
-        _.isEqual(prevProps.betas, nextProps.betas),
+        lodashIsEqual(prevProps.betas, nextProps.betas),
 );

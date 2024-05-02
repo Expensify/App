@@ -46,7 +46,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
     policyID: string,
     connectionName: TConnectionName,
     settingName: TSettingName,
-    settingValue: Connections[TConnectionName]['config'][TSettingName],
+    settingValue?: Partial<Connections[TConnectionName]['config'][TSettingName]>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -56,7 +56,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -78,7 +78,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -100,7 +100,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -114,11 +114,11 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
         },
     ];
 
-    const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
+    const parameters: UpdatePolicyConnectionConfigParams = {
         policyID,
         connectionName,
-        settingName,
-        settingValue,
+        settingName: String(settingName),
+        settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(settingName),
     };
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
