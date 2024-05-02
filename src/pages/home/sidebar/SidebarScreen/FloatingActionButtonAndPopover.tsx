@@ -98,7 +98,7 @@ const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
 const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
     switch (action) {
         case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-            return Expensicons.Receipt;
+            return getIconForAction(CONST.IOU.TYPE.REQUEST);
         case CONST.QUICK_ACTIONS.REQUEST_SCAN:
             return Expensicons.ReceiptScan;
         case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
@@ -114,7 +114,7 @@ const getQuickActionIcon = (action: QuickActionName): React.FC<SvgProps> => {
         case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
             return Expensicons.Car;
         case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-            return Expensicons.Coins;
+            return getIconForAction(CONST.IOU.TYPE.TRACK);
         case CONST.QUICK_ACTIONS.TRACK_SCAN:
             return Expensicons.ReceiptScan;
         default:
