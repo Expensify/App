@@ -3318,7 +3318,7 @@ function requestMoney(
                 taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-                gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
             };
@@ -3532,7 +3532,7 @@ function trackExpense(
                 taxAmount,
                 billable,
                 // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-                gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
@@ -3541,11 +3541,10 @@ function trackExpense(
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
         }
     }
+    Navigation.dismissModal(activeReportID);
+
     if (action === CONST.IOU.ACTION.SHARE) {
-        Navigation.dismissModal();
         Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID ?? '', CONST.IOU.SHARE.ROLE.ACCOUNTANT));
-    } else {
-        Navigation.dismissModal(activeReportID);
     }
 
     Report.notifyNewAction(activeReportID, payeeAccountID);
