@@ -5479,7 +5479,7 @@ function temporary_getMoneyRequestOptions(
 function canJoinOrLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
     if (!isInvoiceRoom(report)) {
         return false;
-    } 
+    }
 
     const invoiceReport = getReport(report?.iouReportID ?? '');
 
