@@ -34,6 +34,7 @@ function BaseModal(
         animationIn,
         animationOut,
         useNativeDriver: useNativeDriverProp,
+        useNativeDriverForBackdrop,
         hideModalContentWhileAnimating = false,
         animationInTiming,
         animationOutTiming,
@@ -45,6 +46,7 @@ function BaseModal(
         onBackdropPress,
         shouldEnableNewFocusManagement = false,
         restoreFocusType,
+        shouldUseModalPaddingStyle = true,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
@@ -172,66 +174,81 @@ function BaseModal(
         paddingRight: safeAreaPaddingRight,
     } = StyleUtils.getSafeAreaPadding(safeAreaInsets);
 
-    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
-        safeAreaPaddingTop,
-        safeAreaPaddingBottom,
-        safeAreaPaddingLeft,
-        safeAreaPaddingRight,
-        shouldAddBottomSafeAreaMargin,
-        shouldAddTopSafeAreaMargin,
-        shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
-        shouldAddTopSafeAreaPadding,
-        modalContainerStyleMarginTop: modalContainerStyle.marginTop,
-        modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
-        modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
-        modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
-        insets: safeAreaInsets,
-    });
+    const modalPaddingStyles = shouldUseModalPaddingStyle
+        ? StyleUtils.getModalPaddingStyles({
+              safeAreaPaddingTop,
+              safeAreaPaddingBottom,
+              safeAreaPaddingLeft,
+              safeAreaPaddingRight,
+              shouldAddBottomSafeAreaMargin,
+              shouldAddTopSafeAreaMargin,
+              shouldAddBottomSafeAreaPadding: !keyboardStateContextValue?.isKeyboardShown && shouldAddBottomSafeAreaPadding,
+              shouldAddTopSafeAreaPadding,
+              modalContainerStyleMarginTop: modalContainerStyle.marginTop,
+              modalContainerStyleMarginBottom: modalContainerStyle.marginBottom,
+              modalContainerStylePaddingTop: modalContainerStyle.paddingTop,
+              modalContainerStylePaddingBottom: modalContainerStyle.paddingBottom,
+              insets: safeAreaInsets,
+          })
+        : {
+              paddingLeft: safeAreaPaddingLeft ?? 0,
+              paddingRight: safeAreaPaddingRight ?? 0,
+          };
 
     return (
-        <ReactNativeModal
-            // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-            onClick={(e) => e.stopPropagation()}
-            onBackdropPress={handleBackdropPress}
-            // Note: Escape key on web/desktop will trigger onBackButtonPress callback
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            onBackButtonPress={Modal.closeTop}
-            onModalShow={handleShowModal}
-            propagateSwipe={propagateSwipe}
-            onModalHide={hideModal}
-            onModalWillShow={saveFocusState}
-            onDismiss={handleDismissModal}
-            onSwipeComplete={() => onClose?.()}
-            swipeDirection={swipeDirection}
-            isVisible={isVisible}
-            backdropColor={theme.overlay}
-            backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
-            backdropTransitionOutTiming={0}
-            hasBackdrop={fullscreen}
-            coverScreen={fullscreen}
-            style={modalStyle}
-            deviceHeight={windowHeight}
-            deviceWidth={windowWidth}
-            animationIn={animationIn ?? modalStyleAnimationIn}
-            animationOut={animationOut ?? modalStyleAnimationOut}
-            useNativeDriver={useNativeDriverProp && useNativeDriver}
-            hideModalContentWhileAnimating={hideModalContentWhileAnimating}
-            animationInTiming={animationInTiming}
-            animationOutTiming={animationOutTiming}
-            statusBarTranslucent={statusBarTranslucent}
-            onLayout={onLayout}
-            avoidKeyboard={avoidKeyboard}
-            customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+        // this is a workaround for modal not being visible on the new arch in some cases
+        // it's necessary to have a non-collapseable view as a parent of the modal to prevent
+        // a conflict between RN core and Reanimated shadow tree operations
+        // position absolute is needed to prevent the view from interfering with flex layout
+        <View
+            collapsable={false}
+            style={[styles.pAbsolute]}
         >
-            <ModalContent onDismiss={handleDismissModal}>
-                <View
-                    style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
-                    ref={ref}
-                >
-                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
-                </View>
-            </ModalContent>
-        </ReactNativeModal>
+            <ReactNativeModal
+                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                onClick={(e) => e.stopPropagation()}
+                onBackdropPress={handleBackdropPress}
+                // Note: Escape key on web/desktop will trigger onBackButtonPress callback
+                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                onBackButtonPress={Modal.closeTop}
+                onModalShow={handleShowModal}
+                propagateSwipe={propagateSwipe}
+                onModalHide={hideModal}
+                onModalWillShow={saveFocusState}
+                onDismiss={handleDismissModal}
+                onSwipeComplete={() => onClose?.()}
+                swipeDirection={swipeDirection}
+                isVisible={isVisible}
+                backdropColor={theme.overlay}
+                backdropOpacity={!shouldUseCustomBackdrop && hideBackdrop ? 0 : variables.overlayOpacity}
+                backdropTransitionOutTiming={0}
+                hasBackdrop={fullscreen}
+                coverScreen={fullscreen}
+                style={modalStyle}
+                deviceHeight={windowHeight}
+                deviceWidth={windowWidth}
+                animationIn={animationIn ?? modalStyleAnimationIn}
+                animationOut={animationOut ?? modalStyleAnimationOut}
+                useNativeDriver={useNativeDriverProp && useNativeDriver}
+                useNativeDriverForBackdrop={useNativeDriverForBackdrop && useNativeDriver}
+                hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+                animationInTiming={animationInTiming}
+                animationOutTiming={animationOutTiming}
+                statusBarTranslucent={statusBarTranslucent}
+                onLayout={onLayout}
+                avoidKeyboard={avoidKeyboard}
+                customBackdrop={shouldUseCustomBackdrop ? <Overlay onPress={handleBackdropPress} /> : undefined}
+            >
+                <ModalContent onDismiss={handleDismissModal}>
+                    <View
+                        style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                        ref={ref}
+                    >
+                        <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                    </View>
+                </ModalContent>
+            </ReactNativeModal>
+        </View>
     );
 }
 

@@ -102,6 +102,7 @@ function AddPersonalBankAccountPage({personalBankAccount, plaidData}: AddPersona
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 
 export default withOnyx<AddPersonalBankAccountPageWithOnyxProps, AddPersonalBankAccountPageWithOnyxProps>({
+    // @ts-expect-error: ONYXKEYS.PERSONAL_BANK_ACCOUNT is conflicting with ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM
     personalBankAccount: {
         key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
     },

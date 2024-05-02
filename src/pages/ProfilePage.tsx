@@ -1,9 +1,9 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import Str from 'expensify-common/lib/str';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -36,31 +36,11 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetails, PersonalDetailsList, PersonalDetailsMetadata, Report, Session} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ProfilePageOnyxProps = {
-    /** The personal details of the person who is logged in */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Loading status of the personal details */
-    personalDetailsMetadata: OnyxEntry<Record<string, PersonalDetailsMetadata>>;
-
-    /** The report currently being looked at */
-    report: OnyxEntry<Report>;
-
-    /** The list of all reports
-     * ONYXKEYS.COLLECTION.REPORT is needed for report key function
-     */
-    // eslint-disable-next-line react/no-unused-prop-types
-    reports: OnyxCollection<Report>;
-
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
-
-type ProfilePageProps = ProfilePageOnyxProps & StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
+type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
 
 /**
  * Gets the phone number to display for SMS logins
@@ -77,7 +57,38 @@ const getPhoneNumber = ({login = '', displayName = ''}: PersonalDetails | EmptyO
     return login ? Str.removeSMSDomain(login) : '';
 };
 
-function ProfilePage({personalDetails, personalDetailsMetadata, route, session, report}: ProfilePageProps) {
+/**
+ * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
+ * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
+ */
+const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
+    report && {
+        reportID: report.reportID,
+        participantAccountIDs: report.participantAccountIDs,
+        parentReportID: report.parentReportID,
+        parentReportActionID: report.parentReportActionID,
+        type: report.type,
+        chatType: report.chatType,
+        isPolicyExpenseChat: report.isPolicyExpenseChat,
+    };
+
+function ProfilePage({route}: ProfilePageProps) {
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: chatReportSelector});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+
+    const reportKey = useMemo(() => {
+        const accountID = Number(route.params?.accountID ?? 0);
+        const reportID = ReportUtils.getChatByParticipants([accountID], reports)?.reportID ?? '';
+
+        if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
+            return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
+        }
+        return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    }, [reports, route.params?.accountID, session]);
+    const [report] = useOnyx(reportKey);
+
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const accountID = Number(route.params?.accountID ?? 0);
@@ -119,7 +130,8 @@ function ProfilePage({personalDetails, personalDetailsMetadata, route, session, 
 
     const navigateBackTo = route?.params?.backTo;
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference =
+        !isEmptyObject(report) && !isCurrentUser && !!report.notificationPreference && report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}` as TranslationPaths)
         : '';
@@ -178,7 +190,8 @@ function ProfilePage({personalDetails, personalDetailsMetadata, route, session, 
                                     </View>
                                 )}
 
-                                {login ? (
+                                {/* Don't display email if current user is anonymous */}
+                                {!(isCurrentUser && SessionActions.isAnonymousUser()) && login ? (
                                     <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mb1]}
@@ -225,7 +238,7 @@ function ProfilePage({personalDetails, personalDetailsMetadata, route, session, 
                                     shouldShowRightIcon
                                 />
                             )}
-                            {!isEmptyObject(report) && !isCurrentUser && (
+                            {!isEmptyObject(report) && report.reportID && !isCurrentUser && (
                                 <MenuItem
                                     title={`${translate('privateNotes.title')}`}
                                     titleStyle={styles.flex1}
@@ -247,44 +260,4 @@ function ProfilePage({personalDetails, personalDetailsMetadata, route, session, 
 
 ProfilePage.displayName = 'ProfilePage';
 
-/**
- * This function narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
- * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
- */
-const chatReportSelector = (report: OnyxEntry<Report>): Report =>
-    (report && {
-        reportID: report.reportID,
-        participantAccountIDs: report.participantAccountIDs,
-        parentReportID: report.parentReportID,
-        parentReportActionID: report.parentReportActionID,
-        type: report.type,
-        chatType: report.chatType,
-        isPolicyExpenseChat: report.isPolicyExpenseChat,
-    }) as Report;
-
-export default withOnyx<ProfilePageProps, ProfilePageOnyxProps>({
-    reports: {
-        key: ONYXKEYS.COLLECTION.REPORT,
-        selector: chatReportSelector,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    personalDetailsMetadata: {
-        key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    report: {
-        key: ({route, session, reports}) => {
-            const accountID = Number(route.params?.accountID ?? 0);
-            const reportID = ReportUtils.getChatByParticipants([accountID], reports)?.reportID ?? '';
-
-            if ((Boolean(session) && Number(session?.accountID) === accountID) || SessionActions.isAnonymousUser() || !reportID) {
-                return `${ONYXKEYS.COLLECTION.REPORT}0`;
-            }
-            return `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        },
-    },
-})(ProfilePage);
+export default ProfilePage;

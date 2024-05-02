@@ -13,7 +13,18 @@ function promiseWhile(condition: () => boolean, action: (() => Promise<void>) | 
             } else {
                 const actionResult = action?.();
                 console.info('[promiseWhile] promiseWhile() actionResult', actionResult);
-                Promise.resolve(actionResult).then(loop).catch(reject);
+
+                if (!actionResult) {
+                    resolve();
+                    return;
+                }
+
+                Promise.resolve(actionResult)
+                    .then(() => {
+                        // Set a timeout to delay the next loop iteration
+                        setTimeout(loop, 1000); // 1000 ms delay
+                    })
+                    .catch(reject);
             }
         };
         loop();
@@ -30,9 +41,14 @@ function promiseDoWhile(condition: () => boolean, action: (() => Promise<void>) 
         console.info('[promiseWhile] promiseDoWhile() condition', condition);
         const actionResult = action?.();
         console.info('[promiseWhile] promiseDoWhile() actionResult', actionResult);
+        if (!actionResult) {
+            resolve();
+            return;
+        }
+
         actionResult
-            ?.then(() => promiseWhile(condition, action))
-            .then(() => resolve())
+            .then(() => promiseWhile(condition, action))
+            .then(resolve)
             .catch(reject);
     });
 }

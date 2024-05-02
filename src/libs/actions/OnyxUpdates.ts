@@ -119,6 +119,11 @@ function apply({lastUpdateID, type, request, response, updates}: OnyxUpdatesFrom
  * @param [updateParams.updates] Exists if updateParams.type === 'pusher'
  */
 function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
+    // If we got here, that means we are missing some updates on our local storage. To
+    // guarantee that we're not fetching more updates before our local data is up to date,
+    // let's stop the sequential queue from running until we're done catching up.
+    SequentialQueue.pause();
+
     // Always use set() here so that the updateParams are never merged and always unique to the request that came in
     Onyx.set(ONYXKEYS.ONYX_UPDATES_FROM_SERVER, updateParams);
 }
@@ -127,32 +132,23 @@ function saveUpdateInformation(updateParams: OnyxUpdatesFromServer) {
  * This function will receive the previousUpdateID from any request/pusher update that has it, compare to our current app state
  * and return if an update is needed
  * @param previousUpdateID The previousUpdateID contained in the response object
+ * @param clientLastUpdateID an optional override for the lastUpdateIDAppliedToClient
  */
-function doesClientNeedToBeUpdated(previousUpdateID = 0): boolean {
+function doesClientNeedToBeUpdated(previousUpdateID = 0, clientLastUpdateID = 0): boolean {
     // If no previousUpdateID is sent, this is not a WRITE request so we don't need to update our current state
     if (!previousUpdateID) {
         return false;
     }
 
-    // If we don't have any value in lastUpdateIDAppliedToClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
-    if (!lastUpdateIDAppliedToClient) {
+    const lastUpdateIDFromClient = clientLastUpdateID || lastUpdateIDAppliedToClient;
+
+    // If we don't have any value in lastUpdateIDFromClient, this is the first time we're receiving anything, so we need to do a last reconnectApp
+    if (!lastUpdateIDFromClient) {
         return true;
     }
 
-    return lastUpdateIDAppliedToClient < previousUpdateID;
-}
-
-function applyOnyxUpdatesReliably(updates: OnyxUpdatesFromServer) {
-    const previousUpdateID = Number(updates.previousUpdateID) || 0;
-    if (!doesClientNeedToBeUpdated(previousUpdateID)) {
-        apply(updates);
-        return;
-    }
-
-    // If we reached this point, we need to pause the queue while we prepare to fetch older OnyxUpdates.
-    SequentialQueue.pause();
-    saveUpdateInformation(updates);
+    return lastUpdateIDFromClient < previousUpdateID;
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {saveUpdateInformation, doesClientNeedToBeUpdated, apply, applyOnyxUpdatesReliably};
+export {saveUpdateInformation, doesClientNeedToBeUpdated, apply};

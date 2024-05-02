@@ -57,10 +57,23 @@ jest.mock('@components/withKeyboardState', () => <TProps extends KeyboardStateCo
     return WrappedComponent;
 });
 
+jest.mock('@react-navigation/stack', () => ({
+    useCardAnimation: () => {},
+}));
+
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => {},
     useIsFocused: () => true,
     createNavigationContainerRef: jest.fn(),
+}));
+
+jest.mock('../../src/hooks/useKeyboardState', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    __esModule: true,
+    default: jest.fn(() => ({
+        isKeyboardShown: false,
+        keyboardHeight: 0,
+    })),
 }));
 
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {

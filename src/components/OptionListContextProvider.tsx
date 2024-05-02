@@ -1,11 +1,13 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import usePrevious from '@hooks/usePrevious';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxProvider';
 
 type OptionsListContextProps = {
@@ -36,14 +38,26 @@ const OptionsListContext = createContext<OptionsListContextProps>({
     areOptionsInitialized: false,
 });
 
+const isEqualPersonalDetail = (prevPersonalDetail: PersonalDetails | null, personalDetail: PersonalDetails | null) =>
+    prevPersonalDetail?.firstName === personalDetail?.firstName &&
+    prevPersonalDetail?.lastName === personalDetail?.lastName &&
+    prevPersonalDetail?.login === personalDetail?.login &&
+    prevPersonalDetail?.displayName === personalDetail?.displayName;
+
 function OptionsListContextProvider({reports, children}: OptionsListProviderProps) {
     const areOptionsInitialized = useRef(false);
     const [options, setOptions] = useState<OptionList>({
         reports: [],
         personalDetails: [],
     });
-    const personalDetails = usePersonalDetails();
 
+    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const prevPersonalDetails = usePrevious(personalDetails);
+    const prevReports = usePrevious(reports);
+
+    /**
+     * This effect is used to update the options list when a report is updated.
+     */
     useEffect(() => {
         // there is no need to update the options if the options are not initialized
         if (!areOptionsInitialized.current) {
@@ -71,11 +85,66 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reports]);
 
+    /**
+     * This effect is used to add a new report option to the list of options when a new report is added to the collection.
+     */
+    useEffect(() => {
+        if (!areOptionsInitialized.current || !reports) {
+            return;
+        }
+        const missingReportIds = Object.keys(reports).filter((key) => prevReports && !(key in prevReports));
+
+        setOptions((prevOptions) => {
+            const newOptions = {...prevOptions};
+            missingReportIds.forEach((missingReportId) => {
+                const report = missingReportId ? reports[missingReportId] : null;
+                if (!missingReportId || !report) {
+                    return;
+                }
+                const reportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
+                newOptions.reports.push(reportOption);
+            });
+            return newOptions;
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reports]);
+
+    /**
+     * This effect is used to update the options list when personal details change.
+     */
     useEffect(() => {
         // there is no need to update the options if the options are not initialized
         if (!areOptionsInitialized.current) {
             return;
         }
+
+        const newReportOptions: Array<{
+            replaceIndex: number;
+            newReportOption: OptionsListUtils.SearchOption<Report>;
+        }> = [];
+
+        Object.keys(personalDetails).forEach((accoutID) => {
+            const prevPersonalDetail = prevPersonalDetails?.[accoutID];
+            const personalDetail = personalDetails?.[accoutID];
+
+            if (isEqualPersonalDetail(prevPersonalDetail, personalDetail)) {
+                return;
+            }
+
+            Object.values(reports ?? {})
+                .filter((report) => Boolean(report?.participantAccountIDs?.includes(Number(accoutID))) || (ReportUtils.isSelfDM(report) && report?.ownerAccountID === Number(accoutID)))
+                .forEach((report) => {
+                    if (!report) {
+                        return;
+                    }
+                    const newReportOption = OptionsListUtils.createOptionFromReport(report, personalDetails);
+                    const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
+                    newReportOptions.push({
+                        newReportOption,
+                        replaceIndex,
+                    });
+                });
+        });
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
         const newPersonalDetailsOptions = OptionsListUtils.createOptionList(personalDetails).personalDetails;
@@ -83,8 +152,12 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
             newOptions.personalDetails = newPersonalDetailsOptions;
+            newReportOptions.forEach((newReportOption) => (newOptions.reports[newReportOption.replaceIndex] = newReportOption.newReportOption));
             return newOptions;
         });
+
+        // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [personalDetails]);
 
     const loadOptions = useCallback(() => {

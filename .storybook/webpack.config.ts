@@ -87,6 +87,12 @@ const webpackConfig = ({config}: {config: Configuration}) => {
         loader: require.resolve('@svgr/webpack'),
     });
 
+    config.plugins.push(
+        new DefinePlugin({
+            __DEV__: process.env.NODE_ENV === 'development',
+        }),
+    );
+
     return config;
 };
 

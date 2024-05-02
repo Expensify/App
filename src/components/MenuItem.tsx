@@ -1,6 +1,6 @@
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import type {ImageContentFit} from 'expo-image';
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ReactNode} from 'react';
 import React, {forwardRef, useContext, useMemo} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -32,6 +32,7 @@ import * as Expensicons from './Icon/Expensicons';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import {MenuItemGroupContext} from './MenuItemGroup';
 import MultipleAvatars from './MultipleAvatars';
+import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import SelectCircle from './SelectCircle';
@@ -85,6 +86,9 @@ type MenuItemBaseProps = {
 
     /** Any additional styles to apply on the badge element */
     badgeStyle?: ViewStyle;
+
+    /** Any additional styles to apply to the label */
+    labelStyle?: StyleProp<ViewStyle>;
 
     /** Any adjustments to style when menu item is hovered or pressed */
     hoverAndPressStyle?: StyleProp<AnimatedStyle<ViewStyle>>;
@@ -211,6 +215,9 @@ type MenuItemBaseProps = {
     /** Should render the content in HTML format */
     shouldRenderAsHTML?: boolean;
 
+    /** Whether or not the text should be escaped */
+    shouldEscapeText?: boolean;
+
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled?: boolean;
 
@@ -249,6 +256,9 @@ type MenuItemBaseProps = {
 
     /** Adds padding to the left of the text when there is no icon. */
     shouldPutLeftPaddingWhenNoIcon?: boolean;
+
+    /** Handles what to do when the item is focused */
+    onFocus?: () => void;
 };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -263,6 +273,7 @@ function MenuItem(
         outerWrapperStyle,
         containerStyle,
         titleStyle,
+        labelStyle,
         hoverAndPressStyle,
         descriptionTextStyle,
         badgeStyle,
@@ -309,6 +320,7 @@ function MenuItem(
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
         shouldRenderAsHTML = false,
+        shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
         shouldUseDefaultCursorWhenDisabled = false,
         isAnonymousAction = false,
@@ -321,8 +333,9 @@ function MenuItem(
         contentFit = 'cover',
         isPaneMenu = false,
         shouldPutLeftPaddingWhenNoIcon = false,
+        onFocus,
     }: MenuItemProps,
-    ref: ForwardedRef<View>,
+    ref: PressableRef,
 ) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -361,8 +374,8 @@ function MenuItem(
             return '';
         }
         const parser = new ExpensiMark();
-        return parser.replace(title);
-    }, [title, shouldParseTitle]);
+        return parser.replace(title, {shouldEscapeText});
+    }, [title, shouldParseTitle, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
@@ -419,7 +432,7 @@ function MenuItem(
     return (
         <View>
             {!!label && !isLabelHoverable && (
-                <View style={[styles.ph5]}>
+                <View style={[styles.ph5, labelStyle]}>
                     <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>{label}</Text>
                 </View>
             )}
@@ -449,12 +462,13 @@ function MenuItem(
                         role={CONST.ROLE.MENUITEM}
                         accessibilityLabel={title ? title.toString() : ''}
                         accessible
+                        onFocus={onFocus}
                     >
                         {({pressed}) => (
                             <>
                                 <View style={[styles.flexColumn, styles.flex1]}>
                                     {!!label && isLabelHoverable && (
-                                        <View style={icon ? styles.mb2 : null}>
+                                        <View style={[icon ? styles.mb2 : null, labelStyle]}>
                                             <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre])}>
                                                 {label}
                                             </Text>
@@ -597,14 +611,7 @@ function MenuItem(
                                     {badgeText && (
                                         <Badge
                                             text={badgeText}
-                                            textStyles={styles.textStrong}
-                                            badgeStyles={[
-                                                styles.alignSelfCenter,
-                                                styles.badgeBordered,
-                                                brickRoadIndicator ? styles.mr2 : undefined,
-                                                focused || isHovered || pressed ? styles.activeItemBadge : {},
-                                                badgeStyle,
-                                            ]}
+                                            badgeStyles={badgeStyle}
                                         />
                                     )}
                                     {/* Since subtitle can be of type number, we should allow 0 to be shown */}
@@ -678,5 +685,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {IconProps, AvatarProps, NoIcon, MenuItemBaseProps, MenuItemProps};
+export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
 export default forwardRef(MenuItem);

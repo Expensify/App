@@ -96,7 +96,7 @@ function IOURequestStepWaypoint({
         // If the user is online, and they are trying to save a value without using the autocomplete, show an error message instructing them to use a selected address instead.
         // That enables us to save the address with coordinates when it is selected
         if (!isOffline && waypointValue !== '' && waypointAddress !== waypointValue) {
-            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.errors.selectSuggestedAddress');
+            ErrorUtils.addErrorMessage(errors, `waypoint${pageIndex}`, 'distance.error.selectSuggestedAddress');
         }
 
         return errors;
@@ -204,7 +204,7 @@ function IOURequestStepWaypoint({
                             ref={(e: HTMLElement | null) => {
                                 textInput.current = e as unknown as TextInput;
                             }}
-                            hint={!isOffline ? 'distance.errors.selectSuggestedAddress' : ''}
+                            hint={!isOffline ? 'distance.error.selectSuggestedAddress' : ''}
                             containerStyles={[styles.mt4]}
                             label={translate('distance.address')}
                             defaultValue={waypointAddress}
@@ -233,31 +233,30 @@ function IOURequestStepWaypoint({
 
 IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepWaypointWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepWaypoint);
-// eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepWaypointWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepWaypointWithWritableReportOrNotFound);
+export default withWritableReportOrNotFound(
+    withFullTransactionOrNotFound(
+        withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
+            userLocation: {
+                key: ONYXKEYS.USER_LOCATION,
+            },
+            recentWaypoints: {
+                key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
 
-export default withOnyx<IOURequestStepWaypointProps, IOURequestStepWaypointOnyxProps>({
-    userLocation: {
-        key: ONYXKEYS.USER_LOCATION,
-    },
-    recentWaypoints: {
-        key: ONYXKEYS.NVP_RECENT_WAYPOINTS,
-
-        // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
-        // that the google autocomplete component expects for it's "predefined places" feature.
-        selector: (waypoints) =>
-            (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
-                name: waypoint.name,
-                description: waypoint.address ?? '',
-                geometry: {
-                    location: {
-                        lat: waypoint.lat ?? 0,
-                        lng: waypoint.lng ?? 0,
-                    },
-                },
-            })),
-    },
-    // @ts-expect-error TODO: Remove this once withFullTransactionOrNotFound (https://github.com/Expensify/App/issues/36123) is migrated to TypeScript.
-})(IOURequestStepWaypointWithFullTransactionOrNotFound);
+                // Only grab the most recent 5 waypoints because that's all that is shown in the UI. This also puts them into the format of data
+                // that the google autocomplete component expects for it's "predefined places" feature.
+                selector: (waypoints) =>
+                    (waypoints ? waypoints.slice(0, 5) : []).map((waypoint) => ({
+                        name: waypoint.name,
+                        description: waypoint.address ?? '',
+                        geometry: {
+                            location: {
+                                lat: waypoint.lat ?? 0,
+                                lng: waypoint.lng ?? 0,
+                            },
+                        },
+                    })),
+            },
+        })(IOURequestStepWaypoint),
+    ),
+    true,
+);
