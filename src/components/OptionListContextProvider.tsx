@@ -86,7 +86,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
     }, [reports]);
 
     /**
-     * This effect is used to add a new report option or remove a report option to the list of options when a new report is added to/removed from the collection.
+     * This effect is used to add a new report option or remove a report option from the list of options when a new report is added to/removed from the collection.
      */
     useEffect(() => {
         if (!areOptionsInitialized.current || !reports) {
