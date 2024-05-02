@@ -321,6 +321,7 @@ export default {
         businessName: 'Nombre de la empresa',
         type: 'Tipo',
         action: 'Acción',
+        expenses: 'Gastos',
     },
     location: {
         useCurrent: 'Usar ubicación actual',

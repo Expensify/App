@@ -14,10 +14,10 @@ import type {SearchMenuFilterItem} from './SearchFilters';
 
 type SearchFiltersNarrowProps = {
     filterItems: SearchMenuFilterItem[];
-    activeItemLabel: string;
+    activeItemIndex: number;
 };
 
-function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrowProps) {
+function SearchFiltersNarrow({filterItems, activeItemIndex}: SearchFiltersNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -29,7 +29,6 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
 
-    const activeItemIndex = filterItems.findIndex((item) => item.title.toLowerCase() === activeItemLabel);
     const popoverMenuItems = filterItems.map((item, index) => ({
         text: item.title,
         onSelected: singleExecution(() => Navigation.navigate(item.route)),
@@ -54,7 +53,7 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
                     <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
                         <View style={[styles.flexRow]}>
                             <Icon
-                                src={popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.All}
+                                src={popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt}
                                 fill={theme.icon}
                             />
                             <Text style={[styles.mh1, styles.textStrong]}>{popoverMenuItems[activeItemIndex]?.text}</Text>

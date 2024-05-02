@@ -10,6 +10,7 @@ import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import SearchFiltersNarrow from './SearchFiltersNarrow';
 
@@ -19,6 +20,7 @@ type SearchFiltersProps = {
 
 type SearchMenuFilterItem = {
     title: string;
+    query: string;
     icon: IconAsset;
     route: Route;
 };
@@ -31,25 +33,26 @@ function SearchFilters({query}: SearchFiltersProps) {
 
     const filterItems: SearchMenuFilterItem[] = [
         {
-            title: translate('common.all'),
-            icon: Expensicons.All,
+            title: translate('common.expenses'),
+            query: CONST.TAB_SEARCH.ALL,
+            icon: Expensicons.Receipt,
             route: ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL),
         },
     ];
+    const activeItemIndex = filterItems.findIndex((item) => item.query === query);
 
     if (isSmallScreenWidth) {
         return (
             <SearchFiltersNarrow
                 filterItems={filterItems}
-                activeItemLabel={String(query)}
+                activeItemIndex={activeItemIndex}
             />
         );
     }
 
     return (
         <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-            {filterItems.map((item) => {
-                const isActive = item.title.toLowerCase() === query;
+            {filterItems.map((item, index) => {
                 const onPress = singleExecution(() => Navigation.navigate(item.route));
 
                 return (
@@ -59,8 +62,10 @@ function SearchFilters({query}: SearchFiltersProps) {
                         interactive
                         title={item.title}
                         icon={item.icon}
+                        iconWidth={variables.iconSizeLarge}
+                        iconHeight={variables.iconSizeLarge}
                         wrapperStyle={styles.sectionMenuItem}
-                        focused={isActive}
+                        focused={index === activeItemIndex}
                         hoverAndPressStyle={styles.hoveredComponentBG}
                         onPress={onPress}
                         isPaneMenu

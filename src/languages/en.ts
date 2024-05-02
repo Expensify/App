@@ -331,6 +331,7 @@ export default {
         businessName: 'Business name',
         type: 'Type',
         action: 'Action',
+        expenses: 'Expenses',
     },
     location: {
         useCurrent: 'Use current location',
