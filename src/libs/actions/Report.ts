@@ -351,10 +351,7 @@ function subscribeToReportTypingEvents(reportID: string) {
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
     }).catch((error) => {
-        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {
-            errorType: error.type,
-            pusherChannelName,
-        });
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
 }
 
@@ -385,10 +382,7 @@ function subscribeToReportLeavingEvents(reportID: string) {
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, true);
     }).catch((error) => {
-        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {
-            errorType: error.type,
-            pusherChannelName,
-        });
+        Log.hmmm('[Report] Failed to initially subscribe to Pusher channel', {errorType: error.type, pusherChannelName});
     });
 }
 
