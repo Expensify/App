@@ -1252,15 +1252,14 @@ const CONST = {
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_TAX: 'syncTax',
-        PREFERRED_EXPORTER: 'exporter',
+        EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
-        OUT_OF_POCKET_EXPENSES: 'outOfPocketExpenses',
-        EXPORT_INVOICE: 'exportInvoice',
-        EXPORT_ENTITY: 'exportEntity',
-        EXPORT_ACCOUNT: 'exportAccount',
-        EXPORT_ACCOUNT_PAYABLE: 'exportAccountPayable',
-        EXPORT_COMPANY_CARD_ACCOUNT: 'exportCompanyCardAccount',
-        EXPORT_COMPANY_CARD: 'exportCompanyCard',
+        NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'nonReimbursableExpensesAccount',
+        NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonReimbursableExpensesExportDestination',
+        REIMBURSABLE_EXPENSES_ACCOUNT: 'reimbursableExpensesAccount',
+        REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
         AUTO_SYNC: 'autoSync',
         SYNC_PEOPLE: 'syncPeople',
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
@@ -1273,10 +1272,22 @@ const CONST = {
         IMPORT_TAX_RATES: 'importTaxRates',
     },
 
-    QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE: {
+    QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    QUICKBOOKS_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'bill',
     },
 
     ACCOUNT_ID: {
@@ -4657,18 +4668,6 @@ const CONST = {
             DONT_UNDERSTAND: 'dontUnderstand',
             PREFER_CLASSIC: 'preferClassic',
         },
-    },
-
-    QUICKBOOKS_EXPORT_DATE: {
-        LAST_EXPENSE: 'LAST_EXPENSE',
-        REPORT_EXPORTED: 'REPORT_EXPORTED',
-        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
-    },
-
-    QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE: {
-        CREDIT_CARD: 'credit_card',
-        DEBIT_CARD: 'debit_card',
-        VENDOR_BILL: 'bill',
     },
 
     SESSION_STORAGE_KEYS: {

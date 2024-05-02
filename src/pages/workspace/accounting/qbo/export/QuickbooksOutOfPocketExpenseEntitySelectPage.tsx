@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {SectionListData} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -17,9 +16,10 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
-    value: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE>;
+    value: QBOReimbursableExportAccountType;
     isShown: boolean;
 };
 type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
@@ -27,57 +27,57 @@ type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
 function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {exportEntity, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {reimbursableExpensesExportDestination, syncTax, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTax);
-    const isTaxError = isTaxesEnabled && exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const isLocationError = isLocationsEnabled && exportEntity !== CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const isTaxError = isTaxesEnabled && reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const isLocationError = isLocationsEnabled && reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const policyID = policy?.id ?? '';
 
     useEffect(() => {
         if (!isTaxError && !isLocationError) {
             return;
         }
-        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY);
+        Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
     }, [policyID, isTaxError, isLocationError]);
 
     const data: CardListItem[] = useMemo(
         () => [
             {
-                value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK,
+                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 text: translate(`workspace.qbo.accounts.check`),
-                keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK,
-                isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK,
+                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+                isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isShown: !isLocationsEnabled,
             },
             {
-                value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 text: translate(`workspace.qbo.accounts.journal_entry`),
-                keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+                isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isShown: !isTaxesEnabled || isLocationsEnabled,
             },
             {
-                value: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL,
+                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 text: translate(`workspace.qbo.accounts.bill`),
-                keyForList: CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL,
-                isSelected: exportEntity === CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL,
+                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: !isLocationsEnabled,
             },
         ],
-        [exportEntity, isTaxesEnabled, translate, isLocationsEnabled],
+        [reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled],
     );
 
     const sections: CardsSection[] = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
 
     const selectExportEntity = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportEntity) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ENTITY, row.value);
+            if (row.value !== reimbursableExpensesExportDestination) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID));
         },
-        [exportEntity, policyID],
+        [reimbursableExpensesExportDestination, policyID],
     );
 
     return (
