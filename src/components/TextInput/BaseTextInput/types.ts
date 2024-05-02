@@ -59,6 +59,11 @@ type CustomBaseTextInputProps = {
      */
     autoGrowHeight?: boolean;
 
+    /**
+     * Maximum height for autoGrowHeight input
+     */
+    maxAutoGrowHeight?: number;
+
     /** Hide the focus styles on TextInput */
     hideFocusedState?: boolean;
 

@@ -20,6 +20,8 @@ type MapViewProps = {
     directionCoordinates?: Array<[number, number]>;
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
+    // Whether the map is interactable or not
+    interactive?: boolean;
 };
 
 type DirectionProps = {
