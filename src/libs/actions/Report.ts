@@ -693,9 +693,6 @@ function clearAvatarErrors(reportID: string) {
         errorFields: {
             avatar: null,
         },
-        pendingFields: {
-            avatar: null,
-        },
     });
 }
 
