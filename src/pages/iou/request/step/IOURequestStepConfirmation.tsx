@@ -73,8 +73,8 @@ function IOURequestStepConfirmation({
     const receiptPath = transaction?.receipt?.source;
     const receiptType = transaction?.receipt?.type;
     const defaultTaxCode = TransactionUtils.getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = transaction?.taxCode ? transaction?.taxCode : defaultTaxCode;
-    const transactionTaxAmount = transaction?.taxAmount;
+    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
@@ -288,6 +288,8 @@ function IOURequestStepConfirmation({
                 transaction.created,
                 transaction.category,
                 transaction.tag,
+                transactionTaxCode,
+                transactionTaxAmount,
                 transaction.amount,
                 transaction.currency,
                 transaction.merchant,
@@ -299,7 +301,7 @@ function IOURequestStepConfirmation({
                 customUnitRateID,
             );
         },
-        [policy, policyCategories, policyTags, report, transaction],
+        [policy, policyCategories, policyTags, report, transaction, transactionTaxCode, transactionTaxAmount],
     );
 
     const createTransaction = useCallback(
