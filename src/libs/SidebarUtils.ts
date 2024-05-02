@@ -245,11 +245,6 @@ function getOptionData({
         participantAccountIDs = [report.ownerAccountID ?? 0];
     }
 
-    // TODO: this is added for the testing purposes only - should be removed once participants list of the system report is filled
-    if (report.chatType === CONST.REPORT.CHAT_TYPE.SYSTEM) {
-        participantAccountIDs = [report.ownerAccountID ?? 0, ...PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.NOTIFICATIONS])];
-    }
-
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
     const personalDetail = participantPersonalDetailList[0] ?? {};
     const hasErrors = Object.keys(result.allReportErrors ?? {}).length !== 0;
