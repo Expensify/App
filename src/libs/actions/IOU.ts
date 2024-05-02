@@ -221,13 +221,13 @@ Onyx.connect({
     },
 });
 
-let userAccountID = -1;
+let currentUserAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        userAccountID = value?.accountID ?? -1;
+        currentUserAccountID = value?.accountID ?? -1;
     },
 });
 
@@ -235,7 +235,7 @@ let currentUserPersonalDetails: OnyxTypes.PersonalDetails | EmptyObject = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        currentUserPersonalDetails = value?.[userAccountID] ?? {};
+        currentUserPersonalDetails = value?.[currentUserAccountID] ?? {};
     },
 });
 
@@ -1751,7 +1751,7 @@ function getMoneyRequestInformation(
     policy: OnyxEntry<OnyxTypes.Policy> | undefined,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
-    payeeAccountID = userAccountID,
+    payeeAccountID = currentUserAccountID,
     payeeEmail = currentUserEmail,
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
@@ -1963,7 +1963,7 @@ function getTrackExpenseInformation(
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
     payeeEmail = currentUserEmail,
-    payeeAccountID = userAccountID,
+    payeeAccountID = currentUserAccountID,
     moneyRequestReportID = '',
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     existingTransactionID?: string,
@@ -2180,7 +2180,7 @@ function createDistanceRequest(
         policy,
         policyTagList,
         policyCategories,
-        userAccountID,
+        currentUserAccountID,
         currentUserEmail,
         moneyRequestReportID,
     );
@@ -2208,7 +2208,7 @@ function createDistanceRequest(
 
     API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
     Navigation.dismissModal(activeReportID);
-    Report.notifyNewAction(activeReportID, userAccountID);
+    Report.notifyNewAction(activeReportID, currentUserAccountID);
 }
 
 /**
@@ -3798,7 +3798,7 @@ function createSplitsAndOnyxData(
     const hasMultipleParticipants = participants.length > 1;
     const currentUserParticipant: Participant = {
         login: currentUserEmail,
-        accountID: userAccountID,
+        accountID: currentUserAccountID,
     };
     const splits: Split[] = [];
 
@@ -3814,7 +3814,7 @@ function createSplitsAndOnyxData(
 
         // FIXME: This condition seems to be useless - we only ever include users in the participants array
         // who are NOT the current user 🤔
-        const shouldCreateOptimisticReports = userAccountID === splitPayerAccountID || userAccountID === participantAccountID;
+        const shouldCreateOptimisticReports = currentUserAccountID === splitPayerAccountID || currentUserAccountID === participantAccountID;
         if (participantEmail === splitPayerEmail || !shouldCreateOptimisticReports) {
             splits.push({
                 email: participantEmail,
@@ -4026,7 +4026,7 @@ function splitBill({
     splitPayerAccountIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const splitPayerAccountID = splitPayerAccountIDs[0] ?? userAccountID;
+    const splitPayerAccountID = splitPayerAccountIDs[0] ?? currentUserAccountID;
     const splitPayerEmail = allPersonalDetails[splitPayerAccountID]?.login ?? currentUserEmail;
 
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4067,7 +4067,7 @@ function splitBill({
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
 
     Navigation.dismissModal(existingSplitChatReportID);
-    Report.notifyNewAction(splitData.chatReportID, userAccountID);
+    Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -4087,7 +4087,7 @@ function splitBillAndOpenReport({
     splitPayerAccountIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const splitPayerAccountID = splitPayerAccountIDs[0] ?? userAccountID;
+    const splitPayerAccountID = splitPayerAccountIDs[0] ?? currentUserAccountID;
     const splitPayerEmail = allPersonalDetails[splitPayerAccountID]?.login ?? currentUserEmail;
 
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
@@ -4128,7 +4128,7 @@ function splitBillAndOpenReport({
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
 
     Navigation.dismissModal(splitData.chatReportID);
-    Report.notifyNewAction(splitData.chatReportID, userAccountID);
+    Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
 type StartSplitBilActionParams = {
@@ -5804,7 +5804,7 @@ function canApproveIOU(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, cha
     }
 
     const managerID = iouReport?.managerID ?? 0;
-    const isCurrentUserManager = managerID === userAccountID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(chatReport);
 
     const isOpenExpenseReport = isPolicyExpenseChat && ReportUtils.isOpenExpenseReport(iouReport);
@@ -5829,7 +5829,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
 
     if (ReportUtils.isInvoiceReport(iouReport)) {
         if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
-            return chatReport?.invoiceReceiver?.accountID === userAccountID;
+            return chatReport?.invoiceReceiver?.accountID === currentUserAccountID;
         }
 
         return PolicyUtils.getPolicy(chatReport?.invoiceReceiver?.policyID).role === CONST.POLICY.ROLE.ADMIN;
@@ -5838,7 +5838,7 @@ function canIOUBePaid(iouReport: OnyxEntry<OnyxTypes.Report> | EmptyObject, chat
     const isPayer = ReportUtils.isPayer(
         {
             email: currentUserEmail,
-            accountID: userAccountID,
+            accountID: currentUserAccountID,
         },
         iouReport,
     );
