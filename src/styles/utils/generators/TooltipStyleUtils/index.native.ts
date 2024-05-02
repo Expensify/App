@@ -70,6 +70,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         let rootWrapperLeft = 0;
         let pointerWrapperTop = 0;
         let pointerWrapperLeft = 0;
+        let opacity = 0;
 
         if (isTooltipSizeReady) {
             // When the tooltip size is ready, we can start animating the scale.
@@ -115,6 +116,9 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
             //      - To the left (-) by half the pointer's width,
             //        so the pointer's center lines up with the tooltipWidth's center.
             pointerWrapperLeft = shouldForceRenderingLeft ? POINTER_WIDTH / 2 : tooltipWidth / 2 - POINTER_WIDTH / 2;
+
+            // React Native's measure() is asynchronous, we temporarily hide the tooltip until its bound is calculated
+            opacity = 100;
         }
 
         return {
@@ -135,6 +139,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 maxWidth,
                 top: rootWrapperTop,
                 left: rootWrapperLeft,
+                opacity,
                 ...customWrapperStyle,
 
                 // We are adding this to prevent the tooltip text from being selected and copied on CTRL + A.
@@ -153,6 +158,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 ...positioning.pAbsolute,
                 top: pointerWrapperTop,
                 left: pointerWrapperLeft,
+                opacity,
             },
             pointerStyle: {
                 width: 0,
