@@ -19,7 +19,8 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncTax, pendingFields, exportEntity} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const isTaxSwitchOn = !!syncTax && exportEntity !== CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -42,7 +43,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
                                     accessibilityLabel={translate('workspace.accounting.taxes')}
-                                    isOn={!!syncTax}
+                                    isOn={isTaxSwitchOn}
                                     onToggle={() => Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.SYNC_TAX, !syncTax)}
                                 />
                             </View>
