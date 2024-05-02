@@ -47,7 +47,7 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
                 accessible
                 accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
                 ref={buttonRef}
-                style={[styles.tabSelectorButton]}
+                style={[styles.tabSelectorButton, styles.ph5]}
                 onPress={openMenu}
             >
                 {({hovered}) => (
