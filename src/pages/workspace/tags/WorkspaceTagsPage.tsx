@@ -162,14 +162,17 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
+        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
         if (selectedTagsArray.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteTagsConfirmModalVisible(true),
-            });
+            if (!isThereAnyAccountingConnection) {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
+                    onSelected: () => setDeleteTagsConfirmModalVisible(true),
+                });
+            }
 
             const enabledTags = selectedTagsArray.filter((tagName) => tagListKeyedByName?.[tagName]?.enabled);
             if (enabledTags.length > 0) {
