@@ -32,7 +32,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Beta, InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AdminPolicyAccessOrNotFoundWrapper from './AdminPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import SearchInputManager from './SearchInputManager';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -280,10 +280,10 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
     );
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper
+        <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
-            subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-            onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: PolicyUtils.goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
@@ -321,7 +321,7 @@ function WorkspaceInvitePage({route, betas, invitedEmailsToAccountIDsDraft, poli
                     footerContent={footerContent}
                 />
             </ScreenWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

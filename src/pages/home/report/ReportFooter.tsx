@@ -83,6 +83,7 @@ function ReportFooter({
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
     const canWriteInReport = ReportUtils.canWriteInReport(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -113,7 +114,7 @@ function ReportFooter({
             if (mentionWithDomain) {
                 assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
                 if (!Object.keys(assignee).length) {
-                    const optimisticDataForNewAssignee = Report.buildOptimisticTaskDataForNewAssingee(mentionWithDomain);
+                    const optimisticDataForNewAssignee = Report.setTaskDataForNewAssingee(mentionWithDomain);
                     assignee = optimisticDataForNewAssignee.assignee;
                     assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                 }
@@ -147,7 +148,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
-                    {!canWriteInReport && <SystemChatReportFooterMessage />}
+                    {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}

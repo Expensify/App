@@ -348,10 +348,18 @@ function ReportActionsView({
                 newestReportAction: newestReportAction.pendingAction,
                 firstReportActionID: newestReportAction?.reportActionID,
                 isLoadingOlderReportsFirstNeeded,
+                reportActionID,
             })}`,
         );
 
-        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (
+            !reportActionID ||
+            !isFocused ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
             return;
         }
 
@@ -368,6 +376,7 @@ function ReportActionsView({
         network.isOffline,
         reportActions.length,
         newestReportAction,
+        isFocused,
     ]);
 
     /**
