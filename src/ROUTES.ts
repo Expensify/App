@@ -214,7 +214,7 @@ const ROUTES = {
             if (referrer) {
                 route += `?referrer=${referrer}`;
             }
-            return route;
+            return route as ReportWithIdRoute;
         },
     },
     REPORT_AVATAR: {
@@ -809,6 +809,8 @@ const ROUTES = {
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },
 } as const;
+
+type ReportWithIdRoute = `r/${string}` | `r/${string}/${string}` | `r/${string}?referrer=${string}` | `r/${string}/${string}?referrer=${string}`;
 
 /**
  * Proxy routes can be used to generate a correct url with dynamic values
