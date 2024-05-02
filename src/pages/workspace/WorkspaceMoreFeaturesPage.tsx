@@ -168,7 +168,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 />
             </View>
         ),
-        [policy?.id, styles.mt7, translate],
+        [styles.mt7, translate],
     );
 
     const renderSection = useCallback(
