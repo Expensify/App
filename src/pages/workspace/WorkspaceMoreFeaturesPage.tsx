@@ -162,7 +162,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     onToggle={item.action}
                     disabled={item.disabled}
                     errors={item.errors}
-                    onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', 'areConnectionsEnabled')}
+                    onCloseError={() => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
                 />
             </View>
         ),
