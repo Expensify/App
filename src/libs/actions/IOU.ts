@@ -3611,8 +3611,8 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string,
  */
 function createSplitsAndOnyxData(
     participants: Participant[],
-    currentUserLogin: string,
-    currentUserAccountID: number,
+    splitPayerEmail: string,
+    splitPayerAccountID: number,
     amount: number,
     comment: string,
     currency: string,
@@ -3628,7 +3628,7 @@ function createSplitsAndOnyxData(
     const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
 
-    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, splitPayerAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
 
     const splitTransaction = TransactionUtils.buildOptimisticTransaction(
@@ -3649,7 +3649,7 @@ function createSplitsAndOnyxData(
     );
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(formattedSplitPayerEmail);
     const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
         CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         amount,
@@ -3847,15 +3847,15 @@ function createSplitsAndOnyxData(
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
-                ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '', currentUserAccountID, splitAmount, currency)
-                : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+                ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '', splitPayerAccountID, splitAmount, currency)
+                : ReportUtils.buildOptimisticIOUReport(splitPayerAccountID, participantAccountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
             if (typeof oneOnOneIOUReport?.total === 'number') {
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
             }
         } else {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
+            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, splitPayerAccountID, splitAmount, currency);
         }
 
         // STEP 3: Build optimistic transaction
@@ -3889,7 +3889,7 @@ function createSplitsAndOnyxData(
                 splitAmount,
                 currency,
                 comment,
-                currentUserEmailForIOUSplit,
+                formattedSplitPayerEmail,
                 [participant],
                 oneOnOneTransaction.transactionID,
             );
@@ -3988,8 +3988,6 @@ function createSplitsAndOnyxData(
 
 type SplitBillActionsParams = {
     participants: Participant[];
-    currentUserLogin: string;
-    currentUserAccountID: number;
     amount: number;
     comment: string;
     currency: string;
@@ -4009,8 +4007,6 @@ type SplitBillActionsParams = {
  */
 function splitBill({
     participants,
-    currentUserLogin,
-    currentUserAccountID,
     amount,
     comment,
     currency,
@@ -4024,10 +4020,13 @@ function splitBill({
     splitPayerAccountIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+    const splitPayerAccountID = splitPayerAccountIDs[0] ?? userAccountID;
+    const splitPayerEmail = allPersonalDetails[splitPayerAccountID]?.login ?? currentUserEmail;
+
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
-        currentUserLogin,
-        currentUserAccountID,
+        splitPayerEmail,
+        splitPayerAccountID,
         amount,
         comment,
         currency,
@@ -4038,7 +4037,6 @@ function splitBill({
         existingSplitChatReportID,
         billable,
         iouRequestType,
-        splitPayerAccountIDs,
     );
 
     const parameters: SplitBillParams = {
@@ -4071,8 +4069,6 @@ function splitBill({
  */
 function splitBillAndOpenReport({
     participants,
-    currentUserLogin,
-    currentUserAccountID,
     amount,
     comment,
     currency,
@@ -4085,10 +4081,13 @@ function splitBillAndOpenReport({
     splitPayerAccountIDs = [],
 }: SplitBillActionsParams) {
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+    const splitPayerAccountID = splitPayerAccountIDs[0] ?? userAccountID;
+    const splitPayerEmail = allPersonalDetails[splitPayerAccountID]?.login ?? currentUserEmail;
+
     const {splitData, splits, onyxData} = createSplitsAndOnyxData(
         participants,
-        currentUserLogin,
-        currentUserAccountID,
+        splitPayerEmail,
+        splitPayerAccountID,
         amount,
         comment,
         currency,
@@ -4099,7 +4098,6 @@ function splitBillAndOpenReport({
         '',
         billable,
         iouRequestType,
-        splitPayerAccountIDs,
     );
 
     const parameters: SplitBillParams = {
