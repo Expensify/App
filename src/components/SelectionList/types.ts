@@ -180,6 +180,9 @@ type TransactionListItemType = ListItem & {
     /** The type of report the transaction is associated with */
     reportType: string;
 
+    /** The ID of the policy the transaction is associated with */
+    policyID: string;
+
     /** Whether we should show the merchant column */
     shouldShowMerchant: boolean;
 };

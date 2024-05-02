@@ -85,7 +85,8 @@ function TransactionListItem<TItem extends ListItem>({
     const userCell = (participant: SearchPersonalDetails & SearchPolicyDetails) => {
         const displayName = participant.name ?? participant.displayName ?? participant.login;
         const avatarURL = participant.avatarURL ?? participant.avatar;
-        const iconType = participant.avatarURL !== undefined ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
+        const isWorkspace = participant.avatarURL !== undefined;
+        const iconType = isWorkspace ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR;
 
         return (
             <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
@@ -95,6 +96,7 @@ function TransactionListItem<TItem extends ListItem>({
                     source={avatarURL}
                     name={displayName}
                     type={iconType}
+                    accountID={isWorkspace ? participant.id : participant.accountID}
                 />
                 <Text
                     numberOfLines={1}
