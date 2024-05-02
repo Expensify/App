@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,6 +39,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
     const policyCategory = policyCategories?.[route.params.categoryName];
 
@@ -60,13 +61,14 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
         Navigation.dismissModal();
     };
 
-    const threeDotsMenuItems = [
-        {
+    const threeDotsMenuItems = [];
+    if (Object.keys(policy?.connections ?? {}).length === 0) {
+        threeDotsMenuItems.push({
             icon: Expensicons.Trashcan,
             text: translate('workspace.categories.deleteCategory'),
             onSelected: () => setDeleteCategoryConfirmModalVisible(true),
-        },
-    ];
+        });
+    }
 
     return (
         <AccessOrNotFoundWrapper
