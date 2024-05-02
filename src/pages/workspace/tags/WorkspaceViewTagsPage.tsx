@@ -122,7 +122,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
 
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
 
-    const handleDeleteTags = () => {
+    const deleteTags = () => {
         setSelectedTags({});
         Policy.deletePolicyTags(policyID, selectedTagsArray);
         setDeleteTagsConfirmModalVisible(false);
@@ -131,77 +131,76 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
-        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
-
-        if (selectedTagsArray.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteTagsConfirmModalVisible(true),
-            });
-
-            const enabledTags = selectedTagsArray.filter((tagName) => tagListKeyedByName?.[tagName]?.enabled);
-            if (enabledTags.length > 0) {
-                const tagsToDisable = selectedTagsArray
-                    .filter((tagName) => tagListKeyedByName?.[tagName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, tagName) => {
-                        acc[tagName] = {
-                            name: tagName,
-                            enabled: false,
-                        };
-                        return acc;
-                    }, {});
-
-                options.push({
-                    icon: Expensicons.DocumentSlash,
-                    text: translate(enabledTags.length === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
-                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
-                    onSelected: () => {
-                        setSelectedTags({});
-                        Policy.setWorkspaceTagEnabled(policyID, tagsToDisable);
-                    },
-                });
-            }
-
-            const disabledTags = selectedTagsArray.filter((tagName) => !tagListKeyedByName?.[tagName]?.enabled);
-            if (disabledTags.length > 0) {
-                const tagsToEnable = selectedTagsArray
-                    .filter((tagName) => !tagListKeyedByName?.[tagName]?.enabled)
-                    .reduce<Record<string, {name: string; enabled: boolean}>>((acc, tagName) => {
-                        acc[tagName] = {
-                            name: tagName,
-                            enabled: true,
-                        };
-                        return acc;
-                    }, {});
-                options.push({
-                    icon: Expensicons.Document,
-                    text: translate(disabledTags.length === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
-                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
-                    onSelected: () => {
-                        setSelectedTags({});
-                        Policy.setWorkspaceTagEnabled(policyID, tagsToEnable);
-                    },
-                });
-            }
-
-            return (
-                <ButtonWithDropdownMenu
-                    buttonRef={dropdownButtonRef}
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    isSplitButton={false}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
-                    options={options}
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
-                />
-            );
+        if (selectedTagsArray.length === 0) {
+            return null;
         }
 
-        return null;
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
+
+        options.push({
+            icon: Expensicons.Trashcan,
+            text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+            value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
+            onSelected: () => setDeleteTagsConfirmModalVisible(true),
+        });
+
+        let enabledTagCount = 0;
+        const tagsToDisable: Record<string, {name: string; enabled: boolean}> = {};
+        let disabledTagCount = 0;
+        const tagsToEnable: Record<string, {name: string; enabled: boolean}> = {};
+        for (const tagName of selectedTagsArray) {
+            if (tagListKeyedByName[tagName]?.enabled) {
+                enabledTagCount++;
+                tagsToDisable[tagName] = {
+                    name: tagName,
+                    enabled: false,
+                };
+            } else {
+                disabledTagCount++;
+                tagsToEnable[tagName] = {
+                    name: tagName,
+                    enabled: true,
+                };
+            }
+        }
+
+        if (enabledTagCount > 0) {
+            options.push({
+                icon: Expensicons.DocumentSlash,
+                text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
+                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DISABLE,
+                onSelected: () => {
+                    setSelectedTags({});
+                    Policy.setWorkspaceTagEnabled(policyID, tagsToDisable);
+                },
+            });
+        }
+
+        if (disabledTagCount > 0) {
+            options.push({
+                icon: Expensicons.Document,
+                text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
+                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.ENABLE,
+                onSelected: () => {
+                    setSelectedTags({});
+                    Policy.setWorkspaceTagEnabled(policyID, tagsToEnable);
+                },
+            });
+        }
+
+        return (
+            <ButtonWithDropdownMenu
+                buttonRef={dropdownButtonRef}
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                isSplitButton={false}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {selectedNumber: selectedTagsArray.length})}
+                options={options}
+                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+            />
+        );
     };
 
     const navigateToEditTag = () => {
@@ -222,7 +221,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 <HeaderWithBackButton title={currentTagListName}>{getHeaderButtons()}</HeaderWithBackButton>
                 <ConfirmModal
                     isVisible={deleteTagsConfirmModalVisible}
-                    onConfirm={handleDeleteTags}
+                    onConfirm={deleteTags}
                     onCancel={() => setDeleteTagsConfirmModalVisible(false)}
                     title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
                     prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
