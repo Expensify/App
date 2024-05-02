@@ -28,6 +28,7 @@ import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 type ReportParticipantDetailsOnyxProps = {
     /** Personal details of all users */
@@ -119,13 +120,15 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                 </View>
                 <View style={styles.w100}>
                     {isCurrentUserAdmin && (
-                        <MenuItemWithTopDescription
-                            disabled={isSelectedMemberCurrentUser}
-                            title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
-                            description={translate('common.role')}
-                            shouldShowRightIcon
-                            onPress={openRoleSelectionModal}
-                        />
+                        <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
+                            <MenuItemWithTopDescription
+                                disabled={isSelectedMemberCurrentUser}
+                                title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                description={translate('common.role')}
+                                shouldShowRightIcon
+                                onPress={openRoleSelectionModal}
+                            />
+                        </OfflineWithFeedback>
                     )}
                     <MenuItem
                         title={translate('common.profile')}
