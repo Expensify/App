@@ -89,7 +89,7 @@ function ReportActionItemMessageEdit(
         }
         return draftMessage;
     });
-    const [selection, setSelection] = useState<Selection>({start: 0, end: 0});
+    const [selection, setSelection] = useState<Selection>({start: draft.length, end: draft.length});
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const [modal, setModal] = useState<OnyxTypes.Modal>({
@@ -160,13 +160,8 @@ function ReportActionItemMessageEdit(
         [action.reportActionID],
     );
 
-    useEffect(() => {
-        setSelection({
-            start: draftMessage.length,
-            end: draftMessage.length,
-        });
-
-        return () => {
+    useEffect(
+        () => () => {
             InputFocus.callback(() => setIsFocused(false));
             InputFocus.inputFocusChange(false);
 
@@ -185,9 +180,10 @@ function ReportActionItemMessageEdit(
             // Show the main composer when the focused message is deleted from another client
             // to prevent the main composer stays hidden until we swtich to another chat.
             setShouldShowComposeInputKeyboardAware(true);
-        }
+        },
         // eslint-disable-next-line react-hooks/exhaustive-deps -- this cleanup needs to be called only on unmount
-    }, [action.reportActionID]);
+        [action.reportActionID],
+    );
 
     // show the composer after editing is complete for devices that hide the composer during editing.
     useEffect(() => () => ComposerActions.setShouldShowComposeInput(true), []);
