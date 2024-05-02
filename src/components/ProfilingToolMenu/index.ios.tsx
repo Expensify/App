@@ -1,7 +1,7 @@
 import React from 'react';
 import RNFS from 'react-native-fs';
 import useEnvironment from '@hooks/useEnvironment';
-import getFolderPathSuffix from '@libs/getFolderPathSuffix';
+import getDownloadFolderPathSuffixForIOS from '@libs/getDownloadFolderPathSuffixForIOS';
 import CONST from '@src/CONST';
 import BaseProfilingToolMenu from './BaseProfilingToolMenu';
 
@@ -11,7 +11,7 @@ function ProfilingToolMenu() {
     return (
         <BaseProfilingToolMenu
             pathToBeUsed={RNFS.DocumentDirectoryPath}
-            displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getFolderPathSuffix(environment)}`}
+            displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}`}
         />
     );
 }

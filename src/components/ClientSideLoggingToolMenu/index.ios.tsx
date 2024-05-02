@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import Share from 'react-native-share';
 import useEnvironment from '@hooks/useEnvironment';
 import type {Log} from '@libs/Console';
-import getFolderPathSuffix from '@libs/getFolderPathSuffix';
+import getDownloadFolderPathSuffixForIOS from '@libs/getDownloadFolderPathSuffixForIOS';
 import localFileCreate from '@libs/localFileCreate';
 import CONST from '@src/CONST';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
@@ -32,7 +32,7 @@ function ClientSideLoggingToolMenu() {
             onEnableLogging={() => setFile(undefined)}
             onDisableLogging={createFile}
             onShareLogs={shareLogs}
-            displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getFolderPathSuffix(environment)}/${file?.newFileName ?? ''}`}
+            displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}/${file?.newFileName ?? ''}`}
         />
     );
 }
