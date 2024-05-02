@@ -1,11 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {SectionListData} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, Section} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,7 +54,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             }
             return [{data: options}];
         
-    }, []);
+    }, [translate, nonReimbursableExpensesExportDestination, isLocationEnabled]);
 
     const selectExportCompanyCard = useCallback(
         (row: AccountListItem) => {
