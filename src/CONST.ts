@@ -1270,6 +1270,10 @@ const CONST = {
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
         IMPORT_TRACK_CATEGORIES: 'importTrackingCategories',
+        CATEGORY_FIELDS: {
+            COST_CENTERS: 'cost centers',
+            REGION: 'region',
+        }
     },
 
     QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE: {
