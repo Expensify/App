@@ -162,14 +162,18 @@ function TransactionListItem<TItem extends ListItem>({
                     <>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mb2, styles.gap1]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flex1]}>
-                                {userCell(transactionItem.from)}
+                                <View style={[styles.flex1]}>
+                                    {userCell(transactionItem.from)}
+                                </View>
                                 <Icon
                                     src={Expensicons.ArrowRightLong}
                                     width={variables.iconSizeXXSmall}
                                     height={variables.iconSizeXXSmall}
                                     fill={theme.icon}
                                 />
-                                {userCell(transactionItem.to)}
+                                <View style={[styles.flex1]}>
+                                    {userCell(transactionItem.to)}
+                                </View>
                             </View>
                             <View style={[styles.width80]}>{actionCell}</View>
                         </View>
