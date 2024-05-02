@@ -43,7 +43,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
 
             const work = values.work.trim();
 
-            const adminsChatReportID = Policy.createWorkspace(undefined, true, work);
+            const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
 
             Report.completeOnboarding(
                 onboardingPurposeSelected,

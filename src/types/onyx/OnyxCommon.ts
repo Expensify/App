@@ -25,16 +25,16 @@ type AvatarType = typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPA
 
 type Icon = {
     /** Avatar source to display */
-    source: AvatarSource;
+    source?: AvatarSource;
 
     /** Denotes whether it is an avatar or a workspace avatar */
-    type: AvatarType;
+    type?: AvatarType;
 
     /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name?: string;
 
     /** Avatar id */
-    id?: number;
+    id?: number | string;
 
     /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
     fallbackIcon?: AvatarSource;
