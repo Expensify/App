@@ -3,7 +3,6 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -15,7 +14,6 @@ import ROUTES from '@src/ROUTES';
 
 function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
 
     const category = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS);
