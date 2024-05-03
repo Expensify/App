@@ -118,27 +118,36 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
-    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: undefined;
-    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: undefined;
-    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: undefined;
+    [SCREENS.SETTINGS.WALLET.DOMAIN_CARD]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.CARD_ACTIVATE]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.NAME]: {
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.PHONE]: {
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.ADDRESS]: {
         /** Currently selected country */
         country: string;
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.SETTINGS.WALLET.CARD_GET_PHYSICAL.CONFIRM]: {
         /** Currently selected country */
         country: string;
-        /** domain passed via route /settings/wallet/card/:domain */
+        /** domain of selected card */
         domain: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
@@ -154,6 +163,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
+    [SCREENS.WORKSPACE.ADDRESS]: undefined;
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
@@ -283,6 +293,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
         policyID: string;
     };
@@ -298,11 +311,30 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_CUSTOMER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION]: {
+        policyID: string;
+        organizationID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_TAXES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
+        policyID: string;
+    };
     [SCREENS.GET_ASSISTANCE]: {
         backTo: Routes;
     };
     [SCREENS.SETTINGS.TWO_FACTOR_AUTH]: BackToParams;
-    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: undefined;
+    [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: {
+        /** cardID of selected card */
+        cardID: string;
+    };
     [SCREENS.KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.RESPONSE]: {
@@ -402,6 +434,12 @@ type RoomInviteNavigatorParamList = {
 };
 
 type MoneyRequestNavigatorParamList = {
+    [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: {
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
     [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -467,6 +505,13 @@ type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_MERCHANT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_SPLIT_PAYER]: {
+        action: ValueOf<typeof CONST.IOU.ACTION>;
+        iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
         reportID: string;
         backTo: Routes;
@@ -788,6 +833,7 @@ type PublicScreensParamList = SharedScreensParamList & {
     [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
     [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
     [SCREENS.SAML_SIGN_IN]: undefined;
+    [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
 type AuthScreensParamList = SharedScreensParamList & {
@@ -822,6 +868,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         reportID: string;
         transactionID: string;
     };
+    [SCREENS.CONNECTION_COMPLETE]: undefined;
 };
 
 type SearchReportParamList = {

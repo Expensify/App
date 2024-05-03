@@ -1,6 +1,7 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import type {PublicScreensParamList} from '@navigation/types';
+import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import LogInWithShortLivedAuthTokenPage from '@pages/LogInWithShortLivedAuthTokenPage';
 import AppleSignInDesktopPage from '@pages/signin/AppleSignInDesktopPage';
 import GoogleSignInDesktopPage from '@pages/signin/GoogleSignInDesktopPage';
@@ -32,6 +33,11 @@ function PublicScreens() {
                 name={SCREENS.VALIDATE_LOGIN}
                 options={defaultScreenOptions}
                 component={ValidateLoginPage}
+            />
+            <RootStack.Screen
+                name={SCREENS.CONNECTION_COMPLETE}
+                options={defaultScreenOptions}
+                component={ConnectionCompletePage}
             />
             <RootStack.Screen
                 name={SCREENS.UNLINK_LOGIN}

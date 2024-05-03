@@ -29,6 +29,8 @@ For individuals or employees: To enable Scheduled Submit on your individual work
 
 **Manually**: An open report will be created, and expenses will be added to it automatically. However, it's important to note that the report will not be submitted automatically; manual submission of reports will be required.This is a great option for automatically gathering all an employee’s expenses on a report for the employee’s convenience, but they will still need to review and submit the report.
 
+**Instantly**: Expenses are automatically added to a report in the Processing state, and all expenses will continue to accumulate on one report until it is Approved or Reimbursed. This removes the need to submit expenses, and Processing reports can either be Reimbursed right away (if Submit and Close is enabled), or Approved and then Reimbursed (if Submit and Approve is enabled) by a workspace admin.
+
 # Deep Dive
 
 ## Schedule Submit Override
@@ -36,3 +38,6 @@ If Scheduled Submit is disabled at the group workspace level or configured the f
 
 ## Personal Card Transactions
 Personal card transactions are handled differently compared to other expenses. If a user has added a card through Settings > Account > Credit Card Import, they need to make sure it is set as non-reimbursable and transactions must be automatically merged with a SmartScanned receipt. If transactions are set to come in as reimbursable or they aren’t merged with a SmartScanned receipt, Scheduled Submit settings will not apply.
+
+## A note on Instantly 
+Setting Scheduled Submit frequency to Instantly will limit some employee actions on reports, such as the ability to retract or self-close reports, or create multiple reports. When Instantly is selected, expenses are automatically added to a Processing expense report, and new expenses will continue to accumulate on a single report until the report is Closed or Reimbursed by a workspace admin.
