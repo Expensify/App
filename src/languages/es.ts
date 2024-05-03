@@ -317,6 +317,7 @@ export default {
             subtitleText3: '.',
         },
         businessName: 'Nombre de la empresa',
+        clear: 'Borrar',
         type: 'Tipo',
         action: 'Acción',
     },

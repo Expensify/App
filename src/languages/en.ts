@@ -327,6 +327,7 @@ export default {
             subtitleText3: 'button below.',
         },
         businessName: 'Business name',
+        clear: 'Clear',
         type: 'Type',
         action: 'Action',
     },
