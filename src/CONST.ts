@@ -1271,6 +1271,7 @@ const CONST = {
     XERO_CONFIG: {
         AUTO_SYNC: 'autoSync',
         SYNC: 'sync',
+        EXPORT: 'export',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
     },
@@ -1279,6 +1280,12 @@ const CONST = {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    XERO_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
     },
 
     QUICKBOOKS_EXPORT_DATE: {
