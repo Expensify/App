@@ -429,7 +429,7 @@ function FloatingActionButtonAndPopover(
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-                                  description: ReportUtils.getReportName(quickActionReport),
+                                  description: ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination'),
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
