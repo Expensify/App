@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {Alert} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
@@ -16,8 +16,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
+import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
+import ConfirmModal from './ConfirmModal';
+import type {ConfirmModalProps} from './ConfirmModal';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
 import TestToolRow from './TestToolRow';
@@ -32,12 +35,48 @@ type TestToolMenuProps = TestToolMenuOnyxProps & {
     /** Network object in Onyx */
     network: OnyxEntry<NetworkOnyx>;
 };
+
 const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
 
 function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [confirmModalState, setConfirmModalState] = useState<ConfirmModalProps | null>(null);
+
+    const confirmExportFile = useCallback(() => {
+        setConfirmModalState({
+            isVisible: true,
+            title: translate('initialSettingsPage.troubleshoot.exportToFile'),
+            prompt: translate('initialSettingsPage.troubleshoot.exportToFile'),
+            onConfirm: () => {
+                Troubleshooting.exportOnyxDataToFile();
+                setConfirmModalState(null);
+            },
+            onCancel: () => setConfirmModalState(null),
+        });
+    }, [translate]);
+
+    const confirmImportFile = useCallback(
+        (file: FileObject) => {
+            setConfirmModalState({
+                isVisible: true,
+                title: translate('initialSettingsPage.troubleshoot.importFromFile'),
+                prompt: translate('initialSettingsPage.troubleshoot.importFromFile'),
+                onConfirm: () => {
+                    if (!file.uri) {
+                        Alert.alert(translate('attachmentPicker.wrongFileType'));
+                        return;
+                    }
+                    Troubleshooting.importOnyxDataFromFile(file.uri);
+                    setConfirmModalState(null);
+                },
+                onCancel: () => setConfirmModalState(null),
+            });
+        },
+        [translate],
+    );
 
     return (
         <>
@@ -100,7 +139,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                 <Button
                     small
                     text={translate('common.export')}
-                    onPress={() => Troubleshooting.exportOnyxDataToFile()}
+                    onPress={confirmExportFile}
                 />
             </TestToolRow>
 
@@ -112,13 +151,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                             text={translate('common.import')}
                             onPress={() =>
                                 openPicker({
-                                    onPicked: (file) => {
-                                        if (!file.uri) {
-                                            Alert.alert(translate('attachmentPicker.wrongFileType'));
-                                            return;
-                                        }
-                                        Troubleshooting.importOnyxDataFromFile(file.uri);
-                                    },
+                                    onPicked: confirmImportFile,
                                 })
                             }
                         />
@@ -136,6 +169,13 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     }}
                 />
             </TestToolRow>
+            <ConfirmModal
+                title={confirmModalState?.title ?? ''}
+                prompt={confirmModalState?.prompt ?? ''}
+                isVisible={confirmModalState?.isVisible ?? false}
+                onConfirm={confirmModalState?.onConfirm ?? (() => {})}
+                onCancel={confirmModalState?.onCancel ?? (() => {})}
+            />
         </>
     );
 }
