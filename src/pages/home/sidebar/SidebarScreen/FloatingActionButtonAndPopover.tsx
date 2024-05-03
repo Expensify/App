@@ -198,7 +198,7 @@ function FloatingActionButtonAndPopover(
             return '';
         }
         if (quickAction?.action === CONST.QUICK_ACTIONS.SEND_MONEY && quickActionAvatars.length > 0) {
-            const name: string = getDisplayNameForParticipant(+quickActionAvatars[0]?.id ?? 0, true) ?? '';
+            const name: string = getDisplayNameForParticipant(+(quickActionAvatars[0]?.id ?? 0), true) ?? '';
             return translate('quickAction.paySomeone', {name});
         }
         const titleKey = getQuickActionTitle(quickAction?.action ?? ('' as QuickActionName));
