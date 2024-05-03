@@ -126,11 +126,6 @@ function MoneyRequestAmountInput(
      */
     const setNewAmount = useCallback(
         (newAmount: string) => {
-            if (!newAmount) {
-                setCurrentAmount('');
-                return;
-            }
-
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
@@ -177,10 +172,10 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number') {
+        if (!currency || typeof amount !== 'number' || textInput.current?.isFocused()) {
             return;
         }
-        const frontendAmount = formatAmountOnChange ? CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency) : CurrencyUtils.convertToFrontendAmount(amount).toString();
+        const frontendAmount = formatAmountOnBlur ? CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency) : CurrencyUtils.convertToFrontendAmount(amount).toString();
         setCurrentAmount(frontendAmount);
 
         // Only update selection if the amount prop was changed from the outside and is not the same as the current amount we just computed
