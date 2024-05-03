@@ -172,7 +172,7 @@ function MoneyRequestAmountInput(
     }));
 
     useEffect(() => {
-        if (!currency || typeof amount !== 'number' || textInput.current?.isFocused()) {
+        if (!currency || typeof amount !== 'number' || (formatAmountOnBlur && textInput.current?.isFocused())) {
             return;
         }
         const frontendAmount = formatAmountOnBlur ? CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency) : CurrencyUtils.convertToFrontendAmount(amount).toString();
