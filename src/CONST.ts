@@ -63,9 +63,9 @@ const chatTypes = {
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const onboardingChoices = {
-    EMPLOYER: 'newDotEmployer',
-    MANAGE_TEAM: 'newDotManageTeam',
     PERSONAL_SPEND: 'newDotPersonalSpend',
+    MANAGE_TEAM: 'newDotManageTeam',
+    EMPLOYER: 'newDotEmployer',
     CHAT_SPLIT: 'newDotSplitChat',
     LOOKING_AROUND: 'newDotLookingAround',
 };
@@ -584,6 +584,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
+    TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -916,6 +917,15 @@ const CONST = {
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
+    },
+    SEARCH_TABLE_COLUMNS: {
+        DATE: 'date',
+        MERCHANT: 'merchant',
+        FROM: 'from',
+        TO: 'to',
+        TOTAL: 'total',
+        TYPE: 'type',
+        ACTION: 'action',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1268,6 +1278,8 @@ const CONST = {
     },
 
     XERO_CONFIG: {
+        AUTO_SYNC: 'autoSync',
+        SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
     },
@@ -3417,11 +3429,6 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
-        // @TODO: Uncomment when the queries below are implemented
-        // SHARED: 'shared',
-        // DRAFTS: 'drafts',
-        // WAITING_ON_YOU: 'waitingOnYou',
-        // FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
@@ -4695,6 +4702,14 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+
+    DOWNLOADS_PATH: '/Downloads',
+    NEW_EXPENSIFY_PATH: '/New Expensify',
+
+    ENVIRONMENT_SUFFIX: {
+        DEV: ' Dev',
+        ADHOC: ' AdHoc',
+    },
 
     SEARCH_TRANSACTION_TYPE: {
         CASH: 'cash',
