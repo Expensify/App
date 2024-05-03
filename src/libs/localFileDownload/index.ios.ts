@@ -1,5 +1,6 @@
 import {Share} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
+import FileTypes from '@libs/FileTypes';
 import localFileCreate from '@libs/localFileCreate';
 import type LocalFileDownload from './types';
 
@@ -8,8 +9,8 @@ import type LocalFileDownload from './types';
  * and textContent, so we're able to share it using iOS' share API.
  * After the file is shared, it is removed from the internal dir.
  */
-const localFileDownload: LocalFileDownload = (fileName, textContent) => {
-    localFileCreate(fileName, textContent).then(({path, newFileName}) => {
+const localFileDownload: LocalFileDownload = (fileName, textContent, fileType = FileTypes.TEXT) => {
+    localFileCreate(`${fileName}${fileType.extension}`, textContent).then(({path, newFileName}) => {
         Share.share({url: path, title: newFileName}).finally(() => {
             RNFetchBlob.fs.unlink(path);
         });
