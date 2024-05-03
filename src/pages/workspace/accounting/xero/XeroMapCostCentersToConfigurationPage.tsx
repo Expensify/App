@@ -24,18 +24,14 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
 
     const category = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS);
 
-    const optionsList = useMemo(() => { 
-        
-
-        return Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => {
-            return {
-                value: option,
-                text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
-                keyForList: option,
-                isSelected: option.toLowerCase() === category?.value?.toLowerCase()
-            }
-        });
-    }, [policyID, translate]);
+    const optionsList = useMemo(() => (
+        Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => ({
+            value: option,
+            text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
+            keyForList: option,
+            isSelected: option.toLowerCase() === category?.value?.toLowerCase()
+        }))
+    ), [policyID, translate, category]);
 
 
     return (

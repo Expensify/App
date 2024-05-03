@@ -15,7 +15,7 @@ const getTrackingCategory = (policy: OnyxEntry<OnyxTypes.Policy>, key: string) =
     const { trackingCategories } = policy?.connections?.xero?.data ?? {};
     const { mappings } = policy?.connections?.xero?.config ?? {};
 
-    const category = trackingCategories?.find((category) => category.name.toLowerCase() === key.toLowerCase());
+    const category = trackingCategories?.find((currentCategory) => currentCategory.name.toLowerCase() === key.toLowerCase());
     if (!category) {
         return undefined;
     }

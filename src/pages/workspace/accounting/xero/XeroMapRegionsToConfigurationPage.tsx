@@ -24,16 +24,15 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const category = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION);
 
-    const optionsList = useMemo(() => { 
-        return Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => {
-            return {
+    const optionsList = useMemo(() => (
+        Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => (
+            {
                 value: option,
                 text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
                 keyForList: option,
                 isSelected: option.toLowerCase() === category?.value?.toLowerCase()
             }
-        });
-    }, [policyID, translate]);
+        ))), [policyID, translate, category]);
 
     return (
         <AccessOrNotFoundWrapper
