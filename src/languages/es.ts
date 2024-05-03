@@ -2033,6 +2033,22 @@ export default {
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
+            export: 'Exportar',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
+            exportCompanyCard: 'Export company card expenses as',
+            purchaseBill: 'Purchase Bill',
+            exportDeepDiveCompanyCard:
+                'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
+            bankTransactions: 'Bank transactions',
+            xeroBankAccount: 'Xero días laborales',
+            preferredExporter: 'Exportador preferido',
+            exportExpenses: 'Exportar gastos de bolsillo como',
+            exportExpensesDescription:
+                'Reports will export as a Purchase Bill awaiting payment, posting on the last day of the month in which expenses were incurred. This is the only export option with Xero.',
+            purchaseBillDate: 'Purchase Bill Date',
+            exportInvoices: 'Exportar facturas como',
+            salesInvoice: 'Sales invoice',
+            exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
         },
         type: {
             free: 'Gratis',
