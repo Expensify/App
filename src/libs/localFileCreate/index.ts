@@ -10,7 +10,7 @@ import type LocalFileCreate from './types';
  * @returns path, filename and size of the newly created file
  */
 const localFileCreate: LocalFileCreate = (fileName, textContent, fileType = FileTypes.TEXT) => {
-    const newFileName = FileUtils.appendTimeToFileName(fileName);
+    const newFileName = `${FileUtils.appendTimeToFileName(fileName)}${fileType.extension}`;
     const blob = new Blob([textContent], {type: fileType.mimeType});
     const url = URL.createObjectURL(blob);
 

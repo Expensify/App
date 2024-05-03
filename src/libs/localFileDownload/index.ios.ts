@@ -10,7 +10,7 @@ import type LocalFileDownload from './types';
  * After the file is shared, it is removed from the internal dir.
  */
 const localFileDownload: LocalFileDownload = (fileName, textContent, fileType = FileTypes.TEXT) => {
-    localFileCreate(`${fileName}${fileType.extension}`, textContent).then(({path, newFileName}) => {
+    localFileCreate(fileName, textContent, fileType).then(({path, newFileName}) => {
         Share.share({url: path, title: newFileName}).finally(() => {
             RNFetchBlob.fs.unlink(path);
         });

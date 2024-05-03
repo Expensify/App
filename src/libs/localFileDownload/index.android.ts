@@ -10,7 +10,7 @@ import type LocalFileDownload from './types';
  * After the file is copied, it is removed from the internal dir.
  */
 const localFileDownload: LocalFileDownload = (fileName, textContent, fileType = FileTypes.TEXT) => {
-    localFileCreate(`${fileName}${fileType.extension}`, textContent).then(({path, newFileName}) => {
+    localFileCreate(fileName, textContent, fileType).then(({path, newFileName}) => {
         RNFetchBlob.MediaCollection.copyToMediaStore(
             {
                 name: newFileName,
