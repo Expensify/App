@@ -10,12 +10,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelectorModalProps} from './types';
+import usePaddingStyle from './usePaddingStyle';
 
 function TextSelectorModal({value, description = '', onValueSelected, isVisible, onClose, ...rest}: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const [currentValue, setValue] = useState(value);
+    const paddingStyle = usePaddingStyle();
 
     return (
         <Modal
@@ -25,12 +27,14 @@ function TextSelectorModal({value, description = '', onValueSelected, isVisible,
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            shouldUseModalPaddingStyle={false}
         >
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
+                style={paddingStyle}
             >
                 <HeaderWithBackButton
                     title={description}
