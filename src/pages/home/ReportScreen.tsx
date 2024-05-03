@@ -647,6 +647,7 @@ function ReportScreen({
             reportIDFromRoute,
         })}`,
     );
+    const onBackButtonPress = shouldUseNarrowLayout ? Navigation.dismissModal : Navigation.goBack;
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -661,9 +662,7 @@ function ReportScreen({
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={() => {
-                            shouldUseNarrowLayout ? Navigation.dismissModal() : Navigation.goBack();
-                        }}
+                        onBackButtonPress={onBackButtonPress}
                         shouldShowLink={false}
                     >
                         <OfflineWithFeedback

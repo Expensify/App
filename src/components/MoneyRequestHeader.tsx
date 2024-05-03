@@ -172,6 +172,8 @@ function MoneyRequestHeader({
         });
     }
 
+    const onBackButtonPress = shouldUseNarrowLayout ? Navigation.dismissModal : () => {Navigation.goBack(undefined, false, true)};
+
     return (
         <>
             <View style={[styles.pl0]}>
@@ -188,9 +190,7 @@ function MoneyRequestHeader({
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => {
-                        shouldUseNarrowLayout ? Navigation.dismissModal() : Navigation.goBack(undefined, false, true);
-                    }}
+                    onBackButtonPress={onBackButtonPress}
                 />
                 {isPending && (
                     <MoneyRequestHeaderStatusBar

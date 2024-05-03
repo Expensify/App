@@ -189,6 +189,8 @@ function MoneyReportHeader({
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
 
+    const onBackButtonPress = shouldUseNarrowLayout ? Navigation.dismissModal : () => {Navigation.goBack(undefined, false, true)};
+
     return (
         <View style={[styles.pt0]}>
             <HeaderWithBackButton
@@ -198,9 +200,7 @@ function MoneyReportHeader({
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => {
-                    shouldUseNarrowLayout ? Navigation.dismissModal() : Navigation.goBack(undefined, false, true);
-                }}
+                onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout)}
                 shouldShowThreeDotsButton
