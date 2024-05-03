@@ -461,7 +461,7 @@ function ReportActionCompose({
                                             if (value.length === 0 && isComposerFullSize) {
                                                 Report.setIsComposerFullSize(reportID, false);
                                             }
-                                            validateCommentMaxLength(value);
+                                            validateCommentMaxLength(value, {reportID});
                                         }}
                                     />
                                     <ReportDropUI

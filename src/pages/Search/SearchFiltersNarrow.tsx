@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import {Animated, StyleSheet, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -42,17 +42,16 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
     }));
 
     return (
-        <>
+        <View style={[styles.pb4]}>
             <PressableWithFeedback
                 accessible
                 accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
-                style={[styles.tabSelectorButton]}
-                wrapperStyle={[styles.flex1]}
                 ref={buttonRef}
+                style={[styles.tabSelectorButton]}
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, true, theme.border), styles.mh3]}>
+                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
                         <View style={[styles.flexRow]}>
                             <Icon
                                 src={popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.All}
@@ -75,7 +74,7 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
                 onItemSelected={closeMenu}
                 anchorRef={buttonRef}
             />
-        </>
+        </View>
     );
 }
 
