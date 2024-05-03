@@ -207,6 +207,11 @@ type Tenant = {
     value: string;
 };
 
+type XeroTrackingCategory = {
+    id: string;
+    name: string;
+}
+
 type XeroConnectionData = {
     bankAccounts: unknown[];
     countryCode: string;
@@ -216,7 +221,13 @@ type XeroConnectionData = {
         name: string;
     }>;
     tenants: Tenant[];
-    trackingCategories: unknown[];
+    trackingCategories: XeroTrackingCategory[];
+};
+
+type XeroMappingType = {
+    customer: string;
+} & {
+    [key in `trackingCategory_${string}`]: string;
 };
 
 /**
@@ -244,9 +255,7 @@ type XeroConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     importTaxRates: boolean;
     importTrackingCategories: boolean;
     isConfigured: boolean;
-    mappings: {
-        customer: string;
-    };
+    mappings: XeroMappingType;
     sync: {
         hasChosenAutoSyncOption: boolean;
         hasChosenSyncReimbursedReportsOption: boolean;

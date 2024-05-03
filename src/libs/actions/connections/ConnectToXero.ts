@@ -1,6 +1,9 @@
 import type {ConnectPolicyToAccountingIntegrationParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
+import CONST from '@src/CONST';
+import type {OnyxEntry} from 'react-native-onyx';
+import type * as OnyxTypes from '@src/types/onyx';
 
 const getXeroSetupLink = (policyID: string) => {
     const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
@@ -8,4 +11,16 @@ const getXeroSetupLink = (policyID: string) => {
     return commandURL + new URLSearchParams(params).toString();
 };
 
-export default getXeroSetupLink;
+const getTrackingCategoryValue = (policy: OnyxEntry<OnyxTypes.Policy>, key: string): string => {
+    const { trackingCategories } = policy?.connections?.xero?.data ?? {};
+    const { mappings } = policy?.connections?.xero?.config ?? {};
+
+    const category = trackingCategories?.find((category) => category.name.toLowerCase() === key.toLowerCase());
+    if (!category) {
+        return "";
+    }
+
+    return mappings?.[`${CONST.XERO_CONFIG.TRACK_CATEGORY_PREFIX}${category.id}`] ?? "";
+}
+
+export {getXeroSetupLink, getTrackingCategoryValue};

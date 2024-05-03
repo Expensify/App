@@ -2031,17 +2031,20 @@ export default {
             organizationDescription: 'Seleccione la organización en Xero desde la que está importando los datos.',
             importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
             trackingCategories: 'Categorías de seguimiento',
-            trackingCategoriesDescription: 'Elija si desea importar categorías de seguimiento y vea dónde se muestran.',
-            mapXeroCostCentersTo: 'Asignar centros de costos de Xero a',
+            trackingCategoriesDescription: 'Elige si deseas importar categorías de seguimiento y ver dónde se muestran.',
+            mapXeroCostCentersTo: 'Asignar centros de coste de Xero a',
             mapXeroRegionsTo: 'Asignar regiones de Xero a',
-            mapXeroCostCentersToDescription: 'Elija dónde asignar los centros de costos al exportar a Xero.',
-            mapXeroRegionsToDescription: 'Elija dónde asignar las regiones de los empleados al exportar informes de gastos a Xero.',
-            xeroContactDefault: 'Contacto predeterminado de Xero',
+            mapXeroCostCentersToDescription: 'Elige dónde mapear los centros de coste al exportar a Xero.',
+            mapXeroRegionsToDescription: 'Elige dónde asignar las regiones de los empleados al exportar informes de gastos a Xero.',
             customers: 'Volver a facturar a los clientes',
             customersDescription:
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
+            trackingCategoriesOptions: {
+                default: 'Contacto de Xero por defecto',
+                tag: 'Etiquetas'
+            },
         },
         type: {
             free: 'Gratis',

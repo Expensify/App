@@ -2004,11 +2004,14 @@ export default {
             mapXeroRegionsTo: 'Map Xero regions to',
             mapXeroCostCentersToDescription: 'Choose where to map cost centers to when exporting to Xero.',
             mapXeroRegionsToDescription: 'Choose where to map employee regions when exporting expense reports to Xero.',
-            xeroContactDefault: 'Xero contact default',
             customers: 'Re-bill customers',
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
+            trackingCategoriesOptions: {
+                default: 'Xero contact default',
+                tag: 'Tags'
+            },
         },
         type: {
             free: 'Free',
