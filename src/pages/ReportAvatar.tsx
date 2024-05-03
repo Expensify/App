@@ -22,12 +22,12 @@ type ReportAvatarProps = ReportAvatarOnyxProps & StackScreenProps<AuthScreensPar
 
 function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: ReportAvatarProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
-    const policyName = ReportUtils.getPolicyName(report, false, policy);
-    const avatarURL = ReportUtils.getWorkspaceAvatar(report);
+    const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
+    const avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
 
     return (
         <AttachmentModal
-            headerTitle={policyName}
+            headerTitle={title}
             defaultOpen
             source={UserUtils.getFullSizeAvatar(avatarURL, 0)}
             onModalClose={() => {
@@ -35,7 +35,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
             }}
             isWorkspaceAvatar
             maybeIcon
-            originalFileName={policy?.originalFileName ?? policyName}
+            originalFileName={policy?.originalFileName ?? title}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />

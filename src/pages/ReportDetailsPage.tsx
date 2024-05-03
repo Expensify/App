@@ -237,7 +237,6 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 isUsingDefaultAvatar={!report.avatarUrl}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 avatarStyle={styles.avatarXLarge}
-                shouldDisableViewPhoto
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
                     Report.updateGroupChatAvatar(report.reportID ?? '');
@@ -249,6 +248,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 errors={report.errorFields?.avatar ?? null}
                 errorRowStyles={styles.mt6}
                 onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
+                onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
             />
         ) : (
             <RoomHeaderAvatars
