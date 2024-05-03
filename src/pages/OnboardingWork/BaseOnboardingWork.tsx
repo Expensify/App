@@ -27,6 +27,8 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkForm';
 import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types';
 
+const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
+
 function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -38,6 +40,12 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
     const completeEngagement = useCallback(
         (values: FormOnyxValues<'onboardingWorkForm'>) => {
             if (!onboardingPurposeSelected) {
+                return;
+            }
+
+            if (OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected)) {
+                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+
                 return;
             }
 
@@ -96,7 +104,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={75}
+                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
                 onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView

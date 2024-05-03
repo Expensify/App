@@ -28,8 +28,6 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
-
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -48,12 +46,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             PersonalDetails.setDisplayName(firstName, lastName);
 
             if (!onboardingPurposeSelected) {
-                return;
-            }
-
-            if (OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected)) {
-                Navigation.navigate(ROUTES.ONBOARDING_WORK);
-
                 return;
             }
 
@@ -121,7 +113,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         <View style={[styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}>
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected ?? '') ? 50 : 75}
+                progressBarPercentage={75}
                 onBackButtonPress={Navigation.goBack}
             />
             <KeyboardAvoidingView

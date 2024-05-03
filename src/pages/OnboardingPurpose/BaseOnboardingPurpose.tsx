@@ -75,7 +75,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+        Navigation.navigate(ROUTES.ONBOARDING_WORK);
     }, [selectedPurpose]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
