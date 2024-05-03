@@ -22,9 +22,9 @@ function SearchPage({route}: SearchPageProps) {
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
 
-    const headerContent: {[key in SearchQuery]: {icon: IconAsset, title: string}} = {
+    const headerContent: {[key in SearchQuery]: {icon: IconAsset; title: string}} = {
         all: {icon: Illustrations.MoneyReceipts, title: translate('common.expenses')},
-    }
+    };
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
 

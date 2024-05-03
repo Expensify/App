@@ -1,23 +1,19 @@
 import type {ValueOf} from 'type-fest';
+import TransactionListItem from '@components/SelectionList/TransactionListItem';
 import type CONST from '@src/CONST';
 import type {Receipt} from './Transaction';
-import TransactionListItem from '@components/SelectionList/TransactionListItem';
 
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH_DATA_TYPES>;
 
-type ListItemType<T extends SearchDataTypes> =
-    T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? typeof TransactionListItem :
-    never;
+type ListItemType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? typeof TransactionListItem : never;
 
-type SectionsType<T extends SearchDataTypes> =
-    T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? SearchTransaction[] :
-    never;
+type SectionsType<T extends SearchDataTypes> = T extends typeof CONST.SEARCH_DATA_TYPES.TRANSACTION ? SearchTransaction[] : never;
 
 type SearchTypeToItemMap = {
     [K in SearchDataTypes]: {
         listItem: ListItemType<K>;
         getSections: (data: SearchResults['data']) => SectionsType<K>;
-    }
+    };
 };
 
 type SearchResultsInfo = {
