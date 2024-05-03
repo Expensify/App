@@ -36,7 +36,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.invoiceAccountSelectDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.invoiceAccountSelectorDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
@@ -65,7 +65,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             onSelectRow={updateMode}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID))}
             title="workspace.xero.advancedConfig.xeroInvoiceCollectionAccount"
         />
     );

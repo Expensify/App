@@ -57,7 +57,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             <OfflineWithFeedback pendingAction={pendingFields?.export}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={xeroConfig?.export.billStatus.purchase}
+                    title={xeroConfig?.export?.billStatus?.purchase}
                     description={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
                     key={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
