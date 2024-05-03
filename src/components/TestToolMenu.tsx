@@ -1,11 +1,9 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import {Alert} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ApiUtils from '@libs/ApiUtils';
-import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
@@ -15,33 +13,22 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
 import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import type {ConfirmModalProps} from './ConfirmModal';
-import {withNetwork} from './OnyxProvider';
+import {NetworkContext} from './OnyxProvider';
 import Switch from './Switch';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
 
-type TestToolMenuOnyxProps = {
-    /** User object in Onyx */
-    user: OnyxEntry<UserOnyx>;
-};
-
-type TestToolMenuProps = TestToolMenuOnyxProps & {
-    /** Network object in Onyx */
-    network: OnyxEntry<NetworkOnyx>;
-};
-
-const USER_DEFAULT: UserOnyx = {shouldUseStagingServer: undefined, isSubscribedToNewsletter: false, validated: false, isFromPublicDomain: false, isUsingExpensifyCard: false};
-
-function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
-    const shouldUseStagingServer = user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi();
+function TestToolMenu() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const [shouldUseStagingServer] = useOnyx(ONYXKEYS.USER, {selector: (user) => user?.shouldUseStagingServer ?? ApiUtils.isUsingStagingApi()});
+    const network = useContext(NetworkContext);
 
     const [confirmModalState, setConfirmModalState] = useState<Required<Pick<ConfirmModalProps, 'title' | 'prompt' | 'onConfirm' | 'onCancel' | 'confirmText'>> | null>(null);
 
@@ -185,11 +172,4 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
 
 TestToolMenu.displayName = 'TestToolMenu';
 
-export default compose(
-    withOnyx<TestToolMenuProps, TestToolMenuOnyxProps>({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-    withNetwork(),
-)(TestToolMenu);
+export default TestToolMenu;
