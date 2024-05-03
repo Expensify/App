@@ -213,7 +213,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
                 minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
                 borderRadius: variables.componentBorderRadiusNormal,
-                overflow: 'hidden',
                 backgroundColor: theme.highlightBG,
                 ...touchCalloutNone,
             },
@@ -1869,6 +1868,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
+        travelIllustrationStyle: {
+            marginTop: 16,
+            marginBottom: -16,
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -2816,6 +2820,18 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: 20,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 1,
+            ...cursor.cursorDefault,
+        },
+
+        topUnreadIndicatorContainer: {
+            position: 'relative',
+            width: '100%',
+            /** 17 = height of the indicator 1px + 8px top and bottom */
+            height: 17,
             paddingHorizontal: 20,
             flexDirection: 'row',
             alignItems: 'center',
@@ -4704,6 +4720,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        videoPlayerPreview: {
+            width: '100%',
+            height: '100%',
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.highlightBG,
         },
 
         videoPlayerControlsContainer: {
