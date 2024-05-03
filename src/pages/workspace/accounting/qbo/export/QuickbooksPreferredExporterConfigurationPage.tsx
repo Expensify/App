@@ -49,7 +49,7 @@ function QuickbooksPreferredExporterConfigurationPage({policy}: WithPolicyConnec
                 });
                 return options;
             }, []),
-        [exportConfiguration, exporters],
+        [exportConfiguration, exporters, currentUserLogin, policy?.owner],
     );
 
     const selectExporter = useCallback(
