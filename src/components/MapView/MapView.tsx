@@ -133,11 +133,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                 }
 
                 if (waypoints.length === 1) {
-                    if (utils.areSameCoordinate([currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0], [...waypoints[0].coordinate])) {
-                        toggleCenterButton(false);
-                    } else {
-                        toggleCenterButton(true);
-                    }
+                    const areSameCoordinate = utils.areSameCoordinate([currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0], [...waypoints[0].coordinate]);
+                    toggleCenterButton(!areSameCoordinate);
                     cameraRef.current?.setCamera({
                         zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
                         animationDuration: 1500,
@@ -190,12 +187,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             toggleCenterButton(false);
         }, [directionCoordinates, currentPosition, mapPadding, waypoints, toggleCenterButton]);
 
-        const onTouchEnd = useCallback(() => toggleCenterButton(true), [toggleCenterButton]);
-
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
-                    onTouchEnd={onTouchEnd}
+                    onTouchEnd={() => toggleCenterButton(true)}
                     style={{flex: 1}}
                     styleURL={styleURL}
                     onMapIdle={setMapIdle}

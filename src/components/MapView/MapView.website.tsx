@@ -143,11 +143,8 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             }
 
             if (waypoints.length === 1) {
-                if (utils.areSameCoordinate([currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0], [...waypoints[0].coordinate])) {
-                    toggleCenterButton(false);
-                } else {
-                    toggleCenterButton(true);
-                }
+                const areSameCoordinate = utils.areSameCoordinate([currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0], [...waypoints[0].coordinate]);
+                toggleCenterButton(!areSameCoordinate);
                 mapRef.flyTo({
                     center: waypoints[0].coordinate,
                     zoom: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
@@ -230,8 +227,6 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             toggleCenterButton(false);
         }, [directionCoordinates, currentPosition, mapRef, waypoints, mapPadding, toggleCenterButton]);
 
-        const onDragEnd = useCallback(() => toggleCenterButton(true), [toggleCenterButton]);
-
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View
                 style={style}
@@ -240,7 +235,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             >
                 <Map
                     onDrag={() => setUserInteractedWithMap(true)}
-                    onDragEnd={onDragEnd}
+                    onDragEnd={() => toggleCenterButton(true)}
                     ref={setRef}
                     mapLib={mapboxgl}
                     mapboxAccessToken={accessToken}
@@ -258,7 +253,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                         longitude={currentPosition?.longitude ?? 0}
                         latitude={currentPosition?.latitude ?? 0}
                     >
-                        <View style={{backgroundColor: colors.blue400, width: 16, height: 16, borderRadius: 16}} />
+                        <View style={styles.currentPositionDot} />
                     </Marker>
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;
