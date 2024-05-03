@@ -92,7 +92,7 @@ function accountingIntegrationData(
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
-                onExportPagePress: () => {},
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
                 onAdvancedPagePress: () => {},
             };
         default:
