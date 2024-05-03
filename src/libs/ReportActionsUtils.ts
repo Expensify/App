@@ -337,6 +337,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     //    This ensures that we are moving in a sequence of related actions from newer to older.
     while (
         (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
+        isOptimisticAction(sortedReportActions[endIndex + 1]) ||
         !!sortedReportActions[endIndex + 1]?.whisperedToAccountIDs?.length ||
         !!sortedReportActions[endIndex]?.whisperedToAccountIDs?.length ||
         sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
