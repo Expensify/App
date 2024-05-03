@@ -11,4 +11,4 @@ function getQuickBooksOnlineSetupLink(policyID: string) {
     return commandURL + new URLSearchParams(params).toString();
 }
 
-export {getQuickBooksOnlineSetupLink};
+export default getQuickBooksOnlineSetupLink;

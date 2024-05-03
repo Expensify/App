@@ -1,8 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, UpdatePolicyConnectionConfigParams} from '@libs/API/parameters';
-import {SyncPolicyToQuickbooksOnlineParams} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, UpdatePolicyConnectionConfigParams, SyncPolicyToQuickbooksOnlineParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
@@ -125,14 +124,14 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});
 }
 
-function syncConnection(policyID: string, connectionName: string) {
+function syncConnection(policyID: string, connectionName: PolicyConnectionName | undefined) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
             value: {
                 stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT,
-                connectionName: connectionName,
+                connectionName,
             },
         },
     ];

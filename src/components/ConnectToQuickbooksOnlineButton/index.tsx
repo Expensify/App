@@ -5,7 +5,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {removePolicyConnection} from '@libs/actions/connections';
-import {getQuickBooksOnlineSetupLink} from '@libs/actions/connections/QuickBooksOnline';
+import getQuickBooksOnlineSetupLink from '@libs/actions/connections/QuickBooksOnline';
 import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
 import type {ConnectToQuickbooksOnlineButtonProps} from './types';
