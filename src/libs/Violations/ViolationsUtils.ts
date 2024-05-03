@@ -67,7 +67,9 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagList, transact
  * Calculates missing tag violations for policies with independent tags,
  * by returning one per tag with its corresponding tagName in the data
  */
-function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], policyTagKeys: string[], selectedTags: string[]) {
+function getTagViolationForIndependentTags(policyTagList: PolicyTagList, transactionViolations: TransactionViolation[], transaction: Transaction) {
+    const policyTagKeys = getSortedTagKeys(policyTagList);
+    const selectedTags = transaction.tag?.split(CONST.COLON) ?? [];
     let newTransactionViolations = [...transactionViolations];
 
     // We first get the errorIndexes for someTagLevelsRequired. If it's not empty, we puth SOME_TAG_LEVELS_REQUIRED in Onyx.
@@ -131,17 +133,16 @@ function getTagViolationsForMultiLevelTags(
     policyTagList: PolicyTagList,
     hasDependentTags: boolean,
 ): TransactionViolation[] {
-    const policyTagKeys = getSortedTagKeys(policyTagList);
-    const selectedTags = updatedTransaction.tag?.split(CONST.COLON) ?? [];
     const filteredTransactionViolations = transactionViolations.filter(
-        (violation) => violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
+        (violation) =>
+            violation.name !== CONST.VIOLATIONS.SOME_TAG_LEVELS_REQUIRED && violation.name !== CONST.VIOLATIONS.TAG_OUT_OF_POLICY && violation.name !== CONST.VIOLATIONS.MISSING_TAG,
     );
 
     if (hasDependentTags && !updatedTransaction.tag) {
         return getTagViolationsForDependentTags(policyTagList, filteredTransactionViolations);
     }
 
-    return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, policyTagKeys, selectedTags);
+    return getTagViolationForIndependentTags(policyTagList, filteredTransactionViolations, updatedTransaction);
 }
 
 const ViolationsUtils = {
