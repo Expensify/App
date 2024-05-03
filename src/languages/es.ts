@@ -610,7 +610,7 @@ export default {
         trackScan: 'Crear gasto por recibo',
         trackDistance: 'Crear gasto por desplazamiento',
         noLongerHaveReportAccess: 'Ya no tienes acceso al destino previo de esta acción rápida. Escoge uno nuevo a continuación.',
-        updateDestination: 'Actualiza el destino'
+        updateDestination: 'Actualiza el destino',
     },
     iou: {
         amount: 'Importe',
