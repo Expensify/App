@@ -13,6 +13,8 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
@@ -40,9 +42,9 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.purchaseBillDate'),
-            onPress: () => {},
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BILL_DATE_SELECT.getRoute(policyID)),
             brickRoadIndicator: errorFields?.billDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: exportConfiguration?.billDate,
+            title: exportConfiguration?.billDate ? translate(`workspace.xero.exportDate.values.${exportConfiguration.billDate}.label`) : undefined,
             pendingAction: pendingFields?.export,
             error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
         },
