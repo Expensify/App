@@ -19,24 +19,34 @@ type SelectorType = ListItem & {
 type SelectionScreenProps = {
     /** Used to set the testID for tests */
     displayName: string;
+
     /** Title of the selection component */
     title: TranslationPaths;
+
     /** Custom content to display in the header */
     headerContent?: React.ReactNode;
+
     /** Sections for the section list */
     sections: Array<SectionListDataType<SelectorType>>;
+
     /** Default renderer for every item in the list */
     listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+
     /** Item `keyForList` to focus initially */
     initiallyFocusedOptionKey?: string | null | undefined;
+
     /** Callback to fire when a row is pressed */
     onSelectRow: (selection: SelectorType) => void;
+
     /** Callback to fire when back button is pressed */
     onBackButtonPress: () => void;
+
     /** The current policyID */
     policyID: string;
+
     /** Defines which types of access should be verified */
     accessVariants?: PolicyAccessVariant[];
+
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
 };
