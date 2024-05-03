@@ -55,6 +55,7 @@ const ROUTES = {
 
     TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
+    CONNECTION_COMPLETE: 'connection-complete',
     GET_ASSISTANCE: {
         route: 'get-assistance/:taskID',
         getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
@@ -475,6 +476,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/profile',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
     },
+    WORKSPACE_PROFILE_ADDRESS: {
+        route: 'settings/workspaces/:policyID/profile/address',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/address` as const,
+    },
     WORKSPACE_ACCOUNTING: {
         route: 'settings/workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
@@ -495,6 +500,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-select` as const,
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const,
@@ -509,7 +518,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/export/quickbooks-online/preferred-exporter` as const,
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/preferred-exporter` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',
@@ -764,6 +773,26 @@ const ROUTES = {
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string, transactionID: string) => `r/${reportID}/transaction/${transactionID}/receipt` as const,
+    },
+    POLICY_ACCOUNTING_XERO_IMPORT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,
+    },
+    POLICY_ACCOUNTING_XERO_ORGANIZATION: {
+        route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
+        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+    },
+    POLICY_ACCOUNTING_XERO_CUSTOMER: {
+        route: '/settings/workspaces/:policyID/accounting/xero/import/customers',
+        getRoute: (policyID: string) => `/settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
+    },
+    POLICY_ACCOUNTING_XERO_TAXES: {
+        route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
+    },
+    POLICY_ACCOUNTING_XERO_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
