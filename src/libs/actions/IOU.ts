@@ -10,6 +10,7 @@ import type {
     ApproveMoneyRequestParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
+    CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
     EditMoneyRequestParams,
@@ -82,6 +83,7 @@ type MoneyRequestInformation = {
 };
 
 type TrackExpenseInformation = {
+    createdWorkspaceParams?: CreateWorkspaceParams;
     iouReport?: OnyxTypes.Report;
     chatReport: OnyxTypes.Report;
     transaction: OnyxTypes.Transaction;
@@ -1990,8 +1992,11 @@ function getTrackExpenseInformation(
     // Check if the report is a draft
     const isDraftReport = ReportUtils.isDraftReport(chatReport?.reportID);
 
+    let createdWorkspaceParams: CreateWorkspaceParams | undefined;
+
     if (isDraftReport) {
         const workspaceData = Policy.buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID);
+        createdWorkspaceParams = workspaceData.params;
         optimisticData.push(...workspaceData.optimisticData);
         successData.push(...workspaceData.successData);
         failureData.push(...workspaceData.failureData);
@@ -2120,6 +2125,7 @@ function getTrackExpenseInformation(
     );
 
     return {
+        createdWorkspaceParams,
         chatReport,
         iouReport: iouReport ?? undefined,
         transaction: optimisticTransaction,
@@ -3089,7 +3095,7 @@ function categorizeTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
-    expenseReportID?: string,
+    createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3117,7 +3123,6 @@ function categorizeTrackedExpense(
         transactionID,
         moneyRequestPreviewReportActionID,
         moneyRequestReportID,
-        policyExpenseChatReportID: expenseReportID,
         moneyRequestCreatedReportActionID,
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
@@ -3133,6 +3138,12 @@ function categorizeTrackedExpense(
         billable,
         created,
         receipt,
+        policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
+        policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
+        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
+        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
+        adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
+        adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3161,7 +3172,7 @@ function shareTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
-    expenseReportID?: string,
+    createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3193,7 +3204,6 @@ function shareTrackedExpense(
         actionableWhisperReportActionID,
         modifiedExpenseReportActionID,
         reportPreviewReportActionID,
-        policyExpenseChatReportID: expenseReportID,
         amount,
         currency,
         comment,
@@ -3205,6 +3215,12 @@ function shareTrackedExpense(
         taxAmount,
         billable,
         receipt,
+        policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
+        policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
+        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
+        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
+        adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
+        adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3433,6 +3449,7 @@ function trackExpense(
 
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
+        createdWorkspaceParams,
         iouReport,
         chatReport,
         transaction,
@@ -3494,7 +3511,7 @@ function trackExpense(
                 taxAmount,
                 billable,
                 receipt,
-                chatReport.isPolicyExpenseChat ? chatReport.reportID : undefined,
+                createdWorkspaceParams,
             );
             break;
         }
@@ -3525,7 +3542,7 @@ function trackExpense(
                 taxAmount,
                 billable,
                 receipt,
-                chatReport.isPolicyExpenseChat ? chatReport.reportID : undefined,
+                createdWorkspaceParams,
             );
             break;
         }
