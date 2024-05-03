@@ -1272,7 +1272,6 @@ const CONST = {
         SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
-        INVOICE_COLLECTION_ACCOUNT_ID: 'invoiceCollectionsAccountID',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
