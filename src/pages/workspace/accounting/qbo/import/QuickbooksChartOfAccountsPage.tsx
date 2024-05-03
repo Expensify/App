@@ -20,7 +20,6 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(enableNewCategories && enableNewCategories !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     return (
         <AccessOrNotFoundWrapper
@@ -44,13 +43,13 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
                                     accessibilityLabel={translate('workspace.accounting.accounts')}
-                                    isOn={isSwitchOn}
+                                    isOn={!!enableNewCategories}
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(
                                             policyID,
                                             CONST.POLICY.CONNECTIONS.NAME.QBO,
                                             CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
-                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            !enableNewCategories,
                                         )
                                     }
                                 />
