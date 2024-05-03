@@ -922,7 +922,7 @@ export default {
             testingPreferences: 'Testing preferences',
             useStagingServer: 'Use Staging Server',
             forceOffline: 'Force offline',
-            simulatFailingNetworkRequests: 'Simulate failing network requests',
+            simulateFailingNetworkRequests: 'Simulate failing network requests',
             authenticationStatus: 'Authentication status',
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',

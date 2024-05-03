@@ -917,7 +917,7 @@ export default {
             testingPreferences: 'Preferencias para Tests',
             useStagingServer: 'Usar Servidor “Staging”',
             forceOffline: 'Forzar desconexión',
-            simulatFailingNetworkRequests: 'Simular fallos en solicitudes de red',
+            simulateFailingNetworkRequests: 'Simular fallos en solicitudes de red',
             authenticationStatus: 'Estado de autenticación',
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
