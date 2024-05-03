@@ -1,14 +1,10 @@
 import React, { useMemo } from 'react';
-import {View} from 'react-native';
-import Text from '@components/Text';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
+import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
@@ -35,20 +31,14 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
         ))), [translate, category]);
 
     return (
-        <AccessOrNotFoundWrapper
+        <ConnectionLayout
+            displayName={XeroMapRegionsToConfigurationPage.displayName}
+            headerTitle="workspace.xero.mapXeroRegionsTo"
+            title="workspace.xero.mapXeroRegionsToDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID && category?.id ? policyID : ''}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={XeroMapRegionsToConfigurationPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.xero.mapXeroRegionsTo')} />
-                <View style={[styles.pb2, styles.ph5]}>
-                    <Text style={styles.pb5}>{translate('workspace.xero.mapXeroRegionsToDescription')}</Text>
-                </View>
                 <SelectionList
                         sections={[{data: optionsList}]}
                         ListItem={RadioListItem}
@@ -60,8 +50,7 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
                             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACK_CATEGORIES.getRoute(policyID));
                         }}
                     />
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            </ConnectionLayout>
     );
 }
 
