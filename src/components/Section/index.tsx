@@ -68,6 +68,9 @@ type SectionProps = ChildrenProps & {
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
 
+    /** Padding for content on large screens */
+    contentPaddingOnLargeScreens?: {padding: number};
+
     /** Overlay content to display on top of animation */
     overlayContent?: () => ReactNode;
 
@@ -92,6 +95,7 @@ function Section({
     illustration,
     illustrationBackgroundColor,
     illustrationStyle,
+    contentPaddingOnLargeScreens,
     overlayContent,
     renderSubtitle,
 }: SectionProps) {
@@ -124,7 +128,7 @@ function Section({
                     {overlayContent?.()}
                 </View>
             )}
-            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : styles.p8)]}>
+            <View style={[styles.w100, isCentralPane && (shouldUseNarrowLayout ? styles.p5 : contentPaddingOnLargeScreens ?? styles.p8)]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100, cardLayout === CARD_LAYOUT.ICON_ON_TOP && styles.mh1]}>
                     {cardLayout === CARD_LAYOUT.ICON_ON_LEFT && (
                         <IconSection

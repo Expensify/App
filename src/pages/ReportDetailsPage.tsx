@@ -245,6 +245,10 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 onImageSelected={(file) => Report.updateGroupChatAvatar(report.reportID ?? '', file)}
                 editIcon={Expensicons.Camera}
                 editIconStyle={styles.smallEditIconAccount}
+                pendingAction={report.pendingFields?.avatar ?? undefined}
+                errors={report.errorFields?.avatar ?? null}
+                errorRowStyles={styles.mt6}
+                onErrorClose={() => Report.clearAvatarErrors(report.reportID ?? '')}
             />
         ) : (
             <RoomHeaderAvatars

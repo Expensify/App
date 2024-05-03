@@ -78,13 +78,14 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                     accessibilityLabel={fileName}
                 />
             ) : (
-                <>
+                <View style={styles.flex1}>
                     <VideoPlayer
                         url={videoUrl}
                         onVideoLoaded={onVideoLoaded as (event: VideoReadyForDisplayEvent) => void}
                         videoDuration={videoDuration}
                         shouldUseSmallVideoControls
                         style={[styles.w100, styles.h100]}
+                        videoPlayerStyle={styles.videoPlayerPreview}
                     />
                     <View style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
@@ -95,7 +96,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                             small
                         />
                     </View>
-                </>
+                </View>
             )}
         </View>
     );
