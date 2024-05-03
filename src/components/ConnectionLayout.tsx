@@ -1,6 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import { View} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,9 +31,25 @@ type ConnectionLayoutProps = {
     featureName?: PolicyFeatureName;
     /** The content container style of Scrollview */
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
+    /** Style of the title text */
+    titleStyle?: StyleProp<TextStyle> | undefined;
+    /** Style of the subtitle text */
+    subTitleStyle?: StyleProp<TextStyle> | undefined;
 };
 
-function ConnectionLayout({displayName, headerTitle, children, title, subtitle, policyID, accessVariants, featureName, contentContainerStyle}: ConnectionLayoutProps) {
+function ConnectionLayout({
+    displayName,
+    headerTitle,
+    children,
+    title,
+    subtitle,
+    policyID,
+    accessVariants,
+    featureName,
+    contentContainerStyle,
+    titleStyle,
+    subTitleStyle,
+}: ConnectionLayoutProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -54,12 +69,8 @@ function ConnectionLayout({displayName, headerTitle, children, title, subtitle, 
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView contentContainerStyle={contentContainerStyle}>
-                    {title && (
-                        <View style={[styles.pb2]}>
-                            <Text style={styles.pb5}>{translate(title)}</Text>
-                        </View>
-                    )}
-                    {subtitle && <Text style={styles.textLabelSupporting}>{translate(subtitle)}</Text>}
+                    {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
+                    {subtitle && <Text style={[styles.textLabelSupporting, subTitleStyle]}>{translate(subtitle)}</Text>}
                     {children}
                 </ScrollView>
             </ScreenWrapper>
