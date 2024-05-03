@@ -790,6 +790,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
     },
+    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced/purchase-bill-status-selector',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/purchase-bill-status-selector` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,
