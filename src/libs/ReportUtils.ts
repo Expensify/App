@@ -749,6 +749,13 @@ function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEnt
 /**
  * Checks if a report is a completed task report.
  */
+function isTripRoom(report: OnyxEntry<Report>): boolean {
+    return report?.type === CONST.REPORT.TYPE.CHAT && report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_TRIP_ROOM;
+}
+
+/**
+ * Checks if a report is a completed task report.
+ */
 function isCompletedTaskReport(report: OnyxEntry<Report>): boolean {
     return isTaskReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 }
@@ -3214,6 +3221,13 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>): string | undefined {
     }
     if (isArchivedRoom(report)) {
         return report?.oldPolicyName ?? '';
+    }
+    if (isTripRoom(report)) {
+        // TODO: replace #DATE# with formatted date of a trip once backend and new structure of report is ready
+        return `${Localize.translateLocal('travel.trip')} • #DATA# • ${getPolicyName(report)}`;
+    }
+    if (isInvoiceRoom(report)) {
+        return Localize.translateLocal('workspace.common.invoices');
     }
     return getPolicyName(report);
 }
@@ -6336,6 +6350,11 @@ function shouldCreateNewMoneyRequestReport(existingIOUReport: OnyxEntry<Report> 
     return !existingIOUReport || hasIOUWaitingOnCurrentUserBankAccount(chatReport) || !canAddOrDeleteTransactions(existingIOUReport);
 }
 
+function getTripTransactions(expenseReportID: string | undefined): Transaction[] {
+    const transactions = TransactionUtils.getAllReportTransactions(expenseReportID);
+    return transactions.filter((transaction) => TransactionUtils.hasReservationList(transaction));
+}
+
 /**
  * Checks if report contains actions with errors
  */
@@ -6705,11 +6724,13 @@ export {
     updateOptimisticParentReportAction,
     updateReportPreview,
     temporary_getMoneyRequestOptions,
+    getTripTransactions,
     buildOptimisticInvoiceReport,
     buildOptimisticInviteReportAction,
     getInvoiceChatByParticipants,
     shouldShowMerchantColumn,
     isCurrentUserInvoiceReceiver,
+    isTripRoom,
 };
 
 export type {

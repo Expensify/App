@@ -214,6 +214,7 @@ export default {
         tomorrowAt: 'Mañana a las',
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
+        conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         error: {
             invalidAmount: 'Importe no válido.',
@@ -3500,5 +3501,16 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    travel: {
+        flight: 'Vuelo',
+        hotel: 'Hotel',
+        car: 'Auto',
+        misc: 'Misceláneo',
+        rail: 'Carril',
+        viewTrip: 'Ver viaje',
+        trip: 'Viaje',
+        tripSummary: 'Resumen del viaje',
+        departs: 'Sale',
     },
 } satisfies EnglishTranslation;

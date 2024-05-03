@@ -26,6 +26,7 @@ type OriginalMessageActionName =
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
     | 'ACTIONABLETRACKEXPENSEWHISPER'
+    | 'ACTION_TRIPPREVIEW'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
@@ -319,6 +320,13 @@ type OriginalMessageDismissedViolation = {
     };
 };
 
+type OriginalMessageTripRoomPreview = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTION_TRIPPREVIEW;
+    originalMessage: {
+        // @TODO: Add types here
+    };
+};
+
 type OriginalMessage =
     | OriginalMessageApproved
     | OriginalMessageIOU
@@ -343,7 +351,8 @@ type OriginalMessage =
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
     | OriginalMessageActionableTrackedExpenseWhisper
-    | OriginalMessageDismissedViolation;
+    | OriginalMessageDismissedViolation
+    | OriginalMessageTripRoomPreview;
 
 export default OriginalMessage;
 export type {

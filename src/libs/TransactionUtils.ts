@@ -636,6 +636,9 @@ function getEnabledTaxRateCount(options: TaxRates) {
     return Object.values(options).filter((option: TaxRate) => !option.isDisabled).length;
 }
 
+function hasReservationList(transaction: Transaction | undefined | null): boolean {
+    return !!transaction?.reservationList && transaction?.reservationList?.length > 0;
+}
 /**
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
@@ -723,6 +726,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    hasReservationList,
     hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,

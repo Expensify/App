@@ -224,6 +224,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount.',
@@ -2997,5 +2998,16 @@ export default {
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
+    },
+    travel: {
+        flight: 'Flight',
+        hotel: 'Hotel',
+        car: 'Car',
+        misc: 'Miscellaneous',
+        rail: 'Rail',
+        viewTrip: 'View trip',
+        trip: 'Trip',
+        tripSummary: 'Trip summary',
+        departs: 'Departs',
     },
 } satisfies TranslationBase;

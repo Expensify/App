@@ -55,6 +55,7 @@ const chatTypes = {
     POLICY_ROOM: 'policyRoom',
     POLICY_EXPENSE_CHAT: 'policyExpenseChat',
     SELF_DM: 'selfDM',
+    POLICY_TRIP_ROOM: 'policyTripRoom',
     INVOICE: 'invoice',
     SYSTEM: 'system',
 } as const;
@@ -642,6 +643,7 @@ const CONST = {
             LIMIT: 50,
             // OldDot Actions render getMessage from Web-Expensify/lib/Report/Action PHP files via getMessageOfOldDotReportAction in ReportActionsUtils.ts
             TYPE: {
+                ACTION_TRIPPREVIEW: 'ACTION_TRIPPREVIEW',
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
@@ -4677,6 +4679,13 @@ const CONST = {
         INITIAL_URL: 'INITIAL_URL',
     },
 
+    RESERVATION_TYPE: {
+        CAR: 'car',
+        HOTEL: 'hotel',
+        FLIGHT: 'flight',
+        RAIL: 'rail',
+        MISC: 'misc',
+    },
     DOT_SEPARATOR: '•',
 
     DEFAULT_TAX: {
