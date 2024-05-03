@@ -298,8 +298,9 @@ function AddressSearch(
         if (!data) {
             return;
         }
-        const url = '/api/Proxy_GooglePlaces?proxyUrl=';
-        fetch(''.concat(url, '/place/details/json?place_id=' + data?.place_id))
+        // eslint-disable-next-line prefer-template
+        const url = '/api/Proxy_GooglePlaces?proxyUrl='.concat(`/place/details/json?place_id=${data?.place_id}`);
+        fetch(url)
             .then((response) => response.json())
             .then((response) => {
                 saveLocationDetails(data, response.result);
