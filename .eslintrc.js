@@ -271,6 +271,11 @@ module.exports = {
                         property: 'getSize',
                         message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
                     },
+                    {
+                        object: 'Onyx',
+                        property: 'getAllEntries',
+                        message: 'Usage of Onyx.getAllEntries is restricted. It was added only for troubleshooting purposes.',
+                    },
                 ],
                 'no-restricted-imports': [
                     'error',

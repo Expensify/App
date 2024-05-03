@@ -7,6 +7,7 @@ import localFileDownload from '@libs/localFileDownload';
  * Export all data from Onyx to a file, then download that file.
  */
 function exportOnyxDataToFile() {
+    // eslint-disable-next-line no-restricted-properties
     Onyx.getAllEntries()
         .then((entries) => JSON.stringify(Object.fromEntries(entries)))
         .then((json) => localFileDownload('NewExpensifyOnyxExport', json, FileTypes.JSON));
