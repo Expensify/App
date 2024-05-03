@@ -43,13 +43,13 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [confirmModalState, setConfirmModalState] = useState<ConfirmModalProps | null>(null);
+    const [confirmModalState, setConfirmModalState] = useState<Required<Pick<ConfirmModalProps, 'title' | 'prompt' | 'onConfirm' | 'onCancel' | 'confirmText'>> | null>(null);
 
     const confirmExportFile = useCallback(() => {
         setConfirmModalState({
-            isVisible: true,
             title: translate('initialSettingsPage.troubleshoot.exportToFile'),
             prompt: translate('initialSettingsPage.troubleshoot.exportToFile'),
+            confirmText: translate('common.export'),
             onConfirm: () => {
                 Troubleshooting.exportOnyxDataToFile();
                 setConfirmModalState(null);
@@ -61,9 +61,9 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
     const confirmImportFile = useCallback(
         (file: FileObject) => {
             setConfirmModalState({
-                isVisible: true,
                 title: translate('initialSettingsPage.troubleshoot.importFromFile'),
                 prompt: translate('initialSettingsPage.troubleshoot.importFromFile'),
+                confirmText: translate('common.import'),
                 onConfirm: () => {
                     if (!file.uri) {
                         Alert.alert(translate('attachmentPicker.wrongFileType'));
@@ -172,9 +172,12 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
             <ConfirmModal
                 title={confirmModalState?.title ?? ''}
                 prompt={confirmModalState?.prompt ?? ''}
-                isVisible={confirmModalState?.isVisible ?? false}
+                confirmText={confirmModalState?.confirmText ?? ''}
+                cancelText={translate('common.cancel')}
                 onConfirm={confirmModalState?.onConfirm ?? (() => {})}
                 onCancel={confirmModalState?.onCancel ?? (() => {})}
+                isVisible={confirmModalState !== null}
+                danger
             />
         </>
     );
