@@ -15,24 +15,34 @@ import Text from './Text';
 type ConnectionLayoutProps = {
     /** Used to set the testID for tests */
     displayName: string;
+
     /** Header title for the connection */
     headerTitle: TranslationPaths;
+
     /** React nodes that will be shown */
     children?: React.ReactNode;
+
     /** Title of the connection component */
     title?: TranslationPaths;
+
     /** Subtitle of the connection */
     subtitle?: TranslationPaths;
+
     /** The current policyID */
     policyID: string;
+
     /** Defines which types of access should be verified */
     accessVariants?: PolicyAccessVariant[];
+
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
+
     /** The content container style of Scrollview */
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
+
     /** Style of the title text */
     titleStyle?: StyleProp<TextStyle> | undefined;
+    
     /** Style of the subtitle text */
     subTitleStyle?: StyleProp<TextStyle> | undefined;
 };
