@@ -2506,13 +2506,11 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = filteredReportsByLastRead.at(-1)?.reportID;
     const isChatThread = ReportUtils.isChatThread(currentReport);
     if (lastAccessedReportID) {
-        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? '');
         // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to last accessed report.
         if (!isChatThread) {
-            // Fallback to the lastAccessedReportID route, if this is first route in the navigator
-            Navigation.goBack(lastAccessedReportRoute);
+            Navigation.goBack();
         }
-        Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
         const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
