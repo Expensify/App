@@ -22,13 +22,13 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const xeroConfig = policy?.connections?.xero?.config;
     const {autoSync, pendingFields, sync} = xeroConfig ?? {};
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    const {invoiceCollectionsAccountID} = sync ?? {};
 
     const selectedBankAccountName = useMemo(() => {
-        const {invoiceCollectionsAccountID} = sync ?? {};
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === invoiceCollectionsAccountID);
 
         return selectedAccount?.name ?? '';
-    }, [sync, bankAccounts]);
+    }, [sync, bankAccounts, invoiceCollectionsAccountID]);
 
     return (
         <ConnectionLayout
