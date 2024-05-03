@@ -144,6 +144,7 @@ type MenuItemBaseProps = {
     /** Text to show below menu item. This text is not interactive */
     helperText?: string;
 
+    /** Any additional styles to pass to helper text. */
     helperTextStyle?: StyleProp<TextStyle>;
 
     /** Should the description be shown above the title (instead of the other way around) */
