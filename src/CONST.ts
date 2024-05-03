@@ -918,6 +918,15 @@ const CONST = {
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
     },
+    SEARCH_TABLE_COLUMNS: {
+        DATE: 'date',
+        MERCHANT: 'merchant',
+        FROM: 'from',
+        TO: 'to',
+        TOTAL: 'total',
+        TYPE: 'type',
+        ACTION: 'action',
+    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
@@ -3420,11 +3429,6 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
-        // @TODO: Uncomment when the queries below are implemented
-        // SHARED: 'shared',
-        // DRAFTS: 'drafts',
-        // WAITING_ON_YOU: 'waitingOnYou',
-        // FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 

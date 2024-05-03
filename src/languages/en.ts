@@ -330,6 +330,7 @@ export default {
         clear: 'Clear',
         type: 'Type',
         action: 'Action',
+        expenses: 'Expenses',
     },
     location: {
         useCurrent: 'Use current location',

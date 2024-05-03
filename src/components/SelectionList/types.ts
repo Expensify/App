@@ -1,9 +1,11 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {SearchPersonalDetails, SearchPolicyDetails} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -122,25 +124,67 @@ type ListItem = {
     /** What text to show inside the badge (if none present the badge will be omitted) */
     badgeText?: string;
 
+    /** Whether the brick road indicator should be shown */
     brickRoadIndicator?: BrickRoad | '' | null;
+};
 
-    managerID?: number;
+type TransactionListItemType = ListItem & {
+    /** The ID of the transaction */
+    transactionID: string;
 
-    amount?: number;
+    /** The transaction created date */
+    created: string;
 
-    currency?: string;
+    /** The edited transaction created date */
+    modifiedCreated: string;
 
-    tag?: string;
+    /** The transaction amount */
+    amount: number;
 
-    description?: string;
+    /** The edited transaction amount */
+    modifiedAmount: number;
 
-    category?: string;
+    /** The transaction currency */
+    currency: string;
 
-    created?: string;
+    /** The edited transaction currency */
+    modifiedCurrency: string;
 
-    merchant?: string;
+    /** The transaction merchant */
+    merchant: string;
 
-    type?: string;
+    /** The edited transaction merchant */
+    modifiedMerchant: string;
+
+    /** The receipt object */
+    receipt?: {source?: string};
+
+    /** The personal details of the user requesting money */
+    from: SearchPersonalDetails & SearchPolicyDetails;
+
+    /** The personal details of the user paying the request */
+    to: SearchPersonalDetails & SearchPolicyDetails;
+
+    /** The transaction tag */
+    tag: string;
+
+    /** The transaction description */
+    comment: {comment: string};
+
+    /** The transaction category */
+    category: string;
+
+    /** The type of request */
+    type: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+
+    /** The type of report the transaction is associated with */
+    reportType: string;
+
+    /** The ID of the policy the transaction is associated with */
+    policyID: string;
+
+    /** Whether we should show the merchant column */
+    shouldShowMerchant: boolean;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
@@ -406,4 +450,5 @@ export type {
     TransactionListItemProps,
     UserListItemProps,
     ValidListItem,
+    TransactionListItemType,
 };
