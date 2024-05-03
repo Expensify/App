@@ -19,12 +19,12 @@ PODS:
     - Airship/Core
   - AirshipFrameworkProxy (5.1.1):
     - Airship (= 17.7.3)
-  - AirshipServiceExtension (18.1.2)
-  - AppAuth (1.7.5):
-    - AppAuth/Core (= 1.7.5)
-    - AppAuth/ExternalUserAgent (= 1.7.5)
-  - AppAuth/Core (1.7.5)
-  - AppAuth/ExternalUserAgent (1.7.5):
+  - AirshipServiceExtension (17.8.0)
+  - AppAuth (1.6.2):
+    - AppAuth/Core (= 1.6.2)
+    - AppAuth/ExternalUserAgent (= 1.6.2)
+  - AppAuth/Core (1.6.2)
+  - AppAuth/ExternalUserAgent (1.6.2):
     - AppAuth/Core
   - boost (1.83.0)
   - BVLinearGradient (2.8.1):
@@ -163,44 +163,44 @@ PODS:
     - GoogleUtilities/Environment (~> 7.7)
     - nanopb (< 2.30911.0, >= 2.30908.0)
     - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleSignIn (7.1.0):
-    - AppAuth (< 2.0, >= 1.7.3)
-    - GTMAppAuth (< 5.0, >= 4.1.1)
-    - GTMSessionFetcher/Core (~> 3.3)
-  - GoogleUtilities/AppDelegateSwizzler (7.13.2):
+  - GoogleSignIn (7.0.0):
+    - AppAuth (~> 1.5)
+    - GTMAppAuth (< 3.0, >= 1.3)
+    - GTMSessionFetcher/Core (< 4.0, >= 1.1)
+  - GoogleUtilities/AppDelegateSwizzler (7.13.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Environment (7.13.2):
+  - GoogleUtilities/Environment (7.13.0):
     - GoogleUtilities/Privacy
     - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/ISASwizzler (7.13.2):
+  - GoogleUtilities/ISASwizzler (7.13.0):
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Logger (7.13.2):
+  - GoogleUtilities/Logger (7.13.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Privacy
-  - GoogleUtilities/MethodSwizzler (7.13.2):
+  - GoogleUtilities/MethodSwizzler (7.13.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Network (7.13.2):
+  - GoogleUtilities/Network (7.13.0):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Privacy
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (7.13.2)":
+  - "GoogleUtilities/NSData+zlib (7.13.0)":
     - GoogleUtilities/Privacy
-  - GoogleUtilities/Privacy (7.13.2)
-  - GoogleUtilities/Reachability (7.13.2):
+  - GoogleUtilities/Privacy (7.13.0)
+  - GoogleUtilities/Reachability (7.13.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GoogleUtilities/UserDefaults (7.13.2):
+  - GoogleUtilities/UserDefaults (7.13.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GTMAppAuth (4.1.1):
-    - AppAuth/Core (~> 1.7)
-    - GTMSessionFetcher/Core (< 4.0, >= 3.3)
-  - GTMSessionFetcher/Core (3.4.1)
+  - GTMAppAuth (2.0.0):
+    - AppAuth/Core (~> 1.6)
+    - GTMSessionFetcher/Core (< 4.0, >= 1.5)
+  - GTMSessionFetcher/Core (3.3.1)
   - hermes-engine (0.73.4):
     - hermes-engine/Pre-built (= 0.73.4)
   - hermes-engine/Pre-built (0.73.4)
@@ -261,7 +261,7 @@ PODS:
     - nanopb/encode (= 2.30908.0)
   - nanopb/decode (2.30908.0)
   - nanopb/encode (2.30908.0)
-  - Onfido (29.7.2)
+  - Onfido (29.7.1)
   - onfido-react-native-sdk (10.6.0):
     - glog
     - hermes-engine
@@ -1222,7 +1222,13 @@ PODS:
   - react-native-config (1.5.0):
     - react-native-config/App (= 1.5.0)
   - react-native-config/App (1.5.0):
-    - React-Core
+    - RCT-Folly
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-Codegen
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-document-picker (9.1.1):
     - RCT-Folly
     - RCTRequired
@@ -1866,13 +1872,13 @@ PODS:
     - Yoga
   - RNLocalize (2.2.6):
     - React-Core
-  - rnmapbox-maps (10.1.11):
+  - rnmapbox-maps (10.1.12):
     - MapboxMaps (~> 10.16.4)
     - React
     - React-Core
-    - rnmapbox-maps/DynamicLibrary (= 10.1.11)
+    - rnmapbox-maps/DynamicLibrary (= 10.1.12)
     - Turf
-  - rnmapbox-maps/DynamicLibrary (10.1.11):
+  - rnmapbox-maps/DynamicLibrary (10.1.12):
     - hermes-engine
     - MapboxMaps (~> 10.16.4)
     - RCT-Folly
@@ -2426,8 +2432,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Airship: 5a6d3f8a982398940b0d48423bb9b8736717c123
   AirshipFrameworkProxy: 7255f4ed9836dc2920f2f1ea5657ced4cee8a35c
-  AirshipServiceExtension: 7e5461c1f22d57f9e4a444852ce6b22d348f764b
-  AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
+  AirshipServiceExtension: 0a5fb14c3fd1879355ab05a81d10f64512a4f79c
+  AppAuth: 3bb1d1cd9340bd09f5ed189fb00b1cc28e1e8570
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   BVLinearGradient: 421743791a59d259aec53f4c58793aad031da2ca
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
@@ -2451,10 +2457,10 @@ SPEC CHECKSUMS:
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   GoogleAppMeasurement: 5ba1164e3c844ba84272555e916d0a6d3d977e91
   GoogleDataTransport: 6c09b596d841063d76d4288cc2d2f42cc36e1e2a
-  GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
-  GoogleUtilities: c56430aef51a1aa57b25da78c3f8397e522c67b7
-  GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
-  GTMSessionFetcher: 8000756fc1c19d2e5697b90311f7832d2e33f6cd
+  GoogleSignIn: b232380cf495a429b8095d3178a8d5855b42e842
+  GoogleUtilities: d053d902a8edaa9904e1bd00c37535385b8ed152
+  GTMAppAuth: 99fb010047ba3973b7026e45393f51f27ab965ae
+  GTMSessionFetcher: 8a1b34ad97ebe6f909fb8b9b77fba99943007556
   hermes-engine: b2669ce35fc4ac14f523b307aff8896799829fe2
   libaom: 144606b1da4b5915a1054383c3a4459ccdb3c661
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
@@ -2468,7 +2474,7 @@ SPEC CHECKSUMS:
   MapboxMaps: c3b36646b9038706bbceb5de203bcdd0f411e9d0
   MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
-  Onfido: f3af62ea1c9a419589c133e3e511e5d2c4f3f8af
+  Onfido: 342cbecd7a4383e98dfe7f9c35e98aaece599062
   onfido-react-native-sdk: 3e3b0dd70afa97410fb318d54c6a415137968ef2
   Plaid: 7829e84db6d766a751c91a402702946d2977ddcb
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
@@ -2497,7 +2503,7 @@ SPEC CHECKSUMS:
   react-native-airship: 38e2596999242b68c933959d6145512e77937ac0
   react-native-blob-util: 1ddace5234c62e3e6e4e154d305ad07ef686599b
   react-native-cameraroll: f373bebbe9f6b7c3fd2a6f97c5171cda574cf957
-  react-native-config: 5330c8258265c1e5fdb8c009d2cabd6badd96727
+  react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
   react-native-document-picker: 8532b8af7c2c930f9e202aac484ac785b0f4f809
   react-native-geolocation: f9e92eb774cb30ac1e099f34b3a94f03b4db7eb3
   react-native-image-picker: f8a13ff106bcc7eb00c71ce11fdc36aac2a44440
@@ -2552,7 +2558,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: bfabd5938e5af5afc1e60e4e34286b17f8308184
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: 51aee278cc2af8af9298f91a2aad7210739785b4
+  rnmapbox-maps: 211f3cb9d33b3b8737d6d21c16bd49e9d97be2f8
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 51db0fff543694d931bd3b7cab1a3b36bd86c738
@@ -2567,8 +2573,8 @@ SPEC CHECKSUMS:
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
   Turf: 13d1a92d969ca0311bbc26e8356cca178ce95da2
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
-  Yoga: 64cd2a583ead952b0315d5135bf39e053ae9be70
+  Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
 PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.13.0
