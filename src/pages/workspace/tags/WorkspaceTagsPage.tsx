@@ -90,6 +90,7 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
 
     // We currently don't support multi level tags, so let's only get the first level tags.
     const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).slice(0, 1), [policyTags]);
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
     const tagList = useMemo<PolicyForList[]>(
         () =>
             policyTagLists
@@ -164,12 +165,14 @@ function WorkspaceTagsPage({route, policy}: WorkspaceTagsPageProps) {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
 
         if (selectedTagsArray.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-                value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteTagsConfirmModalVisible(true),
-            });
+            if (!isMultiLevelTags) {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                    value: CONST.POLICY.TAGS_BULK_ACTION_TYPES.DELETE,
+                    onSelected: () => setDeleteTagsConfirmModalVisible(true),
+                });
+            }
 
             const enabledTags = selectedTagsArray.filter((tagName) => tagListKeyedByName?.[tagName]?.enabled);
             if (enabledTags.length > 0) {

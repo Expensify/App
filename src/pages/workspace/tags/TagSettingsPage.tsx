@@ -39,6 +39,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
 
     const {windowWidth} = useWindowDimensions();
 
@@ -77,7 +78,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
             >
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(route.params.tagName)}
-                    shouldShowThreeDotsButton
+                    shouldShowThreeDotsButton={!isMultiLevelTags}
                     shouldSetModalVisibility={false}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
                     threeDotsMenuItems={[
