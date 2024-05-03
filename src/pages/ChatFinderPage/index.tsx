@@ -1,7 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import isEmpty from 'lodash/isEmpty';
 import React, {useEffect, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,9 +24,18 @@ import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import ChatFinderPageFooter from './ChatFinderPageFooter';
 
-type ChatFinderPageProps = StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
+type ChatFinderPageOnyxProps = {
+    /** Beta features list */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** Whether or not we are searching for reports on the server */
+    isSearchingForReports: OnyxEntry<boolean>;
+};
+
+type ChatFinderPageProps = ChatFinderPageOnyxProps & StackScreenProps<RootStackParamList, typeof SCREENS.CHAT_FINDER_ROOT>;
 
 type ChatFinderPageSectionItem = {
     data: OptionData[];
@@ -41,13 +51,11 @@ const setPerformanceTimersEnd = () => {
 
 const ChatFinderPageFooterInstance = <ChatFinderPageFooter />;
 
-function ChatFinderPage({navigation}: ChatFinderPageProps) {
+function ChatFinderPage({betas, isSearchingForReports, navigation}: ChatFinderPageProps) {
     const [isScreenTransitionEnd, setIsScreenTransitionEnd] = useState(false);
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: isScreenTransitionEnd,
     });
@@ -184,4 +192,12 @@ function ChatFinderPage({navigation}: ChatFinderPageProps) {
 
 ChatFinderPage.displayName = 'ChatFinderPage';
 
-export default ChatFinderPage;
+export default withOnyx<ChatFinderPageProps, ChatFinderPageOnyxProps>({
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    isSearchingForReports: {
+        key: ONYXKEYS.IS_SEARCHING_FOR_REPORTS,
+        initWithStoredValues: false,
+    },
+})(ChatFinderPage);
