@@ -44,7 +44,7 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
             Policy.createWorkspace(undefined, true, work);
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
         },
-        [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected],
+        [onboardingPurposeSelected],
     );
 
     const validate = (values: FormOnyxValues<'onboardingWorkForm'>) => {
