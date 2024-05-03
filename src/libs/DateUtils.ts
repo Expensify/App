@@ -533,7 +533,7 @@ function getStatusUntilDate(inputDate: string): string {
     const now = new Date();
     const endOfToday = endOfDay(now);
 
-    // If the date is equal to the end of today
+    // If the date is adjusted to the following day
     if (isSameSecond(input, endOfToday)) {
         return translateLocal('statusPage.untilTomorrow');
     }
