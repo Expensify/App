@@ -7,16 +7,12 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
@@ -25,61 +21,52 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const policyOwner = policy?.owner ?? '';
-    const {
-        export: exportConfiguration,
-        exportDate,
-        reimbursableExpensesExportDestination,
-        receivableAccount,
-        nonReimbursableExpensesExportDestination,
-        errorFields,
-        pendingFields,
-    } = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
     const menuItems: MenuItem[] = [
         {
-            description: translate('workspace.qbo.preferredExporter'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER.getRoute(policyID)),
+            description: translate('workspace.xero.preferredExporter'),
+            onPress: () => {},
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
             pendingAction: pendingFields?.export,
             error: errorFields?.exporter ? translate('common.genericErrorMessage') : undefined,
         },
         {
-            description: translate('workspace.qbo.date'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.exportDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: exportDate ? translate(`workspace.qbo.exportDate.values.${exportDate}.label`) : undefined,
-            pendingAction: pendingFields?.exportDate,
-            error: errorFields?.exportDate ? translate('common.genericErrorMessage') : undefined,
+            description: translate('workspace.xero.exportExpenses'),
+            title: translate('workspace.xero.purchaseBill'),
+            interactive: false,
+            shouldShowRightIcon: false,
+            helperText: translate('workspace.xero.exportExpensesDescription'),
         },
         {
-            description: translate('workspace.qbo.exportExpenses'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)),
-            brickRoadIndicator: Boolean(errorFields?.exportEntity) || Boolean(errorFields?.reimbursableExpensesAccount) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: reimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${reimbursableExpensesExportDestination}`) : undefined,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            pendingAction: pendingFields?.reimbursableExpensesExportDestination || pendingFields?.reimbursableExpensesAccount,
+            description: translate('workspace.xero.purchaseBillDate'),
+            onPress: () => {},
+            brickRoadIndicator: errorFields?.billDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            title: exportConfiguration?.billDate,
+            pendingAction: pendingFields?.export,
+            error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
-            description: translate('workspace.qbo.exportInvoices'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.receivableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: receivableAccount?.name,
-            pendingAction: pendingFields?.receivableAccount,
-            error: errorFields?.receivableAccount ? translate('common.genericErrorMessage') : undefined,
+            description: translate('workspace.xero.exportInvoices'),
+            title: translate('workspace.xero.salesInvoice'),
+            interactive: false,
+            shouldShowRightIcon: false,
+            helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
         {
-            description: translate('workspace.qbo.exportCompany'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)),
-            brickRoadIndicator: errorFields?.exportCompanyCard ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            title: nonReimbursableExpensesExportDestination ? translate(`workspace.qbo.accounts.${nonReimbursableExpensesExportDestination}`) : undefined,
-            pendingAction: pendingFields?.nonReimbursableExpensesExportDestination,
-            error: errorFields?.nonReimbursableExpensesExportDestination ? translate('common.genericErrorMessage') : undefined,
-        },
-        {
-            description: translate('workspace.qbo.exportExpensifyCard'),
-            title: translate('workspace.qbo.accounts.credit_card'),
+            description: translate('workspace.xero.exportCompanyCard'),
+            title: translate('workspace.xero.bankTransactions'),
             shouldShowRightIcon: false,
             interactive: false,
+            helperText: translate('workspace.xero.exportDeepDiveCompanyCard'),
+        },
+        {
+            description: translate('workspace.xero.xeroBankAccount'),
+            onPress: () => {},
+            brickRoadIndicator: errorFields?.nonReimbursableAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            title: undefined,
+            pendingAction: pendingFields?.export,
+            error: undefined,
         },
     ];
 
@@ -93,9 +80,9 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 includeSafeAreaPaddingBottom={false}
                 testID={XeroExportConfigurationPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.export')} />
+                <HeaderWithBackButton title={translate('workspace.xero.export')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDescription')}</Text>
+                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDescription')}</Text>
                     {menuItems.map((menuItem) => (
                         <OfflineWithFeedback
                             key={menuItem.description}
@@ -108,21 +95,11 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                                 shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                                 onPress={menuItem?.onPress}
                                 brickRoadIndicator={menuItem?.brickRoadIndicator}
-                                // TODO uncomment when errorText will be fixed
-                                // errorText={menuItem?.errorText}
+                                helperText={menuItem?.helperText}
                                 error={menuItem?.error}
                             />
                         </OfflineWithFeedback>
                     ))}
-                    <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
-                        <Text style={[styles.mutedNormalTextLabel]}>{`${translate('workspace.qbo.deepDiveExpensifyCard')} `}</Text>
-                        <TextLink
-                            onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
-                            style={[styles.mutedNormalTextLabel, styles.link]}
-                        >
-                            {translate('workspace.qbo.deepDiveExpensifyCardIntegration')}
-                        </TextLink>
-                    </Text>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
