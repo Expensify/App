@@ -5,12 +5,14 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     ActionName,
     ChangeLog,
     IOUMessage,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageDismissedViolation,
     OriginalMessageIOU,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageReimbursementDequeued,
@@ -1143,6 +1145,12 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
 }
 
+function getDismissedViolationMessageText(originalMessage: OriginalMessageDismissedViolation['originalMessage']): string {
+    const reason = originalMessage.reason;
+    const violationName = originalMessage.violationName;
+    return Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
+}
+
 /**
  * Check if the linked transaction is on hold
  */
@@ -1152,6 +1160,7 @@ function isLinkedTransactionHeld(reportActionID: string, reportID: string): bool
 
 export {
     extractLinksFromMessageHtml,
+    getDismissedViolationMessageText,
     getOneTransactionThreadReportID,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
