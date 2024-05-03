@@ -645,11 +645,55 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {avatarUrl: file?.uri ?? ''},
+            value: {
+                avatarUrl: file?.uri ?? '',
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                avatarUrl: currentReportData?.[reportID]?.avatarUrl ?? null,
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    avatar: null,
+                },
+            },
         },
     ];
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Clear error and pending fields for the report avatar
+ */
+function clearAvatarErrors(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        errorFields: {
+            avatar: null,
+        },
+    });
 }
 
 /**
@@ -3677,4 +3721,5 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
+    clearAvatarErrors,
 };

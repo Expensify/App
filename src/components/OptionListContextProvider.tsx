@@ -86,7 +86,7 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
     }, [reports]);
 
     /**
-     * This effect is used to add a new report option to the list of options when a new report is added to the collection.
+     * This effect is used to add a new report option or remove a report option from the list of options when a new report is added to/removed from the collection.
      */
     useEffect(() => {
         if (!areOptionsInitialized.current || !reports) {
@@ -95,7 +95,10 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
         const missingReportIds = Object.keys(reports).filter((key) => prevReports && !(key in prevReports));
 
         setOptions((prevOptions) => {
-            const newOptions = {...prevOptions};
+            const newOptions = {
+                ...prevOptions,
+                reports: prevOptions.reports.filter((report) => reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] !== null),
+            };
             missingReportIds.forEach((missingReportId) => {
                 const report = missingReportId ? reports[missingReportId] : null;
                 if (!missingReportId || !report) {

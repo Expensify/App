@@ -327,8 +327,10 @@ export default {
             subtitleText3: 'button below.',
         },
         businessName: 'Business name',
+        clear: 'Clear',
         type: 'Type',
         action: 'Action',
+        expenses: 'Expenses',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1837,6 +1839,28 @@ export default {
     session: {
         offlineMessageRetry: "Looks like you're offline. Please check your connection and try again.",
     },
+    travel: {
+        header: 'Book travel',
+        title: 'Travel smart',
+        subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in one place.',
+        features: {
+            saveMoney: 'Save money on your bookings',
+            alerts: 'Get realtime updates and alerts',
+        },
+        bookTravel: 'Book travel',
+        termsAndConditions: {
+            header: 'Before we continue...',
+            title: 'Please read the Terms & Conditions for travel',
+            subtitle: 'To enable travel on your workspace you must agree to our ',
+            termsconditions: 'terms & conditions',
+            travelTermsAndConditions: 'terms & conditions',
+            helpDocIntro: 'Check out this ',
+            helpDocOutro: 'for more information or reach out to Concierge or your Account Manager.',
+            helpDoc: 'Help Doc',
+            agree: 'I agree to the travel ',
+            error: 'You must accept the Terms & Conditions for travel to continue',
+        },
+    },
     workspace: {
         common: {
             card: 'Cards',
@@ -1888,8 +1912,6 @@ export default {
             locations: 'Locations',
             customers: 'Customers/Projects',
             displayedAs: 'Displayed as',
-            notImported: 'Not imported',
-            importedAsReportFields: 'Imported, displayed as report fields',
             accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
             accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
             accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
@@ -1971,27 +1993,26 @@ export default {
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
             accounts: {
-                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
-                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'Credit card',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Vendor bill',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'Check',
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Debit card',
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Credit card',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Vendor bill',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Journal entry',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Check',
 
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
                     "We'll automatically match the merchant name on the debit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Debit Card Misc.' vendor for association.",
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "We'll automatically match the merchant name on the credit card transaction to any corresponding vendors in QuickBooks. If no vendors exist, we'll create a 'Credit Card Misc.' vendor for association.",
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     "We'll create a single itemized vendor bill for each Expensify report, carrying the date of the last expense on the report. If this period is closed, we'll post to the 1st of the next open period. You can add the vendor bill to your A/P account of choice (below).",
 
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Select the vendor applied to all credit card transactions.',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]: 'Debit card transactions will export to the bank account below.”',
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]: 'Credit card transactions will export to the bank account below.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Select the vendor applied to all credit card transactions.',
 
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
-                    'Vendor Bills are not available when locations are enabled. Please select a different export option.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]: 'Vendor Bills are not available when locations are enabled. Please select a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]: 'Check is not available when locations are enabled. Please select a different export option.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]: 'Journal entry is not available when taxes enabled. please select a different export option.',
             },
         },
         xero: {
@@ -2003,6 +2024,16 @@ export default {
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
+            advancedConfig: {
+                advanced: 'Advanced',
+                autoSync: 'Auto-Sync',
+                autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
+                xeroBillPaymentAccount: 'Xero Bill Payment Account',
+                xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+            },
         },
         type: {
             free: 'Free',
@@ -2235,7 +2266,16 @@ export default {
             accounts: 'Chart of accounts',
             taxes: 'Taxes',
             imported: 'Imported',
-            importedAsTags: 'Imported, displayed as tags',
+            notImported: 'Not imported',
+            importAsCategory: 'Imported, displayed as categories',
+            importTypes: {
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Imported',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Imported, displayed as tags',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Imported',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'Not imported',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'Not imported',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Imported, displayed as report fields',
+            },
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -2920,6 +2960,11 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'Tax'} no longer valid`,
         taxRateChanged: 'Tax rate was modified',
         taxRequired: 'Missing tax rate',
+    },
+    violationDismissal: {
+        rter: {
+            manual: 'marked this receipt as cash.',
+        },
     },
     videoPlayer: {
         play: 'Play',
