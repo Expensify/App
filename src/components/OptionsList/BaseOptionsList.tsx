@@ -224,6 +224,7 @@ function BaseOptionsList(
                             onPress={onActionButtonPress}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                             role={CONST.ROLE.BUTTON}
+                            shouldUseAutoHitSlop
                         >
                             <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{actionButtonTitle}</Text>
                         </PressableWithFeedback>
