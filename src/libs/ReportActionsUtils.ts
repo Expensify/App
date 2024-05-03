@@ -332,17 +332,23 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     let startIndex = index;
     let endIndex = index;
 
+    function shouldIgnoreGap(currentReportAction: ReportAction, nextReportAction: ReportAction) {
+        return (
+            isOptimisticAction(currentReportAction) ||
+            !!currentReportAction.whisperedToAccountIDs?.length ||
+            !!nextReportAction.whisperedToAccountIDs?.length ||
+            currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+            nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
+            nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
+        );
+    }
+
     // Iterate forwards through the array, starting from endIndex. i.e: newer to older
     // This loop checks the continuity of actions by comparing the current item's previousReportActionID with the next item's reportActionID.
     // It ignores optimistic actions, whispers and InviteToRoom actions
     while (
         (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
-        isOptimisticAction(sortedReportActions[endIndex + 1]) ||
-        !!sortedReportActions[endIndex + 1]?.whisperedToAccountIDs?.length ||
-        !!sortedReportActions[endIndex]?.whisperedToAccountIDs?.length ||
-        sortedReportActions[endIndex]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
-        sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
-        sortedReportActions[endIndex + 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED
+        shouldIgnoreGap(sortedReportActions[endIndex], sortedReportActions[endIndex + 1])
     ) {
         endIndex++;
     }
@@ -351,8 +357,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     // This loop ensuress continuity in a sequence of actions by comparing the current item's reportActionID with the previous item's previousReportActionID.
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
-        isOptimisticAction(sortedReportActions[startIndex - 1]) ||
-        sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM
+        shouldIgnoreGap(sortedReportActions[startIndex], sortedReportActions[startIndex - 1])
     ) {
         startIndex--;
     }
