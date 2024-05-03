@@ -21,7 +21,6 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
     const {syncTax, pendingFields, reimbursableExpensesExportDestination} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isJournalExportEntity = reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
-    const isTaxSwitchOn = !!syncTax && !isJournalExportEntity;
 
     return (
         <AccessOrNotFoundWrapper
