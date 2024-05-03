@@ -265,6 +265,14 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
     return iouRequestActions[0].childReportID ?? null;
 }
 
+function isOptimisticAction(reportAction: ReportAction) {
+    return (
+        !!reportAction.isOptimisticAction ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
+}
+
 /**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
@@ -312,12 +320,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     if (id) {
         index = sortedReportActions.findIndex((reportAction) => reportAction.reportActionID === id);
     } else {
-        index = sortedReportActions.findIndex(
-            (reportAction) =>
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                !reportAction.isOptimisticAction,
-        );
+        index = sortedReportActions.findIndex((reportAction) => !isOptimisticAction(reportAction));
     }
 
     if (index === -1) {
@@ -350,10 +353,7 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     //    This additional check is to include recently sent messages that might not yet be part of the established sequence.
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
-        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
-        sortedReportActions[startIndex - 1]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        sortedReportActions[startIndex - 1]?.isOptimisticAction ||
+        isOptimisticAction(sortedReportActions[startIndex - 1]) ||
         sortedReportActions[startIndex - 1]?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM
     ) {
         startIndex--;
