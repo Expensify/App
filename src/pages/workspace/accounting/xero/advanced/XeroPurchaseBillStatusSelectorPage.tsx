@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,55 +27,56 @@ function XeroPurchaseBillStatusSelectorPage({policy}: WithPolicyConnectionsProps
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const {reimbursementAccountID} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
+    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
-    const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
+    const {invoiceCollectionsAccountID} = policy?.connections?.xero?.config.sync ?? {};
+
+    const xeroSelectorOptions = useMemo<SelectorType[]>(
         () =>
-            accountOptions?.map(({id, name}) => ({
+            (bankAccounts ?? []).map(({id, name}) => ({
                 value: id,
                 text: name,
                 keyForList: id,
-                isSelected: reimbursementAccountID === id,
+                isSelected: invoiceCollectionsAccountID === id,
             })),
-        [reimbursementAccountID, accountOptions],
+        [invoiceCollectionsAccountID, bankAccounts],
     );
+
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.invoiceAccountSelectDescription')}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.advancedConfig.invoiceAccountSelectDescription')}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
+    const initiallyFocusedOptionKey = useMemo(() => xeroSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [xeroSelectorOptions]);
 
-    const saveSelection = useCallback(
+    const updateMode = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, value);
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
+                invoiceCollectionsAccountID: value,
+            });
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },
         [policyID],
     );
 
     return (
-        <ConnectionLayout
-            displayName={XeroPurchaseBillStatusSelectorPage.displayName}
-            headerTitle="workspace.xero.advancedConfig.advanced"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+        <SelectionScreen
             policyID={policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-        >
-            <SelectionList
-                sections={[{data: qboOnlineSelectorOptions}]}
-                ListItem={RadioListItem}
-                headerContent={listHeaderComponent}
-                onSelectRow={saveSelection}
-                initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            />
-        </ConnectionLayout>
+            displayName={XeroPurchaseBillStatusSelectorPage.displayName}
+            sections={[{data: xeroSelectorOptions}]}
+            listItem={RadioListItem}
+            onSelectRow={updateMode}
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            headerContent={listHeaderComponent}
+            onBackButtonPress={() => Navigation.goBack()}
+            title="workspace.xero.advancedConfig.xeroInvoiceCollectionAccount"
+        />
     );
 }
 
