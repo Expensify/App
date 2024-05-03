@@ -42,7 +42,7 @@ type ConnectionLayoutProps = {
 
     /** Style of the title text */
     titleStyle?: StyleProp<TextStyle> | undefined;
-    
+
     /** Style of the subtitle text */
     subTitleStyle?: StyleProp<TextStyle> | undefined;
 };
