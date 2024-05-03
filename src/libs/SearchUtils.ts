@@ -5,6 +5,17 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as UserUtils from './UserUtils';
 
+type SearchTypeGetters<T> = {
+    listItem: T;
+    getSections: SearchTransaction[];
+}
+
+type SearchTypeToItemMapType = {
+    transaction: SearchTypeGetters<typeof TransactionListItem>;
+};
+
+type SearchTypes = keyof typeof searchTypeToItemMap;
+
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.values(data).some((item) => {
         const merchant = item.modifiedMerchant ? item.modifiedMerchant : item.merchant ?? '';
@@ -35,16 +46,12 @@ const searchTypeToItemMap = {
     },
 };
 
-/**
- * TODO: in future make this function generic and return specific item component based on type
- * For now only 1 search item type exists in the app so this function is simplified
- */
-function getListItem(): typeof TransactionListItem {
-    return searchTypeToItemMap.transaction.listItem;
+function getListItem<T extends SearchTypes>(type: T): SearchTypeToItemMapType[T]['listItem'] {
+    return searchTypeToItemMap[type].listItem;
 }
 
-function getSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
-    return searchTypeToItemMap.transaction.getSections(data);
+function getSections<T extends SearchTypes>(data: OnyxTypes.SearchResults['data'], type: T): SearchTypeToItemMapType[T]['getSections'] {
+    return searchTypeToItemMap[type].getSections(data);
 }
 
 function getQueryHash(query: string): number {
@@ -52,3 +59,4 @@ function getQueryHash(query: string): number {
 }
 
 export {getListItem, getQueryHash, getSections, getShouldShowMerchant};
+export type {SearchTypes};

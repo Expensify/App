@@ -5,6 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import * as SearchUtils from '@libs/SearchUtils';
+import type {SearchTypes} from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
@@ -55,9 +56,10 @@ function Search({query}: SearchProps) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
     };
 
-    const ListItem = SearchUtils.getListItem();
-    const data = SearchUtils.getSections(searchResults?.data ?? {});
-    const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data ?? {});
+    const searchType = searchResults?.search?.type as SearchTypes;
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, searchType);
+    const ListItem = SearchUtils.getListItem(searchType);
+    const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data);
 
     return (
         <SelectionList
