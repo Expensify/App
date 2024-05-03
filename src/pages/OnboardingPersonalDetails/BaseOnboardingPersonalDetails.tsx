@@ -58,7 +58,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     firstName,
                     lastName,
                 },
-                onboardingAdminsChatReportID,
+                onboardingAdminsChatReportID ?? undefined,
             );
 
             Welcome.setOnboardingAdminsChatReportID();
