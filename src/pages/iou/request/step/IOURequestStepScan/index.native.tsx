@@ -332,11 +332,8 @@ function IOURequestStepScan({
                         }
                     },
                     {
-                        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                        maximumAge: 1000 * 60 * 60,
-
-                        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                        timeout: 15000,
+                        maximumAge: CONST.GPS.MAX_AGE,
+                        timeout: CONST.GPS.TIMEOUT,
                     },
                 );
                 return;
