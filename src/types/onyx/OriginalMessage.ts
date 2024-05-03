@@ -312,6 +312,11 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageMergedWithCashTransaction = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
+    originalMessage: Record<string, never>; // No data is sent with this action
+};
+
 type OriginalMessageDismissedViolation = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION;
     originalMessage: {
@@ -344,6 +349,7 @@ type OriginalMessage =
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
     | OriginalMessageActionableTrackedExpenseWhisper
+    | OriginalMessageMergedWithCashTransaction
     | OriginalMessageDismissedViolation;
 
 export default OriginalMessage;

@@ -3502,4 +3502,7 @@ export default {
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
     },
+    systemMessage: {
+        mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
+    },
 } satisfies EnglishTranslation;
