@@ -42,41 +42,10 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
             if (!onboardingPurposeSelected) {
                 return;
             }
-
             const work = values.work.trim();
             const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
-
-            if (OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected)) {
-                Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
-                return;
-            }
-
-            Report.completeOnboarding(
-                onboardingPurposeSelected,
-                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                {
-                    login: currentUserPersonalDetails.login ?? '',
-                    firstName: currentUserPersonalDetails.firstName ?? '',
-                    lastName: currentUserPersonalDetails.lastName ?? '',
-                },
-                adminsChatReportID,
-            );
-
-            Navigation.dismissModal();
-
-            // Only navigate to concierge chat when central pane is visible
-            // Otherwise stay on the chats screen.
-            if (isSmallScreenWidth) {
-                Navigation.navigate(ROUTES.HOME);
-            } else {
-                Report.navigateToConciergeChat();
-            }
-
-            // Small delay purely due to design considerations,
-            // no special technical reasons behind that.
-            setTimeout(() => {
-                Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
-            }, variables.welcomeVideoDelay);
+            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+            return;
         },
         [currentUserPersonalDetails.firstName, currentUserPersonalDetails.lastName, currentUserPersonalDetails.login, isSmallScreenWidth, onboardingPurposeSelected],
     );
