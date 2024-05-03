@@ -38,7 +38,7 @@ function createQueue<T>(processItem: (item: T) => Promise<void>): Queue<T> {
         isProcessing = true;
         return processNext();
     }
-    
+
     // Adds an item to the queue and initiates processing if not already in progress
     function enqueue(item: T): void {
         elements.push(item);
