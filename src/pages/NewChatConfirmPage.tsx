@@ -146,7 +146,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     onSelectRow={unselectOption}
                     showConfirmButton={selectedOptions.length}
                     confirmButtonText={translate('newChatPage.startGroup')}
-                    onConfirm={selectedOptions.length > 0 ? createGroup : undefined}
+                    onConfirm={createGroup}
                     shouldHideListOnInitialRender={false}
                 />
             </View>
