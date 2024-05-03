@@ -2605,8 +2605,8 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Check if any of the transactions in the report has required missing fields
  *
- * NOTE: The function hasMissingSmartscanFields is used on both LHN preview and report action,
- * so we need to create a isLHNPreview to handle both cases above
+ * NOTE: On LHN preview we show RBR only to the user that made the request.
+ * https://github.com/Expensify/App/issues/37044#issuecomment-1984922236
  */
 function hasMissingSmartscanFields(iouReportID: string, isLHNPreview?: boolean): boolean {
     if (isLHNPreview) {
