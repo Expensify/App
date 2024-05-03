@@ -317,6 +317,7 @@ export default {
             subtitleText3: '.',
         },
         businessName: 'Nombre de la empresa',
+        clear: 'Borrar',
         type: 'Tipo',
         action: 'Acción',
     },
@@ -2049,6 +2050,17 @@ export default {
             exportInvoices: 'Exportar facturas como',
             salesInvoice: 'Sales invoice',
             exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
+            advancedConfig: {
+                advanced: 'Avanzado',
+                autoSync: 'Autosincronización',
+                autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sincronizar informes reembolsados',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
+                xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
+                xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
+            },
         },
         type: {
             free: 'Gratis',
