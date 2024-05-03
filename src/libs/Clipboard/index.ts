@@ -1,5 +1,6 @@
 import Clipboard from '@react-native-clipboard/clipboard';
 import * as Browser from '@libs/Browser';
+import FileTypes from '@libs/FileTypes';
 import CONST from '@src/CONST';
 import type {CanSetHtml, SetHtml, SetString} from './types';
 
@@ -40,8 +41,8 @@ function setHTMLSync(html: string, text: string) {
         e.stopPropagation();
         e.preventDefault();
         e.clipboardData?.clearData();
-        e.clipboardData?.setData('text/html', html);
-        e.clipboardData?.setData('text/plain', text);
+        e.clipboardData?.setData(FileTypes.HTML.mimeType, html);
+        e.clipboardData?.setData(FileTypes.TEXT.mimeType, text);
     });
     document.body.appendChild(node);
 
@@ -118,8 +119,8 @@ const setHtml: SetHtml = (html: string, text: string) => {
         navigator.clipboard.write([
             new ClipboardItem({
                 /* eslint-disable @typescript-eslint/naming-convention */
-                'text/html': new Blob([html], {type: 'text/html'}),
-                'text/plain': new Blob([text], {type: 'text/plain'}),
+                [FileTypes.HTML.mimeType]: new Blob([html], {type: FileTypes.HTML.mimeType}),
+                [FileTypes.TEXT.mimeType]: new Blob([text], {type: FileTypes.TEXT.mimeType}),
             }),
         ]);
     }

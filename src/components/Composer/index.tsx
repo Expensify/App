@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import FileTypes from '@libs/FileTypes';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import CONST from '@src/CONST';
@@ -175,9 +176,7 @@ function Composer(
 
             event.preventDefault();
 
-            const TEXT_HTML = 'text/html';
-
-            const clipboardDataHtml = event.clipboardData?.getData(TEXT_HTML) ?? '';
+            const clipboardDataHtml = event.clipboardData?.getData(FileTypes.HTML.mimeType) ?? '';
 
             // If paste contains files, then trigger file management
             if (event.clipboardData?.files.length && event.clipboardData.files.length > 0) {
@@ -190,7 +189,7 @@ function Composer(
             if (clipboardDataHtml?.includes(CONST.IMAGE_BASE64_MATCH)) {
                 const domparser = new DOMParser();
                 const pastedHTML = clipboardDataHtml;
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML)?.images;
+                const embeddedImages = domparser.parseFromString(pastedHTML, FileTypes.HTML.mimeType)?.images;
 
                 if (embeddedImages.length > 0 && embeddedImages[0].src) {
                     const src = embeddedImages[0].src;
@@ -204,7 +203,7 @@ function Composer(
             if (clipboardDataHtml?.includes(CONST.GOOGLE_DOC_IMAGE_LINK_MATCH)) {
                 const domparser = new DOMParser();
                 const pastedHTML = clipboardDataHtml;
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const embeddedImages = domparser.parseFromString(pastedHTML, FileTypes.HTML.mimeType).images;
 
                 if (embeddedImages.length > 0 && embeddedImages[0]?.src) {
                     const src = embeddedImages[0].src;

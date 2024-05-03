@@ -1,6 +1,7 @@
 import {useNavigation} from '@react-navigation/native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {useCallback, useEffect} from 'react';
+import FileTypes from '@libs/FileTypes';
 import type UseHtmlPaste from './types';
 
 const insertByCommand = (text: string) => {
@@ -102,14 +103,13 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, removeLi
             event.preventDefault();
 
             const types = event.clipboardData?.types;
-            const TEXT_HTML = 'text/html';
 
             // If paste contains HTML
-            if (types && types.includes(TEXT_HTML)) {
-                const pastedHTML = event.clipboardData.getData(TEXT_HTML);
+            if (types && types.includes(FileTypes.HTML.mimeType)) {
+                const pastedHTML = event.clipboardData.getData(FileTypes.HTML.mimeType);
 
                 const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+                const embeddedImages = domparser.parseFromString(pastedHTML, FileTypes.HTML.mimeType).images;
 
                 // Exclude parsing img tags in the HTML, as fetching the image via fetch triggers a connect-src Content-Security-Policy error.
                 if (embeddedImages.length > 0 && embeddedImages[0].src) {
