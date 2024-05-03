@@ -6,7 +6,7 @@ description: Finish connecting your bank account by entering test deposits
 
 Once your business bank account connection is approved in Expensify, you'll receive a few test deposits to validate the connection. 
 
-## Validate the bank account
+## Validating the bank account:
 1. Head to **Settings > Workspaces > _Workspace Name_ > Bank account** to review the status of the bank account
 2. It will show as either **Verifying** or **Pending**
      - If it is **Verifying**, this means we sent you a message asking for more information —- check your email for the next steps! 
