@@ -12,12 +12,14 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import type {WorkspacesCentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -34,6 +36,8 @@ type Item = {
     disabled?: boolean;
     action: (isEnabled: boolean) => void;
     pendingAction: PendingAction | undefined;
+    errors?: Errors;
+    onCloseError?: () => void;
 };
 
 type SectionObject = {
@@ -47,8 +51,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const {canUseAccountingIntegrations} = usePermissions();
-    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !!policy?.connections;
-    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncTax;
+    const hasAccountingConnection = !!policy?.areConnectionsEnabled && !isEmptyObject(policy?.connections);
+    const isSyncTaxEnabled = !!policy?.connections?.quickbooksOnline?.config.syncTax || !!policy?.connections?.xero?.config.importTaxRates;
 
     const spendItems: Item[] = [
         {
@@ -101,7 +105,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             titleTranslationKey: 'workspace.moreFeatures.taxes.title',
             subtitleTranslationKey: 'workspace.moreFeatures.taxes.subtitle',
             isActive: (policy?.tax?.trackingEnabled ?? false) || isSyncTaxEnabled,
-            disabled: isSyncTaxEnabled || policy?.connections?.quickbooksOnline.data.country === CONST.COUNTRY.US,
+            disabled: isSyncTaxEnabled || policy?.connections?.quickbooksOnline?.data?.country === CONST.COUNTRY.US,
             pendingAction: policy?.pendingFields?.tax,
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyTaxes(policy?.id ?? '', isEnabled);
@@ -119,6 +123,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
+            disabled: hasAccountingConnection,
+            errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
+            onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
         },
     ];
 
@@ -157,6 +164,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     pendingAction={item.pendingAction}
                     onToggle={item.action}
                     disabled={item.disabled}
+                    errors={item.errors}
+                    onCloseError={item.onCloseError}
                 />
             </View>
         ),

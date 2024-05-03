@@ -36,7 +36,7 @@ type AddressFormProps = {
     shouldSaveDraft?: boolean;
 };
 
-function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, inputKeys, onFieldChange, streetTranslationKey}: AddressFormProps) {
+function AddressFormFields({shouldSaveDraft = false, defaultValues, values, errors, inputKeys, onFieldChange, streetTranslationKey}: AddressFormProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -103,6 +103,6 @@ function AddressForm({shouldSaveDraft = false, defaultValues, values, errors, in
     );
 }
 
-AddressForm.displayName = 'AddressForm';
+AddressFormFields.displayName = 'AddressFormFields';
 
-export default AddressForm;
+export default AddressFormFields;

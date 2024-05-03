@@ -1,5 +1,5 @@
 ---
-title: Notification Troubleshooting
+title: Set notifications
 description: This article is about how to troubleshoot notifications from Expensify. 
 --- 
 

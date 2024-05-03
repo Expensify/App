@@ -56,10 +56,13 @@
         height: 92% !important;
     }
 
-    /* 
-    * Solves issue with height not working for `onfido-sdk-ui-Modal-inner` container when device width is in between 490 - 600pixels.
-    */
-    #onfido-mount {
-        height: 100%;
-    }
+}
+
+#onfido-mount {
+    height: 100%;
+}
+
+#onfido-sdk {
+    min-height: initial !important;
+    max-height: initial !important;
 }
