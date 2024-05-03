@@ -2034,6 +2034,17 @@ export default {
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
+            advancedConfig: {
+                advanced: 'Avanzado',
+                autoSync: 'Autosincronización',
+                autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sincronizar informes reembolsados',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
+                xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
+                xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
+            },
         },
         type: {
             free: 'Gratis',

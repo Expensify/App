@@ -2001,6 +2001,16 @@ export default {
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
+            advancedConfig: {
+                advanced: 'Advanced',
+                autoSync: 'Auto-Sync',
+                autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
+                xeroBillPaymentAccount: 'Xero Bill Payment Account',
+                xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+            },
         },
         type: {
             free: 'Free',
