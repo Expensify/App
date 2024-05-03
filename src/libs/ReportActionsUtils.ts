@@ -332,9 +332,9 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
     let startIndex = index;
     let endIndex = index;
 
-    // Iterate forwards through the array, starting from endIndex. This loop checks the continuity of actions by:
-    // 1. Comparing the current item's previousReportActionID with the next item's reportActionID.
-    //    This ensures that we are moving in a sequence of related actions from newer to older.
+    // Iterate forwards through the array, starting from endIndex. i.e: newer to older
+    // This loop checks the continuity of actions by comparing the current item's previousReportActionID with the next item's reportActionID.
+    // It ignores optimistic actions, whispers and InviteToRoom actions
     while (
         (endIndex < sortedReportActions.length - 1 && sortedReportActions[endIndex].previousReportActionID === sortedReportActions[endIndex + 1].reportActionID) ||
         isOptimisticAction(sortedReportActions[endIndex + 1]) ||
@@ -347,11 +347,8 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
         endIndex++;
     }
 
-    // Iterate backwards through the sortedReportActions, starting from startIndex. This loop has two main checks:
-    // 1. It compares the current item's reportActionID with the previous item's previousReportActionID.
-    //    This is to ensure continuity in a sequence of actions.
-    // 2. If the first condition fails, it then checks if the previous item has a pendingAction of 'add'.
-    //    This additional check is to include recently sent messages that might not yet be part of the established sequence.
+    // Iterate backwards through the sortedReportActions, starting from startIndex. (older to newer)
+    // This loop ensuress continuity in a sequence of actions by comparing the current item's reportActionID with the previous item's previousReportActionID.
     while (
         (startIndex > 0 && sortedReportActions[startIndex].reportActionID === sortedReportActions[startIndex - 1].previousReportActionID) ||
         isOptimisticAction(sortedReportActions[startIndex - 1]) ||
