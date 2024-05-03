@@ -33,7 +33,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
             <View>
                 <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                     <View style={styles.flex1}>
-                        <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
+                        <Text fontSize={variables.fontSizeNormal}>{translate('common.import')}</Text>
                     </View>
                     <OfflineWithFeedback pendingAction={pendingFields?.importCustomers}>
                         <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>

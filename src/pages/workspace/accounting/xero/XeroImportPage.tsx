@@ -87,7 +87,7 @@ function XeroImportPage({policy}: WithPolicyProps) {
                 testID={XeroImportPage.displayName}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.accounting.import')}
+                    title={translate('common.import')}
                     subtitle={currentXeroOrganization?.name}
                 />
                 <ScrollView contentContainerStyle={styles.pb2}>

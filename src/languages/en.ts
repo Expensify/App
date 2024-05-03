@@ -331,6 +331,7 @@ export default {
         type: 'Type',
         action: 'Action',
         export: 'Export',
+        import: 'Import',
     },
     location: {
         useCurrent: 'Use current location',
@@ -926,6 +927,7 @@ export default {
             invalidate: 'Invalidate',
             destroy: 'Destroy',
             exportToFile: 'Export app snapshot to file',
+            importFromFile: 'Importar instantánea de app desde archivo',
         },
         debugConsole: {
             saveLog: 'Save log',
@@ -2214,7 +2216,6 @@ export default {
             xero: 'Xero',
             setup: 'Set up',
             lastSync: 'Last synced just now',
-            import: 'Import',
             advanced: 'Advanced',
             other: 'Other integrations',
             syncNow: 'Sync now',

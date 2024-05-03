@@ -40,7 +40,7 @@ function QuickbooksClassesPage({policy}: WithPolicyProps) {
                     <Text style={styles.pb5}>{translate('workspace.qbo.classesDescription')}</Text>
                     <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
-                            <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
+                            <Text fontSize={variables.fontSizeNormal}>{translate('common.import')}</Text>
                         </View>
                         <OfflineWithFeedback pendingAction={pendingFields?.syncClasses}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>

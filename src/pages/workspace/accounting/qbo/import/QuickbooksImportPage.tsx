@@ -72,7 +72,7 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksImportPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.accounting.import')} />
+                <HeaderWithBackButton title={translate('common.import')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.importDescription')}</Text>
                     {sections.map((section) => (

@@ -321,6 +321,7 @@ export default {
         type: 'Tipo',
         action: 'Acción',
         export: 'Exportar',
+        import: 'Importar',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -921,6 +922,7 @@ export default {
             invalidate: 'Invalidar',
             destroy: 'Destruir',
             exportToFile: 'Exportar instantánea de app a un archivo',
+            importFromFile: '',
         },
         debugConsole: {
             saveLog: 'Guardar registro',
@@ -2215,7 +2217,6 @@ export default {
             xero: 'Xero',
             setup: 'Configurar',
             lastSync: 'Recién sincronizado',
-            import: 'Importar',
             advanced: 'Avanzado',
             other: 'Otras integraciones',
             syncNow: 'Sincronizar ahora',

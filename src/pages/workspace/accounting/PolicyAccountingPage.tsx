@@ -219,7 +219,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           icon: Expensicons.Pencil,
                           iconRight: Expensicons.ArrowRight,
                           shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.import'),
+                          title: translate('common.import'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onImportPagePress,
                       },

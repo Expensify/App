@@ -1,4 +1,5 @@
 import React from 'react';
+import {Alert} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -15,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
+import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import {withNetwork} from './OnyxProvider';
 import Switch from './Switch';
@@ -100,6 +102,28 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     text={translate('common.export')}
                     onPress={() => Troubleshooting.exportOnyxDataToFile()}
                 />
+            </TestToolRow>
+
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.importFromFile')}>
+                <AttachmentPicker>
+                    {({openPicker}) => (
+                        <Button
+                            small
+                            text={translate('common.export')}
+                            onPress={() =>
+                                openPicker({
+                                    onPicked: (file) => {
+                                        if (!file.uri) {
+                                            Alert.alert(translate('attachmentPicker.wrongFileType'));
+                                            return;
+                                        }
+                                        Troubleshooting.importOnyxDataFromFile(file.uri);
+                                    },
+                                })
+                            }
+                        />
+                    )}
+                </AttachmentPicker>
             </TestToolRow>
 
             {/* Navigate to the new Search Page. This button is temporary and should be removed after passing QA tests. */}
