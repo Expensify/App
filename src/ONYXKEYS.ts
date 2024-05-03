@@ -142,6 +142,9 @@ const ONYXKEYS = {
     /** This NVP contains the referral banners the user dismissed */
     NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
 
+    /** This NVP contains the training modals the user denied showing again */
+    NVP_HAS_SEEN_TRACK_TRAINING: 'nvp_hasSeenTrackTraining',
+
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'nvp_preferredLocale',
 
@@ -337,7 +340,6 @@ const ONYXKEYS = {
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
         REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
-        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_USER_IS_LEAVING_ROOM: 'reportUserIsLeavingRoom_',
@@ -356,6 +358,9 @@ const ONYXKEYS = {
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
+
+        // Search Page related
+        SNAPSHOT: 'snapshot_',
     },
 
     /** List of Form ids */
@@ -542,7 +547,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
-    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM]: boolean;
@@ -560,6 +564,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.NEXT_STEP]: OnyxTypes.ReportNextStep;
     [ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER]: OnyxTypes.PolicyJoinMember;
     [ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS]: OnyxTypes.PolicyConnectionSyncProgress;
+    [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
 };
 
 type OnyxValuesMapping = {
@@ -615,6 +620,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes.Locale;
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
+    [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.WalletOnfido;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
