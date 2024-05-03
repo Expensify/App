@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {StyleProp, View, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,9 +29,11 @@ type ConnectionLayoutProps = {
     accessVariants?: PolicyAccessVariant[];
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
+    /** The content container style of Scrollview */
+    contentContainerStyle?: StyleProp<ViewStyle> | undefined;
 };
 
-function ConnectionLayout({displayName, headerTitle, children, title, subtitle, policyID, accessVariants, featureName}: ConnectionLayoutProps) {
+function ConnectionLayout({displayName, headerTitle, children, title, subtitle, policyID, accessVariants, featureName, contentContainerStyle}: ConnectionLayoutProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -50,7 +52,7 @@ function ConnectionLayout({displayName, headerTitle, children, title, subtitle, 
                     title={translate(headerTitle)}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
+                <ScrollView contentContainerStyle={contentContainerStyle}>
                     {title && (
                         <View style={[styles.pb2]}>
                             <Text style={styles.pb5}>{translate(title)}</Text>
