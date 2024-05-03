@@ -1087,7 +1087,15 @@ function buildOnyxDataForInvoice(
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        !!policy.requiresTag,
+        policyTagList ?? {},
+        !!policy.requiresCategory,
+        policyCategories ?? {},
+        PolicyUtils.hasDependentTags(policy, policyTagList ?? {}),
+    );
 
     if (violationsOnyxData) {
         optimisticData.push(violationsOnyxData);
