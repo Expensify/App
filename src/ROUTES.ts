@@ -758,8 +758,10 @@ const ROUTES = {
         route: 'referral/:contentType',
         getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
-    TRACK_TRAINING_MODAL: 'track-training',
     PROCESS_MONEY_REQUEST_HOLD: 'hold-expense-educational',
+    TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_TCS: 'travel/terms',
+    TRACK_TRAINING_MODAL: 'track-training',
     ONBOARDING_ROOT: 'onboarding',
     ONBOARDING_PERSONAL_DETAILS: 'onboarding/personal-details',
     ONBOARDING_WORK: 'onboarding/work',
@@ -785,6 +787,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_XERO_TAXES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
+    },
+    POLICY_ACCOUNTING_XERO_ADVANCED: {
+        route: 'settings/workspaces/:policyID/accounting/xero/advanced',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
