@@ -135,7 +135,7 @@ function IOURequestStepParticipants({
                     style={[styles.ph4, styles.mb4]}
                     isError={false}
                     shouldShowRedDotIndicator={false}
-                    message={translate('quickAction.noLongerHaveReportAccess', {reportName: !isEmptyObject(report) ? ReportUtils.getReportName(report) : ''})}
+                    message={translate('quickAction.noLongerHaveReportAccess')}
                 />
             )}
             <MoneyRequestParticipantsSelector
