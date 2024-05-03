@@ -22,8 +22,20 @@ function getReports(): Promise<OnyxCollection<OldReport>> {
     });
 }
 
+function getCurrentUserAccountID(): Promise<number | undefined> {
+    return new Promise((resolve) => {
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.SESSION,
+            callback: (session) => {
+                Onyx.disconnect(connectionID);
+                return resolve(session?.accountID);
+            },
+        });
+    });
+}
+
 export default function (): Promise<void> {
-    return getReports().then((reports) => {
+    return Promise.all([getCurrentUserAccountID(), getReports()]).then(([currentUserAccountID, reports]) => {
         if (!reports) {
             Log.info('[Migrate Onyx] Skipped Participants migration because there are no reports');
             return;
@@ -42,6 +54,11 @@ export default function (): Promise<void> {
                     reportParticipants[accountID] = participant;
                     return reportParticipants;
                 }, {});
+
+                // Current user is always a participant
+                if (currentUserAccountID !== undefined && !participants[currentUserAccountID]) {
+                    participants[currentUserAccountID] = {hidden: false};
+                }
 
                 // eslint-disable-next-line no-param-reassign
                 reportsCollection[onyxKey as ReportKey] = {
