@@ -6,11 +6,13 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -52,7 +54,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     description={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
                     key={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => {}}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR.getRoute(policyID))}
                 />
             </OfflineWithFeedback>
             <ToggleSettingOptionRow
