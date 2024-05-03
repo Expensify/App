@@ -28,7 +28,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === invoiceCollectionsAccountID);
 
         return selectedAccount?.name ?? '';
-    }, [sync, bankAccounts, invoiceCollectionsAccountID]);
+    }, [bankAccounts, invoiceCollectionsAccountID]);
 
     return (
         <ConnectionLayout
