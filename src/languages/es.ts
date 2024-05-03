@@ -1912,7 +1912,7 @@ export default {
             locations: 'Lugares',
             customers: 'Clientes/Proyectos',
             displayedAs: 'Mostrado como',
-            accountsDescription: 'Los planes de cuentas se importan como categorías cuando está conectado con una integración de contaduría, esto no se puede desactivar.',
+            accountsDescription: 'Cuando estás conectado a Quickbooks Online, los planes de cuentas siempre se importan a Expensify como categorías.',
             accountsSwitchTitle: 'Elige abajo si las categorías importadas serán activadas o desactivadas por defecto.',
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             classesDescription: 'Elige si quieres importar las clases y donde las clases son mostradas.',
