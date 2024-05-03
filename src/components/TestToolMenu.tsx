@@ -8,6 +8,7 @@ import compose from '@libs/compose';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
+import Troubleshooting from '@userActions/Troubleshooting';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -90,6 +91,14 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     small
                     text={translate('initialSettingsPage.troubleshoot.destroy')}
                     onPress={() => Session.invalidateCredentials()}
+                />
+            </TestToolRow>
+
+            <TestToolRow title={translate('initialSettingsPage.troubleshoot.exportToFile')}>
+                <Button
+                    small
+                    text={translate('common.export')}
+                    onPress={() => Troubleshooting.exportOnyxDataToFile()}
                 />
             </TestToolRow>
 

@@ -320,6 +320,7 @@ export default {
         clear: 'Borrar',
         type: 'Tipo',
         action: 'Acción',
+        export: 'Exportar',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -919,6 +920,7 @@ export default {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
+            exportToFile: 'Exportar datos de la app a un archivo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

@@ -330,6 +330,7 @@ export default {
         clear: 'Clear',
         type: 'Type',
         action: 'Action',
+        export: 'Export',
     },
     location: {
         useCurrent: 'Use current location',
@@ -924,6 +925,7 @@ export default {
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
             destroy: 'Destroy',
+            exportToFile: 'Export app data to file',
         },
         debugConsole: {
             saveLog: 'Save log',
