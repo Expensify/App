@@ -1,8 +1,8 @@
 import React from 'react';
+import {View} from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import type {FlatList} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { View } from 'react-native';
 import type {DraggableListProps} from './types';
 
 function DraggableList<T>({renderClone, shouldUsePortal, ListFooterComponent, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<FlatList<T>>) {
@@ -16,11 +16,7 @@ function DraggableList<T>({renderClone, shouldUsePortal, ListFooterComponent, ..
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...viewProps}
             />
-            {ListFooterComponent && (
-                <View style={styles.flexGrow1}>
-                    {ListFooterComponent}
-                </View>
-            )}
+            {ListFooterComponent && <View style={styles.flexGrow1}>{ListFooterComponent}</View>}
         </View>
     );
 }
