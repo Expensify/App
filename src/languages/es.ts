@@ -3232,10 +3232,6 @@ export default {
         invite: 'Invitar',
         nothing: 'No hacer nada',
     },
-    actionableReportMentionWhisperOptions: {
-        create: 'Créalo',
-        nothing: 'No hacer nada',
-    },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Aceptar',
         decline: 'Rechazar',

@@ -2756,10 +2756,6 @@ export default {
         invite: 'Invite them',
         nothing: 'Do nothing',
     },
-    actionableReportMentionWhisperOptions: {
-        create: 'Create it',
-        nothing: 'Do nothing',
-    },
     actionableMentionJoinWorkspaceOptions: {
         accept: 'Accept',
         decline: 'Decline',
