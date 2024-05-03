@@ -44,6 +44,12 @@ type ReportActionItemParentActionProps = {
 
     /** Whether we should display "Replies" divider */
     shouldDisplayReplyDivider: boolean;
+
+    /** If this is the first visible report action */
+    isFirstVisibleReportAction: boolean;
+
+    /** If the thread divider line will be used */
+    shouldUseThreadDividerLine?: boolean;
 };
 
 function ReportActionItemParentAction({
@@ -54,6 +60,8 @@ function ReportActionItemParentAction({
     index = 0,
     shouldHideThreadDividerLine = false,
     shouldDisplayReplyDivider,
+    isFirstVisibleReportAction = false,
+    shouldUseThreadDividerLine = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -108,9 +116,12 @@ function ReportActionItemParentAction({
                     <ReportActionItem
                         onPress={() => {
                             const isVisibleAction = ReportActionsUtils.shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID ?? '');
-                            Navigation.goBack(
-                                ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', isVisibleAction && !isOffline ? ancestor.reportAction.reportActionID : undefined),
-                            );
+                            // Pop the thread report screen before navigating to the chat report.
+                            Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? ''));
+                            if (isVisibleAction && !isOffline) {
+                                // Pop the chat report screen before navigating to the linked report action.
+                                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.parentReportID ?? '', ancestor.reportAction.reportActionID));
+                            }
                         }}
                         parentReportAction={parentReportAction}
                         report={ancestor.report}
@@ -121,6 +132,8 @@ function ReportActionItemParentAction({
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
                         index={index}
+                        isFirstVisibleReportAction={isFirstVisibleReportAction}
+                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                     />
                 </OfflineWithFeedback>
             ))}

@@ -203,7 +203,7 @@ export default {
     sectionIllustrationHeight: 220,
     photoUploadPopoverWidth: 335,
     onboardingModalWidth: 500,
-    welcomeVideoDelay: 500,
+    welcomeVideoDelay: 1000,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
@@ -211,7 +211,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
-    purposeMenuIconSize: 48,
+    menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
 
@@ -229,4 +229,5 @@ export default {
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
+    textInputAutoGrowMaxHeight: 115,
 } as const;

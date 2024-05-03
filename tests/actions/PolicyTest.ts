@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyMembers, Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Policy as PolicyType, Report, ReportAction, ReportActions} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -59,19 +59,7 @@ describe('actions/Policy', () => {
             expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-
-            const policyMembers: OnyxEntry<PolicyMembers> = await new Promise((resolve) => {
-                const connectionID = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
-                    callback: (members) => {
-                        Onyx.disconnect(connectionID);
-                        resolve(members);
-                    },
-                });
-            });
-
-            // check if the user was added as an admin to the policy
-            expect(policyMembers?.[ESH_ACCOUNT_ID]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connectionID = Onyx.connect({

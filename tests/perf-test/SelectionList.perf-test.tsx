@@ -57,6 +57,10 @@ jest.mock('@components/withKeyboardState', () => <TProps extends KeyboardStateCo
     return WrappedComponent;
 });
 
+jest.mock('@react-navigation/stack', () => ({
+    useCardAnimation: () => {},
+}));
+
 jest.mock('@react-navigation/native', () => ({
     useFocusEffect: () => {},
     useIsFocused: () => true,

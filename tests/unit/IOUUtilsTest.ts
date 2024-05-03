@@ -25,7 +25,7 @@ describe('IOUUtils', () => {
             });
         });
 
-        test('Requesting money offline in a different currency will show the pending conversion message', () => {
+        test('Submitting an expense offline in a different currency will show the pending conversion message', () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
             const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
             const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
@@ -34,12 +34,12 @@ describe('IOUUtils', () => {
             MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = aedPendingTransaction;
 
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We requested money offline in a different currency, we don't know the total of the iouReport until we're back online
+                // We submitted an expense offline in a different currency, we don't know the total of the iouReport until we're back online
                 expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
             });
         });
 
-        test('Requesting money online in a different currency will not show the pending conversion message', () => {
+        test('Submitting an expense online in a different currency will not show the pending conversion message', () => {
             const iouReport = ReportUtils.buildOptimisticIOUReport(2, 3, 100, '1', 'USD');
             const usdPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'USD', iouReport.reportID);
             const aedPendingTransaction = TransactionUtils.buildOptimisticTransaction(100, 'AED', iouReport.reportID);
@@ -55,7 +55,7 @@ describe('IOUUtils', () => {
             };
 
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
-                // We requested money online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
+                // We submitted an expense online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
                 expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
             });
         });
@@ -118,12 +118,13 @@ describe('IOUUtils', () => {
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        expect(IOUUtils.isValidMoneyRequestType('request')).toBe(true);
-        expect(IOUUtils.isValidMoneyRequestType('split')).toBe(true);
-        expect(IOUUtils.isValidMoneyRequestType('send')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('submit')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('split')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('pay')).toBe(true);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('track')).toBe(true);
     });
 
     test('Return false for invalid iou type', () => {
-        expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
+        expect(IOUUtils.temporary_isValidMoneyRequestType('money')).toBe(false);
     });
 });

@@ -12,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Log from '@libs/Log';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
@@ -137,21 +138,22 @@ function ReportActionsView({
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
-    const combinedReportActions = useMemo(() => {
+    const [combinedReportActions, parentReportActionForTransactionThread] = useMemo(() => {
         if (isEmptyObject(transactionThreadReportActions)) {
-            return allReportActions;
+            return [allReportActions, null];
         }
 
         // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
         const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+        const moneyRequestAction = allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID);
 
-        // Filter out the money request actions because we don't want to show any preview actions for one-transaction reports
+        // Filter out the expense actions because we don't want to show any preview actions for one-transaction reports
         const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
             const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
             return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
         });
-        return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-    }, [allReportActions, transactionThreadReportActions]);
+        return [ReportActionsUtils.getSortedReportActions(filteredReportActions, true), moneyRequestAction ?? null];
+    }, [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID]);
 
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID) {
@@ -298,6 +300,17 @@ function ReportActionsView({
      * displaying.
      */
     const loadOlderChats = useCallback(() => {
+        Log.info(
+            `[ReportActionsView] loadOlderChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                oldestReportActionID: oldestReportAction?.reportActionID,
+                hasCreatedAction,
+                isTransactionThread: !isEmptyObject(transactionThreadReport),
+            })}`,
+        );
+
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (!!network.isOffline || isLoadingOlderReportActions || isLoadingInitialReportActions) {
             return;
@@ -323,12 +336,32 @@ function ReportActionsView({
     }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
     const loadNewerChats = useCallback(() => {
-        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
         // Determines if loading older reports is necessary when the content is smaller than the list
         // and there are fewer than 23 items, indicating we've reached the oldest message.
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
+
+        Log.info(
+            `[ReportActionsView] loadNewerChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                newestReportAction: newestReportAction.pendingAction,
+                firstReportActionID: newestReportAction?.reportActionID,
+                isLoadingOlderReportsFirstNeeded,
+                reportActionID,
+            })}`,
+        );
+
+        if (
+            !reportActionID ||
+            !isFocused ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
+            return;
+        }
 
         if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
@@ -343,6 +376,7 @@ function ReportActionsView({
         network.isOffline,
         reportActions.length,
         newestReportAction,
+        isFocused,
     ]);
 
     /**
@@ -367,11 +401,11 @@ function ReportActionsView({
     }, [hasCachedActionOnFirstRender]);
 
     useEffect(() => {
-        // Temporary solution for handling REPORTPREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
-        // This code should be removed once REPORTPREVIEW is no longer repositioned.
-        // We need to call openReport for gaps created by moving REPORTPREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
+        // Temporary solution for handling REPORT_PREVIEW. More details: https://expensify.slack.com/archives/C035J5C9FAP/p1705417778466539?thread_ts=1705035404.136629&cid=C035J5C9FAP
+        // This code should be removed once REPORT_PREVIEW is no longer repositioned.
+        // We need to call openReport for gaps created by moving REPORT_PREVIEW, which causes mismatches in previousReportActionID and reportActionID of adjacent reportActions. The server returns the correct sequence, allowing us to overwrite incorrect data with the correct one.
         const shouldOpenReport =
-            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW &&
+            newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             !hasCreatedAction &&
             isReadyForCommentLinking &&
             reportActions.length < 24 &&
@@ -420,11 +454,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    // When we are offline before opening a money request report,
-    // the total of the report and sometimes the money request aren't displayed because these actions aren't returned until `OpenReport` API is complete.
+    // When we are offline before opening an IOU/Expense report,
+    // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
-    // and we also generate a money request action if the number of money requests in reportActions is less than the total number of money requests
-    // to display at least one money request action to match the total data.
+    // and we also generate an expense action if the number of expenses in reportActions is less than the total number of expenses
+    // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(() => {
         if (!ReportUtils.isMoneyRequestReport(report) || !reportActions.length) {
             return reportActions;
@@ -492,6 +526,7 @@ function ReportActionsView({
                 transactionThreadReport={transactionThreadReport}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActionsToDisplay}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}

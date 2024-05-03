@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ForwardedRef} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
@@ -31,21 +30,23 @@ type AmountTextInputProps = {
 
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
+
+    /** Style for the TextInput container */
+    containerStyle?: StyleProp<ViewStyle>;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 function AmountTextInput(
-    {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress, ...rest}: AmountTextInputProps,
+    {formattedAmount, onChangeAmount, placeholder, selection, onSelectionChange, style, touchableInputWrapperStyle, onKeyPress, containerStyle, ...rest}: AmountTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
-    const styles = useThemeStyles();
     return (
         <TextInput
             disableKeyboard
             autoGrow
             hideFocusedState
             shouldInterceptSwipe
-            inputStyle={[styles.iouAmountTextInput, styles.p0, styles.noLeftBorderRadius, styles.noRightBorderRadius, style]}
-            textInputContainerStyles={[styles.borderNone, styles.noLeftBorderRadius, styles.noRightBorderRadius]}
+            inputStyle={style}
+            textInputContainerStyles={containerStyle}
             onChangeText={onChangeAmount}
             ref={ref}
             value={formattedAmount}

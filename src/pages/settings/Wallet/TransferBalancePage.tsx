@@ -188,7 +188,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                             />
                         ))}
                     </View>
-                    <Text style={[styles.p5, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
+                    <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
                     {Boolean(selectedAccount) && (
                         <MenuItem
                             title={selectedAccount?.title}
