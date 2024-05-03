@@ -240,6 +240,7 @@ const SCREENS = {
             XERO_CUSTOMER: 'Policy_Acounting_Xero_Import_Customer',
             XERO_TAXES: 'Policy_Accounting_Xero_Taxes',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_BILL_STATUS_SELECTOR: 'Policy_Accounting_Xero_Advanced_Bill_Status',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
