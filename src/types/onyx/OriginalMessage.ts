@@ -67,6 +67,7 @@ type IOUMessage = {
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     cancellationReason?: string;
     paymentType?: PaymentMethodType;
+    deleted?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
