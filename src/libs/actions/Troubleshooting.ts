@@ -8,7 +8,7 @@ import localFileDownload from '@libs/localFileDownload';
  */
 function exportOnyxDataToFile() {
     Onyx.getAllEntries()
-        .then((entries) => JSON.stringify(entries))
+        .then((entries) => JSON.stringify(Object.fromEntries(entries)))
         .then((json) => localFileDownload('NewExpensifyOnyxExport', json, FileTypes.JSON));
 }
 
