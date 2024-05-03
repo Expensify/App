@@ -170,14 +170,13 @@ function MoneyRequestView({
     // transactionCategory can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldShowCategory = isPolicyExpenseChat && (transactionCategory || OptionsListUtils.hasEnabledOptions(policyCategories ?? {}));
-    // TODO: remove the !isInvoice from this condition after BE supports tags for invoices: https://github.com/Expensify/App/issues/41281
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- transactionTag can be an empty string
-    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists)) && !isInvoice;
+    // transactionTag can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldShowTag = isPolicyExpenseChat && (transactionTag || OptionsListUtils.hasEnabledTags(policyTagLists));
     const shouldShowBillable = isPolicyExpenseChat && (!!transactionBillable || !(policy?.disabledFields?.defaultBillable ?? true));
 
     // A flag for showing tax rate
-    // TODO: remove the !isInvoice from this condition after BE supports tax for invoices: https://github.com/Expensify/App/issues/41281
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy) && !isInvoice;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy);
 
     const {getViolationsForField} = useViolations(transactionViolations ?? []);
     const hasViolations = useCallback(
