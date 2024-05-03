@@ -2520,7 +2520,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
             value: expenseChatData,
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
             value: CONST.POLICY.DEFAULT_CATEGORIES.reduce(
                 (acc, category) => ({

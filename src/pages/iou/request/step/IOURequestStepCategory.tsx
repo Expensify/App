@@ -99,6 +99,7 @@ function IOURequestStepCategory({
 
         PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
     };
+
     useNetwork({onReconnect: fetchData});
 
     useEffect(() => {
