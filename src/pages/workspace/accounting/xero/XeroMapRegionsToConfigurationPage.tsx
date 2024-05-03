@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,25 +11,27 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import { getTrackingCategoryValue } from '@libs/actions/connections/ConnectToXero';
+import { TranslationPaths } from '@src/languages/types';
+
 
 function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
 
-    const optionsList = [
-        {
-            value: 'DEFAULT',
-            text: translate(`workspace.xero.xeroContactDefault`),
-            keyForList: 'DEFAULT',
-        },
-        {
-            value: 'TAGS',
-            text: 'Tags',
-            keyForList: 'TAGS',
-            isSelected: true,
-        },
-    ];
+    const optionsList = useMemo(() => { 
+        const costCenterCategoryValue = getTrackingCategoryValue(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION);
+
+        return Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => {
+            return {
+                value: option,
+                text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
+                keyForList: option,
+                isSelected: option.toLowerCase() === costCenterCategoryValue.toLowerCase()
+            }
+        });
+    }, [policyID, translate]);
 
     return (
         <AccessOrNotFoundWrapper

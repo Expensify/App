@@ -1275,6 +1275,10 @@ const CONST = {
         TRACK_CATEGORY_FIELDS: {
             COST_CENTERS: 'cost centers',
             REGION: 'region',
+        },
+        TRACK_CATEGORY_OPTIONS: {
+            DEFAULT: 'DEFAULT',
+            TAG: 'TAG'
         }
     },
 
