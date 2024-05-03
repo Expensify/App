@@ -922,7 +922,7 @@ export default {
             invalidate: 'Invalidar',
             destroy: 'Destruir',
             exportToFile: 'Exportar instantánea de app a un archivo',
-            importFromFile: '',
+            importFromFile: 'Importar instantánea de app desde archivo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

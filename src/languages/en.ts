@@ -927,7 +927,7 @@ export default {
             invalidate: 'Invalidate',
             destroy: 'Destroy',
             exportToFile: 'Export app snapshot to file',
-            importFromFile: 'Importar instantánea de app desde archivo',
+            importFromFile: 'Import app snapshot from file',
         },
         debugConsole: {
             saveLog: 'Save log',

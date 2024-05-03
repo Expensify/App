@@ -109,7 +109,7 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                     {({openPicker}) => (
                         <Button
                             small
-                            text={translate('common.export')}
+                            text={translate('common.import')}
                             onPress={() =>
                                 openPicker({
                                     onPicked: (file) => {
