@@ -5175,13 +5175,9 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
         report = getReport(report?.parentReportID);
     }
     const isCurrentUserAction = reportAction?.actorAccountID === currentUserAccountID;
-    const isOriginalMessageHaveHtml =
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ||
-        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
         // Allow flagging whispers that are sent by other users
-        if (reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+        if (!isCurrentUserAction && reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
             return true;
         }
 
