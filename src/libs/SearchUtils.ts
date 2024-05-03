@@ -25,7 +25,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchT
                 shouldShowMerchant,
                 keyForList: value.transactionID,
             };
-        }).sort((a, b) => {
+        })
+        .sort((a, b) => {
             const createdA = a.modifiedCreated ? a.modifiedCreated : a.created;
             const createdB = b.modifiedCreated ? b.modifiedCreated : b.created;
             return createdB > createdA ? 1 : -1;
