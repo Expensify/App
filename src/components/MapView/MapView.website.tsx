@@ -84,10 +84,10 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         const toggleCenterButton = useCallback(
             (toggleOn: boolean) => {
                 if (toggleOn) {
-                    centerButtonOpacity.value = 1;
                     setShouldDisplayCenterButton(true);
+                    centerButtonOpacity.value = withTiming(1, {duration: CONST.MAPBOX.CENTER_BUTTON_FADE_DURATION});
                 } else {
-                    centerButtonOpacity.value = withTiming(0, {duration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME}, () => setShouldDisplayCenterButton(false));
+                    centerButtonOpacity.value = withTiming(0, {duration: CONST.MAPBOX.CENTER_BUTTON_FADE_DURATION}, () => setShouldDisplayCenterButton(false));
                 }
             },
             [centerButtonOpacity],
