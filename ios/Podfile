@@ -2,6 +2,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # Set the type of Mapbox SDK to use
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
+$RNMapboxMapsVersion = '= 11.0.0'
 $VCDisableFrameProcessors = true
 
 def node_require(script)

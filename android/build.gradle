@@ -16,6 +16,7 @@ buildscript {
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
         RNMapboxMapsImpl = "mapbox"
+        RNMapboxMapsVersion = '11.0.0'
     }
     repositories {
         google()
@@ -70,7 +71,7 @@ allprojects {
                 // 'mapbox' is the fixed username for Mapbox's Maven repository.
                 username = 'mapbox'
 
-                // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property. 
+                // The value for password is read from the 'MAPBOX_DOWNLOADS_TOKEN' gradle property.
                 // Run "npm run setup-mapbox-sdk" to set this property in «USER_HOME»/.gradle/gradle.properties
 
                 // Example gradle.properties entry:

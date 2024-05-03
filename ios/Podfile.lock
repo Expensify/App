@@ -247,15 +247,13 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - MapboxCommon (23.9.2)
-  - MapboxCoreMaps (10.17.0):
-    - MapboxCommon (~> 23.9)
-  - MapboxMaps (10.17.0):
-    - MapboxCommon (= 23.9.2)
-    - MapboxCoreMaps (= 10.17.0)
-    - MapboxMobileEvents (= 1.0.10)
+  - MapboxCommon (24.0.0)
+  - MapboxCoreMaps (11.0.0):
+    - MapboxCommon (~> 24.0)
+  - MapboxMaps (11.0.0):
+    - MapboxCommon (= 24.0.0)
+    - MapboxCoreMaps (= 11.0.0)
     - Turf (= 2.7.0)
-  - MapboxMobileEvents (1.0.10)
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
     - nanopb/encode (= 2.30908.0)
@@ -1873,14 +1871,14 @@ PODS:
   - RNLocalize (2.2.6):
     - React-Core
   - rnmapbox-maps (10.1.21):
-    - MapboxMaps (~> 10.17.0)
+    - MapboxMaps (= 11.0.0)
     - React
     - React-Core
     - rnmapbox-maps/DynamicLibrary (= 10.1.21)
     - Turf
   - rnmapbox-maps/DynamicLibrary (10.1.21):
     - hermes-engine
-    - MapboxMaps (~> 10.17.0)
+    - MapboxMaps (= 11.0.0)
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -2206,7 +2204,6 @@ SPEC REPOS:
     - MapboxCommon
     - MapboxCoreMaps
     - MapboxMaps
-    - MapboxMobileEvents
     - nanopb
     - Onfido
     - Plaid
@@ -2469,10 +2466,9 @@ SPEC CHECKSUMS:
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   lottie-ios: 3d98679b41fa6fd6aff2352b3953dbd3df8a397e
   lottie-react-native: d0e530160e1a0116ab567343d843033c496d0d97
-  MapboxCommon: 768660d6fca8193529ecf82eb6f5f9ae7a5acdf9
-  MapboxCoreMaps: be412ff97b16aa7820922c818115a9a0d8211caa
-  MapboxMaps: 87ef0003e6db46e45e7a16939f29ae87e38e7ce2
-  MapboxMobileEvents: de50b3a4de180dd129c326e09cd12c8adaaa46d6
+  MapboxCommon: 0cca816960ad2d21c86e1d32435fcb412cfdcf4f
+  MapboxCoreMaps: 633f5ecd7580a6d1342ff20cc8732170b2cd7ba3
+  MapboxMaps: 1c219108691a2000cb842b02e64d82158d74e6cd
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: 342cbecd7a4383e98dfe7f9c35e98aaece599062
   onfido-react-native-sdk: 3e3b0dd70afa97410fb318d54c6a415137968ef2
@@ -2558,7 +2554,7 @@ SPEC CHECKSUMS:
   RNGoogleSignin: ccaa4a81582cf713eea562c5dd9dc1961a715fd0
   RNLiveMarkdown: bfabd5938e5af5afc1e60e4e34286b17f8308184
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  rnmapbox-maps: c6828d07c05c58c0dc411a6693973dac33cbcd4c
+  rnmapbox-maps: ecd961e2cf124d5caf199103ca48c82b85ebc2e5
   RNPermissions: 0b61d30d21acbeafe25baaa47d9bae40a0c65216
   RNReactNativeHapticFeedback: 616c35bdec7d20d4c524a7949ca9829c09e35f37
   RNReanimated: 51db0fff543694d931bd3b7cab1a3b36bd86c738
@@ -2575,6 +2571,6 @@ SPEC CHECKSUMS:
   VisionCamera: 1394a316c7add37e619c48d7aa40b38b954bf055
   Yoga: 1b901a6d6eeba4e8a2e8f308f708691cdb5db312
 
-PODFILE CHECKSUM: a25a81f2b50270f0c0bd0aff2e2ebe4d0b4ec06d
+PODFILE CHECKSUM: d004969a9a4c21486411277f569544db4224dd92
 
 COCOAPODS: 1.15.2
