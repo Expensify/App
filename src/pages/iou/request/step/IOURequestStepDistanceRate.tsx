@@ -66,7 +66,7 @@ function IOURequestStepDistanceRate({
 
     const unit = (Object.values(rates)[0]?.unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer')) as Unit;
 
-    const initiallyFocusedOption = rates[lastSelectedRateID]?.name ?? CONST.CUSTOM_UNITS.DEFAULT_RATE;
+    const initiallyFocusedOption = sections.find((item) => item.isSelected)?.keyForList;
 
     function selectDistanceRate(customUnitRateID: string) {
         IOU.updateDistanceRequestRate(transactionID, customUnitRateID, policy?.id ?? '');

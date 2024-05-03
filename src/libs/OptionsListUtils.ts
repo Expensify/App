@@ -165,6 +165,16 @@ type GetOptionsConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
+type GetUserToInviteConfig = {
+    searchValue: string;
+    excludeUnknownUsers?: boolean;
+    optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
+    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
+    betas: OnyxEntry<Beta[]>;
+    reportActions?: ReportActions;
+    showChatPreviewLine?: boolean;
+};
+
 type MemberForList = {
     text: string;
     alternateText: string;
@@ -433,12 +443,10 @@ function uniqFast(items: string[]): string[] {
 
 /**
  * Returns a string with all relevant search terms.
- * Default should be serachable by policy/domain name but not by participants.
  *
  * This method must be incredibly performant. It was found to be a big performance bottleneck
  * when dealing with accounts that have thousands of reports. For loops are more efficient than _.each
- * Array.prototype.push.apply is faster than using the spread operator, and concat() is faster than push().
-
+ * Array.prototype.push.apply is faster than using the spread operator.
  */
 function getSearchText(
     report: OnyxEntry<Report>,
@@ -447,22 +455,17 @@ function getSearchText(
     isChatRoomOrPolicyExpenseChat: boolean,
     isThread: boolean,
 ): string {
-    let searchTerms: string[] = [];
+    const searchTerms: string[] = [];
 
-    if (!isChatRoomOrPolicyExpenseChat) {
-        for (const personalDetail of personalDetailList) {
-            if (personalDetail.login) {
-                // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
-                // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
-                // More info https://github.com/Expensify/App/issues/8007
-                searchTerms = searchTerms.concat([
-                    PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-                    personalDetail.login,
-                    personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''),
-                ]);
-            }
+    for (const personalDetail of personalDetailList) {
+        if (personalDetail.login) {
+            // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
+            // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
+            // More info https://github.com/Expensify/App/issues/8007
+            searchTerms.push(PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false), personalDetail.login, personalDetail.login.replace(/\.(?=[^\s@]*@)/g, ''));
         }
     }
+
     if (report) {
         Array.prototype.push.apply(searchTerms, reportName.split(/[,\s]/));
 
@@ -476,16 +479,6 @@ function getSearchText(
             const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle?.split(/[,\s]/) ?? ['']);
-        } else {
-            const visibleChatMemberAccountIDs = report.visibleChatMemberAccountIDs ?? [];
-            if (allPersonalDetails) {
-                for (const accountID of visibleChatMemberAccountIDs) {
-                    const login = allPersonalDetails[accountID]?.login;
-                    if (login) {
-                        searchTerms = searchTerms.concat(login);
-                    }
-                }
-            }
         }
     }
 
@@ -1472,8 +1465,18 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             }
 
             const isSelfDM = ReportUtils.isSelfDM(report);
-            // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
-            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
+            let accountIDs = [];
+
+            if (isSelfDM) {
+                // For selfDM we need to add the currentUser as participants.
+                accountIDs = [currentUserAccountID ?? 0];
+            } else {
+                accountIDs = Object.keys(report.participants ?? {}).map(Number);
+                if (ReportUtils.isOneOnOneChat(report)) {
+                    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+                    accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
+                }
+            }
 
             if (!accountIDs || accountIDs.length === 0) {
                 return;
@@ -1505,7 +1508,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 }
 
 function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
-    const accountIDs = report.participantAccountIDs ?? [];
+    const isSelfDM = ReportUtils.isSelfDM(report);
+    const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.participantAccountIDs ?? [];
 
     return {
         item: report,
@@ -1540,6 +1544,74 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
         ],
         ['asc'],
     );
+}
+
+/**
+ * We create a new user option if the following conditions are satisfied:
+ * - There's no matching recent report and personal detail option
+ * - The searchValue is a valid email or phone number
+ * - The searchValue isn't the current personal detail login
+ * - We can use chronos or the search value is not the chronos email
+ */
+function getUserToInviteOption({
+    searchValue,
+    excludeUnknownUsers = false,
+    optionsToExclude = [],
+    selectedOptions = [],
+    betas,
+    reportActions = {},
+    showChatPreviewLine = false,
+}: GetUserToInviteConfig): ReportUtils.OptionData | null {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
+    const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
+    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
+    const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+    const isInOptionToExclude =
+        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
+    const isChronosEmail = searchValue === CONST.EMAIL.CHRONOS;
+
+    if (
+        !searchValue ||
+        isCurrentUserLogin ||
+        isInSelectedOption ||
+        (!isValidEmail && !isValidPhoneNumber) ||
+        isInOptionToExclude ||
+        (isChronosEmail && !Permissions.canUseChronos(betas)) ||
+        excludeUnknownUsers
+    ) {
+        return null;
+    }
+
+    // Generates an optimistic account ID for new users not yet saved in Onyx
+    const optimisticAccountID = UserUtils.generateAccountID(searchValue);
+    const personalDetailsExtended = {
+        ...allPersonalDetails,
+        [optimisticAccountID]: {
+            accountID: optimisticAccountID,
+            login: searchValue,
+        },
+    };
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
+        showChatPreviewLine,
+    });
+    userToInvite.isOptimisticAccount = true;
+    userToInvite.login = searchValue;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    userToInvite.text = userToInvite.text || searchValue;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    userToInvite.alternateText = userToInvite.alternateText || searchValue;
+
+    // If user doesn't exist, use a fallback avatar
+    userToInvite.icons = [
+        {
+            source: UserUtils.getAvatar('', optimisticAccountID),
+            name: searchValue,
+            type: CONST.ICON_TYPE_AVATAR,
+        },
+    ];
+
+    return userToInvite;
 }
 
 /**
@@ -1692,8 +1764,18 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        // Currently, currentUser is not included in visibleChatMemberAccountIDs, so for selfDM we need to add the currentUser as participants.
-        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : report.visibleChatMemberAccountIDs ?? [];
+        let accountIDs = [];
+
+        if (isSelfDM) {
+            // For selfDM we need to add the currentUser as participants.
+            accountIDs = [currentUserAccountID ?? 0];
+        } else {
+            accountIDs = Object.keys(report.participants ?? {}).map(Number);
+            if (ReportUtils.isOneOnOneChat(report)) {
+                // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+                accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
+            }
+        }
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1740,8 +1822,7 @@ function getOptions(
         allPersonalDetailsOptions = lodashOrderBy(allPersonalDetailsOptions, [(personalDetail) => personalDetail.text?.toLowerCase()], 'asc');
     }
 
-    // Exclude the current user from the personal details list
-    const optionsToExclude: Option[] = [{login: currentUserLogin}, {login: CONST.EMAIL.NOTIFICATIONS}];
+    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
 
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -1820,9 +1901,10 @@ function getOptions(
     }
 
     if (includePersonalDetails) {
+        const personalDetailsOptionsToExclude = [...optionsToExclude, {login: currentUserLogin}];
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         allPersonalDetailsOptions.forEach((personalDetailOption) => {
-            if (optionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
+            if (personalDetailsOptionsToExclude.some((optionToExclude) => optionToExclude.login === personalDetailOption.login)) {
                 return;
             }
             const {searchText, participantsList, isChatRoom} = personalDetailOption;
@@ -1840,52 +1922,23 @@ function getOptions(
         currentUserOption = undefined;
     }
 
-    let userToInvite: ReportUtils.OptionData | null = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
         .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
-    if (
-        searchValue &&
-        (noOptions || noOptionsMatchExactly) &&
-        !isCurrentUser({login: searchValue} as PersonalDetails) &&
-        selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
-        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
-        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
-        (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
-        !excludeUnknownUsers
-    ) {
-        // Generates an optimistic account ID for new users not yet saved in Onyx
-        const optimisticAccountID = UserUtils.generateAccountID(searchValue);
-        const personalDetailsExtended = {
-            ...allPersonalDetails,
-            [optimisticAccountID]: {
-                accountID: optimisticAccountID,
-                login: searchValue,
-                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
-            },
-        };
-        userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
-            showChatPreviewLine,
-        });
-        userToInvite.isOptimisticAccount = true;
-        userToInvite.login = searchValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        userToInvite.text = userToInvite.text || searchValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        userToInvite.alternateText = userToInvite.alternateText || searchValue;
-
-        // If user doesn't exist, use a default avatar
-        userToInvite.icons = [
-            {
-                source: UserUtils.getAvatar('', optimisticAccountID),
-                name: searchValue,
-                type: CONST.ICON_TYPE_AVATAR,
-            },
-        ];
-    }
+    const userToInvite =
+        noOptions || noOptionsMatchExactly
+            ? getUserToInviteOption({
+                  searchValue,
+                  excludeUnknownUsers,
+                  optionsToExclude,
+                  selectedOptions,
+                  betas,
+                  reportActions,
+                  showChatPreviewLine,
+              })
+            : null;
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
     if (sortByReportTypeInSearch && searchValue !== '') {
@@ -2008,6 +2061,8 @@ function getFilteredOptions(
     includePolicyReportFieldOptions = false,
     policyReportFieldOptions: string[] = [],
     recentlyUsedPolicyReportFieldOptions: string[] = [],
+    includePersonalDetails = true,
+    maxRecentReportsToShow = 5,
 ) {
     return getOptions(
         {reports, personalDetails},
@@ -2016,8 +2071,8 @@ function getFilteredOptions(
             searchInputValue: searchValue.trim(),
             selectedOptions,
             includeRecentReports: true,
-            includePersonalDetails: true,
-            maxRecentReportsToShow: 5,
+            includePersonalDetails,
+            maxRecentReportsToShow,
             excludeLogins,
             includeOwnedWorkspaceChats,
             includeP2P,
@@ -2131,11 +2186,7 @@ function getMemberInviteOptions(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, maxParticipantsReached = false, hasMatchedParticipant = false): string {
-    if (maxParticipantsReached) {
-        return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
-    }
-
+function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
     const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
@@ -2187,14 +2238,13 @@ function formatSectionsFromSearchTerm(
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: ReportUtils.OptionData[],
-    maxOptionsSelected: boolean,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '' || maxOptionsSelected) {
+    if (searchTerm === '') {
         return {
             section: {
                 title: undefined,
@@ -2248,7 +2298,7 @@ function getFirstKeyForList(data?: Option[] | null) {
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string): Options {
+function filterOptions(options: Options, searchInputValue: string, betas: OnyxEntry<Beta[]> = []): Options {
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2317,11 +2367,18 @@ function filterOptions(options: Options, searchInputValue: string): Options {
     }, options);
 
     const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
+    const userToInvite =
+        recentReports.length === 0
+            ? getUserToInviteOption({
+                  searchValue,
+                  betas,
+              })
+            : null;
 
     return {
         personalDetails: [],
         recentReports: orderOptions(recentReports, searchValue),
-        userToInvite: null,
+        userToInvite,
         currentUserOption: null,
         categoryOptions: [],
         tagOptions: [],

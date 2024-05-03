@@ -65,6 +65,23 @@ function updatePronouns(pronouns: string) {
     });
 }
 
+function setDisplayName(firstName: string, lastName: string) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [currentUserAccountID]: {
+            firstName,
+            lastName,
+            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                firstName,
+                lastName,
+            }),
+        },
+    });
+}
+
 function updateDisplayName(firstName: string, lastName: string) {
     if (!currentUserAccountID) {
         return;
@@ -411,6 +428,7 @@ export {
     updateAutomaticTimezone,
     updateAvatar,
     updateDateOfBirth,
+    setDisplayName,
     updateDisplayName,
     updateLegalName,
     updatePronouns,
