@@ -11,16 +11,19 @@ const getXeroSetupLink = (policyID: string) => {
     return commandURL + new URLSearchParams(params).toString();
 };
 
-const getTrackingCategoryValue = (policy: OnyxEntry<OnyxTypes.Policy>, key: string): string => {
+const getTrackingCategory = (policy: OnyxEntry<OnyxTypes.Policy>, key: string) => {
     const { trackingCategories } = policy?.connections?.xero?.data ?? {};
     const { mappings } = policy?.connections?.xero?.config ?? {};
 
     const category = trackingCategories?.find((category) => category.name.toLowerCase() === key.toLowerCase());
     if (!category) {
-        return "";
+        return undefined;
     }
 
-    return mappings?.[`${CONST.XERO_CONFIG.TRACK_CATEGORY_PREFIX}${category.id}`] ?? "";
+    return {
+        ...category,
+        value: mappings?.[`${CONST.XERO_CONFIG.TRACK_CATEGORY_PREFIX}${category.id}`] ?? ""
+    };
 }
 
-export {getXeroSetupLink, getTrackingCategoryValue};
+export {getXeroSetupLink, getTrackingCategory};

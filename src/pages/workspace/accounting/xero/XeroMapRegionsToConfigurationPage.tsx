@@ -11,7 +11,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import { getTrackingCategoryValue } from '@libs/actions/connections/ConnectToXero';
+import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
 import { TranslationPaths } from '@src/languages/types';
 
 
@@ -21,7 +21,7 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
     const policyID = policy?.id ?? '';
 
     const optionsList = useMemo(() => { 
-        const costCenterCategoryValue = getTrackingCategoryValue(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION);
+        const costCenterCategoryValue = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION)?.value ?? "";
 
         return Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => {
             return {

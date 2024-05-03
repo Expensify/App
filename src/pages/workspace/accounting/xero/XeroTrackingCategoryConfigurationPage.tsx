@@ -16,7 +16,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import { getTrackingCategoryValue } from '@libs/actions/connections/ConnectToXero';
+import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
 import { TranslationPaths } from '@src/languages/types';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
@@ -30,8 +30,8 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         () => {
         const availableCategories = [];
 
-        const costCenterCategoryValue = getTrackingCategoryValue(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS);
-        const regionCategoryValue = getTrackingCategoryValue(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS);
+        const costCenterCategoryValue = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS)?.value ?? "";
+        const regionCategoryValue = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION)?.value ?? "";
         if (costCenterCategoryValue) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroCostCentersTo'),

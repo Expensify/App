@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import { getTrackingCategoryValue } from '@libs/actions/connections/ConnectToXero';
+import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
 import CONST from '@src/CONST';
 import { TranslationPaths } from '@src/languages/types';
 
@@ -19,15 +19,17 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
 
+    const costCenterCategory = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS);
+
     const optionsList = useMemo(() => { 
-        const costCenterCategoryValue = getTrackingCategoryValue(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS);
+        
 
         return Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => {
             return {
                 value: option,
                 text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
                 keyForList: option,
-                isSelected: option.toLowerCase() === costCenterCategoryValue.toLowerCase()
+                isSelected: option.toLowerCase() === costCenterCategory?.value?.toLowerCase()
             }
         });
     }, [policyID, translate]);
