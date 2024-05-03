@@ -5180,8 +5180,8 @@ function canFlagReportAction(reportAction: OnyxEntry<ReportAction>, reportID: st
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RENAMED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     if (ReportActionsUtils.isWhisperAction(reportAction)) {
-        // Allow flagging welcome message whispers as they can be set by any room creator
-        if (report?.description && !isCurrentUserAction && isOriginalMessageHaveHtml && reportAction?.originalMessage?.html === report.description) {
+        // Allow flagging whispers that are sent by other users
+        if (reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
             return true;
         }
 
