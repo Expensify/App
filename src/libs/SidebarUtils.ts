@@ -245,9 +245,14 @@ function getOptionData({
         isDeletedParentAction: false,
     };
 
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const participantAccountIDs = Object.keys(report.participants ?? {})
         .map(Number)
+        .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
+    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
+        .filter(([, participant]) => participant && !participant.hidden)
+        .map(([accountID]) => Number(accountID))
         .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
@@ -288,11 +293,6 @@ function getOptionData({
     result.isDeletedParentAction = report.isDeletedParentAction;
     result.isSelfDM = ReportUtils.isSelfDM(report);
     result.isOneOnOneChat = isOneOnOneChat;
-
-    const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
-        .filter(([, participant]) => participant && !participant.hidden)
-        .map(([accountID]) => Number(accountID));
-
     result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || ReportUtils.isExpenseReport(report);

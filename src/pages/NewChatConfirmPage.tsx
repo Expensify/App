@@ -93,6 +93,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login);
+        console.log(logins);
         Report.navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', fileRef.current, optimisticReportID.current);
     };
 

@@ -1771,13 +1771,13 @@ function getMoneyRequestInformation(
     }
 
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([payerAccountID, userAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([payerAccountID, payeeAccountID]);
     }
 
     // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
-        chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID]);
+        chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID, payeeAccountID]);
     }
 
     // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
@@ -3835,7 +3835,7 @@ function createSplitsAndOnyxData(
             const existingChatReport = ReportUtils.getChatByParticipants([accountID, currentUserAccountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && !personalDetailExists;
-            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport([accountID]);
+            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport([accountID, currentUserAccountID]);
         }
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
@@ -4531,7 +4531,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
             isNewOneOnOneChatReport = !existingChatReport;
-            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport(participant.accountID ? [participant.accountID] : []);
+            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport(participant.accountID ? [participant.accountID, sessionAccountID] : []);
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
@@ -5326,10 +5326,10 @@ function getSendMoneyParams(
         idempotencyKey: Str.guid(),
     });
 
-    let chatReport = !isEmptyObject(report) && report?.reportID ? report : ReportUtils.getChatByParticipants([recipientAccountID, userAccountID]);
+    let chatReport = !isEmptyObject(report) && report?.reportID ? report : ReportUtils.getChatByParticipants([recipientAccountID, managerID]);
     let isNewChat = false;
     if (!chatReport) {
-        chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
+        chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID, managerID]);
         isNewChat = true;
     }
     const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);

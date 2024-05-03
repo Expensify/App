@@ -694,13 +694,16 @@ function createOption(
         result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
         result.policyID = report.policyID;
         result.isSelfDM = ReportUtils.isSelfDM(report);
-        result.isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
+        // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+        const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
         const visibleParticipantAccountIDs = Object.entries(report.participants ?? {})
             .filter(([, participant]) => participant && !participant.hidden)
-            .map(([accountID]) => Number(accountID));
+            .map(([accountID]) => Number(accountID))
+            .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
 
         result.tooltipText = ReportUtils.getReportParticipantsTitle(visibleParticipantAccountIDs);
+        result.isOneOnOneChat = isOneOnOneChat;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -765,9 +768,12 @@ function createOption(
 function getReportOption(participant: Participant): ReportUtils.OptionData {
     const report = ReportUtils.getReport(participant.reportID);
 
+    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const visibleParticipantAccountIDs = Object.entries(report?.participants ?? {})
         .filter(([, reportParticipant]) => reportParticipant && !reportParticipant.hidden)
-        .map(([accountID]) => Number(accountID));
+        .map(([accountID]) => Number(accountID))
+        .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
 
     const option = createOption(
         visibleParticipantAccountIDs,
@@ -1468,9 +1474,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
                 return;
             }
 
-            const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
-
             // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+            const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
             const accountIDs = Object.keys(report.participants ?? {})
                 .map(Number)
                 .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);
@@ -1505,8 +1510,8 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
 }
 
 function createOptionFromReport(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>) {
-    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+    const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
     const accountIDs = Object.keys(report.participants ?? {})
         .map(Number)
         .filter((accountID) => !isOneOnOneChat || accountID !== currentUserAccountID);

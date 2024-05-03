@@ -902,9 +902,10 @@ function navigateToAndOpenReport(
 
     if (isEmptyObject(chat)) {
         if (isGroupChat) {
+            // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
             newChat = ReportUtils.buildOptimisticGroupChatReport(participantAccountIDs, reportName ?? '', avatarUri ?? '', optimisticReportID);
         } else {
-            newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+            newChat = ReportUtils.buildOptimisticChatReport([...participantAccountIDs, currentUserAccountID]);
         }
     }
     const report = isEmptyObject(chat) ? newChat : chat;
@@ -928,7 +929,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     const chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+        newChat = ReportUtils.buildOptimisticChatReport([...participantAccountIDs, currentUserAccountID]);
     }
     const report = chat ?? newChat;
 

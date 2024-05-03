@@ -665,7 +665,7 @@ function setAssigneeValue(
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
-            report = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
+            report = ReportUtils.buildOptimisticChatReport([assigneeAccountID, currentUserAccountID]);
             report.isOptimisticReport = true;
 
             // When assigning a task to a new user, by default we share the task in their DM

@@ -22,8 +22,9 @@ describe('OptionsListUtils', () => {
             participants: {
                 2: {},
                 1: {},
+                5: {},
             },
-            reportName: 'Iron Man, Mister Fantastic',
+            reportName: 'Iron Man, Mister Fantastic, Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
         },
         '2': {
@@ -32,6 +33,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '2',
             participants: {
+                2: {},
                 3: {},
             },
             reportName: 'Spider-Man',
@@ -45,6 +47,7 @@ describe('OptionsListUtils', () => {
             isPinned: true,
             reportID: '3',
             participants: {
+                2: {},
                 1: {},
             },
             reportName: 'Mister Fantastic',
@@ -56,6 +59,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '4',
             participants: {
+                2: {},
                 4: {},
             },
             reportName: 'Black Panther',
@@ -67,6 +71,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '5',
             participants: {
+                2: {},
                 5: {},
             },
             reportName: 'Invisible Woman',
@@ -78,6 +83,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '6',
             participants: {
+                2: {},
                 6: {},
             },
             reportName: 'Thor',
@@ -91,6 +97,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '7',
             participants: {
+                2: {},
                 7: {},
             },
             reportName: 'Captain America',
@@ -104,6 +111,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '8',
             participants: {
+                2: {},
                 12: {},
             },
             reportName: 'Silver Surfer',
@@ -117,6 +125,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '9',
             participants: {
+                2: {},
                 8: {},
             },
             reportName: 'Mister Sinister',
@@ -223,6 +232,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '11',
             participants: {
+                2: {},
                 999: {},
             },
             reportName: 'Concierge',
@@ -238,6 +248,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '12',
             participants: {
+                2: {},
                 1000: {},
             },
             reportName: 'Chronos',
@@ -253,6 +264,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '13',
             participants: {
+                2: {},
                 1001: {},
             },
             reportName: 'Receipts',
@@ -268,6 +280,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '14',
             participants: {
+                2: {},
                 1: {},
                 10: {},
                 3: {},
@@ -288,6 +301,7 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             reportID: '15',
             participants: {
+                2: {},
                 3: {},
                 4: {},
             },
@@ -406,7 +420,7 @@ describe('OptionsListUtils', () => {
         // Value with latest lastVisibleActionCreated should be at the top.
         expect(results.recentReports.length).toBe(2);
         expect(results.recentReports[0].text).toBe('Mister Fantastic');
-        expect(results.recentReports[1].text).toBe('Mister Fantastic');
+        expect(results.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
 
         return waitForBatchedUpdates()
             .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
@@ -2672,7 +2686,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports[0].text).toBe('Invisible Woman');
             expect(filteredOptions.recentReports[1].text).toBe('Spider-Man');
             expect(filteredOptions.recentReports[2].text).toBe('Black Widow');
-            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[3].text).toBe('Mister Fantastic, Invisible Woman');
             expect(filteredOptions.recentReports[4].text).toBe("SHIELD's workspace (archived)");
         });
 
@@ -2745,7 +2759,7 @@ describe('OptionsListUtils', () => {
 
             expect(filteredOptions.recentReports.length).toBe(2);
             expect(filteredOptions.recentReports[0].text).toBe('Mister Fantastic');
-            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic');
+            expect(filteredOptions.recentReports[1].text).toBe('Mister Fantastic, Invisible Woman');
         });
     });
 });

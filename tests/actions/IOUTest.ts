@@ -37,22 +37,25 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
-const CARLOS_PARTICIPANT: Participant = {hidden: false};
+const CARLOS_PARTICIPANT: Participant = {hidden: false, role: 'member'};
 const JULES_EMAIL = 'jules@expensifail.com';
 const JULES_ACCOUNT_ID = 2;
-const JULES_PARTICIPANT: Participant = {hidden: false};
+const JULES_PARTICIPANT: Participant = {hidden: false, role: 'member'};
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
-const RORY_PARTICIPANT: Participant = {hidden: false};
+const RORY_PARTICIPANT: Participant = {hidden: false, role: 'admin'};
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
-const VIT_PARTICIPANT: Participant = {hidden: false};
+const VIT_PARTICIPANT: Participant = {hidden: false, role: 'member'};
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+            },
         });
     });
 
@@ -101,7 +104,7 @@ describe('actions/IOU', () => {
                                         expect(iouReport?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                         // They should be linked together
-                                        expect(chatReport?.participants).toEqual({[CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
+                                        expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                         expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
 
                                         resolve();
@@ -254,7 +257,7 @@ describe('actions/IOU', () => {
             let chatReport: OnyxTypes.Report = {
                 reportID: '1234',
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {[CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const createdAction: OnyxTypes.ReportAction = {
                 reportActionID: NumberUtils.rand64(),
@@ -422,7 +425,7 @@ describe('actions/IOU', () => {
                 reportID: chatReportID,
                 type: CONST.REPORT.TYPE.CHAT,
                 iouReportID,
-                participants: {[CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const createdAction: OnyxTypes.ReportAction = {
                 reportActionID: NumberUtils.rand64(),
@@ -646,7 +649,7 @@ describe('actions/IOU', () => {
                                         expect(iouReport?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
 
                                         // They should be linked together
-                                        expect(chatReport?.participants).toEqual({[CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
+                                        expect(chatReport?.participants).toEqual({[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT});
                                         expect(chatReport?.iouReportID).toBe(iouReport?.reportID);
 
                                         resolve();
@@ -942,7 +945,7 @@ describe('actions/IOU', () => {
             let carlosChatReport: OnyxEntry<OnyxTypes.Report> = {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
-                participants: {[CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [CARLOS_ACCOUNT_ID]: CARLOS_PARTICIPANT},
             };
             const carlosCreatedAction: OnyxEntry<OnyxTypes.ReportAction> = {
                 reportActionID: NumberUtils.rand64(),
@@ -955,7 +958,7 @@ describe('actions/IOU', () => {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
                 iouReportID: julesIOUReportID,
-                participants: {[JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
+                participants: {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [JULES_ACCOUNT_ID]: JULES_PARTICIPANT},
             };
             const julesChatCreatedAction: OnyxEntry<OnyxTypes.ReportAction> = {
                 reportActionID: NumberUtils.rand64(),
