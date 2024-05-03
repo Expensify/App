@@ -661,7 +661,9 @@ function ReportScreen({
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={Navigation.goBack}
+                        onBackButtonPress={() => {
+                            shouldUseNarrowLayout ? Navigation.dismissModal() : Navigation.goBack();
+                        }}
                         shouldShowLink={false}
                     >
                         <OfflineWithFeedback

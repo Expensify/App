@@ -198,7 +198,9 @@ function MoneyReportHeader({
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
+                onBackButtonPress={() => {
+                    shouldUseNarrowLayout ? Navigation.dismissModal() : Navigation.goBack(undefined, false, true);
+                }}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout)}
                 shouldShowThreeDotsButton
