@@ -17,8 +17,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
-import { TranslationPaths } from '@src/languages/types';
-import { MenuItemProps } from '@components/MenuItem';
+import type { TranslationPaths } from '@src/languages/types';
+import type { MenuItemProps } from '@components/MenuItem';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();

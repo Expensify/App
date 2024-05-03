@@ -13,7 +13,7 @@ import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
 import CONST from '@src/CONST';
-import { TranslationPaths } from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
@@ -31,7 +31,7 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
             keyForList: option,
             isSelected: option.toLowerCase() === category?.value?.toLowerCase()
         }))
-    ), [policyID, translate, category]);
+    ), [translate, category]);
 
 
     return (
