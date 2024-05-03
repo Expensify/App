@@ -920,7 +920,7 @@ export default {
             deviceCredentials: 'Credenciales del dispositivo',
             invalidate: 'Invalidar',
             destroy: 'Destruir',
-            exportToFile: 'Exportar datos de la app a un archivo',
+            exportToFile: 'Exportar instantánea de app a un archivo',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

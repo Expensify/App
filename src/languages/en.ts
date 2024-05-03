@@ -925,7 +925,7 @@ export default {
             deviceCredentials: 'Device credentials',
             invalidate: 'Invalidate',
             destroy: 'Destroy',
-            exportToFile: 'Export app data to file',
+            exportToFile: 'Export app snapshot to file',
         },
         debugConsole: {
             saveLog: 'Save log',
