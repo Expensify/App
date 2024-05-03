@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -11,7 +10,6 @@ import MoneyRequestSkeletonView from '@components/MoneyRequestSkeletonView';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RenderHTML from '@components/RenderHTML';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -63,7 +61,6 @@ function MoneyRequestPreviewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
-    const parser = new ExpensiMark();
 
     const sessionAccountID = session?.accountID;
     const managerID = iouReport?.managerID ?? -1;
@@ -301,12 +298,9 @@ function MoneyRequestPreviewContent({
                                                 {!isCurrentUserManager && shouldShowPendingConversionMessage && (
                                                     <Text style={[styles.textLabel, styles.colorMuted]}>{translate('iou.pendingConversionMessage')}</Text>
                                                 )}
-                                                {shouldShowDescription && (
-                                                    <View style={[styles.breakWord, styles.preWrap]}>
-                                                        <RenderHTML html={`<muted-text>${parser.replace(merchantOrDescription)}</muted-text>`} />
-                                                    </View>
+                                                {(shouldShowMerchant || shouldShowDescription) && (
+                                                    <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>
                                                 )}
-                                                {shouldShowMerchant && <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>}
                                             </View>
                                             {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>

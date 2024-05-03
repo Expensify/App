@@ -63,9 +63,9 @@ const chatTypes = {
 const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const onboardingChoices = {
-    EMPLOYER: 'newDotEmployer',
-    MANAGE_TEAM: 'newDotManageTeam',
     PERSONAL_SPEND: 'newDotPersonalSpend',
+    MANAGE_TEAM: 'newDotManageTeam',
+    EMPLOYER: 'newDotEmployer',
     CHAT_SPLIT: 'newDotSplitChat',
     LOOKING_AROUND: 'newDotLookingAround',
 };
@@ -584,6 +584,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
+    TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -654,6 +655,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELEGATE_SUBMIT: 'DELEGATESUBMIT', // OldDot Action
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // OldDot Action
+                DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // OldDot Action
                 EXPORTED_TO_CSV: 'EXPORTEDTOCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTEDTOINTEGRATION', // OldDot Action
@@ -915,6 +917,15 @@ const CONST = {
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
+    },
+    SEARCH_TABLE_COLUMNS: {
+        DATE: 'date',
+        MERCHANT: 'merchant',
+        FROM: 'from',
+        TO: 'to',
+        TOTAL: 'total',
+        TYPE: 'type',
+        ACTION: 'action',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1251,15 +1262,14 @@ const CONST = {
         SYNC_CUSTOMERS: 'syncCustomers',
         SYNC_LOCATIONS: 'syncLocations',
         SYNC_TAX: 'syncTax',
-        PREFERRED_EXPORTER: 'exporter',
+        EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
-        OUT_OF_POCKET_EXPENSES: 'outOfPocketExpenses',
-        EXPORT_INVOICE: 'exportInvoice',
-        EXPORT_ENTITY: 'exportEntity',
-        EXPORT_ACCOUNT: 'exportAccount',
-        EXPORT_ACCOUNT_PAYABLE: 'exportAccountPayable',
-        EXPORT_COMPANY_CARD_ACCOUNT: 'exportCompanyCardAccount',
-        EXPORT_COMPANY_CARD: 'exportCompanyCard',
+        NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'nonReimbursableExpensesAccount',
+        NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonReimbursableExpensesExportDestination',
+        REIMBURSABLE_EXPENSES_ACCOUNT: 'reimbursableExpensesAccount',
+        REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
+        NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
+        RECEIVABLE_ACCOUNT: 'receivableAccount',
         AUTO_SYNC: 'autoSync',
         SYNC_PEOPLE: 'syncPeople',
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
@@ -1268,6 +1278,8 @@ const CONST = {
     },
 
     XERO_CONFIG: {
+        AUTO_SYNC: 'autoSync',
+        SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
         IMPORT_TRACK_CATEGORIES: 'importTrackingCategories',
@@ -1283,10 +1295,22 @@ const CONST = {
         }
     },
 
-    QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE: {
+    QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
         JOURNAL_ENTRY: 'journal_entry',
+    },
+
+    QUICKBOOKS_EXPORT_DATE: {
+        LAST_EXPENSE: 'LAST_EXPENSE',
+        REPORT_EXPORTED: 'REPORT_EXPORTED',
+        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
+    },
+
+    QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE: {
+        CREDIT_CARD: 'credit_card',
+        DEBIT_CARD: 'debit_card',
+        VENDOR_BILL: 'bill',
     },
 
     ACCOUNT_ID: {
@@ -3416,11 +3440,6 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
-        // @TODO: Uncomment when the queries below are implemented
-        // SHARED: 'shared',
-        // DRAFTS: 'drafts',
-        // WAITING_ON_YOU: 'waitingOnYou',
-        // FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
@@ -4669,18 +4688,6 @@ const CONST = {
         },
     },
 
-    QUICKBOOKS_EXPORT_DATE: {
-        LAST_EXPENSE: 'LAST_EXPENSE',
-        REPORT_EXPORTED: 'REPORT_EXPORTED',
-        REPORT_SUBMITTED: 'REPORT_SUBMITTED',
-    },
-
-    QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE: {
-        CREDIT_CARD: 'credit_card',
-        DEBIT_CARD: 'debit_card',
-        VENDOR_BILL: 'bill',
-    },
-
     SESSION_STORAGE_KEYS: {
         INITIAL_URL: 'INITIAL_URL',
     },
@@ -4706,6 +4713,14 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+
+    DOWNLOADS_PATH: '/Downloads',
+    NEW_EXPENSIFY_PATH: '/New Expensify',
+
+    ENVIRONMENT_SUFFIX: {
+        DEV: ' Dev',
+        ADHOC: ' AdHoc',
+    },
 
     SEARCH_TRANSACTION_TYPE: {
         CASH: 'cash',
