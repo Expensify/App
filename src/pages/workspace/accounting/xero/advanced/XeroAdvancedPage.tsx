@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -19,9 +19,16 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? '';
-    const xeroConfig = policy?.connections?.xero?.config;
-    const {autoSync, pendingFields, sync} = xeroConfig ?? {};
-    const xeroData = policy?.connections?.xero?.data;
+    const xeroConfig = policy?.connections?.xero?.config;    
+    const {autoSync, pendingFields, sync, } = xeroConfig ?? {};
+    const {bankAccounts} = policy?.connections?.xero?.data ?? {};
+    
+    const selectedBankAccountName = useMemo(() => {
+        const {invoiceCollectionsAccountID} = sync ?? {};
+        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === invoiceCollectionsAccountID);
+
+        return selectedAccount?.name ?? '';
+    }, [sync, bankAccounts]);
 
     return (
         <ConnectionLayout
@@ -78,7 +85,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={pendingFields?.sync}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={String(xeroData?.bankAccounts)}
+                            title={String(bankAccounts)}
                             description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
@@ -88,7 +95,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={pendingFields?.sync}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={String(xeroData?.bankAccounts)}
+                            title={String(selectedBankAccountName)}
                             description={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
