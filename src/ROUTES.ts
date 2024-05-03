@@ -786,6 +786,10 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
     },
+    POLICY_ACCOUNTING_XERO_EXPORT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,
