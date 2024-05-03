@@ -259,9 +259,10 @@ function OptionRow({
                                         isCurrencyPressable={false}
                                         hideCurrencySymbol
                                         formatAmountOnBlur
-                                        touchableInputWrapperStyle={[styles.amountInputWithPrefix]}
+                                        touchableInputWrapperStyle={[styles.optionRowAmountInputWrapper]}
                                         prefixContainerStyle={[styles.pv0]}
                                         inputStyle={[
+                                            styles.optionRowAmountInput,
                                             StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
                                         ]}
                                         containerStyle={styles.iouAmountTextInputContainer}

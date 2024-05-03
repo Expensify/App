@@ -1137,11 +1137,14 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        amountInputWithPrefix: {
-            alignItems: 'flex-end',
-            minWidth: 60,
+        optionRowAmountInputWrapper: {
             borderColor: theme.border,
             borderBottomWidth: 2,
+        },
+
+        optionRowAmountInput: {
+            minWidth: 60,
+            textAlign: 'right',
         },
 
         textInputLabel: {
