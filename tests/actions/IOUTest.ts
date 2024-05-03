@@ -1136,7 +1136,9 @@ describe('actions/IOU', () => {
                                         // 5. The chat report with Rory + Vit (new)
                                         vitChatReport =
                                             Object.values(allReports ?? {}).find(
-                                                (report) => report?.type === CONST.REPORT.TYPE.CHAT && isEqual(report.participants, {[VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
+                                                (report) =>
+                                                    report?.type === CONST.REPORT.TYPE.CHAT &&
+                                                    isEqual(report.participants, {[RORY_ACCOUNT_ID]: RORY_PARTICIPANT, [VIT_ACCOUNT_ID]: VIT_PARTICIPANT}),
                                             ) ?? null;
                                         expect(isEmptyObject(vitChatReport)).toBe(false);
                                         expect(vitChatReport?.pendingFields).toStrictEqual({createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
