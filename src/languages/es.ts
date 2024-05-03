@@ -2100,7 +2100,7 @@ export default {
                         description: 'Fecha en la que el informe se envió para su aprobación',
                     },
                 },
-            },            
+            },
         },
         type: {
             free: 'Gratis',
