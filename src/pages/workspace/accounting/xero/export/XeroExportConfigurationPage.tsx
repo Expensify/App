@@ -17,6 +17,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const policyOwner = policy?.owner ?? '';
+
     const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
     const menuItems: MenuItem[] = [
         {
@@ -36,11 +37,17 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             description: translate('workspace.xero.purchaseBillDate'),
-            onPress: () => {},
             brickRoadIndicator: errorFields?.billDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.billDate,
             pendingAction: pendingFields?.export,
             error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
+        },
+        {
+            description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
+            onPress: () => {},
+            title: exportConfiguration?.billStatus.purchase,
+            pendingAction: pendingFields?.export,
+            error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
         },
         {
             description: translate('workspace.xero.exportInvoices'),

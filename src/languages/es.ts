@@ -2037,16 +2037,15 @@ export default {
             export: 'Exportar',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
             exportCompanyCard: 'Export company card expenses as',
-            purchaseBill: 'Purchase Bill',
+            purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard:
                 'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero días laborales',
             preferredExporter: 'Exportador preferido',
             exportExpenses: 'Exportar gastos de bolsillo como',
-            exportExpensesDescription:
-                'Reports will export as a Purchase Bill awaiting payment, posting on the last day of the month in which expenses were incurred. This is the only export option with Xero.',
-            purchaseBillDate: 'Purchase Bill Date',
+            exportExpensesDescription: 'Reports will export as a purchase bill using the date and with the status you select below.',
+            purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Exportar facturas como',
             salesInvoice: 'Sales invoice',
             exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
@@ -2054,7 +2053,7 @@ export default {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
                 autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
-                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                purchaseBillStatusTitle: 'Purchase bill status',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
