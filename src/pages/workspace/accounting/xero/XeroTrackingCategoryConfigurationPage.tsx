@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
 import { TranslationPaths } from '@src/languages/types';
+import { MenuItemProps } from '@components/MenuItem';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -26,7 +27,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {importTrackingCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
     const { trackingCategories } = policy?.connections?.xero?.data ?? {};
 
-    const menuItems = useMemo(
+    const menuItems: MenuItemProps[] = useMemo(
         () => {
         const availableCategories = [];
 
@@ -35,7 +36,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         if (costCenterCategoryValue) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroCostCentersTo'),
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_MAP_COST_CENTERS.getRoute(policyID)),
+                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_MAP_COST_CENTERS.getRoute(policyID)),
                 title: translate(`workspace.xero.trackingCategoriesOptions.${costCenterCategoryValue.toLowerCase()}` as TranslationPaths)
             });
         }
@@ -43,13 +44,13 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         if (trackingCategories?.find((category) => category.name.toLowerCase() === CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION)) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroRegionsTo'),
-                action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_MAP_REGIONS.getRoute(policyID)),
+                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_MAP_REGIONS.getRoute(policyID)),
                 title: translate(`workspace.xero.trackingCategoriesOptions.${regionCategoryValue.toLowerCase()}` as TranslationPaths)
             });
         }
         return availableCategories;
     },
-        [translate, policyID, trackingCategories],
+        [translate, policy, policyID, trackingCategories],
     );
 
     return (
@@ -90,13 +91,13 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                 </View>
                 {importTrackingCategories && (
                     <View>
-                        {menuItems.map((menuItem) => (
+                        {menuItems.map((menuItem: MenuItemProps) => (
                             <MenuItemWithTopDescription
-                                key={menuItem.title}
+                                key={menuItem.description}
                                 title={menuItem.title}
                                 description={menuItem.description}
                                 shouldShowRightIcon
-                                onPress={menuItem.action}
+                                onPress={menuItem.onPress}
                             />
                         ))}
                     </View>
