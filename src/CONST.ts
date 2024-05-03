@@ -1271,6 +1271,7 @@ const CONST = {
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
         IMPORT_TRACK_CATEGORIES: 'importTrackingCategories',
+        MAPPINGS: 'mappings',
         TRACK_CATEGORY_PREFIX: 'trackingCategory_',
         TRACK_CATEGORY_FIELDS: {
             COST_CENTERS: 'cost centers',

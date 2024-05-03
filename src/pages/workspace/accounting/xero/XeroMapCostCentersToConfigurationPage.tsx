@@ -15,6 +15,7 @@ import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
 import CONST from '@src/CONST';
 import { TranslationPaths } from '@src/languages/types';
 import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -55,12 +56,12 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
                 <SelectionList
                         sections={[{data: optionsList}]}
                         ListItem={RadioListItem}
-                        onSelectRow={(row) => {
+                        onSelectRow={(option) => {
                             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.MAPPINGS, {
                                 ...(policy?.connections?.xero?.config?.mappings ?? {}),
-                                ...(category?.id ? {[`${CONST.XERO_CONFIG.TRACK_CATEGORY_PREFIX}${category.id}`]: row.value}: {})
+                                ...(category?.id ? {[`${CONST.XERO_CONFIG.TRACK_CATEGORY_PREFIX}${category.id}`]: option.value}: {})
                             })
-                            Navigation.goBack();
+                            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACK_CATEGORIES.getRoute(policyID));
                         }}
                     />
             </ScreenWrapper>
