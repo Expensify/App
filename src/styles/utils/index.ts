@@ -1593,7 +1593,18 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
      * this method will produce reliable results.
      */
-    getCharacterPadding: (prefix: string): number => prefix.length * 10,
+    getCharacterPadding: (prefix: string): number => {
+        let padding = 0;
+        prefix.split('').forEach((char) => {
+            if (char.match(/[a-z]/i) && char === char.toUpperCase()) {
+                padding += 11;
+            } else {
+                padding += 8;
+            }
+        });
+
+        return padding;
+    },
 
     // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({

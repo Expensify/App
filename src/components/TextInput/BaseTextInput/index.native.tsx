@@ -357,10 +357,6 @@ function BaseTextInput(
                                 onFocus={onFocus}
                                 onBlur={onBlur}
                                 onChangeText={setValue}
-                                onChange={(e) => {
-                                    // @ts-expect-error `data` is not defined in TextInputChangeEventData
-                                    nexCharacter.current = e.nativeEvent?.data ?? '';
-                                }}
                                 secureTextEntry={passwordHidden}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
