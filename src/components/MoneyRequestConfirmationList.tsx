@@ -482,7 +482,6 @@ function MoneyRequestConfirmationList({
                 amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
                 currency: iouCurrencyCode,
                 prefixCharacter: currencySymbol,
-                formatAmountOnChange: !transaction?.splitShares?.[participantOption.accountID ?? 0]?.isModified,
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));

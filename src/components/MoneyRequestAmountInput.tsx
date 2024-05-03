@@ -68,9 +68,6 @@ type MoneyRequestAmountInputProps = {
 
     /** Whether we want to format the display amount on blur */
     formatAmountOnBlur?: boolean;
-
-    /** Whether to format display amount when the `amount` prop changes from the outside */
-    formatAmountOnChange?: boolean;
 };
 
 type Selection = {
@@ -99,7 +96,6 @@ function MoneyRequestAmountInput(
         moneyRequestAmountInputRef,
         disableKeyboard = true,
         formatAmountOnBlur,
-        formatAmountOnChange,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
