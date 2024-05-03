@@ -200,7 +200,7 @@ function FloatingActionButtonAndPopover(
 
     const navigateToQuickAction = () => {
         const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedRoom(quickActionReport));
-        const quickActionReportID = isValidReport ? quickActionReportID?.reportID ?? '' : ReportUtils.generateReportID();
+        const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '' : ReportUtils.generateReportID();
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
                 IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
