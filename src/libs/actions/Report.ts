@@ -8,7 +8,6 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import type {FileObject} from '@components/AttachmentModal';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import type {
@@ -3674,8 +3673,8 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
-function setTaskDataForNewAssingee(assigneeLogin: string) {
-    const assigneeAccountID = UserUtils.generateAccountID(assigneeLogin);
+function setTaskDataForNewAssingee(assigneeLogin: string, accountID: number | undefined = undefined) {
+    const assigneeAccountID = accountID ?? UserUtils.generateAccountID(assigneeLogin);
     const report: OnyxEntry<Report> | undefined = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
     report.isOptimisticReport = true;
 
@@ -3690,8 +3689,8 @@ function setTaskDataForNewAssingee(assigneeLogin: string) {
 
     const optimisticPersonalDetailsListAction = {
         accountID: assigneeAccountID,
-        avatar: FallbackAvatar,
-        displayName: assigneeLogin,
+        avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
+        displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeLogin,
         login: assigneeLogin,
     };
     Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
