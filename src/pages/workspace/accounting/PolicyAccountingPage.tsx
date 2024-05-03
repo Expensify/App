@@ -136,7 +136,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 onSelected: () => setIsDisconnectModalOpen(true),
             },
         ],
-        [translate, policyID, isOffline],
+        [translate, policyID, isOffline, connectedIntegration],
     );
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
