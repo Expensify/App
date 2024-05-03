@@ -423,6 +423,8 @@ function ReportActionsList({
         [sortedReportActions, isOffline, currentUnreadMarker],
     );
 
+    const firstVisibleReportActionID = useMemo(() => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
+
     /**
      * Evaluate new unread marker visibility for each of the report actions.
      */
@@ -451,6 +453,24 @@ function ReportActionsList({
         },
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
+
+    const shouldUseThreadDividerLine = useMemo(() => {
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions[sortedVisibleReportActions.length - 1] : null;
+
+        if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return false;
+        }
+
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            return !ReportActionsUtils.isDeletedParentAction(parentReportAction) && !ReportActionsUtils.isReversedTransaction(parentReportAction);
+        }
+
+        if (ReportUtils.isTaskReport(report)) {
+            return !ReportUtils.isCanceledTaskReport(report, parentReportAction);
+        }
+
+        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report);
+    }, [parentReportAction, report, sortedVisibleReportActions]);
 
     const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
@@ -537,6 +557,8 @@ function ReportActionsList({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
                 shouldDisplayReplyDivider={sortedReportActions.length > 1}
+                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             />
         ),
         [
@@ -551,6 +573,8 @@ function ReportActionsList({
             reportActions,
             transactionThreadReport,
             parentReportActionForTransactionThread,
+            shouldUseThreadDividerLine,
+            firstVisibleReportActionID,
         ],
     );
 
