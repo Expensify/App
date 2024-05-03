@@ -628,11 +628,17 @@ function reportActionsExist(reportID: string): boolean {
 }
 
 function updateGroupChatName(reportID: string, reportName: string) {
+    console.log("calling update chat name")
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {reportName},
+            value: {
+                reportName,
+                errorFields: {
+                    reportName: null,
+                },
+            },
         },
     ];
     const parameters: UpdateGroupChatNameParams = {reportName, reportID};
