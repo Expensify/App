@@ -317,6 +317,7 @@ export default {
             subtitleText3: '.',
         },
         businessName: 'Nombre de la empresa',
+        clear: 'Borrar',
         type: 'Tipo',
         action: 'Acción',
     },
@@ -1912,8 +1913,6 @@ export default {
             locations: 'Lugares',
             customers: 'Clientes/Proyectos',
             displayedAs: 'Mostrado como',
-            notImported: 'No importado',
-            importedAsReportFields: 'Importado, mostrado como campo de informe',
             accountsDescription: 'Los planes de cuentas se importan como categorías cuando está conectado con una integración de contaduría, esto no se puede desactivar.',
             accountsSwitchTitle: 'Habilita el plan de cuentas recien importado',
             accountsSwitchDescription: 'Las nuevas categorías importadas desde QuickBooks Online a Expensify serán activadas o desactivadas por defecto.',
@@ -1998,31 +1997,30 @@ export default {
                     'Si está exportando facturas de Expensify a Quickbooks Online, ésta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
             },
             accounts: {
-                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',
-                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'Cheque',
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Cheque',
 
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
 
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
                     'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
                     'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]:
-                    'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
 
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK}Error`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]:
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
         },
@@ -2032,6 +2030,8 @@ export default {
             importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
             trackingCategories: 'Categorías de seguimiento',
             customers: 'Volver a facturar a los clientes',
+            customersDescription:
+                'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
         },
@@ -2234,7 +2234,16 @@ export default {
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
-            importedAsTags: 'Importado, mostrado como etiqueta',
+            notImported: 'No importado',
+            importAsCategory: 'Importado, mostrado as categoría',
+            importTypes: {
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Importado, mostrado como etiqueta',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado, mostrado como campo de informe',
+            },
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -3423,6 +3432,11 @@ export default {
         taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams) => `${taxName ?? 'El impuesto'} ya no es válido`,
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
+    },
+    violationDismissal: {
+        rter: {
+            manual: 'marcó el recibo como pagado en efectivo.',
+        },
     },
     videoPlayer: {
         play: 'Reproducir',
