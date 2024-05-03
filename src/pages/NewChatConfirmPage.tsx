@@ -13,7 +13,6 @@ import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,7 +40,6 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
     const fileRef = useRef<File | CustomRNImageManipulatorResult | undefined>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const personalData = useCurrentUserPersonalDetails();
     const participantAccountIDs = (newGroupDraft?.participants ?? []).map((participant) => participant.accountID);
     const selectedOptions = useMemo((): Participant[] => {
@@ -70,18 +68,12 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                         accountID,
                         icons: selectedOption?.icons,
                         alternateText: selectedOption?.login ?? '',
-                        rightElement: isAdmin ? (
-                            <Badge
-                                text={translate('common.admin')}
-                                textStyles={styles.textStrong}
-                                badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered]}
-                            />
-                        ) : undefined,
+                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
                     };
                     return section;
                 })
                 .sort((a, b) => a.text?.toLowerCase().localeCompare(b.text?.toLowerCase() ?? '') ?? -1),
-        [selectedOptions, personalData.accountID, translate, StyleUtils, styles],
+        [selectedOptions, personalData.accountID, translate],
     );
 
     /**

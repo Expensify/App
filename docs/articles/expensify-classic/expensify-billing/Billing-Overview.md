@@ -15,9 +15,9 @@ Each month, you’ll be billed for the amount of members you originally set in y
 
 For example, let’s say you set your annual subscription size at 10 members and you’re on the Control plan. You’ll be billed $18/member for 10 members each month. However, let’s say in one particular month you had 12 active members, you’d be billed at $18/member for the 10 members in your subscription size + $36/member (pay-per-use rate) for the additional 2 active members.
 
-You can always increase your annual subscription size, which will extend your annual subscription length. You cannot reduce your annual subscription size until your current subscription has ended. If you have any questions about this, reach out to Concierge or your account manager. 
+You can always increase your annual subscription size, which will extend your annual subscription length. However, you cannot reduce your annual subscription size until your current subscription has ended. If you have any questions about this, contact Concierge or your account manager. 
 ## Pay-per-use
-The pay-per-use rate is the full rate per active member without any discounts. The pay-per-use rate for each member on the Collect plan is $20 and on the Control plan is $36.
+The pay-per-use rate is the full rate per active member without any discounts. The pay-per-use rate for each member on the Collect plan is $20, and on the Control plan, it is $36.
 ## How the Expensify Card can reduce your bill
 Bundling the Expensify Card with an annual subscription ensures you pay the lowest possible monthly price for Expensify. And the more you spend on Expensify Cards, the lower your bill will be.
 
@@ -26,15 +26,19 @@ If at least 50% of your approved USD spend in a given month is on your company�
 Additionally, every month, you receive 1% cash back on all Expensify Card purchases, and 2% if the spend across your Expensify Cards is $250k or more (_applies to USD purchases only_). Any cash back from the Expensify Card is first applied to your Expensify bill, further reducing your price per member. Any leftover cash back is deposited directly into your connected bank account.
 ## Savings calculator
 To see how much money you can save (and even earn!) by using the Expensify Card, check out our [savings calculator](https://use.expensify.com/price-savings-calculator). Just enter a few details and see how much you’ll save!
+
 {% include faq-begin.md %}
+
 ## What if we put less than 50% of our total spend on the Expensify Card?
-If you put less than 50% of your total USD spend on your Expensify Card, your bill gets discounted on a sliding scale based on the percentage of use. So if you don't use the Expensify Card at all, you'll be charged the full rate for each member based on your plan and subscription.
-Example:
+If less than 50% of your total USD spend is on the Expensify Card, the bill is discounted on a sliding scale.
+
+**Example:**
 - Annual subscription discount: 50%
 - % of Expensify Card spend (USD) across all workspaces: 20% 
 - Expensify Card discount: 20%
-You save 70% on the price per member on your bill for that month.
 
-Note: USD spend refers to approved USD transactions on the Expensify Card in any given month, compared to all approved USD spend on workspaces in that same month.
+In that case, you'd save 70% on the price per member for that month's bill.
+
+Note: USD spend refers to approved USD transactions on the Expensify Card in any given month.
 
 {% include faq-end.md %}

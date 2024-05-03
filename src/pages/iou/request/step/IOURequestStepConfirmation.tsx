@@ -77,39 +77,62 @@ function IOURequestStepConfirmation({
     const transactionTaxAmount = transaction?.taxAmount;
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
-    const isRequestingFromTrackExpense = action === CONST.IOU.ACTION.REQUEST;
+    const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
+    const payeePersonalDetails = useMemo(() => {
+        if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
+            return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
+        }
+
+        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0] ?? -1));
+
+        return {
+            login: participant?.login ?? '',
+            accountID: participant?.accountID ?? -1,
+            avatar: Expensicons.FallbackAvatar,
+            displayName: participant?.login ?? '',
+            isOptimisticPersonalDetail: true,
+        };
+    }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
     const headerTitle = useMemo(() => {
-        if (isSharingTrackExpense) {
+        if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
         }
-        if (isRequestingFromTrackExpense) {
+        if (isSubmittingFromTrackExpense) {
             return translate('iou.submitExpense');
         }
-        if (isCategorizingTrackExpense) {
+        if (isSharingTrackExpense) {
             return translate('iou.share');
         }
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             return translate('iou.splitExpense');
         }
-        if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (iouType === CONST.IOU.TYPE.TRACK) {
             return translate('iou.trackExpense');
         }
-        if (iouType === CONST.IOU.TYPE.SEND) {
+        if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
-        return translate(TransactionUtils.getHeaderTitleTranslationKey(transaction));
-    }, [iouType, report, transaction, translate, isSharingTrackExpense, isCategorizingTrackExpense, isRequestingFromTrackExpense]);
+        if (iouType === CONST.IOU.TYPE.INVOICE) {
+            return translate('workspace.invoices.sendInvoice');
+        }
+        return translate('iou.submitExpense');
+    }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
     const participants = useMemo(
         () =>
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
+
+                if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
+                    return participant;
+                }
+
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }) ?? [],
-        [transaction?.participants, personalDetails],
+        [transaction?.participants, personalDetails, iouType],
     );
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     const formHasBeenSubmitted = useRef(false);
@@ -123,7 +146,7 @@ function IOURequestStepConfirmation({
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
-        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, defaultBillable);
+        IOU.setMoneyRequestBillable(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
@@ -327,6 +350,7 @@ function IOURequestStepConfirmation({
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                     });
                 }
                 return;
@@ -348,12 +372,18 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         billable: !!transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                     });
                 }
                 return;
             }
 
-            if (iouType === CONST.IOU.TYPE.TRACK_EXPENSE || isCategorizingTrackExpense || isSharingTrackExpense) {
+            if (iouType === CONST.IOU.TYPE.INVOICE) {
+                IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile, policy, policyTags, policyCategories);
+                return;
+            }
+
+            if (iouType === CONST.IOU.TYPE.TRACK || isCategorizingTrackExpense || isSharingTrackExpense) {
                 if (receiptFile && transaction) {
                     // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                     if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense) {
@@ -429,18 +459,21 @@ function IOURequestStepConfirmation({
         },
         [
             transaction,
+            report,
             iouType,
             receiptFile,
             requestType,
             requestMoney,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
-            report?.reportID,
             trackExpense,
             createDistanceRequest,
             isSharingTrackExpense,
             isCategorizingTrackExpense,
             action,
+            policy,
+            policyTags,
+            policyCategories,
         ],
     );
 
@@ -478,11 +511,11 @@ function IOURequestStepConfirmation({
             }
             return participant;
         });
-        IOU.setMoneyRequestParticipants_temporaryForRefactor(transactionID, newParticipants);
+        IOU.setMoneyRequestParticipants(transactionID, newParticipants);
     };
 
     const setBillable = (billable: boolean) => {
-        IOU.setMoneyRequestBillable_temporaryForRefactor(transactionID, billable);
+        IOU.setMoneyRequestBillable(transactionID, billable);
     };
 
     return (
@@ -496,7 +529,7 @@ function IOURequestStepConfirmation({
                     <HeaderWithBackButton
                         title={headerTitle}
                         onBackButtonPress={navigateBack}
-                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.TRACK_EXPENSE)}
+                        shouldShowThreeDotsButton={requestType === CONST.IOU.REQUEST_TYPE.MANUAL && (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK)}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                         threeDotsMenuItems={[
                             {
@@ -537,6 +570,7 @@ function IOURequestStepConfirmation({
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                         shouldShowSmartScanFields={IOUUtils.isMovingTransactionFromTrackExpense(action) ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
+                        payeePersonalDetails={payeePersonalDetails}
                     />
                 </View>
             )}
@@ -548,13 +582,13 @@ IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
 })(IOURequestStepConfirmation);
 /* eslint-disable rulesdir/no-negated-variables */

@@ -5,12 +5,14 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     ActionName,
     ChangeLog,
     IOUMessage,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageDismissedViolation,
     OriginalMessageIOU,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageReimbursementDequeued,
@@ -20,6 +22,7 @@ import type {Message, ReportActionBase, ReportActions} from '@src/types/onyx/Rep
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import DateUtils from './DateUtils';
 import * as Environment from './Environment/Environment';
 import isReportMessageAttachment from './isReportMessageAttachment';
 import * as Localize from './Localize';
@@ -27,6 +30,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -225,9 +229,9 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
  * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
 function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | null {
-    // If the report is not an IOU or Expense report, it shouldn't be treated as one-transaction report.
+    // If the report is not an IOU, Expense report or an Invoice, it shouldn't be treated as one-transaction report.
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE) {
+    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return null;
     }
 
@@ -726,7 +730,7 @@ function getReportAction(reportID: string, reportActionID: string): OnyxEntry<Re
 
 function getMostRecentReportActionLastModified(): string {
     // Start with the oldest date possible
-    let mostRecentReportActionLastModified = new Date(0).toISOString();
+    let mostRecentReportActionLastModified = DateUtils.getDBTime(0);
 
     // Flatten all the actions
     // Loop over them all to find the one that is the most recent
@@ -1106,8 +1110,22 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
 }
 
+function getDismissedViolationMessageText(originalMessage: OriginalMessageDismissedViolation['originalMessage']): string {
+    const reason = originalMessage.reason;
+    const violationName = originalMessage.violationName;
+    return Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
+}
+
+/**
+ * Check if the linked transaction is on hold
+ */
+function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
+    return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
+}
+
 export {
     extractLinksFromMessageHtml,
+    getDismissedViolationMessageText,
     getOneTransactionThreadReportID,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
@@ -1167,6 +1185,7 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    isLinkedTransactionHeld,
 };
 
 export type {LastVisibleMessage};
