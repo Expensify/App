@@ -16,26 +16,29 @@ function createQueue<T>(processItem: (item: T) => Promise<void>): Queue<T> {
         return elements.length === 0;
     }
 
+    // Function to process the next item in the queue
+    function processNext(): Promise<void> {
+        return new Promise((resolve) => {
+            if (!isEmpty()) {
+                const nextItem = dequeue();
+                if (nextItem) {
+                    processItem(nextItem).then(() => processNext().then(resolve));
+                }
+            } else {
+                isProcessing = false;
+                resolve();
+            }
+        });
+    }
+
     // Initiates the processing of items in the queue.
     // Continues to dequeue and process items as long as the queue is not empty.
     // Sets the `isProcessing` flag to true at the start and resets it to false once all items have been processed.
     function run(): Promise<void> {
-        return new Promise((resolve) => {
-            isProcessing = true;
-            function processNext() {
-                if (!isEmpty()) {
-                    const nextItem = dequeue();
-                    if (nextItem) {
-                        processItem(nextItem).then(processNext);
-                    }
-                } else {
-                    isProcessing = false;
-                    resolve();
-                }
-            }
-            processNext();
-        });
+        isProcessing = true;
+        return processNext();
     }
+    
     // Adds an item to the queue and initiates processing if not already in progress
     function enqueue(item: T): void {
         elements.push(item);
