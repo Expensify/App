@@ -1,24 +1,18 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import type {SelectorType} from '@components/SelectionScreen';
+import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-
-type SelectorType = ListItem & {
-    value: string;
-};
 
 function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -53,33 +47,28 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
 
     const updateMode = useCallback(
         ({value}: SelectorType) => {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.INVOICE_COLLECTION_ACCOUNT_ID, value);
+            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.SYNC, {
+                invoiceCollectionsAccountID: value,
+            });
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID));
         },
         [policyID],
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-        >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={XeroInvoiceAccountSelectorPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.xero.advancedConfig.xeroInvoiceCollectionAccount')} />
-
-                <SelectionList
-                    sections={[{data: xeroSelectorOptions}]}
-                    ListItem={RadioListItem}
-                    headerContent={listHeaderComponent}
-                    onSelectRow={updateMode}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-                />
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            displayName={XeroInvoiceAccountSelectorPage.displayName}
+            sections={[{data: xeroSelectorOptions}]}
+            listItem={RadioListItem}
+            onSelectRow={updateMode}
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+            headerContent={listHeaderComponent}
+            onBackButtonPress={() => Navigation.goBack()}
+            title="workspace.xero.advancedConfig.xeroInvoiceCollectionAccount"
+        />
     );
 }
 
