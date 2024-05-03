@@ -246,6 +246,7 @@ describe('actions/IOU', () => {
         it('updates existing chat report if there is one', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
+            const created = DateUtils.getDBTime();
             let chatReport: OnyxTypes.Report = {
                 reportID: '1234',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -254,7 +255,7 @@ describe('actions/IOU', () => {
             const createdAction: OnyxTypes.ReportAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                created: DateUtils.getDBTime(),
+                created,
             };
             let iouReportID: string | undefined;
             let iouAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -270,7 +271,7 @@ describe('actions/IOU', () => {
                         }),
                     )
                     .then(() => {
-                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, '', '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
+                        IOU.requestMoney(chatReport, amount, CONST.CURRENCY.USD, created, '', RORY_EMAIL, RORY_ACCOUNT_ID, {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID}, comment, {});
                         return waitForBatchedUpdates();
                     })
                     .then(
@@ -317,6 +318,10 @@ describe('actions/IOU', () => {
 
                                         // The CREATED action should not be created after the IOU action
                                         expect(Date.parse(iouCreatedAction?.created ?? '')).toBeLessThan(Date.parse(iouAction?.created ?? ''));
+
+                                        // The iouAction created time should be same as lastVisibleActionCreated
+                                        // To prevent the "New message" from showing up in the report list
+                                        expect(iouAction?.created).toBe(chatReport.lastVisibleActionCreated);
 
                                         // The IOUReportID should be correct
                                         expect(iouAction?.originalMessage?.IOUReportID).toBe(iouReportID);
