@@ -628,7 +628,6 @@ function reportActionsExist(reportID: string): boolean {
 }
 
 function updateGroupChatName(reportID: string, reportName: string) {
-    console.log("calling update chat name")
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
