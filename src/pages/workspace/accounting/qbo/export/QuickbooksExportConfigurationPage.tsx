@@ -93,7 +93,7 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
                 includeSafeAreaPaddingBottom={false}
                 testID={QuickbooksExportConfigurationPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.export')} />
+                <HeaderWithBackButton title={translate('common.export')} />
                 <ScrollView contentContainerStyle={styles.pb2}>
                     <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDescription')}</Text>
                     {menuItems.map((menuItem) => (

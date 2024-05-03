@@ -1900,7 +1900,6 @@ export default {
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             locationsAdditionalDescription:
                 'Locations are imported as Tags. This limits exporting expense reports as Vendor Bills or Checks to QuickBooks Online. To unlock these export options, either disable Locations import or upgrade to the Control Plan to export Locations encoded as a Report Field.',
-            export: 'Export',
             exportAs: 'Export as',
             exportDescription: 'Configure how data in Expensify gets exported to QuickBooks Online.',
             preferredExporter: 'Preferred exporter',
@@ -2216,7 +2215,6 @@ export default {
             setup: 'Set up',
             lastSync: 'Last synced just now',
             import: 'Import',
-            export: 'Export',
             advanced: 'Advanced',
             other: 'Other integrations',
             syncNow: 'Sync now',

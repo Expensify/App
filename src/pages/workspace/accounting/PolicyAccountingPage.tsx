@@ -227,7 +227,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           icon: Expensicons.Send,
                           iconRight: Expensicons.ArrowRight,
                           shouldShowRightIcon: true,
-                          title: translate('workspace.accounting.export'),
+                          title: translate('common.export'),
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
                           onPress: integrationData?.onExportPagePress,
                       },
