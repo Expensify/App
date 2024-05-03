@@ -1,8 +1,6 @@
 import type {GestureResponderEvent, StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {MaybePhraseKey} from '@libs/Localize';
-import type CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type CustomBaseTextInputProps = {
@@ -55,11 +53,6 @@ type CustomBaseTextInputProps = {
      * Autogrow input container length based on the entered text.
      */
     autoGrow?: boolean;
-
-    /**
-     * Is this input right-aligned and has to grow to the left or vice-versa?
-     */
-    autoGrowDirection?: ValueOf<typeof CONST.INPUT_AUTOGROW_DIRECTION>;
 
     /**
      * Autogrow input container height based on the entered text

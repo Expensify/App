@@ -1,6 +1,6 @@
 import Str from 'expensify-common/lib/str';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
 import {ActivityIndicator, Animated, StyleSheet, View} from 'react-native';
 import Checkbox from '@components/Checkbox';
@@ -27,49 +27,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
-function percentage(percentageValue: number, totalValue: number) {
-    return (totalValue / 100) * percentageValue;
-}
-
-/**
- * Calculates the width in px of characters from 0 to 9 and '.'
- */
-function calculateCharacterWidth(lastCharacterEntered: string) {
-    const defaultWidth = 8;
-    if (lastCharacterEntered === '.') {
-        return percentage(25, defaultWidth);
-    }
-    const number = +lastCharacterEntered;
-
-    // The digit '1' is 62.5% smaller than the default width
-    if (number === 1) {
-        return percentage(62.5, defaultWidth);
-    }
-    if (number >= 2 && number <= 5) {
-        return defaultWidth;
-    }
-    if (number === 7) {
-        return percentage(87.5, defaultWidth);
-    }
-    if ((number >= 6 && number <= 9) || number === 0) {
-        return percentage(112.5, defaultWidth);
-    }
-    return defaultWidth;
-}
-
-/**
- * When the user deletes a character, this function should allow us to know which digit was deleted so we can calculate the new width of the input
- */
-function getDeletedCharacter(previousValue: string, newValue: string) {
-    let sum = newValue.charCodeAt(newValue.length - 1);
-    for (let j = 0; j < previousValue.length; j++) {
-        sum -= previousValue.charCodeAt(j);
-        sum += newValue.charCodeAt(j);
-    }
-    const res = String.fromCharCode(sum);
-    return res;
-}
-
 function BaseTextInput(
     {
         label = '',
@@ -91,7 +48,6 @@ function BaseTextInput(
         autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
-        autoGrowDirection = CONST.INPUT_AUTOGROW_DIRECTION.RIGHT,
         autoGrowHeight = false,
         maxAutoGrowHeight,
         hideFocusedState = false,
@@ -298,35 +254,6 @@ function BaseTextInput(
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
     ]);
-
-    const previousValue = useRef('');
-    const nexCharacter = useRef('');
-
-    // When using autoGrow and the amount input is right aligned, the input is going to grow to the left of the view and for a brief second the new character will be displayed outside of the input
-    // This logic below allows us to calculate the exact width we need to add to the input when a new digit is entered
-    // Each charact (1 to 9 and '.') have a sepcific width
-    useLayoutEffect(() => {
-        const currentValue = value ?? '';
-        if (autoGrowDirection !== CONST.INPUT_AUTOGROW_DIRECTION.LEFT || !autoGrow || previousValue.current.length === currentValue.length) {
-            return;
-        }
-
-        // If a character is deleted, find out which one it is and adjust input width based on the deleted character's width
-        if (previousValue.current.length > currentValue.length) {
-            if (currentValue.length === 0) {
-                return;
-            }
-            const diff = getDeletedCharacter(currentValue, previousValue.current);
-            setTextInputWidth((currentWidth) => currentWidth - calculateCharacterWidth(diff));
-            previousValue.current = currentValue;
-            return;
-        }
-
-        previousValue.current = currentValue;
-        if (nexCharacter.current.length) {
-            setTextInputWidth((currentWidth) => currentWidth + calculateCharacterWidth(nexCharacter.current));
-        }
-    }, [autoGrow, autoGrowDirection, value]);
 
     return (
         <>

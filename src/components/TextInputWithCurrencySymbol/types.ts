@@ -1,8 +1,6 @@
 import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
-import type CONST from '@src/CONST';
 
 type TextInputWithCurrencySymbolProps = {
     /** Formatted amount in local currency  */
@@ -63,11 +61,6 @@ type TextInputWithCurrencySymbolProps = {
 
     /** Customizes the touchable wrapper of the TextInput component */
     touchableInputWrapperStyle?: StyleProp<ViewStyle>;
-
-    /**
-     * Is this input right-aligned and has to grow to the left or vice-versa?
-     */
-    autoGrowDirection?: ValueOf<typeof CONST.INPUT_AUTOGROW_DIRECTION>;
 } & Pick<BaseTextInputProps, 'autoFocus'>;
 
 export default TextInputWithCurrencySymbolProps;
