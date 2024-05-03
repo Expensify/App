@@ -897,7 +897,7 @@ function navigateToAndOpenReport(
 
     // If we are not creating a new Group Chat then we are creating a 1:1 DM and will look for an existing chat
     if (!isGroupChat) {
-        chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     }
 
     if (isEmptyObject(chat)) {
@@ -926,7 +926,7 @@ function navigateToAndOpenReport(
  */
 function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
-    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+    const chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
@@ -2468,7 +2468,7 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
         Navigation.navigate(lastAccessedReportRoute, CONST.NAVIGATION.TYPE.FORCED_UP);
     } else {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]);
-        const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+        const chat = ReportUtils.getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
         if (chat?.reportID) {
             // If it is not a chat thread we should call Navigation.goBack to pop the current route first before navigating to Concierge.
             if (!isChatThread) {
@@ -2644,8 +2644,6 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                participantAccountIDs: report.participantAccountIDs,
-                visibleChatMemberAccountIDs: report.visibleChatMemberAccountIDs,
                 participants: inviteeAccountIDs.reduce((revertedParticipants: Record<number, null>, accountID) => {
                     // eslint-disable-next-line no-param-reassign
                     revertedParticipants[accountID] = null;
@@ -2982,7 +2980,7 @@ function completeOnboarding(
 ) {
     const targetEmail = CONST.EMAIL.CONCIERGE;
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
-    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
+    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID, currentUserAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message
@@ -3323,7 +3321,7 @@ function completeEngagementModal(choice: OnboardingPurposeType, text?: string) {
         lastReadTime: currentTime,
     };
 
-    const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID]);
+    const conciergeChatReport = ReportUtils.getChatByParticipants([conciergeAccountID, currentUserAccountID]);
     conciergeChatReportID = conciergeChatReport?.reportID;
 
     const report = ReportUtils.getReport(conciergeChatReportID);

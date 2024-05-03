@@ -661,7 +661,7 @@ function setAssigneeValue(
     if (!isCurrentUser) {
         // Check for the chatReport by participants IDs
         if (!report) {
-            report = ReportUtils.getChatByParticipants([assigneeAccountID]);
+            report = ReportUtils.getChatByParticipants([assigneeAccountID, currentUserAccountID]);
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
