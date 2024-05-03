@@ -144,7 +144,7 @@ function NewChatConfirmPage({newGroupDraft, allPersonalDetails}: NewChatConfirmP
                     sections={[{title: translate('common.members'), data: sections}]}
                     ListItem={InviteMemberListItem}
                     onSelectRow={unselectOption}
-                    showConfirmButton={selectedOptions.length > 0}
+                    showConfirmButton={selectedOptions.length}
                     confirmButtonText={translate('newChatPage.startGroup')}
                     onConfirm={selectedOptions.length > 0 ? createGroup : undefined}
                     shouldHideListOnInitialRender={false}
