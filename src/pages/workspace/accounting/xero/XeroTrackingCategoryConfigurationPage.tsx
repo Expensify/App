@@ -1,16 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
@@ -19,6 +16,7 @@ import ROUTES from '@src/ROUTES';
 import { getTrackingCategory } from '@libs/actions/connections/ConnectToXero';
 import type { TranslationPaths } from '@src/languages/types';
 import type { MenuItemProps } from '@components/MenuItem';
+import ConnectionLayout from '@components/ConnectionLayout';
 
 function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -54,20 +52,16 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <ConnectionLayout
+            displayName={XeroTrackingCategoryConfigurationPage.displayName}
+            headerTitle="workspace.xero.trackingCategories"
+            title="workspace.xero.trackingCategoriesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableMaxHeight
-                testID={XeroTrackingCategoryConfigurationPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.xero.trackingCategories')} />
-                <View style={[styles.pb2, styles.ph5]}>
-                    <Text style={styles.pb5}>{translate('workspace.xero.trackingCategoriesDescription')}</Text>
-                    <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+            <View>
+            <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <View style={styles.flex1}>
                             <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
                         </View>
@@ -98,12 +92,12 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                                 description={menuItem.description}
                                 shouldShowRightIcon
                                 onPress={menuItem.onPress}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
                             />
                         ))}
                     </View>
-                )}
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+                )}                
+            </ConnectionLayout>
     );
 }
 
