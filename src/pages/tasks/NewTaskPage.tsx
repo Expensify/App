@@ -24,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList, Report, Task} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import FormHelpMessage from "@components/FormHelpMessage";
 
 type NewTaskPageOnyxProps = {
     /** Task Creation Data */
@@ -52,6 +53,7 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
     const [errorMessage, setErrorMessage] = useState('');
     const [parentReport, setParentReport] = useState<OnyxEntry<Report>>(null);
 
+    const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
     useEffect(() => {
@@ -138,6 +140,14 @@ function NewTaskPage({task, reports, personalDetails}: NewTaskPageProps) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
+                {hasDestinationError && (
+                    <FormHelpMessage
+                        style={[styles.ph4, styles.mb4]}
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={translate('quickAction.noLongerHaveReportAccess')}
+                    />
+                )}
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     // on iOS, navigation animation sometimes cause the scrollbar to appear

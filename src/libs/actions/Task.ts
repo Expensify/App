@@ -661,6 +661,7 @@ function setAssigneeValue(
     shareToReportID?: string,
     chatReport?: OnyxEntry<OnyxTypes.Report>,
     isCurrentUser = false,
+    skipShareDestination = false,
 ): OnyxEntry<OnyxTypes.Report> | undefined {
     let report: OnyxEntry<OnyxTypes.Report> | undefined = chatReport;
     if (!isCurrentUser) {
@@ -703,7 +704,7 @@ function setAssigneeValue(
 
         // If there is no share destination set, automatically set it to the assignee chat report
         // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
-        if (!shareToReportID) {
+        if (!shareToReportID && !skipShareDestination) {
             setShareDestinationValue(report?.reportID ?? '');
         }
     }
@@ -735,7 +736,7 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
     }
     if (accountID > 0) {
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
-        setAssigneeValue(accountLogin, accountID, reportID, chatReport);
+        setAssigneeValue(accountLogin, accountID, reportID, chatReport, skipConfirmation);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
