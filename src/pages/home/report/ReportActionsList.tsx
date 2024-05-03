@@ -454,9 +454,9 @@ function ReportActionsList({
     );
 
     const shouldUseThreadDividerLine = useMemo(() => {
-        const topReport = sortedVisibleReportActions[sortedVisibleReportActions.length - 1];
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions[sortedVisibleReportActions.length - 1] : null;
 
-        if (topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
             return false;
         }
 
