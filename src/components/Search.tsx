@@ -15,6 +15,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
 import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
+import {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 type SearchProps = {
     query: string;
@@ -55,8 +56,9 @@ function Search({query}: SearchProps) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
     };
 
-    const ListItem = SearchUtils.getListItem();
-    const data = SearchUtils.getSections(searchResults?.data ?? {});
+    const type = searchResults?.search?.type as SearchDataTypes;
+    const ListItem = SearchUtils.getListItem(type);
+    const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
     const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data ?? {});
 
     return (
