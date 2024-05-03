@@ -9,7 +9,6 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import OfflineIndicator from '@components/OfflineIndicator';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDisableModalDismissOnEscape from '@hooks/useDisableModalDismissOnEscape';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingLayout from '@hooks/useOnboardingLayout';
@@ -27,7 +26,7 @@ import type {BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps} from './types
 
 const OPEN_WORK_PAGE_PURPOSES = [CONST.ONBOARDING_CHOICES.MANAGE_TEAM];
 
-function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingWorkProps) {
+function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingWorkProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -113,10 +112,8 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
 
 BaseOnboardingWork.displayName = 'BaseOnboardingWork';
 
-export default withCurrentUserPersonalDetails(
-    withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
-        onboardingPurposeSelected: {
-            key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
-        },
-    })(BaseOnboardingWork),
-);
+export default withOnyx<BaseOnboardingWorkProps, BaseOnboardingWorkOnyxProps>({
+    onboardingPurposeSelected: {
+        key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+    },
+})(BaseOnboardingWork);
