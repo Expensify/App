@@ -2083,6 +2083,24 @@ export default {
                 xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
                 xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
             },
+            exportDate: {
+                label: 'Fecha de exportación',
+                description: 'Usa esta fecha al exportar informe a QuickBooks Online.',
+                values: {
+                    [CONST.XERO_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto mas reciente en el informe',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha de exportación del informe a QuickBooks Online',
+                    },
+                    [CONST.XERO_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en la que el informe se envió para su aprobación',
+                    },
+                },
+            },            
         },
         type: {
             free: 'Gratis',

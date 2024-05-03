@@ -2049,6 +2049,24 @@ export default {
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
             },
+            exportDate: {
+                label: 'Export date',
+                description: 'Use this date when exporting reports to QuickBooks Online.',
+                values: {
+                    [CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Date of last expense',
+                        description: 'The date of the most recent expense on the report',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Export date',
+                        description: 'The date the report was exported to QuickBooks Online',
+                    },
+                    [CONST.QUICKBOOKS_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Submitted date',
+                        description: 'The date the report was submitted for approval',
+                    },
+                },
+            },
         },
         type: {
             free: 'Free',
