@@ -43,15 +43,13 @@ function BaseOnboardingWork({currentUserPersonalDetails, shouldUseNativeStyles, 
                 return;
             }
 
+            const work = values.work.trim();
+            const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
+
             if (OPEN_WORK_PAGE_PURPOSES.includes(onboardingPurposeSelected)) {
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
-
                 return;
             }
-
-            const work = values.work.trim();
-
-            const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
 
             Report.completeOnboarding(
                 onboardingPurposeSelected,
