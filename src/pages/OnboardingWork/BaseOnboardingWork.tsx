@@ -18,6 +18,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import * as Policy from '@userActions/Policy';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -40,7 +41,8 @@ function BaseOnboardingWork({shouldUseNativeStyles, onboardingPurposeSelected}: 
                 return;
             }
             const work = values.work.trim();
-            Policy.createWorkspace(undefined, true, work);
+            const {adminsChatReportID} = Policy.createWorkspace(undefined, true, work);
+            Welcome.setOnboardingAdminsChatReportID(adminsChatReportID);
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
         },
         [onboardingPurposeSelected],

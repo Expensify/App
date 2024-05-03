@@ -22,13 +22,14 @@ import * as ValidationUtils from '@libs/ValidationUtils';
 import variables from '@styles/variables';
 import * as PersonalDetails from '@userActions/PersonalDetails';
 import * as Report from '@userActions/Report';
+import * as Welcome from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import type {BaseOnboardingPersonalDetailsOnyxProps, BaseOnboardingPersonalDetailsProps} from './types';
 
-function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected}: BaseOnboardingPersonalDetailsProps) {
+function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, onboardingPurposeSelected, onboardingAdminsChatReportID}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -49,11 +50,18 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            Report.completeOnboarding(onboardingPurposeSelected, CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected], {
-                login: currentUserPersonalDetails.login ?? '',
-                firstName,
-                lastName,
-            });
+            Report.completeOnboarding(
+                onboardingPurposeSelected,
+                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                {
+                    login: currentUserPersonalDetails.login ?? '',
+                    firstName,
+                    lastName,
+                },
+                onboardingAdminsChatReportID,
+            );
+
+            Welcome.setOnboardingAdminsChatReportID();
 
             Navigation.dismissModal();
 
@@ -177,6 +185,9 @@ export default withCurrentUserPersonalDetails(
     withOnyx<BaseOnboardingPersonalDetailsProps, BaseOnboardingPersonalDetailsOnyxProps>({
         onboardingPurposeSelected: {
             key: ONYXKEYS.ONBOARDING_PURPOSE_SELECTED,
+        },
+        onboardingAdminsChatReportID: {
+            key: ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID,
         },
     })(BaseOnboardingPersonalDetails),
 );
