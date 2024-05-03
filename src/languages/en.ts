@@ -2023,6 +2023,22 @@ export default {
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
+            export: 'Export',
+            exportDescription: 'Configure how data in Expensify gets exported to Xero.',
+            exportCompanyCard: 'Export company card expenses as',
+            purchaseBill: 'Purchase Bill',
+            exportDeepDiveCompanyCard:
+                'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
+            bankTransactions: 'Bank transactions',
+            xeroBankAccount: 'Xero Bank Account',
+            preferredExporter: 'Preferred exporter',
+            exportExpenses: 'Export out-of-pocket expenses as',
+            exportExpensesDescription:
+                'Reports will export as a Purchase Bill awaiting payment, posting on the last day of the month in which expenses were incurred. This is the only export option with Xero.',
+            purchaseBillDate: 'Purchase Bill Date',
+            exportInvoices: 'Export invoices as',
+            salesInvoice: 'Sales invoice',
+            exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
             advancedConfig: {
                 advanced: 'Advanced',
                 autoSync: 'Auto-Sync',
