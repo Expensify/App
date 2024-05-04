@@ -5476,7 +5476,7 @@ function temporary_getMoneyRequestOptions(
 /**
  * Invoice sender, invoice receiver and auto-invited admins cannot leave
  */
-function canJoinOrLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
+function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
     if (!isInvoiceRoom(report)) {
         return false;
     }
@@ -6405,17 +6405,13 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
     }
 
     // Anyone viewing these chat types is already a participant and therefore cannot join
-    if (isRootGroupChat(report) || isSelfDM(report)) {
+    if (isRootGroupChat(report) || isSelfDM(report) || isInvoiceRoom(report)) {
         return false;
     }
 
     // The user who is a member of the workspace has already joined the public announce room.
     if (isPublicAnnounceRoom(report) && !isEmptyObject(policy)) {
         return false;
-    }
-
-    if (canJoinOrLeaveInvoiceRoom(report)) {
-        return true;
     }
 
     return isChatThread(report) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
@@ -6425,6 +6421,10 @@ function canJoinChat(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<Re
  * Whether the user can leave a report
  */
 function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    if (report?.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        return false;
+    }
+
     // Anyone viewing these chat types is already a participant and therefore cannot leave
     if (isSelfDM(report) || isRootGroupChat(report)) {
         return false;
@@ -6435,7 +6435,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boo
         return false;
     }
 
-    if (canJoinOrLeaveInvoiceRoom(report)) {
+    if (canLeaveInvoiceRoom(report)) {
         return true;
     }
 
