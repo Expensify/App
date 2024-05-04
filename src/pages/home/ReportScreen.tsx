@@ -322,10 +322,10 @@ function ReportScreen({
     }, [shouldHideReport, report]);
 
     const onBackButtonPress = useCallback(() => {
-        shouldUseNarrowLayout
+        isReportOpenInRHP
             ? Navigation.dismissModal()
             : Navigation.goBack(undefined, false, true);
-    }, [shouldUseNarrowLayout]);
+    }, [isReportOpenInRHP]);
 
     let headerView = (
         <HeaderView
@@ -665,7 +665,7 @@ function ReportScreen({
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={shouldUseNarrowLayout ? Navigation.dismissModal : Navigation.goBack}
+                        onBackButtonPress={Navigation.goBack}
                         shouldShowLink={false}
                     >
                         <OfflineWithFeedback
