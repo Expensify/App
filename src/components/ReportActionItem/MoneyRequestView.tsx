@@ -153,8 +153,7 @@ function MoneyRequestView({
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const didRceiptScanSucceed = hasReceipt && TransactionUtils.didRceiptScanSucceed(transaction);
-    // TODO: remove the !isTrackExpense from this condition after this fix: https://github.com/Expensify/Expensify/issues/382786
-    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE) && !isTrackExpense;
+    const canEditDistance = ReportUtils.canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
 
     const isAdmin = policy?.role === 'admin';
     const isApprover = ReportUtils.isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
