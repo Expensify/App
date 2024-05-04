@@ -321,14 +321,21 @@ function ReportScreen({
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(undefined, false, true);
-    }, []);
+    const onBackButtonPress = useCallback(
+        (goBack: () => void) => {
+            shouldUseNarrowLayout ? Navigation.dismissModal : goBack;
+        },
+        [shouldUseNarrowLayout],
+    );
 
     let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
-            onNavigationMenuButtonClicked={goBack}
+            onBackButtonPress={() => {
+                onBackButtonPress(() => {
+                    Navigation.goBack(undefined, false, true);
+                });
+            }}
             report={report}
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
@@ -342,6 +349,11 @@ function ReportScreen({
                 policy={policy}
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
+                onBackButtonPress={() => {
+                    onBackButtonPress(() => {
+                        Navigation.goBack(undefined, false, true);
+                    });
+                }}
             />
         );
     }
@@ -366,6 +378,11 @@ function ReportScreen({
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
+                onBackButtonPress={() => {
+                    onBackButtonPress(() => {
+                        Navigation.goBack(undefined, false, true);
+                    });
+                }}
             />
         );
     }
@@ -647,7 +664,6 @@ function ReportScreen({
             reportIDFromRoute,
         })}`,
     );
-    const onBackButtonPress = shouldUseNarrowLayout ? Navigation.dismissModal : Navigation.goBack;
 
     return (
         <ActionListContext.Provider value={actionListValue}>

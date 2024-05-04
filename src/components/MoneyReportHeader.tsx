@@ -55,6 +55,9 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    /** Method to trigger when pressing close button of the header */
+    onBackButtonPress: () => void;
 };
 
 function MoneyReportHeader({
@@ -66,6 +69,7 @@ function MoneyReportHeader({
     transactionThreadReport,
     reportActions,
     shouldUseNarrowLayout = false,
+    onBackButtonPress,
 }: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
@@ -188,12 +192,6 @@ function MoneyReportHeader({
 
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
-
-    const onBackButtonPress = shouldUseNarrowLayout
-        ? Navigation.dismissModal
-        : () => {
-              Navigation.goBack(undefined, false, true);
-          };
 
     return (
         <View style={[styles.pt0]}>

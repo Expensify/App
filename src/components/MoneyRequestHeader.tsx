@@ -52,6 +52,9 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    /** Method to trigger when pressing close button of the header */
+    onBackButtonPress: () => void;
 };
 
 function MoneyRequestHeader({
@@ -63,6 +66,7 @@ function MoneyRequestHeader({
     shownHoldUseExplanation = false,
     policy,
     shouldUseNarrowLayout = false,
+    onBackButtonPress,
 }: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -172,12 +176,6 @@ function MoneyRequestHeader({
         });
     }
 
-    const onBackButtonPress = shouldUseNarrowLayout
-        ? Navigation.dismissModal
-        : () => {
-              Navigation.goBack(undefined, false, true);
-          };
-
     return (
         <>
             <View style={[styles.pl0]}>
@@ -194,7 +192,7 @@ function MoneyRequestHeader({
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={onBackButtonPress}
+                    onBackButtonPress
                 />
                 {isPending && (
                     <MoneyRequestHeaderStatusBar
