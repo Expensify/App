@@ -89,7 +89,7 @@ function getOrderedReportIDs(
         const isFocused = report.reportID === currentReportId;
         const allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions) ?? {};
         const hasErrorsOtherThanFailedReceipt = doesReportHaveViolations || Object.values(allReportErrors).some((error) => error?.[0] !== 'report.genericSmartscanFailureMessage');
-        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned;
+        const shouldOverrideHidden = hasErrorsOtherThanFailedReceipt || isFocused || report.isPinned || ReportUtils.isSystemChat(report);
         if (isHidden && !shouldOverrideHidden) {
             return false;
         }
