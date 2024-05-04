@@ -172,7 +172,11 @@ function MoneyRequestHeader({
         });
     }
 
-    const onBackButtonPress = shouldUseNarrowLayout ? Navigation.dismissModal : () => {Navigation.goBack(undefined, false, true)};
+    const onBackButtonPress = shouldUseNarrowLayout
+        ? Navigation.dismissModal
+        : () => {
+              Navigation.goBack(undefined, false, true);
+          };
 
     return (
         <>

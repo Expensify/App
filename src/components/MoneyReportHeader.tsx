@@ -189,7 +189,11 @@ function MoneyReportHeader({
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
 
-    const onBackButtonPress = shouldUseNarrowLayout ? Navigation.dismissModal : () => {Navigation.goBack(undefined, false, true)};
+    const onBackButtonPress = shouldUseNarrowLayout
+        ? Navigation.dismissModal
+        : () => {
+              Navigation.goBack(undefined, false, true);
+          };
 
     return (
         <View style={[styles.pt0]}>
