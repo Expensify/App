@@ -37,6 +37,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2, styles.ph5]}
         >
             <ToggleSettingOptionRow
                 key={translate('workspace.xero.advancedConfig.autoSync')}
@@ -54,16 +55,6 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 errors={ErrorUtils.getLatestErrorField(xeroConfig ?? {}, CONST.XERO_CONFIG.AUTO_SYNC)}
                 onCloseError={() => Policy.clearXeroErrorField(policyID, CONST.XERO_CONFIG.AUTO_SYNC)}
             />
-            <OfflineWithFeedback pendingAction={pendingFields?.export}>
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    title={xeroConfig?.export?.billStatus?.purchase}
-                    description={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
-                    key={translate('workspace.xero.advancedConfig.purchaseBillStatusTitle')}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    onPress={() => {}}
-                />
-            </OfflineWithFeedback>
             <ToggleSettingOptionRow
                 key={translate('workspace.xero.advancedConfig.reimbursedReports')}
                 title={translate('workspace.xero.advancedConfig.reimbursedReports')}
