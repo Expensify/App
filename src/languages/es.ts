@@ -2064,7 +2064,7 @@ export default {
             notImported: 'No importado',
             trackingCategoriesOptions: {
                 default: 'Contacto de Xero por defecto',
-                tag: 'Etiquetas'
+                tag: 'Etiquetas',
             },
             advancedConfig: {
                 advanced: 'Avanzado',

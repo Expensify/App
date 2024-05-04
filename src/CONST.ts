@@ -1292,8 +1292,8 @@ const CONST = {
         },
         TRACKING_CATEGORY_OPTIONS: {
             DEFAULT: 'DEFAULT',
-            TAG: 'TAG'
-        }
+            TAG: 'TAG',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

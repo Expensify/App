@@ -2031,7 +2031,7 @@ export default {
             notImported: 'Not imported',
             trackingCategoriesOptions: {
                 default: 'Xero contact default',
-                tag: 'Tags'
+                tag: 'Tags',
             },
             advancedConfig: {
                 advanced: 'Advanced',

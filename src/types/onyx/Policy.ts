@@ -208,7 +208,7 @@ type Tenant = {
 type XeroTrackingCategory = {
     id: string;
     name: string;
-}
+};
 
 type XeroConnectionData = {
     bankAccounts: unknown[];
