@@ -324,9 +324,7 @@ function ReportScreen({
     const onBackButtonPress = useCallback(() => {
         shouldUseNarrowLayout
             ? Navigation.dismissModal()
-            : () => {
-                  Navigation.goBack(undefined, false, true);
-              };
+            : Navigation.goBack(undefined, false, true);
     }, [shouldUseNarrowLayout]);
 
     let headerView = (
