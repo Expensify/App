@@ -16,7 +16,7 @@ function DraggableList<T>({renderClone, shouldUsePortal, ListFooterComponent, ..
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...viewProps}
             />
-            {ListFooterComponent && <View style={styles.flexGrow1}>{ListFooterComponent}</View>}
+            {React.isValidElement(ListFooterComponent) && <View style={styles.flexGrow1}>{ListFooterComponent}</View>}
         </View>
     );
 }
