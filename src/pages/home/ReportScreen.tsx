@@ -321,21 +321,18 @@ function ReportScreen({
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
-    const onBackButtonPress = useCallback(
-        (goBack: () => void) => {
-            shouldUseNarrowLayout ? Navigation.dismissModal : goBack;
-        },
-        [shouldUseNarrowLayout],
-    );
+    const onBackButtonPress = useCallback(() => {
+        shouldUseNarrowLayout
+            ? Navigation.dismissModal
+            : () => {
+                  Navigation.goBack(undefined, false, true);
+              };
+    }, [shouldUseNarrowLayout]);
 
     let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
-            onBackButtonPress={() => {
-                onBackButtonPress(() => {
-                    Navigation.goBack(undefined, false, true);
-                });
-            }}
+            onBackButtonPress={onBackButtonPress}
             report={report}
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
@@ -349,11 +346,7 @@ function ReportScreen({
                 policy={policy}
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
-                onBackButtonPress={() => {
-                    onBackButtonPress(() => {
-                        Navigation.goBack(undefined, false, true);
-                    });
-                }}
+                onBackButtonPress={onBackButtonPress}
             />
         );
     }
@@ -378,11 +371,7 @@ function ReportScreen({
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
-                onBackButtonPress={() => {
-                    onBackButtonPress(() => {
-                        Navigation.goBack(undefined, false, true);
-                    });
-                }}
+                onBackButtonPress={onBackButtonPress}
             />
         );
     }
@@ -678,7 +667,7 @@ function ReportScreen({
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
                         shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={onBackButtonPress}
+                        onBackButtonPress={shouldUseNarrowLayout ? Navigation.dismissModal : Navigation.goBack}
                         shouldShowLink={false}
                     >
                         <OfflineWithFeedback

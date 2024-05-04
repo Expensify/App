@@ -192,7 +192,7 @@ function MoneyRequestHeader({
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress
+                    onBackButtonPress={onBackButtonPress}
                 />
                 {isPending && (
                     <MoneyRequestHeaderStatusBar
