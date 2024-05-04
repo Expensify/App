@@ -780,15 +780,15 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
         getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
     },
-    POLICY_ACCOUNTING_XERO_TRACK_CATEGORIES: {
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
     },
-    POLICY_ACCOUNTING_XERO_MAP_COST_CENTERS: {
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/cost-centers',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/cost-centers` as const,
     },
-    POLICY_ACCOUNTING_XERO_MAP_REGIONS: {
+    POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION: {
         route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/region',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categoriess/region` as const,
     },

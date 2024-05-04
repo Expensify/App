@@ -22,7 +22,7 @@ const getTrackingCategory = (policy: OnyxEntry<OnyxTypes.Policy>, key: string) =
 
     return {
         ...category,
-        value: mappings?.[`${CONST.XERO_CONFIG.TRACK_CATEGORY_PREFIX}${category.id}`] ?? ""
+        value: mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`] ?? ""
     };
 }
 

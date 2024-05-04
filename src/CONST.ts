@@ -1283,14 +1283,14 @@ const CONST = {
         SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
-        IMPORT_TRACK_CATEGORIES: 'importTrackingCategories',
+        IMPORT_TRACKING_CATEGORIES: 'importTrackingCategories',
         MAPPINGS: 'mappings',
-        TRACK_CATEGORY_PREFIX: 'trackingCategory_',
-        TRACK_CATEGORY_FIELDS: {
+        TRACKING_CATEGORY_PREFIX: 'trackingCategory_',
+        TRACKING_CATEGORY_FIELDS: {
             COST_CENTERS: 'cost centers',
             REGION: 'region',
         },
-        TRACK_CATEGORY_OPTIONS: {
+        TRACKING_CATEGORY_OPTIONS: {
             DEFAULT: 'DEFAULT',
             TAG: 'TAG'
         }

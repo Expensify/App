@@ -29,20 +29,20 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         () => {
         const availableCategories = [];
 
-        const costCenterCategoryValue = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.COST_CENTERS)?.value ?? "";
-        const regionCategoryValue = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION)?.value ?? "";
+        const costCenterCategoryValue = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.COST_CENTERS)?.value ?? "";
+        const regionCategoryValue = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.REGION)?.value ?? "";
         if (costCenterCategoryValue) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroCostCentersTo'),
-                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_MAP_COST_CENTERS.getRoute(policyID)),
+                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS.getRoute(policyID)),
                 title: translate(`workspace.xero.trackingCategoriesOptions.${costCenterCategoryValue.toLowerCase()}` as TranslationPaths)
             });
         }
 
-        if (trackingCategories?.find((category) => category.name.toLowerCase() === CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION)) {
+        if (trackingCategories?.find((category) => category.name.toLowerCase() === CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.REGION)) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroRegionsTo'),
-                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_MAP_REGIONS.getRoute(policyID)),
+                onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION.getRoute(policyID)),
                 title: translate(`workspace.xero.trackingCategoriesOptions.${regionCategoryValue.toLowerCase()}` as TranslationPaths)
             });
         }
@@ -74,7 +74,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                                         Connections.updatePolicyConnectionConfig(
                                             policyID,
                                             CONST.POLICY.CONNECTIONS.NAME.XERO,
-                                            CONST.XERO_CONFIG.IMPORT_TRACK_CATEGORIES,
+                                            CONST.XERO_CONFIG.IMPORT_TRACKING_CATEGORIES,
                                             !importTrackingCategories,
                                         )
                                     }

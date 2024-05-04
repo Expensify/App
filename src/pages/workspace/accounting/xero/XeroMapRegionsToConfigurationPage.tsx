@@ -16,10 +16,10 @@ import ROUTES from '@src/ROUTES';
 function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id ?? '';
-    const category = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACK_CATEGORY_FIELDS.REGION);
+    const category = getTrackingCategory(policy,  CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.REGION);
 
     const optionsList = useMemo(() => (
-        Object.values(CONST.XERO_CONFIG.TRACK_CATEGORY_OPTIONS).map((option) => (
+        Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).map((option) => (
             {
                 value: option,
                 text: translate(`workspace.xero.trackingCategoriesOptions.${option.toLowerCase()}` as TranslationPaths),
@@ -43,9 +43,9 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
                         onSelectRow={(option) => {
                             Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.MAPPINGS, {
                                 ...(policy?.connections?.xero?.config?.mappings ?? {}),
-                                ...(category?.id ? {[`${CONST.XERO_CONFIG.TRACK_CATEGORY_PREFIX}${category.id}`]: option.value}: {})
+                                ...(category?.id ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`]: option.value}: {})
                             })
-                            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACK_CATEGORIES.getRoute(policyID));
+                            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
                         }}
                     />
             </ConnectionLayout>
