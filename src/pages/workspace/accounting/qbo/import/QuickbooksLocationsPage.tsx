@@ -21,7 +21,8 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {syncLocations, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
+    const shouldLocationImportBeOff = policy?.connections?.quickbooksOnline?.config.reimbursableExpensesExportDestination !== CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
+    const isSwitchOn = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE) && !shouldLocationImportBeOff;
     const isReportFieldsSelected = syncLocations === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD;
 
     return (
@@ -46,7 +47,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
                                     accessibilityLabel={translate('workspace.qbo.locations')}
-                                    isOn={isSwitchOn}
+                                    isOn={!shouldLocationImportBeOff && }
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(
                                             policyID,
