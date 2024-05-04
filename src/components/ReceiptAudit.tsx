@@ -7,7 +7,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
-function ReceiptAuditHeader({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: {notes: string[]; shouldShowAuditSuccess?: boolean; shouldShowAuditFailure?: boolean}) {
+function ReceiptAudit({notes, shouldShowAuditSuccess, shouldShowAuditFailure}: {notes: string[]; shouldShowAuditSuccess?: boolean; shouldShowAuditFailure?: boolean}) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -41,9 +41,4 @@ function ReceiptAuditHeader({notes, shouldShowAuditSuccess, shouldShowAuditFailu
     );
 }
 
-function ReceiptAuditMessages({notes = []}: {notes?: string[]}) {
-    const styles = useThemeStyles();
-    return <View style={[styles.mtn1, styles.mb2, styles.ph5, styles.gap1]}>{notes.length > 0 && notes.map((message) => <Text style={[styles.textLabelError]}>{message}</Text>)}</View>;
-}
-
-export {ReceiptAuditHeader, ReceiptAuditMessages};
+export default ReceiptAudit;

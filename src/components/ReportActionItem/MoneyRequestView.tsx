@@ -7,7 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
-import {ReceiptAuditHeader} from '@components/ReceiptAudit';
+import ReceiptAudit from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -337,7 +337,7 @@ function MoneyRequestView({
             {shouldShowAnimatedBackground && <AnimatedEmptyStateBackground />}
             <View style={shouldShowAnimatedBackground && [StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth, true)]}>
                 {!isInvoice && (
-                    <ReceiptAuditHeader
+                    <ReceiptAudit
                         notes={noticeTypeViolations}
                         shouldShowAuditSuccess={shouldShowAuditMessage && didRceiptScanSucceed}
                         shouldShowAuditFailure={shouldShowAuditMessage && hasReceipt}
@@ -394,7 +394,6 @@ function MoneyRequestView({
                     />
                 )}
                 {!shouldShowReceiptEmptyState && !shouldShowMapOrReceipt && <View style={{marginVertical: 6}} />}
-                {/* {shouldShowNotesViolations && <ReceiptAuditMessages notes={noticeTypeViolations} />} */}
                 {canUseViolations && <ViolationMessages violations={getViolationsForField('receipt')} />}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount')}>
                     <MenuItemWithTopDescription
