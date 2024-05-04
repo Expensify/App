@@ -34,7 +34,7 @@ At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran
 ## Slack channels
 All contributors should be a member of a shared Slack channel called [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) -- this channel is used to ask **general questions**, facilitate **discussions**, and make **feature requests**.
 
-Before requesting an invite to Slack please ensure your Upwork account is active, since we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to Slack, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
+Before requesting an invite to Slack, please ensure your Upwork account is active, since we only pay via Upwork (see [below](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#payment-for-contributions)). To request an invite to Slack, email contributors@expensify.com with the subject `Slack Channel Invites`. We'll send you an invite! 
 
 Note: Do not send direct messages to the Expensify team in Slack or Expensify Chat, they will not be able to respond. 
 
@@ -44,7 +44,7 @@ Note: if you are hired for an Upwork job and have any job-specific questions, pl
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
+We hire and pay external contributors via [Upwork.com](https://www.upwork.com). If you'd like to be paid for contributing, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. Please make sure your Upwork profile is **fully verified** before applying, otherwise you run the risk of not being paid. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
 
 Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for [regression](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions) testing. If you have not received payment after 8 days of the PR being deployed to production, and there are no [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions), please add a comment to the issue mentioning the BugZero team member (Look for the melvin-bot "Triggered auto assignment to... (`Bug`)" to see who this is).
 
@@ -75,10 +75,10 @@ This is the most common scenario for contributors. The Expensify team posts new 
 >**Solution:** Start up time will perceptibly decrease by 1042ms if we prevent the unnecessary re-renders of this component.
 
 ## Working on Expensify Jobs
-*Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
+*Reminder: For technical guidance, please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
 ## Posting Ideas
-Additionally if you want to discuss an idea with the open source community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
+Additionally, if you want to discuss an idea with the open source community without having a P/S statement yet, you can post it in #expensify-open-source with the prefix `IDEA:`. All ideas to build the future of Expensify are always welcome! i.e.: "`IDEA:` I don't have a P/S for this yet, but just kicking the idea around... what if we [insert crazy idea]?".
 
 #### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
@@ -147,7 +147,7 @@ Additionally if you want to discuss an idea with the open source community witho
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
 - Please keep the conversation in GitHub, and do not ping individual reviewers in Slack or Upwork to get their attention.
-- Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days please let us know via the #expensify-open-source Slack channel.
+- Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days, please let us know via the #expensify-open-source Slack channel.
 - On occasion, our engineers will need to focus on a feature release and choose to place a hold on the review of your PR. 
 
 #### Important note about JavaScript Style

@@ -1106,12 +1106,17 @@ index 0000000..3b65b7a
 +@end
 diff --git a/node_modules/@onfido/react-native-sdk/ios/RNOnfidoSdk.mm b/node_modules/@onfido/react-native-sdk/ios/RNOnfidoSdk.mm
 new file mode 100644
-index 0000000..4d21970
+index 0000000..998f79b
 --- /dev/null
 +++ b/node_modules/@onfido/react-native-sdk/ios/RNOnfidoSdk.mm
-@@ -0,0 +1,59 @@
+@@ -0,0 +1,64 @@
 +#import "RNOnfidoSdk.h"
++
++#ifdef USE_FRAMEWORKS
++#import <onfido_react_native_sdk/onfido_react_native_sdk-Swift.h>
++#else
 +#import <onfido_react_native_sdk-Swift.h>
++#endif
 +
 +@implementation RNOnfidoSdk {
 +    OnfidoSdk *_onfidoSdk;
@@ -1189,7 +1194,7 @@ index 0000000..c48f86e
 +
 +export default TurboModuleRegistry.getEnforcing<Spec>("RNOnfidoSdk");
 diff --git a/node_modules/@onfido/react-native-sdk/js/Onfido.ts b/node_modules/@onfido/react-native-sdk/js/Onfido.ts
-index db35471..8bb6a57 100644
+index db35471..fa6c1ef 100644
 --- a/node_modules/@onfido/react-native-sdk/js/Onfido.ts
 +++ b/node_modules/@onfido/react-native-sdk/js/Onfido.ts
 @@ -1,4 +1,4 @@
@@ -1222,7 +1227,7 @@ index db35471..8bb6a57 100644
  
    addCustomMediaCallback(callback: (result: OnfidoMediaResult) => OnfidoMediaResult) {
 diff --git a/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec b/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec
-index a9de0d0..fcd6d14 100644
+index a9de0d0..da83d9f 100644
 --- a/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec
 +++ b/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec
 @@ -2,6 +2,8 @@ require "json"
@@ -1234,7 +1239,7 @@ index a9de0d0..fcd6d14 100644
  Pod::Spec.new do |s|
    s.name         = "onfido-react-native-sdk"
    s.version      = package["version"]
-@@ -15,10 +17,15 @@ Pod::Spec.new do |s|
+@@ -15,10 +17,22 @@ Pod::Spec.new do |s|
    s.platforms    = { :ios => "11.0" }
    s.source       = { :git => "https://github.com/onfido/react-native-sdk.git", :tag => "#{s.version}" }
  
@@ -1246,6 +1251,13 @@ index a9de0d0..fcd6d14 100644
 -  s.dependency "React"
 -  s.dependency "Onfido", "~> 29.6.0"
 +  s.dependency "Onfido", "~> 29.7.0"
++  
++  if ENV['USE_FRAMEWORKS'] == '1'
++    s.pod_target_xcconfig = {
++      "OTHER_CFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++      "OTHER_CPLUSPLUSFLAGS" => "$(inherited) -DUSE_FRAMEWORKS",
++    }
++  end
 +
 +  if defined?(install_modules_dependencies()) != nil
 +    install_modules_dependencies(s)

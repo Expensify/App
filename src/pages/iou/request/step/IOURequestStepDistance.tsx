@@ -105,15 +105,21 @@ function IOURequestStepDistance({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, iouType]);
+    }, [report, skipConfirmation, policy]);
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
     if (shouldSkipConfirmation) {
-        buttonText = iouType === CONST.IOU.TYPE.SPLIT ? translate('iou.split') : translate('iou.submitExpense');
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            buttonText = translate('iou.split');
+        } else if (iouType === CONST.IOU.TYPE.TRACK) {
+            buttonText = translate('iou.trackExpense');
+        } else {
+            buttonText = translate('iou.submitExpense');
+        }
     }
 
     useEffect(() => {
@@ -225,10 +231,10 @@ function IOURequestStepDistance({
             });
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport({
+                    IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID ?? 0,
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
                         amount: 0,
                         comment: '',
                         currency: transaction?.currency ?? 'USD',
@@ -238,11 +244,38 @@ function IOURequestStepDistance({
                         tag: '',
                         billable: false,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        existingSplitChatReportID: report?.reportID,
                     });
                     return;
                 }
                 IOU.setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
                 IOU.setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
+                if (iouType === CONST.IOU.TYPE.TRACK) {
+                    IOU.trackExpense(
+                        report,
+                        0,
+                        transaction?.currency ?? 'USD',
+                        transaction?.created ?? '',
+                        translate('iou.fieldPending'),
+                        currentUserPersonalDetails.login,
+                        currentUserPersonalDetails.accountID,
+                        participants[0],
+                        '',
+                        {},
+                        '',
+                        '',
+                        '',
+                        0,
+                        false,
+                        policy,
+                        undefined,
+                        undefined,
+                        undefined,
+                        TransactionUtils.getValidWaypoints(waypoints, true),
+                    );
+                    return;
+                }
+
                 IOU.createDistanceRequest(
                     report,
                     participants[0],
@@ -279,6 +312,7 @@ function IOURequestStepDistance({
         translate,
         navigateToParticipantPage,
         navigateToConfirmationPage,
+        policy,
     ]);
 
     const getError = () => {

@@ -19,6 +19,7 @@ import codeStyles from './utils/codeStyles';
 import cursor from './utils/cursor';
 import display from './utils/display';
 import editedLabelStyles from './utils/editedLabelStyles';
+import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
@@ -212,7 +213,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 minWidth: CONST.VIDEO_PLAYER.MIN_WIDTH,
                 minHeight: CONST.VIDEO_PLAYER.MIN_HEIGHT,
                 borderRadius: variables.componentBorderRadiusNormal,
-                overflow: 'hidden',
                 backgroundColor: theme.highlightBG,
                 ...touchCalloutNone,
             },
@@ -256,6 +256,7 @@ const styles = (theme: ThemeColors) =>
         ...objectFit,
         ...textDecorationLine,
         editedLabelStyles,
+        emojiDefaultStyles,
 
         autoCompleteSuggestionsContainer: {
             backgroundColor: theme.appBG,
@@ -438,6 +439,11 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightHero,
         },
 
+        textNewKansasNormal: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            fontSize: variables.fontSizeNormal,
+        },
+
         textStrong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontWeight: FontUtils.fontWeight.bold,
@@ -529,6 +535,10 @@ const styles = (theme: ThemeColors) =>
 
         borderRadiusNormal: {
             borderRadius: variables.buttonBorderRadius,
+        },
+
+        borderRadiusComponentLarge: {
+            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         bottomTabBarContainer: {
@@ -1662,9 +1672,10 @@ const styles = (theme: ThemeColors) =>
                 ...getPopOverVerticalOffset(202 + 40),
             } satisfies AnchorPosition),
 
-        createMenuPositionReportActionCompose: (windowHeight: number) =>
+        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
             ({
-                horizontal: 18 + variables.sideBarWidth,
+                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
+                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWidth : variables.sideBarWidth) + 18,
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
@@ -1855,6 +1866,11 @@ const styles = (theme: ThemeColors) =>
         emptyWorkspaceIllustrationStyle: {
             marginTop: 12,
             marginBottom: -20,
+        },
+
+        travelIllustrationStyle: {
+            marginTop: 16,
+            marginBottom: -16,
         },
 
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
@@ -2811,6 +2827,18 @@ const styles = (theme: ThemeColors) =>
             ...cursor.cursorDefault,
         },
 
+        topUnreadIndicatorContainer: {
+            position: 'relative',
+            width: '100%',
+            /** 17 = height of the indicator 1px + 8px top and bottom */
+            height: 17,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 1,
+            ...cursor.cursorDefault,
+        },
+
         unreadIndicatorLine: {
             height: 1,
             backgroundColor: theme.unreadIndicator,
@@ -3275,10 +3303,6 @@ const styles = (theme: ThemeColors) =>
             marginTop: 6,
         },
 
-        autoGrowHeightMultilineInput: {
-            maxHeight: 115,
-        },
-
         peopleRow: {
             width: '100%',
             flexDirection: 'row',
@@ -3409,30 +3433,10 @@ const styles = (theme: ThemeColors) =>
             ...visibility.hidden,
         },
 
-        floatingMessageCounterWrapperAndroid: {
-            left: 0,
-            width: '100%',
-            alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            zIndex: 100,
-            ...visibility.hidden,
-        },
-
-        floatingMessageCounterSubWrapperAndroid: {
-            left: '50%',
-            width: 'auto',
-        },
-
         floatingMessageCounter: {
             left: '-50%',
             ...visibility.visible,
         },
-
-        floatingMessageCounterTransformation: (translateY: AnimatableNumericValue) =>
-            ({
-                transform: [{translateY}],
-            } satisfies ViewStyle),
 
         confirmationAnimation: {
             height: 180,
@@ -4309,17 +4313,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
-        moneyRequestHeaderStatusBarBadge: {
-            width: 68,
-            height: variables.inputHeightSmall,
-            borderRadius: variables.componentBorderRadiusSmall,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.border,
-            marginRight: 12,
-        },
-
         staticHeaderImage: {
             minHeight: 240,
         },
@@ -4537,6 +4530,11 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 4,
         },
 
+        walletCardLimit: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
         walletCard: {
             borderRadius: variables.componentBorderRadiusLarge,
             position: 'relative',
@@ -4722,6 +4720,13 @@ const styles = (theme: ThemeColors) =>
             color: theme.heading,
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
+        },
+
+        videoPlayerPreview: {
+            width: '100%',
+            height: '100%',
+            borderRadius: variables.componentBorderRadiusNormal,
+            backgroundColor: theme.highlightBG,
         },
 
         videoPlayerControlsContainer: {

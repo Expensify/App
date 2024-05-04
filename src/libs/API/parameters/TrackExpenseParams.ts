@@ -22,7 +22,7 @@ type TrackExpenseParams = {
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
-    gpsPoints?: string;
+    receiptGpsPoints?: string;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
     waypoints?: string;

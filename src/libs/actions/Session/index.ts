@@ -23,7 +23,6 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as Authentication from '@libs/Authentication';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Fullstory from '@libs/fullstory';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -40,6 +39,7 @@ import * as Device from '@userActions/Device';
 import * as PriorityMode from '@userActions/PriorityMode';
 import redirectToSignIn from '@userActions/SignInRedirect';
 import Timing from '@userActions/Timing';
+import * as Welcome from '@userActions/Welcome';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,11 +62,6 @@ Onyx.connect({
             authPromiseResolver = null;
         }
     },
-});
-
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: Fullstory.consentAndIdentify,
 });
 
 let stashedSession: Session = {};
@@ -648,6 +643,7 @@ function resetHomeRouteParams() {
 function cleanupSession() {
     Pusher.disconnect();
     Timers.clearAll();
+    Welcome.resetAllChecks();
     PriorityMode.resetHasReadRequiredDataFromStorage();
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
