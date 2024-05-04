@@ -322,7 +322,11 @@ function ReportScreen({
     }, [shouldHideReport, report]);
 
     const onBackButtonPress = useCallback(() => {
-        isReportOpenInRHP ? Navigation.dismissModal() : Navigation.goBack(undefined, false, true);
+        if(isReportOpenInRHP) {
+            Navigation.dismissModal()
+            return;
+        }
+        Navigation.goBack(undefined, false, true);
     }, [isReportOpenInRHP]);
 
     let headerView = (
