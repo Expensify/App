@@ -168,10 +168,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
+        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+
         if (selectedTagsArray.length === 0) {
             return (
                 <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                    {doesPolicyContainOnlyOneTagList && (
+                    {doesPolicyContainOnlyOneTagList && !isThereAnyAccountingConnection && (
                         <Button
                             medium
                             success
@@ -195,7 +197,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.TAGS_BULK_ACTION_TYPES>>> = [];
-        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
         if (!isThereAnyAccountingConnection) {
             options.push({
