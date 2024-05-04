@@ -120,10 +120,11 @@ function WorkspaceSwitcherPage() {
                 brickRoadIndicator: getIndicatorTypeForPolicy(policy?.id),
                 icons: [
                     {
-                        source: policy?.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
+                        source: policy?.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy?.name),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
+                        id: policy?.id,
                     },
                 ],
                 isBold: hasUnreadData(policy?.id),
