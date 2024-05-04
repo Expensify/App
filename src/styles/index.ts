@@ -4530,6 +4530,10 @@ const styles = (theme: ThemeColors) =>
             paddingVertical: 4,
         },
 
+        headerStatusBarContainer: {
+            minHeight: variables.componentSizeNormal,
+        },
+
         walletCardLimit: {
             color: theme.text,
             fontSize: variables.fontSizeNormal,
