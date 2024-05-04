@@ -91,6 +91,7 @@ type TrackExpenseInformation = {
     reportPreviewAction?: OnyxTypes.ReportAction;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
+    actionableWhisperReportActionID?: string;
     onyxData: OnyxData;
 };
 
@@ -1108,6 +1109,7 @@ function buildOnyxDataForTrackExpense(
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     existingTransactionThreadReportID?: string,
+    actionableTrackExpenseWhisper?: OnyxEntry<OnyxTypes.ReportAction>,
 ): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const isScanRequest = TransactionUtils.isScanRequest(transaction);
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
@@ -1144,6 +1146,23 @@ function buildOnyxDataForTrackExpense(
                 },
             },
         );
+
+        if (actionableTrackExpenseWhisper && !iouReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [actionableTrackExpenseWhisper.reportActionID]: actionableTrackExpenseWhisper as OnyxTypes.ReportAction,
+                },
+            });
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    lastVisibleActionCreated: actionableTrackExpenseWhisper.created,
+                },
+            });
+        }
     }
 
     if (iouReport) {
@@ -2090,6 +2109,11 @@ function getTrackExpenseInformation(
         }
     }
 
+    let actionableTrackExpenseWhisper: OnyxEntry<OnyxTypes.ReportAction> = null;
+    if (!isPolicyExpenseChat) {
+        actionableTrackExpenseWhisper = ReportUtils.buildOptimisticActionableTrackExpenseWhisper(iouAction, optimisticTransaction.transactionID);
+    }
+
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForTrackExpense(
         chatReport,
@@ -2104,6 +2128,8 @@ function getTrackExpenseInformation(
         policy,
         policyTagList,
         policyCategories,
+        undefined,
+        actionableTrackExpenseWhisper,
     );
 
     return {
@@ -2116,6 +2142,7 @@ function getTrackExpenseInformation(
         reportPreviewAction: reportPreviewAction ?? undefined,
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+        actionableWhisperReportActionID: actionableTrackExpenseWhisper?.reportActionID ?? '',
         onyxData: {
             optimisticData,
             successData,
@@ -3405,7 +3432,6 @@ function trackExpense(
     gpsPoints?: GPSPoint,
     validWaypoints?: WaypointCollection,
     action?: IOUAction,
-    actionableWhisperReportActionID?: string,
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID?: string,
 ) {
@@ -3425,6 +3451,7 @@ function trackExpense(
         reportPreviewAction,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        actionableWhisperReportActionID,
         onyxData,
     } = getTrackExpenseInformation(
         currentChatReport,
@@ -3536,6 +3563,7 @@ function trackExpense(
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
+                actionableWhisperReportActionID,
             };
 
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);

@@ -4079,6 +4079,45 @@ function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: 
 }
 
 /**
+ * Builds an optimistic ACTIONABLETRACKEXPENSEWHISPER action with a randomly generated reportActionID.
+ */
+function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string): ReportAction {
+    const created = DateUtils.getDBTime();
+    const targetEmail = CONST.EMAIL.CONCIERGE;
+    const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
+    const reportActionID = NumberUtils.rand64();
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
+        actorAccountID,
+        avatar: UserUtils.getDefaultAvatarURL(actorAccountID),
+        created,
+        lastModified: created,
+        message: [
+            {
+                html: 'What would you like to do with this expense?',
+                text: 'What would you like to do with this expense?',
+                whisperedTo: [],
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
+        originalMessage: {
+            lastModified: created,
+            transactionID,
+        },
+        person: [
+            {
+                text: 'Expensify Concierge',
+                type: 'TEXT',
+            },
+        ],
+        previousReportActionID: iouAction?.reportActionID,
+        reportActionID,
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
  * Builds an optimistic modified expense action with a randomly generated reportActionID.
  */
 function buildOptimisticModifiedExpenseReportAction(
@@ -6480,6 +6519,7 @@ export {
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticActionableTrackExpenseWhisper,
     buildOptimisticSubmittedReportAction,
     buildOptimisticTaskCommentReportAction,
     buildOptimisticTaskReport,
