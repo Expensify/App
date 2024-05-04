@@ -40,8 +40,7 @@ const violationFields: Record<ViolationName, ViolationField> = {
     smartscanFailed: 'receipt',
     someTagLevelsRequired: 'tag',
     tagOutOfPolicy: 'tag',
-    // taxAmountChanged: 'tax',
-    // taxRateChanged: 'tax',
+    taxAmountChanged: 'tax',
     taxOutOfPolicy: 'tax',
     taxRequired: 'tax',
 };

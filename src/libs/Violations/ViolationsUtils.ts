@@ -276,8 +276,6 @@ const ViolationsUtils = {
                 return translate('violations.taxAmountChanged');
             case 'taxOutOfPolicy':
                 return translate('violations.taxOutOfPolicy', {taxName});
-            case 'taxRateChanged':
-                return translate('violations.taxRateChanged');
             case 'taxRequired':
                 return translate('violations.taxRequired');
             default:
