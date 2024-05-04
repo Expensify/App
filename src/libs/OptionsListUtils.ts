@@ -527,7 +527,7 @@ function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<
  * Get the last actor display name from last actor details.
  */
 function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, hasMultipleParticipants: boolean) {
-    return hasMultipleParticipants && lastActorDetails
+    return hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails)
         : '';
