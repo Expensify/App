@@ -83,7 +83,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [nonReimbursableExpensesExportDestination, policyID],
+        [nonReimbursableExpensesExportDestination, policyID, nonReimbursableExpensesAccount, nonReimbursableBillDefaultVendor],
     );
 
     return (
