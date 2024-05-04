@@ -1521,6 +1521,37 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
+    getSearchTableColumnStyles: (columnName: string): ViewStyle => {
+        let columnWidth;
+        switch (columnName) {
+            case CONST.SEARCH_TABLE_COLUMNS.DATE:
+                columnWidth = getWidthStyle(variables.w44);
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
+                columnWidth = styles.flex1;
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.FROM:
+                columnWidth = styles.flex1;
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TO:
+                columnWidth = styles.flex1;
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
+                columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TYPE:
+                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.ACTION:
+                columnWidth = getWidthStyle(variables.w80);
+                break;
+            default:
+                columnWidth = styles.flex1;
+        }
+
+        return columnWidth;
+    },
+
     /**
      * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
      */
