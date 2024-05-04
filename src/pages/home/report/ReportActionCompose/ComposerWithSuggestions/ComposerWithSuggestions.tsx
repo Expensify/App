@@ -350,7 +350,7 @@ function ComposerWithSuggestions(
                 callback();
                 return;
             }
-            Report.saveReportDraftCommentWithCallback(preexistingReportID, commentRef.current, callback);
+            Report.saveReportDraftComment(preexistingReportID, commentRef.current, callback);
         });
 
         return () => {
