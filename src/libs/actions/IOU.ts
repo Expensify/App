@@ -91,7 +91,7 @@ type TrackExpenseInformation = {
     reportPreviewAction?: OnyxTypes.ReportAction;
     transactionThreadReportID: string;
     createdReportActionIDForThread: string;
-    actionableWhisperReportActionID?: string;
+    actionableWhisperReportActionIDParam?: string;
     onyxData: OnyxData;
 };
 
@@ -2142,7 +2142,7 @@ function getTrackExpenseInformation(
         reportPreviewAction: reportPreviewAction ?? undefined,
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
-        actionableWhisperReportActionID: actionableTrackExpenseWhisper?.reportActionID ?? '',
+        actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID ?? '',
         onyxData: {
             optimisticData,
             successData,
@@ -3432,6 +3432,7 @@ function trackExpense(
     gpsPoints?: GPSPoint,
     validWaypoints?: WaypointCollection,
     action?: IOUAction,
+    actionableWhisperReportActionID?: string,
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     linkedTrackedExpenseReportID?: string,
 ) {
@@ -3451,7 +3452,7 @@ function trackExpense(
         reportPreviewAction,
         transactionThreadReportID,
         createdReportActionIDForThread,
-        actionableWhisperReportActionID,
+        actionableWhisperReportActionIDParam,
         onyxData,
     } = getTrackExpenseInformation(
         currentChatReport,
@@ -3563,7 +3564,7 @@ function trackExpense(
                 transactionThreadReportID,
                 createdReportActionIDForThread,
                 waypoints: validWaypoints ? JSON.stringify(validWaypoints) : undefined,
-                actionableWhisperReportActionID,
+                actionableWhisperReportActionID: actionableWhisperReportActionIDParam,
             };
 
             API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
