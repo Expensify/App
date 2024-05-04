@@ -1272,6 +1272,7 @@ const CONST = {
         SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
+        EXPORT: 'export',
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {

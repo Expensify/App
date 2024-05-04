@@ -9,6 +9,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 
 type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
 
@@ -22,7 +24,9 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const menuItems: MenuItem[] = [
         {
             description: translate('workspace.xero.preferredExporter'),
-            onPress: () => {},
+            onPress: () => {
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
+            },
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,
             pendingAction: pendingFields?.export,
