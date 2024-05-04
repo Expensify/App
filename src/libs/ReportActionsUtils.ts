@@ -265,14 +265,6 @@ function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEn
     return iouRequestActions[0].childReportID ?? null;
 }
 
-function isOptimisticAction(reportAction: ReportAction) {
-    return (
-        !!reportAction.isOptimisticAction ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
-        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
 /**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
@@ -309,6 +301,29 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     return sortedActions;
 }
 
+function isOptimisticAction(reportAction: ReportAction) {
+    return (
+        !!reportAction.isOptimisticAction ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+    );
+}
+
+function shouldIgnoreGap(currentReportAction: ReportAction | undefined, nextReportAction: ReportAction | undefined) {
+    if (!currentReportAction || !nextReportAction) {
+        return false;
+    }
+    return (
+        isOptimisticAction(currentReportAction) ||
+        isOptimisticAction(nextReportAction) ||
+        !!currentReportAction.whisperedToAccountIDs?.length ||
+        !!nextReportAction.whisperedToAccountIDs?.length ||
+        currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
+        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
+        nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
+    );
+}
+
 /**
  * Returns the largest gapless range of reportActions including a the provided reportActionID, where a "gap" is defined as a reportAction's `previousReportActionID` not matching the previous reportAction in the sortedReportActions array.
  * See unit tests for example of inputs and expected outputs.
@@ -331,17 +346,6 @@ function getContinuousReportActionChain(sortedReportActions: ReportAction[], id?
 
     let startIndex = index;
     let endIndex = index;
-
-    function shouldIgnoreGap(currentReportAction: ReportAction, nextReportAction: ReportAction) {
-        return (
-            isOptimisticAction(currentReportAction) ||
-            !!currentReportAction.whisperedToAccountIDs?.length ||
-            !!nextReportAction.whisperedToAccountIDs?.length ||
-            currentReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM ||
-            nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ||
-            nextReportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED
-        );
-    }
 
     // Iterate forwards through the array, starting from endIndex. i.e: newer to older
     // This loop checks the continuity of actions by comparing the current item's previousReportActionID with the next item's reportActionID.
