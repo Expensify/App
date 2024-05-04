@@ -322,8 +322,8 @@ function ReportScreen({
     }, [shouldHideReport, report]);
 
     const onBackButtonPress = useCallback(() => {
-        if(isReportOpenInRHP) {
-            Navigation.dismissModal()
+        if (isReportOpenInRHP) {
+            Navigation.dismissModal();
             return;
         }
         Navigation.goBack(undefined, false, true);
