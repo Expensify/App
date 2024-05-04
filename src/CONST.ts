@@ -3619,9 +3619,9 @@ const CONST = {
         SMARTSCAN_FAILED: 'smartscanFailed',
         SOME_TAG_LEVELS_REQUIRED: 'someTagLevelsRequired',
         TAG_OUT_OF_POLICY: 'tagOutOfPolicy',
-        TAX_AMOUNT_CHANGED: 'taxAmountChanged',
+        // TAX_AMOUNT_CHANGED: 'taxAmountChanged',
+        // TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_OUT_OF_POLICY: 'taxOutOfPolicy',
-        TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
     },
 

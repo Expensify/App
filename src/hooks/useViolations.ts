@@ -40,17 +40,23 @@ const violationFields: Record<ViolationName, ViolationField> = {
     smartscanFailed: 'receipt',
     someTagLevelsRequired: 'tag',
     tagOutOfPolicy: 'tag',
-    taxAmountChanged: 'tax',
+    // taxAmountChanged: 'tax',
+    // taxRateChanged: 'tax',
     taxOutOfPolicy: 'tax',
-    taxRateChanged: 'tax',
     taxRequired: 'tax',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;
 
-function useViolations(violations: TransactionViolation[]) {
+function useViolations(violations: TransactionViolation[], shouldIncludeNoticeViolations?: boolean) {
     const violationsByField = useMemo((): ViolationsMap => {
-        const filteredViolations = violations.filter((violation) => violation.type === CONST.VIOLATION_TYPES.VIOLATION);
+        const filteredViolations = violations.filter((violation) => {
+            if (!shouldIncludeNoticeViolations) {
+                return violation.type === CONST.VIOLATION_TYPES.VIOLATION;
+            }
+            return violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE;
+        });
+
         const violationGroups = new Map<ViolationField, TransactionViolation[]>();
         for (const violation of filteredViolations) {
             const field = violationFields[violation.name];
@@ -58,7 +64,7 @@ function useViolations(violations: TransactionViolation[]) {
             violationGroups.set(field, [...existingViolations, violation]);
         }
         return violationGroups ?? new Map();
-    }, [violations]);
+    }, [violations, shouldIncludeNoticeViolations]);
 
     const getViolationsForField = useCallback(
         (field: ViolationField, data?: TransactionViolation['data']) => {
