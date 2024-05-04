@@ -2011,7 +2011,7 @@ export default {
             xeroBankAccount: 'Xero bank account',
             preferredExporter: 'Preferred exporter',
             exportExpenses: 'Export out-of-pocket expenses as',
-            exportExpensesDescription: 'Reports will export as a purchase bill using the date and with the status you select below.',
+            exportExpensesDescription: 'Reports will export as a purchase bill, using the date and status you select below.',
             purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Export invoices as',
             salesInvoice: 'Sales invoice',
