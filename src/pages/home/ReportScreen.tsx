@@ -323,7 +323,7 @@ function ReportScreen({
 
     const onBackButtonPress = useCallback(() => {
         shouldUseNarrowLayout
-            ? Navigation.dismissModal
+            ? Navigation.dismissModal()
             : () => {
                   Navigation.goBack(undefined, false, true);
               };
@@ -332,7 +332,7 @@ function ReportScreen({
     let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
-            onBackButtonPress={onBackButtonPress}
+            onNavigationMenuButtonClicked={onBackButtonPress}
             report={report}
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
