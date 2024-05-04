@@ -6385,7 +6385,7 @@ function hasActionsWithErrors(reportID: string): boolean {
     return Object.values(reportActions).some((action) => !isEmptyObject(action.errors));
 }
 
-function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | EmptyObject): boolean {
     return isPolicyExpenseChat(report) && !(PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPolicyOwner(policy, currentUserAccountID ?? -1) || isReportOwner(report));
 }
 

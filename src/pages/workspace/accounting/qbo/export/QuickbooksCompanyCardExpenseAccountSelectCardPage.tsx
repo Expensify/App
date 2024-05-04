@@ -1,12 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {SectionListData} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem, Section} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,61 +15,53 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-type CardListItem = ListItem & {
-    value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>;
+type AccountListItem = ListItem & {
+    value: QBONonReimbursableExportAccountType;
 };
-type CardsSection = SectionListData<CardListItem, Section<CardListItem>>;
-type Card = {name: string; id: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>};
 
 function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {exportCompanyCard, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {nonReimbursableExpensesExportDestination, syncLocations} = policy?.connections?.quickbooksOnline?.config ?? {};
     const isLocationEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
-    const defaultCards = useMemo<Card[]>(
-        () => [
+    const sections = useMemo(() => {
+        const options: AccountListItem[] = [
             {
-                name: translate(`workspace.qbo.accounts.credit_card`),
-                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD,
+                text: translate(`workspace.qbo.accounts.credit_card`),
+                value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
+                isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD === nonReimbursableExpensesExportDestination,
             },
             {
-                name: translate(`workspace.qbo.accounts.debit_card`),
-                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD,
+                text: translate(`workspace.qbo.accounts.debit_card`),
+                value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD,
+                isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD === nonReimbursableExpensesExportDestination,
             },
-            {
-                name: translate(`workspace.qbo.accounts.bill`),
-                id: CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.VENDOR_BILL,
-            },
-        ],
-        [translate],
-    );
-    const cards = useMemo<Card[]>(() => (isLocationEnabled ? defaultCards.slice(0, -1) : defaultCards), [isLocationEnabled, defaultCards]);
-
-    const data = useMemo<CardListItem[]>(
-        () =>
-            cards.map((card) => ({
-                value: card.id,
-                text: card.name,
-                keyForList: card.name,
-                isSelected: card.id === exportCompanyCard,
-            })),
-        [cards, exportCompanyCard],
-    );
-
-    const sections = useMemo<CardsSection[]>(() => [{data}], [data]);
+        ];
+        if (!isLocationEnabled) {
+            options.push({
+                text: translate(`workspace.qbo.accounts.bill`),
+                value: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+                keyForList: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
+                isSelected: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL === nonReimbursableExpensesExportDestination,
+            });
+        }
+        return [{data: options}];
+    }, [translate, nonReimbursableExpensesExportDestination, isLocationEnabled]);
 
     const selectExportCompanyCard = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== exportCompanyCard) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD, row.value);
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_COMPANY_CARD_ACCOUNT);
+        (row: AccountListItem) => {
+            if (row.value !== nonReimbursableExpensesExportDestination) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [exportCompanyCard, policyID],
+        [nonReimbursableExpensesExportDestination, policyID],
     );
 
     return (
@@ -89,7 +79,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
                         sections={sections}
                         ListItem={RadioListItem}
                         onSelectRow={selectExportCompanyCard}
-                        initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                        initiallyFocusedOptionKey={sections[0].data.find((option) => option.isSelected)?.keyForList}
                         footerContent={
                             isLocationEnabled && <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.companyCardsLocationEnabledDescription')}</Text>
                         }
