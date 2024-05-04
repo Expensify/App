@@ -16,7 +16,7 @@ buildscript {
         // This property configures the type of Mapbox SDK used by the @rnmapbox/maps library.
         // "mapbox" indicates the usage of the Mapbox SDK.
         RNMapboxMapsImpl = "mapbox"
-        RNMapboxMapsVersion = '11.0.0'
+        RNMapboxMapsVersion = '11.3.0'
     }
     repositories {
         google()
