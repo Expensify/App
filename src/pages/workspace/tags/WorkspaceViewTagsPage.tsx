@@ -65,7 +65,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policy) => policy.name === currentTagListName), [currentTagListName, policyTags]);
+    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policyTag) => policyTag.name === currentTagListName), [currentTagListName, policyTags]);
     const tagList = useMemo<TagListItem[]>(
         () =>
             policyTagLists
