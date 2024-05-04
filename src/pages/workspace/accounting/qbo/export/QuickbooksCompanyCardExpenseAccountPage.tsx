@@ -57,7 +57,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                             title={nonReimbursableExpensesAccount?.name}
                             description={translate('workspace.qbo.accountsPayable')}
                             error={errorFields?.nonReimbursableExpensesAccount ? translate('common.genericErrorMessage') : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID))}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID))}
                             brickRoadIndicator={errorFields?.nonReimbursableExpensesAccount ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             shouldShowRightIcon
                         />
