@@ -508,10 +508,6 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_PAYABLE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-payable-select` as const,
-    },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/preferred-exporter` as const,
