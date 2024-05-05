@@ -879,6 +879,13 @@ function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
     return getChatType(report) === CONST.REPORT.CHAT_TYPE.INVOICE;
 }
 
+/**
+ * Checks if a report is a completed task report.
+ */
+function isTripRoom(report: OnyxEntry<Report>): boolean {
+    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_TRIP_ROOM;
+}
+
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
     if (report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
         return currentUserAccountID === report.invoiceReceiver.accountID;
@@ -6619,6 +6626,7 @@ export {
     isCanceledTaskReport,
     isChatReport,
     isChatRoom,
+    isTripRoom,
     isChatThread,
     isChildReport,
     isClosedExpenseReportWithNoExpenses,
