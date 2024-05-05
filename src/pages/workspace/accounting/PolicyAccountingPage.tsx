@@ -19,6 +19,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -47,8 +48,6 @@ type PolicyAccountingPageProps = WithPolicyProps &
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
     };
-
-const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
 
 type AccountingIntegration = {
     title: string;
@@ -94,7 +93,7 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => {},
-                onAdvancedPagePress: () => {},
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
         default:
             return undefined;
@@ -106,12 +105,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseXeroIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
 
@@ -253,6 +255,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         theme.spinner,
         threeDotsMenuPosition,
         translate,
+        accountingIntegrations,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -274,7 +277,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: styles.sectionMenuItemTopDescription,
             };
         });
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, styles.sectionMenuItemTopDescription, translate]);
+    }, [
+        connectedIntegration,
+        connectionSyncProgress?.connectionName,
+        isSyncInProgress,
+        policy?.connections,
+        policyID,
+        styles.sectionMenuItemTopDescription,
+        translate,
+        accountingIntegrations,
+    ]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
