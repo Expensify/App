@@ -28,7 +28,6 @@ import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
 
 const menuIcons = {
-    [CONST.ONBOARDING_CHOICES.TRACK]: Illustrations.CompanyCard,
     [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
     [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
     [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
@@ -76,6 +75,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             return;
         }
 
+        if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORK);
+            return;
+        }
+
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, [selectedPurpose]);
 
@@ -87,8 +91,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             title: translate(translationKey),
             icon: menuIcons[choice],
             displayInDefaultIconColor: true,
-            iconWidth: variables.purposeMenuIconSize,
-            iconHeight: variables.purposeMenuIconSize,
+            iconWidth: variables.menuIconSize,
+            iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
             hoverAndPressStyle: [styles.purposeMenuItemSelected],
