@@ -4730,14 +4730,14 @@ function buildOptimisticTaskReport(
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
 ): OptimisticTaskReport {
-    const participants: Participants =
-        assigneeAccountID && assigneeAccountID !== ownerAccountID
-            ? {
-                  [assigneeAccountID]: {
-                      hidden: false,
-                  },
-              }
-            : {};
+    const participants: Participants = {
+        [ownerAccountID]: {
+            hidden: false,
+        },
+        [assigneeAccountID]: {
+            hidden: false,
+        },
+    };
 
     return {
         reportID: generateReportID(),
@@ -5818,6 +5818,8 @@ function getTaskAssigneeChatOnyxData(
                     createChat: null,
                 },
                 isOptimisticReport: false,
+                // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
+                participants: {[assigneeAccountID]: null},
             },
         });
 
