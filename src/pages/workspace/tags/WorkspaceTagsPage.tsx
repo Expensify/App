@@ -259,6 +259,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         );
     };
 
+    const getSmallWidthHeaderComponent = () => (
+        <>
+            <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>
+            <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                {isConnectedToAccounting ? (
+                    <Text>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                        <TextLink
+                            style={[styles.textNormal, styles.link]}
+                            href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                        >
+                            {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                        </TextLink>
+                    </Text>
+                ) : (
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                )}
+            </View>
+        </>
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -289,22 +310,23 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <View style={[styles.ph5, styles.pb5, styles.pt3]}>
-                    {isConnectedToAccounting ? (
-                        <Text>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
-                            <TextLink
-                                style={[styles.textNormal, styles.link]}
-                                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                            >
-                                {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
-                            </TextLink>
-                        </Text>
-                    ) : (
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
-                    )}
-                </View>
+                {!isSmallScreenWidth && (
+                    <View style={[styles.ph5, styles.pb5, styles.pt3]}>
+                        {isConnectedToAccounting ? (
+                            <Text>
+                                <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                                <TextLink
+                                    style={[styles.textNormal, styles.link]}
+                                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                                >
+                                    {`${translate('workspace.accounting.qbo')} ${translate('workspace.accounting.settings')}`}
+                                </TextLink>
+                            </Text>
+                        ) : (
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+                        )}
+                    </View>
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -332,6 +354,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         onDismissError={(item) => Policy.clearPolicyTagErrors(policyID, item.value)}
+                        ListHeaderComponent={isSmallScreenWidth ? getSmallWidthHeaderComponent() : null}
                     />
                 )}
             </ScreenWrapper>

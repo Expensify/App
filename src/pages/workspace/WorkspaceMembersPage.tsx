@@ -547,7 +547,6 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                 >
                     {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 <ConfirmModal
                     danger
                     title={translate('workspace.people.removeMembersTitle')}
@@ -574,7 +573,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         ListItem={TableListItem}
                         disableKeyboardShortcuts={removeMembersConfirmModalVisible}
                         headerMessage={getHeaderMessage()}
-                        headerContent={getHeaderContent()}
+                        headerContent={!isSmallScreenWidth && getHeaderContent()}
                         onSelectRow={openMemberDetails}
                         onCheckboxPress={(item) => toggleUser(item.accountID)}
                         onSelectAll={() => toggleAllUsers(data)}
@@ -585,6 +584,14 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         textInputRef={textInputRef}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        ListHeaderComponent={
+                            isSmallScreenWidth ? (
+                                <View style={[styles.pl5, styles.pr5]}>
+                                    {getHeaderContent()}
+                                    {getHeaderButtons()}
+                                </View>
+                            ) : null
+                        }
                     />
                 </View>
             </FullPageNotFoundView>
