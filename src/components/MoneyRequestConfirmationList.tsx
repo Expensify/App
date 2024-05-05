@@ -340,7 +340,7 @@ function MoneyRequestConfirmationList({
 
     const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
 
-    const isCategoryRequired = canUseViolations && !!policy?.requiresCategory;
+    const isCategoryRequired = !!policy?.requiresCategory;
 
     useEffect(() => {
         if (shouldDisplayFieldError && hasSmartScanFailed) {
@@ -545,7 +545,7 @@ function MoneyRequestConfirmationList({
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
             const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
-            const isTagListRequired = tagList.required === undefined ? false : tagList.required && canUseViolations;
+            const isTagListRequired = tagList.required === undefined ? false : tagList.required;
             if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
