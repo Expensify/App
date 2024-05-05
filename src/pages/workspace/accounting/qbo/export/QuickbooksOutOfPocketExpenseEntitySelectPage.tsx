@@ -31,9 +31,23 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const isLocationsEnabled = Boolean(syncLocations && syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
     const isTaxesEnabled = Boolean(syncTax);
     const policyID = policy?.id ?? '';
+    const isLocationImportEnabled = !!policy?.connections?.quickbooksOnline?.config?.syncLocations;
 
     const data: CardListItem[] = useMemo(
         () => [
+            {
+                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+                text: translate(`workspace.qbo.accounts.journal_entry`),
+                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+                isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+                isShown: !isTaxesEnabled || isLocationsEnabled,
+            },
+        ],
+        [reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled],
+    );
+
+    if (!isLocationImportEnabled) {
+        data.push(
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 text: translate(`workspace.qbo.accounts.check`),
@@ -42,22 +56,14 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
                 isShown: !isLocationsEnabled,
             },
             {
-                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                text: translate(`workspace.qbo.accounts.journal_entry`),
-                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isShown: !isTaxesEnabled || isLocationsEnabled,
-            },
-            {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 text: translate(`workspace.qbo.accounts.bill`),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: !isLocationsEnabled,
             },
-        ],
-        [reimbursableExpensesExportDestination, isTaxesEnabled, translate, isLocationsEnabled],
-    );
+        );
+    }
 
     const sections: CardsSection[] = useMemo(() => [{data: data.filter((item) => item.isShown)}], [data]);
 
