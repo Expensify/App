@@ -21,9 +21,11 @@ type SystemChatReportFooterMessageOnyxProps = {
     choice: OnyxEntry<OnboardingPurposeType>;
 
     /** The list of this user's policies */
+    // eslint-disable-next-line react/no-unused-prop-types
     policies: OnyxCollection<PolicyType>;
 
     /** policyID for main workspace */
+    // eslint-disable-next-line react/no-unused-prop-types
     activePolicyID: OnyxEntry<Required<string>>;
 
     /** Workspace's #admins chat report */
