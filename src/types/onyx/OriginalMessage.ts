@@ -25,7 +25,8 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
-    | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
+    | 'ACTIONABLETRACKEXPENSEWHISPER'
+    | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.APPROVED;
     originalMessage: unknown;
@@ -38,7 +39,7 @@ type OriginalMessageHold = {
 };
 
 type OriginalMessageHoldComment = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLDCOMMENT;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT;
     originalMessage: unknown;
 };
 
@@ -66,6 +67,7 @@ type IOUMessage = {
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     cancellationReason?: string;
     paymentType?: PaymentMethodType;
+    deleted?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -123,7 +125,7 @@ type Closed = {
 };
 
 type OriginalMessageAddComment = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     originalMessage: {
         html: string;
         source?: OriginalMessageSource;
@@ -140,7 +142,7 @@ type OriginalMessageAddComment = {
 };
 
 type OriginalMessageActionableMentionWhisper = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEMENTIONWHISPER;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER;
     originalMessage: {
         inviteeAccountIDs: number[];
         inviteeEmails: string;
@@ -167,7 +169,7 @@ type OriginalMessageCreated = {
 };
 
 type OriginalMessageMarkedReimbursed = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKEDREIMBURSED;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED;
     originalMessage?: unknown;
 };
 
@@ -203,7 +205,7 @@ type ChronosOOOEvent = {
 };
 
 type OriginalMessageChronosOOOList = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST;
     originalMessage: {
         edits: string[];
         events: ChronosOOOEvent[];
@@ -213,7 +215,7 @@ type OriginalMessageChronosOOOList = {
 };
 
 type OriginalMessageReportPreview = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     originalMessage: {
         linkedReportID: string;
         lastModified?: string;
@@ -221,12 +223,12 @@ type OriginalMessageReportPreview = {
 };
 
 type OriginalMessagePolicyChangeLog = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
+    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
     originalMessage: ChangeLog;
 };
 
 type OriginalMessageJoinPolicyChangeLog = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLEJOINREQUEST;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
     originalMessage: {
         choice: string;
         email: string;
@@ -237,22 +239,22 @@ type OriginalMessageJoinPolicyChangeLog = {
 };
 
 type OriginalMessageRoomChangeLog = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOMCHANGELOG>;
+    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>;
     originalMessage: ChangeLog;
 };
 
 type OriginalMessagePolicyTask = {
     actionName:
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKEDITED
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
-        | typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASK_EDITED
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASK_COMPLETED
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASK_REOPENED
+        | typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
     originalMessage: unknown;
 };
 
 type OriginalMessageModifiedExpense = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE;
     originalMessage: {
         oldMerchant?: string;
         merchant?: string;
@@ -278,14 +280,23 @@ type OriginalMessageModifiedExpense = {
 };
 
 type OriginalMessageReimbursementQueued = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED;
     originalMessage: {
         paymentType: DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE>;
     };
 };
 
+type OriginalMessageActionableTrackedExpenseWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
+    originalMessage: {
+        transactionID: string;
+        lastModified: string;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION>;
+    };
+};
+
 type OriginalMessageReimbursementDequeued = {
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTDEQUEUED;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED;
     originalMessage: {
         expenseReportID: string;
     };
@@ -298,6 +309,19 @@ type OriginalMessageMoved = {
         toPolicyID: string;
         newParentReportID: string;
         movedReportID: string;
+    };
+};
+
+type OriginalMessageMergedWithCashTransaction = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
+    originalMessage: Record<string, never>; // No data is sent with this action
+};
+
+type OriginalMessageDismissedViolation = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION;
+    originalMessage: {
+        reason: string;
+        violationName: string;
     };
 };
 
@@ -323,7 +347,10 @@ type OriginalMessage =
     | OriginalMessageReimbursementQueued
     | OriginalMessageReimbursementDequeued
     | OriginalMessageMoved
-    | OriginalMessageMarkedReimbursed;
+    | OriginalMessageMarkedReimbursed
+    | OriginalMessageActionableTrackedExpenseWhisper
+    | OriginalMessageMergedWithCashTransaction
+    | OriginalMessageDismissedViolation;
 
 export default OriginalMessage;
 export type {
@@ -343,8 +370,11 @@ export type {
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
     OriginalMessageChronosOOOList,
+    OriginalMessageRoomChangeLog,
     OriginalMessageSource,
     OriginalMessageReimbursementDequeued,
     DecisionName,
     PaymentMethodType,
+    OriginalMessageActionableTrackedExpenseWhisper,
+    OriginalMessageDismissedViolation,
 };

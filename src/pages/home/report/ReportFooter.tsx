@@ -21,6 +21,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
+import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
 type ReportFooterOnyxProps = {
     /** Whether to show the compose input */
@@ -81,6 +82,8 @@ function ReportFooter({
 
     const isSmallSizeLayout = windowWidth - (isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
     const hideComposer = !ReportUtils.canUserPerformWriteAction(report);
+    const canWriteInReport = ReportUtils.canWriteInReport(report);
+    const isSystemChat = ReportUtils.isSystemChat(report);
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -89,10 +92,10 @@ function ReportFooter({
             /**
              * Matching task rule by group
              * Group 1: Start task rule with []
-             * Group 2: Optional email group between \s+....\s* start rule with @+valid email
+             * Group 2: Optional email group between \s+....\s* start rule with @+valid email or short mention
              * Group 3: Title is remaining characters
              */
-            const taskRegex = /^\[\]\s+(?:@([^\s@]+@[\w.-]+\.[a-zA-Z]{2,}))?\s*([\s\S]*)/;
+            const taskRegex = /^\[\]\s+(?:@([^\s@]+(?:@\w+\.\w+)?))?\s*([\s\S]*)/;
 
             const match = text.match(taskRegex);
             if (!match) {
@@ -102,10 +105,13 @@ function ReportFooter({
             if (!title) {
                 return false;
             }
-            const email = match[1] ? match[1].trim() : undefined;
+
+            const mention = match[1] ? match[1].trim() : undefined;
+            const mentionWithDomain = ReportUtils.addDomainToShortMention(mention ?? '') ?? mention;
+
             let assignee: OnyxTypes.PersonalDetails | EmptyObject = {};
-            if (email) {
-                assignee = Object.values(allPersonalDetails).find((value) => value?.login === email) ?? {};
+            if (mentionWithDomain) {
+                assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
             }
             Task.createTaskAndNavigate(report.reportID, title, '', assignee?.login ?? '', assignee.accountID, undefined, report.policyID);
             return true;
@@ -128,7 +134,7 @@ function ReportFooter({
     return (
         <>
             {hideComposer && (
-                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser ? styles.mt4 : {}, isSmallScreenWidth ? styles.mb5 : null]}>
+                <View style={[styles.chatFooter, isArchivedRoom || isAnonymousUser || !canWriteInReport ? styles.mt4 : {}, isSmallScreenWidth ? styles.mb5 : null]}>
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={report}
@@ -136,6 +142,7 @@ function ReportFooter({
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
+                    {!isAnonymousUser && !canWriteInReport && isSystemChat && <SystemChatReportFooterMessage />}
                     {!isSmallScreenWidth && <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>}
                 </View>
             )}

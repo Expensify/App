@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import TopBar from '@libs/Navigation/AppNavigator/createCustomBottomTabNavigator/TopBar';
@@ -21,6 +22,8 @@ const startTimer = () => {
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const activeWorkspaceID = getPolicyIDFromNavigationState();
+    const {translate} = useLocalize();
+
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
@@ -36,7 +39,10 @@ function BaseSidebarScreen() {
         >
             {({insets}) => (
                 <>
-                    <TopBar activeWorkspaceID={activeWorkspaceID} />
+                    <TopBar
+                        breadcrumbLabel={translate('common.chats')}
+                        activeWorkspaceID={activeWorkspaceID}
+                    />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData
                             onLinkClick={startTimer}

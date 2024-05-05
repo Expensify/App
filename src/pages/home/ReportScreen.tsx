@@ -21,12 +21,15 @@ import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import type {CurrentReportIDContextValue} from '@components/withCurrentReportID';
 import withCurrentReportID from '@components/withCurrentReportID';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
+import useIsReportOpenInRHP from '@hooks/useIsReportOpenInRHP';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Timing from '@libs/actions/Timing';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import Performance from '@libs/Performance';
@@ -149,7 +152,6 @@ function ReportScreen({
 }: ReportScreenProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
     const reportIDFromRoute = getReportID(route);
     const reportActionIDFromRoute = route?.params?.reportActionID ?? '';
     const isFocused = useIsFocused();
@@ -157,6 +159,10 @@ function ReportScreen({
     const firstRenderRef = useRef(true);
     const flatListRef = useRef<FlatList>(null);
     const reactionListRef = useRef<ReactionListRef>(null);
+    const {isOffline} = useNetwork();
+    const isReportOpenInRHP = useIsReportOpenInRHP();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const shouldUseNarrowLayout = isSmallScreenWidth || isReportOpenInRHP;
     /**
      * Create a lightweight Report so as to keep the re-rendering as light as possible by
      * passing in only the required props.
@@ -204,6 +210,8 @@ function ReportScreen({
             isOptimisticReport: reportProp?.isOptimisticReport,
             lastMentionedTime: reportProp?.lastMentionedTime,
             avatarUrl: reportProp?.avatarUrl,
+            permissions: reportProp?.permissions,
+            invoiceReceiver: reportProp?.invoiceReceiver,
         }),
         [
             reportProp?.lastReadTime,
@@ -243,6 +251,8 @@ function ReportScreen({
             reportProp?.isOptimisticReport,
             reportProp?.lastMentionedTime,
             reportProp?.avatarUrl,
+            reportProp?.permissions,
+            reportProp?.invoiceReceiver,
         ],
     );
 
@@ -321,6 +331,7 @@ function ReportScreen({
             onNavigationMenuButtonClicked={goBack}
             report={report}
             parentReportAction={parentReportAction}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 
@@ -330,11 +341,15 @@ function ReportScreen({
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
     }
 
-    const transactionThreadReportID = useMemo(() => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? []), [report.reportID, reportActions]);
+    const transactionThreadReportID = useMemo(
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], false, isOffline),
+        [report.reportID, reportActions, isOffline],
+    );
 
     useEffect(() => {
         if (!transactionThreadReportID || !route.params.reportActionID) {
@@ -343,13 +358,14 @@ function ReportScreen({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
     }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
 
-    if (ReportUtils.isMoneyRequestReport(report)) {
+    if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
             />
         );
     }
@@ -363,7 +379,7 @@ function ReportScreen({
         return reportIDFromRoute !== '' && !!report.reportID && !isTransitioning;
     }, [report, reportIDFromRoute]);
 
-    const isLoading = !ReportUtils.isValidReportIDFromPath(reportIDFromRoute) || !isSidebarLoaded || PersonalDetailsUtils.isPersonalDetailsEmpty();
+    const isLoading = !reportIDFromRoute || (!isSidebarLoaded && !isReportOpenInRHP) || PersonalDetailsUtils.isPersonalDetailsEmpty();
     const shouldShowSkeleton =
         !isLinkedMessageAvailable &&
         (isLinkingToMessage ||
@@ -372,19 +388,14 @@ function ReportScreen({
             isLoading ||
             (!!reportActionIDFromRoute && reportMetadata?.isLoadingInitialReportActions));
     const shouldShowReportActionList = isCurrentReportLoadedFromOnyx && !isLoading;
+    const currentReportIDFormRoute = route.params?.reportID;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
         (): boolean =>
-            !shouldShowSkeleton &&
-            ((!wasReportAccessibleRef.current &&
-                !firstRenderRef.current &&
-                !report.reportID &&
-                !isOptimisticDelete &&
-                !reportMetadata?.isLoadingInitialReportActions &&
-                !userLeavingStatus) ||
-                shouldHideReport ||
-                (!!reportIDFromRoute && !ReportUtils.isValidReportIDFromPath(reportIDFromRoute))),
-        [shouldShowSkeleton, report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, reportIDFromRoute],
+            (!wasReportAccessibleRef.current && !firstRenderRef.current && !report.reportID && !isOptimisticDelete && !reportMetadata?.isLoadingInitialReportActions && !userLeavingStatus) ||
+            shouldHideReport ||
+            (!!currentReportIDFormRoute && !ReportUtils.isValidReportIDFromPath(currentReportIDFormRoute)),
+        [report.reportID, isOptimisticDelete, reportMetadata?.isLoadingInitialReportActions, userLeavingStatus, shouldHideReport, currentReportIDFormRoute],
     );
 
     const fetchReport = useCallback(() => {
@@ -473,13 +484,13 @@ function ReportScreen({
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (!isSmallScreenWidth || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !ReportUtils.isChatThread(report) || report.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
             return;
         }
         Report.openReport(report.reportID);
 
         // We don't want to run this useEffect every time `report` is changed
-        // Excluding isSmallScreenWidth from the dependency list to prevent re-triggering on screen resize events.
+        // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prevIsFocused, report.notificationPreference, isFocused]);
 
@@ -514,7 +525,7 @@ function ReportScreen({
                 Navigation.goBack(undefined, false, true);
             }
             if (prevReport.parentReportID) {
-                // Prevent navigation to the Money Request Report if it is pending deletion.
+                // Prevent navigation to the IOU/Expense Report if it is pending deletion.
                 const parentReport = ReportUtils.getReport(prevReport.parentReportID);
                 if (ReportUtils.isMoneyRequestReportPendingDeletion(parentReport)) {
                     return;
@@ -625,6 +636,18 @@ function ReportScreen({
         );
     }
 
+    Log.client(
+        `[ReportScreen] Debug render state - ${JSON.stringify({
+            reportMetadata,
+            shouldShowReportActionList,
+            isLoading,
+            shouldShowSkeleton,
+            isCurrentReportLoadedFromOnyx,
+            reportID: report.reportID,
+            reportIDFromRoute,
+        })}`,
+    );
+
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -637,7 +660,7 @@ function ReportScreen({
                     <FullPageNotFoundView
                         shouldShow={shouldShowNotFoundPage}
                         subtitleKey="notFound.noAccess"
-                        shouldShowBackButton={isSmallScreenWidth}
+                        shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
                         shouldShowLink={false}
                     >
@@ -648,7 +671,7 @@ function ReportScreen({
                             needsOffscreenAlphaCompositing
                         >
                             {headerView}
-                            {ReportUtils.isTaskReport(report) && isSmallScreenWidth && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
+                            {ReportUtils.isTaskReport(report) && shouldUseNarrowLayout && ReportUtils.isOpenTaskReport(report, parentReportAction) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
                                         <View style={[styles.ph5, styles.pb3]}>

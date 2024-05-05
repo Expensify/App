@@ -5,7 +5,7 @@ export default {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID: PropTypes.string,
 
-    /** Name of the action e.g. ADDCOMMENT */
+    /** Name of the action e.g. ADD_COMMENT */
     actionName: PropTypes.string,
 
     /** Person who created the action */
