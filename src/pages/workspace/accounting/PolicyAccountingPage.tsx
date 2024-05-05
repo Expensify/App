@@ -168,7 +168,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: 'integrationData?.title',
-                
+
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
                     : translate('workspace.accounting.lastSync'),
