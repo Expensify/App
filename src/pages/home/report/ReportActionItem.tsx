@@ -28,6 +28,7 @@ import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TaskView from '@components/ReportActionItem/TaskView';
+import TripDetailsView from '@components/ReportActionItem/TripDetailsView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -834,6 +835,15 @@ function ReportActionItem({
                 </View>
             );
         }
+
+        if (ReportUtils.isTripRoom(report)) {
+            return (
+                <OfflineWithFeedback pendingAction={action.pendingAction}>
+                    <TripDetailsView />
+                </OfflineWithFeedback>
+            );
+        }
+
         if (ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report) || ReportUtils.isInvoiceReport(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
