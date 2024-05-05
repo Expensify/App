@@ -8,6 +8,19 @@ type SearchResultsInfo = {
     hasMoreResults: boolean;
 };
 
+type SearchPersonalDetails = {
+    accountID: number;
+    avatar: string;
+    displayName?: string;
+    login?: string;
+};
+
+type SearchPolicyDetails = {
+    id: string;
+    avatarURL: string;
+    name: string;
+};
+
 type SearchTransaction = {
     transactionID: string;
     parentTransactionID?: string;
@@ -20,6 +33,8 @@ type SearchTransaction = {
     description: string;
     accountID: number;
     managerID: number;
+    from: SearchPersonalDetails | SearchPolicyDetails;
+    to: SearchPersonalDetails | SearchPolicyDetails;
     amount: number;
     modifiedAmount?: number;
     category?: string;
@@ -29,7 +44,10 @@ type SearchTransaction = {
     hasViolation: boolean;
     taxAmount?: number;
     reportID: string;
-    transactionThreadReportID: string; // Not present in live transactions_
+    reportType: string;
+    policyID: string;
+    transactionThreadReportID: string;
+    shouldShowMerchant: boolean;
     action: string;
 };
 
@@ -39,9 +57,9 @@ type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
 
 type SearchResults = {
     search: SearchResultsInfo;
-    data: Record<string, SearchTransaction>;
+    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails>;
 };
 
 export default SearchResults;
 
-export type {SearchQuery, SearchTransaction, SearchTransactionType};
+export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails};
