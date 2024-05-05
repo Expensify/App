@@ -862,7 +862,7 @@ function openReport(
             };
             settledPersonalDetails[accountID] = null;
 
-            // BE will send different participants. We should clear the optimistic ones to avoid duplicated entries
+            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
             redundantParticipants[accountID] = null;
         });
 
