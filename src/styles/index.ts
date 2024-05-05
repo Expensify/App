@@ -412,6 +412,11 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeExtraSmall,
         },
 
+        textNormalBold: {
+            fontSize: variables.fontSizeNormal,
+            fontWeight: 'bold',
+        },
+
         textNormal: {
             fontSize: variables.fontSizeNormal,
         },
@@ -1327,6 +1332,18 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textSupportingSmallSize: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeSmall,
+            color: theme.textSupporting,
+        },
+
+        textSupportingNormalSize: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
+            fontSize: variables.fontSizeNormal,
+            color: theme.textSupporting,
+        },
+
         textLabelSupporting: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeLabel,
@@ -1371,6 +1388,10 @@ const styles = (theme: ThemeColors) =>
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             color: theme.textSupporting,
+        },
+
+        lh14: {
+            lineHeight: 14,
         },
 
         lh16: {
@@ -4875,6 +4896,15 @@ const styles = (theme: ThemeColors) =>
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
         },
+
+        tripReservationIconContainer: (isBiggerIcon: boolean) => ({
+            width: isBiggerIcon ? 40 : 32,
+            height: isBiggerIcon ? 40 : 32,
+            backgroundColor: theme.overlay,
+            borderRadius: isBiggerIcon ? 40 : 32,
+            alignItems: 'center',
+            justifyContent: 'center',
+        }),
 
         textLineThrough: {
             textDecorationLine: 'line-through',

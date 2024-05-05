@@ -4682,6 +4682,14 @@ const CONST = {
         INITIAL_URL: 'INITIAL_URL',
     },
 
+    RESERVATION_TYPE: {
+        CAR: 'car',
+        HOTEL: 'hotel',
+        FLIGHT: 'flight',
+        RAIL: 'rail',
+        MISC: 'misc',
+    },
+
     DOT_SEPARATOR: '•',
 
     DEFAULT_TAX: {
