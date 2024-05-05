@@ -52,7 +52,7 @@ function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) 
                     onBackButtonPress={Navigation.goBack}
                 />
                 <CategoryForm
-                    isShouldGoBackOnSubmit
+                    shouldGoBackOnSubmit
                     onSubmit={createCategory}
                     policyCategories={policyCategories}
                 />

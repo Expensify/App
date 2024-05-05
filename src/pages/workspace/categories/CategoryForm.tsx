@@ -30,10 +30,10 @@ type CategoryFormProps = {
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
 
     /** Should go back after submitting the form */
-    isShouldGoBackOnSubmit?: boolean;
+    shouldGoBackOnSubmit?: boolean;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, isShouldGoBackOnSubmit}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, shouldGoBackOnSubmit}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -63,13 +63,13 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, i
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             onSubmit(values);
             Keyboard.dismiss();
-            if (isShouldGoBackOnSubmit) {
+            if (shouldGoBackOnSubmit) {
                 Navigation.goBack();
                 return;
             }
             Navigation.dismissModal();
         },
-        [isShouldGoBackOnSubmit, onSubmit],
+        [shouldGoBackOnSubmit, onSubmit],
     );
 
     return (
