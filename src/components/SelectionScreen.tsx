@@ -49,6 +49,9 @@ type SelectionScreenProps = {
 
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
+
+    /** Whether or not to block user from accessing the page */
+    shouldBeBlocked?: boolean;
 };
 
 function SelectionScreen({
@@ -63,6 +66,7 @@ function SelectionScreen({
     policyID,
     accessVariants,
     featureName,
+    shouldBeBlocked,
 }: SelectionScreenProps) {
     const {translate} = useLocalize();
     return (
@@ -70,6 +74,7 @@ function SelectionScreen({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
+            shouldBeBlocked={shouldBeBlocked}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
