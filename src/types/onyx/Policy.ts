@@ -570,4 +570,5 @@ export type {
     QBONonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    XeroTrackingCategory,
 };

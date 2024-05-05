@@ -4,6 +4,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {XeroTrackingCategory} from '@src/types/onyx/Policy';
 
 const getXeroSetupLink = (policyID: string) => {
     const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
@@ -11,11 +12,18 @@ const getXeroSetupLink = (policyID: string) => {
     return commandURL + new URLSearchParams(params).toString();
 };
 
-const getTrackingCategory = (policy: OnyxEntry<OnyxTypes.Policy>, key: string) => {
+/**
+ * Fetches the category object from the xero.data.trackingCategories based on the category name.
+ * This is required to get Xero category object with current value stored in the xero.config.mappings
+ * @param policy
+ * @param key
+ * @returns Filtered category matching the category name or undefined.
+ */
+const getTrackingCategory = (policy: OnyxEntry<OnyxTypes.Policy>, categoryName: string): (XeroTrackingCategory & {value: string}) | undefined => {
     const {trackingCategories} = policy?.connections?.xero?.data ?? {};
     const {mappings} = policy?.connections?.xero?.config ?? {};
 
-    const category = trackingCategories?.find((currentCategory) => currentCategory.name.toLowerCase() === key.toLowerCase());
+    const category = trackingCategories?.find((currentCategory) => currentCategory.name.toLowerCase() === categoryName.toLowerCase());
     if (!category) {
         return undefined;
     }
