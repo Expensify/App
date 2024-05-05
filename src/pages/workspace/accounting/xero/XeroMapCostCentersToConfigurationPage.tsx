@@ -1,4 +1,4 @@
-import React, {useMemo, useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
@@ -29,16 +29,18 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
         [translate, category],
     );
 
-    const updateMapping = useCallback((option: {value: string}) => {
-        if (option.value !== category?.value) {
-            Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.MAPPINGS, {
-                ...(policy?.connections?.xero?.config?.mappings ?? {}),
-                ...(category?.id ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`]: option.value} : {}),
-            });
-        }   
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
-    }, [category, policyID,policy?.connections?.xero?.config?.mappings]);
-
+    const updateMapping = useCallback(
+        (option: {value: string}) => {
+            if (option.value !== category?.value) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.MAPPINGS, {
+                    ...(policy?.connections?.xero?.config?.mappings ?? {}),
+                    ...(category?.id ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`]: option.value} : {}),
+                });
+            }
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
+        },
+        [category, policyID, policy?.connections?.xero?.config?.mappings],
+    );
 
     return (
         <ConnectionLayout
