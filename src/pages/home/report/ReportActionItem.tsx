@@ -839,7 +839,10 @@ function ReportActionItem({
         if (ReportUtils.isTripRoom(report)) {
             return (
                 <OfflineWithFeedback pendingAction={action.pendingAction}>
-                    <TripDetailsView />
+                    <TripDetailsView
+                        iouReportID={report.iouReportID}
+                        shouldShowHorizontalRule={!shouldHideThreadDividerLine}
+                    />
                 </OfflineWithFeedback>
             );
         }
