@@ -2730,7 +2730,8 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Actualización disponible',
-            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `La nueva versión estará disponible dentro de poco.${isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`,
             soundsGood: 'Suena bien',
         },
         notAvailable: {
