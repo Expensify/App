@@ -459,7 +459,7 @@ type OnyxDataTaskAssigneeChat = {
 
 type Ancestor = {
     report: Report;
-    parentReport: Report;
+    parentReport: Report | null;
     reportAction: ReportAction;
     shouldDisplayNewMarker: boolean;
 };

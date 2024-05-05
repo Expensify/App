@@ -1004,7 +1004,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
-    if (!ReportUtils.canWriteInReport(ReportUtils.getReport(taskReport?.reportID))) {
+    if (!ReportUtils.canWriteInReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReport?.reportID}`] ?? null)) {
         return false;
     }
 

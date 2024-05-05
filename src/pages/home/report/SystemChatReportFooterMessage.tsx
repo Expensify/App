@@ -8,14 +8,13 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import * as ReportInstance from '@userActions/Report';
 import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy as PolicyType} from '@src/types/onyx';
+import type {Policy as PolicyType, Report} from '@src/types/onyx';
 
 type SystemChatReportFooterMessageOnyxProps = {
     /** Saved onboarding purpose selected by the user */
@@ -26,21 +25,16 @@ type SystemChatReportFooterMessageOnyxProps = {
 
     /** policyID for main workspace */
     activePolicyID: OnyxEntry<Required<string>>;
+
+    /** Workspace's #admins chat report */
+    adminChatReport: OnyxEntry<Report>;
 };
 
 type SystemChatReportFooterMessageProps = SystemChatReportFooterMessageOnyxProps;
 
-function SystemChatReportFooterMessage({choice, policies, activePolicyID}: SystemChatReportFooterMessageProps) {
+function SystemChatReportFooterMessage({adminChatReport, choice}: SystemChatReportFooterMessageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const adminChatReport = useMemo(() => {
-        const adminPolicy = activePolicyID
-            ? PolicyUtils.getPolicy(activePolicyID ?? '')
-            : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
-
-        return ReportUtils.getReport(String(adminPolicy?.chatReportIDAdmins));
-    }, [activePolicyID, policies]);
 
     const content = useMemo(() => {
         switch (choice) {
@@ -87,5 +81,14 @@ export default withOnyx<SystemChatReportFooterMessageProps, SystemChatReportFoot
     activePolicyID: {
         key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
         initialValue: null,
+    },
+    adminChatReport: {
+        key: ({activePolicyID, policies}) => {
+            const adminPolicy = activePolicyID
+                ? PolicyUtils.getPolicy(activePolicyID ?? '')
+                : Object.values(policies ?? {}).find((policy) => PolicyUtils.shouldShowPolicy(policy, false) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
+
+            return `${ONYXKEYS.COLLECTION.REPORT}${adminPolicy?.chatReportIDAdmins}`;
+        },
     },
 })(SystemChatReportFooterMessage);
