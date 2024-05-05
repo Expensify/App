@@ -693,6 +693,12 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: ROUTES.PROCESS_MONEY_REQUEST_HOLD,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.TRAVEL]: {
+                    screens: {
+                        [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
+                        [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
