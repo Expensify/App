@@ -545,7 +545,7 @@ function MoneyRequestConfirmationList({
         let updatedTagsString = TransactionUtils.getTag(transaction);
         policyTagLists.forEach((tagList, index) => {
             const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
-            const isTagListRequired = tagList.required === undefined ? false : tagList.required;
+            const isTagListRequired = tagList.required ?? false;
             if (!isTagListRequired || enabledTags.length !== 1 || TransactionUtils.getTag(transaction, index)) {
                 return;
             }
