@@ -355,7 +355,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
-                        removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
+                        if (connectedIntegration) {
+                            removePolicyConnection(policyID, connectedIntegration);
+                        }
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
