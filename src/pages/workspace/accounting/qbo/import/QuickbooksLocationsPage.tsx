@@ -47,7 +47,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
                                     accessibilityLabel={translate('workspace.qbo.locations')}
-                                    isOn={!shouldLocationImportBeOff && }
+                                    isOn={!shouldLocationImportBeOff}
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(
                                             policyID,
