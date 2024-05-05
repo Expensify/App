@@ -520,6 +520,22 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
+                    screens: {
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORY_SETTINGS.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS]: {
+                            path: ROUTES.SETTINGS_CATEGORIES_SETTINGS.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE]: {
+                            path: ROUTES.SETTINGS_CATEGORY_CREATE.route,
+                        },
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT]: {
+                            path: ROUTES.SETTINGS_CATEGORY_EDIT.route,
+                        },
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: {
                     screens: {
                         [SCREENS.REPORT_DESCRIPTION_ROOT]: ROUTES.REPORT_DESCRIPTION.route,
@@ -617,7 +633,7 @@ const config: LinkingOptions<RootStackParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.MONEY_REQUEST.CATEGORIES]: ROUTES.MONEY_REQUEST_CATEGORIES.route,
+                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
                         [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: ROUTES.MONEY_REQUEST_STEP_SEND_FROM.route,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,

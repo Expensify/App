@@ -39,6 +39,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
+    const backTo = route.params?.backTo ?? '';
 
     const policyCategory = policyCategories?.[route.params.categoryName];
 
@@ -51,6 +52,10 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     };
 
     const navigateToEditCategory = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(route.params.policyID, policyCategory.name));
     };
 
@@ -84,6 +89,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
                     title={route.params.categoryName}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                     threeDotsMenuItems={threeDotsMenuItems}
+                    onBackButtonPress={() => (backTo ? Navigation.goBack(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo)) : Navigation.goBack())}
                 />
                 <ConfirmModal
                     isVisible={deleteCategoryConfirmModalVisible}

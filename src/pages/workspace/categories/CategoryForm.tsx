@@ -9,7 +9,6 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,12 +27,9 @@ type CategoryFormProps = {
 
     /** Function to validate the edited values of the form */
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
-
-    /** Should go back after submitting the form */
-    shouldGoBackOnSubmit?: boolean;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, shouldGoBackOnSubmit}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -61,15 +57,10 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, s
 
     const submit = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            onSubmit(values);
             Keyboard.dismiss();
-            if (shouldGoBackOnSubmit) {
-                Navigation.goBack();
-                return;
-            }
-            Navigation.dismissModal();
+            onSubmit(values);
         },
-        [shouldGoBackOnSubmit, onSubmit],
+        [onSubmit],
     );
 
     return (

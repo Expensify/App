@@ -168,7 +168,14 @@ function IOURequestStepCategory({
                             large
                             success
                             style={[styles.w100]}
-                            onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_CATEGORIES.getRoute(policy?.id ?? ''))}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
+                                        policy?.id ?? '',
+                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report?.reportID ?? '', backTo, reportActionID),
+                                    ),
+                                )
+                            }
                             text={translate('workspace.categories.editCategories')}
                             pressOnEnter
                         />

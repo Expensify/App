@@ -56,6 +56,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID ?? '';
+    const backTo = route.params?.backTo ?? '';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 
@@ -121,14 +122,26 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     );
 
     const navigateToCategorySettings = (category: PolicyOption) => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList));
     };
 
     const navigateToCategoriesSettings = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
     };
 
     const navigateToCreateCategoryPage = () => {
+        if (backTo) {
+            Navigation.navigate(ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo));
+            return;
+        }
         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
     };
 
@@ -259,6 +272,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon={Illustrations.FolderOpen}
                     title={translate('workspace.common.categories')}
                     shouldShowBackButton={isInModal}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 >
                     {!isInModal && getHeaderButtons()}
                 </HeaderWithBackButton>
