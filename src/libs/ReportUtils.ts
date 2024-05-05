@@ -883,7 +883,7 @@ function isInvoiceRoom(report: OnyxEntry<Report>): boolean {
  * Checks if a report is a completed task report.
  */
 function isTripRoom(report: OnyxEntry<Report>): boolean {
-    return getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_TRIP_ROOM;
+    return isChatReport(report) && getChatType(report) === CONST.REPORT.CHAT_TYPE.POLICY_TRIP_ROOM;
 }
 
 function isCurrentUserInvoiceReceiver(report: OnyxEntry<Report>): boolean {
