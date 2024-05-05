@@ -159,14 +159,17 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES>>> = [];
+        const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
         if (selectedCategoriesArray.length > 0) {
-            options.push({
-                icon: Expensicons.Trashcan,
-                text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
-                value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
-            });
+            if (!isThereAnyAccountingConnection) {
+                options.push({
+                    icon: Expensicons.Trashcan,
+                    text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                    value: CONST.POLICY.CATEGORIES_BULK_ACTION_TYPES.DELETE,
+                    onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
+                });
+            }
 
             const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
