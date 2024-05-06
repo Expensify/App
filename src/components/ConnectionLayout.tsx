@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -15,23 +15,51 @@ import Text from './Text';
 type ConnectionLayoutProps = {
     /** Used to set the testID for tests */
     displayName: string;
+
     /** Header title for the connection */
     headerTitle: TranslationPaths;
+
     /** React nodes that will be shown */
     children?: React.ReactNode;
+
     /** Title of the connection component */
     title?: TranslationPaths;
+
     /** Subtitle of the connection */
     subtitle?: TranslationPaths;
+
     /** The current policyID */
     policyID: string;
+
     /** Defines which types of access should be verified */
     accessVariants?: PolicyAccessVariant[];
+
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
+
+    /** The content container style of Scrollview */
+    contentContainerStyle?: StyleProp<ViewStyle> | undefined;
+
+    /** Style of the title text */
+    titleStyle?: StyleProp<TextStyle> | undefined;
+
+    /** Style of the subtitle text */
+    subTitleStyle?: StyleProp<TextStyle> | undefined;
 };
 
-function ConnectionLayout({displayName, headerTitle, children, title, subtitle, policyID, accessVariants, featureName}: ConnectionLayoutProps) {
+function ConnectionLayout({
+    displayName,
+    headerTitle,
+    children,
+    title,
+    subtitle,
+    policyID,
+    accessVariants,
+    featureName,
+    contentContainerStyle,
+    titleStyle,
+    subTitleStyle,
+}: ConnectionLayoutProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -50,9 +78,9 @@ function ConnectionLayout({displayName, headerTitle, children, title, subtitle, 
                     title={translate(headerTitle)}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
-                    <View style={[styles.pb2]}>{title && <Text style={styles.pb5}>{translate(title)}</Text>}</View>
-                    {subtitle && <Text style={styles.textLabelSupporting}>{translate(subtitle)}</Text>}
+                <ScrollView contentContainerStyle={contentContainerStyle}>
+                    {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
+                    {subtitle && <Text style={[styles.textLabelSupporting, subTitleStyle]}>{translate(subtitle)}</Text>}
                     {children}
                 </ScrollView>
             </ScreenWrapper>
