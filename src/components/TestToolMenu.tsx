@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {Alert} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
@@ -19,6 +19,7 @@ import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import type {ConfirmModalProps} from './ConfirmModal';
 import {NetworkContext} from './OnyxProvider';
+import RenderHTML from './RenderHTML';
 import Switch from './Switch';
 import TestToolRow from './TestToolRow';
 import Text from './Text';
@@ -32,10 +33,12 @@ function TestToolMenu() {
 
     const [confirmModalState, setConfirmModalState] = useState<Required<Pick<ConfirmModalProps, 'title' | 'prompt' | 'onConfirm' | 'onCancel' | 'confirmText'>> | null>(null);
 
+    const exportPrompt = useMemo(() => <RenderHTML html={translate('initialSettingsPage.troubleshoot.exportToFileWarning')} />, [translate]);
+
     const confirmExportFile = useCallback(() => {
         setConfirmModalState({
             title: translate('common.headsUp'),
-            prompt: translate('initialSettingsPage.troubleshoot.exportToFileWarning'),
+            prompt: exportPrompt,
             confirmText: translate('common.export'),
             onConfirm: () => {
                 Troubleshooting.exportOnyxDataToFile();

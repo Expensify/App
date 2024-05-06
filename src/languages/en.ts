@@ -930,7 +930,7 @@ export default {
             destroy: 'Destroy',
             exportToFile: 'Export app snapshot to file',
             exportToFileWarning:
-                'With great power comes great responsibility. Sharing this file with someone will enable them to read all your chats, impersonate you, and act on your behalf without any audit trail. You should never do this unless you have a very, very good reason. Also, keep in mind that you can revoke access to your account from certain devices in the Device Management section of Expensify Classic: https://staging.expensify.com/settings?param={%22section%22:%22account%22}.',
+                'Sharing this file with someone will enable them to read all your chats, impersonate you, and act on your behalf <em>without any audit trail</em>.<br/><br/><strong>You should never do this unless you have a very, very good reason.</strong><br/><br/>Also, keep in mind that you can revoke access to your account from certain devices in <a href=" https://staging.expensify.com/settings?param={%22section%22:%22account%22}">the Device Management section of Expensify Classic</a>.',
             importFromFile: 'Import app snapshot from file',
         },
         debugConsole: {
