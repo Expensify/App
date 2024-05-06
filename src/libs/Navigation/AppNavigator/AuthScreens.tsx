@@ -319,6 +319,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                         name={SCREENS.PROFILE_AVATAR}
                         options={{
                             headerShown: false,
+                            presentation: 'transparentModal',
+                            animation: 'none',
                         }}
                         getComponent={loadProfileAvatar}
                         listeners={modalScreenListeners}
