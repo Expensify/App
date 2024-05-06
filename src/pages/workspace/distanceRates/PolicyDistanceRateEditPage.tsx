@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -39,9 +40,13 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     const rateID = route.params.rateID;
     const customUnits = policy?.customUnits ?? {};
     const customUnit = customUnits[Object.keys(customUnits)[0]];
-    const rate = customUnit?.rates[rateID] ?? {};
+    const rate = customUnit?.rates[rateID];
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
-    const currentRateValue = (rate.rate ?? 0).toString();
+    const currentRateValue = (rate?.rate ?? 0).toString();
+
+    if (!rate) {
+        return <NotFoundPage />;
+    }
 
     const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
         Policy.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
