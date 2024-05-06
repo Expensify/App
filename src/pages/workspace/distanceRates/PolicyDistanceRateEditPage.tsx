@@ -44,10 +44,6 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const currentRateValue = (rate?.rate ?? 0).toString();
 
-    if (!rate) {
-        return <NotFoundPage />;
-    }
-
     const submitRate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => {
         Policy.updatePolicyDistanceRateValue(policyID, customUnit, [{...rate, rate: Number(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET}]);
         Keyboard.dismiss();
@@ -58,6 +54,10 @@ function PolicyDistanceRateEditPage({policy, route}: PolicyDistanceRateEditPageP
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, currency, toLocaleDigit),
         [currency, toLocaleDigit],
     );
+
+    if (!rate) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
