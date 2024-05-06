@@ -3673,30 +3673,6 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
     Onyx.merge(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, newGroupDraft);
 }
 
-function setTaskDataForNewAssingee(assigneeLogin: string, accountID: number | undefined = undefined) {
-    const assigneeAccountID = accountID ?? UserUtils.generateAccountID(assigneeLogin);
-    const report: OnyxEntry<Report> | undefined = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
-    report.isOptimisticReport = true;
-
-    // When assigning a task to a new user, by default we share the task in their DM
-    // However, the DM doesn't exist yet - and will be created optimistically once the task is created
-    // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
-    // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
-    if (report) {
-        report.isHidden = true;
-    }
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-
-    const optimisticPersonalDetailsListAction = {
-        accountID: assigneeAccountID,
-        avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
-        displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeLogin,
-        login: assigneeLogin,
-    };
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
-    return {assignee: optimisticPersonalDetailsListAction, assigneeReport: report};
-}
-
 export {
     searchInServer,
     addComment,
@@ -3777,6 +3753,5 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
-    setTaskDataForNewAssingee,
     clearAvatarErrors,
 };

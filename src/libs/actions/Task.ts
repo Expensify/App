@@ -14,6 +14,7 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import * as UserUtils from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -649,6 +650,27 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
     Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
 }
 
+function setOptimisticDataForNewAssingee(assigneeLogin: string, assigneeAccountID: number | undefined = undefined) {
+    const currentAssigneeAccountID = assigneeAccountID ?? UserUtils.generateAccountID(assigneeLogin);
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([currentAssigneeAccountID]);
+
+    // When assigning a task to a new user, by default we share the task in their DM
+    // However, the DM doesn't exist yet - and will be created optimistically once the task is created
+    // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
+    // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
+    report.isHidden = true;
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+
+    const optimisticPersonalDetailsListAction: OnyxTypes.PersonalDetails = {
+        accountID: currentAssigneeAccountID,
+        avatar: allPersonalDetails?.[currentAssigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(currentAssigneeAccountID),
+        displayName: allPersonalDetails?.[currentAssigneeAccountID]?.displayName ?? assigneeLogin,
+        login: assigneeLogin,
+    };
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[currentAssigneeAccountID]: optimisticPersonalDetailsListAction});
+    return {assignee: optimisticPersonalDetailsListAction, assigneeReport: report};
+}
+
 /**
  * Sets the assignee value for the task and checks for an existing chat with the assignee
  * If there is no existing chat, it creates an optimistic chat report
@@ -669,7 +691,7 @@ function setAssigneeValue(
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
-            report = Report.setTaskDataForNewAssingee(assigneeEmail, assigneeAccountID).assigneeReport;
+            report = setOptimisticDataForNewAssingee(assigneeEmail, assigneeAccountID).assigneeReport;
         }
 
         // The optimistic field may not exist in the existing report and it can be overridden by the optimistic field of previous report data when merging the assignee chat report
@@ -1031,6 +1053,7 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
+    setOptimisticDataForNewAssingee,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};
