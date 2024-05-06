@@ -2036,7 +2036,7 @@ export default {
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
                 invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
-                xeroBillPaymentAccountDescription: 'Xero Bill Payment Account',
+                xeroBillPaymentAccountDescription: "As you’ve enabled sync reimbursed reports, you will need to select the bank account your reimbursements are coming out of, and we'll create the payment in Xero.",
             },
         },
         type: {
