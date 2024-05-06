@@ -1,3 +1,5 @@
+import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import type Queue from './QueueType';
 
 // Function to create a new queue
@@ -22,7 +24,15 @@ function createQueue<T>(processItem: (item: T) => Promise<void>): Queue<T> {
             if (!isEmpty()) {
                 const nextItem = dequeue();
                 if (nextItem) {
-                    processItem(nextItem).then(() => processNext().then(resolve));
+                    processItem(nextItem)
+                        .catch((error: Error) => {
+                            const errorMessage = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
+
+                            Log.hmmm('Queue error:', {errorMessage});
+                        })
+                        .finally(() => {
+                            processNext().then(resolve);
+                        });
                 }
             } else {
                 isProcessing = false;

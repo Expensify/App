@@ -1,7 +1,7 @@
 import type {BrowserWindow} from 'electron';
+import {app} from 'electron';
 import createQueue from '@libs/Queue/Queue';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
-import electronDownload from './electronDownloadManager';
 import type {Options} from './electronDownloadManagerType';
 
 type DownloadItem = {
@@ -16,21 +16,46 @@ type DownloadItem = {
 };
 
 const createDownloadQueue = () => {
-    const downloadItem = (item: DownloadItem): Promise<void> =>
-        new Promise((resolve) => {
-            const options = {
-                ...item.options,
-                onStarted: () => {
-                    item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
-                },
-                onCompleted: () => resolve(),
-                onCancel: () => resolve(),
+    const downloadItemProcessor = (item: DownloadItem): Promise<void> =>
+        new Promise((resolve, reject) => {
+            item.win.webContents.downloadURL(item.url);
+
+            const listener = (event: Electron.Event, downloadItem: Electron.DownloadItem) => {
+                const cleanup = () => item.win.webContents.session.removeListener('will-download', listener);
+                const errorMessage = `The download of ${downloadItem.getFilename()} was interrupted`;
+
+                downloadItem.on('updated', (_, state) => {
+                    if (state !== 'interrupted') {
+                        return;
+                    }
+
+                    cleanup();
+                    reject(new Error(errorMessage));
+                    downloadItem.cancel();
+                });
+
+                downloadItem.on('done', (_, state) => {
+                    cleanup();
+                    if (state === 'cancelled') {
+                        resolve();
+                    } else if (state === 'interrupted') {
+                        reject(new Error(errorMessage));
+                    } else if (state === 'completed') {
+                        if (process.platform === 'darwin') {
+                            const savePath = downloadItem.getSavePath();
+                            app.dock.downloadFinished(savePath);
+                        }
+                        resolve();
+                    }
+                });
+
+                item.win.webContents.send(ELECTRON_EVENTS.DOWNLOAD_STARTED, {url: item.url});
             };
 
-            electronDownload(item.win, item.url, options);
+            item.win.webContents.session.on('will-download', listener);
         });
 
-    const queue = createQueue<DownloadItem>(downloadItem);
+    const queue = createQueue<DownloadItem>(downloadItemProcessor);
 
     const enqueueDownloadItem = (item: DownloadItem): void => {
         queue.enqueue(item);
