@@ -293,6 +293,7 @@ type OptimisticChatReport = Pick<
     | 'writeCapability'
     | 'avatarUrl'
     | 'invoiceReceiver'
+    | 'isHidden'
 > & {
     isOptimisticReport: true;
 };
