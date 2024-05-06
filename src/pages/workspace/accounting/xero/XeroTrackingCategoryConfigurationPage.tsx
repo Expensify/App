@@ -56,6 +56,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={[styles.pb2, styles.ph5]}
         >
             <View>
                 <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>

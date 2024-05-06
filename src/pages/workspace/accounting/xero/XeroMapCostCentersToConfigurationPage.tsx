@@ -3,6 +3,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import {getTrackingCategory} from '@libs/actions/connections/ConnectToXero';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,6 +15,8 @@ import ROUTES from '@src/ROUTES';
 
 function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
+
     const policyID = policy?.id ?? '';
 
     const category = getTrackingCategory(policy, CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.COST_CENTERS);
@@ -50,6 +53,7 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID && category?.id ? policyID : ''}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            titleStyle={[styles.pb2, styles.ph5]}
         >
             <SelectionList
                 sections={[{data: optionsList}]}
