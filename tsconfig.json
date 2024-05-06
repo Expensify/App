@@ -22,6 +22,7 @@
             "ES2021.Intl",
             "ES2023.Array"
         ],
+        "allowJs": true,
         "isolatedModules": true,
         "strict": true,
         "allowSyntheticDefaultImports": true,
