@@ -215,6 +215,9 @@ type MenuItemBaseProps = {
     /** Should render the content in HTML format */
     shouldRenderAsHTML?: boolean;
 
+    /** Whether or not the text should be escaped */
+    shouldEscapeText?: boolean;
+
     /** Should we grey out the menu item when it is disabled? */
     shouldGreyOutWhenDisabled?: boolean;
 
@@ -316,6 +319,7 @@ function MenuItem(
         isSmallAvatarSubscriptMenu = false,
         brickRoadIndicator,
         shouldRenderAsHTML = false,
+        shouldEscapeText = undefined,
         shouldGreyOutWhenDisabled = true,
         shouldUseDefaultCursorWhenDisabled = false,
         isAnonymousAction = false,
@@ -369,8 +373,8 @@ function MenuItem(
             return '';
         }
         const parser = new ExpensiMark();
-        return parser.replace(title);
-    }, [title, shouldParseTitle]);
+        return parser.replace(title, {shouldEscapeText});
+    }, [title, shouldParseTitle, shouldEscapeText]);
 
     const processedTitle = useMemo(() => {
         let titleToWrap = '';
