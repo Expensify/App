@@ -2739,24 +2739,44 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
-    const participants: Participants = {};
     const memberRoles: Record<number, string> = {};
+    const optimisticParticipants: Participants = {};
+    const successParticipants: Participants = {};
+
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;
-        participants[accountID] = {role};
+        optimisticParticipants[accountID] = {
+            role,
+            pendingFields: {
+                role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+        successParticipants[accountID] = {
+            pendingFields: {
+                role: null,
+            },
+            pendingAction: null,
+        };
     });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants,
-            },
+            value: {participants: optimisticParticipants},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {participants: successParticipants},
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData, successData});
 }
 
 /** Invites people to a group chat */
