@@ -2,8 +2,17 @@ import TransactionListItem from '@components/SelectionList/TransactionListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchTransaction, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchTransaction, SearchTypeToItemMap} from '@src/types/onyx/SearchResults';
 import * as UserUtils from './UserUtils';
+
+function getSearchType(search: OnyxTypes.SearchResults['search']): SearchDataTypes | undefined {
+    switch (search.type) {
+        case CONST.SEARCH_DATA_TYPES.TRANSACTION:
+            return CONST.SEARCH_DATA_TYPES.TRANSACTION;
+        default:
+            return undefined;
+    }
+}
 
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     return Object.values(data).some((item) => {
@@ -34,7 +43,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchT
 }
 
 const searchTypeToItemMap: SearchTypeToItemMap = {
-    transaction: {
+    [CONST.SEARCH_DATA_TYPES.TRANSACTION]: {
         listItem: TransactionListItem,
         getSections: getTransactionsSections,
     },
@@ -52,4 +61,4 @@ function getQueryHash(query: string): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-export {getListItem, getQueryHash, getSections, getShouldShowMerchant};
+export {getListItem, getQueryHash, getSections, getShouldShowMerchant, getSearchType};

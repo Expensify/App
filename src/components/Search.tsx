@@ -4,13 +4,13 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as SearchActions from '@libs/actions/Search';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import Log from '@libs/Log';
 import * as SearchUtils from '@libs/SearchUtils';
 import Navigation from '@navigation/Navigation';
 import EmptySearchView from '@pages/Search/EmptySearchView';
 import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
@@ -56,7 +56,13 @@ function Search({query}: SearchProps) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
     };
 
-    const type = searchResults?.search?.type as SearchDataTypes;
+    const type = SearchUtils.getSearchType(searchResults?.search);
+
+    if (type === undefined) {
+        Log.alert('[Search] Undefined search type');
+        return null;
+    }
+
     const ListItem = SearchUtils.getListItem(type);
     const data = SearchUtils.getSections(searchResults?.data ?? {}, type);
     const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data ?? {});
