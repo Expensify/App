@@ -2039,7 +2039,7 @@ export default {
             exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard:
-                'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
+                'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
             bankTransactions: 'Bank transactions',
             xeroBankAccount: 'Xero días laborales',
             preferredExporter: 'Exportador preferido',
