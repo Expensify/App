@@ -25,7 +25,7 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
             value: null,
         },
     ];
-    
+
     const parameters: RemovePolicyConnectionParams = {
         policyID,
         connectionName,
