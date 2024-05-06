@@ -2045,7 +2045,7 @@ export default {
             preferredExporter: 'Exportador preferido',
             exportExpenses: 'Exportar gastos por cuenta propia como',
             exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
-            purchaseBillDate: 'Purchase bill date',
+            purchaseBillDate: 'Fecha de la factura de compra',
             exportInvoices: 'Exportar facturas como',
             salesInvoice: 'Factura de venta',
             exportInvoicesDescription: 'Las facturas de venta siempre muestran la fecha en la que se envió la factura.',
