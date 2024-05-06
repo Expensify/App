@@ -533,6 +533,15 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
+ * Checks whether an action is actionable track expense and resolved.
+ *
+ */
+function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
+    const resolution = (reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution;
+    return isActionableTrackExpense(reportAction) && !!resolution;
+}
+
+/**
  * Checks if a reportAction is fit for display as report last action, meaning that
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
@@ -1164,15 +1173,6 @@ function getDismissedViolationMessageText(originalMessage: OriginalMessageDismis
  */
 function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
-}
-
-/**
- * Checks whether an action is actionable track expense and resolved.
- *
- */
-function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    const resolution = (reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution;
-    return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
 export {

@@ -1477,7 +1477,7 @@ function getDeleteTrackExpenseInformation(
         },
     } as OnyxTypes.ReportActions;
 
-      // Resolve actionable whisper message
+    // Resolve actionable whisper message
     if (actionableWhisperReportActionID) {
         updatedReportAction[actionableWhisperReportActionID] = {
             originalMessage: {
@@ -1532,7 +1532,7 @@ function getDeleteTrackExpenseInformation(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                lastMessageText: lastMessageText,
+                lastMessageText,
                 lastVisibleActionCreated: lastVisibleAction?.created,
                 lastMessageHtml: !lastMessageHtml ? lastMessageText : lastMessageHtml,
             },
