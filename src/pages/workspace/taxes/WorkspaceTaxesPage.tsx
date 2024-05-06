@@ -231,7 +231,8 @@ function WorkspaceTaxesPage({
             customText={translate('workspace.common.selected', {selectedNumber: selectedTaxesIDs.length})}
             shouldAlwaysShowDropdownMenu
             pressOnEnter
-            style={[isSmallScreenWidth && styles.w50, isSmallScreenWidth && styles.mb3]}
+            isSplitButton={false}
+            style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
         />
     );
 

@@ -20,7 +20,6 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
-    const isSwitchOn = Boolean(enableNewCategories && enableNewCategories !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
 
     return (
         <AccessOrNotFoundWrapper
@@ -33,7 +32,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 shouldEnableMaxHeight
                 testID={QuickbooksChartOfAccountsPage.displayName}
             >
-                <HeaderWithBackButton title={translate('workspace.qbo.accounts')} />
+                <HeaderWithBackButton title={translate('workspace.accounting.accounts')} />
                 <ScrollView contentContainerStyle={[styles.pb2, styles.ph5]}>
                     <Text style={styles.pb5}>{translate('workspace.qbo.accountsDescription')}</Text>
                     <View style={[styles.flexRow, styles.mb2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -43,14 +42,14 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                         <OfflineWithFeedback pendingAction={pendingFields?.enableNewCategories}>
                             <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                                 <Switch
-                                    accessibilityLabel={translate('workspace.qbo.accounts')}
-                                    isOn={isSwitchOn}
+                                    accessibilityLabel={translate('workspace.accounting.accounts')}
+                                    isOn={!!enableNewCategories}
                                     onToggle={() =>
                                         Connections.updatePolicyConnectionConfig(
                                             policyID,
                                             CONST.POLICY.CONNECTIONS.NAME.QBO,
                                             CONST.QUICK_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
-                                            isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+                                            !enableNewCategories,
                                         )
                                     }
                                 />
