@@ -1,9 +1,5 @@
 diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
-<<<<<<<< HEAD:patches/@rnmapbox+maps+10.1.11.patch
-index dbd6d0b..1d043f2 100644
-========
 index bf149f9..2d3441b 100644
->>>>>>>> b6cde68 (Merge pull request #41360 from Expensify/andrew-ios-privacy):patches/@rnmapbox+maps+10.1.20.patch
 --- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
 +++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
 @@ -190,7 +190,7 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
