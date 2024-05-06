@@ -2689,27 +2689,20 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
-    const participants: Participants = {};
     const memberRoles: Record<number, string> = {};
-    accountIDList.forEach((accountID) => {
-        memberRoles[accountID] = role;
-        participants[accountID] = {role};
-    });
-
     const optimisticParticipants: Participants = {};
     const successParticipants: Participants = {};
-
-    Object.keys(participants).forEach((accountID) => {
-        const participantID = Number(accountID);
-        optimisticParticipants[participantID] = {
-            ...participants[participantID],
+    
+    accountIDList.forEach((accountID) => {
+        memberRoles[accountID] = role;
+        optimisticParticipants[accountID] = {
+            role,
             pendingFields: {
                 role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         };
-
-        successParticipants[participantID] = {
+        successParticipants[accountID] = {
             pendingFields: {
                 role: null,
             },
