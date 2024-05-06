@@ -67,6 +67,7 @@ type IOUMessage = {
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     cancellationReason?: string;
     paymentType?: PaymentMethodType;
+    deleted?: string;
     /** Only exists when we are sending money */
     IOUDetails?: IOUDetails;
 };
@@ -311,6 +312,11 @@ type OriginalMessageMoved = {
     };
 };
 
+type OriginalMessageMergedWithCashTransaction = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION;
+    originalMessage: Record<string, never>; // No data is sent with this action
+};
+
 type OriginalMessageDismissedViolation = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION;
     originalMessage: {
@@ -343,6 +349,7 @@ type OriginalMessage =
     | OriginalMessageMoved
     | OriginalMessageMarkedReimbursed
     | OriginalMessageActionableTrackedExpenseWhisper
+    | OriginalMessageMergedWithCashTransaction
     | OriginalMessageDismissedViolation;
 
 export default OriginalMessage;
