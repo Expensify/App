@@ -69,6 +69,7 @@ function Search({query}: SearchProps) {
             }}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+            containerStyle={[styles.pv0]}
         />
     );
 }
