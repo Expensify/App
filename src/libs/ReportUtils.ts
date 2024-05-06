@@ -557,7 +557,8 @@ Onyx.connect({
     },
 });
 
-let lastUpdatedReport: OnyxEntry<Report>;
+const MAX_UPDATE_DEPTH = 5;
+let lastUpdatedReports: Array<OnyxEntry<Report>>;
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -566,12 +567,15 @@ Onyx.connect({
             return;
         }
 
-        lastUpdatedReport = value;
+        if (lastUpdatedReports.length >= MAX_UPDATE_DEPTH) {
+            lastUpdatedReports.shift();
+        }
+        lastUpdatedReports.push(value);
     },
 });
 
-function getLastUpdatedReport(): OnyxEntry<Report> {
-    return lastUpdatedReport;
+function getLastUpdatedReports(): Array<OnyxEntry<Report>> {
+    return lastUpdatedReports ?? [];
 }
 
 function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
@@ -6544,7 +6548,7 @@ export {
     getIcons,
     getIconsForParticipants,
     getIndicatedMissingPaymentMethod,
-    getLastUpdatedReport,
+    getLastUpdatedReports,
     getLastVisibleMessage,
     getMoneyRequestOptions,
     getMoneyRequestSpendBreakdown,

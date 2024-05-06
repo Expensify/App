@@ -64,11 +64,28 @@ function OptionsListContextProvider({reports, children}: OptionsListProviderProp
             return;
         }
 
-        const newReports = OptionsListUtils.createOptionList({}, reports).reports;
+        const lastUpdatedReports = ReportUtils.getLastUpdatedReports();
+
+        if (!lastUpdatedReports.length) {
+            return;
+        }
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
-            newOptions.reports = newReports;
+            lastUpdatedReports.forEach((lastUpdatedReport) => {
+                if (!lastUpdatedReport) {
+                    return;
+                }
+
+                const newOption = OptionsListUtils.createOptionFromReport(lastUpdatedReport, personalDetails);
+                const replaceIndex = options.reports.findIndex((option) => option.reportID === lastUpdatedReport.reportID);
+
+                if (replaceIndex === -1) {
+                    return;
+                }
+
+                newOptions.reports[replaceIndex] = newOption;
+            });
             return newOptions;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
