@@ -2347,6 +2347,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
             marginLeft: -2,
             textAlign: 'center',
+            zIndex: 10,
         },
 
         emptyAvatar: {
@@ -4529,6 +4530,10 @@ const styles = (theme: ThemeColors) =>
 
             paddingHorizontal: 8,
             paddingVertical: 4,
+        },
+
+        headerStatusBarContainer: {
+            minHeight: variables.componentSizeNormal,
         },
 
         walletCardLimit: {
