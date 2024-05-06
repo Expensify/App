@@ -270,6 +270,7 @@ function OptionRow({
                                             option.amountInputProps.inputStyle,
                                         ]}
                                         containerStyle={styles.iouAmountTextInputContainer}
+                                        onAmountChange={option.amountInputProps.onAmountChange}
                                     />
                                 ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
