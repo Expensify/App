@@ -14,37 +14,38 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Account} from '@src/types/onyx/Policy';
 
 type CardListItem = ListItem & {
-    value: string;
+    value: Account;
 };
 
 function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {accountsPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const {exportAccountPayable} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {nonReimbursableExpensesAccount} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const policyID = policy?.id ?? '';
-    const data: CardListItem[] = useMemo(
-        () =>
-            accountsPayable?.map((account) => ({
-                value: account.name,
+    const sections = useMemo(() => {
+        const data: CardListItem[] =
+            accountPayable?.map((account) => ({
+                value: account,
                 text: account.name,
                 keyForList: account.name,
-                isSelected: account.name === exportAccountPayable,
-            })) ?? [],
-        [exportAccountPayable, accountsPayable],
-    );
+                isSelected: account.id === nonReimbursableExpensesAccount?.id,
+            })) ?? [];
+        return [{data}];
+    }, [nonReimbursableExpensesAccount, accountPayable]);
 
     const selectAccountPayable = useCallback(
         (row: CardListItem) => {
-            if (row.value !== exportAccountPayable) {
-                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.EXPORT_ACCOUNT_PAYABLE, row.value);
+            if (row.value.id !== nonReimbursableExpensesAccount?.id) {
+                Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.QUICK_BOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT, row.value);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID));
         },
-        [exportAccountPayable, policyID],
+        [nonReimbursableExpensesAccount, policyID],
     );
 
     return (
@@ -57,10 +58,10 @@ function QuickbooksCompanyCardExpenseAccountPayableSelectPage({policy}: WithPoli
                 <HeaderWithBackButton title={translate('workspace.qbo.accountsPayable')} />
                 <SelectionList
                     headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.accountsPayableDescription')}</Text>}
-                    sections={[{data}]}
+                    sections={sections}
                     ListItem={RadioListItem}
                     onSelectRow={selectAccountPayable}
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
+                    initiallyFocusedOptionKey={sections[0].data.find((mode) => mode.isSelected)?.keyForList}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
