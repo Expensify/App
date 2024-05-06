@@ -7,13 +7,13 @@ import * as API from '@libs/API';
 import type {GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import {buildOptimisticDismissedViolationReportAction} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RecentWaypoint, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import {buildOptimisticDismissedViolationReportAction} from "@libs/ReportUtils";
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -280,7 +280,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
     });
     const optimisticReportActions = {
         [optimisticReportAction.reportActionID]: optimisticReportAction,
-    }
+    };
     const onyxData: OnyxData = {
         optimisticData: [
             // Optimistically dismissing the violation, removing it from the list of violations
@@ -293,7 +293,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
-                value: optimisticReportActions as ReportActions
+                value: optimisticReportActions as ReportActions,
             },
         ],
         failureData: [
@@ -315,7 +315,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
 
     const parameters: MarkAsCashParams = {
         transactionID,
-        reportActionID: optimisticReportAction.reportActionID
+        reportActionID: optimisticReportAction.reportActionID,
     };
 
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);

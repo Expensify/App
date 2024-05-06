@@ -4675,11 +4675,11 @@ function buildOptimisticDismissedViolationReportAction(originalMessage: Original
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
                 text: getCurrentUserDisplayNameOrEmail(),
-            }
+            },
         ],
         reportActionID: NumberUtils.rand64(),
         shouldShow: true,
-    }
+    };
 }
 
 function buildOptimisticWorkspaceChats(policyID: string, policyName: string, expenseReportId?: string): OptimisticWorkspaceChats {
