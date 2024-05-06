@@ -2403,10 +2403,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             uniqFast([item.participantsList?.[0]?.displayName ?? '', item.login ?? '', item.login?.replace(emailRegex, '') ?? '']),
         );
 
-        if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
-            recentReports.splice(maxRecentReportsToShow);
-        }
-
         return {
             recentReports: recentReports ?? [],
             personalDetails: personalDetails ?? [],
@@ -2436,6 +2432,10 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
                 optionsToExclude,
             });
         }
+    }
+
+    if (maxRecentReportsToShow > 0 && recentReports.length > maxRecentReportsToShow) {
+        recentReports.splice(maxRecentReportsToShow);
     }
 
     return {
