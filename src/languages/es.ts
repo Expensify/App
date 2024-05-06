@@ -2048,7 +2048,7 @@ export default {
             purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Exportar facturas como',
             salesInvoice: 'Sales invoice',
-            exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
+            exportInvoicesDescription: 'Las facturas de venta siempre muestran la fecha en la que se envió la factura.',
             advancedConfig: {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
