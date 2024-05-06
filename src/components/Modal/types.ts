@@ -77,6 +77,9 @@ type BaseModalProps = Partial<ModalProps> & {
 
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
+
+    /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
+    shouldUseModalPaddingStyle?: boolean;
 };
 
 export default BaseModalProps;
