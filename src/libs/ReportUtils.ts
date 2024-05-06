@@ -558,7 +558,7 @@ Onyx.connect({
 });
 
 const MAX_UPDATE_DEPTH = 5;
-let lastUpdatedReports: Array<OnyxEntry<Report>>;
+const lastUpdatedReports: Array<OnyxEntry<Report>> = [];
 
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -575,7 +575,7 @@ Onyx.connect({
 });
 
 function getLastUpdatedReports(): Array<OnyxEntry<Report>> {
-    return lastUpdatedReports ?? [];
+    return lastUpdatedReports;
 }
 
 function getCurrentUserAvatarOrDefault(): UserUtils.AvatarSource {
