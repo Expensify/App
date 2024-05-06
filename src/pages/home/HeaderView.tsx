@@ -144,7 +144,7 @@ function HeaderView({
         }
 
         // Task is not closed
-        if (report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
+        if (ReportUtils.canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED && canModifyTask) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: translate('common.delete'),
@@ -216,7 +216,7 @@ function HeaderView({
     const brickRoadIndicator = ReportUtils.hasReportNameError(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !shouldUseNarrowLayout;
     const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(report);
-    const shouldUseGroupTitle = isGroupChat && !!report?.reportName;
+    const shouldUseGroupTitle = isGroupChat && (!!report?.reportName || !isMultipleParticipant);
     const isLoading = !report.reportID || !title;
 
     return (
