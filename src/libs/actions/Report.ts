@@ -3090,8 +3090,7 @@ function completeOnboarding(
     const targetEmail = isAccountIDOdd ? CONST.EMAIL.NOTIFICATIONS : CONST.EMAIL.CONCIERGE;
 
     const actorAccountID = PersonalDetailsUtils.getAccountIDsByLogins([targetEmail])[0];
-    // TODO: using getSystemChat is rather not necessary if we could have participants list filled correctly
-    const targetChatReport = isAccountIDOdd ? ReportUtils.getSystemChat() : ReportUtils.getChatByParticipants([actorAccountID]);
+    const targetChatReport = ReportUtils.getChatByParticipants([actorAccountID]);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     // Mention message

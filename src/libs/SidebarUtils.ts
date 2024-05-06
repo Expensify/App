@@ -18,7 +18,6 @@ import localeCompare from './LocaleCompare';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as Localize from './Localize';
 import * as OptionsListUtils from './OptionsListUtils';
-import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import * as ReportActionsUtils from './ReportActionsUtils';
 import * as ReportUtils from './ReportUtils';
 import * as TaskUtils from './TaskUtils';
@@ -237,11 +236,6 @@ function getOptionData({
     // Currently, currentUser is not included in participantAccountIDs, so for selfDM we need to add the currentUser(report owner) as participants.
     if (ReportUtils.isSelfDM(report)) {
         participantAccountIDs = [report.ownerAccountID ?? 0];
-    }
-
-    // TODO: this is added for the testing purposes only - should be removed once participants list of the system report is filled
-    if (report.chatType === CONST.REPORT.CHAT_TYPE.SYSTEM) {
-        participantAccountIDs = [report.ownerAccountID ?? 0, ...PersonalDetailsUtils.getAccountIDsByLogins([CONST.EMAIL.NOTIFICATIONS])];
     }
 
     const participantPersonalDetailList = Object.values(OptionsListUtils.getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails)) as PersonalDetails[];
