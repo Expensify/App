@@ -1573,42 +1573,6 @@ function canCreateOptimisticPersonalDetailOption({
 }
 
 /**
- * Builds the option with optimistic personal details
- */
-function createOptimisticPersonalDetailOption(searchValue: string, {reportActions = {}, showChatPreviewLine = false}) {
-    const optimisticAccountID = UserUtils.generateAccountID(searchValue);
-    const personalDetailsExtended = {
-        ...allPersonalDetails,
-        [optimisticAccountID]: {
-            accountID: optimisticAccountID,
-            login: searchValue,
-            avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
-        },
-    };
-    const optimisticUser = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
-        showChatPreviewLine,
-    });
-
-    optimisticUser.isOptimisticAccount = true;
-    optimisticUser.login = searchValue;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    optimisticUser.text = optimisticUser.text || searchValue;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    optimisticUser.alternateText = optimisticUser.alternateText || searchValue;
-
-    // If user doesn't exist, use a fallback avatar
-    optimisticUser.icons = [
-        {
-            source: UserUtils.getAvatar('', optimisticAccountID),
-            name: searchValue,
-            type: CONST.ICON_TYPE_AVATAR,
-        },
-    ];
-
-    return optimisticUser;
-}
-
-/**
  * We create a new user option if the following conditions are satisfied:
  * - There's no matching recent report and personal detail option
  * - The searchValue is a valid email or phone number
@@ -2364,7 +2328,7 @@ function getFirstKeyForList(data?: Option[] | null) {
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], maxRecentReportsToShow = 0} = config ?? {};
+    const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], maxRecentReportsToShow = 0, excludeLogins = []} = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
     }
@@ -2376,6 +2340,12 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so that we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
     const emailRegex = /\.(?=[^\s@]*@)/g;
+
+    const optionsToExclude: Option[] = [{login: CONST.EMAIL.NOTIFICATIONS}];
+
+    excludeLogins.forEach((login) => {
+        optionsToExclude.push({login});
+    });
 
     const getParticipantsLoginsArray = (item: ReportUtils.OptionData) => {
         const keys: string[] = [];
@@ -2462,6 +2432,8 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
             userToInvite = getUserToInviteOption({
                 searchValue,
                 betas,
+                selectedOptions: config?.selectedOptions,
+                optionsToExclude,
             });
         }
     }
@@ -2516,7 +2488,6 @@ export {
     getTaxRatesSection,
     getFirstKeyForList,
     canCreateOptimisticPersonalDetailOption,
-    createOptimisticPersonalDetailOption,
 };
 
 export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option, OptionTree};

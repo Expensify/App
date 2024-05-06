@@ -183,14 +183,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             return [newSections, ''];
         }
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
-            participants,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            personalDetails,
-            true,
-        );
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, participants, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
 
         newSections.push(formatResults.section);
 

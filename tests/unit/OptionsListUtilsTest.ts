@@ -2870,82 +2870,16 @@ describe('OptionsListUtils', () => {
 
     describe('canCreateOptimisticPersonalDetailOption', () => {
         const VALID_EMAIL = 'valid@email.com';
-        const INVALID_EMAIL = 'invalid-email';
         it('should allow to create optimistic personal detail option if email is valid', () => {
             const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
                 searchValue: VALID_EMAIL,
                 recentReportOptions: OPTIONS.reports,
                 personalDetailsOptions: OPTIONS.personalDetails,
                 currentUserOption: null,
-                selectedOptions: [],
                 excludeUnknownUsers: false,
-                betas: [CONST.BETAS.ALL],
-                optionsToExclude: [],
             });
 
             expect(canCreate).toBe(true);
-        });
-
-        it('should not allow to create option if email is not valid', () => {
-            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                searchValue: INVALID_EMAIL,
-                recentReportOptions: OPTIONS.reports,
-                personalDetailsOptions: OPTIONS.personalDetails,
-                currentUserOption: null,
-                selectedOptions: [],
-                excludeUnknownUsers: false,
-                betas: [CONST.BETAS.ALL],
-                optionsToExclude: [],
-            });
-
-            expect(canCreate).toBe(false);
-        });
-
-        it('should not allow to create option if email is already in the list', () => {
-            const optimisticOption = OptionsListUtils.createOptimisticPersonalDetailOption(VALID_EMAIL, {});
-            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                searchValue: VALID_EMAIL,
-                recentReportOptions: OPTIONS.reports,
-                personalDetailsOptions: OPTIONS.personalDetails,
-                currentUserOption: null,
-                selectedOptions: [optimisticOption],
-                excludeUnknownUsers: false,
-                betas: [CONST.BETAS.ALL],
-                optionsToExclude: [],
-            });
-
-            expect(canCreate).toBe(false);
-        });
-
-        it('should not allow to create option if email is restricted', () => {
-            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                searchValue: VALID_EMAIL,
-                recentReportOptions: OPTIONS.reports,
-                personalDetailsOptions: OPTIONS.personalDetails,
-                currentUserOption: null,
-                selectedOptions: [],
-                excludeUnknownUsers: false,
-                betas: [CONST.BETAS.ALL],
-                optionsToExclude: [VALID_EMAIL],
-            });
-
-            expect(canCreate).toBe(false);
-        });
-
-        it('should not allow to create option if email is already on the list', () => {
-            const optimisticOption = OptionsListUtils.createOptimisticPersonalDetailOption(VALID_EMAIL, {});
-            const canCreate = OptionsListUtils.canCreateOptimisticPersonalDetailOption({
-                searchValue: VALID_EMAIL,
-                recentReportOptions: OPTIONS.reports,
-                personalDetailsOptions: [...OPTIONS.personalDetails, optimisticOption],
-                currentUserOption: null,
-                selectedOptions: [],
-                excludeUnknownUsers: false,
-                betas: [CONST.BETAS.ALL],
-                optionsToExclude: [],
-            });
-
-            expect(canCreate).toBe(false);
         });
 
         it('should not allow to create option if email is an email of current user', () => {
@@ -2955,10 +2889,7 @@ describe('OptionsListUtils', () => {
                 recentReportOptions: OPTIONS.reports,
                 personalDetailsOptions: OPTIONS.personalDetails,
                 currentUserOption: null,
-                selectedOptions: [],
                 excludeUnknownUsers: false,
-                betas: [CONST.BETAS.ALL],
-                optionsToExclude: [],
             });
 
             expect(canCreate).toBe(false);
