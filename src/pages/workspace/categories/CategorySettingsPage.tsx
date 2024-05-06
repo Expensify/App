@@ -39,7 +39,7 @@ function CategorySettingsPage({route, policyCategories}: CategorySettingsPagePro
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
-    const backTo = route.params?.backTo ?? '';
+    const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
     const policyCategory = policyCategories?.[route.params.categoryName];

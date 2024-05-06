@@ -56,7 +56,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID ?? '';
-    const backTo = route.params?.backTo ?? '';
+    const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyId}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
 

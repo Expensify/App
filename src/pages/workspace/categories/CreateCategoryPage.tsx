@@ -28,7 +28,7 @@ type CreateCategoryPageProps = WorkspaceCreateCategoryPageOnyxProps & StackScree
 function CreateCategoryPage({route, policyCategories}: CreateCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const backTo = route.params?.backTo ?? '';
+    const backTo = route.params?.backTo;
 
     const createCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {

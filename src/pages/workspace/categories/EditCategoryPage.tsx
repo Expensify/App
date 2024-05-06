@@ -29,7 +29,7 @@ function EditCategoryPage({route, policyCategories}: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currentCategoryName = route.params.categoryName;
-    const backTo = route.params?.backTo ?? '';
+    const backTo = route.params?.backTo;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
