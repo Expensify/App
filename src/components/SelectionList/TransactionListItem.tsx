@@ -7,6 +7,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,8 +19,36 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
+
+type TextWithIconCellProps = {
+    icon: IconAsset;
+    text: string;
+    showTooltip: boolean;
+};
+
+function TextWithIconCell({icon, text, showTooltip}: TextWithIconCellProps) {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+    return (
+        <Tooltip
+            shouldRender={showTooltip}
+            text={text}
+        >
+            <View style={[styles.flexRow, styles.gap1]}>
+                <Icon
+                    src={icon}
+                    fill={theme.icon}
+                    height={12}
+                    width={12}
+                />
+                <Text style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting]}>{text}</Text>
+            </View>
+        </Tooltip>
+    );
+}
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
@@ -156,6 +185,22 @@ function TransactionListItem<TItem extends ListItem>({
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     if (!isLargeScreenWidth) {
+        const smallCategoryCell = transactionItem?.category ? (
+            <TextWithIconCell
+                icon={Expensicons.Folder}
+                showTooltip={showTooltip}
+                text={transactionItem?.category}
+            />
+        ) : null;
+
+        const smallTagCell = transactionItem?.tag ? (
+            <TextWithIconCell
+                icon={Expensicons.Tag}
+                showTooltip={showTooltip}
+                text={transactionItem?.tag}
+            />
+        ) : null;
+
         return (
             <BaseListItem
                 item={item}
@@ -192,7 +237,13 @@ function TransactionListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getWidthStyle(variables.w80)]}>{actionCell}</View>
                         </View>
                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap1]}>
-                            <View style={[styles.flex1]}>{merchantCell}</View>
+                            <View style={[styles.flex1, styles.gap1]}>
+                                {merchantCell}
+                                <View style={[styles.flexRow, styles.alignItemsEnd, styles.gap3]}>
+                                    {smallCategoryCell}
+                                    {smallTagCell}
+                                </View>
+                            </View>
                             <View style={[styles.alignItemsEnd, styles.gap1]}>
                                 {totalCell}
                                 <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter]}>
@@ -234,7 +285,7 @@ function TransactionListItem<TItem extends ListItem>({
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userCell(transactionItem.to)}</View>
                     {transactionItem.shouldShowCategory && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{categoryCell}</View>}
-                    {transactionItem.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{tagCell}</View>}
+                    {transactionItem.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>{tagCell}</View>}
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{typeCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>
