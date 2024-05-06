@@ -650,9 +650,8 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
     Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
 }
 
-function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number | undefined = undefined) {
-    const currentAssigneeAccountID = assigneeAccountID ?? UserUtils.generateAccountID(assigneeLogin);
-    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([currentAssigneeAccountID]);
+function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number) {
+    const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([assigneeAccountID]);
 
     // When assigning a task to a new user, by default we share the task in their DM
     // However, the DM doesn't exist yet - and will be created optimistically once the task is created
@@ -662,12 +661,12 @@ function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: numb
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
     const optimisticPersonalDetailsListAction: OnyxTypes.PersonalDetails = {
-        accountID: currentAssigneeAccountID,
-        avatar: allPersonalDetails?.[currentAssigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(currentAssigneeAccountID),
-        displayName: allPersonalDetails?.[currentAssigneeAccountID]?.displayName ?? assigneeLogin,
+        accountID: assigneeAccountID,
+        avatar: allPersonalDetails?.[assigneeAccountID]?.avatar ?? UserUtils.getDefaultAvatarURL(assigneeAccountID),
+        displayName: allPersonalDetails?.[assigneeAccountID]?.displayName ?? assigneeLogin,
         login: assigneeLogin,
     };
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[currentAssigneeAccountID]: optimisticPersonalDetailsListAction});
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[assigneeAccountID]: optimisticPersonalDetailsListAction});
     return {assignee: optimisticPersonalDetailsListAction, assigneeReport: report};
 }
 

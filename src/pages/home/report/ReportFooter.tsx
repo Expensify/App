@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as ReportUtils from '@libs/ReportUtils';
+import * as UserUtils from '@libs/UserUtils';
 import variables from '@styles/variables';
 import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
@@ -114,7 +115,8 @@ function ReportFooter({
             if (mentionWithDomain) {
                 assignee = Object.values(allPersonalDetails).find((value) => value?.login === mentionWithDomain) ?? {};
                 if (!Object.keys(assignee).length) {
-                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain);
+                    const assigneeAccountID = UserUtils.generateAccountID(mentionWithDomain);
+                    const optimisticDataForNewAssignee = Task.setNewOptimisticAssignee(mentionWithDomain, assigneeAccountID);
                     assignee = optimisticDataForNewAssignee.assignee;
                     assigneeChatReport = optimisticDataForNewAssignee.assigneeReport;
                 }
