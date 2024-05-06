@@ -68,6 +68,8 @@ type MoneyRequestAmountInputProps = {
 
     /** Whether we want to format the display amount on blur */
     formatAmountOnBlur?: boolean;
+
+    maxLength?: number;
 };
 
 type Selection = {
@@ -96,6 +98,7 @@ function MoneyRequestAmountInput(
         moneyRequestAmountInputRef,
         disableKeyboard = true,
         formatAmountOnBlur,
+        maxLength,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -267,6 +270,7 @@ function MoneyRequestAmountInput(
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
+            maxLength={maxLength}
         />
     );
 }

@@ -476,7 +476,9 @@ function MoneyRequestConfirmationList({
         }
 
         const currencySymbol = currencyList?.[iouCurrencyCode ?? '']?.symbol ?? iouCurrencyCode;
-        const minWidth = StyleUtils.getAmountWidth(CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode));
+        const prefixPadding = StyleUtils.getCharacterPadding(currencySymbol ?? '');
+        const formattedTotalAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
+        const amountWidth = StyleUtils.getWidthStyle(formattedTotalAmount.length * 9 + prefixPadding);
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
             tabIndex: -1,
@@ -485,7 +487,9 @@ function MoneyRequestConfirmationList({
                 amount: transaction?.splitShares?.[participantOption.accountID ?? 0]?.amount,
                 currency: iouCurrencyCode,
                 prefixCharacter: currencySymbol,
-                inputStyle: [StyleUtils.getMinimumWidth(minWidth)],
+                containerStyle: [amountWidth],
+                inputStyle: [amountWidth],
+                maxLength: formattedTotalAmount.length,
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));

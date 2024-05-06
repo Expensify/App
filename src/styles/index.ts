@@ -1143,7 +1143,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         optionRowAmountInput: {
-            minWidth: 60,
             textAlign: 'right',
         },
 

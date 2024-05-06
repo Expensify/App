@@ -271,6 +271,7 @@ function OptionRow({
                                         ]}
                                         containerStyle={styles.iouAmountTextInputContainer}
                                         onAmountChange={option.amountInputProps.onAmountChange}
+                                        maxLength={option.amountInputProps.maxLength}
                                     />
                                 ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
