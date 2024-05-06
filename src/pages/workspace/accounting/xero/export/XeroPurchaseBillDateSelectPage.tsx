@@ -19,7 +19,7 @@ import ROUTES from '@src/ROUTES';
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.XERO_EXPORT_DATE>;
 };
-function XeroExportBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
+function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
@@ -37,7 +37,7 @@ function XeroExportBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
             if (row.value !== billDate) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {billDate: row.value});
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_BILL_DATE_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT.getRoute(policyID));
         },
         [billDate, policyID],
     );
@@ -50,7 +50,7 @@ function XeroExportBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={XeroExportBillDateSelectPage.displayName}
+                testID={XeroPurchaseBillDateSelectPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.xero.exportDate.label')} />
                 <SelectionList
@@ -65,6 +65,6 @@ function XeroExportBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-XeroExportBillDateSelectPage.displayName = 'XeroExportBillDateSelectPage';
+XeroPurchaseBillDateSelectPage.displayName = 'XeroPurchaseBillDateSelectPage';
 
-export default withPolicyConnections(XeroExportBillDateSelectPage);
+export default withPolicyConnections(XeroPurchaseBillDateSelectPage);

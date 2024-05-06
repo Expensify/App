@@ -792,9 +792,9 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/accounting/xero/export',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
     },
-    POLICY_ACCOUNTING_XERO_EXPORT_BILL_DATE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/xero/export/bill-date-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/bill-date-select` as const,
+    POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: {
+        route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-date-select',
+        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-date-select` as const,
     },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/xero/advanced',
