@@ -165,6 +165,16 @@ type GetOptionsConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
+type GetUserToInviteConfig = {
+    searchValue: string;
+    excludeUnknownUsers?: boolean;
+    optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
+    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
+    betas: OnyxEntry<Beta[]>;
+    reportActions?: ReportActions;
+    showChatPreviewLine?: boolean;
+};
+
 type MemberForList = {
     text: string;
     alternateText: string;
@@ -261,20 +271,20 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
-        const sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
+        let sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
+
+        const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, allReportActions[reportID], true);
+        if (transactionThreadReportID) {
+            sortedReportActions = ReportActionUtils.getCombinedReportActions(allSortedReportActions[reportID], allSortedReportActions[transactionThreadReportID]);
+        }
+
         lastReportActions[reportID] = sortedReportActions[0];
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportActionsForDisplay = sortedReportActions.filter(
-            (reportAction, actionKey) =>
-                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                !ReportActionUtils.isWhisperAction(reportAction) &&
-                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        const reportActionsForDisplay = sortedReportActions.filter((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
+        visibleReportActionItems[reportID] = reportActionsForDisplay[0];
     },
 });
 
@@ -554,7 +564,8 @@ function getAlternateText(
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    const lastReportAction = visibleReportActionItems[report?.reportID ?? ''] ?? null;
+
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
@@ -1460,8 +1471,18 @@ function createOptionList(personalDetails: OnyxEntry<PersonalDetailsList>, repor
             }
 
             const isSelfDM = ReportUtils.isSelfDM(report);
-            // Currently, currentUser is not included in participants, so for selfDM we need to add the currentUser as participants.
-            const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number);
+            let accountIDs = [];
+
+            if (isSelfDM) {
+                // For selfDM we need to add the currentUser as participants.
+                accountIDs = [currentUserAccountID ?? 0];
+            } else {
+                accountIDs = Object.keys(report.participants ?? {}).map(Number);
+                if (ReportUtils.isOneOnOneChat(report)) {
+                    // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+                    accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
+                }
+            }
 
             if (!accountIDs || accountIDs.length === 0) {
                 return;
@@ -1536,37 +1557,19 @@ function canCreateOptimisticPersonalDetailOption({
     recentReportOptions,
     personalDetailsOptions,
     currentUserOption,
-    selectedOptions,
-    excludeUnknownUsers,
-    betas,
-    optionsToExclude,
 }: {
     searchValue: string;
     recentReportOptions: ReportUtils.OptionData[];
     personalDetailsOptions: ReportUtils.OptionData[];
     currentUserOption?: ReportUtils.OptionData | null;
-    selectedOptions: Array<Partial<ReportUtils.OptionData>>;
     excludeUnknownUsers: boolean;
-    betas: OnyxEntry<Beta[]>;
-    optionsToExclude: string[];
 }) {
-    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
         .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
-    return (
-        searchValue &&
-        (noOptions || noOptionsMatchExactly) &&
-        !isCurrentUser({login: searchValue} as PersonalDetails) &&
-        selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
-        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber?.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
-        !optionsToExclude.find((optionToExclude) => optionToExclude === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
-        (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
-        !excludeUnknownUsers
-    );
+    return noOptions || noOptionsMatchExactly;
 }
 
 /**
@@ -1603,6 +1606,74 @@ function createOptimisticPersonalDetailOption(searchValue: string, {reportAction
     ];
 
     return optimisticUser;
+}
+
+/**
+ * We create a new user option if the following conditions are satisfied:
+ * - There's no matching recent report and personal detail option
+ * - The searchValue is a valid email or phone number
+ * - The searchValue isn't the current personal detail login
+ * - We can use chronos or the search value is not the chronos email
+ */
+function getUserToInviteOption({
+    searchValue,
+    excludeUnknownUsers = false,
+    optionsToExclude = [],
+    selectedOptions = [],
+    betas,
+    reportActions = {},
+    showChatPreviewLine = false,
+}: GetUserToInviteConfig): ReportUtils.OptionData | null {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
+    const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
+    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
+    const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+    const isInOptionToExclude =
+        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
+    const isChronosEmail = searchValue === CONST.EMAIL.CHRONOS;
+
+    if (
+        !searchValue ||
+        isCurrentUserLogin ||
+        isInSelectedOption ||
+        (!isValidEmail && !isValidPhoneNumber) ||
+        isInOptionToExclude ||
+        (isChronosEmail && !Permissions.canUseChronos(betas)) ||
+        excludeUnknownUsers
+    ) {
+        return null;
+    }
+
+    // Generates an optimistic account ID for new users not yet saved in Onyx
+    const optimisticAccountID = UserUtils.generateAccountID(searchValue);
+    const personalDetailsExtended = {
+        ...allPersonalDetails,
+        [optimisticAccountID]: {
+            accountID: optimisticAccountID,
+            login: searchValue,
+        },
+    };
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
+        showChatPreviewLine,
+    });
+    userToInvite.isOptimisticAccount = true;
+    userToInvite.login = searchValue;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    userToInvite.text = userToInvite.text || searchValue;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    userToInvite.alternateText = userToInvite.alternateText || searchValue;
+
+    // If user doesn't exist, use a fallback avatar
+    userToInvite.icons = [
+        {
+            source: UserUtils.getAvatar('', optimisticAccountID),
+            name: searchValue,
+            type: CONST.ICON_TYPE_AVATAR,
+        },
+    ];
+
+    return userToInvite;
 }
 
 /**
@@ -1755,8 +1826,18 @@ function getOptions(
         const isPolicyExpenseChat = option.isPolicyExpenseChat;
         const isMoneyRequestReport = option.isMoneyRequestReport;
         const isSelfDM = option.isSelfDM;
-        // Currently, currentUser is not included in participants, so for selfDM we need to add the currentUser as participants.
-        const accountIDs = isSelfDM ? [currentUserAccountID ?? 0] : Object.keys(report.participants ?? {}).map(Number);
+        let accountIDs = [];
+
+        if (isSelfDM) {
+            // For selfDM we need to add the currentUser as participants.
+            accountIDs = [currentUserAccountID ?? 0];
+        } else {
+            accountIDs = Object.keys(report.participants ?? {}).map(Number);
+            if (ReportUtils.isOneOnOneChat(report)) {
+                // For 1:1 chat, we don't want to include currentUser as participants in order to not mark 1:1 chats as having multiple participants
+                accountIDs = accountIDs.filter((accountID) => accountID !== currentUserAccountID);
+            }
+        }
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
             return;
@@ -1910,13 +1991,18 @@ function getOptions(
             recentReportOptions,
             personalDetailsOptions,
             currentUserOption,
-            selectedOptions,
             excludeUnknownUsers,
-            betas,
-            optionsToExclude: optionsToExclude.map(({login}) => login ?? ''),
         })
     ) {
-        userToInvite = createOptimisticPersonalDetailOption(searchValue, {reportActions, showChatPreviewLine});
+        userToInvite = getUserToInviteOption({
+            searchValue,
+            excludeUnknownUsers,
+            optionsToExclude,
+            selectedOptions,
+            betas,
+            reportActions,
+            showChatPreviewLine,
+        });
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
@@ -2165,11 +2251,7 @@ function getMemberInviteOptions(
 /**
  * Helper method that returns the text to be used for the header's message and title (if any)
  */
-function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, maxParticipantsReached = false, hasMatchedParticipant = false): string {
-    if (maxParticipantsReached) {
-        return Localize.translate(preferredLocale, 'common.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS});
-    }
-
+function getHeaderMessage(hasSelectableOptions: boolean, hasUserToInvite: boolean, searchValue: string, hasMatchedParticipant = false): string {
     const isValidPhone = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(searchValue)).possible;
 
     const isValidEmail = Str.isValidEmail(searchValue);
@@ -2221,14 +2303,13 @@ function formatSectionsFromSearchTerm(
     selectedOptions: ReportUtils.OptionData[],
     filteredRecentReports: ReportUtils.OptionData[],
     filteredPersonalDetails: ReportUtils.OptionData[],
-    maxOptionsSelected: boolean,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},
     shouldGetOptionDetails = false,
 ): SectionForSearchTerm {
     // We show the selected participants at the top of the list when there is no search term or maximum number of participants has already been selected
     // However, if there is a search term we remove the selected participants from the top of the list unless they are part of the search results
     // This clears up space on mobile views, where if you create a group with 4+ people you can't see the selected participants and the search results at the same time
-    if (searchTerm === '' || maxOptionsSelected) {
+    if (searchTerm === '') {
         return {
             section: {
                 title: undefined,
@@ -2283,15 +2364,7 @@ function getFirstKeyForList(data?: Option[] | null) {
  * Filters options based on the search input value
  */
 function filterOptions(options: Options, searchInputValue: string, config?: FilterOptionsConfig): Options {
-    const {
-        sortByReportTypeInSearch = false,
-        canInviteUser = true,
-        betas = [],
-        selectedOptions = [],
-        excludeUnknownUsers = false,
-        excludeLogins = [],
-        maxRecentReportsToShow = 0,
-    } = config ?? {};
+    const {sortByReportTypeInSearch = false, canInviteUser = true, betas = [], maxRecentReportsToShow = 0} = config ?? {};
     if (searchInputValue.trim() === '' && maxRecentReportsToShow > 0) {
         return {...options, recentReports: options.recentReports.slice(0, maxRecentReportsToShow)};
     }
@@ -2376,7 +2449,6 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
     }, options);
 
     let {recentReports, personalDetails} = matchResults;
-    const {currentUserOption} = matchResults;
 
     if (sortByReportTypeInSearch) {
         recentReports = recentReports.concat(personalDetails);
@@ -2386,19 +2458,11 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
 
     let userToInvite = null;
     if (canInviteUser) {
-        if (
-            canCreateOptimisticPersonalDetailOption({
+        if (recentReports.length === 0) {
+            userToInvite = getUserToInviteOption({
                 searchValue,
-                recentReportOptions: recentReports,
-                personalDetailsOptions: personalDetails,
-                currentUserOption,
-                selectedOptions,
-                excludeUnknownUsers,
                 betas,
-                optionsToExclude: excludeLogins,
-            })
-        ) {
-            userToInvite = createOptimisticPersonalDetailOption(searchValue, {});
+            });
         }
     }
 
@@ -2406,7 +2470,7 @@ function filterOptions(options: Options, searchInputValue: string, config?: Filt
         personalDetails,
         recentReports,
         userToInvite,
-        currentUserOption: null,
+        currentUserOption: matchResults.currentUserOption,
         categoryOptions: [],
         tagOptions: [],
         taxRatesOptions: [],

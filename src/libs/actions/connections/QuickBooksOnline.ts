@@ -1,14 +1,14 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {ConnectPolicyToQuickbooksOnlineParams, SyncPolicyToQuickbooksOnlineParams} from '@libs/API/parameters';
+import type {ConnectPolicyToAccountingIntegrationParams, SyncPolicyToQuickbooksOnlineParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function getQuickBooksOnlineSetupLink(policyID: string) {
-    const params: ConnectPolicyToQuickbooksOnlineParams = {policyID};
+    const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
     const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE, shouldSkipWebProxy: true});
     return commandURL + new URLSearchParams(params).toString();
 }
