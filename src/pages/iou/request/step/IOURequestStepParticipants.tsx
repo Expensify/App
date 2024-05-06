@@ -55,6 +55,9 @@ function IOURequestStepParticipants({
         if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {});
         }
+        if (iouType === CONST.IOU.TYPE.INVOICE) {
+            return translate('workspace.invoices.sendInvoice');
+        }
         return translate('iou.submitExpense');
     }, [iouType, translate, isSplitRequest, action]);
 
