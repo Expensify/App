@@ -2053,7 +2053,7 @@ export default {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
                 autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
-                purchaseBillStatusTitle: 'Purchase bill status',
+                purchaseBillStatusTitle: 'Estado de la factura de compra',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
