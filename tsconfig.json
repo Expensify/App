@@ -2,6 +2,7 @@
     "$schema": "https://json.schemastore.org/tsconfig",
     "extends": "expo/tsconfig.base",
     "compilerOptions": {
+        "module": "commonjs",
         "types": ["react-native", "jest"],
         "isolatedModules": true,
         "strict": true,

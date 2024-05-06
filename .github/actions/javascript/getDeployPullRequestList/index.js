@@ -3236,10 +3236,9 @@ exports.checkBypass = checkBypass;
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 const VERSION = "3.1.0";
 
@@ -3396,10 +3395,10 @@ function paginateRest(octokit) {
 }
 paginateRest.VERSION = VERSION;
 
-__webpack_unused_export__ = composePaginateRest;
-__webpack_unused_export__ = isPaginatingEndpoint;
-exports.AA = paginateRest;
-__webpack_unused_export__ = paginatingEndpoints;
+exports.composePaginateRest = composePaginateRest;
+exports.isPaginatingEndpoint = isPaginatingEndpoint;
+exports.paginateRest = paginateRest;
+exports.paginatingEndpoints = paginatingEndpoints;
 //# sourceMappingURL=index.js.map
 
 
@@ -4524,10 +4523,9 @@ exports.restEndpointMethods = restEndpointMethods;
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
@@ -4772,7 +4770,7 @@ function throttling(octokit, octokitOptions) {
 throttling.VERSION = VERSION;
 throttling.triggersNotification = triggersNotification;
 
-exports.O = throttling;
+exports.throttling = throttling;
 //# sourceMappingURL=index.js.map
 
 
@@ -11467,24 +11465,107 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 9591:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+/***/ 1935:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
 
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "default": () => (/* binding */ getDeployPullRequestList)
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
 });
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const ActionUtils_1 = __nccwpck_require__(6981);
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
+async function run() {
+    try {
+        const inputTag = core.getInput('TAG', { required: true });
+        const isProductionDeploy = (0, ActionUtils_1.getJSONInput)('IS_PRODUCTION_DEPLOY', { required: false }, false);
+        const deployEnv = isProductionDeploy ? 'production' : 'staging';
+        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
+        const completedDeploys = (await GithubUtils_1.default.octokit.actions.listWorkflowRuns({
+            owner: github.context.repo.owner,
+            repo: github.context.repo.repo,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            workflow_id: 'platformDeploy.yml',
+            status: 'completed',
+            event: isProductionDeploy ? 'release' : 'push',
+        })).data.workflow_runs;
+        const priorTag = completedDeploys[0].head_branch;
+        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
+        const prList = await GitUtils_1.default.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
+        console.log('Found the pull request list: ', prList);
+        core.setOutput('PR_LIST', prList);
+    }
+    catch (error) {
+        console.error(error.message);
+        core.setFailed(error);
+    }
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
 
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var lib_core = __nccwpck_require__(2186);
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(5438);
-;// CONCATENATED MODULE: ./.github/libs/ActionUtils.ts
 
+/***/ }),
+
+/***/ 6981:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getStringInput = exports.getJSONInput = void 0;
+const core = __importStar(__nccwpck_require__(2186));
 /**
  * Safely parse a JSON input to a GitHub Action.
  *
@@ -11494,12 +11575,13 @@ var github = __nccwpck_require__(5438);
  *                         Not required if the {required: true} option is given in the second arg to this function.
  */
 function getJSONInput(name, options, defaultValue) {
-    const input = lib_core.getInput(name, options);
+    const input = core.getInput(name, options);
     if (input) {
         return JSON.parse(input);
     }
     return defaultValue;
 }
+exports.getJSONInput = getJSONInput;
 /**
  * Safely access a string input to a GitHub Action, or fall back on a default if the string is empty.
  */
@@ -11510,31 +11592,17 @@ function getStringInput(name, options, defaultValue) {
     }
     return input;
 }
+exports.getStringInput = getStringInput;
 
 
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/utils.js
-var utils = __nccwpck_require__(3030);
-// EXTERNAL MODULE: ./node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
-var dist_node = __nccwpck_require__(4193);
-// EXTERNAL MODULE: ./node_modules/@octokit/plugin-throttling/dist-node/index.js
-var plugin_throttling_dist_node = __nccwpck_require__(9968);
-;// CONCATENATED MODULE: ./src/types/utils/EmptyObject.ts
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
+/***/ }),
 
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
 
-;// CONCATENATED MODULE: ./src/utils/arrayDifference.ts
-/**
- * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
- * It returns an array of items that are in the first array but not in the second array.
- */
-function arrayDifference(array1, array2) {
-    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-}
-/* harmony default export */ const utils_arrayDifference = (arrayDifference);
+"use strict";
 
-;// CONCATENATED MODULE: ./.github/libs/CONST.ts
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
@@ -11557,17 +11625,209 @@ const CONST = {
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
-/* harmony default export */ const libs_CONST = (CONST);
+exports["default"] = CONST;
 
-;// CONCATENATED MODULE: ./.github/libs/GithubUtils.ts
+
+/***/ }),
+
+/***/ 1547:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const child_process_1 = __nccwpck_require__(2081);
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
+const VERSION_UPDATER = __importStar(__nccwpck_require__(8982));
+/**
+ * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ */
+function fetchTag(tag, shallowExcludeTag = '') {
+    let shouldRetry = true;
+    let needsRepack = false;
+    while (shouldRetry) {
+        try {
+            let command = '';
+            if (needsRepack) {
+                // We have seen some scenarios where this fixes the git fetch.
+                // Why? Who knows... https://github.com/Expensify/App/pull/31459
+                command = 'git repack -d';
+                console.log(`Running command: ${command}`);
+                (0, child_process_1.execSync)(command);
+            }
+            command = `git fetch origin tag ${tag} --no-tags`;
+            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
+            if (shallowExcludeTag && shallowExcludeTag !== tag) {
+                command += ` --shallow-exclude=${shallowExcludeTag}`;
+            }
+            console.log(`Running command: ${command}`);
+            (0, child_process_1.execSync)(command);
+            shouldRetry = false;
+        }
+        catch (e) {
+            console.error(e);
+            if (!needsRepack) {
+                console.log('Attempting to repack and retry...');
+                needsRepack = true;
+            }
+            else {
+                console.error("Repack didn't help, giving up...");
+                shouldRetry = false;
+            }
+        }
+    }
+}
+/**
+ * Get merge logs between two tags (inclusive) as a JavaScript object.
+ */
+function getCommitHistoryAsJSON(fromTag, toTag) {
+    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = VERSION_UPDATER.getPreviousVersion(fromTag, VERSION_UPDATER.SEMANTIC_VERSION_LEVELS.PATCH);
+    fetchTag(fromTag, previousPatchVersion);
+    fetchTag(toTag, previousPatchVersion);
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    return new Promise((resolve, reject) => {
+        let stdout = '';
+        let stderr = '';
+        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
+        console.log(`Running command: git ${args.join(' ')}`);
+        const spawnedProcess = (0, child_process_1.spawn)('git', args);
+        spawnedProcess.on('message', console.log);
+        spawnedProcess.stdout.on('data', (chunk) => {
+            console.log(chunk.toString());
+            stdout += chunk.toString();
+        });
+        spawnedProcess.stderr.on('data', (chunk) => {
+            console.error(chunk.toString());
+            stderr += chunk.toString();
+        });
+        spawnedProcess.on('close', (code) => {
+            if (code !== 0) {
+                return reject(new Error(`${stderr}`));
+            }
+            resolve(stdout);
+        });
+        spawnedProcess.on('error', (err) => reject(err));
+    }).then((stdout) => {
+        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
+        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => (0, sanitizeStringForJSONParse_1.default)(subject));
+        // Then remove newlines, format as JSON and convert to a proper JS object
+        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
+        return JSON.parse(json);
+    });
+}
+/**
+ * Parse merged PRs, excluding those from irrelevant branches.
+ */
+function getValidMergedPRs(commits) {
+    const mergedPRs = new Set();
+    commits.forEach((commit) => {
+        const author = commit.authorName;
+        if (author === CONST_1.default.OS_BOTIFY) {
+            return;
+        }
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        if (!Array.isArray(match) || match.length < 2) {
+            return;
+        }
+        const pr = Number.parseInt(match[1], 10);
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+        mergedPRs.add(pr);
+    });
+    return Array.from(mergedPRs);
+}
+/**
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
+ */
+async function getPullRequestsMergedBetween(fromTag, toTag) {
+    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
+    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
+    // Find which commit messages correspond to merged PR's
+    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
+    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+    return pullRequestNumbers;
+}
+exports["default"] = {
+    getValidMergedPRs,
+    getPullRequestsMergedBetween,
+};
+
+
+/***/ }),
+
+/***/ 9296:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-
-
-
-
-
-
-
+const core = __importStar(__nccwpck_require__(2186));
+const utils_1 = __nccwpck_require__(3030);
+const plugin_paginate_rest_1 = __nccwpck_require__(4193);
+const plugin_throttling_1 = __nccwpck_require__(9968);
+const EmptyObject_1 = __nccwpck_require__(8227);
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
     /**
@@ -11576,10 +11836,10 @@ class GithubUtils {
      * @private
      */
     static initOctokit() {
-        const Octokit = utils.GitHub.plugin(plugin_throttling_dist_node/* throttling */.O, dist_node/* paginateRest */.AA);
-        const token = lib_core.getInput('GITHUB_TOKEN', { required: true });
+        const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
+        const token = core.getInput('GITHUB_TOKEN', { required: true });
         // Save a copy of octokit used in this class
-        this.internalOctokit = new Octokit((0,utils.getOctokitOptions)(token, {
+        this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {
                 retryAfterBaseValue: 2000,
                 onRateLimit: (retryAfter, options) => {
@@ -11641,17 +11901,17 @@ class GithubUtils {
     static getStagingDeployCash() {
         return this.octokit.issues
             .listForRepo({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            labels: libs_CONST.LABELS.STAGING_DEPLOY,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            labels: CONST_1.default.LABELS.STAGING_DEPLOY,
             state: 'open',
         })
             .then(({ data }) => {
             if (!data.length) {
-                throw new Error(`Unable to find ${libs_CONST.LABELS.STAGING_DEPLOY} issue.`);
+                throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
             if (data.length > 1) {
-                throw new Error(`Found more than one ${libs_CONST.LABELS.STAGING_DEPLOY} issue.`);
+                throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
             return this.getStagingDeployCashData(data[0]);
         });
@@ -11678,7 +11938,7 @@ class GithubUtils {
             };
         }
         catch (exception) {
-            throw new Error(`Unable to find ${libs_CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
+            throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue with correct data.`);
         }
     }
     /**
@@ -11694,7 +11954,7 @@ class GithubUtils {
             return [];
         }
         PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${libs_CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
@@ -11712,7 +11972,7 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${libs_CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -11730,7 +11990,7 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${libs_CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2].split('-')[0].trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -11743,7 +12003,7 @@ class GithubUtils {
     static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
-            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === libs_CONST.LABELS.INTERNAL_QA))) : [];
+            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
             return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
                 // The format of this map is following:
                 // {
@@ -11758,7 +12018,7 @@ class GithubUtils {
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
-                const sortedPRList = [...new Set(utils_arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
+                const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
@@ -11773,7 +12033,7 @@ class GithubUtils {
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
-                if (!isEmptyObject(internalQAPRMap)) {
+                if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
                     Object.keys(internalQAPRMap).forEach((URL) => {
@@ -11817,8 +12077,8 @@ class GithubUtils {
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
         return this.paginate(this.octokit.pulls.list, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             state: 'all',
             sort: 'created',
             direction: 'desc',
@@ -11835,8 +12095,8 @@ class GithubUtils {
     static getPullRequestMergerLogin(pullRequestNumber) {
         return this.octokit.pulls
             .get({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({ data: pullRequest }) => pullRequest.merged_by?.login);
@@ -11844,24 +12104,24 @@ class GithubUtils {
     static getPullRequestBody(pullRequestNumber) {
         return this.octokit.pulls
             .get({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({ data: pullRequestComment }) => pullRequestComment.body);
     }
     static getAllReviewComments(pullRequestNumber) {
         return this.paginate(this.octokit.pulls.listReviews, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             pull_number: pullRequestNumber,
             per_page: 100,
         }, (response) => response.data.map((review) => review.body));
     }
     static getAllComments(issueNumber) {
         return this.paginate(this.octokit.issues.listComments, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             issue_number: issueNumber,
             per_page: 100,
         }, (response) => response.data.map((comment) => comment.body));
@@ -11872,7 +12132,7 @@ class GithubUtils {
     static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
-            owner: libs_CONST.GITHUB_OWNER,
+            owner: CONST_1.default.GITHUB_OWNER,
             repo,
             issue_number: number,
             body: messageBody,
@@ -11885,8 +12145,8 @@ class GithubUtils {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
             .listWorkflowRuns({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs[0]?.id);
@@ -11901,7 +12161,7 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        return `${libs_CONST.APP_REPO_URL}/pull/${value}`;
+        return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
      * Parse the pull request number from a URL.
@@ -11909,7 +12169,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Pull Request.
      */
     static getPullRequestNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
         }
@@ -11921,7 +12181,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue.
      */
     static getIssueNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.ISSUE_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
         }
@@ -11933,7 +12193,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
     static getIssueOrPullRequestNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.ISSUE_OR_PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
@@ -11944,8 +12204,8 @@ class GithubUtils {
      */
     static getActorWhoClosedIssue(issueNumber) {
         return this.paginate(this.octokit.issues.listEvents, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             issue_number: issueNumber,
             per_page: 100,
         })
@@ -11954,18 +12214,24 @@ class GithubUtils {
     }
     static getArtifactByName(artefactName) {
         return this.paginate(this.octokit.actions.listArtifactsForRepo, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             per_page: 100,
         }).then((artifacts) => artifacts.find((artifact) => artifact.name === artefactName));
     }
 }
-/* harmony default export */ const libs_GithubUtils = (GithubUtils);
+exports["default"] = GithubUtils;
 
-;// CONCATENATED MODULE: external "child_process"
-const external_child_process_namespaceObject = require("child_process");
-;// CONCATENATED MODULE: ./.github/libs/sanitizeStringForJSONParse.ts
+
+/***/ }),
+
+/***/ 3902:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
 /* eslint-disable @typescript-eslint/naming-convention */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 const replacer = (str) => ({
     '\\': '\\\\',
     '\t': '\\t',
@@ -11987,16 +12253,27 @@ const sanitizeStringForJSONParse = (inputString) => {
     // Replace any newlines and escape backslashes
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
 };
-/* harmony default export */ const libs_sanitizeStringForJSONParse = (sanitizeStringForJSONParse);
+exports["default"] = sanitizeStringForJSONParse;
 
-;// CONCATENATED MODULE: ./.github/libs/versionUpdater.ts
+
+/***/ }),
+
+/***/ 8982:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getPreviousVersion = exports.incrementPatch = exports.incrementMinor = exports.SEMANTIC_VERSION_LEVELS = exports.MAX_INCREMENTS = exports.incrementVersion = exports.getVersionStringFromNumber = exports.getVersionNumberFromString = void 0;
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
     MINOR: 'MINOR',
     PATCH: 'PATCH',
     BUILD: 'BUILD',
 };
+exports.SEMANTIC_VERSION_LEVELS = SEMANTIC_VERSION_LEVELS;
 const MAX_INCREMENTS = 99;
+exports.MAX_INCREMENTS = MAX_INCREMENTS;
 /**
  * Transforms a versions string into a number
  */
@@ -12005,10 +12282,12 @@ const getVersionNumberFromString = (versionString) => {
     const [major, minor, patch] = version.split('.').map((n) => Number(n));
     return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
+exports.getVersionNumberFromString = getVersionNumberFromString;
 /**
  * Transforms version numbers components into a version string
  */
 const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+exports.getVersionStringFromNumber = getVersionStringFromNumber;
 /**
  * Increments a minor version
  */
@@ -12018,6 +12297,7 @@ const incrementMinor = (major, minor) => {
     }
     return getVersionStringFromNumber(major + 1, 0, 0, 0);
 };
+exports.incrementMinor = incrementMinor;
 /**
  * Increments a Patch version
  */
@@ -12027,6 +12307,7 @@ const incrementPatch = (major, minor, patch) => {
     }
     return incrementMinor(major, minor);
 };
+exports.incrementPatch = incrementPatch;
 /**
  * Increments a build version
  */
@@ -12047,6 +12328,7 @@ const incrementVersion = (version, level) => {
     }
     return incrementPatch(major, minor, patch);
 };
+exports.incrementVersion = incrementVersion;
 function getPreviousVersion(currentVersion, level) {
     const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
     if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
@@ -12072,168 +12354,40 @@ function getPreviousVersion(currentVersion, level) {
     }
     return getVersionStringFromNumber(major, minor, patch, build - 1);
 }
+exports.getPreviousVersion = getPreviousVersion;
 
 
-;// CONCATENATED MODULE: ./.github/libs/GitUtils.ts
+/***/ }),
+
+/***/ 8227:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyObject = void 0;
+function isEmptyObject(obj) {
+    return Object.keys(obj ?? {}).length === 0;
+}
+exports.isEmptyObject = isEmptyObject;
 
 
+/***/ }),
 
+/***/ 7034:
+/***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 /**
- * @param [shallowExcludeTag] When fetching the given tag, exclude all history reachable by the shallowExcludeTag (used to make fetch much faster)
+ * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
+ * It returns an array of items that are in the first array but not in the second array.
  */
-function fetchTag(tag, shallowExcludeTag = '') {
-    let shouldRetry = true;
-    let needsRepack = false;
-    while (shouldRetry) {
-        try {
-            let command = '';
-            if (needsRepack) {
-                // We have seen some scenarios where this fixes the git fetch.
-                // Why? Who knows... https://github.com/Expensify/App/pull/31459
-                command = 'git repack -d';
-                console.log(`Running command: ${command}`);
-                (0,external_child_process_namespaceObject.execSync)(command);
-            }
-            command = `git fetch origin tag ${tag} --no-tags`;
-            // Note that this condition is only ever NOT true in the 1.0.0-0 edge case
-            if (shallowExcludeTag && shallowExcludeTag !== tag) {
-                command += ` --shallow-exclude=${shallowExcludeTag}`;
-            }
-            console.log(`Running command: ${command}`);
-            (0,external_child_process_namespaceObject.execSync)(command);
-            shouldRetry = false;
-        }
-        catch (e) {
-            console.error(e);
-            if (!needsRepack) {
-                console.log('Attempting to repack and retry...');
-                needsRepack = true;
-            }
-            else {
-                console.error("Repack didn't help, giving up...");
-                shouldRetry = false;
-            }
-        }
-    }
+function arrayDifference(array1, array2) {
+    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
 }
-/**
- * Get merge logs between two tags (inclusive) as a JavaScript object.
- */
-function getCommitHistoryAsJSON(fromTag, toTag) {
-    // Fetch tags, exclude commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousVersion(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
-    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-    return new Promise((resolve, reject) => {
-        let stdout = '';
-        let stderr = '';
-        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
-        console.log(`Running command: git ${args.join(' ')}`);
-        const spawnedProcess = (0,external_child_process_namespaceObject.spawn)('git', args);
-        spawnedProcess.on('message', console.log);
-        spawnedProcess.stdout.on('data', (chunk) => {
-            console.log(chunk.toString());
-            stdout += chunk.toString();
-        });
-        spawnedProcess.stderr.on('data', (chunk) => {
-            console.error(chunk.toString());
-            stderr += chunk.toString();
-        });
-        spawnedProcess.on('close', (code) => {
-            if (code !== 0) {
-                return reject(new Error(`${stderr}`));
-            }
-            resolve(stdout);
-        });
-        spawnedProcess.on('error', (err) => reject(err));
-    }).then((stdout) => {
-        // Sanitize just the text within commit subjects as that's the only potentially un-parseable text.
-        const sanitizedOutput = stdout.replace(/(?<="subject": ").*?(?="})/g, (subject) => libs_sanitizeStringForJSONParse(subject));
-        // Then remove newlines, format as JSON and convert to a proper JS object
-        const json = `[${sanitizedOutput}]`.replace(/(\r\n|\n|\r)/gm, '').replace('},]', '}]');
-        return JSON.parse(json);
-    });
-}
-/**
- * Parse merged PRs, excluding those from irrelevant branches.
- */
-function getValidMergedPRs(commits) {
-    const mergedPRs = new Set();
-    commits.forEach((commit) => {
-        const author = commit.authorName;
-        if (author === libs_CONST.OS_BOTIFY) {
-            return;
-        }
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
-        if (!Array.isArray(match) || match.length < 2) {
-            return;
-        }
-        const pr = Number.parseInt(match[1], 10);
-        if (mergedPRs.has(pr)) {
-            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
-            // That also means that we don't want to include it in the current checklist, so we remove it now.
-            mergedPRs.delete(pr);
-            return;
-        }
-        mergedPRs.add(pr);
-    });
-    return Array.from(mergedPRs);
-}
-/**
- * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
- */
-async function getPullRequestsMergedBetween(fromTag, toTag) {
-    console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
-    console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
-    // Find which commit messages correspond to merged PR's
-    const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
-    console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
-    return pullRequestNumbers;
-}
-/* harmony default export */ const GitUtils = ({
-    getValidMergedPRs,
-    getPullRequestsMergedBetween,
-});
-
-;// CONCATENATED MODULE: ./.github/actions/javascript/getDeployPullRequestList/getDeployPullRequestList.ts
-/* module decorator */ module = __nccwpck_require__.hmd(module);
-
-
-
-
-
-async function run() {
-    try {
-        const inputTag = lib_core.getInput('TAG', { required: true });
-        const isProductionDeploy = getJSONInput('IS_PRODUCTION_DEPLOY', { required: false }, false);
-        const deployEnv = isProductionDeploy ? 'production' : 'staging';
-        console.log(`Looking for PRs deployed to ${deployEnv} in ${inputTag}...`);
-        const completedDeploys = (await libs_GithubUtils.octokit.actions.listWorkflowRuns({
-            owner: github.context.repo.owner,
-            repo: github.context.repo.repo,
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            workflow_id: 'platformDeploy.yml',
-            status: 'completed',
-            event: isProductionDeploy ? 'release' : 'push',
-        })).data.workflow_runs;
-        const priorTag = completedDeploys[0].head_branch;
-        console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag ?? '', inputTag);
-        console.log('Found the pull request list: ', prList);
-        lib_core.setOutput('PR_LIST', prList);
-    }
-    catch (error) {
-        console.error(error.message);
-        lib_core.setFailed(error);
-    }
-}
-if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
-    run();
-}
-/* harmony default export */ const getDeployPullRequestList = (run);
+exports["default"] = arrayDifference;
 
 
 /***/ }),
@@ -12251,6 +12405,14 @@ module.exports = eval("require")("encoding");
 
 "use strict";
 module.exports = require("assert");
+
+/***/ }),
+
+/***/ 2081:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("child_process");
 
 /***/ }),
 
@@ -12388,8 +12550,8 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -12402,70 +12564,21 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
-/******/ 	// expose the module cache
-/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
-/******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/harmony module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.hmd = (module) => {
-/******/ 			module = Object.create(module);
-/******/ 			if (!module.children) module.children = [];
-/******/ 			Object.defineProperty(module, 'exports', {
-/******/ 				enumerable: true,
-/******/ 				set: () => {
-/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
-/******/ 				}
-/******/ 			});
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 /******/ 	
-/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 9591);
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(1935);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

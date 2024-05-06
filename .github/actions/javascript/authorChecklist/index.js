@@ -4620,10 +4620,9 @@ exports.checkBypass = checkBypass;
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 const VERSION = "3.1.0";
 
@@ -4780,10 +4779,10 @@ function paginateRest(octokit) {
 }
 paginateRest.VERSION = VERSION;
 
-__webpack_unused_export__ = composePaginateRest;
-__webpack_unused_export__ = isPaginatingEndpoint;
-exports.AA = paginateRest;
-__webpack_unused_export__ = paginatingEndpoints;
+exports.composePaginateRest = composePaginateRest;
+exports.isPaginatingEndpoint = isPaginatingEndpoint;
+exports.paginateRest = paginateRest;
+exports.paginatingEndpoints = paginatingEndpoints;
 //# sourceMappingURL=index.js.map
 
 
@@ -5908,10 +5907,9 @@ exports.restEndpointMethods = restEndpointMethods;
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
-var __webpack_unused_export__;
 
 
-__webpack_unused_export__ = ({ value: true });
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
@@ -6156,7 +6154,7 @@ function throttling(octokit, octokitOptions) {
 throttling.VERSION = VERSION;
 throttling.triggersNotification = triggersNotification;
 
-exports.O = throttling;
+exports.throttling = throttling;
 //# sourceMappingURL=index.js.map
 
 
@@ -16693,26 +16691,318 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 1681:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+/***/ 8426:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
 
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  "default": () => (/* binding */ authorChecklist)
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
 });
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable @typescript-eslint/naming-convention */
+const core = __importStar(__nccwpck_require__(2186));
+const github = __importStar(__nccwpck_require__(5438));
+const escapeRegExp_1 = __importDefault(__nccwpck_require__(8415));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const newComponentCategory_1 = __importDefault(__nccwpck_require__(9032));
+const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST_1.default.GITHUB_OWNER}/${CONST_1.default.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
+const checklistStartsWith = '### PR Author Checklist';
+const checklistEndsWith = '\r\n### Screenshots/Videos';
+const prNumber = github.context.payload.pull_request?.number;
+const CHECKLIST_CATEGORIES = {
+    NEW_COMPONENT: newComponentCategory_1.default,
+};
+/**
+ * Look at the contents of the pull request, and determine which checklist categories apply.
+ */
+async function getChecklistCategoriesForPullRequest() {
+    const checks = new Set();
+    if (prNumber !== undefined) {
+        const changedFiles = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: prNumber,
+            per_page: 100,
+        });
+        const possibleCategories = await Promise.all(Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
+            items: category.items,
+            doesCategoryApply: await category.detect(changedFiles),
+        })));
+        for (const category of possibleCategories) {
+            if (category.doesCategoryApply) {
+                for (const item of category.items) {
+                    checks.add(item);
+                }
+            }
+        }
+    }
+    return checks;
+}
+function partitionWithChecklist(body) {
+    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
+    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
+    return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
+}
+async function getNumberOfItemsFromAuthorChecklist() {
+    const response = await fetch(pathToAuthorChecklist);
+    const fileContents = await response.text();
+    const checklist = partitionWithChecklist(fileContents)[1];
+    const numberOfChecklistItems = (checklist.match(/\[ \]/g) ?? []).length;
+    return numberOfChecklistItems;
+}
+function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist) {
+    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) ?? []).length;
+    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) ?? []).length;
+    const minCompletedItems = expectedNumberOfChecklistItems - 2;
+    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${expectedNumberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
+    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
+        console.log('PR Author checklist is complete 🎉');
+        return;
+    }
+    console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
+    core.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
+}
+async function generateDynamicChecksAndCheckForCompletion() {
+    // Generate dynamic checks
+    console.log('Generating dynamic checks...');
+    const dynamicChecks = await getChecklistCategoriesForPullRequest();
+    let isPassing = true;
+    let didChecklistChange = false;
+    const body = github.context.payload.pull_request?.body ?? '';
+    // eslint-disable-next-line prefer-const
+    let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
+    for (const check of dynamicChecks) {
+        // Check if it's already in the PR body, capturing the whether or not it's already checked
+        const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}`);
+        const match = regex.exec(checklist);
+        if (!match) {
+            console.log('Adding check to the checklist:', check);
+            // Add it to the PR body
+            isPassing = false;
+            checklist += `- [ ] ${check}\r\n`;
+            didChecklistChange = true;
+        }
+        else {
+            const isChecked = match[1] === 'x';
+            if (!isChecked) {
+                console.log('Found unchecked checklist item:', check);
+                isPassing = false;
+            }
+        }
+    }
+    // Check if some dynamic check was added with previous commit, but is not relevant anymore
+    const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc, category) => acc.concat(category.items), []);
+    for (const check of allChecks) {
+        if (!dynamicChecks.has(check)) {
+            const regex = new RegExp(`- \\[([ x])] ${(0, escapeRegExp_1.default)(check)}\r\n`);
+            const match = regex.exec(checklist);
+            if (match) {
+                // Remove it from the PR body
+                console.log('Check has been removed from the checklist:', check);
+                checklist = checklist.replace(match[0], '');
+                didChecklistChange = true;
+            }
+        }
+    }
+    // Put the PR body back together, need to add the markers back in
+    const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
+    // Update the PR body
+    if (didChecklistChange && prNumber !== undefined) {
+        console.log('Checklist changed, updating PR...');
+        await GithubUtils_1.default.octokit.pulls.update({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: prNumber,
+            body: newBody,
+        });
+        console.log('Updated PR checklist');
+    }
+    if (!isPassing) {
+        const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
+        console.error(err);
+        core.setFailed(err);
+    }
+    // check for completion
+    try {
+        const numberOfItems = await getNumberOfItemsFromAuthorChecklist();
+        checkPRForCompletedChecklist(numberOfItems, checklist);
+    }
+    catch (error) {
+        console.error(error);
+        if (error instanceof Error) {
+            core.setFailed(error.message);
+        }
+    }
+}
+if (require.main === require.cache[eval('__filename')]) {
+    generateDynamicChecksAndCheckForCompletion();
+}
+exports["default"] = generateDynamicChecksAndCheckForCompletion;
 
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(5438);
-// EXTERNAL MODULE: ./node_modules/lodash/escapeRegExp.js
-var escapeRegExp = __nccwpck_require__(8415);
-var escapeRegExp_default = /*#__PURE__*/__nccwpck_require__.n(escapeRegExp);
-;// CONCATENATED MODULE: ./.github/libs/CONST.ts
+
+/***/ }),
+
+/***/ 9032:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.detectReactComponent = void 0;
+const github = __importStar(__nccwpck_require__(5438));
+const parser_1 = __nccwpck_require__(5026);
+const traverse_1 = __importDefault(__nccwpck_require__(1380));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
+const promiseSome_1 = __importDefault(__nccwpck_require__(8534));
+const items = [
+    "I verified that similar component doesn't exist in the codebase",
+    'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
+    'I verified that each file is named correctly',
+    'I verified that each component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone',
+    'I verified that the only data being stored in component state is data necessary for rendering and nothing else',
+    "In component if we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes",
+    'For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)',
+    'I verified that component internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)',
+    'I verified that all JSX used for rendering exists in the render method',
+    'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
+];
+function isComponentOrPureComponent(name) {
+    return name === 'Component' || name === 'PureComponent';
+}
+function detectReactComponent(code, filename) {
+    if (!code) {
+        console.error('failed to get code from a filename', code, filename);
+        return;
+    }
+    const ast = (0, parser_1.parse)(code, {
+        sourceType: 'module',
+        plugins: ['jsx', 'typescript'], // enable jsx plugin
+    });
+    let isReactComponent = false;
+    (0, traverse_1.default)(ast, {
+        enter(path) {
+            if (isReactComponent) {
+                return;
+            }
+            if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
+                path.traverse({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    JSXElement() {
+                        isReactComponent = true;
+                        path.stop();
+                    },
+                });
+            }
+        },
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        ClassDeclaration(path) {
+            const { superClass } = path.node;
+            if (superClass &&
+                ((superClass.object && superClass.object.name === 'React' && isComponentOrPureComponent(superClass.property.name)) || isComponentOrPureComponent(superClass.name))) {
+                isReactComponent = true;
+                path.stop();
+            }
+        },
+    });
+    return isReactComponent;
+}
+exports.detectReactComponent = detectReactComponent;
+function nodeBase64ToUtf8(data) {
+    return Buffer.from(data, 'base64').toString('utf-8');
+}
+async function detectReactComponentInFile(filename) {
+    const params = {
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        path: filename,
+        ref: github.context.payload.pull_request?.head.ref,
+    };
+    try {
+        const { data } = await GithubUtils_1.default.octokit.repos.getContent(params);
+        const content = nodeBase64ToUtf8('content' in data ? data?.content ?? '' : '');
+        return detectReactComponent(content, filename);
+    }
+    catch (error) {
+        console.error('An unknown error occurred with the GitHub API: ', error, params);
+    }
+}
+async function detect(changedFiles) {
+    const filteredFiles = changedFiles.filter(({ filename, status }) => status === 'added' && (filename.endsWith('.js') || filename.endsWith('.ts') || filename.endsWith('.tsx')));
+    try {
+        await (0, promiseSome_1.default)(filteredFiles.map(({ filename }) => detectReactComponentInFile(filename)), (result) => !!result);
+        return true;
+    }
+    catch (err) {
+        return false;
+    }
+}
+const newComponentCategory = {
+    detect,
+    items,
+};
+exports["default"] = newComponentCategory;
+
+
+/***/ }),
+
+/***/ 9873:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const GIT_CONST = {
     GITHUB_OWNER: 'Expensify',
@@ -16735,39 +17025,51 @@ const CONST = {
     APP_REPO_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}`,
     APP_REPO_GIT_URL: `git@github.com:${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.APP_REPO}.git`,
 };
-/* harmony default export */ const libs_CONST = (CONST);
-
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/utils.js
-var utils = __nccwpck_require__(3030);
-// EXTERNAL MODULE: ./node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
-var dist_node = __nccwpck_require__(4193);
-// EXTERNAL MODULE: ./node_modules/@octokit/plugin-throttling/dist-node/index.js
-var plugin_throttling_dist_node = __nccwpck_require__(9968);
-;// CONCATENATED MODULE: ./src/types/utils/EmptyObject.ts
-function isEmptyObject(obj) {
-    return Object.keys(obj ?? {}).length === 0;
-}
+exports["default"] = CONST;
 
 
-;// CONCATENATED MODULE: ./src/utils/arrayDifference.ts
-/**
- * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
- * It returns an array of items that are in the first array but not in the second array.
- */
-function arrayDifference(array1, array2) {
-    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
-}
-/* harmony default export */ const utils_arrayDifference = (arrayDifference);
+/***/ }),
 
-;// CONCATENATED MODULE: ./.github/libs/GithubUtils.ts
+/***/ 9296:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
-
-
-
-
-
-
-
+const core = __importStar(__nccwpck_require__(2186));
+const utils_1 = __nccwpck_require__(3030);
+const plugin_paginate_rest_1 = __nccwpck_require__(4193);
+const plugin_throttling_1 = __nccwpck_require__(9968);
+const EmptyObject_1 = __nccwpck_require__(8227);
+const arrayDifference_1 = __importDefault(__nccwpck_require__(7034));
+const CONST_1 = __importDefault(__nccwpck_require__(9873));
 class GithubUtils {
     static internalOctokit;
     /**
@@ -16776,10 +17078,10 @@ class GithubUtils {
      * @private
      */
     static initOctokit() {
-        const Octokit = utils.GitHub.plugin(plugin_throttling_dist_node/* throttling */.O, dist_node/* paginateRest */.AA);
+        const Octokit = utils_1.GitHub.plugin(plugin_throttling_1.throttling, plugin_paginate_rest_1.paginateRest);
         const token = core.getInput('GITHUB_TOKEN', { required: true });
         // Save a copy of octokit used in this class
-        this.internalOctokit = new Octokit((0,utils.getOctokitOptions)(token, {
+        this.internalOctokit = new Octokit((0, utils_1.getOctokitOptions)(token, {
             throttle: {
                 retryAfterBaseValue: 2000,
                 onRateLimit: (retryAfter, options) => {
@@ -16841,17 +17143,17 @@ class GithubUtils {
     static getStagingDeployCash() {
         return this.octokit.issues
             .listForRepo({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            labels: libs_CONST.LABELS.STAGING_DEPLOY,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            labels: CONST_1.default.LABELS.STAGING_DEPLOY,
             state: 'open',
         })
             .then(({ data }) => {
             if (!data.length) {
-                throw new Error(`Unable to find ${libs_CONST.LABELS.STAGING_DEPLOY} issue.`);
+                throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
             if (data.length > 1) {
-                throw new Error(`Found more than one ${libs_CONST.LABELS.STAGING_DEPLOY} issue.`);
+                throw new Error(`Found more than one ${CONST_1.default.LABELS.STAGING_DEPLOY} issue.`);
             }
             return this.getStagingDeployCashData(data[0]);
         });
@@ -16878,7 +17180,7 @@ class GithubUtils {
             };
         }
         catch (exception) {
-            throw new Error(`Unable to find ${libs_CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
+            throw new Error(`Unable to find ${CONST_1.default.LABELS.STAGING_DEPLOY} issue with correct data.`);
         }
     }
     /**
@@ -16894,7 +17196,7 @@ class GithubUtils {
             return [];
         }
         PRListSection = PRListSection[1];
-        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${libs_CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const PRList = [...PRListSection.matchAll(new RegExp(`- \\[([ x])] (${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isVerified: match[1] === 'x',
@@ -16912,7 +17214,7 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${libs_CONST.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const deployBlockers = [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2],
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -16930,7 +17232,7 @@ class GithubUtils {
             return [];
         }
         internalQASection = internalQASection[1];
-        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${libs_CONST.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
+        const internalQAPRs = [...internalQASection.matchAll(new RegExp(`- \\[([ x])]\\s(${CONST_1.default.PULL_REQUEST_REGEX.source})`, 'g'))].map((match) => ({
             url: match[2].split('-')[0].trim(),
             number: Number.parseInt(match[3], 10),
             isResolved: match[1] === 'x',
@@ -16943,7 +17245,7 @@ class GithubUtils {
     static generateStagingDeployCashBodyAndAssignees(tag, PRList, verifiedPRList = [], deployBlockers = [], resolvedDeployBlockers = [], resolvedInternalQAPRs = [], isTimingDashboardChecked = false, isFirebaseChecked = false, isGHStatusChecked = false) {
         return this.fetchAllPullRequests(PRList.map((pr) => this.getPullRequestNumberFromURL(pr)))
             .then((data) => {
-            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !isEmptyObject(pr.labels.find((item) => item.name === libs_CONST.LABELS.INTERNAL_QA))) : [];
+            const internalQAPRs = Array.isArray(data) ? data.filter((pr) => !(0, EmptyObject_1.isEmptyObject)(pr.labels.find((item) => item.name === CONST_1.default.LABELS.INTERNAL_QA))) : [];
             return Promise.all(internalQAPRs.map((pr) => this.getPullRequestMergerLogin(pr.number).then((mergerLogin) => ({ url: pr.html_url, mergerLogin })))).then((results) => {
                 // The format of this map is following:
                 // {
@@ -16958,7 +17260,7 @@ class GithubUtils {
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...noQAPRs])];
-                const sortedPRList = [...new Set(utils_arrayDifference(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
+                const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
@@ -16973,7 +17275,7 @@ class GithubUtils {
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
-                if (!isEmptyObject(internalQAPRMap)) {
+                if (!(0, EmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
                     Object.keys(internalQAPRMap).forEach((URL) => {
@@ -17017,8 +17319,8 @@ class GithubUtils {
     static fetchAllPullRequests(pullRequestNumbers) {
         const oldestPR = pullRequestNumbers.sort((a, b) => a - b)[0];
         return this.paginate(this.octokit.pulls.list, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             state: 'all',
             sort: 'created',
             direction: 'desc',
@@ -17035,8 +17337,8 @@ class GithubUtils {
     static getPullRequestMergerLogin(pullRequestNumber) {
         return this.octokit.pulls
             .get({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({ data: pullRequest }) => pullRequest.merged_by?.login);
@@ -17044,24 +17346,24 @@ class GithubUtils {
     static getPullRequestBody(pullRequestNumber) {
         return this.octokit.pulls
             .get({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             pull_number: pullRequestNumber,
         })
             .then(({ data: pullRequestComment }) => pullRequestComment.body);
     }
     static getAllReviewComments(pullRequestNumber) {
         return this.paginate(this.octokit.pulls.listReviews, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             pull_number: pullRequestNumber,
             per_page: 100,
         }, (response) => response.data.map((review) => review.body));
     }
     static getAllComments(issueNumber) {
         return this.paginate(this.octokit.issues.listComments, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             issue_number: issueNumber,
             per_page: 100,
         }, (response) => response.data.map((comment) => comment.body));
@@ -17072,7 +17374,7 @@ class GithubUtils {
     static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
-            owner: libs_CONST.GITHUB_OWNER,
+            owner: CONST_1.default.GITHUB_OWNER,
             repo,
             issue_number: number,
             body: messageBody,
@@ -17085,8 +17387,8 @@ class GithubUtils {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
             .listWorkflowRuns({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             workflow_id: workflow,
         })
             .then((response) => response.data.workflow_runs[0]?.id);
@@ -17101,7 +17403,7 @@ class GithubUtils {
      * Generate the URL of an New Expensify pull request given the PR number.
      */
     static getPullRequestURLFromNumber(value) {
-        return `${libs_CONST.APP_REPO_URL}/pull/${value}`;
+        return `${CONST_1.default.APP_REPO_URL}/pull/${value}`;
     }
     /**
      * Parse the pull request number from a URL.
@@ -17109,7 +17411,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Pull Request.
      */
     static getPullRequestNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Pull Request!`);
         }
@@ -17121,7 +17423,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue.
      */
     static getIssueNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.ISSUE_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a Github Issue!`);
         }
@@ -17133,7 +17435,7 @@ class GithubUtils {
      * @throws {Error} If the URL is not a valid Github Issue or Pull Request.
      */
     static getIssueOrPullRequestNumberFromURL(URL) {
-        const matches = URL.match(libs_CONST.ISSUE_OR_PULL_REQUEST_REGEX);
+        const matches = URL.match(CONST_1.default.ISSUE_OR_PULL_REQUEST_REGEX);
         if (!Array.isArray(matches) || matches.length !== 2) {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
@@ -17144,8 +17446,8 @@ class GithubUtils {
      */
     static getActorWhoClosedIssue(issueNumber) {
         return this.paginate(this.octokit.issues.listEvents, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             issue_number: issueNumber,
             per_page: 100,
         })
@@ -17154,19 +17456,23 @@ class GithubUtils {
     }
     static getArtifactByName(artefactName) {
         return this.paginate(this.octokit.actions.listArtifactsForRepo, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
             per_page: 100,
         }).then((artifacts) => artifacts.find((artifact) => artifact.name === artefactName));
     }
 }
-/* harmony default export */ const libs_GithubUtils = (GithubUtils);
+exports["default"] = GithubUtils;
 
-// EXTERNAL MODULE: ./node_modules/@babel/parser/lib/index.js
-var lib = __nccwpck_require__(5026);
-// EXTERNAL MODULE: ./node_modules/@babel/traverse/lib/index.js
-var traverse_lib = __nccwpck_require__(1380);
-;// CONCATENATED MODULE: ./.github/libs/promiseSome.ts
+
+/***/ }),
+
+/***/ 8534:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 /**
  * Like _.some but for promises. It short-circuts after a promise fulfills with a value that passes the test implemented by provided function.
  * It does not wait for the other promises to complete once it finds one.
@@ -17187,244 +17493,40 @@ function promiseSome(promises, callbackFn) {
         Promise.allSettled(promises).then(() => reject());
     });
 }
-
-;// CONCATENATED MODULE: ./.github/actions/javascript/authorChecklist/categories/newComponentCategory.ts
-
+exports["default"] = promiseSome;
 
 
+/***/ }),
 
+/***/ 8227:
+/***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
-const items = [
-    "I verified that similar component doesn't exist in the codebase",
-    'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
-    'I verified that each file is named correctly',
-    'I verified that each component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone',
-    'I verified that the only data being stored in component state is data necessary for rendering and nothing else',
-    "In component if we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes",
-    'For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)',
-    'I verified that component internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)',
-    'I verified that all JSX used for rendering exists in the render method',
-    'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
-];
-function isComponentOrPureComponent(name) {
-    return name === 'Component' || name === 'PureComponent';
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isEmptyObject = void 0;
+function isEmptyObject(obj) {
+    return Object.keys(obj ?? {}).length === 0;
 }
-function detectReactComponent(code, filename) {
-    if (!code) {
-        console.error('failed to get code from a filename', code, filename);
-        return;
-    }
-    const ast = (0,lib.parse)(code, {
-        sourceType: 'module',
-        plugins: ['jsx', 'typescript'], // enable jsx plugin
-    });
-    let isReactComponent = false;
-    (0,traverse_lib["default"])(ast, {
-        enter(path) {
-            if (isReactComponent) {
-                return;
-            }
-            if (path.isFunctionDeclaration() || path.isArrowFunctionExpression() || path.isFunctionExpression()) {
-                path.traverse({
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    JSXElement() {
-                        isReactComponent = true;
-                        path.stop();
-                    },
-                });
-            }
-        },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        ClassDeclaration(path) {
-            const { superClass } = path.node;
-            if (superClass &&
-                ((superClass.object && superClass.object.name === 'React' && isComponentOrPureComponent(superClass.property.name)) || isComponentOrPureComponent(superClass.name))) {
-                isReactComponent = true;
-                path.stop();
-            }
-        },
-    });
-    return isReactComponent;
-}
-function nodeBase64ToUtf8(data) {
-    return Buffer.from(data, 'base64').toString('utf-8');
-}
-async function detectReactComponentInFile(filename) {
-    const params = {
-        owner: libs_CONST.GITHUB_OWNER,
-        repo: libs_CONST.APP_REPO,
-        path: filename,
-        ref: github.context.payload.pull_request?.head.ref,
-    };
-    try {
-        const { data } = await libs_GithubUtils.octokit.repos.getContent(params);
-        const content = nodeBase64ToUtf8('content' in data ? data?.content ?? '' : '');
-        return detectReactComponent(content, filename);
-    }
-    catch (error) {
-        console.error('An unknown error occurred with the GitHub API: ', error, params);
-    }
-}
-async function detect(changedFiles) {
-    const filteredFiles = changedFiles.filter(({ filename, status }) => status === 'added' && (filename.endsWith('.js') || filename.endsWith('.ts') || filename.endsWith('.tsx')));
-    try {
-        await promiseSome(filteredFiles.map(({ filename }) => detectReactComponentInFile(filename)), (result) => !!result);
-        return true;
-    }
-    catch (err) {
-        return false;
-    }
-}
-const newComponentCategory = {
-    detect,
-    items,
-};
-/* harmony default export */ const categories_newComponentCategory = (newComponentCategory);
+exports.isEmptyObject = isEmptyObject;
 
 
-;// CONCATENATED MODULE: ./.github/actions/javascript/authorChecklist/authorChecklist.ts
-/* module decorator */ module = __nccwpck_require__.hmd(module);
-/* eslint-disable @typescript-eslint/naming-convention */
+/***/ }),
 
+/***/ 7034:
+/***/ ((__unused_webpack_module, exports) => {
 
+"use strict";
 
-
-
-
-const pathToAuthorChecklist = `https://raw.githubusercontent.com/${libs_CONST.GITHUB_OWNER}/${libs_CONST.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
-const checklistStartsWith = '### PR Author Checklist';
-const checklistEndsWith = '\r\n### Screenshots/Videos';
-const prNumber = github.context.payload.pull_request?.number;
-const CHECKLIST_CATEGORIES = {
-    NEW_COMPONENT: categories_newComponentCategory,
-};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 /**
- * Look at the contents of the pull request, and determine which checklist categories apply.
+ * This function is an equivalent of _.difference, it takes two arrays and returns the difference between them.
+ * It returns an array of items that are in the first array but not in the second array.
  */
-async function getChecklistCategoriesForPullRequest() {
-    const checks = new Set();
-    if (prNumber !== undefined) {
-        const changedFiles = await libs_GithubUtils.paginate(libs_GithubUtils.octokit.pulls.listFiles, {
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            pull_number: prNumber,
-            per_page: 100,
-        });
-        const possibleCategories = await Promise.all(Object.values(CHECKLIST_CATEGORIES).map(async (category) => ({
-            items: category.items,
-            doesCategoryApply: await category.detect(changedFiles),
-        })));
-        for (const category of possibleCategories) {
-            if (category.doesCategoryApply) {
-                for (const item of category.items) {
-                    checks.add(item);
-                }
-            }
-        }
-    }
-    return checks;
+function arrayDifference(array1, array2) {
+    return [array1, array2].reduce((a, b) => a.filter((c) => !b.includes(c)));
 }
-function partitionWithChecklist(body) {
-    const [contentBeforeChecklist, contentAfterStartOfChecklist] = body.split(checklistStartsWith);
-    const [checklistContent, contentAfterChecklist] = contentAfterStartOfChecklist.split(checklistEndsWith);
-    return [contentBeforeChecklist, checklistContent, contentAfterChecklist];
-}
-async function getNumberOfItemsFromAuthorChecklist() {
-    const response = await fetch(pathToAuthorChecklist);
-    const fileContents = await response.text();
-    const checklist = partitionWithChecklist(fileContents)[1];
-    const numberOfChecklistItems = (checklist.match(/\[ \]/g) ?? []).length;
-    return numberOfChecklistItems;
-}
-function checkPRForCompletedChecklist(expectedNumberOfChecklistItems, checklist) {
-    const numberOfFinishedChecklistItems = (checklist.match(/- \[x\]/gi) ?? []).length;
-    const numberOfUnfinishedChecklistItems = (checklist.match(/- \[ \]/g) ?? []).length;
-    const minCompletedItems = expectedNumberOfChecklistItems - 2;
-    console.log(`You completed ${numberOfFinishedChecklistItems} out of ${expectedNumberOfChecklistItems} checklist items with ${numberOfUnfinishedChecklistItems} unfinished items`);
-    if (numberOfFinishedChecklistItems >= minCompletedItems && numberOfUnfinishedChecklistItems === 0) {
-        console.log('PR Author checklist is complete 🎉');
-        return;
-    }
-    console.log(`Make sure you are using the most up to date checklist found here: ${pathToAuthorChecklist}`);
-    core.setFailed("PR Author Checklist is not completely filled out. Please check every box to verify you've thought about the item.");
-}
-async function generateDynamicChecksAndCheckForCompletion() {
-    // Generate dynamic checks
-    console.log('Generating dynamic checks...');
-    const dynamicChecks = await getChecklistCategoriesForPullRequest();
-    let isPassing = true;
-    let didChecklistChange = false;
-    const body = github.context.payload.pull_request?.body ?? '';
-    // eslint-disable-next-line prefer-const
-    let [contentBeforeChecklist, checklist, contentAfterChecklist] = partitionWithChecklist(body);
-    for (const check of dynamicChecks) {
-        // Check if it's already in the PR body, capturing the whether or not it's already checked
-        const regex = new RegExp(`- \\[([ x])] ${escapeRegExp_default()(check)}`);
-        const match = regex.exec(checklist);
-        if (!match) {
-            console.log('Adding check to the checklist:', check);
-            // Add it to the PR body
-            isPassing = false;
-            checklist += `- [ ] ${check}\r\n`;
-            didChecklistChange = true;
-        }
-        else {
-            const isChecked = match[1] === 'x';
-            if (!isChecked) {
-                console.log('Found unchecked checklist item:', check);
-                isPassing = false;
-            }
-        }
-    }
-    // Check if some dynamic check was added with previous commit, but is not relevant anymore
-    const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc, category) => acc.concat(category.items), []);
-    for (const check of allChecks) {
-        if (!dynamicChecks.has(check)) {
-            const regex = new RegExp(`- \\[([ x])] ${escapeRegExp_default()(check)}\r\n`);
-            const match = regex.exec(checklist);
-            if (match) {
-                // Remove it from the PR body
-                console.log('Check has been removed from the checklist:', check);
-                checklist = checklist.replace(match[0], '');
-                didChecklistChange = true;
-            }
-        }
-    }
-    // Put the PR body back together, need to add the markers back in
-    const newBody = contentBeforeChecklist + checklistStartsWith + checklist + checklistEndsWith + contentAfterChecklist;
-    // Update the PR body
-    if (didChecklistChange && prNumber !== undefined) {
-        console.log('Checklist changed, updating PR...');
-        await libs_GithubUtils.octokit.pulls.update({
-            owner: libs_CONST.GITHUB_OWNER,
-            repo: libs_CONST.APP_REPO,
-            pull_number: prNumber,
-            body: newBody,
-        });
-        console.log('Updated PR checklist');
-    }
-    if (!isPassing) {
-        const err = new Error("New checks were added into checklist. Please check every box to verify you've thought about the item.");
-        console.error(err);
-        core.setFailed(err);
-    }
-    // check for completion
-    try {
-        const numberOfItems = await getNumberOfItemsFromAuthorChecklist();
-        checkPRForCompletedChecklist(numberOfItems, checklist);
-    }
-    catch (error) {
-        console.error(error);
-        if (error instanceof Error) {
-            core.setFailed(error.message);
-        }
-    }
-}
-if (__nccwpck_require__.c[__nccwpck_require__.s] === module) {
-    generateDynamicChecksAndCheckForCompletion();
-}
-/* harmony default export */ const authorChecklist = (generateDynamicChecksAndCheckForCompletion);
+exports["default"] = arrayDifference;
 
 
 /***/ }),
@@ -57776,65 +57878,7 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
-/******/ 	// expose the module cache
-/******/ 	__nccwpck_require__.c = __webpack_module_cache__;
-/******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/harmony module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.hmd = (module) => {
-/******/ 			module = Object.create(module);
-/******/ 			if (!module.children) module.children = [];
-/******/ 			Object.defineProperty(module, 'exports', {
-/******/ 				enumerable: true,
-/******/ 				set: () => {
-/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
-/******/ 				}
-/******/ 			});
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/node module decorator */
 /******/ 	(() => {
 /******/ 		__nccwpck_require__.nmd = (module) => {
@@ -57850,10 +57894,10 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	
 /************************************************************************/
 /******/ 	
-/******/ 	// module cache are used so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	var __webpack_exports__ = __nccwpck_require__(__nccwpck_require__.s = 1681);
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __nccwpck_require__(8426);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
