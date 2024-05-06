@@ -1253,7 +1253,7 @@ function handleReportChanged(report: OnyxEntry<Report>) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.preexistingReportID ?? ''), CONST.NAVIGATION.TYPE.FORCED_UP);
             };
         }
-        DeviceEventEmitter.emit(`switchToCurrentReport_${report.reportID}`, {
+        DeviceEventEmitter.emit(`switchToPreExistingReport_${report.reportID}`, {
             preexistingReportID: report.preexistingReportID,
             callback,
         });

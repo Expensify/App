@@ -345,7 +345,7 @@ function ComposerWithSuggestions(
     );
 
     useEffect(() => {
-        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToCurrentReport_${reportID}`, ({preexistingReportID, callback}) => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}) => {
             if (!commentRef.current) {
                 callback();
                 return;
