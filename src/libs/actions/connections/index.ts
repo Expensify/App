@@ -25,28 +25,18 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
             value: null,
         },
     ];
-    const failureData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        //     value: {
-        //         errorFields: {
-        //             avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
-        //         },
-        //     },
-        // },
-    ];
+
     const parameters: RemovePolicyConnectionParams = {
         policyID,
         connectionName,
     };
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData});
 }
 function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
     connectionName: TConnectionName,
     settingName: TSettingName,
-    settingValue: Connections[TConnectionName]['config'][TSettingName],
+    settingValue: Partial<Connections[TConnectionName]['config'][TSettingName]>,
 ) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -56,7 +46,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
@@ -78,7 +68,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -100,7 +90,7 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
                 connections: {
                     [connectionName]: {
                         config: {
-                            [settingName]: settingValue,
+                            [settingName]: settingValue ?? null,
                             pendingFields: {
                                 [settingName]: null,
                             },
@@ -114,11 +104,11 @@ function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TS
         },
     ];
 
-    const parameters: UpdatePolicyConnectionConfigParams<TConnectionName, TSettingName> = {
+    const parameters: UpdatePolicyConnectionConfigParams = {
         policyID,
         connectionName,
-        settingName,
-        settingValue,
+        settingName: String(settingName),
+        settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(settingName),
     };
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CONNECTION_CONFIG, parameters, {optimisticData, failureData, successData});

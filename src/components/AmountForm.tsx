@@ -117,10 +117,10 @@ function AmountForm(
 
             const strippedAmount = MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
             const isForwardDelete = currentAmount.length > strippedAmount.length && forwardDeletePressedRef.current;
-            setSelection((prevSelection) => getNewSelection(prevSelection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
+            setSelection(getNewSelection(selection, isForwardDelete ? strippedAmount.length : currentAmount.length, strippedAmount.length));
             onInputChange?.(strippedAmount);
         },
-        [amountMaxLength, currentAmount, decimals, onInputChange],
+        [amountMaxLength, currentAmount, decimals, onInputChange, selection],
     );
 
     // Modifies the amount to match the decimals for changed currency.
@@ -225,6 +225,8 @@ function AmountForm(
                     }}
                     onKeyPress={textInputKeyPress}
                     isCurrencyPressable={isCurrencyPressable}
+                    style={[styles.iouAmountTextInput]}
+                    containerStyle={[styles.iouAmountTextInputContainer]}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 />

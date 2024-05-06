@@ -18,6 +18,7 @@ function BaseListItem<TItem extends ListItem>({
     containerStyle,
     isDisabled = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldPreventEnterKeySubmit = false,
     canSelectMultiple = false,
     onSelectRow,
     onDismissError = () => {},
@@ -39,7 +40,7 @@ function BaseListItem<TItem extends ListItem>({
     const pressableRef = useRef<View | HTMLDivElement>(null);
 
     // Sync focus on an item
-    useSyncFocus(pressableRef, Boolean(isFocused && shouldSyncFocus));
+    useSyncFocus(pressableRef, Boolean(isFocused), shouldSyncFocus);
 
     const rightHandSideComponentRender = () => {
         if (canSelectMultiple || !rightHandSideComponent) {
@@ -65,7 +66,12 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...bind}
                 ref={pressableRef}
-                onPress={() => onSelectRow(item)}
+                onPress={(e) => {
+                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                        return;
+                    }
+                    onSelectRow(item);
+                }}
                 disabled={isDisabled}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
@@ -73,7 +79,7 @@ function BaseListItem<TItem extends ListItem>({
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList ?? ''}
+                id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
             >

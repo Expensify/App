@@ -12,6 +12,7 @@ import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import Log from '@libs/Log';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
 import * as NumberUtils from '@libs/NumberUtils';
 import {generateNewRandomInt} from '@libs/NumberUtils';
@@ -137,21 +138,18 @@ function ReportActionsView({
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
-    const combinedReportActions = useMemo(() => {
-        if (isEmptyObject(transactionThreadReportActions)) {
-            return allReportActions;
-        }
+    const combinedReportActions = useMemo(
+        () => ReportActionsUtils.getCombinedReportActions(allReportActions, transactionThreadReportActions),
+        [allReportActions, transactionThreadReportActions],
+    );
 
-        // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
-        const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
-
-        // Filter out the expense actions because we don't want to show any preview actions for one-transaction reports
-        const filteredReportActions = [...allReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
-            const actionType = (action as OnyxTypes.OriginalMessageIOU).originalMessage?.type ?? '';
-            return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !ReportActionsUtils.isSentMoneyReportAction(action);
-        });
-        return ReportActionsUtils.getSortedReportActions(filteredReportActions, true);
-    }, [allReportActions, transactionThreadReportActions]);
+    const parentReportActionForTransactionThread = useMemo(
+        () =>
+            isEmptyObject(transactionThreadReportActions)
+                ? null
+                : (allReportActions.find((action) => action.reportActionID === transactionThreadReport?.parentReportActionID) as OnyxEntry<OnyxTypes.ReportAction>),
+        [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
+    );
 
     const indexOfLinkedAction = useMemo(() => {
         if (!reportActionID) {
@@ -298,6 +296,17 @@ function ReportActionsView({
      * displaying.
      */
     const loadOlderChats = useCallback(() => {
+        Log.info(
+            `[ReportActionsView] loadOlderChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                oldestReportActionID: oldestReportAction?.reportActionID,
+                hasCreatedAction,
+                isTransactionThread: !isEmptyObject(transactionThreadReport),
+            })}`,
+        );
+
         // Only fetch more if we are neither already fetching (so that we don't initiate duplicate requests) nor offline.
         if (!!network.isOffline || isLoadingOlderReportActions || isLoadingInitialReportActions) {
             return;
@@ -309,13 +318,13 @@ function ReportActionsView({
         }
 
         if (!isEmptyObject(transactionThreadReport)) {
-            // Get newer actions based on the newest reportAction for the current report
+            // Get older actions based on the oldest reportAction for the current report
             const oldestActionCurrentReport = reportActionIDMap.findLast((item) => item.reportID === reportID);
-            Report.getNewerActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
+            Report.getOlderActions(oldestActionCurrentReport?.reportID ?? '0', oldestActionCurrentReport?.reportActionID ?? '0');
 
-            // Get newer actions based on the newest reportAction for the transaction thread report
+            // Get older actions based on the oldest reportAction for the transaction thread report
             const oldestActionTransactionThreadReport = reportActionIDMap.findLast((item) => item.reportID === transactionThreadReport.reportID);
-            Report.getNewerActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
+            Report.getOlderActions(oldestActionTransactionThreadReport?.reportID ?? '0', oldestActionTransactionThreadReport?.reportActionID ?? '0');
         } else {
             // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
             Report.getOlderActions(reportID, oldestReportAction.reportActionID);
@@ -323,12 +332,32 @@ function ReportActionsView({
     }, [network.isOffline, isLoadingOlderReportActions, isLoadingInitialReportActions, oldestReportAction, hasCreatedAction, reportID, reportActionIDMap, transactionThreadReport]);
 
     const loadNewerChats = useCallback(() => {
-        if (isLoadingInitialReportActions || isLoadingOlderReportActions || network.isOffline || newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            return;
-        }
         // Determines if loading older reports is necessary when the content is smaller than the list
         // and there are fewer than 23 items, indicating we've reached the oldest message.
         const isLoadingOlderReportsFirstNeeded = checkIfContentSmallerThanList() && reportActions.length > 23;
+
+        Log.info(
+            `[ReportActionsView] loadNewerChats ${JSON.stringify({
+                isOffline: network.isOffline,
+                isLoadingOlderReportActions,
+                isLoadingInitialReportActions,
+                newestReportAction: newestReportAction.pendingAction,
+                firstReportActionID: newestReportAction?.reportActionID,
+                isLoadingOlderReportsFirstNeeded,
+                reportActionID,
+            })}`,
+        );
+
+        if (
+            !reportActionID ||
+            !isFocused ||
+            isLoadingInitialReportActions ||
+            isLoadingOlderReportActions ||
+            network.isOffline ||
+            newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
+            return;
+        }
 
         if ((reportActionID && indexOfLinkedAction > -1 && !isLoadingOlderReportsFirstNeeded) || (!reportActionID && !isLoadingOlderReportsFirstNeeded)) {
             handleReportActionPagination({firstReportActionID: newestReportAction?.reportActionID});
@@ -343,6 +372,7 @@ function ReportActionsView({
         network.isOffline,
         reportActions.length,
         newestReportAction,
+        isFocused,
     ]);
 
     /**
@@ -492,6 +522,7 @@ function ReportActionsView({
                 transactionThreadReport={transactionThreadReport}
                 reportActions={reportActions}
                 parentReportAction={parentReportAction}
+                parentReportActionForTransactionThread={parentReportActionForTransactionThread}
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={reportActionsToDisplay}
                 mostRecentIOUReportActionID={mostRecentIOUReportActionID}
