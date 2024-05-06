@@ -1,4 +1,5 @@
 import Str from 'expensify-common/lib/str';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
 import type {
@@ -926,7 +927,10 @@ export default {
             invalidate: 'Invalidar',
             destroy: 'Destruir',
             exportToFile: 'Exportar instantánea de app a un archivo',
+            exportToFileWarning: `Compartir este archivo con alguien le permitirá leer todos tus chats, hacerse pasar por ti y actuar en tu nombre <em>sin ningún rastro de auditoría</em>.<br/><br/><strong>Nunca debes hacer esto a menos que tengas una muy, muy buena razón.</strong><br/><br/>Además, ten en cuenta que puedes revocar el acceso a tu cuenta desde ciertos dispositivos en <a href="${CONFIG.EXPENSIFY.EXPENSIFY_URL}settings?param={%22section%22:%22account%22}">la sección de Device Management de Expensify Classic</a>.`,
             importFromFile: 'Importar instantánea de app desde archivo',
+            importFromFileWarning:
+                'Esta función es sólo para la solución de problemas y puede poner su aplicación en un estado inesperado.<br/><br/><strong>Utilícela bajo su propia responsabilidad</strong>.',
         },
         debugConsole: {
             saveLog: 'Guardar registro',

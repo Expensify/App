@@ -1,5 +1,6 @@
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import Str from 'expensify-common/lib/str';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName, PolicyConnectionSyncStage} from '@src/types/onyx/Policy';
@@ -931,9 +932,9 @@ export default {
             invalidate: 'Invalidate',
             destroy: 'Destroy',
             exportToFile: 'Export app snapshot to file',
-            exportToFileWarning:
-                'Sharing this file with someone will enable them to read all your chats, impersonate you, and act on your behalf <em>without any audit trail</em>.<br/><br/><strong>You should never do this unless you have a very, very good reason.</strong><br/><br/>Also, keep in mind that you can revoke access to your account from certain devices in <a href=" https://staging.expensify.com/settings?param={%22section%22:%22account%22}">the Device Management section of Expensify Classic</a>.',
+            exportToFileWarning: `Sharing this file with someone will enable them to read all your chats, impersonate you, and act on your behalf <em>without any audit trail</em>.<br/><br/><strong>You should never do this unless you have a very, very good reason.</strong><br/><br/>Also, keep in mind that you can revoke access to your account from certain devices in <a href="${CONFIG.EXPENSIFY.EXPENSIFY_URL}settings?param={%22section%22:%22account%22}">the Device Management section of Expensify Classic</a>.`,
             importFromFile: 'Import app snapshot from file',
+            importFromFileWarning: 'This feature is for troubleshooting only and may put your app in an unexpected state.<br/><br/><strong>Use this at your own risk.</strong>',
         },
         debugConsole: {
             saveLog: 'Save log',

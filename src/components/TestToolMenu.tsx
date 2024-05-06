@@ -34,6 +34,7 @@ function TestToolMenu() {
     const [confirmModalState, setConfirmModalState] = useState<Required<Pick<ConfirmModalProps, 'title' | 'prompt' | 'onConfirm' | 'onCancel' | 'confirmText'>> | null>(null);
 
     const exportPrompt = useMemo(() => <RenderHTML html={translate('initialSettingsPage.troubleshoot.exportToFileWarning')} />, [translate]);
+    const importPrompt = useMemo(() => <RenderHTML html={translate('initialSettingsPage.troubleshoot.importFromFileWarning')} />, [translate]);
 
     const confirmExportFile = useCallback(() => {
         setConfirmModalState({
@@ -46,13 +47,13 @@ function TestToolMenu() {
             },
             onCancel: () => setConfirmModalState(null),
         });
-    }, [translate]);
+    }, [exportPrompt, translate]);
 
     const confirmImportFile = useCallback(
         (file: FileObject) => {
             setConfirmModalState({
                 title: translate('initialSettingsPage.troubleshoot.importFromFile'),
-                prompt: translate('initialSettingsPage.troubleshoot.importFromFile'),
+                prompt: importPrompt,
                 confirmText: translate('common.import'),
                 onConfirm: () => {
                     if (!file.uri) {
@@ -65,7 +66,7 @@ function TestToolMenu() {
                 onCancel: () => setConfirmModalState(null),
             });
         },
-        [translate],
+        [importPrompt, translate],
     );
 
     return (
