@@ -6002,6 +6002,13 @@ function isReportParticipant(accountID: number, report: OnyxEntry<Report>): bool
     return possibleAccountIDs.includes(accountID);
 }
 
+/**
+ * Check to see if the current user has access to view the report.
+ */
+function canCurrentUserOpenReport(report: OnyxEntry<Report>): boolean {
+    return (isReportParticipant(currentUserAccountID ?? 0, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
+}
+
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return (
         isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report) || isGroupChat(report) || isInvoiceReport(report)
@@ -6530,6 +6537,7 @@ export {
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
+    canCurrentUserOpenReport,
     canDeleteReportAction,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
