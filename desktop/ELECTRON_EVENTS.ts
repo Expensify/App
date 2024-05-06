@@ -11,6 +11,7 @@ const ELECTRON_EVENTS = {
     UPDATE_DOWNLOADED: 'update-downloaded',
     DOWNLOAD: 'download',
     DOWNLOAD_STARTED: 'download-started',
+    SILENT_UPDATE: 'silent-update',
 } as const;
 
 export default ELECTRON_EVENTS;

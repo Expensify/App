@@ -113,6 +113,7 @@ process.argv.forEach((arg) => {
 // happens correctly.
 let hasUpdate = false;
 let downloadedVersion: string;
+let isSilentUpdating = false;
 
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
@@ -129,16 +130,20 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
-/** Menu Item callback to triggers an update check */
-const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWindow) => {
-    // Disable item until the check (and download) is complete
-    // eslint: menu item flags like enabled or visible can be dynamically toggled by mutating the object
-    // eslint-disable-next-line no-param-reassign
-    menuItem.enabled = false;
+/** Menu Item callback to trigger an update check */
+const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BrowserWindow) => {
+    if (menuItem) {
+        // Disable item until the check (and download) is complete
+        // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
+        menuItem.enabled = false;
+    }
 
     autoUpdater
         .checkForUpdates()
-        .catch((error) => ({error}))
+        .catch((error) => {
+            isSilentUpdating = false;
+            return {error};
+        })
         .then((result) => {
             const downloadPromise = result && 'downloadPromise' in result ? result.downloadPromise : undefined;
 
@@ -150,7 +155,7 @@ const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWind
                 dialog.showMessageBox(browserWindow, {
                     type: 'info',
                     message: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.title'),
-                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message'),
+                    detail: Localize.translate(preferredLocale, 'checkForUpdatesModal.available.message', {isSilentUpdating}),
                     buttons: [Localize.translate(preferredLocale, 'checkForUpdatesModal.available.soundsGood')],
                 });
             } else if (result && 'error' in result && result.error) {
@@ -174,6 +179,10 @@ const manuallyCheckForUpdates = (menuItem: MenuItem, browserWindow?: BrowserWind
             return downloadPromise;
         })
         .finally(() => {
+            isSilentUpdating = false;
+            if (!menuItem) {
+                return;
+            }
             // eslint-disable-next-line no-param-reassign
             menuItem.enabled = true;
         });
@@ -203,7 +212,7 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (checkForUpdatesMenuItem) {
                 checkForUpdatesMenuItem.visible = false;
             }
-            if (browserWindow.isVisible()) {
+            if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
                 quitAndInstallWithUpdate();
@@ -607,13 +616,21 @@ const mainWindow = (): Promise<void> => {
                 });
 
                 const downloadQueue = createDownloadQueue();
-
                 ipcMain.on(ELECTRON_EVENTS.DOWNLOAD, (event, downloadData) => {
                     const downloadItem = {
                         ...downloadData,
                         win: browserWindow,
                     };
                     downloadQueue.enqueueDownloadItem(downloadItem);
+                });
+
+                // Automatically check for and install the latest version in the background
+                ipcMain.on(ELECTRON_EVENTS.SILENT_UPDATE, () => {
+                    if (isSilentUpdating) {
+                        return;
+                    }
+                    isSilentUpdating = true;
+                    manuallyCheckForUpdates(undefined, browserWindow);
                 });
 
                 return browserWindow;
