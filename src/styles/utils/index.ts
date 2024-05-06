@@ -1529,12 +1529,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = getWidthStyle(variables.w44);
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
-                columnWidth = styles.flex1;
-                break;
             case CONST.SEARCH_TABLE_COLUMNS.FROM:
-                columnWidth = styles.flex1;
-                break;
             case CONST.SEARCH_TABLE_COLUMNS.TO:
+            case CONST.SEARCH_TABLE_COLUMNS.CATEGORY:
+            case CONST.SEARCH_TABLE_COLUMNS.TAG:
                 columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH_TABLE_COLUMNS.TOTAL:

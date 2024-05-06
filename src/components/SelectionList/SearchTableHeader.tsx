@@ -5,19 +5,24 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as SearchUtils from '@libs/SearchUtils';
 import CONST from '@src/CONST';
+import type * as OnyxTypes from '@src/types/onyx';
 
 type SearchTableHeaderProps = {
-    /** Whether we should show the merchant or description column */
-    shouldShowMerchant: boolean;
+    data: OnyxTypes.SearchResults['data'];
 };
 
-function SearchTableHeader({shouldShowMerchant}: SearchTableHeaderProps) {
+function SearchTableHeader({data}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isSmallScreenWidth, isMediumScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
+
+    const shouldShowCategoryColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.CATEGORY);
+    const shouldShowTagColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.TAG);
+    const shouldShowMerchant = SearchUtils.getShouldShowMerchant(data);
 
     if (displayNarrowVersion) {
         return;
@@ -38,6 +43,16 @@ function SearchTableHeader({shouldShowMerchant}: SearchTableHeaderProps) {
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>
                     <Text style={[styles.mutedNormalTextLabel]}>{translate('common.to')}</Text>
                 </View>
+                {shouldShowCategoryColumn && (
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>
+                        <Text style={[styles.mutedNormalTextLabel]}>{translate('common.category')}</Text>
+                    </View>
+                )}
+                {shouldShowTagColumn && (
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TAG)]}>
+                        <Text style={[styles.mutedNormalTextLabel]}>{translate('common.tag')}</Text>
+                    </View>
+                )}
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>
                     <Text style={[styles.mutedNormalTextLabel]}>{translate('common.total')}</Text>
                 </View>

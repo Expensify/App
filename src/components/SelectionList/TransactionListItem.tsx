@@ -108,6 +108,22 @@ function TransactionListItem<TItem extends ListItem>({
         );
     };
 
+    const categoryCell = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={transactionItem?.category}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+
+    const tagCell = (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={transactionItem?.tag}
+            style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    );
+
     const totalCell = (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
@@ -216,7 +232,9 @@ function TransactionListItem<TItem extends ListItem>({
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.DATE)]}>{dateCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.MERCHANT)]}>{merchantCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.from)}</View>
-                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.FROM)]}>{userCell(transactionItem.to)}</View>
+                    <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TO)]}>{userCell(transactionItem.to)}</View>
+                    {transactionItem.shouldShowCategory && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{categoryCell}</View>}
+                    {transactionItem.shouldShowTag && <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.CATEGORY)]}>{tagCell}</View>}
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TOTAL)]}>{totalCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.TYPE)]}>{typeCell}</View>
                     <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>{actionCell}</View>

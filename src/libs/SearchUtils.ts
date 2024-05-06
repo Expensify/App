@@ -1,3 +1,4 @@
+import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import TransactionListItem from '@components/SelectionList/TransactionListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,8 +13,14 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
+function getShouldShowColumn(data: OnyxTypes.SearchResults['data'], columnName: ValueOf<typeof CONST.SEARCH_TABLE_OPTIONAL_COLUMNS>) {
+    return Object.values(data).some((item) => !!item[columnName]);
+}
+
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
+    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.CATEGORY);
+    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.TAG);
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
         .map(([, value]) => {
@@ -23,6 +30,8 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchT
                 from: data.personalDetailsList?.[value.accountID],
                 to: isExpenseReport ? data[`${ONYXKEYS.COLLECTION.POLICY}${value.policyID}`] : data.personalDetailsList?.[value.managerID],
                 shouldShowMerchant,
+                shouldShowCategory,
+                shouldShowTag,
                 keyForList: value.transactionID,
             };
         })
@@ -56,4 +65,4 @@ function getQueryHash(query: string): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-export {getListItem, getQueryHash, getSections, getShouldShowMerchant};
+export {getListItem, getQueryHash, getSections, getShouldShowMerchant, getShouldShowColumn};

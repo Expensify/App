@@ -48,6 +48,8 @@ type SearchTransaction = {
     policyID: string;
     transactionThreadReportID: string;
     shouldShowMerchant: boolean;
+    shouldShowCategory: boolean;
+    shouldShowTag: boolean;
     action: string;
 };
 

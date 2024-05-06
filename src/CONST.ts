@@ -924,9 +924,15 @@ const CONST = {
         MERCHANT: 'merchant',
         FROM: 'from',
         TO: 'to',
+        CATEGORY: 'category',
+        TAG: 'tag',
         TOTAL: 'total',
         TYPE: 'type',
         ACTION: 'action',
+    },
+    SEARCH_TABLE_OPTIONAL_COLUMNS: {
+        CATEGORY: 'category',
+        TAG: 'tag',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',

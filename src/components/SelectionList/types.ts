@@ -185,6 +185,12 @@ type TransactionListItemType = ListItem & {
 
     /** Whether we should show the merchant column */
     shouldShowMerchant: boolean;
+
+    /** Whether we should show the category column */
+    shouldShowCategory: boolean;
+
+    /** Whether we should show the tag column */
+    shouldShowTag: boolean;
 };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
