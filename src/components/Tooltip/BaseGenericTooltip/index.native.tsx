@@ -4,8 +4,6 @@ import {Animated, View} from 'react-native';
 import type {Text as RNText, View as RNView} from 'react-native';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
-import textRef from '@src/types/utils/textRef';
-import viewRef from '@src/types/utils/viewRef';
 import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.
@@ -92,7 +90,7 @@ function BaseGenericTooltip({
 
     let content;
     if (renderTooltipContent) {
-        content = <View ref={viewRef(viewContentRef)}>{renderTooltipContent()}</View>;
+        content = <View ref={viewContentRef}>{renderTooltipContent()}</View>;
     } else {
         content = (
             <Text
@@ -101,7 +99,7 @@ function BaseGenericTooltip({
             >
                 <Text
                     style={textStyle}
-                    ref={textRef(textContentRef)}
+                    ref={textContentRef}
                 >
                     {text}
                 </Text>
@@ -111,7 +109,7 @@ function BaseGenericTooltip({
 
     return (
         <Animated.View
-            ref={viewRef(rootWrapper)}
+            ref={rootWrapper}
             style={[rootWrapperStyle, animationStyle]}
             onLayout={(e) => {
                 const {height} = e.nativeEvent.layout;
