@@ -317,7 +317,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, reimbursementAcc
         Navigation.isNavigationReady().then(() => {
             Navigation.dismissRHP();
         });
-    }, [canAccessRoute, policy, shouldShowNotFoundPage]);
+    }, [canAccessRoute, shouldShowNotFoundPage]);
 
     const policyAvatar = useMemo(() => {
         if (!policy) {
