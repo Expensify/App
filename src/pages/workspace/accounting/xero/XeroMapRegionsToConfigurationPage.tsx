@@ -53,6 +53,7 @@ function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
             policyID={policyID && category?.id ? policyID : ''}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             titleStyle={[styles.pb2, styles.ph5]}
+            contentContainerStyle={[styles.flex1]}
         >
             <SelectionList
                 sections={[{data: optionsList}]}
