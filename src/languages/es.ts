@@ -2043,7 +2043,7 @@ export default {
             bankTransactions: 'Transacciones bancarias',
             xeroBankAccount: 'Xero días laborales',
             preferredExporter: 'Exportador preferido',
-            exportExpenses: 'Exportar gastos de bolsillo como',
+            exportExpenses: 'Exportar gastos por cuenta propia como',
             exportExpensesDescription: 'Reports will export as a purchase bill using the date and with the status you select below.',
             purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Exportar facturas como',
