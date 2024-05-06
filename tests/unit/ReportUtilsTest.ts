@@ -930,6 +930,18 @@ describe('ReportUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(ReportUtils.getGroupChatName(undefined, false, '1')).toEqual("Let's talk");
             });
+
+            it('Should show participant names if report name is not available', async () => {
+                const report = {
+                    ...LHNTestUtils.getFakeReport([1, 2, 3, 4, 5, 6, 7, 8]),
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    reportID: `1`,
+                    reportName: '',
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                expect(ReportUtils.getGroupChatName(undefined, false, '1')).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
+            });
         });
     });
 });

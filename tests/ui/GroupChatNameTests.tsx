@@ -1,23 +1,18 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable testing-library/no-node-access */
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
-import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type Animated from 'react-native-reanimated';
 import * as Localize from '@libs/Localize';
-import * as NumberUtils from '@libs/NumberUtils';
-import * as Pusher from '@libs/Pusher/pusher';
-import PusherConnectionManager from '@libs/PusherConnectionManager';
 import * as AppActions from '@userActions/App';
 import * as User from '@userActions/User';
 import App from '@src/App';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import appSetup from '@src/setup';
-import type Participant from '@src/types/onyx/Report';
+import type {Participant} from '@src/types/onyx/Report';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -26,12 +21,11 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // We need a large timeout here as we are lazy loading React Navigation screens and this test is running against the entire mounted App
 jest.setTimeout(50000);
 
-jest.mock('../../src/libs/Notification/LocalNotification');
-jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
+    /* eslint-disable-next-line @typescript-eslint/naming-convention */
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
@@ -118,14 +112,6 @@ beforeAll(() => {
 
     Linking.setInitialURL('https://new.expensify.com/');
     appSetup();
-
-    // Connect to Pusher
-    PusherConnectionManager.init();
-    Pusher.init({
-        appKey: CONFIG.PUSHER.APP_KEY,
-        cluster: CONFIG.PUSHER.CLUSTER,
-        authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
-    });
 });
 
 async function navigateToSidebarOption(index: number): Promise<void> {
@@ -152,15 +138,22 @@ const USER_G_ACCOUNT_ID = 7;
 const USER_G_EMAIL = 'user_g@test.com';
 const USER_H_ACCOUNT_ID = 8;
 const USER_H_EMAIL = 'user_h@test.com';
-let reportActionCreatedDate: string;
-let reportAction2CreatedDate: string;
 
 /**
  * Sets up a test with a logged in user. Returns the <App/> test instance.
  */
-function signInAndGetApp(reportName = '', participantAccountIDs?: number[], participants: Record<number, Participant> = {}): Promise<void> {
+function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Promise<void> {
     // Render the App and sign in as a test user.
     render(<App />);
+
+    const participants: Record<number, Participant> = {};
+    participantAccountIDs?.forEach((id) => {
+        participants[id] = {
+            hidden: false,
+            role: id === 1 ? 'admin' : 'member',
+        } as Participant;
+    });
+
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
             await waitForBatchedUpdatesWithAct();
@@ -178,44 +171,16 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[], part
             return waitForBatchedUpdates();
         })
         .then(async () => {
-            const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
-            reportActionCreatedDate = format(addSeconds(TEN_MINUTES_AGO, 30), CONST.DATE.FNS_DB_FORMAT_STRING);
-            reportAction2CreatedDate = format(addSeconds(TEN_MINUTES_AGO, 60), CONST.DATE.FNS_DB_FORMAT_STRING);
-
             // Simulate setting an unread report and personal details
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,
                 reportName,
-                lastReadTime: reportActionCreatedDate,
-                lastVisibleActionCreated: reportAction2CreatedDate,
                 lastMessageText: 'Test',
-                groupChatAdminLogins: USER_A_EMAIL,
                 participantAccountIDs,
                 participants,
                 lastActorAccountID: USER_B_ACCOUNT_ID,
                 type: CONST.REPORT.TYPE.CHAT,
                 chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            });
-            const createdReportActionID = NumberUtils.rand64().toString();
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
-                [createdReportActionID]: {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                    automatic: false,
-                    created: format(TEN_MINUTES_AGO, CONST.DATE.FNS_DB_FORMAT_STRING),
-                    reportActionID: createdReportActionID,
-                    message: [
-                        {
-                            style: 'strong',
-                            text: '__FAKE__',
-                            type: 'TEXT',
-                        },
-                        {
-                            style: 'normal',
-                            text: 'created this report',
-                            type: 'TEXT',
-                        },
-                    ],
-                },
             });
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -249,24 +214,10 @@ describe('Tests for group chat name', () => {
     });
 
     const participantAccountIDs4 = [USER_A_ACCOUNT_ID, USER_B_ACCOUNT_ID, USER_C_ACCOUNT_ID, USER_D_ACCOUNT_ID];
-    const participants4 = {
-        [USER_A_ACCOUNT_ID]: {hidden: false, role: 'admin'},
-        [USER_B_ACCOUNT_ID]: {hidden: false, role: 'member'},
-        [USER_C_ACCOUNT_ID]: {hidden: false, role: 'member'},
-        [USER_D_ACCOUNT_ID]: {hidden: false, role: 'member'},
-    };
-
-    const participantAccountIDs8 = [...participantAccountIDs4, USER_E_ACCOUNT_ID, USER_F_ACCOUNT_ID, USER_F_ACCOUNT_ID, USER_G_ACCOUNT_ID];
-    const participants8 = {
-        ...participants4,
-        [USER_E_ACCOUNT_ID]: {hidden: false, role: 'member'},
-        [USER_F_ACCOUNT_ID]: {hidden: false, role: 'member'},
-        [USER_G_ACCOUNT_ID]: {hidden: false, role: 'member'},
-        [USER_H_ACCOUNT_ID]: {hidden: false, role: 'member'},
-    };
+    const participantAccountIDs8 = [...participantAccountIDs4, USER_E_ACCOUNT_ID, USER_F_ACCOUNT_ID, USER_G_ACCOUNT_ID, USER_H_ACCOUNT_ID];
 
     it('Should show correctly in LHN', () =>
-        signInAndGetApp('A, B, C, D', participantAccountIDs4, participants4).then(() => {
+        signInAndGetApp('A, B, C, D', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
@@ -284,7 +235,7 @@ describe('Tests for group chat name', () => {
         }));
 
     it('Should show correctly in LHN when report name is not present', () =>
-        signInAndGetApp('', participantAccountIDs4, participants4).then(() => {
+        signInAndGetApp('', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
@@ -302,7 +253,7 @@ describe('Tests for group chat name', () => {
         }));
 
     it('Should show all 8 names in LHN when 8 participants are present', () =>
-        signInAndGetApp('', participantAccountIDs8, participants8).then(() => {
+        signInAndGetApp('', participantAccountIDs8).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
@@ -320,7 +271,7 @@ describe('Tests for group chat name', () => {
         }));
 
     it('Check if group name shows fine for report header', () =>
-        signInAndGetApp('', participantAccountIDs4, participants4)
+        signInAndGetApp('', participantAccountIDs4)
             .then(() => {
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -348,7 +299,7 @@ describe('Tests for group chat name', () => {
             }));
 
     it('Should show only 5 names when there are 8 participants in the report header', () =>
-        signInAndGetApp('', participantAccountIDs8, participants8)
+        signInAndGetApp('', participantAccountIDs8)
             .then(() => {
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -376,7 +327,7 @@ describe('Tests for group chat name', () => {
             }));
 
     it('Should show exact name in header when report name is available with 4 participants', () =>
-        signInAndGetApp('Test chat', participantAccountIDs4, participants4)
+        signInAndGetApp('Test chat', participantAccountIDs4)
             .then(() => {
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -404,7 +355,7 @@ describe('Tests for group chat name', () => {
             }));
 
     it('Should show exact name in header when report name is available with 8 participants', () =>
-        signInAndGetApp("Let's talk", participantAccountIDs8, participants8)
+        signInAndGetApp("Let's talk", participantAccountIDs8)
             .then(() => {
                 // Verify the sidebar links are rendered
                 const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
@@ -432,7 +383,7 @@ describe('Tests for group chat name', () => {
             }));
 
     it('Should show last message preview in LHN', () =>
-        signInAndGetApp('A, B, C, D', participantAccountIDs4, participants4).then(() => {
+        signInAndGetApp('A, B, C, D', participantAccountIDs4).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);
@@ -450,13 +401,7 @@ describe('Tests for group chat name', () => {
         }));
 
     it('Should sort the names before displaying', () =>
-        signInAndGetApp('', [USER_E_ACCOUNT_ID, ...participantAccountIDs4], {
-            [USER_E_ACCOUNT_ID]: {
-                hidden: false,
-                role: 'member',
-            },
-            ...participants4,
-        }).then(() => {
+        signInAndGetApp('', [USER_E_ACCOUNT_ID, ...participantAccountIDs4]).then(() => {
             // Verify the sidebar links are rendered
             const sidebarLinksHintText = Localize.translateLocal('sidebarScreen.listOfChats');
             const sidebarLinks = screen.queryAllByLabelText(sidebarLinksHintText);

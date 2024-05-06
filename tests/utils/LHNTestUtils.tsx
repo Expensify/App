@@ -15,6 +15,7 @@ import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
 import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {ActionName} from '@src/types/onyx/OriginalMessage';
+import type {Participant} from '@src/types/onyx/Report';
 
 type MockedReportActionItemSingleProps = {
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
@@ -129,6 +130,15 @@ let lastFakeReportActionID = 0;
 function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
 
+    const participants: Record<number, Participant> = {};
+
+    participantAccountIDs.forEach((id) => {
+        participants[id] = {
+            hidden: false,
+            role: id === 1 ? 'admin' : 'member',
+        } as Participant;
+    });
+
     return {
         type: CONST.REPORT.TYPE.CHAT,
         reportID: `${++lastFakeReportID}`,
@@ -136,6 +146,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
         participantAccountIDs,
+        participants,
     };
 }
 
