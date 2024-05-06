@@ -842,7 +842,7 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -967,30 +967,44 @@ function MoneyRequestConfirmationList({
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
     const receiptThumbnailContent = useMemo(
-        () =>
-            isLocalFile && Str.isPDF(receiptFilename) ? (
-                <PDFThumbnail
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    previewSourceURL={resolvedReceiptImage as string}
-                    style={styles.moneyRequestImage}
-                    // We don't support scaning password protected PDF receipt
-                    enabled={!isAttachmentInvalid}
-                    onPassword={() => setIsAttachmentInvalid(true)}
-                />
-            ) : (
-                <ReceiptImage
-                    style={styles.moneyRequestImage}
-                    isThumbnail={isThumbnail}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={resolvedThumbnail || resolvedReceiptImage || ''}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!!receiptThumbnail}
-                    fileExtension={fileExtension}
-                />
-            ),
-        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
+        () => (
+            <View style={styles.moneyRequestImage}>
+                {isLocalFile && Str.isPDF(receiptFilename) ? (
+                    <PDFThumbnail
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        previewSourceURL={resolvedReceiptImage as string}
+                        // We don't support scaning password protected PDF receipt
+                        enabled={!isAttachmentInvalid}
+                        onPassword={() => setIsAttachmentInvalid(true)}
+                    />
+                ) : (
+                    <ReceiptImage
+                        isThumbnail={isThumbnail}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        source={resolvedThumbnail || resolvedReceiptImage || ''}
+                        // AuthToken is required when retrieving the image from the server
+                        // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                        // So if we have a thumbnail, it means we're retrieving the image from the server
+                        isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                        fileExtension={fileExtension}
+                        shouldUseThumbnailImage
+                        shouldUseInitialObjectPosition={isDistanceRequest}
+                    />
+                )}
+            </View>
+        ),
+        [
+            isLocalFile,
+            receiptFilename,
+            resolvedThumbnail,
+            styles.moneyRequestImage,
+            isAttachmentInvalid,
+            isThumbnail,
+            resolvedReceiptImage,
+            receiptThumbnail,
+            fileExtension,
+            isDistanceRequest,
+        ],
     );
 
     return (

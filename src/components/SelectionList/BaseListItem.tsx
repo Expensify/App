@@ -79,7 +79,7 @@ function BaseListItem<TItem extends ListItem>({
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, hoverStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
-                nativeID={keyForList ?? ''}
+                id={keyForList ?? ''}
                 style={pressableStyle}
                 onFocus={onFocus}
             >
