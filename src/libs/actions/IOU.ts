@@ -1436,6 +1436,8 @@ function getDeleteTrackExpenseInformation(
     reportAction: OnyxTypes.ReportAction,
     shouldDeleteTransactionFromOnyx = true,
     isMovingTransactionFromTrackExpense = false,
+    actionableWhisperReportActionID: string,
+    resolution: IOUAction,
 ) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
@@ -1473,10 +1475,15 @@ function getDeleteTrackExpenseInformation(
             },
             errors: undefined,
         },
+        [actionableWhisperReportActionID]: {
+            originalMessage: {
+                resolution,
+            },
+        },
     } as OnyxTypes.ReportActions;
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport?.reportID ?? '', updatedReportAction);
-    const reportLastMessageText = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '', updatedReportAction).lastMessageText;
+    const {lastMessageText = '', lastMessageHtml = ''} = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '', updatedReportAction);
 
     // STEP 4: Build Onyx data
     const optimisticData: OnyxUpdate[] = [];
@@ -1522,8 +1529,9 @@ function getDeleteTrackExpenseInformation(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                lastMessageText: reportLastMessageText,
+                lastMessageText: lastMessageText,
                 lastVisibleActionCreated: lastVisibleAction?.created,
+                lastMessageHtml: !lastMessageHtml ? lastMessageText : lastMessageHtml,
             },
         },
     );
@@ -1583,6 +1591,17 @@ function getDeleteTrackExpenseInformation(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: chatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [actionableWhisperReportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
         },
     );
 
@@ -2925,7 +2944,7 @@ const getConvertTrackedExpenseInformation = (
         optimisticData: deleteOptimisticData,
         successData: deleteSuccessData,
         failureData: deleteFailureData,
-    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false, true);
+    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false, true, actionableWhisperReportActionID, resolution);
 
     optimisticData?.push(...deleteOptimisticData);
     successData?.push(...deleteSuccessData);

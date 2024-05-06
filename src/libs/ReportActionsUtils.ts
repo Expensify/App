@@ -550,7 +550,8 @@ function shouldReportActionBeVisibleAsLastAction(reportAction: OnyxEntry<ReportA
     return (
         shouldReportActionBeVisible(reportAction, reportAction.reportActionID) &&
         !(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) &&
-        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction))
+        !(isDeletedAction(reportAction) && !isDeletedParentAction(reportAction)) &&
+        !isResolvedActionTrackExpense(reportAction)
     );
 }
 
@@ -1163,6 +1164,15 @@ function getDismissedViolationMessageText(originalMessage: OriginalMessageDismis
  */
 function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
     return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
+}
+
+/**
+ * Checks whether an action is actionable track expense and resolved.
+ *
+ */
+function isResolvedActionTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
+    const resolution = (reportAction?.originalMessage as OriginalMessageActionableMentionWhisper['originalMessage'])?.resolution;
+    return isActionableTrackExpense(reportAction) && !!resolution;
 }
 
 export {
