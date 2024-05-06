@@ -1134,7 +1134,7 @@ function MoneyRequestConfirmationList({
             receiptThumbnail,
             receiptThumbnailContent,
             reportID,
-            senderWorkspace?.avatar,
+            senderWorkspace?.avatarURL,
             senderWorkspace?.name,
             shouldShowAllFields,
             styles.confirmationListMapItem,
