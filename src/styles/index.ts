@@ -1868,6 +1868,11 @@ const styles = (theme: ThemeColors) =>
             marginBottom: -20,
         },
 
+        travelIllustrationStyle: {
+            marginTop: 16,
+            marginBottom: -16,
+        },
+
         overlayStyles: (current: OverlayStylesParams, isModalOnTheLeft: boolean) =>
             ({
                 ...positioning.pFixed,
@@ -2815,6 +2820,18 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             width: '100%',
             height: 20,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            zIndex: 1,
+            ...cursor.cursorDefault,
+        },
+
+        topUnreadIndicatorContainer: {
+            position: 'relative',
+            width: '100%',
+            /** 17 = height of the indicator 1px + 8px top and bottom */
+            height: 17,
             paddingHorizontal: 20,
             flexDirection: 'row',
             alignItems: 'center',
@@ -4192,6 +4209,7 @@ const styles = (theme: ThemeColors) =>
             height: 200,
             borderRadius: 16,
             margin: 20,
+            overflow: 'hidden',
         },
 
         reportPreviewBox: {

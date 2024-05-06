@@ -28,7 +28,7 @@ function SearchPageBottomTab() {
     return (
         <ScreenWrapper
             testID={SearchPageBottomTab.displayName}
-            style={styles.pt0}
+            style={styles.pv0}
         >
             <FullPageNotFoundView
                 shouldShow={!isValidQuery}

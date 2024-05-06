@@ -19,11 +19,13 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {removePolicyConnection} from '@libs/actions/connections';
 import {syncConnection} from '@libs/actions/connections/QuickBooksOnline';
+import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
@@ -33,7 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
-import type {PolicyConnectionName, Tenant} from '@src/types/onyx/Policy';
+import type {PolicyConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -46,8 +48,6 @@ type PolicyAccountingPageProps = WithPolicyProps &
         // This is not using OnyxEntry<OnyxTypes.Policy> because the HOC withPolicyConnections will only render this component if there is a policy
         policy: Policy;
     };
-
-const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
 
 type AccountingIntegration = {
     title: string;
@@ -93,7 +93,7 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => {},
-                onAdvancedPagePress: () => {},
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
         default:
             return undefined;
@@ -105,26 +105,23 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseXeroIntegration} = usePermissions();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const threeDotsMenuContainerRef = useRef<View>(null);
 
     const isSyncInProgress = !!connectionSyncProgress?.stageInProgress && connectionSyncProgress.stageInProgress !== CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE;
+
+    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
-    const tenants = useMemo<Tenant[]>(() => {
-        // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
-            return [];
-        }
-        return policy?.connections?.xero?.data?.tenants ?? [];
-    }, [policy]);
-    const currentXeroOrganization = tenants.find((tenant) => tenant.id === policy?.connections?.xero.config.tenantID);
+    const tenants = useMemo(() => getXeroTenants(policy), [policy]);
+
+    const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -171,6 +168,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
                 title: integrationData?.title,
+
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress})
                     : translate('workspace.accounting.lastSync'),
@@ -204,6 +202,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           iconRight: Expensicons.ArrowRight,
                           title: currentXeroOrganization?.name,
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: tenants.length > 1,
                           shouldShowDescriptionOnTop: true,
                           onPress: () => {
@@ -258,6 +257,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
         theme.spinner,
         threeDotsMenuPosition,
         translate,
+        accountingIntegrations,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -279,7 +279,16 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 wrapperStyle: styles.sectionMenuItemTopDescription,
             };
         });
-    }, [connectedIntegration, connectionSyncProgress?.connectionName, isSyncInProgress, policy?.connections, policyID, styles.sectionMenuItemTopDescription, translate]);
+    }, [
+        connectedIntegration,
+        connectionSyncProgress?.connectionName,
+        isSyncInProgress,
+        policy?.connections,
+        policyID,
+        styles.sectionMenuItemTopDescription,
+        translate,
+        accountingIntegrations,
+    ]);
 
     const headerThreeDotsMenuItems: ThreeDotsMenuProps['menuItems'] = [
         {
@@ -348,7 +357,9 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                     title={translate('workspace.accounting.disconnectTitle', connectedIntegration)}
                     isVisible={isDisconnectModalOpen}
                     onConfirm={() => {
-                        removePolicyConnection(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO);
+                        if (connectedIntegration) {
+                            removePolicyConnection(policyID, connectedIntegration);
+                        }
                         setIsDisconnectModalOpen(false);
                     }}
                     onCancel={() => setIsDisconnectModalOpen(false)}
