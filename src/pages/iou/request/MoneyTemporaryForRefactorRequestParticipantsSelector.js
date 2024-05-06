@@ -74,13 +74,12 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
     const offlineMessage = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
-
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].includes(action);
@@ -132,21 +131,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             isCategorizeOrShareAction ? 0 : undefined,
         );
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
-            participants,
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            maxParticipantsReached,
-            personalDetails,
-            true,
-        );
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, participants, chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
 
         newSections.push(formatResults.section);
-
-        if (maxParticipantsReached) {
-            return [newSections, {}];
-        }
 
         newSections.push({
             title: translate('common.recents'),
@@ -183,7 +170,6 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
         action,
         canUseP2PDistanceRequests,
         iouRequestType,
-        maxParticipantsReached,
         personalDetails,
         translate,
         didScreenTransitionEnd,
@@ -272,10 +258,9 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
                 lodashGet(newChatOptions, 'personalDetails', []).length + lodashGet(newChatOptions, 'recentReports', []).length !== 0,
                 Boolean(newChatOptions.userToInvite),
                 debouncedSearchTerm.trim(),
-                maxParticipantsReached,
                 lodashSome(participants, (participant) => participant.searchText.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
+        [newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split an expense with a workspace and other additional participants
@@ -358,6 +343,7 @@ function MoneyTemporaryForRefactorRequestParticipantsSelector({participants, onF
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
+            isLoadingNewOptions={!!isSearchingForReports}
         />
     );
 }
