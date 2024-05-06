@@ -341,6 +341,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                                     title={translate('workspace.accounting.other')}
                                     wrapperStyle={styles.pr3}
                                     titleStyle={[styles.textNormal, styles.colorMuted]}
+                                    textStyle={[styles.flex1, styles.userSelectNone, styles.textNormal, styles.colorMuted]}
                                 >
                                     <MenuItemList
                                         menuItems={otherIntegrationsItems}
