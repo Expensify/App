@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyTemporaryForRefactorRequestParticipantsSelector';
 import * as IOU from '@userActions/IOU';
@@ -107,6 +108,12 @@ function IOURequestStepParticipants({
 
         IOU.setMoneyRequestTag(transactionID, '');
         IOU.setMoneyRequestCategory(transactionID, '');
+
+        if (isCategorizing && !selectedReportID.current) {
+            ReportUtils.createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
+            return;
+        }
+
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, selectedReportID.current || reportID);
         if (isCategorizing) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute));
