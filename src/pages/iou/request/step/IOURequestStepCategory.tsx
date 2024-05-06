@@ -71,9 +71,11 @@ function IOURequestStepCategory({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportAction = reportActions?.[report?.parentReportActionID || reportActionID] ?? null;
 
-    // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = ReportUtils.isGroupPolicy(report) && (!!transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategory =
+        (ReportUtils.isReportInGroupPolicy(report) || ReportUtils.isGroupPolicy(policy?.type ?? '')) &&
+        // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (!!transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
@@ -140,7 +142,7 @@ function IOURequestStepCategory({
             <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
             <CategoryPicker
                 selectedCategory={transactionCategory}
-                policyID={report?.policyID ?? ''}
+                policyID={report?.policyID ?? policy?.id ?? ''}
                 onSubmit={updateCategory}
             />
         </StepScreenWrapper>
@@ -157,13 +159,13 @@ const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOU
         },
     },
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     reportActions: {
         key: ({

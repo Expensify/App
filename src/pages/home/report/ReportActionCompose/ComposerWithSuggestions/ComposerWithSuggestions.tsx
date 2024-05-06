@@ -458,7 +458,7 @@ function ComposerWithSuggestions(
 
     const prepareCommentAndResetComposer = useCallback((): string => {
         const trimmedComment = commentRef.current.trim();
-        const commentLength = ReportUtils.getCommentLength(trimmedComment);
+        const commentLength = ReportUtils.getCommentLength(trimmedComment, {reportID});
 
         // Don't submit empty comments or comments that exceed the character limit
         if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
