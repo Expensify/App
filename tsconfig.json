@@ -24,6 +24,7 @@
         ],
         "allowJs": true,
         "checkJs": false,
+        "jsx": "react-native",
         "isolatedModules": true,
         "strict": true,
         "allowSyntheticDefaultImports": true,
