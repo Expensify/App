@@ -330,6 +330,7 @@ export default {
         clear: 'Clear',
         type: 'Type',
         action: 'Action',
+        expenses: 'Expenses',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1988,7 +1989,7 @@ export default {
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription:
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
-                invoiceAccountSelectDescription:
+                invoiceAccountSelectorDescription:
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
             accounts: {
@@ -2048,6 +2049,7 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+                invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
             },
             exportDate: {
                 label: 'Export date',
@@ -2715,7 +2717,8 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Update Available',
-            message: "The new version will be available shortly. We'll notify you when we're ready to update.",
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `The new version will be available shortly.${!isSilentUpdating ? " We'll notify you when we're ready to update." : ''}`,
             soundsGood: 'Sounds good',
         },
         notAvailable: {
@@ -3031,5 +3034,8 @@ export default {
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
+    },
+    systemMessage: {
+        mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
 } satisfies TranslationBase;

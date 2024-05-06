@@ -25,22 +25,12 @@ function removePolicyConnection(policyID: string, connectionName: PolicyConnecti
             value: null,
         },
     ];
-    const failureData: OnyxUpdate[] = [
-        // {
-        //     onyxMethod: Onyx.METHOD.MERGE,
-        //     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-        //     value: {
-        //         errorFields: {
-        //             avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
-        //         },
-        //     },
-        // },
-    ];
+
     const parameters: RemovePolicyConnectionParams = {
         policyID,
         connectionName,
     };
-    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.REMOVE_POLICY_CONNECTION, parameters, {optimisticData});
 }
 function updatePolicyConnectionConfig<TConnectionName extends ConnectionName, TSettingName extends keyof Connections[TConnectionName]['config']>(
     policyID: string,
