@@ -323,6 +323,7 @@ export default {
         expenses: 'Gastos',
         export: 'Exportar',
         import: 'Importar',
+        headsUp: '¡Atención!',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1265,7 +1266,6 @@ export default {
     },
     groupChat: {
         groupMembersListTitle: 'Directorio de los miembros del grupo.',
-        lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los usuarios. ¿Estás seguro de que quieres salir del chat?',
         defaultReportName: ({displayName}: {displayName: string}) => `Chat de group de ${displayName}`,
     },

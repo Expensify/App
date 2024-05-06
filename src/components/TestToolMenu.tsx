@@ -34,8 +34,8 @@ function TestToolMenu() {
 
     const confirmExportFile = useCallback(() => {
         setConfirmModalState({
-            title: translate('initialSettingsPage.troubleshoot.exportToFile'),
-            prompt: translate('initialSettingsPage.troubleshoot.exportToFile'),
+            title: translate('common.headsUp'),
+            prompt: translate('initialSettingsPage.troubleshoot.exportToFileWarning'),
             confirmText: translate('common.export'),
             onConfirm: () => {
                 Troubleshooting.exportOnyxDataToFile();

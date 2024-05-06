@@ -333,6 +333,7 @@ export default {
         expenses: 'Expenses',
         export: 'Export',
         import: 'Import',
+        headsUp: 'Heads up!',
     },
     location: {
         useCurrent: 'Use current location',
@@ -928,6 +929,8 @@ export default {
             invalidate: 'Invalidate',
             destroy: 'Destroy',
             exportToFile: 'Export app snapshot to file',
+            exportToFileWarning:
+                'With great power comes great responsibility. Sharing this file with someone will enable them to read all your chats, impersonate you, and act on your behalf without any audit trail. You should never do this unless you have a very, very good reason. Also, keep in mind that you can revoke access to your account from certain devices in the Device Management section of Expensify Classic: https://staging.expensify.com/settings?param={%22section%22:%22account%22}.',
             importFromFile: 'Import app snapshot from file',
         },
         debugConsole: {
@@ -1266,7 +1269,6 @@ export default {
     },
     groupChat: {
         groupMembersListTitle: 'Directory of all group members.',
-        lastMemberTitle: 'Heads up!',
         lastMemberWarning: "Since you're the last person here, leaving will make this chat inaccessible to all users. Are you sure you want to leave?",
         defaultReportName: ({displayName}: {displayName: string}) => `${displayName}'s group chat`,
     },

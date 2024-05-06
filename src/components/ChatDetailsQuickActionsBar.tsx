@@ -22,7 +22,7 @@ function ChatDetailsQuickActionsBar({report}: ChatDetailsQuickActionsBarProps) {
             <View style={[styles.flex1, styles.pr3]}>
                 <ConfirmModal
                     danger
-                    title={translate('groupChat.lastMemberTitle')}
+                    title={translate('common.headsUp')}
                     isVisible={isLastMemberLeavingGroupModalVisible}
                     onConfirm={() => {
                         setIsLastMemberLeavingGroupModalVisible(false);
