@@ -124,9 +124,9 @@ function ReservationView({reservation}: ReservationViewProps) {
 
     const formattedDate = getFormattedDate();
 
-    const bottomDescription = `${reservation.confirmations.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}${
+    const bottomDescription = `${reservation.confirmations?.length > 0 ? `${reservation.confirmations[0].value} • ` : ''}${
         reservation.type === CONST.RESERVATION_TYPE.FLIGHT
-            ? `${reservation.company.longName} • ${reservation.company.shortName ?? ''} ${reservation.route.number}`
+            ? `${reservation.company?.longName} • ${reservation?.company?.shortName ?? ''} ${reservation.route?.number}`
             : reservation.start.address
     }`;
 
@@ -148,7 +148,7 @@ function ReservationView({reservation}: ReservationViewProps) {
                     numberOfLines={1}
                     style={[styles.textNormalBold, styles.lh20]}
                 >
-                    {reservation.company.longName}
+                    {reservation.company?.longName}
                 </Text>
             )}
             <Text style={[styles.textSupportingSmallSize, styles.lh14]}>{bottomDescription}</Text>
@@ -158,7 +158,7 @@ function ReservationView({reservation}: ReservationViewProps) {
     return (
         <MenuItemWithTopDescription
             description={formattedDate}
-            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16, styles.tripDescriptionMargin]}
+            descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
             titleContainerStyle={styles.justifyContentStart}
             secondaryIcon={reservationIcon}

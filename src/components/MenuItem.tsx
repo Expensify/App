@@ -105,6 +105,8 @@ type MenuItemBaseProps = {
     /** The fill color to pass into the secondary icon. */
     secondaryIconFill?: string;
 
+    isSecondaryIconHoverable?: boolean;
+
     /** Icon Width */
     iconWidth?: number;
 
@@ -169,6 +171,12 @@ type MenuItemBaseProps = {
 
     /** Text to display for the item */
     title?: string;
+
+    /** Component to display as the title */
+    titleComponent?: ReactElement;
+
+    /** Any additional styles to apply to the container for title components */
+    titleContainerStyle?: StyleProp<ViewStyle>;
 
     /** A right-aligned subtitle for this menu option */
     subtitle?: string | number;
@@ -285,6 +293,7 @@ function MenuItem(
         secondaryIcon,
         secondaryIconFill,
         iconType = CONST.ICON_TYPE_ICON,
+        isSecondaryIconHoverable = false,
         iconWidth,
         iconHeight,
         iconStyles,
@@ -302,6 +311,8 @@ function MenuItem(
         focused = false,
         disabled = false,
         title,
+        titleComponent,
+        titleContainerStyle,
         subtitle,
         shouldShowBasicTitle,
         label,
@@ -528,7 +539,13 @@ function MenuItem(
                                             </View>
                                         )}
                                         {secondaryIcon && (
-                                            <View style={[styles.popoverMenuIcon, iconStyles]}>
+                                            <View
+                                                style={[
+                                                    styles.popoverMenuIcon,
+                                                    iconStyles,
+                                                    isSecondaryIconHoverable && StyleUtils.getBackgroundAndBorderStyle(focused || isHovered ? theme.hoverComponentBG : theme.overlay),
+                                                ]}
+                                            >
                                                 <Icon
                                                     contentFit={contentFit}
                                                     src={secondaryIcon}
@@ -540,7 +557,7 @@ function MenuItem(
                                                 />
                                             </View>
                                         )}
-                                        <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu)]}>
+                                        <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu), titleContainerStyle]}>
                                             {!!description && shouldShowDescriptionOnTop && (
                                                 <Text
                                                     style={descriptionTextStyles}
@@ -604,6 +621,7 @@ function MenuItem(
                                                     </Text>
                                                 </View>
                                             )}
+                                            {titleComponent}
                                         </View>
                                     </View>
                                 </View>
