@@ -4,15 +4,16 @@ import lodashHas from 'lodash/has';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {GetRouteParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import type {GetRouteParams, MarkAsCashParams} from '@libs/API/parameters';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Transaction} from '@src/types/onyx';
+import type {RecentWaypoint, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import {buildOptimisticDismissedViolationReportAction} from "@libs/ReportUtils";
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({
@@ -29,6 +30,14 @@ Onyx.connect({
         }
         const transactionID = CollectionUtils.extractCollectionItemID(key);
         allTransactions[transactionID] = transaction;
+    },
+});
+
+let currentUserEmail = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        currentUserEmail = value?.email ?? '';
     },
 });
 
@@ -264,4 +273,51 @@ function clearError(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {errors: null});
 }
 
-export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError};
+function markAsCash(transactionID: string, transactionThreadReportID: string, existingViolations: TransactionViolation[]) {
+    const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
+        reason: 'manual',
+        violationName: CONST.VIOLATIONS.RTER,
+    });
+    const optimisticReportActions = {
+        [optimisticReportAction.reportActionID]: optimisticReportAction,
+    }
+    const onyxData: OnyxData = {
+        optimisticData: [
+            // Optimistically dismissing the violation, removing it from the list of violations
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: existingViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
+            },
+            // Optimistically adding the system message indicating we dismissed the violation
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: optimisticReportActions as ReportActions
+            },
+        ],
+        failureData: [
+            // Rolling back the dismissal of the violation
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS${transactionID}`,
+                value: existingViolations,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [optimisticReportAction.reportActionID]: null,
+                },
+            },
+        ],
+    };
+
+    const parameters: MarkAsCashParams = {
+        transactionID,
+    };
+
+    return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
+}
+
+export {addStop, createInitialWaypoints, saveWaypoint, removeWaypoint, getRoute, updateWaypoints, clearError, markAsCash};
