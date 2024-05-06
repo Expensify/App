@@ -2044,7 +2044,7 @@ export default {
             xeroBankAccount: 'Xero días laborales',
             preferredExporter: 'Exportador preferido',
             exportExpenses: 'Exportar gastos por cuenta propia como',
-            exportExpensesDescription: 'Reports will export as a purchase bill using the date and with the status you select below.',
+            exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
             purchaseBillDate: 'Purchase bill date',
             exportInvoices: 'Exportar facturas como',
             salesInvoice: 'Sales invoice',
