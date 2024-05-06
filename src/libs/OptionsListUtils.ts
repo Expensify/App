@@ -536,12 +536,9 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 /**
  * Update alternate text for the option when applicable
  */
-function getAlternateText(
-    option: ReportUtils.OptionData,
-    {showChatPreviewLine = false, forcePolicyNamePreview = false, lastMessageTextFromReport = ''}: PreviewConfig & {lastMessageTextFromReport?: string},
-) {
+function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
     if (!!option.isThread || !!option.isMoneyRequestReport) {
-        return lastMessageTextFromReport.length > 0 ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
     if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
         return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
@@ -725,8 +722,7 @@ function createOption(
         result.lastMessageText = lastMessageText;
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        result.alternateText =
-            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
+        result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
         reportName = showPersonalDetails
             ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
