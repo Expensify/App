@@ -224,6 +224,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         error: {
             invalidAmount: 'Invalid amount.',
@@ -1860,6 +1861,15 @@ export default {
             agree: 'I agree to the travel ',
             error: 'You must accept the Terms & Conditions for travel to continue',
         },
+        flight: 'Flight',
+        hotel: 'Hotel',
+        car: 'Car',
+        misc: 'Miscellaneous',
+        rail: 'Rail',
+        viewTrip: 'View trip',
+        trip: 'Trip',
+        tripSummary: 'Trip summary',
+        departs: 'Departs',
     },
     workspace: {
         common: {
