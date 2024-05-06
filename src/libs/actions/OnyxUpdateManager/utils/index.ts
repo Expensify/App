@@ -115,7 +115,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<v
 
                 // If lastUpdateIDAppliedToClient got updated in the meantime, we will just retrigger the validation and application of the current deferred updates.
                 if (latestMissingUpdateID <= newLastUpdateIDFromClient) {
-                    validateAndApplyDeferredUpdates(clientLastUpdateID)
+                    validateAndApplyDeferredUpdates()
                         .then(() => resolve(undefined))
                         .catch(reject);
                     return;
@@ -123,7 +123,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<v
 
                 // Then we can fetch the missing updates and apply them
                 App.getMissingOnyxUpdates(newLastUpdateIDFromClient, latestMissingUpdateID)
-                    .then(() => validateAndApplyDeferredUpdates(clientLastUpdateID))
+                    .then(() => validateAndApplyDeferredUpdates())
                     .then(() => resolve(undefined))
                     .catch(reject);
             });
