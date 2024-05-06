@@ -36,8 +36,16 @@ function canUseWorkflowsDelayedSubmission(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WORKFLOWS_DELAYED_SUBMISSION) || canUseAllBetas(betas);
 }
 
+function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
+}
+
 function canUseAccountingIntegrations(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ACCOUNTING_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
+}
+
+function canUseXeroIntegration(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.XERO_ON_NEW_EXPENSIFY) || canUseAllBetas(betas);
 }
 
 /**
@@ -56,5 +64,7 @@ export default {
     canUseReportFields,
     canUseP2PDistanceRequests,
     canUseWorkflowsDelayedSubmission,
+    canUseSpotnanaTravel,
     canUseAccountingIntegrations,
+    canUseXeroIntegration,
 };

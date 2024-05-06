@@ -9,6 +9,7 @@ const ELECTRON_EVENTS = {
     KEYBOARD_SHORTCUTS_PAGE: 'keyboard-shortcuts-page',
     START_UPDATE: 'start-update',
     UPDATE_DOWNLOADED: 'update-downloaded',
+    SILENT_UPDATE: 'silent-update',
 } as const;
 
 export default ELECTRON_EVENTS;

@@ -16,9 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import AdminPolicyAccessOrNotFoundWrapper from '@pages/workspace/AdminPolicyAccessOrNotFoundWrapper';
-import FeatureEnabledAccessOrNotFoundWrapper from '@pages/workspace/FeatureEnabledAccessOrNotFoundWrapper';
-import PaidPolicyAccessOrNotFoundWrapper from '@pages/workspace/PaidPolicyAccessOrNotFoundWrapper';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
@@ -69,48 +67,45 @@ function NamePage({
     }
 
     return (
-        <AdminPolicyAccessOrNotFoundWrapper policyID={policyID}>
-            <PaidPolicyAccessOrNotFoundWrapper policyID={policyID}>
-                <FeatureEnabledAccessOrNotFoundWrapper
-                    policyID={policyID}
-                    featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
-                >
-                    <ScreenWrapper
-                        includeSafeAreaPaddingBottom={false}
-                        shouldEnableMaxHeight
-                        testID={NamePage.displayName}
-                    >
-                        <HeaderWithBackButton
-                            title={translate('common.name')}
-                            onBackButtonPress={goBack}
-                        />
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+        >
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
+                testID={NamePage.displayName}
+            >
+                <HeaderWithBackButton
+                    title={translate('common.name')}
+                    onBackButtonPress={goBack}
+                />
 
-                        <FormProvider
-                            formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
-                            submitButtonText={translate('workspace.editor.save')}
-                            style={[styles.flexGrow1, styles.ph5]}
-                            onSubmit={submit}
-                            enabledWhenOffline
-                            validate={validate}
-                        >
-                            <View style={styles.mb4}>
-                                <InputWrapper
-                                    InputComponent={TextInput}
-                                    role={CONST.ROLE.PRESENTATION}
-                                    inputID={INPUT_IDS.NAME}
-                                    label={translate('workspace.editor.nameInputLabel')}
-                                    accessibilityLabel={translate('workspace.editor.nameInputLabel')}
-                                    value={name}
-                                    maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
-                                    onChangeText={setName}
-                                    ref={inputCallbackRef}
-                                />
-                            </View>
-                        </FormProvider>
-                    </ScreenWrapper>
-                </FeatureEnabledAccessOrNotFoundWrapper>
-            </PaidPolicyAccessOrNotFoundWrapper>
-        </AdminPolicyAccessOrNotFoundWrapper>
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM}
+                    submitButtonText={translate('workspace.editor.save')}
+                    style={[styles.flexGrow1, styles.ph5]}
+                    onSubmit={submit}
+                    enabledWhenOffline
+                    validate={validate}
+                >
+                    <View style={styles.mb4}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.NAME}
+                            label={translate('workspace.editor.nameInputLabel')}
+                            accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            value={name}
+                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
+                            onChangeText={setName}
+                            ref={inputCallbackRef}
+                        />
+                    </View>
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

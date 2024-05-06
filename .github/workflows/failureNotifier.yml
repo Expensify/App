@@ -27,19 +27,49 @@ jobs:
             });
             return jobsData.data;
 
+      - name: Fetch Previous Workflow Run
+        id: previous-workflow-run
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = ${{ github.event.workflow_run.id }};
+            const allRuns = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'preDeploy.yml',
+            });
+            const filteredRuns = allRuns.data.workflow_runs.filter(run => run.actor.login !== 'OSBotify' && run.status !== 'cancelled');
+            const currentIndex = filteredRuns.findIndex(run => run.id === runId);
+            const previousRun = filteredRuns[currentIndex + 1];
+            return previousRun;
+
+      - name: Fetch Previous Workflow Run Jobs
+        id: previous-workflow-jobs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const previousRun = ${{ steps.previous-workflow-run.outputs.result }};
+            const runId = previousRun.id;
+            const jobsData = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+            return jobsData.data;
+
       - name: Process Each Failed Job
         uses: actions/github-script@v7
         with:
           script: |
             const jobs = ${{ steps.fetch-workflow-jobs.outputs.result }};
-
+            const previousRun = ${{ steps.previous-workflow-run.outputs.result }};
+            const previousRunJobs = ${{ steps.previous-workflow-jobs.outputs.result }};
             const headCommit = "${{ github.event.workflow_run.head_commit.id }}";            
             const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
               commit_sha: headCommit,
             });
-
             const pr = prData.data[0];
             const prLink = pr.html_url;
             const prAuthor = pr.user.login;
@@ -50,14 +80,8 @@ jobs:
               if (jobs.jobs[i].conclusion == 'failure') {
                 const jobName = jobs.jobs[i].name;
                 const jobLink = jobs.jobs[i].html_url;
-                const issues = await github.rest.issues.listForRepo({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  labels: failureLabel,
-                  state: 'open'
-                });
-                const existingIssue = issues.data.find(issue => issue.title.includes(jobName));
-                if (!existingIssue) {
+                const previousJob = previousRunJobs.jobs.find(job => job.name === jobName);
+                if (previousJob?.conclusion === 'success') {
                   const annotations = await github.rest.checks.listAnnotations({
                     owner: context.repo.owner,
                     repo: context.repo.repo,

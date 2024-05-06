@@ -28,6 +28,7 @@ type VolumeContext = {
 
 type VideoPopoverMenuContext = {
     menuItems: PopoverMenuItem[];
+    videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
 };
 

@@ -38,7 +38,7 @@ function getTaskReportActionMessage(action: OnyxEntry<ReportAction>): Pick<Messa
 }
 
 function getTaskTitle(taskReportID: string, fallbackTitle = ''): string {
-    const taskReport = allReports?.[taskReportID] ?? {};
+    const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`] ?? {};
     // We need to check for reportID, not just reportName, because when a receiver opens the task for the first time,
     // an optimistic report is created with the only property – reportName: 'Chat report',
     // and it will be displayed as the task title without checking for reportID to be present.

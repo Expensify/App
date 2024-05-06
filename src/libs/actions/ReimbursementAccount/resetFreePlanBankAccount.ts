@@ -3,8 +3,6 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import * as PlaidDataProps from '@pages/ReimbursementAccount/plaidDataPropTypes';
-import * as ReimbursementAccountProps from '@pages/ReimbursementAccount/reimbursementAccountPropTypes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
@@ -71,7 +69,7 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.PLAID_DATA,
-                    value: PlaidDataProps.plaidDataDefaultProps,
+                    value: CONST.PLAID.DEFAULT_DATA,
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
@@ -82,7 +80,7 @@ function resetFreePlanBankAccount(bankAccountID: number | undefined, session: On
                 {
                     onyxMethod: Onyx.METHOD.SET,
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                    value: ReimbursementAccountProps.reimbursementAccountDefaultProps,
+                    value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,

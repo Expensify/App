@@ -15,7 +15,7 @@ function validateRateValue(values: FormOnyxValues<RateValueForm>, currency: stri
     const decimalSeparator = toLocaleDigit('.');
 
     // Allow one more decimal place for accuracy
-    const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{1,${CurrencyUtils.getCurrencyDecimals(currency) + 1}})?$`, 'i');
+    const rateValueRegex = RegExp(String.raw`^-?\d{0,8}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CurrencyUtils.getCurrencyDecimals(currency) + 1}})?$`, 'i');
     if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
         errors.rate = 'workspace.reimburse.invalidRateError';
     } else if (NumberUtils.parseFloatAnyLocale(parsedRate) <= 0) {

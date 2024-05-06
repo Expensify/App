@@ -7,7 +7,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -29,12 +28,9 @@ type MoneyReportViewProps = {
 
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
-
-    /** Whether we should display the horizontal rule below the component */
-    shouldShowHorizontalRule: boolean;
 };
 
-function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReportViewProps) {
+function MoneyReportView({report, policy}: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -168,10 +164,6 @@ function MoneyReportView({report, policy, shouldShowHorizontalRule}: MoneyReport
                                 </View>
                             </>
                         )}
-                        <SpacerView
-                            shouldShow={shouldShowHorizontalRule}
-                            style={[shouldShowHorizontalRule && styles.reportHorizontalRule]}
-                        />
                     </>
                 )}
             </View>

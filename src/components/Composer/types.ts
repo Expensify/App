@@ -21,14 +21,8 @@ type ComposerProps = TextInputProps & {
     /** The value of the comment box */
     value?: string;
 
-    /** Number of lines for the comment */
-    numberOfLines?: number;
-
     /** Callback method handle when the input is changed  */
     onChangeText?: (numberOfLines: string) => void;
-
-    /** Callback method to update number of lines for the comment */
-    onNumberOfLinesChange?: (numberOfLines: number) => void;
 
     /** Callback method to handle pasting a file */
     onPasteFile?: (file: File) => void;

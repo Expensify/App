@@ -1,5 +1,4 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type {OnboardingPurposeType} from '@src/CONST';
 
 type OnboardingWorkProps = Record<string, unknown>;
@@ -9,10 +8,9 @@ type BaseOnboardingWorkOnyxProps = {
     onboardingPurposeSelected: OnyxEntry<OnboardingPurposeType>;
 };
 
-type BaseOnboardingWorkProps = WithCurrentUserPersonalDetailsProps &
-    BaseOnboardingWorkOnyxProps & {
-        /* Whether to use native styles tailored for native devices */
-        shouldUseNativeStyles: boolean;
-    };
+type BaseOnboardingWorkProps = BaseOnboardingWorkOnyxProps & {
+    /* Whether to use native styles tailored for native devices */
+    shouldUseNativeStyles: boolean;
+};
 
 export type {OnboardingWorkProps, BaseOnboardingWorkOnyxProps, BaseOnboardingWorkProps};

@@ -334,7 +334,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -414,8 +414,8 @@ function ReportActionItemMessageEdit(
     const focus = focusComposerWithDelay(textInputRef.current);
 
     useEffect(() => {
-        validateCommentMaxLength(draft);
-    }, [draft, validateCommentMaxLength]);
+        validateCommentMaxLength(draft, {reportID});
+    }, [draft, reportID, validateCommentMaxLength]);
 
     /**
      * Listen scrolling event
@@ -513,7 +513,7 @@ function ReportActionItemMessageEdit(
                                 // clearActiveSuggestionsRef();
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);

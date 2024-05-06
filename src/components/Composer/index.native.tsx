@@ -9,7 +9,7 @@ import useResetComposerFocus from '@hooks/useResetComposerFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ComposerUtils from '@libs/ComposerUtils';
+import updateIsFullComposerAvailable from '@libs/ComposerUtils/updateIsFullComposerAvailable';
 import type {ComposerProps} from './types';
 
 function Composer(
@@ -21,7 +21,6 @@ function Composer(
         isComposerFullSize = false,
         setIsFullComposerAvailable = () => {},
         autoFocus = false,
-        isFullComposerAvailable = false,
         style,
         // On native layers we like to have the Text Input not focused so the
         // user can read new chats without the keyboard in the way of the view.
@@ -75,14 +74,13 @@ function Composer(
             placeholderTextColor={theme.placeholderText}
             ref={setTextInputRef}
             value={value}
-            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles)}
+            onContentSizeChange={(e) => updateIsFullComposerAvailable({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e, styles, true)}
             rejectResponderTermination={false}
             smartInsertDelete={false}
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
             autoFocus={autoFocus}
-            isFullComposerAvailable={isFullComposerAvailable}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}

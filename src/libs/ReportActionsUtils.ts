@@ -5,12 +5,14 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     ActionName,
     ChangeLog,
     IOUMessage,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageDismissedViolation,
     OriginalMessageIOU,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageReimbursementDequeued,
@@ -28,6 +30,7 @@ import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 import type {OptimisticIOUReportAction} from './ReportUtils';
+import * as TransactionUtils from './TransactionUtils';
 
 type LastVisibleMessage = {
     lastMessageTranslationKey?: string;
@@ -223,46 +226,6 @@ function isTransactionThread(parentReportAction: OnyxEntry<ReportAction> | Empty
 }
 
 /**
- * Returns the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions with a childReportID. Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
- */
-function getOneTransactionThreadReportID(reportID: string, reportActions: OnyxEntry<ReportActions> | ReportAction[], isOffline: boolean | undefined = undefined): string | null {
-    // If the report is not an IOU or Expense report, it shouldn't be treated as one-transaction report.
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE) {
-        return null;
-    }
-
-    const reportActionsArray = Object.values(reportActions ?? {});
-
-    if (!reportActionsArray.length) {
-        return null;
-    }
-
-    // Get all IOU report actions for the report.
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-    ];
-    const iouRequestActions = reportActionsArray.filter(
-        (action) =>
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
-            (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
-            action.childReportID &&
-            (Boolean(action.originalMessage.IOUTransactionID) || (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
-    );
-
-    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
-    if (!iouRequestActions.length || iouRequestActions.length > 1) {
-        return null;
-    }
-
-    // Ensure we have a childReportID associated with the IOU report action
-    return iouRequestActions[0].childReportID ?? null;
-}
-
-/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -296,6 +259,27 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
     });
 
     return sortedActions;
+}
+
+/**
+ * Returns a sorted and filtered list of report actions from a report and it's associated child
+ * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
+ */
+function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportActions: ReportAction[]): ReportAction[] {
+    if (isEmptyObject(transactionThreadReportActions)) {
+        return reportActions;
+    }
+
+    // Filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
+    const filteredTransactionThreadReportActions = transactionThreadReportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
+    const filteredReportActions = [...reportActions, ...filteredTransactionThreadReportActions].filter((action) => {
+        const actionType = (action as OriginalMessageIOU).originalMessage?.type ?? '';
+        return actionType !== CONST.IOU.REPORT_ACTION_TYPE.CREATE && actionType !== CONST.IOU.REPORT_ACTION_TYPE.TRACK && !isSentMoneyReportAction(action);
+    });
+
+    return getSortedReportActions(filteredReportActions, true);
 }
 
 /**
@@ -819,6 +803,67 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
+ * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
+ * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
+ */
+function getOneTransactionThreadReportID(
+    reportID: string,
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
+    skipReportTypeCheck: boolean | undefined = undefined,
+    isOffline: boolean | undefined = undefined,
+): string | null {
+    if (!skipReportTypeCheck) {
+        // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.INVOICE) {
+            return null;
+        }
+    }
+
+    const reportActionsArray = Object.values(reportActions ?? {});
+    if (!reportActionsArray.length) {
+        return null;
+    }
+
+    // Get all IOU report actions for the report.
+    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
+        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+    ];
+
+    const iouRequestActions = reportActionsArray.filter(
+        (action) =>
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
+            (iouRequestTypes.includes(action.originalMessage.type) ?? []) &&
+            action.childReportID &&
+            // Include deleted IOU reportActions if:
+            // - they have an assocaited IOU transaction ID or
+            // - they have visibile childActions (like comments) that we'd want to display
+            // - the action is pending deletion and the user is offline
+            (Boolean(action.originalMessage.IOUTransactionID) ||
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                (isMessageDeleted(action) && action.childVisibleActionCount) ||
+                (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (isOffline ?? isNetworkOffline))),
+    );
+
+    // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
+    if (!iouRequestActions.length || iouRequestActions.length > 1) {
+        return null;
+    }
+
+    // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
+    // and want to display it using the standard view
+    if (((iouRequestActions[0] as OriginalMessageIOU).originalMessage?.deleted ?? '') !== '') {
+        return null;
+    }
+
+    // Ensure we have a childReportID associated with the IOU report action
+    return iouRequestActions[0].childReportID ?? null;
+}
+
+/**
  * When we delete certain reports, we want to check whether there are any visible actions left to display.
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
@@ -1107,8 +1152,22 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction> | Empt
     return reportAction?.message?.reduce((acc, curr) => `${acc}${curr?.text}`, '') ?? '';
 }
 
+function getDismissedViolationMessageText(originalMessage: OriginalMessageDismissedViolation['originalMessage']): string {
+    const reason = originalMessage.reason;
+    const violationName = originalMessage.violationName;
+    return Localize.translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths);
+}
+
+/**
+ * Check if the linked transaction is on hold
+ */
+function isLinkedTransactionHeld(reportActionID: string, reportID: string): boolean {
+    return TransactionUtils.isOnHoldByTransactionID(getLinkedTransactionID(reportActionID, reportID) ?? '');
+}
+
 export {
     extractLinksFromMessageHtml,
+    getDismissedViolationMessageText,
     getOneTransactionThreadReportID,
     getIOUReportIDFromReportActionPreview,
     getLastClosedReportAction,
@@ -1125,6 +1184,7 @@ export {
     isApprovedOrSubmittedReportAction,
     getReportPreviewAction,
     getSortedReportActions,
+    getCombinedReportActions,
     getSortedReportActionsForDisplay,
     isConsecutiveActionMadeByPreviousActor,
     isCreatedAction,
@@ -1168,6 +1228,7 @@ export {
     isActionableJoinRequest,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
+    isLinkedTransactionHeld,
 };
 
 export type {LastVisibleMessage};

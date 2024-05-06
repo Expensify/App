@@ -1,7 +1,10 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
+import {isLinkedTransactionHeld} from '@libs/ReportActionsUtils';
 import * as IOU from '@userActions/IOU';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import DecisionModal from './DecisionModal';
@@ -52,6 +55,9 @@ function ProcessMoneyReportHoldMenu({
     const onSubmit = (full: boolean) => {
         if (isApprove) {
             IOU.approveMoneyRequest(moneyRequestReport, full);
+            if (!full && isLinkedTransactionHeld(Navigation.getTopmostReportActionId() ?? '', moneyRequestReport.reportID)) {
+                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(moneyRequestReport.reportID));
+            }
         } else if (chatReport && paymentType) {
             IOU.payMoneyRequest(paymentType, chatReport, moneyRequestReport, full);
         }

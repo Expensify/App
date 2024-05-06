@@ -31,6 +31,7 @@ import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_l
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import BankArrow from '@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg';
 import BigRocket from '@assets/images/simple-illustrations/simple-illustration__bigrocket.svg';
@@ -160,6 +161,7 @@ export {
     Workflows,
     ThreeLeggedLaptopWoman,
     House,
+    Alert,
     TeachersUnite,
     Abacus,
     Binoculars,

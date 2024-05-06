@@ -41,6 +41,8 @@ Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
         Log.alert(message);
         console.error(message);
+    } else if (level === 'hmmm') {
+        Log.hmmm(message);
     } else {
         Log.info(message);
     }

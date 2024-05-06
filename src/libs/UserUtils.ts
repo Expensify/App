@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as defaultAvatars from '@components/Icon/DefaultAvatars';
-import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
+import {ConciergeAvatar, FallbackAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {LoginList} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
@@ -82,7 +82,10 @@ function generateAccountID(searchValue: string): number {
  * @param [accountID]
  * @returns
  */
-function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset | undefined {
+function getDefaultAvatar(accountID = -1, avatarURL?: string): IconAsset {
+    if (accountID <= 0) {
+        return FallbackAvatar;
+    }
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE) {
         return ConciergeAvatar;
     }
@@ -122,7 +125,7 @@ function getDefaultAvatarURL(accountID: string | number = ''): string {
 }
 
 /**
- * Given a user's avatar path, returns true if URL points to a default avatar, false otherwise
+ * Given a user's avatar path, returns true if user doesn't have an avatar or if URL points to a default avatar
  * @param avatarSource - the avatar source from user's personalDetails
  */
 function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | undefined {
@@ -137,6 +140,11 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
         }
     }
 
+    if (!avatarSource) {
+        // If source is undefined, we should also use a default avatar
+        return true;
+    }
+
     return false;
 }
 
@@ -147,7 +155,7 @@ function isDefaultAvatar(avatarSource?: AvatarSource): avatarSource is string | 
  * @param avatarSource - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
-function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource | undefined {
+function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource {
     return isDefaultAvatar(avatarSource) ? getDefaultAvatar(accountID, avatarSource) : avatarSource;
 }
 
@@ -155,7 +163,7 @@ function getAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSourc
  * Provided an avatar URL, if avatar is a default avatar, return NewDot default avatar URL.
  * Otherwise, return the URL pointing to a user-uploaded avatar.
  *
- * @param avatarSource - the avatar source from user's personalDetails
+ * @param avatarURL - the avatar source from user's personalDetails
  * @param accountID - the accountID of the user
  */
 function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number): AvatarSource {
@@ -166,7 +174,7 @@ function getAvatarUrl(avatarSource: AvatarSource | undefined, accountID: number)
  * Avatars uploaded by users will have a _128 appended so that the asset server returns a small version.
  * This removes that part of the URL so the full version of the image can load.
  */
-function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number): AvatarSource | undefined {
+function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;
@@ -178,7 +186,7 @@ function getFullSizeAvatar(avatarSource: AvatarSource | undefined, accountID?: n
  * Small sized avatars end with _128.<file-type>. This adds the _128 at the end of the
  * source URL (before the file type) if it doesn't exist there already.
  */
-function getSmallSizeAvatar(avatarSource?: AvatarSource, accountID?: number): AvatarSource | undefined {
+function getSmallSizeAvatar(avatarSource: AvatarSource, accountID?: number): AvatarSource {
     const source = getAvatar(avatarSource, accountID);
     if (typeof source !== 'string') {
         return source;

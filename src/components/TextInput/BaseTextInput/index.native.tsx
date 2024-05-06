@@ -14,6 +14,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import Text from '@components/Text';
 import * as styleConst from '@components/TextInput/styleConst';
+import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -60,6 +61,7 @@ function BaseTextInput(
         prefixCharacter = '',
         inputID,
         isMarkdownEnabled = false,
+        shouldShowClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
         ...props
@@ -368,6 +370,7 @@ function BaseTextInput(
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
                             />
+                            {isFocused && !isReadOnly && shouldShowClearButton && value && <TextInputClearButton onPressButton={() => setValue('')} />}
                             {inputProps.isLoading && (
                                 <ActivityIndicator
                                     size="small"

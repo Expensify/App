@@ -33,7 +33,7 @@ function ProcessMoneyRequestHoldPage() {
 
     return (
         <HeaderPageLayout
-            title={translate('common.back')}
+            title={translate('iou.hold')}
             footer={footerComponent}
             onBackButtonPress={() => Navigation.goBack()}
             testID={ProcessMoneyRequestHoldPage.displayName}

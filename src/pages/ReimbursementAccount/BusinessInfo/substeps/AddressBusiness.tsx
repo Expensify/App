@@ -9,7 +9,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as ValidationUtils from '@libs/ValidationUtils';
-import AddressForm from '@pages/ReimbursementAccount/AddressForm';
+import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -78,7 +78,7 @@ function AddressBusiness({reimbursementAccount, onNext, isEditing}: AddressBusin
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.enterYourCompanysAddress')}</Text>
             <Text>{translate('common.noPO')}</Text>
-            <AddressForm
+            <AddressFormFields
                 inputKeys={INPUT_KEYS}
                 shouldSaveDraft={!isEditing}
                 defaultValues={defaultValues}

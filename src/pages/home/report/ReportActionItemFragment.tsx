@@ -1,6 +1,5 @@
 import React, {memo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import type {AvatarProps} from '@components/Avatar';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
@@ -39,7 +38,7 @@ type ReportActionItemFragmentProps = {
     delegateAccountID?: number;
 
     /** icon */
-    actorIcon?: AvatarProps;
+    actorIcon?: OnyxCommon.Icon;
 
     /** Whether the comment is a thread parent message/the first message in a thread */
     isThreadParentMessage?: boolean;

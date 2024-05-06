@@ -31,7 +31,7 @@ type ConfirmationOnyxProps = {
 type ConfirmationProps = ConfirmationOnyxProps & SubStepProps;
 
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
-const BANK_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT_SUBSTEP_INDEX.BANK_ACCOUNT;
+const BANK_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.BANK_ACCOUNT;
 
 function Confirmation({reimbursementAccount, reimbursementAccountDraft, onNext, onMove}: ConfirmationProps) {
     const {translate} = useLocalize();

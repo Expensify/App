@@ -38,6 +38,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
             userLocation: cachedUserLocation,
             directionCoordinates,
             initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
+            interactive = true,
         },
         ref,
     ) => {
@@ -195,6 +196,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
                     }}
                     style={StyleUtils.getTextColorStyle(theme.mapAttributionText)}
                     mapStyle={styleURL}
+                    interactive={interactive}
                 >
                     {waypoints?.map(({coordinate, markerComponent, id}) => {
                         const MarkerComponent = markerComponent;

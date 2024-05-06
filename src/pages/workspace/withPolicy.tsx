@@ -5,7 +5,6 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
-import taxPropTypes from '@components/taxPropTypes';
 import {translatableTextPropTypes} from '@libs/Localize';
 import type {
     BottomTabNavigatorParamList,
@@ -53,6 +52,34 @@ type PolicyRoute = RouteProp<
 function getPolicyIDFromRoute(route: PolicyRoute): string {
     return route?.params?.policyID ?? '';
 }
+
+const taxPropTypes = PropTypes.shape({
+    /** Name of a tax */
+    name: PropTypes.string,
+
+    /** The value of a tax */
+    value: PropTypes.string,
+
+    /** Whether the tax is disabled */
+    isDisabled: PropTypes.bool,
+});
+
+const taxRatesPropTypes = PropTypes.shape({
+    /** Name of the tax */
+    name: PropTypes.string,
+
+    /** Default policy tax ID */
+    defaultExternalID: PropTypes.string,
+
+    /** Default value of taxes */
+    defaultValue: PropTypes.string,
+
+    /** Default foreign policy tax ID */
+    foreignTaxDefault: PropTypes.string,
+
+    /** List of tax names and values */
+    taxes: PropTypes.objectOf(taxPropTypes),
+});
 
 const policyPropTypes = {
     /** The policy object for the current route */
@@ -114,7 +141,7 @@ const policyPropTypes = {
         }),
 
         /** Collection of tax rates attached to a policy */
-        taxRates: taxPropTypes,
+        taxRates: taxRatesPropTypes,
     }),
 };
 

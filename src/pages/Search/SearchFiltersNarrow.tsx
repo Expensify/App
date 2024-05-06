@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import {Animated, StyleSheet, View} from 'react-native';
+import {Animated, View} from 'react-native';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -14,10 +14,10 @@ import type {SearchMenuFilterItem} from './SearchFilters';
 
 type SearchFiltersNarrowProps = {
     filterItems: SearchMenuFilterItem[];
-    activeItemLabel: string;
+    activeItemIndex: number;
 };
 
-function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrowProps) {
+function SearchFiltersNarrow({filterItems, activeItemIndex}: SearchFiltersNarrowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -29,7 +29,6 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
     const openMenu = () => setIsPopoverVisible(true);
     const closeMenu = () => setIsPopoverVisible(false);
 
-    const activeItemIndex = filterItems.findIndex((item) => item.title.toLowerCase() === activeItemLabel);
     const popoverMenuItems = filterItems.map((item, index) => ({
         text: item.title,
         onSelected: singleExecution(() => Navigation.navigate(item.route)),
@@ -42,20 +41,19 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
     }));
 
     return (
-        <>
+        <View style={[styles.pb4]}>
             <PressableWithFeedback
                 accessible
                 accessibilityLabel={popoverMenuItems[activeItemIndex]?.text ?? ''}
-                style={[styles.tabSelectorButton]}
-                wrapperStyle={[styles.flex1]}
                 ref={buttonRef}
+                style={[styles.tabSelectorButton, styles.ph5]}
                 onPress={openMenu}
             >
                 {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, StyleSheet.absoluteFill, styles.tabBackground(hovered, true, theme.border), styles.mh3]}>
+                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, styles.mh3]}>
                         <View style={[styles.flexRow]}>
                             <Icon
-                                src={popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.All}
+                                src={popoverMenuItems[activeItemIndex]?.icon ?? Expensicons.Receipt}
                                 fill={theme.icon}
                             />
                             <Text style={[styles.mh1, styles.textStrong]}>{popoverMenuItems[activeItemIndex]?.text}</Text>
@@ -75,7 +73,7 @@ function SearchFiltersNarrow({filterItems, activeItemLabel}: SearchFiltersNarrow
                 onItemSelected={closeMenu}
                 anchorRef={buttonRef}
             />
-        </>
+        </View>
     );
 }
 
