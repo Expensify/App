@@ -77,6 +77,7 @@ const restrictedImportPatterns = [
 ];
 
 module.exports = {
+    ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', 'node_modules/.cache/**', '.git/**'],
     extends: [
         'expensify',
         'airbnb-typescript',
