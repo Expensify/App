@@ -330,6 +330,7 @@ export default {
         clear: 'Clear',
         type: 'Type',
         action: 'Action',
+        expenses: 'Expenses',
     },
     location: {
         useCurrent: 'Use current location',
@@ -1838,6 +1839,28 @@ export default {
     session: {
         offlineMessageRetry: "Looks like you're offline. Please check your connection and try again.",
     },
+    travel: {
+        header: 'Book travel',
+        title: 'Travel smart',
+        subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in one place.',
+        features: {
+            saveMoney: 'Save money on your bookings',
+            alerts: 'Get realtime updates and alerts',
+        },
+        bookTravel: 'Book travel',
+        termsAndConditions: {
+            header: 'Before we continue...',
+            title: 'Please read the Terms & Conditions for travel',
+            subtitle: 'To enable travel on your workspace you must agree to our ',
+            termsconditions: 'terms & conditions',
+            travelTermsAndConditions: 'terms & conditions',
+            helpDocIntro: 'Check out this ',
+            helpDocOutro: 'for more information or reach out to Concierge or your Account Manager.',
+            helpDoc: 'Help Doc',
+            agree: 'I agree to the travel ',
+            error: 'You must accept the Terms & Conditions for travel to continue',
+        },
+    },
     workspace: {
         common: {
             card: 'Cards',
@@ -2001,6 +2024,16 @@ export default {
             customersDescription: 'Import customer contacts. Billable expenses need tags for export. Expenses will carry the customer information to Xero for sales invoices.',
             taxesDescription: 'Choose whether to import tax rates and tax defaults from your accounting integration.',
             notImported: 'Not imported',
+            advancedConfig: {
+                advanced: 'Advanced',
+                autoSync: 'Auto-Sync',
+                autoSyncDescription: 'Sync Xero and Expensify automatically every day.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sync reimbursed reports',
+                reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
+                xeroBillPaymentAccount: 'Xero Bill Payment Account',
+                xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+            },
         },
         type: {
             free: 'Free',
@@ -2649,7 +2682,8 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Update Available',
-            message: "The new version will be available shortly. We'll notify you when we're ready to update.",
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `The new version will be available shortly.${!isSilentUpdating ? " We'll notify you when we're ready to update." : ''}`,
             soundsGood: 'Sounds good',
         },
         notAvailable: {
@@ -2965,5 +2999,8 @@ export default {
         offlineTitle: "Looks like you're stuck here...",
         offline:
             "You appear to be offline. Unfortunately, Expensify Classic doesn't work offline, but New Expensify does. If you prefer to use Expensify Classic, try again when you have an internet connection.",
+    },
+    systemMessage: {
+        mergedWithCashTransaction: 'matched a receipt to this transaction.',
     },
 } satisfies TranslationBase;

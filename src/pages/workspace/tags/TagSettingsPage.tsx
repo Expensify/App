@@ -1,7 +1,7 @@
 import type {StackScreenProps} from '@react-navigation/stack';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx, withOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -39,7 +39,7 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyTag = useMemo(() => PolicyUtils.getTagList(policyTags, 0), [policyTags]);
-    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
 
     const {windowWidth} = useWindowDimensions();
 
@@ -65,6 +65,17 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
         Navigation.navigate(ROUTES.WORKSPACE_TAG_EDIT.getRoute(route.params.policyID, currentPolicyTag.name));
     };
 
+    const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+    const threeDotsMenuItems = [];
+    if (!isThereAnyAccountingConnection && !isMultiLevelTags) {
+        threeDotsMenuItems.push({
+            icon: Trashcan,
+            text: translate('workspace.tags.deleteTag'),
+            onSelected: () => setIsDeleteTagModalOpen(true),
+        });
+    }
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
@@ -78,16 +89,10 @@ function TagSettingsPage({route, policyTags}: TagSettingsPageProps) {
             >
                 <HeaderWithBackButton
                     title={PolicyUtils.getCleanedTagName(route.params.tagName)}
-                    shouldShowThreeDotsButton={!isMultiLevelTags}
+                    shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
                     shouldSetModalVisibility={false}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset(windowWidth)}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Trashcan,
-                            text: translate('workspace.tags.deleteTag'),
-                            onSelected: () => setIsDeleteTagModalOpen(true),
-                        },
-                    ]}
+                    threeDotsMenuItems={threeDotsMenuItems}
                 />
                 <ConfirmModal
                     title={translate('workspace.tags.deleteTag')}

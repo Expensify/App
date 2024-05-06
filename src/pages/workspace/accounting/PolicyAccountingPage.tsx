@@ -93,7 +93,7 @@ function accountingIntegrationData(
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.getRoute(policyID)),
                 onExportPagePress: () => {},
-                onAdvancedPagePress: () => {},
+                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
             };
         default:
             return undefined;
@@ -167,7 +167,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                 interactive: false,
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 shouldShowRightComponent: true,
-                title: integrationData?.title,
+                title: 'integrationData?.title',
+
                 description: isSyncInProgress
                     ? translate('workspace.accounting.connections.syncStageName', connectionSyncProgress.stageInProgress)
                     : translate('workspace.accounting.lastSync'),
@@ -201,6 +202,7 @@ function PolicyAccountingPage({policy, connectionSyncProgress}: PolicyAccounting
                           iconRight: Expensicons.ArrowRight,
                           title: currentXeroOrganization?.name,
                           wrapperStyle: [styles.sectionMenuItemTopDescription],
+                          titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: tenants.length > 1,
                           shouldShowDescriptionOnTop: true,
                           onPress: () => {
