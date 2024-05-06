@@ -2036,7 +2036,7 @@ export default {
             notImported: 'No importado',
             export: 'Exportar',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
-            exportCompanyCard: 'Export company card expenses as',
+            exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
             purchaseBill: 'Purchase bill',
             exportDeepDiveCompanyCard:
                 'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
