@@ -2692,7 +2692,7 @@ function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], r
     const memberRoles: Record<number, string> = {};
     const optimisticParticipants: Participants = {};
     const successParticipants: Participants = {};
-    
+
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;
         optimisticParticipants[accountID] = {
