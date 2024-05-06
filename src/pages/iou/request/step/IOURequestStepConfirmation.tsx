@@ -78,6 +78,21 @@ function IOURequestStepConfirmation({
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isSubmittingFromTrackExpense = action === CONST.IOU.ACTION.SUBMIT;
+    const payeePersonalDetails = useMemo(() => {
+        if (personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1]) {
+            return personalDetails?.[transaction?.splitPayerAccountIDs?.[0] ?? -1];
+        }
+
+        const participant = transaction?.participants?.find((val) => val.accountID === (transaction?.splitPayerAccountIDs?.[0] ?? -1));
+
+        return {
+            login: participant?.login ?? '',
+            accountID: participant?.accountID ?? -1,
+            avatar: Expensicons.FallbackAvatar,
+            displayName: participant?.login ?? '',
+            isOptimisticPersonalDetail: true,
+        };
+    }, [personalDetails, transaction?.participants, transaction?.splitPayerAccountIDs]);
 
     const requestType = TransactionUtils.getRequestType(transaction);
 
@@ -100,6 +115,9 @@ function IOURequestStepConfirmation({
         if (iouType === CONST.IOU.TYPE.PAY) {
             return translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)});
         }
+        if (iouType === CONST.IOU.TYPE.INVOICE) {
+            return translate('workspace.invoices.sendInvoice');
+        }
         return translate('iou.submitExpense');
     }, [iouType, report, translate, isSharingTrackExpense, isCategorizingTrackExpense, isSubmittingFromTrackExpense]);
 
@@ -107,11 +125,16 @@ function IOURequestStepConfirmation({
         () =>
             transaction?.participants?.map((participant) => {
                 const participantAccountID = participant.accountID ?? 0;
+
+                if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
+                    return participant;
+                }
+
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }) ?? [],
-        [transaction?.participants, personalDetails],
+        [transaction?.participants, personalDetails, iouType],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)) || ReportUtils.isGroupPolicy(policy?.type ?? ''), [report, policy]);
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
@@ -327,6 +350,7 @@ function IOURequestStepConfirmation({
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
                     });
                 }
                 return;
@@ -348,8 +372,14 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         billable: !!transaction.billable,
                         iouRequestType: transaction.iouRequestType,
+                        splitPayerAccountIDs: transaction.splitPayerAccountIDs,
                     });
                 }
+                return;
+            }
+
+            if (iouType === CONST.IOU.TYPE.INVOICE) {
+                IOU.sendInvoice(currentUserPersonalDetails.accountID, transaction, report, receiptFile, policy, policyTags, policyCategories);
                 return;
             }
 
@@ -429,18 +459,21 @@ function IOURequestStepConfirmation({
         },
         [
             transaction,
+            report,
             iouType,
             receiptFile,
             requestType,
             requestMoney,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
-            report?.reportID,
             trackExpense,
             createDistanceRequest,
             isSharingTrackExpense,
             isCategorizingTrackExpense,
             action,
+            policy,
+            policyTags,
+            policyCategories,
         ],
     );
 
@@ -530,13 +563,14 @@ function IOURequestStepConfirmation({
                         // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                         // the floating-action-button (since it is something that exists outside the context of a report).
                         canModifyParticipants={!transaction?.isFromGlobalCreate}
-                        policyID={report?.policyID}
+                        policyID={report?.policyID ?? policy?.id ?? ''}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
                         isDistanceRequest={requestType === CONST.IOU.REQUEST_TYPE.DISTANCE}
                         shouldShowSmartScanFields={IOUUtils.isMovingTransactionFromTrackExpense(action) ? transaction?.amount !== 0 : requestType !== CONST.IOU.REQUEST_TYPE.SCAN}
                         action={action}
+                        payeePersonalDetails={payeePersonalDetails}
                     />
                 </View>
             )}
@@ -548,13 +582,13 @@ IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationProps, IOURequestStepConfirmationOnyxProps>({
     policy: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyCategories: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
     policyTags: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,
+        key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
 })(IOURequestStepConfirmation);
 /* eslint-disable rulesdir/no-negated-variables */

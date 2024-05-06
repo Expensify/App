@@ -362,8 +362,8 @@ function getMerchant(transaction: OnyxEntry<Transaction>): string {
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
-function getDistance(transaction: Transaction): number {
-    return transaction?.routes?.route0?.distance ?? 0;
+function getDistance(transaction: Transaction | null): number {
+    return transaction?.comment?.customUnit?.quantity ?? 0;
 }
 
 /**
@@ -495,6 +495,10 @@ function isPosted(transaction: Transaction): boolean {
 
 function isReceiptBeingScanned(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
+}
+
+function didRceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
+    return [CONST.IOU.RECEIPT_STATE.SCANCOMPLETE].some((value) => value === transaction?.receipt?.state);
 }
 
 /**
@@ -641,6 +645,13 @@ function hasViolation(transactionID: string, transactionViolations: OnyxCollecti
 }
 
 /**
+ * Checks if any violations for the provided transaction are of type 'notice'
+ */
+function hasNoticeTypeViolation(transactionID: string, transactionViolations: OnyxCollection<TransactionViolation[]>): boolean {
+    return Boolean(transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transactionID]?.some((violation: TransactionViolation) => violation.type === 'notice'));
+}
+
+/**
  * this is the formulae to calculate tax
  */
 function calculateTaxAmount(percentage: string, amount: number) {
@@ -721,6 +732,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    didRceiptScanSucceed,
     getValidWaypoints,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -744,6 +756,7 @@ export {
     waypointHasValidAddress,
     getRecentTransactions,
     hasViolation,
+    hasNoticeTypeViolation,
     isCustomUnitRateIDForP2P,
     getRateID,
 };
