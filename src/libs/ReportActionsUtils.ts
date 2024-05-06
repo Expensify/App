@@ -533,6 +533,14 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
 }
 
 /**
+ * Checks whether an action is actionable track expense.
+ *
+ */
+function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
+}
+
+/**
  * Checks whether an action is actionable track expense and resolved.
  *
  */
@@ -1133,10 +1141,6 @@ function isCurrentActionUnread(report: Report | EmptyObject, reportAction: Repor
  */
 function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST;
-}
-
-function isActionableTrackExpense(reportAction: OnyxEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER;
 }
 
 /**
