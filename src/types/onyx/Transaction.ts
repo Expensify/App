@@ -107,6 +107,64 @@ type TaxRate = {
     data?: TaxRateData;
 };
 
+type Fare = {
+    amount: number;
+    convertedAmount: number;
+    convertedCurrency: string;
+    currencyCode: string;
+};
+
+type SpotnanaPayload = {
+    tripId: string;
+    pnrId: string;
+    bookingStatus: string;
+    documents: unknown[];
+    carPnr?: unknown;
+    airPnr?: unknown;
+    totalFare: Fare;
+    totalFareAmount: {
+        base: Fare;
+        tax: Fare;
+    };
+    version: number;
+};
+
+type Reservation = {
+    reservationID?: string;
+    start: ReservationTimeDetails;
+    end: ReservationTimeDetails;
+    type: ReservationType;
+    company?: Company;
+    confirmations?: ReservationConfirmation[];
+    numPassengers?: number;
+    numberOfRooms?: number;
+    route?: {
+        class: string;
+        number: string;
+    };
+};
+
+type ReservationTimeDetails = {
+    date: string;
+    address?: string;
+    longName?: string;
+    shortName?: string;
+    timezoneOffset?: number;
+};
+
+type Company = {
+    longName: string;
+    shortName?: string;
+    phone?: string;
+};
+
+type ReservationConfirmation = {
+    name: string;
+    value: string;
+};
+
+type ReservationType = ValueOf<typeof CONST.RESERVATION_TYPE>;
+
 type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** The original transaction amount */
@@ -225,6 +283,11 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates transaction loading */
         isLoading?: boolean;
 
+        /** Travel reserviation list */
+        reservationList?: Reservation[];
+
+        originalSpotnanaPayload?: SpotnanaPayload;
+
         /** The actionable report action ID associated with the transaction */
         actionableWhisperReportActionID?: string;
 
@@ -264,6 +327,9 @@ export type {
     TransactionPendingFieldsKey,
     TransactionChanges,
     TaxRate,
+    Reservation,
+    ReservationTimeDetails,
+    ReservationType,
     ReceiptSource,
     TransactionCollectionDataSet,
 };
