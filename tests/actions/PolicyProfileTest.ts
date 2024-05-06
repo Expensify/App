@@ -22,7 +22,7 @@ describe('actions/PolicyProfile', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    describe('UpdateWorkspaceDescription', () => {
+    describe('updateWorkspaceDescription', () => {
         it('Update workspace`s description', () => {
             const fakePolicy = createRandomPolicy(0);
 

@@ -27,7 +27,7 @@ describe('actions/PolicyMember', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    describe('AcceptJoinRequest', () => {
+    describe('acceptJoinRequest', () => {
         it('Accept user join request to a workspace', () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeReport: Report = {
@@ -102,7 +102,7 @@ describe('actions/PolicyMember', () => {
             );
         });
     });
-    describe('UpdateWorkspaceMembersRole', () => {
+    describe('updateWorkspaceMembersRole', () => {
         it('Update member to admin role', () => {
             const fakeUser2 = createPersonalDetails(2);
             const fakePolicy: PolicyType = {
@@ -163,7 +163,7 @@ describe('actions/PolicyMember', () => {
             );
         });
     });
-    describe('RequestWorkspaceOwnerChange', () => {
+    describe('requestWorkspaceOwnerChange', () => {
         it('Change the workspace`s owner', () => {
             const fakePolicy: PolicyType = createRandomPolicy(0);
             const fakeEmail = 'fake@gmail.com';
@@ -219,7 +219,7 @@ describe('actions/PolicyMember', () => {
             );
         });
     });
-    describe('AddBillingCardAndRequestPolicyOwnerChange', () => {
+    describe('addBillingCardAndRequestPolicyOwnerChange', () => {
         it('Add billing card and change the workspace`s owner', () => {
             const fakePolicy: PolicyType = createRandomPolicy(0);
             const fakeEmail = 'fake@gmail.com';

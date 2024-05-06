@@ -22,7 +22,7 @@ describe('actions/PolicyCategory', () => {
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
-    describe('SetWorkspaceRequiresCategory', () => {
+    describe('setWorkspaceRequiresCategory', () => {
         it('Enable require category', () => {
             const fakePolicy = createRandomPolicy(0);
             fakePolicy.requiresCategory = false;
@@ -73,7 +73,7 @@ describe('actions/PolicyCategory', () => {
             );
         });
     });
-    describe('CreateWorkspaceCategories', () => {
+    describe('createWorkspaceCategories', () => {
         it('Create a new policy category', () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
@@ -128,7 +128,7 @@ describe('actions/PolicyCategory', () => {
                 );
         });
     });
-    describe('RenameWorkspaceCategory', () => {
+    describe('renameWorkspaceCategory', () => {
         it('Rename category', () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
@@ -190,7 +190,7 @@ describe('actions/PolicyCategory', () => {
             );
         });
     });
-    describe('SetWorkspaceCategoriesEnabled', () => {
+    describe('setWorkspaceCategoriesEnabled', () => {
         it('Enable category', () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
@@ -254,7 +254,7 @@ describe('actions/PolicyCategory', () => {
         });
     });
 
-    describe('DeleteWorkspaceCategories', () => {
+    describe('deleteWorkspaceCategories', () => {
         it('Delete category', () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);
