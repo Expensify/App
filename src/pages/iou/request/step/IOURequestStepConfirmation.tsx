@@ -39,8 +39,14 @@ type IOURequestStepConfirmationOnyxProps = {
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
 
+    /** The draft policy of the report */
+    policyDraft: OnyxEntry<Policy>;
+
     /** The category configuration of the report's policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** The draft category configuration of the report's policy */
+    policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** The tag configuration of the report's policy */
     policyTags: OnyxEntry<PolicyTagList>;
@@ -51,10 +57,13 @@ type IOURequestStepConfirmationProps = IOURequestStepConfirmationOnyxProps &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
 function IOURequestStepConfirmation({
-    policy,
+    policy: policyReal,
+    policyDraft,
     policyTags,
-    policyCategories,
-    report,
+    policyCategories: policyCategoriesReal,
+    policyCategoriesDraft,
+    report: reportReal,
+    reportDraft,
     route: {
         params: {iouType, reportID, transactionID, action},
     },
@@ -62,6 +71,10 @@ function IOURequestStepConfirmation({
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+
+    const report = reportReal ?? reportDraft;
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -129,7 +142,6 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-
                 return participantAccountID ? OptionsListUtils.getParticipantsOption(participant, personalDetails) : OptionsListUtils.getReportOption(participant);
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
@@ -139,7 +151,7 @@ function IOURequestStepConfirmation({
 
     useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
-        if (policyExpenseChat?.policyID) {
+        if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
         }
     }, [isOffline, participants, transaction?.billable, policy, transactionID]);
@@ -411,11 +423,8 @@ function IOURequestStepConfirmation({
                                 trackExpense(selectedParticipants, trimmedComment, receiptFile);
                             },
                             {
-                                // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                                maximumAge: 1000 * 60 * 60,
-
-                                // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                                timeout: 15000,
+                                maximumAge: CONST.GPS.MAX_AGE,
+                                timeout: CONST.GPS.TIMEOUT,
                             },
                         );
                         return;
@@ -445,11 +454,8 @@ function IOURequestStepConfirmation({
                             requestMoney(selectedParticipants, trimmedComment, receiptFile);
                         },
                         {
-                            // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
-                            maximumAge: 1000 * 60 * 60,
-
-                            // 15 seconds, don't wait too long because the server can always fall back to using the IP address
-                            timeout: 15000,
+                            maximumAge: CONST.GPS.MAX_AGE,
+                            timeout: CONST.GPS.TIMEOUT,
                         },
                     );
                     return;
@@ -589,8 +595,14 @@ const IOURequestStepConfirmationWithOnyx = withOnyx<IOURequestStepConfirmationPr
     policy: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY}${IOU.getIOURequestPolicyID(transaction, report)}`,
     },
+    policyDraft: {
+        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
+    },
     policyCategories: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`,
+    },
+    policyCategoriesDraft: {
+        key: ({reportDraft, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${IOU.getIOURequestPolicyID(transaction, reportDraft)}`,
     },
     policyTags: {
         key: ({report, transaction}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${IOU.getIOURequestPolicyID(transaction, report)}`,
