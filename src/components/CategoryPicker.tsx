@@ -14,6 +14,7 @@ import type {ListItem} from './SelectionList/types';
 
 type CategoryPickerOnyxProps = {
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policyCategoriesDraft: OnyxEntry<OnyxTypes.PolicyCategories>;
     policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
 };
 
@@ -25,7 +26,7 @@ type CategoryPickerProps = CategoryPickerOnyxProps & {
     onSubmit: (item: ListItem) => void;
 };
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, policyCategoriesDraft, onSubmit}: CategoryPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -45,7 +46,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
     }, [selectedCategory]);
 
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
-        const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter((p) => !isEmptyObject(p));
+        const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
         const {categoryOptions} = OptionsListUtils.getFilteredOptions(
             [],
             [],
@@ -56,7 +57,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             false,
             false,
             true,
-            policyCategories ?? {},
+            policyCategories ?? policyCategoriesDraft ?? {},
             validPolicyRecentlyUsedCategories,
             false,
         );
@@ -68,7 +69,7 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, showInput];
-    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories]);
+    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft]);
 
     const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((category) => category.searchText === selectedCategory)[0]?.keyForList, [sections, selectedCategory]);
 
@@ -92,6 +93,9 @@ CategoryPicker.displayName = 'CategoryPicker';
 export default withOnyx<CategoryPickerProps, CategoryPickerOnyxProps>({
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+    },
+    policyCategoriesDraft: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
     },
     policyRecentlyUsedCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
