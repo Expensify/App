@@ -29,6 +29,7 @@
         "isolatedModules": true,
         "strict": true,
         "moduleResolution": "node",
+        "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "incremental": true,
         "baseUrl": ".",
