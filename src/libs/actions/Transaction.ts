@@ -315,6 +315,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
 
     const parameters: MarkAsCashParams = {
         transactionID,
+        reportActionID: optimisticReportAction.reportActionID
     };
 
     return API.write(WRITE_COMMANDS.MARK_AS_CASH, parameters, onyxData);
