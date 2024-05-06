@@ -45,7 +45,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
             onPress: () => {},
-            title: exportConfiguration?.billStatus.purchase,
+            title: exportConfiguration?.billStatus?.purchase,
             pendingAction: pendingFields?.export,
             error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
         },
