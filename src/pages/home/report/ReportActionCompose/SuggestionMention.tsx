@@ -86,10 +86,10 @@ function SuggestionMention(
     const debouncedSearchInServer = useDebounce(
         useCallback(() => {
             const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
-            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5) {
+            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
                 ReportUserActions.searchInServer(value, policyID);
             }
-        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value]),
+        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, isGroupPolicyReport]),
         CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
     );
 

@@ -200,7 +200,7 @@ function ReportActionsList({
     );
     const lastActionIndex = sortedVisibleReportActions[0]?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const hasNewestReportAction = sortedReportActions?.[0].created === report.lastVisibleActionCreated;
+    const hasNewestReportAction = sortedVisibleReportActions?.[0]?.created === report.lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
@@ -325,16 +325,14 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
-            // If a new comment is added and it's from the current user scroll to the bottom
-            // otherwise leave the user positioned where they are now in the list.
-            // Additionally, since the first report action could be a whisper message (new WS) ->
-            // hasNewestReportAction will be false, check isWhisperAction is false before returning early.
-            if (!isFromCurrentUser || (!hasNewestReportActionRef.current && !ReportActionsUtils.isWhisperAction(sortedReportActions?.[0]))) {
+            // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
+            // they are now in the list.
+            if (!isFromCurrentUser || !hasNewestReportActionRef.current) {
                 return;
             }
             InteractionManager.runAfterInteractions(() => reportScrollManager.scrollToBottom());
         },
-        [sortedReportActions, reportScrollManager],
+        [reportScrollManager],
     );
     useEffect(() => {
         // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
@@ -424,6 +422,8 @@ function ReportActionsList({
         [sortedReportActions, isOffline, currentUnreadMarker],
     );
 
+    const firstVisibleReportActionID = useMemo(() => ReportActionsUtils.getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
+
     /**
      * Evaluate new unread marker visibility for each of the report actions.
      */
@@ -452,6 +452,24 @@ function ReportActionsList({
         },
         [currentUnreadMarker, sortedVisibleReportActions, report.reportID, messageManuallyMarkedUnread],
     );
+
+    const shouldUseThreadDividerLine = useMemo(() => {
+        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions[sortedVisibleReportActions.length - 1] : null;
+
+        if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return false;
+        }
+
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
+            return !ReportActionsUtils.isDeletedParentAction(parentReportAction) && !ReportActionsUtils.isReversedTransaction(parentReportAction);
+        }
+
+        if (ReportUtils.isTaskReport(report)) {
+            return !ReportUtils.isCanceledTaskReport(report, parentReportAction);
+        }
+
+        return ReportUtils.isExpenseReport(report) || ReportUtils.isIOUReport(report);
+    }, [parentReportAction, report, sortedVisibleReportActions]);
 
     const calculateUnreadMarker = useCallback(() => {
         // Iterate through the report actions and set appropriate unread marker.
@@ -538,6 +556,8 @@ function ReportActionsList({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                 shouldDisplayNewMarker={shouldDisplayNewMarker(reportAction, index)}
                 shouldDisplayReplyDivider={sortedReportActions.length > 1}
+                isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             />
         ),
         [
@@ -552,6 +572,8 @@ function ReportActionsList({
             reportActions,
             transactionThreadReport,
             parentReportActionForTransactionThread,
+            shouldUseThreadDividerLine,
+            firstVisibleReportActionID,
         ],
     );
 

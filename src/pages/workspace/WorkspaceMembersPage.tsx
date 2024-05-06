@@ -503,6 +503,7 @@ function WorkspaceMembersPage({personalDetails, invitedEmailsToAccountIDsDraft, 
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={getBulkActionsButtonOptions()}
+                        isSplitButton={false}
                         style={[isSmallScreenWidth && styles.flexGrow1]}
                     />
                 ) : (

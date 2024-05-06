@@ -533,8 +533,8 @@ function getStatusUntilDate(inputDate: string): string {
     const now = new Date();
     const endOfToday = endOfDay(now);
 
-    // If the date is equal to the end of today
-    if (isSameDay(input, endOfToday)) {
+    // If the date is adjusted to the following day
+    if (isSameSecond(input, endOfToday)) {
         return translateLocal('statusPage.untilTomorrow');
     }
 
@@ -662,15 +662,6 @@ function areDatesIdentical(dateTimeStringFirst: string, dateTimeStringSecond: st
 const isTimeAtLeastOneMinuteInFuture = ({timeString, dateTimeString}: {timeString?: string; dateTimeString: string}): boolean => {
     let dateToCheck = dateTimeString;
     if (timeString) {
-        //  return false;
-        // Parse the hour and minute from the time input
-        const [hourStr] = timeString.split(/[:\s]+/);
-        const hour = parseInt(hourStr, 10);
-
-        if (hour === 0) {
-            return false;
-        }
-
         dateToCheck = combineDateAndTime(timeString, dateTimeString);
     }
 
