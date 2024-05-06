@@ -13,7 +13,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {getRequestType} from '@libs/TransactionUtils';
-import MoneyRequestAmountForm from '@pages/iou/steps/MoneyRequestAmountForm';
+import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import * as IOU from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -183,7 +183,7 @@ function IOURequestStepAmount({
 
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    IOU.splitBillAndOpenReport({
+                    IOU.splitBill({
                         participants,
                         currentUserLogin: currentUserPersonalDetails.login ?? '',
                         currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -196,6 +196,7 @@ function IOURequestStepAmount({
                         created: transaction?.created ?? '',
                         billable: false,
                         iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        existingSplitChatReportID: report?.reportID,
                     });
                     return;
                 }
