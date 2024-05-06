@@ -132,7 +132,7 @@ function ReceiptImage({
     return (
         <Image
             source={{uri: source}}
-            style={style ?? [styles.w100, styles.h100]}
+            style={[style ?? [styles.w100, styles.h100], styles.overflowHidden]}
             isAuthTokenRequired={isAuthTokenRequired}
         />
     );
