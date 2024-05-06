@@ -1,7 +1,6 @@
-import {isEqual} from 'lodash';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -46,13 +45,10 @@ function useOptions({isGroupChat}: NewChatPageProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const personalData = useCurrentUserPersonalDetails();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const {options: listOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-
-    const combinedListRef = useRef<Array<OptionData | null>>([]);
 
     const options = useMemo(() => {
         const filteredOptions = OptionsListUtils.getFilteredOptions(
@@ -100,20 +96,16 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const combinedList = [...options.personalDetails, ...selectedOptions, options.userToInvite];
-        if (isEqual(combinedList, combinedListRef.current)) {
-            return;
-        }
-        combinedListRef.current = combinedList;
+        const combinedList = [...listOptions.personalDetails];
         const selectedAccountIDs = newGroupDraft.participants.map((participant) => participant.accountID);
-        const selectedParticipants = combinedList.filter((option) => option?.accountID && selectedAccountIDs.includes(option?.accountID));
+        const selectedParticipants = combinedList.filter((option) => option?.accountID && option.accountID !== personalData.accountID && selectedAccountIDs.includes(option?.accountID));
         const newSelectedOptions = selectedParticipants.map((participant) => ({
             ...participant,
             reportID: participant?.reportID ?? '',
             isSelected: true,
         }));
         setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft, personalData, options, selectedOptions, personalDetails]);
+    }, [newGroupDraft, listOptions.personalDetails, personalData]);
 
     return {...options, searchTerm, debouncedSearchTerm, setSearchTerm, areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd, selectedOptions, setSelectedOptions};
 }
