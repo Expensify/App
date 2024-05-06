@@ -1,7 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
+import SelectionScreen from '@components/SelectionScreen';
+import type {SelectorType} from '@components/SelectionScreen';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
@@ -10,9 +14,6 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import SelectionScreen, { SelectorType } from '@components/SelectionScreen';
-import Text from '@components/Text';
-import { View } from 'react-native';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.XERO_EXPORT_DATE>;
@@ -53,9 +54,9 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     return (
         <SelectionScreen
             displayName={XeroPurchaseBillDateSelectPage.displayName}
-            title='workspace.xero.exportDate.label'
+            title="workspace.xero.exportDate.label"
             headerContent={headerContent}
-            sections={[{ data }]}
+            sections={[{data}]}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
