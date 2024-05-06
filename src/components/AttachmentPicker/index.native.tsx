@@ -73,6 +73,12 @@ const getDocumentPickerOptions = (type: string): DocumentPickerOptions<'ios' | '
             copyTo: 'cachesDirectory',
         };
     }
+    if (type === CONST.ATTACHMENT_PICKER_TYPE.JSON) {
+        return {
+            type: [RNDocumentPicker.types.json],
+            copyTo: 'cachesDirectory',
+        };
+    }
     return {
         type: [RNDocumentPicker.types.allFiles],
         copyTo: 'cachesDirectory',

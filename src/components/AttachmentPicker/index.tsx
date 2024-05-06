@@ -1,4 +1,5 @@
 import React, {useRef} from 'react';
+import FileTypes from '@libs/FileTypes';
 import Visibility from '@libs/Visibility';
 import CONST from '@src/CONST';
 import type AttachmentPickerProps from './types';
@@ -7,11 +8,13 @@ import type AttachmentPickerProps from './types';
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
  */
 function getAcceptableFileTypes(type: string): string | undefined {
-    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-        return;
+    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        return 'image/*';
     }
 
-    return 'image/*';
+    if (type === CONST.ATTACHMENT_PICKER_TYPE.JSON) {
+        return FileTypes.JSON.mimeType;
+    }
 }
 
 /**

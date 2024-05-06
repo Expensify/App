@@ -1152,6 +1152,7 @@ const CONST = {
     ATTACHMENT_PICKER_TYPE: {
         FILE: 'file',
         IMAGE: 'image',
+        JSON: 'json',
     },
 
     ATTACHMENT_FILE_TYPE: {

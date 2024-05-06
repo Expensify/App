@@ -134,7 +134,7 @@ function TestToolMenu() {
             </TestToolRow>
 
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.importFromFile')}>
-                <AttachmentPicker>
+                <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.JSON}>
                     {({openPicker}) => (
                         <Button
                             small
