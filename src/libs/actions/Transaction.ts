@@ -10,7 +10,7 @@ import * as CollectionUtils from '@libs/CollectionUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RecentWaypoint, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {RecentWaypoint, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import {buildOptimisticDismissedViolationReportAction} from "@libs/ReportUtils";
@@ -300,7 +300,7 @@ function markAsCash(transactionID: string, transactionThreadReportID: string, ex
             // Rolling back the dismissal of the violation
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS${transactionID}`,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
                 value: existingViolations,
             },
             {
