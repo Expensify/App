@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import Log from '@libs/Log';
 import * as App from '@userActions/App';
 import type {DeferredUpdatesDictionary, DetectGapAndSplitResult} from '@userActions/OnyxUpdateManager/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,7 +77,7 @@ function detectGapsAndSplit(updates: DeferredUpdatesDictionary, clientLastUpdate
 
 // This function will check for gaps in the deferred updates and
 // apply the updates in order after the missing updates are fetched and applied
-function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<void> {
+function validateAndApplyDeferredUpdates(clientLastUpdateID?: number, previousParams?: {newLastUpdateIDFromClient: number; latestMissingUpdateID: number}): Promise<void> {
     const lastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
 
     // We only want to apply deferred updates that are newer than the last update that was applied to the client.
@@ -94,9 +95,10 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<v
     if (Object.values(pendingDeferredUpdates).length === 0) {
         return Promise.resolve();
     }
-
+    console.log('pendingDeferredUpdates', pendingDeferredUpdates);
+    console.log('lastUpdateIDFromClient', lastUpdateIDFromClient);
     const {applicableUpdates, updatesAfterGaps, latestMissingUpdateID} = detectGapsAndSplit(pendingDeferredUpdates, lastUpdateIDFromClient);
-
+    console.log('latestMissingUpdateID', latestMissingUpdateID);
     // If we detected a gap in the deferred updates, only apply the deferred updates before the gap,
     // re-fetch the missing updates and then apply the remaining deferred updates after the gap
     if (latestMissingUpdateID) {
@@ -113,17 +115,23 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<v
 
                 deferredUpdatesProxy.deferredUpdates = {...deferredUpdatesProxy.deferredUpdates, ...updatesAfterGaps};
 
+                console.log('callback latestMissingUpdateID', latestMissingUpdateID);
+                console.log('callback newLastUpdateIDFromClient', newLastUpdateIDFromClient);
                 // If lastUpdateIDAppliedToClient got updated in the meantime, we will just retrigger the validation and application of the current deferred updates.
                 if (latestMissingUpdateID <= newLastUpdateIDFromClient) {
-                    validateAndApplyDeferredUpdates()
+                    validateAndApplyDeferredUpdates(undefined, {newLastUpdateIDFromClient, latestMissingUpdateID})
                         .then(() => resolve(undefined))
                         .catch(reject);
                     return;
                 }
-
+                if (previousParams?.newLastUpdateIDFromClient === newLastUpdateIDFromClient && previousParams?.latestMissingUpdateID === latestMissingUpdateID) {
+                    console.log('same params');
+                    Log.info('Aborting call to GetMissingOnyxMessages, repeated params', false, previousParams);
+                    return;
+                }
                 // Then we can fetch the missing updates and apply them
                 App.getMissingOnyxUpdates(newLastUpdateIDFromClient, latestMissingUpdateID)
-                    .then(() => validateAndApplyDeferredUpdates())
+                    .then(() => validateAndApplyDeferredUpdates(undefined, {newLastUpdateIDFromClient, latestMissingUpdateID}))
                     .then(() => resolve(undefined))
                     .catch(reject);
             });
