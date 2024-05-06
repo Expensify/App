@@ -36,7 +36,7 @@ function XeroPreferredExporterConfigurationPage({policy}: WithPolicyConnectionsP
             subtitle="workspace.xero.exportPreferredExporterSubNote"
             contentContainerStyle={[styles.ph5, styles.pb2]}
         >
-            <OfflineWithFeedback pendingAction={pendingFields?.sync}>
+            <OfflineWithFeedback pendingAction={pendingFields?.export}>
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     title={selectedExporter}
