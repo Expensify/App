@@ -1,30 +1,29 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Connections from '@libs/actions/connections';
 import Navigation from '@navigation/Navigation';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import SelectionScreen, { SelectorType } from '@components/SelectionScreen';
+import Text from '@components/Text';
+import { View } from 'react-native';
 
-type CardListItem = ListItem & {
+type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.XERO_EXPORT_DATE>;
 };
+
 function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
+    const styles = useThemeStyles();
     const {billDate} = policy?.connections?.xero?.config?.export ?? {};
-    const data: CardListItem[] = Object.values(CONST.XERO_EXPORT_DATE).map((dateType) => ({
+    const data: MenuListItem[] = Object.values(CONST.XERO_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.xero.exportDate.values.${dateType}.label`),
         alternateText: translate(`workspace.xero.exportDate.values.${dateType}.description`),
@@ -32,8 +31,17 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
         isSelected: billDate === dateType,
     }));
 
+    const headerContent = useMemo(
+        () => (
+            <View>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDate.description')}</Text>
+            </View>
+        ),
+        [translate, styles.pb5, styles.ph5],
+    );
+
     const selectExportDate = useCallback(
-        (row: CardListItem) => {
+        (row: MenuListItem) => {
             if (row.value !== billDate) {
                 Connections.updatePolicyConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.XERO_CONFIG.EXPORT, {billDate: row.value});
             }
@@ -43,25 +51,19 @@ function XeroPurchaseBillDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 
     return (
-        <AccessOrNotFoundWrapper
+        <SelectionScreen
+            displayName={XeroPurchaseBillDateSelectPage.displayName}
+            title='workspace.xero.exportDate.label'
+            headerContent={headerContent}
+            sections={[{ data }]}
+            listItem={RadioListItem}
+            onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-        >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={XeroPurchaseBillDateSelectPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.xero.exportDate.label')} />
-                <SelectionList
-                    headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDate.description')}</Text>}
-                    sections={[{data}]}
-                    ListItem={RadioListItem}
-                    onSelectRow={selectExportDate}
-                    initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
-                />
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID))}
+        />
     );
 }
 
