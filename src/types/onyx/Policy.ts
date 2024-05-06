@@ -3,6 +3,7 @@ import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WorkspaceTravelSettings} from './TravelSettings';
 
 type Unit = 'mi' | 'km';
 
@@ -205,7 +206,7 @@ type Tenant = {
 };
 
 type XeroConnectionData = {
-    bankAccounts: unknown[];
+    bankAccounts: Account[];
     countryCode: string;
     organisationID: string;
     revenueAccounts: Array<{
@@ -520,6 +521,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
+
+        /** Object containing all policy information necessary to connect with Spontana */
+        travelSettings?: WorkspaceTravelSettings;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;

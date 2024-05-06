@@ -23,6 +23,10 @@ const SCREENS = {
     CONNECTION_COMPLETE: 'ConnectionComplete',
     UNLINK_LOGIN: 'UnlinkLogin',
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    TRAVEL: {
+        MY_TRIPS: 'Travel_MyTrips',
+        TCS: 'Travel_TCS',
+    },
     WORKSPACES_CENTRAL_PANE: 'WorkspacesCentralPane',
     SEARCH: {
         CENTRAL_PANE: 'Search_Central_Pane',
@@ -133,6 +137,7 @@ const SCREENS = {
         ROOM_INVITE: 'RoomInvite',
         REFERRAL: 'Referral',
         PROCESS_MONEY_REQUEST_HOLD: 'ProcessMoneyRequestHold',
+        TRAVEL: 'Travel',
         SEARCH_REPORT: 'SearchReport',
     },
     ONBOARDING_MODAL: {
@@ -241,6 +246,7 @@ const SCREENS = {
             XERO_TAXES: 'Policy_Accounting_Xero_Taxes',
             XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
