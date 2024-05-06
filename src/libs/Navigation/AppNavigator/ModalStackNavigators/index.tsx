@@ -1,14 +1,41 @@
-import type { ParamListBase } from '@react-navigation/routers';
-import type { StackNavigationOptions } from '@react-navigation/stack';
-import { createStackNavigator } from '@react-navigation/stack';
+import type {ParamListBase} from '@react-navigation/routers';
+import type {StackNavigationOptions} from '@react-navigation/stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import type { AddPersonalBankAccountNavigatorParamList, ChatFinderNavigatorParamList, DetailsNavigatorParamList, EditRequestNavigatorParamList, EnablePaymentsNavigatorParamList, FlagCommentNavigatorParamList, MoneyRequestNavigatorParamList, NewChatNavigatorParamList, NewTaskNavigatorParamList, ParticipantsNavigatorParamList, PrivateNotesNavigatorParamList, ProfileNavigatorParamList, ReferralDetailsNavigatorParamList, ReimbursementAccountNavigatorParamList, ReportDescriptionNavigatorParamList, ReportDetailsNavigatorParamList, ReportSettingsNavigatorParamList, RoomInviteNavigatorParamList, RoomMembersNavigatorParamList, SearchReportParamList, SettingsNavigatorParamList, SignInNavigatorParamList, SplitDetailsNavigatorParamList, TaskDetailsNavigatorParamList, TeachersUniteNavigatorParamList, WalletStatementNavigatorParamList, WorkspaceSwitcherNavigatorParamList } from '@navigation/types';
-import type { ThemeStyles } from '@styles/index';
-import type { Screen } from '@src/SCREENS';
+import type {
+    AddPersonalBankAccountNavigatorParamList,
+    ChatFinderNavigatorParamList,
+    DetailsNavigatorParamList,
+    EditRequestNavigatorParamList,
+    EnablePaymentsNavigatorParamList,
+    FlagCommentNavigatorParamList,
+    MoneyRequestNavigatorParamList,
+    NewChatNavigatorParamList,
+    NewTaskNavigatorParamList,
+    ParticipantsNavigatorParamList,
+    PrivateNotesNavigatorParamList,
+    ProfileNavigatorParamList,
+    ReferralDetailsNavigatorParamList,
+    ReimbursementAccountNavigatorParamList,
+    ReportDescriptionNavigatorParamList,
+    ReportDetailsNavigatorParamList,
+    ReportSettingsNavigatorParamList,
+    RoomInviteNavigatorParamList,
+    RoomMembersNavigatorParamList,
+    SearchReportParamList,
+    SettingsNavigatorParamList,
+    SignInNavigatorParamList,
+    SplitDetailsNavigatorParamList,
+    TaskDetailsNavigatorParamList,
+    TeachersUniteNavigatorParamList,
+    WalletStatementNavigatorParamList,
+    WorkspaceSwitcherNavigatorParamList,
+} from '@navigation/types';
+import type {ThemeStyles} from '@styles/index';
+import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import useModalScreenOptions from './useModalScreenOptions';
 import WorkspaceSettingsModalStackNavigator from './WorkspaceSettingsModalStackNavigator';
-
 
 type Screens = Partial<Record<Screen, () => React.ComponentType>>;
 
@@ -278,6 +305,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require('../../../../pages/workspace/accounting/xero/advanced/XeroInvoiceAccountSelectorPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT]: () =>
         require('../../../../pages/workspace/accounting/xero/export/XeroPreferredExporterSelectPage').default as React.ComponentType,
+    [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_CONFIGURATION]: () =>
+        require('../../../../pages/workspace/accounting/xero/export/XeroPreferredExporterConfigurationPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY]: () => require('../../../../pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage').default as React.ComponentType,
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: () =>
         require('../../../../pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage').default as React.ComponentType,

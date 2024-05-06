@@ -6,10 +6,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type MenuItem = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']};
@@ -25,7 +25,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         {
             description: translate('workspace.xero.preferredExporter'),
             onPress: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_CONFIGURATION.getRoute(policyID));
             },
             brickRoadIndicator: errorFields?.exporter ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             title: exportConfiguration?.exporter ?? policyOwner,

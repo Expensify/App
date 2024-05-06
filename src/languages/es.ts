@@ -2063,8 +2063,8 @@ export default {
                     'Como ha activado la exportación de facturas de Expensify a Xero, esta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
             },
             exportPreferredExporterNote:
-            'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
-        exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
+                'Puede ser cualquier administrador del espacio de trabajo, pero debe ser un administrador de dominio si configura diferentes cuentas de exportación para tarjetas de empresa individuales en la configuración del dominio.',
+            exportPreferredExporterSubNote: 'Una vez configurado, el exportador preferido verá los informes para exportar en su cuenta.',
         },
         type: {
             free: 'Gratis',
