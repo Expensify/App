@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useCallback, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -27,6 +28,8 @@ import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportA
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OptionRowLHNProps} from './types';
+
+const parser = new ExpensiMark();
 
 function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment}: OptionRowLHNProps) {
     const theme = useTheme();
@@ -59,8 +62,8 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const textUnreadStyle = optionItem?.isUnread && optionItem.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, style];
     const alternateTextStyle = isInFocusMode
-        ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
-        : [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, style];
+        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
 
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
@@ -96,11 +99,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
             false,
             optionItem.isPinned,
             !!optionItem.isUnread,
-            [],
-            false,
-            () => {},
-            false,
-            optionItem.transactionThreadReportID,
         );
     };
 
@@ -207,6 +205,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                 !!optionItem.isTaskReport ||
                                                 !!optionItem.isThread ||
                                                 !!optionItem.isMoneyRequestReport ||
+                                                !!optionItem.isInvoiceReport ||
                                                 ReportUtils.isGroupChat(report)
                                             }
                                         />
@@ -225,7 +224,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                             numberOfLines={1}
                                             accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {parser.htmlToText(optionItem.alternateText)}
                                         </Text>
                                     ) : null}
                                 </View>
