@@ -30,6 +30,6 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
-    // If the network status is undefined, we don't treat it as offline. Otherwise, we utilize the isOffline prop.
+    // If the network status is unknown, we fallback to default state, i.e. we're online and backend is reachable.
     return isNetworkStatusUnknown ? CONST.DEFAULT_NETWORK_DATA : {isOffline, isBackendReachable};
 }
