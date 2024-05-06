@@ -125,7 +125,9 @@ function MoneyRequestAmountInput(
             // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
             // More info: https://github.com/Expensify/App/issues/16974
             const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
-            const finalAmount = MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
+            const finalAmount = newAmountWithoutSpaces.includes('.')
+                ? MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces)
+                : MoneyRequestUtils.replaceCommasWithPeriod(newAmountWithoutSpaces);
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
             if (!MoneyRequestUtils.validateAmount(finalAmount, decimals)) {
