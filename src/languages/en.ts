@@ -617,6 +617,8 @@ export default {
         trackManual: 'Track expense',
         trackScan: 'Track receipt',
         trackDistance: 'Track distance',
+        noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
+        updateDestination: 'Update destination',
     },
     iou: {
         amount: 'Amount',
@@ -1912,9 +1914,9 @@ export default {
             locations: 'Locations',
             customers: 'Customers/Projects',
             displayedAs: 'Displayed as',
-            accountsDescription: 'Chart of Accounts import as categories when connected to an accounting integration, this cannot be disabled.',
-            accountsSwitchTitle: 'Enable newly imported Chart of Accounts.',
-            accountsSwitchDescription: 'New categories imported from QuickBooks Online to Expensify will be either enabled or disabled by default.',
+            accountsDescription: 'When connected to Quickbooks Online, chart of accounts are always imported to Expensify as categories.',
+            accountsSwitchTitle: 'Below you can choose to have any new account imported as an enabled or disabled category by default.',
+            accountsSwitchDescription: 'Enabled categories are available for members to select when creating their expenses.',
             classesDescription: 'Choose whether to import classes, and see where classes are displayed.',
             customersDescription: 'Choose whether to import customers/projects and see where customers/projects are displayed.',
             locationsDescription: 'Choose whether to import locations, and see where locations are displayed.',
@@ -1989,7 +1991,7 @@ export default {
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription:
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
-                invoiceAccountSelectDescription:
+                invoiceAccountSelectorDescription:
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
             accounts: {
@@ -2033,6 +2035,7 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+                invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
             },
         },
         type: {

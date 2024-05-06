@@ -60,11 +60,17 @@ type MoneyRequestConfirmationListOnyxProps = {
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
 
+    /** Collection of draft categories attached to a policy */
+    policyCategoriesDraft: OnyxEntry<OnyxTypes.PolicyCategories>;
+
     /** Collection of tags attached to a policy */
     policyTags: OnyxEntry<OnyxTypes.PolicyTagList>;
 
     /** The policy of the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
+
+    /** The draft policy of the report */
+    policyDraft: OnyxEntry<OnyxTypes.Policy>;
 
     /** The session of the logged in user */
     session: OnyxEntry<OnyxTypes.Session>;
@@ -193,10 +199,12 @@ function MoneyRequestConfirmationList({
     iouType = CONST.IOU.TYPE.SUBMIT,
     isScanRequest = false,
     iouAmount,
-    policyCategories,
+    policyCategories: policyCategoriesReal,
+    policyCategoriesDraft,
     mileageRates,
     isDistanceRequest = false,
-    policy,
+    policy: policyReal,
+    policyDraft,
     isPolicyExpenseChat = false,
     iouCategory = '',
     shouldShowSmartScanFields = true,
@@ -227,6 +235,8 @@ function MoneyRequestConfirmationList({
     allPolicies,
     action = CONST.IOU.ACTION.CREATE,
 }: MoneyRequestConfirmationListProps) {
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
@@ -469,8 +479,8 @@ function MoneyRequestConfirmationList({
             );
         } else {
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
-                ...participant,
                 isDisabled: !participant.isPolicyExpenseChat && !participant.isSelfDM && ReportUtils.isOptimisticPersonalDetail(participant.accountID ?? -1),
+                ...participant,
             }));
             sections.push({
                 title: translate('common.to'),
@@ -1120,6 +1130,9 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     policyCategories: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
     },
+    policyCategoriesDraft: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+    },
     policyTags: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
     },
@@ -1133,6 +1146,9 @@ export default withOnyx<MoneyRequestConfirmationListProps, MoneyRequestConfirmat
     },
     policy: {
         key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+    },
+    policyDraft: {
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
     },
     lastSelectedDistanceRates: {
         key: ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
