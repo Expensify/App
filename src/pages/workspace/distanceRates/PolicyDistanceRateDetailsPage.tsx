@@ -18,6 +18,7 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import * as Policy from '@userActions/Policy';
 import CONST from '@src/CONST';
@@ -50,6 +51,10 @@ function PolicyDistanceRateDetailsPage({policy, route}: PolicyDistanceRateDetail
     const canDeleteRate = Object.values(customUnit?.rates ?? {}).filter((distanceRate) => distanceRate?.enabled).length > 1 || !rate?.enabled;
     const canDisableRate = Object.values(customUnit?.rates ?? {}).filter((distanceRate) => distanceRate?.enabled).length > 1;
     const errorFields = rate?.errorFields;
+
+    if (!rate) {
+        return <NotFoundPage />;
+    }
 
     const editRateValue = () => {
         Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_EDIT.getRoute(policyID, rateID));
