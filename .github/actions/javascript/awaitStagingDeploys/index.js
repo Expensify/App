@@ -12131,6 +12131,7 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const promiseWhile_1 = __nccwpck_require__(9438);
 function run() {
+    console.info('[awaitStagingDeploys] POLL RATE', CONST_1.default.POLL_RATE);
     console.info('[awaitStagingDeploys] run()');
     console.info('[awaitStagingDeploys] getStringInput', ActionUtils_1.getStringInput);
     console.info('[awaitStagingDeploys] GitHubUtils', GithubUtils_1.default);
@@ -12742,7 +12743,12 @@ function promiseWhile(condition, action) {
                     resolve();
                     return;
                 }
-                Promise.resolve(actionResult).then(loop).catch(reject);
+                Promise.resolve(actionResult)
+                    .then(() => {
+                    // Set a timeout to delay the next loop iteration
+                    setTimeout(loop, 1000); // 1000 ms delay
+                })
+                    .catch(reject);
             }
         };
         loop();

@@ -1,12 +1,12 @@
-import {PortalHost} from '@gorhom/portal';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {DeviceEventEmitter, findNodeHandle, Keyboard, NativeModules, View} from 'react-native';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import {Keyboard, View} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+import Composer from '@components/Composer';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import Icon from '@components/Icon';
@@ -42,12 +42,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
-import ComposerWithSuggestionsEdit from './ReportActionCompose/ComposerWithSuggestionsEdit/ComposerWithSuggestionsEdit';
-import {useSuggestionsContext} from './ReportActionCompose/ComposerWithSuggestionsEdit/SuggestionsContext';
-import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
-
-const {RNTextInputReset} = NativeModules;
 
 type ReportActionItemMessageEditProps = {
     /** All the data of the action */
@@ -58,9 +53,6 @@ type ReportActionItemMessageEditProps = {
 
     /** ReportID that holds the comment we're editing */
     reportID: string;
-
-    /** If current composer is connected with report from group policy */
-    isGroupPolicyReport: boolean;
 
     /** Position index of the report action in the overall report FlatList view */
     index: number;
@@ -80,7 +72,7 @@ const isMobileSafari = Browser.isMobileSafari();
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, isGroupPolicyReport, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
+    {action, draftMessage, reportID, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<(TextInput & HTMLTextAreaElement) | undefined>,
 ) {
     const theme = useTheme();
@@ -90,7 +82,6 @@ function ReportActionItemMessageEdit(
     const {translate, preferredLocale} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
-    const {updateCurrentActiveSuggestionsRef, clearActiveSuggestionsRef, isActiveSuggestions} = useSuggestionsContext();
     const prevDraftMessage = usePrevious(draftMessage);
 
     const getInitialSelection = () => {
@@ -121,8 +112,6 @@ function ReportActionItemMessageEdit(
     const isFocusedRef = useRef<boolean>(false);
     const insertedEmojis = useRef<Emoji[]>([]);
     const draftRef = useRef(draft);
-    const containerRef = useRef<View>(null);
-    const suggestionsRef = useRef<SuggestionsRef>(null);
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
@@ -186,7 +175,7 @@ function ReportActionItemMessageEdit(
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
         if (isMobileSafari) {
-            setDraft((prevDraft: string) => {
+            setDraft((prevDraft) => {
                 setSelection({
                     start: prevDraft.length,
                     end: prevDraft.length,
@@ -214,9 +203,6 @@ function ReportActionItemMessageEdit(
             }
             if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                 ReportActionContextMenu.clearActiveReportAction();
-            }
-            if (isActiveSuggestions(action.reportActionID)) {
-                clearActiveSuggestionsRef();
             }
 
             // Show the main composer when the focused message is deleted from another client
@@ -276,7 +262,6 @@ function ReportActionItemMessageEdit(
             if (emojis?.length > 0) {
                 const newEmojis = EmojiUtils.getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis?.length > 0) {
-                    suggestionsRef.current?.resetSuggestions();
                     insertedEmojis.current = [...insertedEmojis.current, ...newEmojis];
                     debouncedUpdateFrequentlyUsedEmojis();
                 }
@@ -333,7 +318,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (ReportUtils.getCommentLength(draft) > CONST.MAX_COMMENT_LENGTH) {
+        if (ReportUtils.getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
             return;
         }
 
@@ -374,10 +359,6 @@ function ReportActionItemMessageEdit(
      */
     const triggerSaveOrCancel = useCallback(
         (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
-            if (suggestionsRef.current?.triggerHotkeyActions(e as KeyboardEvent)) {
-                return;
-            }
-
             if (!e || ComposerUtils.canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown)) {
                 return;
             }
@@ -393,57 +374,18 @@ function ReportActionItemMessageEdit(
         [deleteDraft, isKeyboardShown, isSmallScreenWidth, publishDraft],
     );
 
-    const resetKeyboardInput = useCallback(() => {
-        if (!RNTextInputReset) {
-            return;
-        }
-        RNTextInputReset.resetKeyboardInput(findNodeHandle(textInputRef.current));
-    }, [textInputRef]);
-
-    const measureContainer = useCallback((callback: MeasureInWindowOnSuccessCallback) => {
-        if (!containerRef.current) {
-            return;
-        }
-        containerRef.current.measureInWindow(callback);
-    }, []);
-
     /**
      * Focus the composer text input
      */
     const focus = focusComposerWithDelay(textInputRef.current);
 
     useEffect(() => {
-        validateCommentMaxLength(draft);
-    }, [draft, validateCommentMaxLength]);
-
-    /**
-     * Listen scrolling event
-     */
-    useEffect(() => {
-        if (!isFocused || !suggestionsRef.current) {
-            return () => {};
-        }
-        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (scrolling) => {
-            if (scrolling) {
-                suggestionsRef?.current?.resetSuggestions();
-                return;
-            }
-            // Reopen the suggestion after scroll has end
-            suggestionsRef?.current?.updateShouldShowSuggestionMenuAfterScrolling();
-        });
-
-        return () => {
-            scrollingListener.remove();
-        };
-    }, [isFocused]);
+        validateCommentMaxLength(draft, {reportID});
+    }, [draft, reportID, validateCommentMaxLength]);
 
     return (
         <>
-            <View
-                ref={containerRef}
-                style={[styles.chatItemMessage, styles.flexRow]}
-            >
-                <PortalHost name={`suggestions_${action.reportActionID}`} />
+            <View style={[styles.chatItemMessage, styles.flexRow]}>
                 <View
                     style={[
                         isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
@@ -474,7 +416,7 @@ function ReportActionItemMessageEdit(
                         </Tooltip>
                     </View>
                     <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}>
-                        <ComposerWithSuggestionsEdit
+                        <Composer
                             multiline
                             ref={(el: TextInput & HTMLTextAreaElement) => {
                                 textInputRef.current = el;
@@ -503,33 +445,18 @@ function ReportActionItemMessageEdit(
                                 if (!ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
-
-                                updateCurrentActiveSuggestionsRef(suggestionsRef.current, action.reportActionID);
                             }}
                             onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
                                 setIsFocused(false);
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                suggestionsRef.current?.resetSuggestions();
-                                clearActiveSuggestionsRef();
-                                if (relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) {
+                                if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
                             selection={selection}
-                            onSelectionChange={(e) => {
-                                suggestionsRef.current?.onSelectionChange?.(e);
-                                setSelection(e.nativeEvent.selection);
-                            }}
-                            setValue={setDraft}
-                            setSelection={setSelection}
-                            isComposerFocused={!!textInputRef.current && textInputRef.current.isFocused()}
-                            resetKeyboardInput={resetKeyboardInput}
-                            suggestionsRef={suggestionsRef}
-                            updateDraft={updateDraft}
-                            measureParentContainer={measureContainer}
-                            isGroupPolicyReport={isGroupPolicyReport}
+                            onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>
