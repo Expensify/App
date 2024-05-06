@@ -67,13 +67,12 @@ function MoneyRequestParticipantsSelector({
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
 
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
-
-    const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE] as string[]).includes(action);
@@ -125,21 +124,9 @@ function MoneyRequestParticipantsSelector({
             isCategorizeOrShareAction ? 0 : undefined,
         );
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})),
-            chatOptions.recentReports,
-            chatOptions.personalDetails,
-            maxParticipantsReached,
-            personalDetails,
-            true,
-        );
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})), chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
 
         newSections.push(formatResults.section);
-
-        if (maxParticipantsReached) {
-            return [newSections, {}];
-        }
 
         newSections.push({
             title: translate('common.recents'),
@@ -179,7 +166,6 @@ function MoneyRequestParticipantsSelector({
         action,
         canUseP2PDistanceRequests,
         iouRequestType,
-        maxParticipantsReached,
         personalDetails,
         translate,
         didScreenTransitionEnd,
@@ -268,10 +254,9 @@ function MoneyRequestParticipantsSelector({
                 ((newChatOptions as Options)?.personalDetails ?? []).length + ((newChatOptions as Options)?.recentReports ?? []).length !== 0,
                 Boolean((newChatOptions as Options)?.userToInvite),
                 debouncedSearchTerm.trim(),
-                maxParticipantsReached,
                 participants.some((participant) => participant?.searchText?.toLowerCase().includes(debouncedSearchTerm.trim().toLowerCase())),
             ),
-        [maxParticipantsReached, newChatOptions, participants, debouncedSearchTerm],
+        [newChatOptions, participants, debouncedSearchTerm],
     );
 
     // Right now you can't split an expense with a workspace and other additional participants
@@ -354,6 +339,7 @@ function MoneyRequestParticipantsSelector({
             headerMessage={headerMessage}
             showLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
             canSelectMultiple={isIOUSplit && isAllowedToSplit}
+            isLoadingNewOptions={!!isSearchingForReports}
         />
     );
 }
