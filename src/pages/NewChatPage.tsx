@@ -96,9 +96,8 @@ function useOptions({isGroupChat}: NewChatPageProps) {
         if (!newGroupDraft?.participants) {
             return;
         }
-        const combinedList = [...listOptions.personalDetails];
         const selectedAccountIDs = newGroupDraft.participants.map((participant) => participant.accountID);
-        const selectedParticipants = combinedList.filter((option) => option?.accountID && option.accountID !== personalData.accountID && selectedAccountIDs.includes(option?.accountID));
+        const selectedParticipants = listOptions.personalDetails.filter((option) => option?.accountID && option.accountID !== personalData.accountID && selectedAccountIDs.includes(option?.accountID));
         const newSelectedOptions = selectedParticipants.map((participant) => ({
             ...participant,
             reportID: participant?.reportID ?? '',
