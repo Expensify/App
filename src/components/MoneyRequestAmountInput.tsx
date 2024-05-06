@@ -233,6 +233,10 @@ function MoneyRequestAmountInput(
             return;
         }
         setCurrentAmount(formattedAmount);
+        setSelection({
+            start: formattedAmount.length,
+            end: formattedAmount.length,
+        });
     }, [amount, currency, formatAmountOnBlur, maxLength]);
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
