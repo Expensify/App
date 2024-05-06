@@ -53,7 +53,7 @@ type ReceiptImageProps = (
     /** Whether we should display the receipt with ThumbnailImage component */
     shouldUseThumbnailImage?: boolean;
 
-    /** Whether we should display the receipt with inital object position  */
+    /** Whether we should display the receipt with initial object position */
     shouldUseInitialObjectPosition?: boolean;
 
     /** Whether the receipt image requires an authToken */
