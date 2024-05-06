@@ -320,6 +320,7 @@ export default {
         clear: 'Borrar',
         type: 'Tipo',
         action: 'Acción',
+        expenses: 'Gastos',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1863,6 +1864,28 @@ export default {
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor, comprueba tu conexión e inténtalo de nuevo.',
     },
+    travel: {
+        header: 'Reservar viajes',
+        title: 'Viaja de forma inteligente',
+        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos los gastos de tu negocio en un solo lugar.',
+        features: {
+            saveMoney: 'Ahorra dinero en tus reservas',
+            alerts: 'Obtén actualizaciones y alertas en tiempo real',
+        },
+        bookTravel: 'Reservar viajes',
+        termsAndConditions: {
+            header: 'Antes de continuar...',
+            title: 'Por favor, lee los Términos y condiciones para reservar viajes',
+            subtitle: 'Para permitir la opción de reservar viajes en su espacio de trabajo debe aceptar nuestros ',
+            termsconditions: 'términos y condiciones',
+            travelTermsAndConditions: 'términos y condiciones de viaje',
+            helpDocIntro: 'Consulta este ',
+            helpDocOutro: 'para obtener más información o comunícate con Concierge o tu gestor de cuentas.',
+            helpDoc: 'documento de ayuda',
+            agree: 'Acepto los ',
+            error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
+        },
+    },
     workspace: {
         common: {
             card: 'Tarjetas',
@@ -2035,6 +2058,17 @@ export default {
                 'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
+            advancedConfig: {
+                advanced: 'Avanzado',
+                autoSync: 'Autosincronización',
+                autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sincronizar informes reembolsados',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
+                xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
+                xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
+            },
         },
         type: {
             free: 'Gratis',
@@ -2688,7 +2722,8 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Actualización disponible',
-            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `La nueva versión estará disponible dentro de poco.${isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`,
             soundsGood: 'Suena bien',
         },
         notAvailable: {
@@ -3468,5 +3503,8 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    systemMessage: {
+        mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
     },
 } satisfies EnglishTranslation;
