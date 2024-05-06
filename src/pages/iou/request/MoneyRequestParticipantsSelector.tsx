@@ -75,7 +75,7 @@ function MoneyRequestParticipantsSelector({
     const offlineMessage: MaybePhraseKey = isOffline ? [`${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}`, {isTranslated: true}] : '';
 
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
-    const isCategorizeOrShareAction = ([CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE] as string[]).includes(action);
+    const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     const shouldShowReferralBanner = !isDismissed && iouType !== CONST.IOU.TYPE.INVOICE;
 
@@ -105,14 +105,14 @@ function MoneyRequestParticipantsSelector({
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
-            (canUseP2PDistanceRequests ?? iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             {},
             [],
             false,
             {},
             [],
-            (canUseP2PDistanceRequests ?? iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
+            (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             undefined,
             undefined,
@@ -124,7 +124,14 @@ function MoneyRequestParticipantsSelector({
             isCategorizeOrShareAction ? 0 : undefined,
         );
 
-        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(debouncedSearchTerm, participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})), chatOptions.recentReports, chatOptions.personalDetails, personalDetails, true);
+        const formatResults = OptionsListUtils.formatSectionsFromSearchTerm(
+            debouncedSearchTerm,
+            participants.map((participant) => ({...participant, reportID: participant.reportID ?? ''})),
+            chatOptions.recentReports,
+            chatOptions.personalDetails,
+            personalDetails,
+            true,
+        );
 
         newSections.push(formatResults.section);
 
@@ -268,8 +275,8 @@ function MoneyRequestParticipantsSelector({
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
         (canUseP2PDistanceRequests ?? iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
-        !([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE] as string[]).includes(iouType) &&
-        !([CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE] as string[]).includes(action);
+        ![CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE].some((option) => option === iouType) &&
+        ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].some((option) => option === action);
 
     const handleConfirmSelection = useCallback(
         (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Participant) => {
