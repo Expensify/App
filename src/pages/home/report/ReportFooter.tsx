@@ -128,11 +128,7 @@ function ReportFooter({
     );
 
     const onSubmitComment = useCallback(
-        (text: string | undefined) => {
-            if (text === undefined) {
-                return;
-            }
-
+        (text: string) => {
             const isTaskCreated = handleCreateTask(text);
             if (isTaskCreated) {
                 return;

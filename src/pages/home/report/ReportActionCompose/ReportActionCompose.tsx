@@ -75,7 +75,7 @@ type ReportActionComposeProps = ReportActionComposeOnyxProps &
     WithCurrentUserPersonalDetailsProps &
     Pick<ComposerWithSuggestionsProps, 'reportID' | 'isEmptyChat' | 'isComposerFullSize' | 'listHeight' | 'lastReportAction'> & {
         /** A method to call when the form is submitted */
-        onSubmit: (newComment: string | undefined) => void;
+        onSubmit: (newComment: string) => void;
 
         /** The report currently being looked at */
         report: OnyxEntry<OnyxTypes.Report>;
