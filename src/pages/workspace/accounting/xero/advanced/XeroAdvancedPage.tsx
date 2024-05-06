@@ -22,13 +22,19 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const xeroConfig = policy?.connections?.xero?.config;
     const {autoSync, pendingFields, sync} = xeroConfig ?? {};
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
-    const {invoiceCollectionsAccountID} = sync ?? {};
+    const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
 
     const selectedBankAccountName = useMemo(() => {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === invoiceCollectionsAccountID);
 
         return selectedAccount?.name ?? '';
     }, [bankAccounts, invoiceCollectionsAccountID]);
+
+    const selectedBillPaymentAccountName =  useMemo(() => {
+        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === reimbursementAccountID);
+
+        return selectedAccount?.name ?? '';
+    }, [bankAccounts, reimbursementAccountID]);
 
     return (
         <ConnectionLayout
@@ -86,7 +92,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     <OfflineWithFeedback pendingAction={pendingFields?.sync}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
-                            title={String(bankAccounts)}
+                            title={String(selectedBillPaymentAccountName)}
                             description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
