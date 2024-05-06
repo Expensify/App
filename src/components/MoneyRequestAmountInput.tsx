@@ -228,8 +228,12 @@ function MoneyRequestAmountInput(
         if (!formatAmountOnBlur) {
             return;
         }
-        setCurrentAmount(CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency));
-    }, [amount, currency, formatAmountOnBlur]);
+        const formattedAmount = CurrencyUtils.convertToDisplayStringWithoutCurrency(amount, currency);
+        if (maxLength && formattedAmount.length > maxLength) {
+            return;
+        }
+        setCurrentAmount(formattedAmount);
+    }, [amount, currency, formatAmountOnBlur, maxLength]);
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
 

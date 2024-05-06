@@ -1064,12 +1064,13 @@ function MoneyRequestConfirmationList({
 
     return (
         <>
-            {/** Hide it temporarily, it will back when https://github.com/Expensify/App/pull/40386 is merged */}
-            {isTypeSplit && action === CONST.IOU.ACTION.CREATE && false && (
+            {isTypeSplit && action === CONST.IOU.ACTION.CREATE && (
                 <MenuItem
                     key={translate('moneyRequestConfirmationList.paidBy')}
                     label={translate('moneyRequestConfirmationList.paidBy')}
-                    interactive={!isPolicyExpenseChat && !isReadOnly}
+                    // TODO: re-enable this once delegated splits are fully implemented
+                    // interactive={!isPolicyExpenseChat && !isReadOnly}
+                    interactive={false}
                     description={payeePersonalDetails.login ?? ReportUtils.getDisplayNameForParticipant(payeePersonalDetails.accountID)}
                     title={payeePersonalDetails.displayName ?? ReportUtils.getDisplayNameForParticipant(payeePersonalDetails.accountID)}
                     icon={payeeIcons}
@@ -1078,7 +1079,9 @@ function MoneyRequestConfirmationList({
                             ROUTES.MONEY_REQUEST_STEP_SPLIT_PAYER.getRoute(action, iouType, transaction?.transactionID ?? '', reportID, Navigation.getActiveRouteWithoutParams()),
                         );
                     }}
-                    shouldShowRightIcon={!isPolicyExpenseChat && !isReadOnly}
+                    // TODO: re-enable this once delegated splits are fully implemented
+                    // shouldShowRightIcon={!isPolicyExpenseChat && !isReadOnly}
+                    shouldShowRightIcon={false}
                     titleWithTooltips={payeePersonalDetails?.isOptimisticPersonalDetail ? undefined : payeeTooltipDetails}
                 />
             )}
