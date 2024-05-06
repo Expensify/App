@@ -23,6 +23,7 @@
             "ES2023.Array"
         ],
         "allowJs": true,
+        "checkJs": false,
         "isolatedModules": true,
         "strict": true,
         "allowSyntheticDefaultImports": true,
