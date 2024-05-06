@@ -249,5 +249,11 @@ module.exports = {
                 'rulesdir/no-default-props': 'off',
             },
         },
+        {
+            files: ['en.ts', 'es.ts'],
+            rules: {
+                'rulesdir/use-periods-for-error-messages': 'error',
+            },
+        },
     ],
 };

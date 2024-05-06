@@ -1004,6 +1004,10 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return true;
     }
 
+    if (!ReportUtils.canWriteInReport(ReportUtils.getReport(taskReport?.reportID))) {
+        return false;
+    }
+
     return !isEmptyObject(taskReport) && ReportUtils.isAllowedToComment(taskReport);
 }
 

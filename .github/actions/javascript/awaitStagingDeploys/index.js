@@ -12631,7 +12631,12 @@ function promiseWhile(condition, action) {
                     resolve();
                     return;
                 }
-                Promise.resolve(actionResult).then(loop).catch(reject);
+                Promise.resolve(actionResult)
+                    .then(() => {
+                    // Set a timeout to delay the next loop iteration
+                    setTimeout(loop, 1000); // 1000 ms delay
+                })
+                    .catch(reject);
             }
         };
         loop();
@@ -12667,6 +12672,7 @@ function promiseDoWhile(condition, action) {
 
 
 function run() {
+    console.info('[awaitStagingDeploys] POLL RATE', libs_CONST.POLL_RATE);
     console.info('[awaitStagingDeploys] run()');
     console.info('[awaitStagingDeploys] getStringInput', getStringInput);
     console.info('[awaitStagingDeploys] GitHubUtils', libs_GithubUtils);
