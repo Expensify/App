@@ -152,7 +152,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                 subtitle: activeChatMembers.length,
                 isAnonymousAction: false,
                 action: () => {
-                    if (isUserCreatedPolicyRoom || isChatThread) {
+                    if (isUserCreatedPolicyRoom || isChatThread || isPolicyExpenseChat) {
                         Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID ?? ''));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID ?? ''));
@@ -161,7 +161,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
             });
         } else if (
             (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
-            ((isDefaultRoom || ReportUtils.isPolicyExpenseChat(report)) && isChatThread && !isPolicyEmployee)
+            ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)
         ) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
