@@ -56,6 +56,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                                             isSwitchOn ? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE : CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                                         )
                                     }
+                                    disabled={shouldLocationImportBeOff}
                                 />
                             </View>
                         </OfflineWithFeedback>
