@@ -90,7 +90,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             description={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             key={translate('workspace.xero.advancedConfig.xeroBillPaymentAccount')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                            onPress={() => {}}
+                            onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR.getRoute(policyID))}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={pendingFields?.sync}>
