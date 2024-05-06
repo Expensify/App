@@ -262,12 +262,13 @@ function MoneyRequestConfirmationList({
 
     const {unit, rate} = mileageRate ?? {};
 
+    const distance = TransactionUtils.getDistance(transaction);
     const prevRate = usePrevious(rate);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
+    const prevDistance = usePrevious(distance);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
-    const distance = transaction?.routes?.route0?.distance ?? 0;
     const taxRates = policy?.taxRates ?? null;
 
     // A flag for showing the categories field
@@ -535,6 +536,7 @@ function MoneyRequestConfirmationList({
             return;
         }
         IOU.setMoneyRequestCategory(transactionID, enabledCategories[0].name);
+        // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired]);
 
@@ -552,7 +554,9 @@ function MoneyRequestConfirmationList({
         if (updatedTagsString !== TransactionUtils.getTag(transaction) && updatedTagsString) {
             IOU.setMoneyRequestTag(transactionID, updatedTagsString);
         }
-    }, [policyTagLists, transaction, transactionID, policyTags, canUseViolations]);
+        // Keep 'transaction' out to ensure that we autoselect the option only once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyTagLists, policyTags, canUseViolations]);
 
     /**
      */
@@ -840,7 +844,7 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
@@ -965,30 +969,44 @@ function MoneyRequestConfirmationList({
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
     const receiptThumbnailContent = useMemo(
-        () =>
-            isLocalFile && Str.isPDF(receiptFilename) ? (
-                <PDFThumbnail
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    previewSourceURL={resolvedReceiptImage as string}
-                    style={styles.moneyRequestImage}
-                    // We don't support scaning password protected PDF receipt
-                    enabled={!isAttachmentInvalid}
-                    onPassword={() => setIsAttachmentInvalid(true)}
-                />
-            ) : (
-                <ReceiptImage
-                    style={styles.moneyRequestImage}
-                    isThumbnail={isThumbnail}
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    source={resolvedThumbnail || resolvedReceiptImage || ''}
-                    // AuthToken is required when retrieving the image from the server
-                    // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                    // So if we have a thumbnail, it means we're retrieving the image from the server
-                    isAuthTokenRequired={!!receiptThumbnail}
-                    fileExtension={fileExtension}
-                />
-            ),
-        [isLocalFile, receiptFilename, resolvedThumbnail, styles.moneyRequestImage, isAttachmentInvalid, isThumbnail, resolvedReceiptImage, receiptThumbnail, fileExtension],
+        () => (
+            <View style={styles.moneyRequestImage}>
+                {isLocalFile && Str.isPDF(receiptFilename) ? (
+                    <PDFThumbnail
+                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                        previewSourceURL={resolvedReceiptImage as string}
+                        // We don't support scaning password protected PDF receipt
+                        enabled={!isAttachmentInvalid}
+                        onPassword={() => setIsAttachmentInvalid(true)}
+                    />
+                ) : (
+                    <ReceiptImage
+                        isThumbnail={isThumbnail}
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        source={resolvedThumbnail || resolvedReceiptImage || ''}
+                        // AuthToken is required when retrieving the image from the server
+                        // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                        // So if we have a thumbnail, it means we're retrieving the image from the server
+                        isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                        fileExtension={fileExtension}
+                        shouldUseThumbnailImage
+                        shouldUseInitialObjectPosition={isDistanceRequest}
+                    />
+                )}
+            </View>
+        ),
+        [
+            isLocalFile,
+            receiptFilename,
+            resolvedThumbnail,
+            styles.moneyRequestImage,
+            isAttachmentInvalid,
+            isThumbnail,
+            resolvedReceiptImage,
+            receiptThumbnail,
+            fileExtension,
+            isDistanceRequest,
+        ],
     );
 
     return (
@@ -1040,7 +1058,7 @@ function MoneyRequestConfirmationList({
                         key={translate('workspace.invoices.sendFrom')}
                         shouldShowRightIcon={!isReadOnly && canUpdateSenderWorkspace}
                         title={senderWorkspace?.name}
-                        icon={senderWorkspace?.avatar ? senderWorkspace?.avatar : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
+                        icon={senderWorkspace?.avatarURL ? senderWorkspace?.avatarURL : getDefaultWorkspaceAvatar(senderWorkspace?.name)}
                         iconType={CONST.ICON_TYPE_WORKSPACE}
                         description={translate('workspace.common.workspace')}
                         label={translate('workspace.invoices.sendFrom')}
