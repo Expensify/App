@@ -25,6 +25,7 @@
         "allowJs": true,
         "checkJs": false,
         "jsx": "react-native",
+        "noEmit": true,
         "isolatedModules": true,
         "strict": true,
         "allowSyntheticDefaultImports": true,
