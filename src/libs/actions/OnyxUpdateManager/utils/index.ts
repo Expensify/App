@@ -109,7 +109,7 @@ function validateAndApplyDeferredUpdates(clientLastUpdateID?: number): Promise<v
                 // the initial "updatesAfterGaps" and all new deferred updates will be applied in order,
                 // as long as there was no new gap detected. Otherwise repeat the process.
 
-                const newLastUpdateIDFromClient = clientLastUpdateID ?? lastUpdateIDAppliedToClient ?? 0;
+                const newLastUpdateIDFromClient = 0;
 
                 deferredUpdatesProxy.deferredUpdates = {...deferredUpdatesProxy.deferredUpdates, ...updatesAfterGaps};
 

@@ -76,6 +76,8 @@ function BaseSelectionList<TItem extends ListItem>(
         sectionTitleStyles,
         textInputAutoFocus = true,
         shouldTextInputInterceptSwipe = false,
+        onEndReached = () => {},
+        onEndReachedThreshold,
     }: BaseSelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -618,6 +620,8 @@ function BaseSelectionList<TItem extends ListItem>(
                                 onLayout={onSectionListLayout}
                                 style={(!maxToRenderPerBatch || (shouldHideListOnInitialRender && isInitialSectionListRender)) && styles.opacity0}
                                 ListFooterComponent={listFooterContent ?? ShowMoreButtonInstance}
+                                onEndReached={onEndReached}
+                                onEndReachedThreshold={onEndReachedThreshold}
                             />
                             {children}
                         </>
