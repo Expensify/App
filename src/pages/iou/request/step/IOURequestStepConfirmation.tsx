@@ -134,7 +134,7 @@ function IOURequestStepConfirmation({
             }) ?? [],
         [transaction?.participants, personalDetails, iouType],
     );
-    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)) || ReportUtils.isGroupPolicy(policy?.type ?? ''), [report, policy]);
+    const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(ReportUtils.getRootParentReport(report)), [report]);
     const formHasBeenSubmitted = useRef(false);
 
     useEffect(() => {
@@ -563,7 +563,7 @@ function IOURequestStepConfirmation({
                         // split rather than forcing the user to create a new group, just for that expense. The reportID is empty, when the action was initiated from
                         // the floating-action-button (since it is something that exists outside the context of a report).
                         canModifyParticipants={!transaction?.isFromGlobalCreate}
-                        policyID={report?.policyID ?? policy?.id ?? ''}
+                        policyID={report?.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(report)}
                         iouMerchant={transaction?.merchant}
                         iouCreated={transaction?.created}
