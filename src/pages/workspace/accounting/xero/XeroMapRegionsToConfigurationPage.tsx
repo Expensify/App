@@ -16,7 +16,7 @@ import ROUTES from '@src/ROUTES';
 function XeroMapRegionsToConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    
+
     const policyID = policy?.id ?? '';
     const category = getTrackingCategory(policy, CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.REGION);
 
