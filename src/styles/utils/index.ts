@@ -1089,6 +1089,44 @@ function getMultiGestureCanvasContainerStyle(canvasWidth: number): ViewStyle {
     };
 }
 
+function percentage(percentageValue: number, totalValue: number) {
+    return (totalValue / 100) * percentageValue;
+}
+
+/**
+ * Calculates the width in px of characters from 0 to 9 and '.'
+ */
+function getCharacterWidth(character: string) {
+    const defaultWidth = 8;
+    if (character === '.') {
+        return percentage(25, defaultWidth);
+    }
+    const number = +character;
+
+    // The digit '1' is 62.5% smaller than the default width
+    if (number === 1) {
+        return percentage(62.5, defaultWidth);
+    }
+    if (number >= 2 && number <= 5) {
+        return defaultWidth;
+    }
+    if (number === 7) {
+        return percentage(87.5, defaultWidth);
+    }
+    if ((number >= 6 && number <= 9) || number === 0) {
+        return percentage(112.5, defaultWidth);
+    }
+    return defaultWidth;
+}
+
+function getAmountWidth(amount: string): number {
+    let width = 0;
+    for (let i = 0; i < amount.length; i++) {
+        width += getCharacterWidth(amount.charAt(i));
+    }
+    return width;
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1160,6 +1198,8 @@ const staticStyleUtils = {
     getSignInBgStyles,
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
+    getCharacterWidth,
+    getAmountWidth,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({

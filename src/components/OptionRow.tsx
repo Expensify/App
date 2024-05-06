@@ -255,19 +255,21 @@ function OptionRow({
                                 ) : null}
                                 {option.shouldShowAmountInput && option.amountInputProps ? (
                                     <MoneyRequestAmountInput
+                                        amount={option.amountInputProps.amount}
+                                        currency={option.amountInputProps.currency}
+                                        prefixCharacter={option.amountInputProps.prefixCharacter}
                                         disableKeyboard={false}
                                         isCurrencyPressable={false}
                                         hideCurrencySymbol
                                         formatAmountOnBlur
-                                        touchableInputWrapperStyle={[styles.optionRowAmountInputWrapper]}
+                                        touchableInputWrapperStyle={[styles.optionRowAmountInputWrapper, option.amountInputProps.containerStyle]}
                                         prefixContainerStyle={[styles.pv0]}
                                         inputStyle={[
                                             styles.optionRowAmountInput,
                                             StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(option.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft) as TextStyle,
+                                            option.amountInputProps.inputStyle,
                                         ]}
                                         containerStyle={styles.iouAmountTextInputContainer}
-                                        // eslint-disable-next-line react/jsx-props-no-spreading
-                                        {...option.amountInputProps}
                                     />
                                 ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
