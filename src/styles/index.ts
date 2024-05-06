@@ -2348,6 +2348,7 @@ const styles = (theme: ThemeColors) =>
             lineHeight: undefined,
             marginLeft: -2,
             textAlign: 'center',
+            zIndex: 10,
         },
 
         emptyAvatar: {
@@ -4210,6 +4211,7 @@ const styles = (theme: ThemeColors) =>
             height: 200,
             borderRadius: 16,
             margin: 20,
+            overflow: 'hidden',
         },
 
         reportPreviewBox: {
@@ -4529,6 +4531,10 @@ const styles = (theme: ThemeColors) =>
 
             paddingHorizontal: 8,
             paddingVertical: 4,
+        },
+
+        headerStatusBarContainer: {
+            minHeight: variables.componentSizeNormal,
         },
 
         walletCardLimit: {
