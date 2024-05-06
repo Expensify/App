@@ -617,6 +617,8 @@ export default {
         trackManual: 'Track expense',
         trackScan: 'Track receipt',
         trackDistance: 'Track distance',
+        noLongerHaveReportAccess: 'You no longer have access to your previous quick action destination. Pick a new one below.',
+        updateDestination: 'Update destination',
     },
     iou: {
         amount: 'Amount',
@@ -1989,7 +1991,7 @@ export default {
                 qboInvoiceCollectionAccount: 'QuickBooks invoice collections account',
                 accountSelectDescription:
                     "As you've enabled sync reimbursed reports, you will need select the bank account your reimbursements are coming out of, and we'll create the payment in QuickBooks.",
-                invoiceAccountSelectDescription:
+                invoiceAccountSelectorDescription:
                     'If you are exporting invoices from Expensify to Quickbooks Online, this is the account the invoice will appear against once marked as paid.',
             },
             accounts: {
@@ -2033,6 +2035,7 @@ export default {
                 reimbursedReportsDescription: 'Any time a report is paid using Expensify ACH, the corresponding bill payment will be created in the Xero account below.',
                 xeroBillPaymentAccount: 'Xero Bill Payment Account',
                 xeroInvoiceCollectionAccount: 'Xero Invoice Collections Account',
+                invoiceAccountSelectorDescription: "As you've enabled exporting invoices from Expensify to Xero, this is the account the invoice will appear against once marked as paid.",
             },
         },
         type: {
