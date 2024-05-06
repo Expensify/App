@@ -24,6 +24,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID ?? '0'}`];
     const title = policy ? ReportUtils.getPolicyName(report, false, policy) : report?.reportName;
     const avatarURL = policy ? ReportUtils.getWorkspaceAvatar(report) : report?.avatarUrl;
+    const fileName = policy?.originalFileName ?? title;
 
     return (
         <AttachmentModal
@@ -35,7 +36,7 @@ function ReportAvatar({report = {} as Report, policies, isLoadingApp = true}: Re
             }}
             isWorkspaceAvatar
             maybeIcon
-            originalFileName={policy?.originalFileName ?? title}
+            originalFileName={fileName}
             shouldShowNotFoundPage={!report?.reportID && !isLoadingApp}
             isLoading={(!report?.reportID || !policy?.id) && !!isLoadingApp}
         />
