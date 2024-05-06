@@ -1,6 +1,3 @@
-// TODO: OptionsSelector will be replaced with SelectionList - issue tracked https://github.com/Expensify/App/issues/25125
-
-/* eslint-disable you-dont-need-lodash-underscore/find, you-dont-need-lodash-underscore/find-index, you-dont-need-lodash-underscore/get, you-dont-need-lodash-underscore/map, you-dont-need-lodash-underscore/values */
 import lodashDebounce from 'lodash/debounce';
 import lodashFind from 'lodash/find';
 import lodashFindIndex from 'lodash/findIndex';
