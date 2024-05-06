@@ -4729,6 +4729,8 @@ const CONST = {
         CARD: 'card',
         DISTANCE: 'distance',
     },
+
+    SEARCH_RESULTS_PAGE_SIZE: 50,
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

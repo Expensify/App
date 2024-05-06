@@ -11,6 +11,7 @@ import useCustomBackHandler from '@pages/Search/useCustomBackHandler';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import CONST from '@src/CONST';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import SelectionList from './SelectionList';
 import SearchTableHeader from './SelectionList/SearchTableHeader';
@@ -55,6 +56,13 @@ function Search({query}: SearchProps) {
         Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(query, reportID));
     };
 
+    const fetchMoreResults = () => {
+        const currentOffset = searchResults?.search?.offset ?? 0;
+        const nexOffset = currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE;
+
+        Navigation.navigate(ROUTES.SEARCH.getRoute(query, nexOffset));
+    }
+
     const ListItem = SearchUtils.getListItem();
     const data = SearchUtils.getSections(searchResults?.data ?? {});
     const shouldShowMerchant = SearchUtils.getShouldShowMerchant(searchResults?.data ?? {});
@@ -70,6 +78,8 @@ function Search({query}: SearchProps) {
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
             containerStyle={[styles.pv0]}
+            onEndReachedThreshold={0.75}
+            onEndReached={fetchMoreResults}
         />
     );
 }

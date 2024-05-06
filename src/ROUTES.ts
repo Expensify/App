@@ -24,8 +24,8 @@ const ROUTES = {
     ALL_SETTINGS: 'all-settings',
 
     SEARCH: {
-        route: '/search/:query',
-        getRoute: (query: string) => `search/${query}` as const,
+        route: '/search/:query/:offset',
+        getRoute: (query: string, offset: number) => `search/${query}/${offset}` as const,
     },
 
     SEARCH_REPORT: {
