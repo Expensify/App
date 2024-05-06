@@ -736,7 +736,7 @@ function clearOutTaskInfoAndNavigate(reportID?: string, chatReport?: OnyxEntry<O
     }
     if (accountID > 0) {
         const accountLogin = allPersonalDetails?.[accountID]?.login ?? '';
-        setAssigneeValue(accountLogin, accountID, reportID, chatReport, skipConfirmation);
+        setAssigneeValue(accountLogin, accountID, reportID, chatReport, false, skipConfirmation);
     }
     Navigation.navigate(ROUTES.NEW_TASK_DETAILS);
 }
