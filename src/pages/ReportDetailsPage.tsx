@@ -159,10 +159,7 @@ function ReportDetailsPage({policies, report, session, personalDetails}: ReportD
                     }
                 },
             });
-        } else if (
-            (isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) ||
-            ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)
-        ) {
+        } else if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.INVITE,
                 translationKey: 'common.invite',
