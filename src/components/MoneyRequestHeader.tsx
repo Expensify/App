@@ -219,9 +219,10 @@ function MoneyRequestHeader({
                             ) : (
                                 <Icon
                                     src={pendingTitle}
-                                    height={variables.iconSizeExtraSmall}
-                                    width={variables.iconSizeExtraSmall}
+                                    height={variables.iconSizeSmall}
+                                    width={variables.iconSizeSmall}
                                     fill={theme.textSupporting}
+                                    additionalStyles={[styles.mr2]}
                                 />
                             )
                         }
