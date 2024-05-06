@@ -30,7 +30,7 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
         return selectedAccount?.name ?? '';
     }, [bankAccounts, invoiceCollectionsAccountID]);
 
-    const selectedBillPaymentAccountName =  useMemo(() => {
+    const selectedBillPaymentAccountName = useMemo(() => {
         const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === reimbursementAccountID);
 
         return selectedAccount?.name ?? '';
