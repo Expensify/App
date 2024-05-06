@@ -23,7 +23,6 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const {importTrackingCategories, pendingFields} = policy?.connections?.xero?.config ?? {};
-    const {trackingCategories} = policy?.connections?.xero?.data ?? {};
 
     const menuItems: MenuItemProps[] = useMemo(() => {
         const availableCategories = [];
@@ -38,7 +37,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             });
         }
 
-        if (trackingCategories?.find((category) => category.name.toLowerCase() === CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.REGION)) {
+        if (regionCategoryValue) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroRegionsTo'),
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION.getRoute(policyID)),
@@ -46,7 +45,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             });
         }
         return availableCategories;
-    }, [translate, policy, policyID, trackingCategories]);
+    }, [translate, policy, policyID]);
 
     return (
         <ConnectionLayout
