@@ -19,9 +19,10 @@ import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
+    offset: number;
 };
 
-function Search({query}: SearchProps) {
+function Search({query, offset}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
@@ -34,8 +35,8 @@ function Search({query}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query);
-    }, [query, isOffline]);
+        SearchActions.search(query, offset);
+    }, [query, offset, isOffline]);
 
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);
@@ -57,10 +58,12 @@ function Search({query}: SearchProps) {
     };
 
     const fetchMoreResults = () => {
-        const currentOffset = searchResults?.search?.offset ?? 0;
-        const nexOffset = currentOffset + CONST.SEARCH_RESULTS_PAGE_SIZE;
+        if (!searchResults?.search?.hasMoreResults) {
+            return;
+        }
 
-        Navigation.navigate(ROUTES.SEARCH.getRoute(query, nexOffset));
+        const nextOffset = offset + CONST.SEARCH_RESULTS_PAGE_SIZE;
+        Navigation.navigate(ROUTES.SEARCH.getRoute(query, nextOffset));
     }
 
     const ListItem = SearchUtils.getListItem();

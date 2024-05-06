@@ -25,7 +25,7 @@ const ROUTES = {
 
     SEARCH: {
         route: '/search/:query/:offset',
-        getRoute: (query: string, offset: number) => `search/${query}/${offset}` as const,
+        getRoute: (query: string, offset = 0) => `search/${query}/${offset}` as const,
     },
 
     SEARCH_REPORT: {
