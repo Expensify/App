@@ -105,6 +105,7 @@ function MoneyRequestParticipantsSelector({
             // sees the option to submit an expense from their admin on their own Workspace Chat.
             (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.SPLIT) && action !== CONST.IOU.ACTION.SUBMIT,
 
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             {},
@@ -112,6 +113,7 @@ function MoneyRequestParticipantsSelector({
             false,
             {},
             [],
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) && !isCategorizeOrShareAction,
             false,
             undefined,
