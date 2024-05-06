@@ -650,7 +650,7 @@ function setAssigneeChatReport(chatReport: OnyxTypes.Report) {
     Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
 }
 
-function setOptimisticDataForNewAssingee(assigneeLogin: string, assigneeAccountID: number | undefined = undefined) {
+function setNewOptimisticAssignee(assigneeLogin: string, assigneeAccountID: number | undefined = undefined) {
     const currentAssigneeAccountID = assigneeAccountID ?? UserUtils.generateAccountID(assigneeLogin);
     const report: ReportUtils.OptimisticChatReport = ReportUtils.buildOptimisticChatReport([currentAssigneeAccountID]);
 
@@ -691,7 +691,7 @@ function setAssigneeValue(
         }
         // If chat report is still not found we need to build new optimistic chat report
         if (!report) {
-            report = setOptimisticDataForNewAssingee(assigneeEmail, assigneeAccountID).assigneeReport;
+            report = setNewOptimisticAssignee(assigneeEmail, assigneeAccountID).assigneeReport;
         }
 
         // The optimistic field may not exist in the existing report and it can be overridden by the optimistic field of previous report data when merging the assignee chat report
@@ -1053,7 +1053,7 @@ export {
     getTaskAssigneeAccountID,
     clearTaskErrors,
     canModifyTask,
-    setOptimisticDataForNewAssingee,
+    setNewOptimisticAssignee,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};
