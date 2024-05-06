@@ -33,6 +33,7 @@ import type {
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
+    ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
     SetNameValuePairParams,
@@ -3597,6 +3598,51 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+function resolveActionableReportMentionWhisper(
+    reportId: string,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
+) {
+    if (!reportAction) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {
+                        resolution,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: ResolveActionableReportMentionWhisperParams = {
+        reportActionID: reportAction.reportActionID,
+        resolution,
+    };
+
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
+}
+
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -3718,6 +3764,7 @@ export {
     deleteReportField,
     clearReportFieldErrors,
     resolveActionableMentionWhisper,
+    resolveActionableReportMentionWhisper,
     updateRoomVisibility,
     dismissTrackExpenseActionableWhisper,
     setGroupDraft,

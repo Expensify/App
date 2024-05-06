@@ -10,6 +10,7 @@ import type {
     ApproveMoneyRequestParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
+    CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
     EditMoneyRequestParams,
@@ -82,6 +83,7 @@ type MoneyRequestInformation = {
 };
 
 type TrackExpenseInformation = {
+    createdWorkspaceParams?: CreateWorkspaceParams;
     iouReport?: OnyxTypes.Report;
     chatReport: OnyxTypes.Report;
     transaction: OnyxTypes.Transaction;
@@ -1153,6 +1155,9 @@ function buildOnyxDataForTrackExpense(
     const isDistanceRequest = TransactionUtils.isDistanceRequest(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS> = CONST.QUICK_ACTIONS.TRACK_MANUAL;
     if (isScanRequest) {
         newQuickAction = CONST.QUICK_ACTIONS.TRACK_SCAN;
@@ -1266,8 +1271,6 @@ function buildOnyxDataForTrackExpense(
         });
     }
 
-    const successData: OnyxUpdate[] = [];
-
     if (iouReport) {
         successData.push(
             {
@@ -1349,8 +1352,6 @@ function buildOnyxDataForTrackExpense(
             },
         });
     }
-
-    const failureData: OnyxUpdate[] = [];
 
     failureData.push({
         onyxMethod: Onyx.METHOD.SET,
@@ -2008,6 +2009,10 @@ function getTrackExpenseInformation(
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction,
     existingTransactionID?: string,
 ): TrackExpenseInformation | EmptyObject {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
     // STEP 1: Get existing chat report
@@ -2022,6 +2027,19 @@ function getTrackExpenseInformation(
     // Maybe later, we can build an optimistic selfDM chat.
     if (!chatReport) {
         return {};
+    }
+
+    // Check if the report is a draft
+    const isDraftReport = ReportUtils.isDraftReport(chatReport?.reportID);
+
+    let createdWorkspaceParams: CreateWorkspaceParams | undefined;
+
+    if (isDraftReport) {
+        const workspaceData = Policy.buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID);
+        createdWorkspaceParams = workspaceData.params;
+        optimisticData.push(...workspaceData.optimisticData);
+        successData.push(...workspaceData.successData);
+        failureData.push(...workspaceData.failureData);
     }
 
     // STEP 2: If not in the self-DM flow, we need to use the expense report.
@@ -2131,7 +2149,7 @@ function getTrackExpenseInformation(
     }
 
     // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForTrackExpense(
+    const trackExpenseOnyxData = buildOnyxDataForTrackExpense(
         chatReport,
         iouReport,
         optimisticTransaction,
@@ -2147,6 +2165,7 @@ function getTrackExpenseInformation(
     );
 
     return {
+        createdWorkspaceParams,
         chatReport,
         iouReport: iouReport ?? undefined,
         transaction: optimisticTransaction,
@@ -2157,9 +2176,9 @@ function getTrackExpenseInformation(
         transactionThreadReportID: optimisticTransactionThread.reportID,
         createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
         onyxData: {
-            optimisticData,
-            successData,
-            failureData,
+            optimisticData: [...optimisticData, ...trackExpenseOnyxData[0]],
+            successData: [...successData, ...trackExpenseOnyxData[1]],
+            failureData: [...failureData, ...trackExpenseOnyxData[2]],
         },
     };
 }
@@ -3116,6 +3135,7 @@ function categorizeTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
+    createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3158,6 +3178,12 @@ function categorizeTrackedExpense(
         billable,
         created,
         receipt,
+        policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
+        policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
+        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
+        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
+        adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
+        adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3186,6 +3212,7 @@ function shareTrackedExpense(
     taxAmount = 0,
     billable?: boolean,
     receipt?: Receipt,
+    createdWorkspaceParams?: CreateWorkspaceParams,
 ) {
     const {optimisticData, successData, failureData} = onyxData;
 
@@ -3228,6 +3255,12 @@ function shareTrackedExpense(
         taxAmount,
         billable,
         receipt,
+        policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
+        policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
+        announceChatReportID: createdWorkspaceParams?.announceChatReportID,
+        announceCreatedReportActionID: createdWorkspaceParams?.announceCreatedReportActionID,
+        adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
+        adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -3456,6 +3489,7 @@ function trackExpense(
 
     const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
     const {
+        createdWorkspaceParams,
         iouReport,
         chatReport,
         transaction,
@@ -3517,6 +3551,7 @@ function trackExpense(
                 taxAmount,
                 billable,
                 receipt,
+                createdWorkspaceParams,
             );
             break;
         }
@@ -3547,6 +3582,7 @@ function trackExpense(
                 taxAmount,
                 billable,
                 receipt,
+                createdWorkspaceParams,
             );
             break;
         }
@@ -3705,6 +3741,7 @@ function createSplitsAndOnyxData(
     splitChatReport.lastReadTime = DateUtils.getDBTime();
     splitChatReport.lastMessageText = splitIOUReportAction.message?.[0]?.text;
     splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0]?.html;
+    splitChatReport.lastActorAccountID = currentUserAccountID;
 
     let splitChatReportNotificationPreference = splitChatReport.notificationPreference;
     if (splitChatReportNotificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
