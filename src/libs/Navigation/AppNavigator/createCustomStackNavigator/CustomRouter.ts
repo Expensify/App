@@ -17,12 +17,15 @@ function insertRootRoute(state: State<RootStackParamList>, routeToInsert: Naviga
 
     // It's safe to modify this state before returning in getRehydratedState.
 
+    // @ts-expect-error Updating read only property
     // noinspection JSConstantReassignment
     state.routes = [...nonModalRoutes, routeToInsert, ...modalRoutes]; // eslint-disable-line
 
+    // @ts-expect-error Updating read only property
     // noinspection JSConstantReassignment
     state.index = state.routes.length - 1; // eslint-disable-line
 
+    // @ts-expect-error Updating read only property
     // noinspection JSConstantReassignment
     state.stale = true; // eslint-disable-line
 }

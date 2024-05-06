@@ -100,6 +100,7 @@ function sanitizeConsoleInput(text: string) {
 function createLog(text: string) {
     const time = new Date();
     try {
+        // @ts-expect-error Any code inside `sanitizedInput` that gets evaluated by `eval()` will be executed in the context of the current this value.
         // eslint-disable-next-line no-eval, no-invalid-this
         const result = eval.call(this, text);
 
