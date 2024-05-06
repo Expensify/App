@@ -892,7 +892,7 @@ function navigateToAndOpenReport(
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
     optimisticReportID?: string,
-    isGroupChat?: boolean,
+    isGroupChat = false,
 ) {
     let newChat: ReportUtils.OptimisticChatReport | EmptyObject = {};
     let chat: OnyxEntry<Report> | EmptyObject = {};
