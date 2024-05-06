@@ -318,8 +318,10 @@ export default {
             subtitleText3: '.',
         },
         businessName: 'Nombre de la empresa',
+        clear: 'Borrar',
         type: 'Tipo',
         action: 'Acción',
+        expenses: 'Gastos',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1862,6 +1864,28 @@ export default {
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor, comprueba tu conexión e inténtalo de nuevo.',
     },
+    travel: {
+        header: 'Reservar viajes',
+        title: 'Viaja de forma inteligente',
+        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos los gastos de tu negocio en un solo lugar.',
+        features: {
+            saveMoney: 'Ahorra dinero en tus reservas',
+            alerts: 'Obtén actualizaciones y alertas en tiempo real',
+        },
+        bookTravel: 'Reservar viajes',
+        termsAndConditions: {
+            header: 'Antes de continuar...',
+            title: 'Por favor, lee los Términos y condiciones para reservar viajes',
+            subtitle: 'Para permitir la opción de reservar viajes en su espacio de trabajo debe aceptar nuestros ',
+            termsconditions: 'términos y condiciones',
+            travelTermsAndConditions: 'términos y condiciones de viaje',
+            helpDocIntro: 'Consulta este ',
+            helpDocOutro: 'para obtener más información o comunícate con Concierge o tu gestor de cuentas.',
+            helpDoc: 'documento de ayuda',
+            agree: 'Acepto los ',
+            error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
+        },
+    },
     workspace: {
         common: {
             card: 'Tarjetas',
@@ -1913,8 +1937,6 @@ export default {
             locations: 'Lugares',
             customers: 'Clientes/Proyectos',
             displayedAs: 'Mostrado como',
-            notImported: 'No importado',
-            importedAsReportFields: 'Importado, mostrado como campo de informe',
             accountsDescription: 'Los planes de cuentas se importan como categorías cuando está conectado con una integración de contaduría, esto no se puede desactivar.',
             accountsSwitchTitle: 'Habilita el plan de cuentas recien importado',
             accountsSwitchDescription: 'Las nuevas categorías importadas desde QuickBooks Online a Expensify serán activadas o desactivadas por defecto.',
@@ -1999,31 +2021,30 @@ export default {
                     'Si está exportando facturas de Expensify a Quickbooks Online, ésta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
             },
             accounts: {
-                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',
-                [CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
-                [CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK]: 'Cheque',
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD]: 'Tarjeta de débito',
+                [CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD]: 'Tarjeta de crédito',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL]: 'Factura del proveedor',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY]: 'Asiento contable',
+                [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Cheque',
 
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'.",
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}Description`]:
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'.",
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Description`]:
                     'Crearemos una única factura detallada con los proveedores por cada informe de Expensify, con fecha del último gasto en el informe. Si este período está cerrado, la publicaremos con fecha del día 1 del próximo período abierto. Puede añadir la factura del proveedor a la cuenta A/P de su elección (a continuación).',
 
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD}AccountDescription`]:
                     'Las transacciones con tarjeta de débito se exportarán a la cuenta bancaria que aparece a continuación.”',
-                [`${CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
+                [`${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}AccountDescription`]:
                     'Las transacciones con tarjeta de crédito se exportarán a la cuenta bancaria que aparece a continuación.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]:
-                    'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}AccountDescription`]: 'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.',
 
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}Error`]:
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.CHECK}Error`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK}Error`]:
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Seleccione una opción de exportación diferente.',
-                [`${CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
+                [`${CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}Error`]:
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. seleccione una opción de exportación diferente.',
             },
         },
@@ -2033,8 +2054,21 @@ export default {
             importDescription: 'Elija qué configuraciones de codificación se importan de Xero a Expensify.',
             trackingCategories: 'Categorías de seguimiento',
             customers: 'Volver a facturar a los clientes',
+            customersDescription:
+                'Importar contactos de clientes. Los gastos facturables necesitan etiquetas para la exportación. Los gastos llevarán la información del cliente a Xero para las facturas de ventas.',
             taxesDescription: 'Elige si quires importar las tasas de impuestos y  los impuestos por defecto de tu integración de contaduría.',
             notImported: 'No importado',
+            advancedConfig: {
+                advanced: 'Avanzado',
+                autoSync: 'Autosincronización',
+                autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
+                purchaseBillStatusTitle: 'Set purchase bill status (optional)',
+                reimbursedReports: 'Sincronizar informes reembolsados',
+                reimbursedReportsDescription:
+                    'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
+                xeroBillPaymentAccount: 'Cuenta de pago de las facturas de Xero',
+                xeroInvoiceCollectionAccount: 'Cuenta de cobro de las facturas Xero',
+            },
         },
         type: {
             free: 'Gratis',
@@ -2235,7 +2269,16 @@ export default {
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
             imported: 'Importado',
-            importedAsTags: 'Importado, mostrado como etiqueta',
+            notImported: 'No importado',
+            importAsCategory: 'Importado, mostrado as categoría',
+            importTypes: {
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.IMPORTED]: 'Importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: 'Importado, mostrado como etiqueta',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.DEFAULT]: 'Importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NOT_IMPORTED]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE]: 'No importado',
+                [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: 'Importado, mostrado como campo de informe',
+            },
             disconnectPrompt: (integrationToConnect?: ConnectionName, currentIntegration?: ConnectionName): string => {
                 switch (integrationToConnect) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -2679,7 +2722,8 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Actualización disponible',
-            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `La nueva versión estará disponible dentro de poco.${isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`,
             soundsGood: 'Suena bien',
         },
         notAvailable: {
@@ -3422,6 +3466,11 @@ export default {
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
     },
+    violationDismissal: {
+        rter: {
+            manual: 'marcó el recibo como pagado en efectivo.',
+        },
+    },
     videoPlayer: {
         play: 'Reproducir',
         pause: 'Pausar',
@@ -3454,5 +3503,8 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    systemMessage: {
+        mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
     },
 } satisfies EnglishTranslation;

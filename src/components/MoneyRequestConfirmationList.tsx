@@ -262,12 +262,13 @@ function MoneyRequestConfirmationList({
 
     const {unit, rate} = mileageRate ?? {};
 
+    const distance = TransactionUtils.getDistance(transaction);
     const prevRate = usePrevious(rate);
-    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate);
+    const prevDistance = usePrevious(distance);
+    const shouldCalculateDistanceAmount = isDistanceRequest && (iouAmount === 0 || prevRate !== rate || prevDistance !== distance);
 
     const currency = (mileageRate as MileageRate)?.currency ?? policyCurrency;
 
-    const distance = TransactionUtils.getDistance(transaction);
     const taxRates = policy?.taxRates ?? null;
 
     // A flag for showing the categories field
@@ -843,7 +844,7 @@ function MoneyRequestConfirmationList({
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams(), reportActionID));
                     }}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
