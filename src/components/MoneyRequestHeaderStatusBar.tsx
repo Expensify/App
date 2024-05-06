@@ -25,11 +25,15 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, borderBottomStyle]}>
             <View style={[styles.mr3]}>
-                <Badge
-                    text={title}
-                    badgeStyles={styles.ml0}
-                    error={danger}
-                />
+                {typeof title === 'string' ? (
+                    <Badge
+                        text={title}
+                        badgeStyles={styles.ml0}
+                        error={danger}
+                    />
+                ) : (
+                    <View style={[styles.mr1]}>{title}</View>
+                )}
             </View>
             <View style={[styles.flexShrink1]}>
                 <Text style={[styles.textLabelSupporting]}>{description}</Text>

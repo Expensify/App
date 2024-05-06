@@ -100,6 +100,8 @@ function MoneyRequestHeader({
         setIsDeleteModalVisible(false);
     }, [parentReport?.reportID, parentReportAction, setIsDeleteModalVisible]);
 
+    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+
     const isDeletedParentAction = ReportActionsUtils.isDeletedAction(parentReportAction);
     const canHoldOrUnholdRequest = !isSettled && !isApproved && !isDeletedParentAction;
 
@@ -121,11 +123,14 @@ function MoneyRequestHeader({
         if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
             return {pendingType: 'PENDING', pendingTitle: translate('iou.pending'), pendingDescription: translate('iou.transactionPendingText')};
         }
-        if (TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction)) {
+        if (isScanning) {
             return {pendingType: 'SCANNING', pendingTitle: ReceiptScan, pendingDescription: translate('iou.receiptScanInProgressDescription')};
         }
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
             return {pendingType: 'RTER', pendingTitle: Expensicons.Hourglass, pendingDescription: translate('iou.pendingMatchWithCreditCardDescription')};
+        }
+        if (isOnHold) {
+            return {pendingType: 'HOLD', pendingTitle: translate('iou.hold'), pendingDescription: translate('iou.expenseOnHold')};
         }
         return {};
     };
@@ -227,6 +232,7 @@ function MoneyRequestHeader({
                         }
                         description={pendingDescription}
                         shouldShowBorderBottom
+                        danger={isOnHold}
                     />
                 )}
             </View>
