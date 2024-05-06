@@ -1436,8 +1436,8 @@ function getDeleteTrackExpenseInformation(
     reportAction: OnyxTypes.ReportAction,
     shouldDeleteTransactionFromOnyx = true,
     isMovingTransactionFromTrackExpense = false,
-    actionableWhisperReportActionID: string,
-    resolution: IOUAction,
+    actionableWhisperReportActionID = '',
+    resolution = '',
 ) {
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
@@ -1475,13 +1475,16 @@ function getDeleteTrackExpenseInformation(
             },
             errors: undefined,
         },
-        [actionableWhisperReportActionID]: {
+    } as OnyxTypes.ReportActions;
+
+      // Resolve actionable whisper message
+    if (actionableWhisperReportActionID) {
+        updatedReportAction[actionableWhisperReportActionID] = {
             originalMessage: {
                 resolution,
             },
-        },
-    } as OnyxTypes.ReportActions;
-
+        };
+    }
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(chatReport?.reportID ?? '', updatedReportAction);
     const {lastMessageText = '', lastMessageHtml = ''} = ReportActionsUtils.getLastVisibleMessage(chatReport?.reportID ?? '', updatedReportAction);
 
@@ -1575,6 +1578,19 @@ function getDeleteTrackExpenseInformation(
         });
     }
 
+    if (actionableWhisperReportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [actionableWhisperReportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        });
+    }
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1591,17 +1607,6 @@ function getDeleteTrackExpenseInformation(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: chatReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [actionableWhisperReportActionID]: {
-                    originalMessage: {
-                        resolution: null,
-                    },
-                },
-            },
         },
     );
 
