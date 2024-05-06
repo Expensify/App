@@ -1,7 +1,6 @@
 import {FlashList} from '@shopify/flash-list';
-import type {ForwardedRef, ReactElement} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef} from 'react';
-import type {View} from 'react-native';
+import type {ReactElement} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // We take ScrollView from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {ScrollView} from 'react-native-gesture-handler';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -11,9 +10,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import viewForwardedRef from '@src/types/utils/viewForwardedRef';
 import type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps} from './types';
 
 const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge: boolean): number => {
@@ -31,18 +30,22 @@ const measureHeightOfSuggestionRows = (numRows: number, isSuggestionPickerLarge:
     return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
 
-function BaseAutoCompleteSuggestions<TSuggestion>(
-    {
-        highlightedSuggestionIndex,
-        onSelect,
-        accessibilityLabelExtractor,
-        renderSuggestionMenuItem,
-        suggestions,
-        isSuggestionPickerLarge,
-        keyExtractor,
-    }: AutoCompleteSuggestionsProps<TSuggestion>,
-    ref: ForwardedRef<View | HTMLDivElement>,
-) {
+/**
+ * On the mobile-web platform, when long-pressing on auto-complete suggestions,
+ * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
+ * The desired pattern for all platforms is to do nothing on long-press.
+ * On the native platform, tapping on auto-complete suggestions will not blur the main input.
+ */
+
+function BaseAutoCompleteSuggestions<TSuggestion>({
+    highlightedSuggestionIndex,
+    onSelect,
+    accessibilityLabelExtractor,
+    renderSuggestionMenuItem,
+    suggestions,
+    isSuggestionPickerLarge,
+    keyExtractor,
+}: AutoCompleteSuggestionsProps<TSuggestion>) {
     const {windowWidth} = useWindowDimensions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -94,9 +97,14 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
 
     return (
         <Animated.View
-            ref={viewForwardedRef(ref)}
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
+            onPointerDown={(e) => {
+                if (DeviceCapabilities.hasHoverSupport()) {
+                    return;
+                }
+                e.preventDefault();
+            }}
         >
             <ColorSchemeWrapper>
                 <FlashList
@@ -119,4 +127,4 @@ function BaseAutoCompleteSuggestions<TSuggestion>(
 
 BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
 
-export default forwardRef(BaseAutoCompleteSuggestions);
+export default BaseAutoCompleteSuggestions;

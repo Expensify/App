@@ -53,6 +53,9 @@ type ReceiptImageProps = (
     /** Whether we should display the receipt with ThumbnailImage component */
     shouldUseThumbnailImage?: boolean;
 
+    /** Whether we should display the receipt with initial object position */
+    shouldUseInitialObjectPosition?: boolean;
+
     /** Whether the receipt image requires an authToken */
     isAuthTokenRequired?: boolean;
 
@@ -85,6 +88,7 @@ function ReceiptImage({
     iconSize,
     fallbackIcon,
     fallbackIconSize,
+    shouldUseInitialObjectPosition = false,
 }: ReceiptImageProps) {
     const styles = useThemeStyles();
 
@@ -120,7 +124,7 @@ function ReceiptImage({
                 shouldDynamicallyResize={false}
                 fallbackIcon={fallbackIcon}
                 fallbackIconSize={fallbackIconSize}
-                objectPosition={CONST.IMAGE_OBJECT_POSITION.TOP}
+                objectPosition={shouldUseInitialObjectPosition ? CONST.IMAGE_OBJECT_POSITION.INITIAL : CONST.IMAGE_OBJECT_POSITION.TOP}
             />
         );
     }
