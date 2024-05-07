@@ -46,6 +46,13 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
+            description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
+            onPress: () => {},
+            title: exportConfiguration?.billStatus?.purchase,
+            pendingAction: pendingFields?.export,
+            error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
+        },
+        {
             description: translate('workspace.xero.exportInvoices'),
             title: translate('workspace.xero.salesInvoice'),
             interactive: false,
