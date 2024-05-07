@@ -153,7 +153,6 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins: string[], newAc
         personalDetailsNew[accountID] = {
             login,
             accountID,
-            avatar: UserUtils.getDefaultAvatarURL(accountID),
             displayName: LocalePhoneNumber.formatPhoneNumber(login),
         };
 

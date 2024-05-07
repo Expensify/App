@@ -18,7 +18,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserUtils from '@libs/UserUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -57,7 +56,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);
-    const avatar = details.avatar ?? UserUtils.getDefaultAvatar();
     const fallbackIcon = details.fallbackIcon ?? '';
     const displayName = details.displayName ?? '';
     const isSelectedMemberOwner = policy?.owner === details.login;
@@ -143,7 +141,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             <Avatar
                                 containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
                                 imageStyles={[styles.avatarXLarge]}
-                                source={UserUtils.getAvatar(avatar, accountID)}
+                                source={details.avatar}
+                                accountID={accountID}
                                 size={CONST.AVATAR_SIZE.XLARGE}
                                 fallbackIcon={fallbackIcon}
                             />
