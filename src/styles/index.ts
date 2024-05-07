@@ -1137,11 +1137,6 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        optionRowAmountInputWrapper: {
-            borderColor: theme.border,
-            borderBottomWidth: 2,
-        },
-
         optionRowAmountInput: {
             textAlign: 'right',
         },
