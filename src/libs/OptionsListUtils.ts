@@ -164,6 +164,16 @@ type GetOptionsConfig = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
+type GetUserToInviteConfig = {
+    searchValue: string;
+    excludeUnknownUsers?: boolean;
+    optionsToExclude?: Array<Partial<ReportUtils.OptionData>>;
+    selectedOptions?: Array<Partial<ReportUtils.OptionData>>;
+    betas: OnyxEntry<Beta[]>;
+    reportActions?: ReportActions;
+    showChatPreviewLine?: boolean;
+};
+
 type MemberForList = {
     text: string;
     alternateText: string;
@@ -255,20 +265,20 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
-        const sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
+        let sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
+
+        const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, allReportActions[reportID], true);
+        if (transactionThreadReportID) {
+            sortedReportActions = ReportActionUtils.getCombinedReportActions(allSortedReportActions[reportID], allSortedReportActions[transactionThreadReportID]);
+        }
+
         lastReportActions[reportID] = sortedReportActions[0];
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportActionsForDisplay = sortedReportActions.filter(
-            (reportAction, actionKey) =>
-                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                !ReportActionUtils.isWhisperAction(reportAction) &&
-                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        const reportActionsForDisplay = sortedReportActions.filter((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
+        visibleReportActionItems[reportID] = reportActionsForDisplay[0];
     },
 });
 
@@ -525,12 +535,9 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 /**
  * Update alternate text for the option when applicable
  */
-function getAlternateText(
-    option: ReportUtils.OptionData,
-    {showChatPreviewLine = false, forcePolicyNamePreview = false, lastMessageTextFromReport = ''}: PreviewConfig & {lastMessageTextFromReport?: string},
-) {
+function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
     if (!!option.isThread || !!option.isMoneyRequestReport) {
-        return lastMessageTextFromReport.length > 0 ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
     if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
         return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
@@ -548,7 +555,8 @@ function getAlternateText(
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    const lastReportAction = visibleReportActionItems[report?.reportID ?? ''] ?? null;
+
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
@@ -713,8 +721,7 @@ function createOption(
         result.lastMessageText = lastMessageText;
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        result.alternateText =
-            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
+        result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
         reportName = showPersonalDetails
             ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
@@ -776,6 +783,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
         option.text = ReportUtils.getPolicyName(report);
         option.alternateText = Localize.translateLocal('workspace.common.workspace');
     }
+    option.isDisabled = ReportUtils.isDraftReport(participant.reportID);
     option.selected = participant.selected;
     option.isSelected = participant.selected;
     return option;
@@ -1536,6 +1544,74 @@ function orderOptions(options: ReportUtils.OptionData[], searchValue: string | u
 }
 
 /**
+ * We create a new user option if the following conditions are satisfied:
+ * - There's no matching recent report and personal detail option
+ * - The searchValue is a valid email or phone number
+ * - The searchValue isn't the current personal detail login
+ * - We can use chronos or the search value is not the chronos email
+ */
+function getUserToInviteOption({
+    searchValue,
+    excludeUnknownUsers = false,
+    optionsToExclude = [],
+    selectedOptions = [],
+    betas,
+    reportActions = {},
+    showChatPreviewLine = false,
+}: GetUserToInviteConfig): ReportUtils.OptionData | null {
+    const parsedPhoneNumber = PhoneNumber.parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchValue)));
+    const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
+    const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
+    const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
+    const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
+    const isInOptionToExclude =
+        optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) !== -1;
+    const isChronosEmail = searchValue === CONST.EMAIL.CHRONOS;
+
+    if (
+        !searchValue ||
+        isCurrentUserLogin ||
+        isInSelectedOption ||
+        (!isValidEmail && !isValidPhoneNumber) ||
+        isInOptionToExclude ||
+        (isChronosEmail && !Permissions.canUseChronos(betas)) ||
+        excludeUnknownUsers
+    ) {
+        return null;
+    }
+
+    // Generates an optimistic account ID for new users not yet saved in Onyx
+    const optimisticAccountID = UserUtils.generateAccountID(searchValue);
+    const personalDetailsExtended = {
+        ...allPersonalDetails,
+        [optimisticAccountID]: {
+            accountID: optimisticAccountID,
+            login: searchValue,
+        },
+    };
+    const userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
+        showChatPreviewLine,
+    });
+    userToInvite.isOptimisticAccount = true;
+    userToInvite.login = searchValue;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    userToInvite.text = userToInvite.text || searchValue;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    userToInvite.alternateText = userToInvite.alternateText || searchValue;
+
+    // If user doesn't exist, use a fallback avatar
+    userToInvite.icons = [
+        {
+            source: UserUtils.getAvatar('', optimisticAccountID),
+            name: searchValue,
+            type: CONST.ICON_TYPE_AVATAR,
+        },
+    ];
+
+    return userToInvite;
+}
+
+/**
  * filter options based on specific conditions
  */
 function getOptions(
@@ -1843,52 +1919,23 @@ function getOptions(
         currentUserOption = undefined;
     }
 
-    let userToInvite: ReportUtils.OptionData | null = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
     const noOptionsMatchExactly = !personalDetailsOptions
         .concat(recentReportOptions)
         .find((option) => option.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue ?? '').toLowerCase() || option.login === searchValue?.toLowerCase());
 
-    if (
-        searchValue &&
-        (noOptions || noOptionsMatchExactly) &&
-        !isCurrentUser({login: searchValue} as PersonalDetails) &&
-        selectedOptions.every((option) => 'login' in option && option.login !== searchValue) &&
-        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
-            (parsedPhoneNumber.possible && Str.isValidE164Phone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? '')))) &&
-        !optionsToExclude.find((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === PhoneNumber.addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
-        (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
-        !excludeUnknownUsers
-    ) {
-        // Generates an optimistic account ID for new users not yet saved in Onyx
-        const optimisticAccountID = UserUtils.generateAccountID(searchValue);
-        const personalDetailsExtended = {
-            ...allPersonalDetails,
-            [optimisticAccountID]: {
-                accountID: optimisticAccountID,
-                login: searchValue,
-                avatar: UserUtils.getDefaultAvatar(optimisticAccountID),
-            },
-        };
-        userToInvite = createOption([optimisticAccountID], personalDetailsExtended, null, reportActions, {
-            showChatPreviewLine,
-        });
-        userToInvite.isOptimisticAccount = true;
-        userToInvite.login = searchValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        userToInvite.text = userToInvite.text || searchValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        userToInvite.alternateText = userToInvite.alternateText || searchValue;
-
-        // If user doesn't exist, use a default avatar
-        userToInvite.icons = [
-            {
-                source: UserUtils.getAvatar('', optimisticAccountID),
-                name: searchValue,
-                type: CONST.ICON_TYPE_AVATAR,
-            },
-        ];
-    }
+    const userToInvite =
+        noOptions || noOptionsMatchExactly
+            ? getUserToInviteOption({
+                  searchValue,
+                  excludeUnknownUsers,
+                  optionsToExclude,
+                  selectedOptions,
+                  betas,
+                  reportActions,
+                  showChatPreviewLine,
+              })
+            : null;
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
     if (sortByReportTypeInSearch && searchValue !== '') {
@@ -2248,7 +2295,7 @@ function getFirstKeyForList(data?: Option[] | null) {
 /**
  * Filters options based on the search input value
  */
-function filterOptions(options: Options, searchInputValue: string): Options {
+function filterOptions(options: Options, searchInputValue: string, betas: OnyxEntry<Beta[]> = []): Options {
     const searchValue = getSearchValueForPhoneOrEmail(searchInputValue);
     const searchTerms = searchValue ? searchValue.split(' ') : [];
 
@@ -2317,11 +2364,18 @@ function filterOptions(options: Options, searchInputValue: string): Options {
     }, options);
 
     const recentReports = matchResults.recentReports.concat(matchResults.personalDetails);
+    const userToInvite =
+        recentReports.length === 0
+            ? getUserToInviteOption({
+                  searchValue,
+                  betas,
+              })
+            : null;
 
     return {
         personalDetails: [],
         recentReports: orderOptions(recentReports, searchValue),
-        userToInvite: null,
+        userToInvite,
         currentUserOption: null,
         categoryOptions: [],
         tagOptions: [],

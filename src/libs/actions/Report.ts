@@ -33,6 +33,7 @@ import type {
     RemoveFromGroupChatParams,
     RemoveFromRoomParams,
     ResolveActionableMentionWhisperParams,
+    ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
     SetNameValuePairParams,
@@ -631,7 +632,12 @@ function updateGroupChatName(reportID: string, reportName: string) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {reportName},
+            value: {
+                reportName,
+                errorFields: {
+                    reportName: null,
+                },
+            },
         },
     ];
     const parameters: UpdateGroupChatNameParams = {reportName, reportID};
@@ -644,11 +650,55 @@ function updateGroupChatAvatar(reportID: string, file?: File | CustomRNImageMani
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {avatarUrl: file?.uri ?? ''},
+            value: {
+                avatarUrl: file?.uri ?? '',
+                pendingFields: {
+                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errorFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                avatarUrl: currentReportData?.[reportID]?.avatarUrl ?? null,
+                pendingFields: {
+                    avatar: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    avatar: null,
+                },
+            },
         },
     ];
     const parameters: UpdateGroupChatAvatarParams = {file, reportID};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_AVATAR, parameters, {optimisticData, failureData, successData});
+}
+
+/**
+ * Clear error and pending fields for the report avatar
+ */
+function clearAvatarErrors(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        errorFields: {
+            avatar: null,
+        },
+    });
 }
 
 /**
@@ -2688,24 +2738,44 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 function updateGroupChatMemberRoles(reportID: string, accountIDList: number[], role: ValueOf<typeof CONST.REPORT.ROLE>) {
-    const participants: Participants = {};
     const memberRoles: Record<number, string> = {};
+    const optimisticParticipants: Participants = {};
+    const successParticipants: Participants = {};
+
     accountIDList.forEach((accountID) => {
         memberRoles[accountID] = role;
-        participants[accountID] = {role};
+        optimisticParticipants[accountID] = {
+            role,
+            pendingFields: {
+                role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+        };
+        successParticipants[accountID] = {
+            pendingFields: {
+                role: null,
+            },
+            pendingAction: null,
+        };
     });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                participants,
-            },
+            value: {participants: optimisticParticipants},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {participants: successParticipants},
         },
     ];
     const parameters: UpdateGroupChatMemberRolesParams = {reportID, memberRoles: JSON.stringify(memberRoles)};
-    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData});
+    API.write(WRITE_COMMANDS.UPDATE_GROUP_CHAT_MEMBER_ROLES, parameters, {optimisticData, successData});
 }
 
 /** Invites people to a group chat */
@@ -3576,6 +3646,51 @@ function resolveActionableMentionWhisper(reportId: string, reportAction: OnyxEnt
     API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER, parameters, {optimisticData, failureData});
 }
 
+function resolveActionableReportMentionWhisper(
+    reportId: string,
+    reportAction: OnyxEntry<ReportAction>,
+    resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
+) {
+    if (!reportAction) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {
+                        resolution,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportId}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    originalMessage: {
+                        resolution: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: ResolveActionableReportMentionWhisperParams = {
+        reportActionID: reportAction.reportActionID,
+        resolution,
+    };
+
+    API.write(WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER, parameters, {optimisticData, failureData});
+}
+
 function dismissTrackExpenseActionableWhisper(reportID: string, reportAction: OnyxEntry<ReportAction>): void {
     const message = reportAction?.message?.[0];
     if (!message) {
@@ -3697,6 +3812,7 @@ export {
     deleteReportField,
     clearReportFieldErrors,
     resolveActionableMentionWhisper,
+    resolveActionableReportMentionWhisper,
     updateRoomVisibility,
     dismissTrackExpenseActionableWhisper,
     setGroupDraft,
@@ -3708,4 +3824,5 @@ export {
     leaveGroupChat,
     removeFromGroupChat,
     updateGroupChatMemberRoles,
+    clearAvatarErrors,
 };

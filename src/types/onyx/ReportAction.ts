@@ -70,7 +70,7 @@ type Message = {
     currency?: string;
 
     /** resolution for actionable mention whisper */
-    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
 
     /** The time this report action was deleted */
     deleted?: string;
