@@ -69,7 +69,7 @@ function KYCWall({
     walletTerms,
     shouldShowPersonalBankAccountOption = false,
 }: BaseKYCWallProps) {
-    const anchorRef = useRef<HTMLDivElement | View | null>(null);
+    const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);

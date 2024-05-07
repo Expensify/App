@@ -1,6 +1,6 @@
 import {truncate} from 'lodash';
 import lodashSortBy from 'lodash/sortBy';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import ConfirmedRoute from '@components/ConfirmedRoute';
@@ -212,6 +212,17 @@ function MoneyRequestPreviewContent({
 
     const displayAmount = isDeleted ? getDisplayDeleteAmountText() : getDisplayAmountText();
 
+    const shouldShowSplitShare = isBillSplit && !!requestAmount && requestAmount > 0;
+
+    // If available, retrieve the split share from the splits object of the transaction, if not, display an even share.
+    const splitShare = useMemo(
+        () =>
+            shouldShowSplitShare &&
+            (transaction?.comment?.splits?.find((split) => split.accountID === sessionAccountID)?.amount ??
+                IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? '', action.actorAccountID === sessionAccountID)),
+        [shouldShowSplitShare, isPolicyExpenseChat, action.actorAccountID, participantAccountIDs.length, transaction?.comment?.splits, requestAmount, requestCurrency, sessionAccountID],
+    );
+
     const childContainer = (
         <View>
             <OfflineWithFeedback
@@ -302,14 +313,9 @@ function MoneyRequestPreviewContent({
                                                     <Text style={[styles.textLabelSupporting, styles.textNormal]}>{merchantOrDescription}</Text>
                                                 )}
                                             </View>
-                                            {isBillSplit && participantAccountIDs.length > 0 && !!requestAmount && requestAmount > 0 && (
+                                            {splitShare && (
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
-                                                    {translate('iou.amountEach', {
-                                                        amount: CurrencyUtils.convertToDisplayString(
-                                                            IOUUtils.calculateAmount(isPolicyExpenseChat ? 1 : participantAccountIDs.length - 1, requestAmount, requestCurrency ?? ''),
-                                                            requestCurrency,
-                                                        ),
-                                                    })}
+                                                    {translate('iou.yourSplit', {amount: CurrencyUtils.convertToDisplayString(splitShare ?? 0, requestCurrency ?? '')})}
                                                 </Text>
                                             )}
                                         </View>

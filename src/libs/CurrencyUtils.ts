@@ -125,6 +125,25 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
 }
 
 /**
+ * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
+ */
+function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
+    const convertedAmount = convertToFrontendAmount(amountInCents);
+    return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+        style: 'currency',
+        currency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for RSD
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: currency === 'RSD' ? getCurrencyDecimals(currency) : undefined,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
+/**
  * Checks if passed currency code is a valid currency based on currency list
  */
 function isValidCurrencyCode(currencyCode: string): boolean {
@@ -142,5 +161,6 @@ export {
     convertToFrontendAmount,
     convertToDisplayString,
     convertAmountToDisplayString,
+    convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
 };

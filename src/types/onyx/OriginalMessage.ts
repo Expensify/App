@@ -25,6 +25,7 @@ type OriginalMessageActionName =
     | 'TASKREOPENED'
     | 'ACTIONABLEJOINREQUEST'
     | 'ACTIONABLEMENTIONWHISPER'
+    | 'ACTIONABLEREPORTMENTIONWHISPER'
     | 'ACTIONABLETRACKEXPENSEWHISPER'
     | ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>;
 type OriginalMessageApproved = {
@@ -149,6 +150,19 @@ type OriginalMessageActionableMentionWhisper = {
         lastModified: string;
         reportID: number;
         resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | null;
+        whisperedTo?: number[];
+    };
+};
+
+type OriginalMessageActionableReportMentionWhisper = {
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER;
+    originalMessage: {
+        reportNames: string[];
+        mentionedAccountIDs: number[];
+        reportActionID: number;
+        reportID: number;
+        lastModified: string;
+        resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
         whisperedTo?: number[];
     };
 };
@@ -330,6 +344,7 @@ type OriginalMessage =
     | OriginalMessageIOU
     | OriginalMessageAddComment
     | OriginalMessageActionableMentionWhisper
+    | OriginalMessageActionableReportMentionWhisper
     | OriginalMessageSubmitted
     | OriginalMessageClosed
     | OriginalMessageCreated
@@ -369,6 +384,7 @@ export type {
     OriginalMessageAddComment,
     OriginalMessageJoinPolicyChangeLog,
     OriginalMessageActionableMentionWhisper,
+    OriginalMessageActionableReportMentionWhisper,
     OriginalMessageChronosOOOList,
     OriginalMessageRoomChangeLog,
     OriginalMessageSource,

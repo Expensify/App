@@ -32,8 +32,14 @@ type IOURequestStepCategoryOnyxProps = {
     /** The policy of the report */
     policy: OnyxEntry<Policy>;
 
+    /** The draft policy of the report */
+    policyDraft: OnyxEntry<Policy>;
+
     /** Collection of categories attached to a policy */
     policyCategories: OnyxEntry<PolicyCategories>;
+
+    /** Collection of draft categories attached to a policy */
+    policyCategoriesDraft: OnyxEntry<PolicyCategories>;
 
     /** Collection of tags attached to a policy */
     policyTags: OnyxEntry<PolicyTagList>;
@@ -50,18 +56,24 @@ type IOURequestStepCategoryProps = IOURequestStepCategoryOnyxProps &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY>;
 
 function IOURequestStepCategory({
-    report,
+    report: reportReal,
+    reportDraft,
     route: {
         params: {transactionID, backTo, action, iouType, reportActionID},
     },
     transaction,
     splitDraftTransaction,
-    policy,
+    policy: policyReal,
+    policyDraft,
     policyTags,
-    policyCategories,
+    policyCategories: policyCategoriesReal,
+    policyCategoriesDraft,
     reportActions,
     session,
 }: IOURequestStepCategoryProps) {
+    const report = reportReal ?? reportDraft;
+    const policy = policyReal ?? policyDraft;
+    const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -73,7 +85,7 @@ function IOURequestStepCategory({
 
     // The transactionCategory can be an empty string, so to maintain the logic we'd like to keep it in this shape until utils refactor
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowCategory = ReportUtils.isReportInGroupPolicy(report) && (!!transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
+    const shouldShowCategory = ReportUtils.isReportInGroupPolicy(report, policy) && (!!transactionCategory || OptionsListUtils.hasEnabledOptions(Object.values(policyCategories ?? {})));
 
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && TransactionUtils.areRequiredFieldsEmpty(transaction);
@@ -87,6 +99,7 @@ function IOURequestStepCategory({
 
         PolicyActions.openDraftWorkspaceRequest(report?.policyID ?? '');
     };
+
     useNetwork({onReconnect: fetchData});
 
     useEffect(() => {
@@ -159,8 +172,14 @@ const IOURequestStepCategoryWithOnyx = withOnyx<IOURequestStepCategoryProps, IOU
     policy: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report ? report.policyID : '0'}`,
     },
+    policyDraft: {
+        key: ({reportDraft}) => `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${reportDraft ? reportDraft.policyID : '0'}`,
+    },
     policyCategories: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report ? report.policyID : '0'}`,
+    },
+    policyCategoriesDraft: {
+        key: ({reportDraft}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${reportDraft ? reportDraft.policyID : '0'}`,
     },
     policyTags: {
         key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report ? report.policyID : '0'}`,

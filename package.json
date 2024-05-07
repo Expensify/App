@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.4.70-2",
+  "version": "1.4.71-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -91,7 +91,7 @@
     "@react-navigation/native": "6.1.12",
     "@react-navigation/stack": "6.3.29",
     "@react-ng/bounds-observer": "^0.2.1",
-    "@rnmapbox/maps": "10.1.12",
+    "@rnmapbox/maps": "10.1.20",
     "@shopify/flash-list": "1.6.3",
     "@storybook/addon-a11y": "^8.0.6",
     "@storybook/addon-essentials": "^8.0.6",
