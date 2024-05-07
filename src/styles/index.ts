@@ -434,7 +434,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         textNewKansasNormal: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
+            ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             fontSize: variables.fontSizeNormal,
         },
 
