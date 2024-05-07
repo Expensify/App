@@ -44,7 +44,7 @@ function AddBankAccount({personalBankAccount, plaidData, personalBankAccountDraf
 
         if (selectedPlaidBankAccount) {
             BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
-            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS_REFACTOR);
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts]);
 

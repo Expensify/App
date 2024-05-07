@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Growl from '@libs/Growl';
 import * as BankAccounts from '@userActions/BankAccounts';
+import * as Wallet from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalBankAccount, WalletOnfido} from '@src/types/onyx';
@@ -36,14 +37,11 @@ type VerifyIdentityOnyxProps = {
     walletOnfidoData: OnyxEntry<WalletOnfido>;
 };
 
-type VerifyIdentityProps = VerifyIdentityOnyxProps & {
-    /** Goes to the previous step */
-    onBackButtonPress: () => void;
-};
+type VerifyIdentityProps = VerifyIdentityOnyxProps;
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
 
-function VerifyIdentity({personalBankAccount, onBackButtonPress, onfidoApplicantID, onfidoToken, walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyIdentityProps) {
+function VerifyIdentity({personalBankAccount, onfidoApplicantID, onfidoToken, walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -72,16 +70,20 @@ function VerifyIdentity({personalBankAccount, onBackButtonPress, onfidoApplicant
         // BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
     };
 
+    const handleBackButtonPress = () => {
+        Wallet.updateCurrentStep(CONST.WALLET.STEP.ADDITIONAL_DETAILS);
+    };
+
     return (
         <ScreenWrapper testID={VerifyIdentity.displayName}>
             <HeaderWithBackButton
                 title={translate('onfidoStep.verifyIdentity')}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     startStepIndex={2}
-                    stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+                    stepNames={CONST.WALLET.STEP_NAMES}
                 />
             </View>
             <FullPageOfflineBlockingView>
