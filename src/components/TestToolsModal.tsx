@@ -10,6 +10,10 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import Navigation from "@navigation/Navigation";
+import ROUTES from "@src/ROUTES";
+import Button from "./Button";
+import TestToolRow from "./TestToolRow";
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import Modal from './Modal';
 import ProfilingToolMenu from './ProfilingToolMenu';
@@ -19,11 +23,14 @@ import Text from './Text';
 type TestToolsModalOnyxProps = {
     /** Whether the test tools modal is open */
     isTestToolsModalOpen: OnyxEntry<boolean>;
+
+    /** Whether or not logs should be stored */
+    shouldStoreLogs: OnyxEntry<boolean>;
 };
 
 type TestToolsModalProps = TestToolsModalOnyxProps;
 
-function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
+function TestToolsModal({isTestToolsModalOpen = false, shouldStoreLogs = false}: TestToolsModalProps) {
     const {isDevelopment} = useEnvironment();
     const {windowWidth} = useWindowDimensions();
     const StyleUtils = useStyleUtils();
@@ -45,9 +52,19 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
                     {translate('initialSettingsPage.troubleshoot.releaseOptions')}
                 </Text>
                 <ProfilingToolMenu />
-                <ClientSideLoggingToolMenu
-                    isViaTestToolsModal
-                />
+                <ClientSideLoggingToolMenu />
+                {!!shouldStoreLogs && (
+                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
+                        <Button
+                            small
+                            text={translate('initialSettingsPage.debugConsole.viewConsole')}
+                            onPress={() => {
+                                toggleTestToolsModal();
+                                Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(Navigation.getActiveRoute()));
+                            }}
+                        />
+                    </TestToolRow>
+                )}
             </View>
         </Modal>
     );
@@ -58,5 +75,8 @@ TestToolsModal.displayName = 'TestToolsModal';
 export default withOnyx<TestToolsModalProps, TestToolsModalOnyxProps>({
     isTestToolsModalOpen: {
         key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
+    },
+    shouldStoreLogs: {
+        key: ONYXKEYS.SHOULD_STORE_LOGS,
     },
 })(TestToolsModal);

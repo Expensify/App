@@ -5,9 +5,8 @@ import type {Log} from '@libs/Console';
 import localFileCreate from '@libs/localFileCreate';
 import CONST from '@src/CONST';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
-import type ClientSideLoggingToolMenuProps from './types';
 
-function ClientSideLoggingToolMenu({isViaTestToolsModal = false}: ClientSideLoggingToolMenuProps) {
+function ClientSideLoggingToolMenu() {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
 
     const createAndSaveFile = (logs: Log[]) => {
@@ -41,7 +40,6 @@ function ClientSideLoggingToolMenu({isViaTestToolsModal = false}: ClientSideLogg
             onDisableLogging={createAndSaveFile}
             onShareLogs={shareLogs}
             displayPath={`${CONST.DOWNLOADS_PATH}/${file?.newFileName ?? ''}`}
-            isViaTestToolsModal={isViaTestToolsModal}
         />
     );
 }

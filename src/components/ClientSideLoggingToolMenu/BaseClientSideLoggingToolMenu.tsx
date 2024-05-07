@@ -35,8 +35,6 @@ type BaseClientSideLoggingToolProps = {
     onEnableLogging?: () => void;
     /** Path used to display location of saved file */
     displayPath?: string;
-    /** Boolean to know if this was opened via test tools modal */
-    isViaTestToolsModal: boolean;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
 function BaseClientSideLoggingToolMenu({
@@ -47,7 +45,6 @@ function BaseClientSideLoggingToolMenu({
     onDisableLogging,
     onEnableLogging,
     displayPath,
-    isViaTestToolsModal
 }: BaseClientSideLoggingToolProps) {
     const {translate} = useLocalize();
 
@@ -85,18 +82,6 @@ function BaseClientSideLoggingToolMenu({
                     onToggle={onToggle}
                 />
             </TestToolRow>
-            {!!shouldStoreLogs && isViaTestToolsModal && (
-                <TestToolRow title={translate('initialSettingsPage.troubleshoot.debugConsole')}>
-                    <Button
-                        small
-                        text={translate('initialSettingsPage.debugConsole.viewConsole')}
-                        onPress={() => {
-                            toggleTestToolsModal()
-                            Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute());
-                        }}
-                    />
-                </TestToolRow>
-            )}
             {!!file && (
                 <>
                     <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
