@@ -379,43 +379,48 @@ function MoneyRequestConfirmationList({
     /**
      * Build the IOUConfirmationOptions for showing participants
      */
-    function getIOUConfirmationOptionsFromParticipants(participants: Array<Participant | ReportUtils.OptionData>, amountText: string): Array<Participant | ReportUtils.OptionData> {
-        return participants.map((participant) => ({
-            ...participant,
-            rightElement: <Text>{amountText}</Text>,
-        }));
-    }
+    const getIOUConfirmationOptionsFromParticipants = useCallback(
+        (participants: Array<Participant | ReportUtils.OptionData>, amountText: string) =>
+            participants.map((participant) => ({
+                ...participant,
+                rightElement: <Text style={[styles.textLabel]}>{amountText}</Text>,
+            })),
+        [styles.textLabel],
+    );
 
     /**
      * Build the IOUConfirmation options for showing the payee personalDetail
      */
-    function getIOUConfirmationOptionsFromPayeePersonalDetail(personalDetail: OnyxTypes.PersonalDetails | EmptyObject, amountText?: string): PayeePersonalDetails[] {
-        const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
-        const payeePersonalDetails: PayeePersonalDetails[] = [
-            {
-                text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
-                alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
-                icons: [
-                    {
-                        source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
-                        name: personalDetail.login ?? '',
-                        type: CONST.ICON_TYPE_AVATAR,
-                        id: personalDetail.accountID,
-                    },
-                ],
-                descriptiveText: amountText ?? '',
-                login: personalDetail.login ?? '',
-                accountID: personalDetail.accountID,
-                keyForList: String(personalDetail.accountID),
-            },
-        ];
+    const getIOUConfirmationOptionsFromPayeePersonalDetail = useCallback(
+        (personalDetail: OnyxTypes.PersonalDetails | EmptyObject, amountText?: string) => {
+            const formattedLogin = LocalePhoneNumber.formatPhoneNumber(personalDetail.login ?? '');
+            const payeePersonalDetails: PayeePersonalDetails[] = [
+                {
+                    text: PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, formattedLogin),
+                    alternateText: formattedLogin || PersonalDetailsUtils.getDisplayNameOrDefault(personalDetail, '', false),
+                    icons: [
+                        {
+                            source: UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID),
+                            name: personalDetail.login ?? '',
+                            type: CONST.ICON_TYPE_AVATAR,
+                            id: personalDetail.accountID,
+                        },
+                    ],
+                    descriptiveText: amountText ?? '',
+                    login: personalDetail.login ?? '',
+                    accountID: personalDetail.accountID,
+                    keyForList: String(personalDetail.accountID),
+                },
+            ];
 
-        return payeePersonalDetails.map((payee) => ({
-            ...payee,
-            isSelected: true,
-            rightElement: <Text>{payee.descriptiveText}</Text>,
-        }));
-    }
+            return payeePersonalDetails.map((payee) => ({
+                ...payee,
+                isSelected: true,
+                rightElement: <Text style={[styles.textLabel]}>{payee.descriptiveText}</Text>,
+            }));
+        },
+        [styles.textLabel],
+    );
 
     /**
      * Returns the participants with amount
@@ -425,7 +430,7 @@ function MoneyRequestConfirmationList({
             const amount = IOUUtils.calculateAmount(participantsList.length, iouAmount, iouCurrencyCode ?? '');
             return getIOUConfirmationOptionsFromParticipants(participantsList, amount > 0 ? CurrencyUtils.convertToDisplayString(amount, iouCurrencyCode) : '');
         },
-        [iouAmount, iouCurrencyCode],
+        [iouAmount, iouCurrencyCode, getIOUConfirmationOptionsFromParticipants],
     );
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
@@ -533,6 +538,7 @@ function MoneyRequestConfirmationList({
         translate,
         shouldDisablePaidBySection,
         canModifyParticipants,
+        getIOUConfirmationOptionsFromPayeePersonalDetail,
     ]);
 
     useEffect(() => {
@@ -1074,6 +1080,7 @@ function MoneyRequestConfirmationList({
                 sectionTitleStyles={styles.sidebarLinkTextBold}
                 showScrollIndicator
                 footerContent={footerContent}
+                rightHandSideComponent={<View />}
                 listFooterContent={
                     <>
                         {isDistanceRequest && (
