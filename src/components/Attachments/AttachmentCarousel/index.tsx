@@ -84,6 +84,16 @@ function AttachmentCarousel({report, reportActions, parentReportActions, source,
         }
     }, [reportActions, parentReportActions, compareImage, report.parentReportActionID, attachments, setDownloadButtonVisibility, onNavigate]);
 
+    // Scroll position is affected when window width is resized, so we readjust it on width changes
+    useEffect(() => {
+        if (attachments.length === 0 || scrollRef.current == null) {
+            return;
+        }
+
+        scrollRef.current.scrollToIndex({index: page, animated: false});
+        // The hook is not supposed to run on page change, so we keep the page out of the dependencies
+    }, [cellWidth]);
+
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
         ({viewableItems}: UpdatePageProps) => {
