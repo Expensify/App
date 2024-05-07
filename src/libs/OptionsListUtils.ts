@@ -126,6 +126,12 @@ type Category = {
     isSelected?: boolean;
 };
 
+type Tax = {
+    modifiedName: string;
+    isSelected?: boolean;
+    isDisabled?: boolean;
+};
+
 type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}>;
 
 type GetOptionsConfig = {
@@ -1010,12 +1016,21 @@ function getCategoryListSections(
 ): CategoryTreeSection[] {
     const sortedCategories = sortCategories(categories);
     const enabledCategories = Object.values(sortedCategories).filter((category) => category.enabled);
-
+    const enabledCategoriesNames = enabledCategories.map((category) => category.name);
+    const selectedOptionsWithDisabledState: Category[] = [];
     const categorySections: CategoryTreeSection[] = [];
     const numberOfEnabledCategories = enabledCategories.length;
 
+    selectedOptions.forEach((option) => {
+        if (enabledCategoriesNames.includes(option.name)) {
+            selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: true});
+            return;
+        }
+        selectedOptionsWithDisabledState.push({...option, isSelected: true, enabled: false});
+    });
+
     if (numberOfEnabledCategories === 0 && selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptions, true);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1028,9 +1043,10 @@ function getCategoryListSections(
     }
 
     if (searchInputValue) {
+        const categoriesForSearch = [...selectedOptionsWithDisabledState, ...enabledCategories];
         const searchCategories: Category[] = [];
 
-        enabledCategories.forEach((category) => {
+        categoriesForSearch.forEach((category) => {
             if (!category.name.toLowerCase().includes(searchInputValue.toLowerCase())) {
                 return;
             }
@@ -1053,7 +1069,7 @@ function getCategoryListSections(
     }
 
     if (selectedOptions.length > 0) {
-        const data = getCategoryOptionTree(selectedOptions, true);
+        const data = getCategoryOptionTree(selectedOptionsWithDisabledState, true);
         categorySections.push({
             // "Selected" section
             title: '',
@@ -1144,34 +1160,42 @@ function getTagListSections(
     const tagSections = [];
     const sortedTags = sortTags(tags) as PolicyTag[];
     const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const enabledTags = [...selectedOptions, ...sortedTags.filter((tag) => tag.enabled && !selectedOptionNames.includes(tag.name))];
+    const enabledTags = sortedTags.filter((tag) => tag.enabled);
+    const enabledTagsNames = enabledTags.map((tag) => tag.name);
+    const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
+    const selectedTagsWithDisabledState: SelectedTagOption[] = [];
     const numberOfTags = enabledTags.length;
+
+    selectedOptions.forEach((tag) => {
+        if (enabledTagsNames.includes(tag.name)) {
+            selectedTagsWithDisabledState.push({...tag, enabled: true});
+            return;
+        }
+        selectedTagsWithDisabledState.push({...tag, enabled: false});
+    });
 
     // If all tags are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTags === 0 && selectedOptions.length > 0) {
-        const selectedTagOptions = selectedOptions.map((option) => ({
-            name: option.name,
-            // Should be marked as enabled to be able to be de-selected
-            enabled: true,
-        }));
         tagSections.push({
             // "Selected" section
             title: '',
             shouldShow: false,
-            data: getTagsOptions(selectedTagOptions, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
 
         return tagSections;
     }
 
     if (searchInputValue) {
-        const searchTags = enabledTags.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const enabledSearchTags = enabledTagsWithoutSelectedOptions.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const selectedSearchTags = selectedTagsWithDisabledState.filter((tag) => PolicyUtils.getCleanedTagName(tag.name.toLowerCase()).includes(searchInputValue.toLowerCase()));
+        const tagsForSearch = [...selectedSearchTags, ...enabledSearchTags];
 
         tagSections.push({
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(searchTags, selectedOptions),
+            data: getTagsOptions(tagsForSearch, selectedOptions),
         });
 
         return tagSections;
@@ -1182,7 +1206,7 @@ function getTagListSections(
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTagsOptions(enabledTags, selectedOptions),
+            data: getTagsOptions([...selectedTagsWithDisabledState, ...enabledTagsWithoutSelectedOptions], selectedOptions),
         });
 
         return tagSections;
@@ -1194,20 +1218,13 @@ function getTagListSections(
             return !!tagObject?.enabled && !selectedOptionNames.includes(recentlyUsedTag);
         })
         .map((tag) => ({name: tag, enabled: true}));
-    const filteredTags = enabledTags.filter((tag) => !selectedOptionNames.includes(tag.name));
 
     if (selectedOptions.length) {
-        const selectedTagOptions = selectedOptions.map((option) => ({
-            name: option.name,
-            // Should be marked as enabled to be able to unselect even though the selected category is disabled
-            enabled: true,
-        }));
-
         tagSections.push({
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTagsOptions(selectedTagOptions, selectedOptions),
+            data: getTagsOptions(selectedTagsWithDisabledState, selectedOptions),
         });
     }
 
@@ -1226,7 +1243,7 @@ function getTagListSections(
         // "All" section when items amount more than the threshold
         title: Localize.translateLocal('common.all'),
         shouldShow: true,
-        data: getTagsOptions(filteredTags, selectedOptions),
+        data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
 
     return tagSections;
@@ -1349,46 +1366,56 @@ function getTaxRatesOptions(taxRates: Array<Partial<TaxRate>>): TaxRatesOption[]
         tooltipText: taxRate.modifiedName,
         isDisabled: taxRate.isDisabled,
         data: taxRate,
+        isSelected: taxRate.isSelected,
     }));
 }
 
 /**
  * Builds the section list for tax rates
  */
-function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Category[], searchInputValue: string): TaxSection[] {
+function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedOptions: Tax[], searchInputValue: string): TaxSection[] {
     const policyRatesSections = [];
 
     const taxes = transformedTaxRates(taxRates);
 
     const sortedTaxRates = sortTaxRates(taxes);
+    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.modifiedName);
     const enabledTaxRates = sortedTaxRates.filter((taxRate) => !taxRate.isDisabled);
+    const enabledTaxRatesNames = enabledTaxRates.map((tax) => tax.modifiedName);
+    const enabledTaxRatesWithoutSelectedOptions = enabledTaxRates.filter((tax) => tax.modifiedName && !selectedOptionNames.includes(tax.modifiedName));
+    const selectedTaxRateWithDisabledState: Tax[] = [];
     const numberOfTaxRates = enabledTaxRates.length;
+
+    selectedOptions.forEach((tax) => {
+        if (enabledTaxRatesNames.includes(tax.modifiedName)) {
+            selectedTaxRateWithDisabledState.push({...tax, isDisabled: false, isSelected: true});
+            return;
+        }
+        selectedTaxRateWithDisabledState.push({...tax, isDisabled: true, isSelected: true});
+    });
 
     // If all tax are disabled but there's a previously selected tag, show only the selected tag
     if (numberOfTaxRates === 0 && selectedOptions.length > 0) {
-        const selectedTaxRateOptions = selectedOptions.map((option) => ({
-            modifiedName: option.name,
-            // Should be marked as enabled to be able to be de-selected
-            isDisabled: false,
-        }));
         policyRatesSections.push({
             // "Selected" sectiong
             title: '',
             shouldShow: false,
-            data: getTaxRatesOptions(selectedTaxRateOptions),
+            data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
 
         return policyRatesSections;
     }
 
     if (searchInputValue) {
-        const searchTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const enabledSearchTaxRates = enabledTaxRatesWithoutSelectedOptions.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const selectedSearchTags = selectedTaxRateWithDisabledState.filter((taxRate) => taxRate.modifiedName?.toLowerCase().includes(searchInputValue.toLowerCase()));
+        const taxesForSearch = [...selectedSearchTags, ...enabledSearchTaxRates];
 
         policyRatesSections.push({
             // "Search" section
             title: '',
             shouldShow: true,
-            data: getTaxRatesOptions(searchTaxRates),
+            data: getTaxRatesOptions(taxesForSearch),
         });
 
         return policyRatesSections;
@@ -1399,30 +1426,18 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
             // "All" section when items amount less than the threshold
             title: '',
             shouldShow: false,
-            data: getTaxRatesOptions(enabledTaxRates),
+            data: getTaxRatesOptions([...selectedTaxRateWithDisabledState, ...enabledTaxRatesWithoutSelectedOptions]),
         });
 
         return policyRatesSections;
     }
 
-    const selectedOptionNames = selectedOptions.map((selectedOption) => selectedOption.name);
-    const filteredTaxRates = enabledTaxRates.filter((taxRate) => taxRate.modifiedName && !selectedOptionNames.includes(taxRate.modifiedName));
-
     if (selectedOptions.length > 0) {
-        const selectedTaxRatesOptions = selectedOptions.map((option) => {
-            const taxRateObject = Object.values(taxes).find((taxRate) => taxRate.modifiedName === option.name);
-
-            return {
-                modifiedName: option.name,
-                isDisabled: !!taxRateObject?.isDisabled,
-            };
-        });
-
         policyRatesSections.push({
             // "Selected" section
             title: '',
             shouldShow: true,
-            data: getTaxRatesOptions(selectedTaxRatesOptions),
+            data: getTaxRatesOptions(selectedTaxRateWithDisabledState),
         });
     }
 
@@ -1430,7 +1445,7 @@ function getTaxRatesSection(taxRates: TaxRatesWithDefault | undefined, selectedO
         // "All" section when number of items are more than the threshold
         title: '',
         shouldShow: true,
-        data: getTaxRatesOptions(filteredTaxRates),
+        data: getTaxRatesOptions(enabledTaxRatesWithoutSelectedOptions),
     });
 
     return policyRatesSections;
@@ -1684,7 +1699,7 @@ function getOptions(
     }
 
     if (includeTaxRates) {
-        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Category[], searchInputValue);
+        const taxRatesOptions = getTaxRatesSection(taxRates, selectedOptions as Tax[], searchInputValue);
 
         return {
             recentReports: [],
@@ -2424,4 +2439,4 @@ export {
     getFirstKeyForList,
 };
 
-export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, TaxRatesOption, Option, OptionTree};
+export type {MemberForList, CategorySection, CategoryTreeSection, Options, OptionList, SearchOption, PayeePersonalDetails, Category, Tax, TaxRatesOption, Option, OptionTree};
