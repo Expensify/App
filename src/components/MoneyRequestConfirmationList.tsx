@@ -324,6 +324,7 @@ function MoneyRequestConfirmationList({
     const taxRateTitle = TransactionUtils.getTaxName(policy, transaction);
 
     const previousTransactionAmount = usePrevious(transaction?.amount);
+    const previousTransactionCurrency = usePrevious(transaction?.currency);
 
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState('');
@@ -380,7 +381,7 @@ function MoneyRequestConfirmationList({
         const taxAmount = getTaxAmount(transaction, policy).toString();
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToBackendAmount(Number.parseFloat(taxAmount));
 
-        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount) {
+        if (transaction?.taxAmount && previousTransactionAmount === transaction?.amount && previousTransactionCurrency === transaction?.currency) {
             return IOU.setMoneyRequestTaxAmount(transaction?.transactionID, transaction?.taxAmount, true);
         }
 
