@@ -1302,6 +1302,11 @@ const CONST = {
         EXPORT: 'export',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
+        INVOICE_STATUS: {
+            AWAITING_PAYMENT: 'AWT_PAYMENT',
+            DRAFT: 'DRAFT',
+            AWAITING_APPROVAL: 'AWT_APPROVAL',
+        },
     },
 
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
