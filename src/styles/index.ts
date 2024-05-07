@@ -4884,6 +4884,7 @@ const styles = (theme: ThemeColors) =>
         workspaceTitleStyle: {
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
+            flex: 1,
         },
 
         textLineThrough: {
