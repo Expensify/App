@@ -106,12 +106,29 @@ function AddressSearch(
                 // to this component which don't match the usual properties coming from auto-complete. In that case, only a limited
                 // amount of data massaging needs to happen for what the parent expects to get from this function.
                 if (details) {
-                    onPress?.({
+                    const data = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
+
+                    const values = {
                         address: autocompleteData.description ?? '',
-                        lat: details.geometry.location.lat ?? 0,
-                        lng: details.geometry.location.lng ?? 0,
-                        name: details.name,
-                    });
+                        lat: details.geometry?.location.lat ?? 0,
+                        lng: details.geometry?.location.lng ?? 0,
+                        name: details?.name,
+                        street: data?.street ?? '',
+                        city: data?.city ?? '',
+                        state: data?.state ?? '',
+                    };
+                    if (inputID) {
+                        Object.entries(values).forEach(([key, inputValue]) => {
+                            const inputKey = renamedInputKeys?.[key as keyof Address] ?? key;
+                            if (!inputKey) {
+                                return;
+                            }
+                            onInputChange?.(inputValue, inputKey);
+                        });
+                    } else {
+                        onInputChange?.(values);
+                    }
+                    onPress?.(values);
                 }
                 return;
             }
@@ -298,22 +315,17 @@ function AddressSearch(
         if (!data) {
             return;
         }
-        // eslint-disable-next-line prefer-template
-        const url = '/api/Proxy_GooglePlaces?proxyUrl='.concat(`/place/details/json?place_id=${data?.place_id}`);
-        fetch(url)
-            .then((response) => response.json())
-            .then((response) => {
-                saveLocationDetails(data, response.result);
-                setIsTyping(false);
-                isRowSelectedRef.current = true;
 
-                // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-                setDisplayListViewBorder(false);
-                setIsFocused(false);
+        saveLocationDetails(data, data);
+        setIsTyping(false);
+        isRowSelectedRef.current = true;
 
-                // Clear location error code after address is selected
-                setLocationErrorCode(null);
-            });
+        // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+        setDisplayListViewBorder(false);
+        setIsFocused(false);
+
+        // Clear location error code after address is selected
+        setLocationErrorCode(null);
     }, [focusedIndex, getCurrentLocation, saveLocationDetails, shouldShowCurrentLocationButton]);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption);
