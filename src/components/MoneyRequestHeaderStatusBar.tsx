@@ -39,7 +39,7 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
                 styles.headerStatusBarContainer,
             ]}
         >
-            <View style={additionalViewStyle || [styles.mr3]}>
+            <View style={additionalViewStyle ?? [styles.mr3]}>
                 {typeof title === 'string' ? (
                     <Badge
                         text={title}
