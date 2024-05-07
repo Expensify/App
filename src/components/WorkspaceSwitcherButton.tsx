@@ -24,18 +24,19 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const pressableRef = useRef<HTMLDivElement | View | null>(null);
+    const pressableRef = useRef<View>(null);
 
-    const {source, name, type} = useMemo(() => {
+    const {source, name, type, id} = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
-        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
             name: policy?.name ?? '',
             type: CONST.ICON_TYPE_WORKSPACE,
+            id: policy?.id ?? '',
         };
     }, [policy]);
 
@@ -55,7 +56,7 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
             >
                 {({hovered}) => (
                     <SubscriptAvatar
-                        mainAvatar={{source, name, type}}
+                        mainAvatar={{source, name, type, id}}
                         subscriptIcon={{
                             source: Expensicons.DownArrow,
                             width: CONST.WORKSPACE_SWITCHER.SUBSCRIPT_ICON_SIZE,

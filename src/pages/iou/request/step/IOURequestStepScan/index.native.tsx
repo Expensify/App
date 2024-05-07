@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -65,12 +66,12 @@ function IOURequestStepScan({
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
     const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID || iouType === CONST.IOU.TYPE.TRACK_EXPENSE) {
+        if (!skipConfirmation || !report?.reportID) {
             return false;
         }
 
         return !ReportUtils.isArchivedRoom(report) && !(ReportUtils.isPolicyExpenseChat(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
-    }, [report, skipConfirmation, policy, iouType]);
+    }, [report, skipConfirmation, policy]);
 
     const {translate} = useLocalize();
 
@@ -179,6 +180,32 @@ function IOURequestStepScan({
         Navigation.goBack();
     };
 
+    const navigateToParticipantPage = useCallback(() => {
+        switch (iouType) {
+            case CONST.IOU.TYPE.REQUEST:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
+            case CONST.IOU.TYPE.SEND:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.PAY, transactionID, reportID));
+                break;
+            default:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        }
+    }, [iouType, reportID, transactionID]);
+
+    const navigateToConfirmationPage = useCallback(() => {
+        switch (iouType) {
+            case CONST.IOU.TYPE.REQUEST:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
+                break;
+            case CONST.IOU.TYPE.SEND:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.PAY, transactionID, reportID));
+                break;
+            default:
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+        }
+    }, [iouType, reportID, transactionID]);
+
     const navigateToConfirmationStep = useCallback(
         (file: FileObject, source: string) => {
             if (backTo) {
@@ -187,8 +214,8 @@ function IOURequestStepScan({
             }
 
             // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK_EXPENSE && !report?.reportID) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+            if (transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) {
+                navigateToParticipantPage();
                 return;
             }
 
@@ -219,23 +246,114 @@ function IOURequestStepScan({
                     });
                     return;
                 }
-                IOU.requestMoney(
-                    report,
-                    0,
-                    transaction?.currency ?? 'USD',
-                    transaction?.created ?? '',
-                    '',
-                    currentUserPersonalDetails.login,
-                    currentUserPersonalDetails.accountID,
-                    participants[0],
-                    '',
-                    receipt,
+                getCurrentPosition(
+                    (successData) => {
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                                '',
+                                '',
+                                '',
+                                0,
+                                false,
+                                policy,
+                                {},
+                                {},
+                                {
+                                    lat: successData.coords.latitude,
+                                    long: successData.coords.longitude,
+                                },
+                            );
+                        }
+                    },
+                    (errorData) => {
+                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                        if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                            IOU.trackExpense(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        } else {
+                            IOU.requestMoney(
+                                report,
+                                0,
+                                transaction?.currency ?? 'USD',
+                                transaction?.created ?? '',
+                                '',
+                                currentUserPersonalDetails.login,
+                                currentUserPersonalDetails.accountID,
+                                participants[0],
+                                '',
+                                receipt,
+                            );
+                        }
+                    },
+                    {
+                        maximumAge: CONST.GPS.MAX_AGE,
+                        timeout: CONST.GPS.TIMEOUT,
+                    },
                 );
                 return;
             }
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
+            navigateToConfirmationPage();
         },
-        [iouType, report, reportID, transactionID, backTo, currentUserPersonalDetails, personalDetails, shouldSkipConfirmation, transaction],
+        [
+            iouType,
+            report,
+            reportID,
+            transactionID,
+            backTo,
+            currentUserPersonalDetails,
+            personalDetails,
+            shouldSkipConfirmation,
+            transaction,
+            navigateToConfirmationPage,
+            navigateToParticipantPage,
+            policy,
+        ],
     );
 
     const updateScanAndNavigate = useCallback(
@@ -452,7 +570,7 @@ const IOURequestStepScanWithOnyx = withOnyx<IOURequestStepScanProps, IOURequestS
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScanWithOnyx);
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails);
+const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 

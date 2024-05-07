@@ -20,18 +20,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
-import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
+import type {OnboardingPurposeType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BaseOnboardingPurposeOnyxProps, BaseOnboardingPurposeProps} from './types';
 
-type ValuesType<T> = T[keyof T];
-type SelectedPurposeType = ValuesType<typeof CONST.ONBOARDING_CHOICES> | undefined;
-
 const menuIcons = {
-    [CONST.ONBOARDING_CHOICES.TRACK]: Illustrations.CompanyCard,
     [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
     [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
     [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
@@ -43,7 +39,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useOnboardingLayout();
-    const [selectedPurpose, setSelectedPurpose] = useState<SelectedPurposeType>(undefined);
+    const [selectedPurpose, setSelectedPurpose] = useState<OnboardingPurposeType | undefined>(undefined);
     const {isSmallScreenWidth, windowHeight} = useWindowDimensions();
     const [error, setError] = useState(false);
     const theme = useTheme();
@@ -62,10 +58,6 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
 
     const paddingHorizontal = shouldUseNarrowLayout ? styles.ph8 : styles.ph5;
 
-    const handleGoBack = useCallback(() => {
-        Navigation.goBack();
-    }, []);
-
     const selectedCheckboxIcon = useMemo(
         () => (
             <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto]}>
@@ -78,28 +70,18 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
         [styles.pointerEventsAuto, styles.popoverMenuIcon, theme.success],
     );
 
-    const completeEngagement = useCallback(() => {
+    const saveAndNavigate = useCallback(() => {
         if (selectedPurpose === undefined) {
             return;
         }
 
-        Report.completeEngagementModal(selectedPurpose, CONST.ONBOARDING_CONCIERGE[selectedPurpose]);
-
-        Navigation.dismissModal();
-        // Only navigate to concierge chat when central pane is visible
-        // Otherwise stay on the chats screen.
-        if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.HOME);
-        } else {
-            Report.navigateToConciergeChat();
+        if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORK);
+            return;
         }
 
-        // Small delay purely due to design considerations,
-        // no special technical reasons behind that.
-        setTimeout(() => {
-            Navigation.navigate(ROUTES.WELCOME_VIDEO_ROOT);
-        }, variables.welcomeVideoDelay);
-    }, [isSmallScreenWidth, selectedPurpose]);
+        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+    }, [selectedPurpose]);
 
     const menuItems: MenuItemProps[] = Object.values(CONST.ONBOARDING_CHOICES).map((choice) => {
         const translationKey = `onboarding.purpose.${choice}` as const;
@@ -109,8 +91,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             title: translate(translationKey),
             icon: menuIcons[choice],
             displayInDefaultIconColor: true,
-            iconWidth: variables.purposeMenuIconSize,
-            iconHeight: variables.purposeMenuIconSize,
+            iconWidth: variables.menuIconSize,
+            iconHeight: variables.menuIconSize,
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem, isSelected && styles.purposeMenuItemSelected],
             hoverAndPressStyle: [styles.purposeMenuItemSelected],
@@ -129,15 +111,15 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                 <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
                     <View style={shouldUseNarrowLayout && styles.mh3}>
                         <HeaderWithBackButton
-                            shouldShowBackButton
-                            onBackButtonPress={handleGoBack}
-                            progressBarPercentage={66.6}
+                            shouldShowBackButton={false}
+                            iconFill={theme.iconColorfulBackground}
+                            progressBarPercentage={25}
                         />
                     </View>
                     <ScrollView style={[styles.flex1, styles.flexGrow1, shouldUseNarrowLayout && styles.mt5, paddingHorizontal]}>
                         <View style={styles.flex1}>
                             <View style={[shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                                <Text style={[styles.textHeadlineH1, styles.textXXLarge]}>{translate('onboarding.purpose.title')} </Text>
+                                <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
                             </View>
                             <MenuItemList
                                 menuItems={menuItems}
@@ -155,7 +137,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
                                 return;
                             }
                             setError(false);
-                            completeEngagement();
+                            saveAndNavigate();
                         }}
                         message={errorMessage}
                         isAlertVisible={error || Boolean(errorMessage)}
@@ -175,4 +157,4 @@ export default withOnyx<BaseOnboardingPurposeProps, BaseOnboardingPurposeOnyxPro
     },
 })(BaseOnboardingPurpose);
 
-export type {BaseOnboardingPurposeProps, SelectedPurposeType};
+export type {BaseOnboardingPurposeProps};

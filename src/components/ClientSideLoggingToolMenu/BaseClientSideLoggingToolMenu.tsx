@@ -32,6 +32,8 @@ type BaseClientSideLoggingToolProps = {
     onDisableLogging: (logs: Log[]) => void;
     /** Action to run when enabling logging */
     onEnableLogging?: () => void;
+    /** Path used to display location of saved file */
+    displayPath?: string;
     /** Boolean to know if this was opened via test tools modal */
     isViaTestToolsModal: boolean;
     /** Action to close the test tools modal */
@@ -45,6 +47,7 @@ function BaseClientSideLoggingToolMenu({
     onShareLogs,
     onDisableLogging,
     onEnableLogging,
+    displayPath,
     isViaTestToolsModal,
     closeTestToolsModal,
 }: BaseClientSideLoggingToolProps) {
@@ -100,7 +103,7 @@ function BaseClientSideLoggingToolMenu({
             )}
             {!!file && (
                 <>
-                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${file.path}`}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.mb4]}>{`path: ${displayPath}`}</Text>
                     <TestToolRow title={translate('initialSettingsPage.debugConsole.logs')}>
                         <Button
                             small
