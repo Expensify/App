@@ -1,6 +1,6 @@
 import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import FocusTrapOriginal from 'focus-trap-react';
-import React, {useMemo, useRef} from 'react';
+import React, {useMemo} from 'react';
 import BOTTOM_TAB_SCREENS from '@components/FocusTrap/BOTTOM_TAB_SCREENS';
 import SCREENS_WITH_AUTOFOCUS from '@components/FocusTrap/SCREENS_WITH_AUTOFOCUS';
 import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
@@ -32,11 +32,8 @@ function FocusTrap({children}: FocusTrapProps) {
         activeRouteName = route.name;
     });
 
-    const focusTrapRef = useRef<FocusTrapOriginal | null>(null);
-
     return (
         <FocusTrapOriginal
-            ref={focusTrapRef}
             active={isActive}
             paused={!isFocused}
             focusTrapOptions={{

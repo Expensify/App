@@ -8,6 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {ContextMenuItemHandle} from '@components/ContextMenuItem';
 import ContextMenuItem from '@components/ContextMenuItem';
+import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
@@ -229,64 +230,66 @@ function BaseReportActionContextMenu({
 
     return (
         (isVisible || shouldKeepOpen) && (
-            <View
-                ref={contentRef}
-                style={wrapperStyle}
-            >
-                {filteredContextMenuActions.map((contextAction, index) => {
-                    const closePopup = !isMini;
-                    const payload: ContextMenuActionPayload = {
-                        reportAction: reportAction as ReportAction,
-                        reportID,
-                        draftMessage,
-                        selection,
-                        close: () => setShouldKeepOpen(false),
-                        openContextMenu: () => setShouldKeepOpen(true),
-                        interceptAnonymousUser,
-                        openOverflowMenu,
-                        setIsEmojiPickerActive,
-                    };
+            <FocusTrapForModal active={!isMini}>
+                <View
+                    ref={contentRef}
+                    style={wrapperStyle}
+                >
+                    {filteredContextMenuActions.map((contextAction, index) => {
+                        const closePopup = !isMini;
+                        const payload: ContextMenuActionPayload = {
+                            reportAction: reportAction as ReportAction,
+                            reportID,
+                            draftMessage,
+                            selection,
+                            close: () => setShouldKeepOpen(false),
+                            openContextMenu: () => setShouldKeepOpen(true),
+                            interceptAnonymousUser,
+                            openOverflowMenu,
+                            setIsEmojiPickerActive,
+                        };
 
-                    if ('renderContent' in contextAction) {
-                        return contextAction.renderContent(closePopup, payload);
-                    }
+                        if ('renderContent' in contextAction) {
+                            return contextAction.renderContent(closePopup, payload);
+                        }
 
-                    const {textTranslateKey} = contextAction;
-                    const isKeyInActionUpdateKeys =
-                        textTranslateKey === 'reportActionContextMenu.editAction' ||
-                        textTranslateKey === 'reportActionContextMenu.deleteAction' ||
-                        textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                    const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
-                    const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyToClipboard' && transaction && {transaction};
-                    const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
+                        const {textTranslateKey} = contextAction;
+                        const isKeyInActionUpdateKeys =
+                            textTranslateKey === 'reportActionContextMenu.editAction' ||
+                            textTranslateKey === 'reportActionContextMenu.deleteAction' ||
+                            textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
+                        const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: reportAction}) : translate(textTranslateKey));
+                        const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyToClipboard' && transaction && {transaction};
+                        const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
 
-                    return (
-                        <ContextMenuItem
-                            ref={(ref) => {
-                                menuItemRefs.current[index] = ref;
-                            }}
-                            buttonRef={isMenuAction ? threedotRef : {current: null}}
-                            icon={contextAction.icon}
-                            text={text ?? ''}
-                            successIcon={contextAction.successIcon}
-                            successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
-                            isMini={isMini}
-                            key={contextAction.textTranslateKey}
-                            onPress={(event) =>
-                                interceptAnonymousUser(
-                                    () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
-                                    contextAction.isAnonymousAction,
-                                )
-                            }
-                            description={contextAction.getDescription?.(selection) ?? ''}
-                            isAnonymousAction={contextAction.isAnonymousAction}
-                            isFocused={focusedIndex === index}
-                            shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
-                            onFocus={() => setFocusedIndex(index)}
-                        />
-                    );
-                })}
-            </View>
+                        return (
+                            <ContextMenuItem
+                                ref={(ref) => {
+                                    menuItemRefs.current[index] = ref;
+                                }}
+                                buttonRef={isMenuAction ? threedotRef : {current: null}}
+                                icon={contextAction.icon}
+                                text={text ?? ''}
+                                successIcon={contextAction.successIcon}
+                                successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}
+                                isMini={isMini}
+                                key={contextAction.textTranslateKey}
+                                onPress={(event) =>
+                                    interceptAnonymousUser(
+                                        () => contextAction.onPress?.(closePopup, {...payload, ...transactionPayload, event, ...(isMenuAction ? {anchorRef: threedotRef} : {})}),
+                                        contextAction.isAnonymousAction,
+                                    )
+                                }
+                                description={contextAction.getDescription?.(selection) ?? ''}
+                                isAnonymousAction={contextAction.isAnonymousAction}
+                                isFocused={focusedIndex === index}
+                                shouldPreventDefaultFocusOnPress={contextAction.shouldPreventDefaultFocusOnPress}
+                                onFocus={() => setFocusedIndex(index)}
+                            />
+                        );
+                    })}
+                </View>
+            </FocusTrapForModal>
         )
     );
 }
