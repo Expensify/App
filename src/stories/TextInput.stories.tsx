@@ -2,6 +2,7 @@ import type {Meta, StoryFn} from '@storybook/react';
 import React, {useState} from 'react';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+import variables from '@styles/variables';
 
 type TextInputStory = StoryFn<typeof TextInput>;
 
@@ -142,11 +143,7 @@ AutoGrowHeightInput.args = {
     name: 'AutoGrowHeight',
     placeholder: 'My placeholder text',
     autoGrowHeight: true,
-    textInputContainerStyles: [
-        {
-            maxHeight: 115,
-        },
-    ],
+    maxAutoGrowHeight: variables.textInputAutoGrowMaxHeight,
 };
 
 export default story;
