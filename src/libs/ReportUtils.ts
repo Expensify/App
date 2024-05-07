@@ -13,6 +13,7 @@ import type {FileObject} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams, TranslationPaths} from '@src/languages/types';
@@ -448,6 +449,10 @@ type OptionData = {
     reportID?: string;
     enabled?: boolean;
     data?: Partial<TaxRate>;
+    transactionThreadReportID?: string | null;
+    shouldShowAmountInput?: boolean;
+    amountInputProps?: MoneyRequestAmountInputProps;
+    tabIndex?: 0 | -1;
 } & Report;
 
 type OnyxDataTaskAssigneeChat = {
@@ -6002,6 +6007,13 @@ function isReportParticipant(accountID: number, report: OnyxEntry<Report>): bool
     return possibleAccountIDs.includes(accountID);
 }
 
+/**
+ * Check to see if the current user has access to view the report.
+ */
+function canCurrentUserOpenReport(report: OnyxEntry<Report>): boolean {
+    return (isReportParticipant(currentUserAccountID ?? 0, report) || isPublicRoom(report)) && canAccessReport(report, allPolicies, allBetas);
+}
+
 function shouldUseFullTitleToDisplay(report: OnyxEntry<Report>): boolean {
     return (
         isMoneyRequestReport(report) || isPolicyExpenseChat(report) || isChatRoom(report) || isChatThread(report) || isTaskReport(report) || isGroupChat(report) || isInvoiceReport(report)
@@ -6530,6 +6542,7 @@ export {
     canBeAutoReimbursed,
     canCreateRequest,
     canCreateTaskInReport,
+    canCurrentUserOpenReport,
     canDeleteReportAction,
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
@@ -6673,6 +6686,7 @@ export {
     isExpensifyOnlyParticipantInReport,
     isGroupChat,
     isGroupChatAdmin,
+    isGroupPolicy,
     isReportInGroupPolicy,
     isHoldCreator,
     isIOUOwnedByCurrentUser,

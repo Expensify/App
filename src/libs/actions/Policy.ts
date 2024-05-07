@@ -1415,7 +1415,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
     const optimisticMembersState: OnyxCollection<PolicyEmployee> = {};
     const successMembersState: OnyxCollection<PolicyEmployee> = {};
     const failureMembersState: OnyxCollection<PolicyEmployee> = {};
-    Object.keys(invitedEmailsToAccountIDs).forEach((email) => {
+    logins.forEach((email) => {
         optimisticMembersState[email] = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, role: CONST.POLICY.ROLE.USER};
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -2099,6 +2099,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 owner: sessionEmail,
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
+                areCategoriesEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
@@ -2748,7 +2749,7 @@ function setWorkspaceInviteMessageDraft(policyID: string, message: string | null
 }
 
 function clearErrors(policyID: string) {
-    setWorkspaceErrors(policyID, {});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
     hideWorkspaceAlertMessage(policyID);
 }
 
