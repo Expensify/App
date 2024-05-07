@@ -23,7 +23,7 @@ function InitialURLContextProvider({children, url}: InitialURLContextProviderPro
         Linking.getInitialURL().then((initURL) => {
             setInitialURL(initURL as Route);
         });
-    }, [initialURL]);
+    }, [initialURL, url]);
     return <InitialURLContext.Provider value={initialURL}>{children}</InitialURLContext.Provider>;
 }
 
