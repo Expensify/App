@@ -450,8 +450,10 @@ function addActions(reportID: string, text = '', file?: FileObject) {
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
+    const currentTime = DateUtils.getDBTimeWithSkew();
+
     if (text && !file) {
-        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID);
+        const reportComment = ReportUtils.buildOptimisticAddCommentReportAction(text, undefined, undefined, undefined, undefined, reportID, currentTime);
         reportCommentAction = reportComment.reportAction;
         reportCommentText = reportComment.commentText;
     }
@@ -474,7 +476,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
 
     // Always prefer the file as the last action over text
     const lastAction = attachmentAction ?? reportCommentAction;
-    const currentTime = DateUtils.getDBTimeWithSkew();
     const lastComment = lastAction?.message?.[0];
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastComment?.text ?? '');
 

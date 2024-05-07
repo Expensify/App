@@ -232,7 +232,7 @@ function ReportActionsView({
     const hasNewestReportAction = reportActions[0]?.created === report.lastVisibleActionCreated || reportActions[0]?.created === transactionThreadReport?.lastVisibleActionCreated;
     const oldestReportAction = useMemo(() => reportActions?.at(-1), [reportActions]);
     const hasCreatedAction = oldestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
-
+    console.log({hasNewestReportAction, created: reportActions[0]?.created, lastVisibleActionCreated: report.lastVisibleActionCreated});
     useEffect(() => {
         if (reportActionID) {
             return;

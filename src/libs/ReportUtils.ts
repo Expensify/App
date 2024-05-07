@@ -3425,6 +3425,7 @@ function buildOptimisticAddCommentReportAction(
     createdOffset = 0,
     shouldEscapeText?: boolean,
     reportID?: string,
+    currentTime?: string,
 ): OptimisticReportAction {
     const parser = new ExpensiMark();
     const commentText = getParsedComment(text ?? '', {shouldEscapeText, reportID});
@@ -3464,7 +3465,7 @@ function buildOptimisticAddCommentReportAction(
             ],
             automatic: false,
             avatar: allPersonalDetails?.[accountID ?? -1]?.avatar ?? UserUtils.getDefaultAvatarURL(accountID),
-            created: DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
+            created: currentTime ?? DateUtils.getDBTimeWithSkew(Date.now() + createdOffset),
             message: [
                 {
                     translationKey: isAttachmentOnly ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
@@ -4071,11 +4072,17 @@ function buildOptimisticSubmittedReportAction(amount: number, currency: string, 
  * @param [comment] - User comment for the IOU.
  * @param [transaction] - optimistic first transaction of preview
  */
-function buildOptimisticReportPreview(chatReport: OnyxEntry<Report>, iouReport: Report, comment = '', transaction: OnyxEntry<Transaction> = null, childReportID?: string): ReportAction {
+function buildOptimisticReportPreview(
+    chatReport: OnyxEntry<Report>,
+    iouReport: Report,
+    comment = '',
+    transaction: OnyxEntry<Transaction> = null,
+    childReportID?: string,
+    created = DateUtils.getDBTime(),
+): ReportAction {
     const hasReceipt = TransactionUtils.hasReceipt(transaction);
     const isReceiptBeingScanned = hasReceipt && TransactionUtils.isReceiptBeingScanned(transaction);
     const message = getReportPreviewMessage(iouReport);
-    const created = DateUtils.getDBTime();
     return {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport?.reportID,
