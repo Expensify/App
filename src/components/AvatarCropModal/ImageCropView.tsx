@@ -86,6 +86,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
                         // fill={theme.iconReversed}
                         width={containerSize}
                         height={containerSize}
+                        key={containerSize}
                     />
                 </View>
             </Animated.View>
