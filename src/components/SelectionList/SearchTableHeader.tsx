@@ -20,8 +20,8 @@ function SearchTableHeader({data}: SearchTableHeaderProps) {
     const {translate} = useLocalize();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
-    const shouldShowCategoryColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.CATEGORY);
-    const shouldShowTagColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.TAG);
+    const shouldShowCategoryColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
+    const shouldShowTagColumn = SearchUtils.getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
     const shouldShowMerchant = SearchUtils.getShouldShowMerchant(data);
 
     if (displayNarrowVersion) {

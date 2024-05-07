@@ -13,14 +13,14 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
     });
 }
 
-function getShouldShowColumn(data: OnyxTypes.SearchResults['data'], columnName: ValueOf<typeof CONST.SEARCH_TABLE_OPTIONAL_COLUMNS>) {
+function getShouldShowColumn(data: OnyxTypes.SearchResults['data'], columnName: ValueOf<typeof CONST.SEARCH_TABLE_COLUMNS>) {
     return Object.values(data).some((item) => !!item[columnName]);
 }
 
 function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
-    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.CATEGORY);
-    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_OPTIONAL_COLUMNS.TAG);
+    const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
+    const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
     return Object.entries(data)
         .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
         .map(([, value]) => {

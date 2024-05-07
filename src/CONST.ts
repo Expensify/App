@@ -930,10 +930,6 @@ const CONST = {
         TYPE: 'type',
         ACTION: 'action',
     },
-    SEARCH_TABLE_OPTIONAL_COLUMNS: {
-        CATEGORY: 'category',
-        TAG: 'tag',
-    },
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
