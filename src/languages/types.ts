@@ -11,10 +11,6 @@ type CharacterLimitParams = {
     limit: number;
 };
 
-type MaxParticipantsReachedParams = {
-    count: number;
-};
-
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -117,7 +113,7 @@ type SplitAmountParams = {amount: string};
 
 type DidSplitAmountMessageParams = {formattedAmount: string; comment: string};
 
-type AmountEachParams = {amount: string};
+type UserSplitParams = {amount: string};
 
 type PayerOwesAmountParams = {payer: string; amount: number | string; comment?: string};
 
@@ -307,7 +303,6 @@ export type {
     AddressLineParams,
     AdminCanceledRequestParams,
     AlreadySignedInParams,
-    AmountEachParams,
     ApprovedAmountParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
@@ -336,7 +331,6 @@ export type {
     LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
-    MaxParticipantsReachedParams,
     NewFaceEnterMagicCodeParams,
     NoLongerHaveAccessParams,
     NotAllowedExtensionParams,
@@ -387,6 +381,7 @@ export type {
     UpdatedTheRequestParams,
     UsePlusButtonParams,
     UserIsAlreadyMemberParams,
+    UserSplitParams,
     ViolationsAutoReportedRejectedExpenseParams,
     ViolationsCashExpenseWithNoReceiptParams,
     ViolationsConversionSurchargeParams,

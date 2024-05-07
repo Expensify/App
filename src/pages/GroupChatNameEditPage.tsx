@@ -108,6 +108,7 @@ function GroupChatNameEditPage({groupChatDraft, route}: GroupChatNameEditPagePro
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
+                    shouldShowClearButton
                 />
             </FormProvider>
         </ScreenWrapper>
