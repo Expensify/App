@@ -114,11 +114,6 @@ platforms:
         icon: /assets/images/money-into-wallet.svg
         description: Learn more about expense tracking and submission.
 
-      - href: bank-accounts-and-payments
-        title: Bank Accounts & Payments
-        icon: /assets/images/bank-card.svg
-        description: Send direct reimbursements, pay invoices, and receive payment.
-      
       - href: expensify-card
         title: Expensify Card
         icon: /assets/images/hand-card.svg
