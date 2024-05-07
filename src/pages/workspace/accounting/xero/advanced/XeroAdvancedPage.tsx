@@ -24,17 +24,13 @@ function XeroAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const {invoiceCollectionsAccountID, reimbursementAccountID} = sync ?? {};
 
-    const selectedBankAccountName = useMemo(() => {
-        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === invoiceCollectionsAccountID);
-
+    const getSelectedAccountName = useMemo(() => (accountId: string) => {
+        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === accountId);
         return selectedAccount?.name ?? '';
-    }, [bankAccounts, invoiceCollectionsAccountID]);
-
-    const selectedBillPaymentAccountName = useMemo(() => {
-        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === reimbursementAccountID);
-
-        return selectedAccount?.name ?? '';
-    }, [bankAccounts, reimbursementAccountID]);
+    }, [bankAccounts]);
+    
+    const selectedBankAccountName = getSelectedAccountName(invoiceCollectionsAccountID ?? '');
+    const selectedBillPaymentAccountName = getSelectedAccountName(reimbursementAccountID ?? '');
 
     return (
         <ConnectionLayout
