@@ -3,7 +3,7 @@ import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import type {Participant, Participants} from '@src/types/onyx/Report';
+import type {Participants} from '@src/types/onyx/Report';
 
 type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 type OldReport = Report & {participantAccountIDs?: number[]; visibleChatMemberAccountIDs?: number[]};
@@ -44,21 +44,27 @@ export default function (): Promise<void> {
         const collection = Object.entries(reports).reduce<OldReportCollection>((reportsCollection, [onyxKey, report]) => {
             // If we have participantAccountIDs then this report is eligible for migration
             if (report?.participantAccountIDs) {
-                const visibleParticipants = new Set(report.visibleChatMemberAccountIDs);
-                const participants = report.participantAccountIDs.reduce<Participants>((reportParticipants, accountID) => {
-                    const participant: Participant = {
-                        hidden: !visibleParticipants.has(accountID),
-                    };
+                const participants: NullishDeep<Participants> = {};
 
-                    // eslint-disable-next-line no-param-reassign
-                    reportParticipants[accountID] = participant;
-                    return reportParticipants;
-                }, {});
+                const deprecatedParticipants = new Set(report.participantAccountIDs);
+                const deprecatedVisibleParticipants = new Set(report.visibleChatMemberAccountIDs);
 
-                // Current user is always a participant
-                if (currentUserAccountID !== undefined && !participants[currentUserAccountID]) {
-                    participants[currentUserAccountID] = {hidden: false};
-                }
+                // Check all possible participants because some of these may be invalid https://github.com/Expensify/App/pull/40254#issuecomment-2096867084
+                const possibleParticipants = new Set([
+                    ...report.participantAccountIDs,
+                    ...Object.keys(report.participants ?? {}).map(Number),
+                    ...(currentUserAccountID !== undefined ? [currentUserAccountID] : []),
+                ]);
+
+                possibleParticipants.forEach((accountID) => {
+                    if (deprecatedParticipants.has(accountID) || accountID === currentUserAccountID) {
+                        participants[accountID] = {
+                            hidden: report.participants?.[accountID]?.hidden ?? (!deprecatedVisibleParticipants.has(accountID) && accountID !== currentUserAccountID),
+                        };
+                    } else {
+                        participants[accountID] = null;
+                    }
+                });
 
                 // eslint-disable-next-line no-param-reassign
                 reportsCollection[onyxKey as ReportKey] = {
