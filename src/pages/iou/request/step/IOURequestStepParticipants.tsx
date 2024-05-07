@@ -109,7 +109,7 @@ function IOURequestStepParticipants({
         IOU.setMoneyRequestTag(transactionID, '');
         IOU.setMoneyRequestCategory(transactionID, '');
 
-        if (isCategorizing && !selectedReportID.current) {
+        if (isCategorizing && numberOfParticipants.current === 0) {
             ReportUtils.createDraftWorkspaceAndNavigateToConfirmationScreen(transactionID, action);
             return;
         }
