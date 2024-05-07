@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import Emojis from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 import * as User from '@libs/actions/User';
+import {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +12,11 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('EmojiTest', () => {
+    beforeAll(async () => {
+        buildEmojisTrie('en');
+        buildEmojisTrie('es');
+    });
+
     it('matches all the emojis in the list', () => {
         // Given the set of Emojis available in the application
         const emojiMatched = Emojis.every((emoji) => {
