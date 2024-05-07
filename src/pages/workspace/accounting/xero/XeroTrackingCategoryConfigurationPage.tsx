@@ -30,18 +30,20 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         const costCenterCategoryValue = getTrackingCategory(policy, CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.COST_CENTERS)?.value ?? '';
         const regionCategoryValue = getTrackingCategory(policy, CONST.XERO_CONFIG.TRACKING_CATEGORY_FIELDS.REGION)?.value ?? '';
         if (costCenterCategoryValue) {
+            const isValidOption = Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).findIndex((option) => option.toLowerCase() === costCenterCategoryValue.toLowerCase()) > -1;
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroCostCentersTo'),
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS.getRoute(policyID)),
-                title: translate(`workspace.xero.trackingCategoriesOptions.${costCenterCategoryValue.toLowerCase()}` as TranslationPaths),
+                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${costCenterCategoryValue.toLowerCase()}` as TranslationPaths): '',
             });
         }
 
         if (regionCategoryValue) {
+            const isValidOption = Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).findIndex((option) => option.toLowerCase() === regionCategoryValue.toLowerCase()) > -1;
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroRegionsTo'),
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION.getRoute(policyID)),
-                title: translate(`workspace.xero.trackingCategoriesOptions.${regionCategoryValue.toLowerCase()}` as TranslationPaths),
+                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${regionCategoryValue.toLowerCase()}` as TranslationPaths): '',
             });
         }
         return availableCategories;
