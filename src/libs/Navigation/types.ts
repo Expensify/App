@@ -163,7 +163,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.WORKSPACE.CURRENCY]: undefined;
-    [SCREENS.WORKSPACE.ADDRESS]: undefined;
+    [SCREENS.WORKSPACE.ADDRESS]: {
+        policyID: string;
+        country?: Country | '';
+    };
     [SCREENS.WORKSPACE.NAME]: undefined;
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
