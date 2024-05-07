@@ -28,6 +28,7 @@
   - [1.21 `compose` usage](#compose-usage)
   - [1.22 Type imports](#type-imports)
   - [1.23 Ref types](#ref-types)
+  - [1.24 Consice Way To Access or Default](#concise-way)
 - [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
@@ -662,6 +663,7 @@ if (ref.current && 'getBoundingClientRect' in ref.current) {
 
 <View ref={viewRef(ref)} onPointerDown={e => {#DO SOMETHING}}>
 ```
+- [1.24](#concise-way) **Defining Inexisting Record**: Always use `-1` when defining inexisiting records instead of using `0`.
 
 ## Exception to Rules
 
