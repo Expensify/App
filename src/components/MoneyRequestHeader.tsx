@@ -18,7 +18,6 @@ import type {Policy, Report, ReportAction, ReportActions, Session, Transaction} 
 import type {OriginalMessageIOU} from '@src/types/onyx/OriginalMessage';
 import ConfirmModal from './ConfirmModal';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import HoldBanner from './HoldBanner';
 import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
@@ -53,6 +52,9 @@ type MoneyRequestHeaderProps = MoneyRequestHeaderOnyxProps & {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    /** Method to trigger when pressing close button of the header */
+    onBackButtonPress: () => void;
 };
 
 function MoneyRequestHeader({
@@ -64,6 +66,7 @@ function MoneyRequestHeader({
     shownHoldUseExplanation = false,
     policy,
     shouldUseNarrowLayout = false,
+    onBackButtonPress,
 }: MoneyRequestHeaderProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -134,7 +137,7 @@ function MoneyRequestHeader({
                 onSelected: () => changeMoneyRequestStatus(),
             });
         }
-        if (!isOnHold && (isRequestIOU || canModifyStatus)) {
+        if (!isOnHold && (isRequestIOU || canModifyStatus) && !isScanning) {
             threeDotsMenuItems.push({
                 icon: Expensicons.Stopwatch,
                 text: translate('iou.holdExpense'),
@@ -179,6 +182,7 @@ function MoneyRequestHeader({
                 <HeaderWithBackButton
                     shouldShowBorderBottom={!isScanning && !isPending && !isOnHold}
                     shouldShowReportAvatarWithDisplay
+                    shouldEnableDetailPageNavigation
                     shouldShowPinButton={false}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -189,7 +193,7 @@ function MoneyRequestHeader({
                     }}
                     policy={policy}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
+                    onBackButtonPress={onBackButtonPress}
                 />
                 {isPending && (
                     <MoneyRequestHeaderStatusBar
@@ -202,10 +206,17 @@ function MoneyRequestHeader({
                     <MoneyRequestHeaderStatusBar
                         title={translate('iou.receiptStatusTitle')}
                         description={translate('iou.receiptStatusText')}
-                        shouldShowBorderBottom
+                        shouldShowBorderBottom={!isOnHold}
                     />
                 )}
-                {isOnHold && <HoldBanner />}
+                {isOnHold && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.hold')}
+                        description={translate('iou.expenseOnHold')}
+                        shouldShowBorderBottom
+                        danger
+                    />
+                )}
             </View>
             <ConfirmModal
                 title={translate('iou.deleteExpense')}

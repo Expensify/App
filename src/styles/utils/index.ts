@@ -270,8 +270,8 @@ function getAvatarBorderStyle(size: AvatarSizeName, type: string): ViewStyle {
 /**
  * Helper method to return workspace avatar color styles
  */
-function getDefaultWorkspaceAvatarColor(workspaceName: string): ViewStyle {
-    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
+function getDefaultWorkspaceAvatarColor(text: string): ViewStyle {
+    const colorHash = UserUtils.hashText(text.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -1089,6 +1089,44 @@ function getMultiGestureCanvasContainerStyle(canvasWidth: number): ViewStyle {
     };
 }
 
+function percentage(percentageValue: number, totalValue: number) {
+    return (totalValue / 100) * percentageValue;
+}
+
+/**
+ * Calculates the width in px of characters from 0 to 9 and '.'
+ */
+function getCharacterWidth(character: string) {
+    const defaultWidth = 8;
+    if (character === '.') {
+        return percentage(25, defaultWidth);
+    }
+    const number = +character;
+
+    // The digit '1' is 62.5% smaller than the default width
+    if (number === 1) {
+        return percentage(62.5, defaultWidth);
+    }
+    if (number >= 2 && number <= 5) {
+        return defaultWidth;
+    }
+    if (number === 7) {
+        return percentage(87.5, defaultWidth);
+    }
+    if ((number >= 6 && number <= 9) || number === 0) {
+        return percentage(112.5, defaultWidth);
+    }
+    return defaultWidth;
+}
+
+function getAmountWidth(amount: string): number {
+    let width = 0;
+    for (let i = 0; i < amount.length; i++) {
+        width += getCharacterWidth(amount.charAt(i));
+    }
+    return width;
+}
+
 const staticStyleUtils = {
     positioning,
     combineStyles,
@@ -1160,6 +1198,8 @@ const staticStyleUtils = {
     getSignInBgStyles,
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
+    getCharacterWidth,
+    getAmountWidth,
 };
 
 const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
@@ -1522,6 +1562,37 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
+    getSearchTableColumnStyles: (columnName: string): ViewStyle => {
+        let columnWidth;
+        switch (columnName) {
+            case CONST.SEARCH_TABLE_COLUMNS.DATE:
+                columnWidth = getWidthStyle(variables.w44);
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.MERCHANT:
+                columnWidth = styles.flex1;
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.FROM:
+                columnWidth = styles.flex1;
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TO:
+                columnWidth = styles.flex1;
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TOTAL:
+                columnWidth = {...getWidthStyle(variables.w96), ...styles.alignItemsEnd};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.TYPE:
+                columnWidth = {...getWidthStyle(variables.w28), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH_TABLE_COLUMNS.ACTION:
+                columnWidth = getWidthStyle(variables.w80);
+                break;
+            default:
+                columnWidth = styles.flex1;
+        }
+
+        return columnWidth;
+    },
+
     /**
      * Returns container styles for showing the icons in MultipleAvatars/SubscriptAvatar
      */
@@ -1593,7 +1664,18 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      * also have an impact on the width of the character, but as long as there's only one font-family and one font-size,
      * this method will produce reliable results.
      */
-    getCharacterPadding: (prefix: string): number => prefix.length * 10,
+    getCharacterPadding: (prefix: string): number => {
+        let padding = 0;
+        prefix.split('').forEach((char) => {
+            if (char.match(/[a-z]/i) && char === char.toUpperCase()) {
+                padding += 11;
+            } else {
+                padding += 8;
+            }
+        });
+
+        return padding;
+    },
 
     // TODO: remove it when we'll implement the callback to handle this toggle in Expensify/Expensify#368335
     getWorkspaceWorkflowsOfflineDescriptionStyle: (descriptionTextStyle: TextStyle | TextStyle[]): StyleProp<TextStyle> => ({
