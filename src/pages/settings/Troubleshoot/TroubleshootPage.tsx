@@ -119,7 +119,7 @@ function TroubleshootPage({shouldStoreLogs}: TroubleshootPageProps) {
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
-                                <ClientSideLoggingToolMenu isViaTestToolsModal={false} />
+                                <ClientSideLoggingToolMenu />
                             </View>
                             <MenuItemList
                                 menuItems={menuItems}

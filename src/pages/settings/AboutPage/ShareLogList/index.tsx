@@ -20,9 +20,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
             () => {},
         );
     };
-    return (
-        <BaseShareLogList onAttachLogToReport={onAttachLogToReport} />
-    );
+    return <BaseShareLogList onAttachLogToReport={onAttachLogToReport} />;
 }
 
 export default ShareLogList;

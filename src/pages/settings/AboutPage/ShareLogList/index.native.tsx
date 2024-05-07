@@ -17,9 +17,7 @@ function ShareLogList({logSource}: ShareLogListProps) {
         Navigation.navigate(routeToNavigate);
     };
 
-    return (
-        <BaseShareLogList onAttachLogToReport={onAttachLogToReport} />
-    );
+    return <BaseShareLogList onAttachLogToReport={onAttachLogToReport} />;
 }
 
 export default ShareLogList;
