@@ -4771,10 +4771,11 @@ function buildOptimisticTaskReport(
         [ownerAccountID]: {
             hidden: false,
         },
-        [assigneeAccountID]: {
-            hidden: false,
-        },
     };
+
+    if (assigneeAccountID) {
+        participants[assigneeAccountID] = {hidden: false};
+    }
 
     return {
         reportID: generateReportID(),
