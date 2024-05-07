@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -119,13 +120,15 @@ function ReportParticipantDetails({personalDetails, report, route}: ReportPartic
                 </View>
                 <View style={styles.w100}>
                     {isCurrentUserAdmin && (
-                        <MenuItemWithTopDescription
-                            disabled={isSelectedMemberCurrentUser}
-                            title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
-                            description={translate('common.role')}
-                            shouldShowRightIcon
-                            onPress={openRoleSelectionModal}
-                        />
+                        <OfflineWithFeedback pendingAction={member?.pendingFields?.role ?? null}>
+                            <MenuItemWithTopDescription
+                                disabled={isSelectedMemberCurrentUser}
+                                title={member?.role === CONST.REPORT.ROLE.ADMIN ? translate('common.admin') : translate('common.member')}
+                                description={translate('common.role')}
+                                shouldShowRightIcon
+                                onPress={openRoleSelectionModal}
+                            />
+                        </OfflineWithFeedback>
                     )}
                     <MenuItem
                         title={translate('common.profile')}

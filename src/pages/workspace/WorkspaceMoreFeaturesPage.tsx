@@ -123,6 +123,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             action: (isEnabled: boolean) => {
                 Policy.enablePolicyConnections(policy?.id ?? '', isEnabled);
             },
+            disabled: hasAccountingConnection,
             errors: ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
             onCloseError: () => Policy.clearPolicyErrorField(policy?.id ?? '', CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED),
         },

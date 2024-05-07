@@ -15,11 +15,15 @@ import type {Report} from '@src/types/onyx';
 type WithWritableReportOrNotFoundOnyxProps = {
     /** The report corresponding to the reportID in the route params */
     report: OnyxEntry<Report>;
+
+    /** The draft report corresponding to the reportID in the route params */
+    reportDraft: OnyxEntry<Report>;
 };
 
 type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
+    | typeof SCREENS.MONEY_REQUEST.STEP_DATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
@@ -69,6 +73,9 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     return withOnyx<TProps & RefAttributes<TRef>, WithWritableReportOrNotFoundOnyxProps>({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID ?? '0'}`,
+        },
+        reportDraft: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID ?? '0'}`,
         },
     })(forwardRef(WithWritableReportOrNotFound));
 }

@@ -3,6 +3,7 @@ import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WorkspaceTravelSettings} from './TravelSettings';
 
 type Unit = 'mi' | 'km';
 
@@ -142,7 +143,7 @@ type QBOConnectionData = {
     bankAccounts: Account[];
     creditCards: Account[];
     accountsReceivable: Account[];
-    accountsPayable: Account[];
+    accountPayable: Account[];
     otherCurrentAssetAccounts: Account[];
 
     taxCodes: TaxCode[];
@@ -151,6 +152,9 @@ type QBOConnectionData = {
 };
 
 type IntegrationEntityMap = (typeof CONST.INTEGRATION_ENTITY_MAP_TYPES)[keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES];
+
+type QBONonReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE];
+type QBOReimbursableExportAccountType = (typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE)[keyof typeof CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE];
 
 /**
  * User configuration for the QuickBooks Online accounting integration.
@@ -165,33 +169,27 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     syncPeople: boolean;
     syncItems: boolean;
     markChecksToBePrinted: boolean;
-    reimbursableExpensesExportDestination: IntegrationEntityMap;
-    nonReimbursableExpensesExportDestination: IntegrationEntityMap;
-
+    reimbursableExpensesExportDestination: QBOReimbursableExportAccountType;
+    nonReimbursableExpensesExportDestination: QBONonReimbursableExportAccountType;
+    nonReimbursableBillDefaultVendor: string;
     collectionAccountID?: string;
     reimbursementAccountID?: string;
-    reimbursableExpensesAccount?: string;
-    nonReimbursableExpensesAccount?: string;
+    reimbursableExpensesAccount?: Account;
+    nonReimbursableExpensesAccount?: Account;
+    receivableAccount?: Account;
     autoCreateVendor: boolean;
     hasChosenAutoSyncOption: boolean;
     syncClasses: IntegrationEntityMap;
     syncCustomers: IntegrationEntityMap;
     syncLocations: IntegrationEntityMap;
-    syncAccounts: IntegrationEntityMap;
     lastConfigurationTime: number;
-    exportCompanyCardAccount?: string;
     syncTax: boolean;
-    enableNewCategories: IntegrationEntityMap;
+    enableNewCategories: boolean;
     errors?: OnyxCommon.Errors;
-    exporter: string;
     exportDate: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
-    outOfPocketExpenses: string;
-    exportInvoice: string;
-    exportAccount: string;
-    exportAccountPayable: string;
-    accountPayable: string;
-    exportEntity?: ValueOf<typeof CONST.QUICKBOOKS_OUT_OF_POCKET_EXPENSE_ACCOUNT_TYPE>;
-    exportCompanyCard: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_COMPANY_CARD_ACCOUNT_TYPE>;
+    export: {
+        exporter: string;
+    };
     errorFields?: OnyxCommon.ErrorFields;
 }>;
 
@@ -208,7 +206,7 @@ type Tenant = {
 };
 
 type XeroConnectionData = {
-    bankAccounts: unknown[];
+    bankAccounts: Account[];
     countryCode: string;
     organisationID: string;
     revenueAccounts: Array<{
@@ -523,6 +521,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Indicates if the Policy ownership change is failed */
         isChangeOwnerFailed?: boolean;
+
+        /** Object containing all policy information necessary to connect with Spontana */
+        travelSettings?: WorkspaceTravelSettings;
     } & Partial<PendingJoinRequestPolicy>,
     'generalSettings' | 'addWorkspaceRoom' | keyof ACHAccount
 >;
@@ -557,4 +558,7 @@ export type {
     ConnectionName,
     Tenant,
     Account,
+    QBONonReimbursableExportAccountType,
+    QBOReimbursableExportAccountType,
+    QBOConnectionConfig,
 };
