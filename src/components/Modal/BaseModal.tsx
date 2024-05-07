@@ -75,7 +75,7 @@ function BaseModal(
      */
     const hideModal = useCallback(
         (callHideCallback = true) => {
-            if (Modal.getModalVisibleCount() === 0) {
+            if (Modal.areAllModalsHidden()) {
                 Modal.willAlertModalBecomeVisible(false);
                 if (shouldSetModalVisibility) {
                     Modal.setModalVisibility(false);
