@@ -19,6 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as Browser from '@libs/Browser';
+import getIconForAction from '@libs/getIconForAction';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
 import * as Report from '@userActions/Report';
@@ -128,24 +129,29 @@ function AttachmentPickerWithMenuItems({
     const moneyRequestOptions = useMemo(() => {
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: {
-                icon: Expensicons.Receipt,
+                icon: Expensicons.Transfer,
                 text: translate('iou.splitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.SUBMIT]: {
-                icon: Expensicons.MoneyCircle,
+                icon: getIconForAction(CONST.IOU.TYPE.REQUEST),
                 text: translate('iou.submitExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.PAY]: {
-                icon: Expensicons.Send,
+                icon: getIconForAction(CONST.IOU.TYPE.SEND),
                 text: translate('iou.paySomeone', {name: ReportUtils.getPayeeName(report)}),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, report?.reportID ?? ''),
             },
             [CONST.IOU.TYPE.TRACK]: {
-                icon: Expensicons.DocumentPlus,
+                icon: getIconForAction(CONST.IOU.TYPE.TRACK),
                 text: translate('iou.trackExpense'),
                 onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? ''),
+            },
+            [CONST.IOU.TYPE.INVOICE]: {
+                icon: Expensicons.Invoice,
+                text: translate('workspace.invoices.sendInvoice'),
+                onSelected: () => IOU.startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? ''),
             },
         };
 
