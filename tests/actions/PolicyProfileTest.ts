@@ -23,7 +23,7 @@ describe('actions/PolicyProfile', () => {
     });
 
     describe('updateWorkspaceDescription', () => {
-        it('Update workspace`s description', () => {
+        it('Update workspace`s description', async () => {
             const fakePolicy = createRandomPolicy(0);
 
             const oldDescription = fakePolicy.description ?? '';
@@ -31,48 +31,38 @@ describe('actions/PolicyProfile', () => {
             const parsedDescription = ReportUtils.getParsedComment(newDescription);
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             fetch.pause();
-            return (
-                Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
-                    .then(() => {
-                        Policy.updateWorkspaceDescription(fakePolicy.id, newDescription, oldDescription);
-                        return waitForBatchedUpdates();
-                    })
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policy) => {
-                                        Onyx.disconnect(connectionID);
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.updateWorkspaceDescription(fakePolicy.id, newDescription, oldDescription);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connectionID);
 
-                                        expect(policy?.description).toBe(parsedDescription);
-                                        expect(policy?.pendingFields?.description).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-                                        expect(policy?.errorFields?.description).toBeFalsy();
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-                    // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                    .then(fetch.resume)
-                    .then(waitForBatchedUpdates)
-                    .then(
-                        () =>
-                            new Promise<void>((resolve) => {
-                                const connectionID = Onyx.connect({
-                                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                    waitForCollectionCallback: false,
-                                    callback: (policy) => {
-                                        Onyx.disconnect(connectionID);
-                                        expect(policy?.pendingFields?.description).toBeFalsy();
+                        expect(policy?.description).toBe(parsedDescription);
+                        expect(policy?.pendingFields?.description).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                        expect(policy?.errorFields?.description).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            await fetch.resume();
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connectionID = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connectionID);
+                        expect(policy?.pendingFields?.description).toBeFalsy();
 
-                                        resolve();
-                                    },
-                                });
-                            }),
-                    )
-            );
+                        resolve();
+                    },
+                });
+            });
         });
     });
 });
