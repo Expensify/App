@@ -247,6 +247,7 @@ const SCREENS = {
             XERO_TRACKING_CATEGORIES: 'Policy_Accounting_Xero_Tracking_Categories',
             XERO_MAP_COST_CENTERS: 'Policy_Accounting_Xero_Map_Cost_Centers',
             XERO_MAP_REGION: 'Policy_Accounting_Xero_Map_Region',
+            XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
             XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
         },
