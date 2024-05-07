@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
@@ -60,6 +59,9 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    /** Method to trigger when pressing close button of the header */
+    onBackButtonPress: () => void;
 };
 
 function MoneyReportHeader({
@@ -71,6 +73,7 @@ function MoneyReportHeader({
     transactionThreadReport,
     reportActions,
     shouldUseNarrowLayout = false,
+    onBackButtonPress,
 }: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -207,7 +210,7 @@ function MoneyReportHeader({
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
+                onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout) && !haveAllPendingRTERViolation}
                 shouldShowThreeDotsButton
