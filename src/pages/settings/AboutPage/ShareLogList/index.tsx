@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';
 import type {ShareLogListProps} from './types';
 
-function ShareLogList({logSource, backTo}: ShareLogListProps) {
+function ShareLogList({logSource}: ShareLogListProps) {
     const onAttachLogToReport = (reportID: string, filename: string) => {
         FileUtils.readFileAsync(
             logSource,

@@ -181,11 +181,11 @@ const ROUTES = {
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_CONSOLE: {
         route: 'settings/troubleshoot/console',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo) as const,
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
     },
     SETTINGS_SHARE_LOG: {
         route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string, backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console/share-log?source=${encodeURI(source)}`, backTo) as const,
+        getRoute: (source: string, backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console/share-log?source=${encodeURI(source)}`, backTo),
     },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',

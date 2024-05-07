@@ -15,13 +15,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import type {SettingsNavigatorParamList} from "@navigation/types";
+import type SCREENS from "@src/SCREENS";
+import type {RouteProp} from "@react-navigation/native";
+import {useRoute} from "@react-navigation/native";
 import type {BaseShareLogListProps} from './types';
-import {StackScreenProps} from "@react-navigation/stack";
-import {SettingsNavigatorParamList} from "@navigation/types";
-import SCREENS from "@src/SCREENS";
-import {RouteProp, useRoute} from "@react-navigation/native";
 
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
