@@ -7,7 +7,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as HeaderUtils from '@libs/HeaderUtils';
-import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as IOU from '@userActions/IOU';
@@ -55,6 +54,9 @@ type MoneyReportHeaderProps = MoneyReportHeaderOnyxProps & {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    /** Method to trigger when pressing close button of the header */
+    onBackButtonPress: () => void;
 };
 
 function MoneyReportHeader({
@@ -66,6 +68,7 @@ function MoneyReportHeader({
     transactionThreadReport,
     reportActions,
     shouldUseNarrowLayout = false,
+    onBackButtonPress,
 }: MoneyReportHeaderProps) {
     const styles = useThemeStyles();
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
@@ -109,7 +112,7 @@ function MoneyReportHeader({
 
     const shouldDisableApproveButton = shouldShowApproveButton && !ReportUtils.isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const shouldShowSettlementButton = shouldShowPayButton || shouldShowApproveButton;
+    const shouldShowSettlementButton = !ReportUtils.isInvoiceReport(moneyRequestReport) && (shouldShowPayButton || shouldShowApproveButton);
 
     const shouldShowSubmitButton = isDraft && reimbursableSpend !== 0;
     const shouldDisableSubmitButton = shouldShowSubmitButton && !ReportUtils.isAllowedToSubmitDraftExpenseReport(moneyRequestReport);
@@ -198,7 +201,7 @@ function MoneyReportHeader({
                 report={moneyRequestReport}
                 policy={policy}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => Navigation.goBack(undefined, false, true)}
+                onBackButtonPress={onBackButtonPress}
                 // Shows border if no buttons or next steps are showing below the header
                 shouldShowBorderBottom={!(shouldShowAnyButton && shouldUseNarrowLayout) && !(shouldShowNextStep && !shouldUseNarrowLayout)}
                 shouldShowThreeDotsButton

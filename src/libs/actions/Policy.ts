@@ -72,6 +72,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import type {PolicySelector} from '@pages/home/sidebar/SidebarScreen/FloatingActionButtonAndPopover';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     InvitedEmailsToAccountIDs,
@@ -279,6 +280,16 @@ function getPolicy(policyID: string | undefined): Policy | EmptyObject {
 }
 
 /**
+ * Returns a primary policy for the user
+ */
+function getPrimaryPolicy(activePolicyID?: string): Policy | undefined {
+    const activeAdminWorkspaces = PolicyUtils.getActiveAdminWorkspaces(allPolicies);
+    const primaryPolicy: Policy | null | undefined = allPolicies?.[activePolicyID ?? ''];
+
+    return primaryPolicy ?? activeAdminWorkspaces[0];
+}
+
+/**
  * Check if the user has any active free policies (aka workspaces)
  */
 function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>> | OnyxCollection<PolicySelector>, includeOnlyFreePolicies = false): boolean {
@@ -324,7 +335,7 @@ function deleteWorkspace(policyID: string, policyName: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                avatar: '',
+                avatarURL: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 errors: null,
             },
@@ -716,6 +727,10 @@ function clearPolicyErrorField(policyID: string, fieldName: string) {
 
 function clearQBOErrorField(policyID: string, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
+}
+
+function clearXeroErrorField(policyID: string, fieldName: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {xero: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
@@ -1500,13 +1515,13 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                avatar: file.uri,
+                avatarURL: file.uri,
                 originalFileName: file.name,
                 errorFields: {
-                    avatar: null,
+                    avatarURL: null,
                 },
                 pendingFields: {
-                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -1517,7 +1532,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatar: null,
+                    avatarURL: null,
                 },
             },
         },
@@ -1527,7 +1542,7 @@ function updateWorkspaceAvatar(policyID: string, file: File) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                avatar: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatar,
+                avatarURL: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.avatarURL,
             },
         },
     ];
@@ -1550,12 +1565,12 @@ function deleteWorkspaceAvatar(policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    avatarURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
                 errorFields: {
-                    avatar: null,
+                    avatarURL: null,
                 },
-                avatar: '',
+                avatarURL: '',
             },
         },
     ];
@@ -1565,7 +1580,7 @@ function deleteWorkspaceAvatar(policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 pendingFields: {
-                    avatar: null,
+                    avatarURL: null,
                 },
             },
         },
@@ -1576,7 +1591,7 @@ function deleteWorkspaceAvatar(policyID: string) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 errorFields: {
-                    avatar: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
+                    avatarURL: ErrorUtils.getMicroSecondOnyxError('avatarWithImagePicker.deleteWorkspaceError'),
                 },
             },
         },
@@ -1593,10 +1608,10 @@ function deleteWorkspaceAvatar(policyID: string) {
 function clearAvatarErrors(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         errorFields: {
-            avatar: null,
+            avatarURL: null,
         },
         pendingFields: {
-            avatar: null,
+            avatarURL: null,
         },
     });
 }
@@ -2084,6 +2099,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 owner: sessionEmail,
                 ownerAccountID: sessionAccountID,
                 isPolicyExpenseChatEnabled: true,
+                areCategoriesEnabled: true,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 customUnits,
@@ -2149,6 +2165,11 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
                 key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
                 value: optimisticCategoryMap,
             },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+                value: null,
+            },
         ],
         successData: [
             {
@@ -2170,14 +2191,15 @@ function buildOptimisticPolicyCategories(policyID: string, categories: readonly 
 }
 
 /**
- * Optimistically creates a new workspace and default workspace chats
+ * Generates onyx data for creating a new workspace
  *
  * @param [policyOwnerEmail] the email of the account to make the owner of the policy
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
  * @param [policyName] custom policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
+ * @param [expenseReportId] the reportID of the expense report that is being used to create the workspace
  */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
+function buildPolicyData(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID(), expenseReportId?: string) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
@@ -2195,7 +2217,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         expenseChatData,
         expenseReportActionData,
         expenseCreatedReportActionID,
-    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+    } = ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName, expenseReportId);
 
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, CONST.POLICY.DEFAULT_CATEGORIES);
 
@@ -2246,6 +2268,11 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         },
         {
             onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${announceChatReportID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
             value: announceReportActionData,
         },
@@ -2282,6 +2309,11 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
             value: null,
         },
     ];
@@ -2418,7 +2450,114 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         customUnitRateID,
     };
 
+    return {successData, optimisticData, failureData, params};
+}
+
+/**
+ * Optimistically creates a new workspace and default workspace chats
+ *
+ * @param [policyOwnerEmail] the email of the account to make the owner of the policy
+ * @param [makeMeAdmin] leave the calling account as an admin on the policy
+ * @param [policyName] custom policy name we will use for created workspace
+ * @param [policyID] custom policy id we will use for created workspace
+ */
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
+    const {optimisticData, failureData, successData, params} = buildPolicyData(policyOwnerEmail, makeMeAdmin, policyName, policyID);
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
+
+    return params;
+}
+
+/**
+ * Creates a draft workspace for various money request flows
+ *
+ * @param [policyOwnerEmail] the email of the account to make the owner of the policy
+ * @param [makeMeAdmin] leave the calling account as an admin on the policy
+ * @param [policyName] custom policy name we will use for created workspace
+ * @param [policyID] custom policy id we will use for created workspace
+ */
+function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()): CreateWorkspaceParams {
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+
+    const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticCustomUnits();
+
+    const {expenseChatData, announceChatReportID, announceCreatedReportActionID, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} =
+        ReportUtils.buildOptimisticWorkspaceChats(policyID, workspaceName);
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`,
+            value: {
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                name: workspaceName,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: sessionEmail,
+                ownerAccountID: sessionAccountID,
+                isPolicyExpenseChatEnabled: true,
+                outputCurrency,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                autoReporting: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                harvesting: {
+                    enabled: true,
+                },
+                customUnits,
+                areCategoriesEnabled: true,
+                areTagsEnabled: false,
+                areDistanceRatesEnabled: false,
+                areWorkflowsEnabled: false,
+                areReportFieldsEnabled: false,
+                areConnectionsEnabled: false,
+                employeeList: {
+                    [sessionEmail]: {
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        errors: {},
+                    },
+                },
+                chatReportIDAdmins: makeMeAdmin ? Number(adminsChatReportID) : undefined,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_DRAFT}${expenseChatReportID}`,
+            value: expenseChatData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`,
+            value: CONST.POLICY.DEFAULT_CATEGORIES.reduce(
+                (acc, category) => ({
+                    ...acc,
+                    [category]: {
+                        name: category,
+                        enabled: true,
+                        errors: null,
+                    },
+                }),
+                {},
+            ),
+        },
+    ];
+
+    const params: CreateWorkspaceParams = {
+        policyID,
+        announceChatReportID,
+        adminsChatReportID,
+        expenseChatReportID,
+        ownerEmail: policyOwnerEmail,
+        makeMeAdmin,
+        policyName: workspaceName,
+        type: CONST.POLICY.TYPE.TEAM,
+        announceCreatedReportActionID,
+        adminsCreatedReportActionID,
+        expenseCreatedReportActionID,
+        customUnitID,
+        customUnitRateID,
+    };
+
+    Onyx.update(optimisticData);
 
     return params;
 }
@@ -3864,10 +4003,26 @@ function openPolicyDistanceRatesPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE, params);
 }
 
-function navigateWhenEnableFeature(policyID: string) {
-    setTimeout(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
-    }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
+function navigateWhenEnableFeature(policyID: string, featureRoute: Route) {
+    const isNarrowLayout = getIsNarrowLayout();
+    if (isNarrowLayout) {
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        }, 1000);
+        return;
+    }
+
+    /**
+     * The app needs to set a navigation action to the microtask queue, it guarantees to execute Onyx.update first, then the navigation action.
+     * More details - https://github.com/Expensify/App/issues/37785#issuecomment-1989056726.
+     */
+    new Promise<void>((resolve) => {
+        resolve();
+    }).then(() => {
+        requestAnimationFrame(() => {
+            Navigation.navigate(featureRoute);
+        });
+    });
 }
 
 function enablePolicyCategories(policyID: string, enabled: boolean) {
@@ -3913,8 +4068,8 @@ function enablePolicyCategories(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     }
 }
 
@@ -4005,8 +4160,8 @@ function enablePolicyDistanceRates(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID));
     }
 }
 
@@ -4097,8 +4252,8 @@ function enablePolicyTags(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
     }
 }
 
@@ -4210,8 +4365,8 @@ function enablePolicyTaxes(policyID: string, enabled: boolean) {
     }
     API.write(WRITE_COMMANDS.ENABLE_POLICY_TAXES, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_TAXES.getRoute(policyID));
     }
 }
 
@@ -4301,8 +4456,8 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
 
     API.write(WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout()) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled) {
+        navigateWhenEnableFeature(policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID));
     }
 }
 
@@ -5121,6 +5276,7 @@ export {
     renamePolicyTag,
     clearPolicyTagErrors,
     clearQBOErrorField,
+    clearXeroErrorField,
     clearWorkspaceReimbursementErrors,
     deleteWorkspaceCategories,
     deletePolicyTags,
@@ -5135,6 +5291,9 @@ export {
     updatePolicyDistanceRateValue,
     setPolicyDistanceRatesEnabled,
     deletePolicyDistanceRates,
+    getPrimaryPolicy,
+    createDraftWorkspace,
+    buildPolicyData,
 };
 
 export type {NewCustomUnit};
