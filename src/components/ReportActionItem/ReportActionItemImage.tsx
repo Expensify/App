@@ -70,6 +70,7 @@ function ReportActionItemImage({
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const isEReceipt = transaction && TransactionUtils.hasEReceipt(transaction);
+    const isDistanceRequest = Boolean(transaction && TransactionUtils.isDistanceRequest(transaction));
 
     let propsObj: ReceiptImageProps;
 
@@ -82,6 +83,7 @@ function ReportActionItemImage({
             fallbackIcon: Expensicons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
+            shouldUseInitialObjectPosition: isDistanceRequest,
         };
     } else if (isLocalFile && filename && Str.isPDF(filename) && typeof attachmentModalSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: attachmentModalSource};
@@ -92,6 +94,7 @@ function ReportActionItemImage({
             shouldUseThumbnailImage: true,
             isAuthTokenRequired: false,
             source: thumbnail ?? image ?? '',
+            shouldUseInitialObjectPosition: isDistanceRequest,
         };
     }
 

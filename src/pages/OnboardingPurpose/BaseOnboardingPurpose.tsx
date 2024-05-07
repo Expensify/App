@@ -75,6 +75,11 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, on
             return;
         }
 
+        if (selectedPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+            Navigation.navigate(ROUTES.ONBOARDING_WORK);
+            return;
+        }
+
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
     }, [selectedPurpose]);
 
