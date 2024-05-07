@@ -184,7 +184,7 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
  */
 function formatTimestampToDate(timestamp: number, formatString: string = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT) {
     const date = new Date(timestamp);
-    return format(date, formatString);
+    return tzFormat(date, formatString);
 }
 
 /**
