@@ -163,9 +163,9 @@ describe('actions/PolicyMember', () => {
                         resolve();
                     },
                 });
-            }),
-                // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
-                await fetch.resume();
+            });
+            // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
+            await fetch.resume();
             await waitForBatchedUpdates();
             new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
