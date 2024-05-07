@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
+import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
@@ -23,6 +24,8 @@ function SearchPage({route}: SearchPageProps) {
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
 
+    const {activeWorkspaceID} = useActiveWorkspace();
+
     return (
         <ScreenWrapper testID={Search.displayName}>
             <FullPageNotFoundView
@@ -36,7 +39,10 @@ function SearchPage({route}: SearchPageProps) {
                     icon={Illustrations.MoneyReceipts}
                     shouldShowBackButton={false}
                 />
-                <Search query={query} />
+                <Search
+                    policyID={activeWorkspaceID}
+                    query={query}
+                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

@@ -18,9 +18,10 @@ import TableListItemSkeleton from './Skeletons/TableListItemSkeleton';
 
 type SearchProps = {
     query: string;
+    policyID?: string;
 };
 
-function Search({query}: SearchProps) {
+function Search({query, policyID}: SearchProps) {
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     useCustomBackHandler();
@@ -33,8 +34,8 @@ function Search({query}: SearchProps) {
             return;
         }
 
-        SearchActions.search(query);
-    }, [query, isOffline]);
+        SearchActions.search(query, policyID);
+    }, [query, policyID, isOffline]);
 
     const isLoading = (!isOffline && isLoadingOnyxValue(searchResultsMeta)) || searchResults?.data === undefined;
     const shouldShowEmptyState = !isLoading && isEmptyObject(searchResults?.data);

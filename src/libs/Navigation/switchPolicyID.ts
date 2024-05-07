@@ -6,6 +6,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import getStateFromPath from './getStateFromPath';
 import getTopmostCentralPaneRoute from './getTopmostCentralPaneRoute';
@@ -43,6 +44,8 @@ function getActionForBottomTabNavigator(action: StackNavigationAction, state: Na
     // Alternative case when the user is on the specific workspace settings screen and selects "All" workspace.
     else if (!policyID && screen === SCREENS.WORKSPACE.INITIAL) {
         screen = SCREENS.ALL_SETTINGS;
+    } else if (screen === SCREENS.SEARCH.CENTRAL_PANE) {
+        screen = SCREENS.SEARCH.BOTTOM_TAB;
     }
 
     if (!payloadParams) {
@@ -65,7 +68,6 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
     }
-
     let root: NavigationRoot = navigation;
     let current: NavigationRoot | undefined;
 
@@ -76,7 +78,11 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
     }
 
     const rootState = navigation.getRootState() as NavigationState<RootStackParamList>;
-    const newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
+    let newPath = route ?? getPathFromState({routes: rootState.routes} as State, linkingConfig.config);
+    const shouldOpenSearchPage = newPath.startsWith('/Search_Bottom_Tab');
+    if (shouldOpenSearchPage) {
+        newPath = ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL);
+    }
     const stateFromPath = getStateFromPath(newPath as Route) as PartialState<NavigationState<RootStackParamList>>;
     const action: StackNavigationAction = getActionFromState(stateFromPath, linkingConfig.config);
 
@@ -93,8 +99,10 @@ export default function switchPolicyID(navigation: NavigationContainerRef<RootSt
         return;
     }
 
+    const shouldPushCentralPane = !getIsNarrowLayout() || shouldOpenSearchPage;
+
     // If the layout is wide we need to push matching central pane route to the stack.
-    if (!getIsNarrowLayout()) {
+    if (shouldPushCentralPane) {
         // Case when the user selects "All" workspace from the specific workspace settings
         if (checkIfActionPayloadNameIsEqual(actionForBottomTabNavigator, SCREENS.ALL_SETTINGS) && !policyID) {
             root.dispatch({
