@@ -1,9 +1,24 @@
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {Receipt} from './Transaction';
 
 type SearchResultsInfo = {
     offset: number;
     type: string;
     hasMoreResults: boolean;
+};
+
+type SearchPersonalDetails = {
+    accountID: number;
+    avatar: string;
+    displayName?: string;
+    login?: string;
+};
+
+type SearchPolicyDetails = {
+    id: string;
+    avatarURL: string;
+    name: string;
 };
 
 type SearchTransaction = {
@@ -16,25 +31,35 @@ type SearchTransaction = {
     modifiedCreated?: string;
     modifiedMerchant?: string;
     description: string;
-    from: {displayName: string; avatarURL: string};
-    to: {displayName: string; avatarURL: string};
+    accountID: number;
+    managerID: number;
+    from: SearchPersonalDetails | SearchPolicyDetails;
+    to: SearchPersonalDetails | SearchPolicyDetails;
     amount: number;
     modifiedAmount?: number;
     category?: string;
+    currency: string;
     tag?: string;
-    type: string;
+    type: SearchTransactionType;
     hasViolation: boolean;
     taxAmount?: number;
     reportID: string;
-    transactionThreadReportID: string; // Not present in live transactions_
+    reportType: string;
+    policyID: string;
+    transactionThreadReportID: string;
+    shouldShowMerchant: boolean;
     action: string;
 };
 
+type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+
+type SearchQuery = ValueOf<typeof CONST.TAB_SEARCH>;
+
 type SearchResults = {
     search: SearchResultsInfo;
-    data: Record<string, SearchTransaction>;
+    data: Record<string, SearchTransaction & Record<string, SearchPersonalDetails>> & Record<string, SearchPolicyDetails>;
 };
 
 export default SearchResults;
 
-export type {SearchTransaction};
+export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails};

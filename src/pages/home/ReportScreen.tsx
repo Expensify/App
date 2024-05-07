@@ -211,6 +211,7 @@ function ReportScreen({
             lastMentionedTime: reportProp?.lastMentionedTime,
             avatarUrl: reportProp?.avatarUrl,
             permissions: reportProp?.permissions,
+            invoiceReceiver: reportProp?.invoiceReceiver,
         }),
         [
             reportProp?.lastReadTime,
@@ -251,6 +252,7 @@ function ReportScreen({
             reportProp?.lastMentionedTime,
             reportProp?.avatarUrl,
             reportProp?.permissions,
+            reportProp?.invoiceReceiver,
         ],
     );
 
@@ -319,14 +321,18 @@ function ReportScreen({
         wasReportAccessibleRef.current = true;
     }, [shouldHideReport, report]);
 
-    const goBack = useCallback(() => {
+    const onBackButtonPress = useCallback(() => {
+        if (isReportOpenInRHP) {
+            Navigation.dismissModal();
+            return;
+        }
         Navigation.goBack(undefined, false, true);
-    }, []);
+    }, [isReportOpenInRHP]);
 
     let headerView = (
         <HeaderView
             reportID={reportIDFromRoute}
-            onNavigationMenuButtonClicked={goBack}
+            onNavigationMenuButtonClicked={onBackButtonPress}
             report={report}
             parentReportAction={parentReportAction}
             shouldUseNarrowLayout={shouldUseNarrowLayout}
@@ -340,12 +346,13 @@ function ReportScreen({
                 policy={policy}
                 parentReportAction={parentReportAction}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
+                onBackButtonPress={onBackButtonPress}
             />
         );
     }
 
     const transactionThreadReportID = useMemo(
-        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], isOffline),
+        () => ReportActionsUtils.getOneTransactionThreadReportID(report.reportID, reportActions ?? [], false, isOffline),
         [report.reportID, reportActions, isOffline],
     );
 
@@ -356,7 +363,7 @@ function ReportScreen({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID));
     }, [transactionThreadReportID, route.params.reportActionID, route.params.reportID]);
 
-    if (ReportUtils.isMoneyRequestReport(report)) {
+    if (ReportUtils.isMoneyRequestReport(report) || ReportUtils.isInvoiceReport(report)) {
         headerView = (
             <MoneyReportHeader
                 report={report}
@@ -364,6 +371,7 @@ function ReportScreen({
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
                 shouldUseNarrowLayout={shouldUseNarrowLayout}
+                onBackButtonPress={onBackButtonPress}
             />
         );
     }
