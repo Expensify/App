@@ -211,7 +211,7 @@ type XeroTrackingCategory = {
 };
 
 type XeroConnectionData = {
-    bankAccounts: unknown[];
+    bankAccounts: Account[];
     countryCode: string;
     organisationID: string;
     revenueAccounts: Array<{

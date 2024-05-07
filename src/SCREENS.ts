@@ -248,6 +248,7 @@ const SCREENS = {
             XERO_MAP_COST_CENTERS: 'Policy_Accounting_Xero_Map_Cost_Centers',
             XERO_MAP_REGION: 'Policy_Accounting_Xero_Map_Region',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
+            XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Profile',
