@@ -788,6 +788,7 @@ const styles = (theme: ThemeColors) =>
                     fontSize: 17,
                 },
                 modalViewMiddle: {
+                    position: 'relative',
                     backgroundColor: theme.border,
                     borderTopWidth: 0,
                 },
@@ -829,6 +830,10 @@ const styles = (theme: ThemeColors) =>
                 icon: {
                     width: variables.iconSizeExtraSmall,
                     height: variables.iconSizeExtraSmall,
+                },
+                chevronContainer: {
+                    pointerEvents: 'none',
+                    opacity: 0,
                 },
             } satisfies CustomPickerStyle),
 
