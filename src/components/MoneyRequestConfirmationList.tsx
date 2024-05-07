@@ -3,11 +3,9 @@ import {format} from 'date-fns';
 import Str from 'expensify-common/lib/str';
 import React, {useCallback, useEffect, useMemo, useReducer, useState} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {TextStyle} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -50,9 +48,15 @@ import ConfirmModal from './ConfirmModal';
 import FormHelpMessage from './FormHelpMessage';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MoneyRequestAmountInput from './MoneyRequestAmountInput';
+import type {MoneyRequestAmountInputProps} from './MoneyRequestAmountInput';
 import PDFThumbnail from './PDFThumbnail';
+import {PressableWithFeedback} from './Pressable';
 import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
+import SelectionList from './SelectionList';
+import type {ListItem, SectionListDataType} from './SelectionList/types';
+import UserListItem from './SelectionList/UserListItem';
 import SettlementButton from './SettlementButton';
 import ShowMoreButton from './ShowMoreButton';
 import Switch from './Switch';
@@ -157,9 +161,6 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** File name of the receipt */
     receiptFilename?: string;
 
-    /** List styles for OptionsSelector */
-    listStyles?: StyleProp<ViewStyle>;
-
     /** Transaction that represents the expense */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -184,6 +185,37 @@ type MoneyRequestConfirmationListProps = MoneyRequestConfirmationListOnyxProps &
     /** The action to take */
     action?: IOUAction;
 };
+
+type IouListItem = {
+    descriptiveText?: string;
+    shouldShowAmountInput?: boolean;
+    amountInputProps?: MoneyRequestAmountInputProps;
+    tabIndex?: number;
+} & ListItem;
+
+function SplitAmountSectionHeader({
+    section: {title, shouldShowActionButton, onActionButtonPress, actionButtonTitle},
+}: {
+    section: SectionListDataType<IouListItem> & {shouldShowActionButton?: boolean; onActionButtonPress?: () => void; actionButtonTitle?: string};
+}) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.optionsListSectionHeader, styles.flexRow, styles.justifyContentBetween]}>
+            <Text style={[styles.ph5, styles.textLabelSupporting]}>{title}</Text>
+            {shouldShowActionButton && (
+                <PressableWithFeedback
+                    onPress={onActionButtonPress}
+                    accessibilityLabel={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.BUTTON}
+                    shouldUseAutoHitSlop
+                >
+                    <Text style={[styles.pr5, styles.textLabelSupporting, styles.link]}>{actionButtonTitle}</Text>
+                </PressableWithFeedback>
+            )}
+        </View>
+    );
+}
 
 const getTaxAmount = (transaction: OnyxEntry<OnyxTypes.Transaction>, defaultTaxValue: string) => {
     const percentage = (transaction?.taxRate ? transaction?.taxRate?.data?.value : defaultTaxValue) ?? '';
@@ -221,7 +253,6 @@ function MoneyRequestConfirmationList({
     receiptPath = '',
     iouComment,
     receiptFilename = '',
-    listStyles,
     iouCreated,
     iouIsBillable = false,
     onToggleBillable,
@@ -464,7 +495,7 @@ function MoneyRequestConfirmationList({
     const selectedParticipants = useMemo(() => selectedParticipantsProp.filter((participant) => participant.selected), [selectedParticipantsProp]);
     const shouldShowReadOnlySplits = useMemo(() => isPolicyExpenseChat || isReadOnly || isScanRequest, [isPolicyExpenseChat, isReadOnly, isScanRequest]);
 
-    const splitParticipants = useMemo(() => {
+    const splitParticipants: IouListItem[] = useMemo(() => {
         const payeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails);
         if (shouldShowReadOnlySplits) {
             return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => {
@@ -496,7 +527,7 @@ function MoneyRequestConfirmationList({
                 currency: iouCurrencyCode,
                 prefixCharacter: currencySymbol,
                 containerStyle: [amountWidth],
-                inputStyle: [amountWidth],
+                // inputStyle: [amountWidth],
                 maxLength: formattedTotalAmount.length,
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
@@ -511,7 +542,7 @@ function MoneyRequestConfirmationList({
     }, [transaction?.splitShares]);
 
     const selectionListSections = useMemo(() => {
-        const sections = [];
+        const sections: Array<SectionListDataType<IouListItem> & {shouldShowActionButton?: boolean; onActionButtonPress?: () => void; actionButtonTitle?: string}> = [];
         if (hasMultipleParticipants) {
             sections.push(
                 ...[
@@ -522,9 +553,33 @@ function MoneyRequestConfirmationList({
                     },
                     {
                         title: translate('moneyRequestConfirmationList.splitAmounts'),
+                        CustomSectionHeader: SplitAmountSectionHeader,
                         data: splitParticipants.map((participant) => ({
                             ...participant,
-                            rightElement: <Text style={[styles.textLabel]}>dupa</Text>,
+                            rightElement:
+                                participant.shouldShowAmountInput && participant.amountInputProps ? (
+                                    <MoneyRequestAmountInput
+                                        amount={participant.amountInputProps.amount}
+                                        currency={participant.amountInputProps.currency}
+                                        prefixCharacter={participant.amountInputProps.prefixCharacter}
+                                        disableKeyboard={false}
+                                        isCurrencyPressable={false}
+                                        hideCurrencySymbol
+                                        formatAmountOnBlur
+                                        touchableInputWrapperStyle={[styles.optionRowAmountInputWrapper, participant.amountInputProps.containerStyle]}
+                                        prefixContainerStyle={[styles.pv0]}
+                                        inputStyle={[
+                                            styles.optionRowAmountInput,
+                                            StyleUtils.getPaddingLeft(
+                                                StyleUtils.getCharacterPadding(participant.amountInputProps.prefixCharacter ?? '') + styles.pl1.paddingLeft,
+                                            ) as TextStyle,
+                                            participant.amountInputProps.inputStyle,
+                                        ]}
+                                        containerStyle={styles.iouAmountTextInputContainer}
+                                        onAmountChange={participant.amountInputProps.onAmountChange}
+                                        maxLength={participant.amountInputProps.maxLength}
+                                    />
+                                ) : null,
                         })),
                         shouldShow: true,
                         shouldShowActionButton: !shouldShowReadOnlySplits && isSplitModified,
@@ -546,14 +601,22 @@ function MoneyRequestConfirmationList({
             });
         }
         return sections;
-    }, [selectedParticipants, hasMultipleParticipants, translate, splitParticipants, transaction, shouldShowReadOnlySplits, isSplitModified, payeePersonalDetails]);
-
-    const selectedOptions = useMemo(() => {
-        if (!hasMultipleParticipants) {
-            return [];
-        }
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
-    }, [selectedParticipants, hasMultipleParticipants, payeePersonalDetails]);
+    }, [
+        selectedParticipants,
+        hasMultipleParticipants,
+        translate,
+        splitParticipants,
+        transaction,
+        shouldShowReadOnlySplits,
+        isSplitModified,
+        payeePersonalDetails,
+        StyleUtils,
+        styles.iouAmountTextInputContainer,
+        styles.optionRowAmountInput,
+        styles.optionRowAmountInputWrapper,
+        styles.pl1.paddingLeft,
+        styles.pv0,
+    ]);
 
     useEffect(() => {
         if (!isDistanceRequest || isMovingTransactionFromTrackExpense) {
@@ -613,19 +676,6 @@ function MoneyRequestConfirmationList({
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyTagLists, policyTags, canUseViolations]);
-
-    /**
-     */
-    const selectParticipant = useCallback(
-        (option: Participant) => {
-            // Return early if selected option is currently logged in user.
-            if (option.accountID === session?.accountID) {
-                return;
-            }
-            onSelectParticipant?.(option);
-        },
-        [session?.accountID, onSelectParticipant],
-    );
 
     /**
      * Navigate to report details or profile of selected user
@@ -1088,7 +1138,7 @@ function MoneyRequestConfirmationList({
     return (
         <SelectionList
             sections={selectionListSections}
-            ListItem={InviteMemberListItem}
+            ListItem={UserListItem}
             onSelectRow={navigateToReportOrUserDetail}
             shouldShowTooltips
             sectionTitleStyles={styles.sidebarLinkTextBold}
@@ -1161,8 +1211,6 @@ function MoneyRequestConfirmationList({
             }
         />
     );
-
-    // return <OptionsSelector onConfirmSelection={confirm}></OptionsSelector>;
 }
 
 MoneyRequestConfirmationList.displayName = 'MoneyRequestConfirmationList';
