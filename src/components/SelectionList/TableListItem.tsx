@@ -24,6 +24,7 @@ function TableListItem<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     onFocus,
+    shouldSyncFocus,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -58,6 +59,7 @@ function TableListItem<TItem extends ListItem>({
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
             onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (

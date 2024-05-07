@@ -5,7 +5,7 @@ import RNFetchBlob from 'react-native-blob-util';
 import RNDocumentPicker from 'react-native-document-picker';
 import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
-import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
+import type {Asset, Callback, CameraOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -41,12 +41,11 @@ type Item = {
  * See https://github.com/react-native-image-picker/react-native-image-picker/#options
  * for ImagePicker configuration options
  */
-const imagePickerOptions: Partial<CameraOptions | ImageLibraryOptions> = {
+const imagePickerOptions = {
     includeBase64: false,
     saveToPhotos: false,
     selectionLimit: 1,
     includeExtra: false,
-    assetRepresentationMode: 'current',
 };
 
 /**
@@ -238,8 +237,9 @@ function AttachmentPicker({type = CONST.ATTACHMENT_PICKER_TYPE.FILE, children, s
     const validateAndCompleteAttachmentSelection = useCallback(
         (fileData: FileResponse) => {
             // Check if the file dimensions indicate corruption
-            // The width/height for corrupt file is -1 on android native and 0 on ios native
-            if (!fileData.width || !fileData.height || (fileData.width <= 0 && fileData.height <= 0)) {
+            // The width/height for a corrupted file is -1 on android native and 0 on ios native
+            // We must check only numeric values because the width/height can be undefined for non-image files
+            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
                 showImageCorruptionAlert();
                 return Promise.resolve();
             }

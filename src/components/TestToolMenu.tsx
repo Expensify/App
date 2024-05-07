@@ -10,6 +10,7 @@ import * as Network from '@userActions/Network';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Network as NetworkOnyx, User as UserOnyx} from '@src/types/onyx';
@@ -92,14 +93,13 @@ function TestToolMenu({user = USER_DEFAULT, network}: TestToolMenuProps) {
                 />
             </TestToolRow>
 
-            {/* Navigate to the new Onboarding flow (Stage 1). This button is temporary and should be removed after passing QA tests. */}
-            <TestToolRow title="Onboarding Flow">
+            {/* Navigate to the new Search Page. This button is temporary and should be removed after passing QA tests. */}
+            <TestToolRow title="New Search Page">
                 <Button
                     small
                     text="Navigate"
                     onPress={() => {
-                        Navigation.dismissModal();
-                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS);
+                        Navigation.navigate(ROUTES.SEARCH.getRoute(CONST.TAB_SEARCH.ALL));
                     }}
                 />
             </TestToolRow>
