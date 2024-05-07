@@ -1,6 +1,7 @@
 import fontFamily from './fontFamily';
 import multiFontFamily from './fontFamily/multiFontFamily';
 import singleFontFamily from './fontFamily/singleFontFamily';
+import fontWeight from './fontWeight';
 
 const FontUtils = {
     fontFamily: {
@@ -8,10 +9,7 @@ const FontUtils = {
         single: singleFontFamily,
         multi: multiFontFamily,
     },
-    fontWeight: {
-        normal: '400',
-        bold: '700',
-    },
+    fontWeight,
 } as const;
 
 type FontUtilsType = typeof FontUtils;
