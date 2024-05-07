@@ -61,7 +61,6 @@ type SuggestionsRef = {
     updateShouldShowSuggestionMenuToFalse: (shouldShowSuggestionMenu?: boolean) => void;
     setShouldBlockSuggestionCalc: (shouldBlock: boolean) => void;
     getSuggestions: () => Mention[] | Emoji[];
-    updateShouldShowSuggestionMenuAfterScrolling: () => void;
 };
 
 type ReportActionComposeOnyxProps = {
@@ -380,7 +379,7 @@ function ReportActionCompose({
                 {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
             </OfflineWithFeedback>
             <View style={isComposerFullSize ? styles.flex1 : {}}>
-                <PortalHost name={CONST.DEFAULT_COMPOSER_PORTAL_HOST_NAME} />
+                <PortalHost name="suggestions" />
                 <OfflineWithFeedback
                     pendingAction={pendingAction}
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
@@ -462,7 +461,7 @@ function ReportActionCompose({
                                             if (value.length === 0 && isComposerFullSize) {
                                                 Report.setIsComposerFullSize(reportID, false);
                                             }
-                                            validateCommentMaxLength(value);
+                                            validateCommentMaxLength(value, {reportID});
                                         }}
                                     />
                                     <ReportDropUI
