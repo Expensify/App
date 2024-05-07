@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyEmployeeList, PolicyTagList, PolicyTags, TaxRate} from '@src/types/onyx';
-import type {PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type {PolicyFeatureName, Rate, Tenant} from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -143,7 +143,7 @@ const isPolicyEmployee = (policyID: string, policies: OnyxCollection<Policy>): b
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = (policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
+const isPolicyOwner = (policy: OnyxEntry<Policy> | EmptyObject, currentUserAccountID: number): boolean => policy?.ownerAccountID === currentUserAccountID;
 
 /**
  * Create an object mapping member emails to their accountIDs. Filter for members without errors, and get the login email from the personalDetail object using the accountID.
@@ -390,6 +390,20 @@ function canSendInvoice(policies: OnyxCollection<Policy>): boolean {
     return getActiveAdminWorkspaces(policies).length > 0;
 }
 
+/** Get the Xero organizations connected to the policy */
+function getXeroTenants(policy: Policy | undefined): Tenant[] {
+    // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
+        return [];
+    }
+    return policy.connections.xero.data.tenants ?? [];
+}
+
+function findCurrentXeroOrganization(tenants: Tenant[] | undefined, organizationID: string | undefined): Tenant | undefined {
+    return tenants?.find((tenant) => tenant.id === organizationID);
+}
+
 export {
     getActivePolicies,
     hasAccountingConnections,
@@ -435,6 +449,8 @@ export {
     getPolicy,
     getActiveAdminWorkspaces,
     canSendInvoice,
+    getXeroTenants,
+    findCurrentXeroOrganization,
 };
 
 export type {MemberEmailsToAccountIDs};

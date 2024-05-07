@@ -24,14 +24,14 @@ function WorkspaceSwitcherButton({policy}: WorkspaceSwitcherButtonProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const pressableRef = useRef<HTMLDivElement | View | null>(null);
+    const pressableRef = useRef<View>(null);
 
     const {source, name, type, id} = useMemo(() => {
         if (!policy) {
             return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
         }
 
-        const avatar = policy?.avatar ? policy.avatar : getDefaultWorkspaceAvatar(policy?.name);
+        const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
         return {
             source: avatar,
             name: policy?.name ?? '',
