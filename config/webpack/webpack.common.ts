@@ -55,6 +55,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
     },
     output: {
         filename: '[name]-[contenthash].bundle.js',
+        sourceMapFilename: '[file].map',
         path: path.resolve(__dirname, '../../dist'),
         publicPath: '/',
     },
