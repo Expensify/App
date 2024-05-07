@@ -2070,6 +2070,13 @@ export default {
                     },
                 },
             },
+            invoiceStatus: {
+                values: {
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_PAYMENT]: 'Authorised',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.DRAFT]: 'Draft',
+                    [CONST.XERO_CONFIG.INVOICE_STATUS.AWAITING_APPROVAL]: 'Submitted',
+                },
+            },
         },
         type: {
             free: 'Free',
