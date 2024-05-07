@@ -148,6 +148,14 @@ const CONST = {
         RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
+    GPS: {
+        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+        MAX_AGE: 3600000,
+
+        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+        TIMEOUT: 15000,
+    },
+
     LEGAL_NAME: {
         MAX_LENGTH: 40,
     },
@@ -584,6 +592,7 @@ const CONST = {
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
     LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
+    TRAVEL_TERMS_URL: `${USE_EXPENSIFY_URL}/travelterms`,
 
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -643,6 +652,7 @@ const CONST = {
             TYPE: {
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
@@ -668,6 +678,7 @@ const CONST = {
                 MANAGER_DETACH_RECEIPT: 'MANAGERDETACHRECEIPT', // OldDot Action
                 MARKED_REIMBURSED: 'MARKEDREIMBURSED', // OldDot Action
                 MARK_REIMBURSED_FROM_INTEGRATION: 'MARKREIMBURSEDFROMINTEGRATION', // OldDot Action
+                MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
@@ -781,6 +792,10 @@ const CONST = {
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
             NOTHING: 'nothing',
         },
+        ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION: {
+            CREATE: 'created',
+            NOTHING: 'nothing',
+        },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
             ACCEPT: 'accept',
             DECLINE: 'decline',
@@ -842,7 +857,7 @@ const CONST = {
         },
         RESERVED_ROOM_NAMES: ['#admins', '#announce'],
         MAX_PREVIEW_AVATARS: 4,
-        MAX_ROOM_NAME_LENGTH: 79,
+        MAX_ROOM_NAME_LENGTH: 99,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
@@ -916,6 +931,15 @@ const CONST = {
         COMMENT_LENGTH_DEBOUNCE_TIME: 500,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         RESIZE_DEBOUNCE_TIME: 100,
+    },
+    SEARCH_TABLE_COLUMNS: {
+        DATE: 'date',
+        MERCHANT: 'merchant',
+        FROM: 'from',
+        TO: 'to',
+        TOTAL: 'total',
+        TYPE: 'type',
+        ACTION: 'action',
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1268,6 +1292,8 @@ const CONST = {
     },
 
     XERO_CONFIG: {
+        AUTO_SYNC: 'autoSync',
+        SYNC: 'sync',
         IMPORT_CUSTOMERS: 'importCustomers',
         IMPORT_TAX_RATES: 'importTaxRates',
     },
@@ -1844,7 +1870,7 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        ROOM_NAME: /^#[\p{Ll}0-9-]{1,80}$/u,
+        ROOM_NAME: /^#[\p{Ll}0-9-]{1,100}$/u,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -2024,7 +2050,6 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
-        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         INVITE: 'invite',
         SETTINGS: 'settings',
@@ -3417,11 +3442,6 @@ const CONST = {
     },
     TAB_SEARCH: {
         ALL: 'all',
-        // @TODO: Uncomment when the queries below are implemented
-        // SHARED: 'shared',
-        // DRAFTS: 'drafts',
-        // WAITING_ON_YOU: 'waitingOnYou',
-        // FINISHED: 'finished',
     },
     STATUS_TEXT_MAX_LENGTH: 100,
 
@@ -4117,7 +4137,7 @@ const CONST = {
             "unit": "km"
         },
         "CHF": {
-            "rate": 100,
+            "rate": 70,
             "unit": "km"
         },
         "CLP": {
@@ -4157,7 +4177,7 @@ const CONST = {
             "unit": "km"
         },
         "DKK": {
-            "rate": 673,
+            "rate": 379,
             "unit": "km"
         },
         "DOP": {
@@ -4185,7 +4205,7 @@ const CONST = {
             "unit": "km"
         },
         "EUR": {
-            "rate": 3,
+            "rate": 30,
             "unit": "km"
         },
         "FJD": {
@@ -4253,7 +4273,7 @@ const CONST = {
             "unit": "km"
         },
         "ILS": {
-            "rate": 356,
+            "rate": 540,
             "unit": "km"
         },
         "INR": {
@@ -4401,7 +4421,7 @@ const CONST = {
             "unit": "km"
         },
         "MXN": {
-            "rate": 2219,
+            "rate": 93,
             "unit": "km"
         },
         "MYR": {
@@ -4425,7 +4445,7 @@ const CONST = {
             "unit": "km"
         },
         "NOK": {
-            "rate": 917,
+            "rate": 350,
             "unit": "km"
         },
         "NPR": {
@@ -4433,7 +4453,7 @@ const CONST = {
             "unit": "km"
         },
         "NZD": {
-            "rate": 151,
+            "rate": 95,
             "unit": "km"
         },
         "OMR": {
@@ -4461,7 +4481,7 @@ const CONST = {
             "unit": "km"
         },
         "PLN": {
-            "rate": 415,
+            "rate": 89,
             "unit": "km"
         },
         "PYG": {
@@ -4505,7 +4525,7 @@ const CONST = {
             "unit": "km"
         },
         "SEK": {
-            "rate": 917,
+            "rate": 250,
             "unit": "km"
         },
         "SGD": {
@@ -4649,7 +4669,7 @@ const CONST = {
             "unit": "km"
         },
         "ZAR": {
-            "rate": 1588,
+            "rate": 464,
             "unit": "km"
         },
         "ZMK": {
@@ -4695,6 +4715,14 @@ const CONST = {
 
     MAX_TAX_RATE_INTEGER_PLACES: 4,
     MAX_TAX_RATE_DECIMAL_PLACES: 4,
+
+    DOWNLOADS_PATH: '/Downloads',
+    NEW_EXPENSIFY_PATH: '/New Expensify',
+
+    ENVIRONMENT_SUFFIX: {
+        DEV: ' Dev',
+        ADHOC: ' AdHoc',
+    },
 
     SEARCH_TRANSACTION_TYPE: {
         CASH: 'cash',

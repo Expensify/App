@@ -266,20 +266,20 @@ Onyx.connect({
         }
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
-        const sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
+        let sortedReportActions = ReportActionUtils.getSortedReportActions(Object.values(actions), true);
         allSortedReportActions[reportID] = sortedReportActions;
+
+        const transactionThreadReportID = ReportActionUtils.getOneTransactionThreadReportID(reportID, allReportActions[reportID], true);
+        if (transactionThreadReportID) {
+            sortedReportActions = ReportActionUtils.getCombinedReportActions(allSortedReportActions[reportID], allSortedReportActions[transactionThreadReportID]);
+        }
+
         lastReportActions[reportID] = sortedReportActions[0];
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportActionsForDisplay = sortedReportActions.filter(
-            (reportAction, actionKey) =>
-                ReportActionUtils.shouldReportActionBeVisible(reportAction, actionKey) &&
-                !ReportActionUtils.isWhisperAction(reportAction) &&
-                reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-        );
-        visibleReportActionItems[reportID] = reportActionsForDisplay[reportActionsForDisplay.length - 1];
+        const reportActionsForDisplay = sortedReportActions.filter((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction));
+        visibleReportActionItems[reportID] = reportActionsForDisplay[0];
     },
 });
 
@@ -536,12 +536,9 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 /**
  * Update alternate text for the option when applicable
  */
-function getAlternateText(
-    option: ReportUtils.OptionData,
-    {showChatPreviewLine = false, forcePolicyNamePreview = false, lastMessageTextFromReport = ''}: PreviewConfig & {lastMessageTextFromReport?: string},
-) {
+function getAlternateText(option: ReportUtils.OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
     if (!!option.isThread || !!option.isMoneyRequestReport) {
-        return lastMessageTextFromReport.length > 0 ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        return option.lastMessageText ? option.lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
     }
     if (!!option.isChatRoom || !!option.isPolicyExpenseChat) {
         return showChatPreviewLine && !forcePolicyNamePreview && option.lastMessageText ? option.lastMessageText : option.subtitle;
@@ -559,7 +556,8 @@ function getAlternateText(
  * Get the last message text from the report directly or from other sources for special cases.
  */
 function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
-    const lastReportAction = allSortedReportActions[report?.reportID ?? '']?.find((reportAction) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(reportAction)) ?? null;
+    const lastReportAction = visibleReportActionItems[report?.reportID ?? ''] ?? null;
+
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = lastReportActions[report?.reportID ?? ''] ?? null;
     let lastMessageTextFromReport = '';
@@ -724,8 +722,7 @@ function createOption(
         result.lastMessageText = lastMessageText;
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
-        result.alternateText =
-            showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview, lastMessageTextFromReport});
+        result.alternateText = showPersonalDetails && personalDetail?.login ? personalDetail.login : getAlternateText(result, {showChatPreviewLine, forcePolicyNamePreview});
 
         reportName = showPersonalDetails
             ? ReportUtils.getDisplayNameForParticipant(accountIDs[0]) || LocalePhoneNumber.formatPhoneNumber(personalDetail?.login ?? '')
@@ -787,6 +784,7 @@ function getReportOption(participant: Participant): ReportUtils.OptionData {
         option.text = ReportUtils.getPolicyName(report);
         option.alternateText = Localize.translateLocal('workspace.common.workspace');
     }
+    option.isDisabled = ReportUtils.isDraftReport(participant.reportID);
     option.selected = participant.selected;
     option.isSelected = participant.selected;
     return option;

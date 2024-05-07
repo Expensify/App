@@ -23,7 +23,7 @@ Bundling the Expensify Card with an annual subscription ensures you pay the lowe
 
 If at least 50% of your approved USD spend in a given month is on your company’s Expensify Cards, you will receive an additional 50% discount on the price per member. This additional 50% discount, when coupled with an annual subscription, brings the price per member to $5 on a Collect plan and $9 on a Control plan.
 
-Additionally, every month, you receive 1% cash back on all Expensify Card purchases, and 2% if the spend across your Expensify Cards is $250k or more (_applies to USD purchases only_). Any cash back from the Expensify Card is first applied to your Expensify bill, further reducing your price per member. Any leftover cash back is deposited directly into your connected bank account.
+Additionally, every month, you receive 1% cash back on all Expensify Card purchases, and 2% if the spend across your Expensify Cards is $250k or more (_applies to US purchases only_). Any cash back from the Expensify Card is first applied to your Expensify bill, further reducing your price per member. Any leftover cash back is deposited directly into your connected bank account.
 ## Savings calculator
 To see how much money you can save (and even earn!) by using the Expensify Card, check out our [savings calculator](https://use.expensify.com/price-savings-calculator). Just enter a few details and see how much you’ll save!
 
@@ -34,11 +34,9 @@ If less than 50% of your total USD spend is on the Expensify Card, the bill is d
 
 **Example:**
 - Annual subscription discount: 50%
-- % of Expensify Card spend (USD) across all workspaces: 20% 
+- % of Expensify Card spend (US purchases only) across all workspaces: 20% 
 - Expensify Card discount: 20%
 
 In that case, you'd save 70% on the price per member for that month's bill.
-
-Note: USD spend refers to approved USD transactions on the Expensify Card in any given month.
 
 {% include faq-end.md %}

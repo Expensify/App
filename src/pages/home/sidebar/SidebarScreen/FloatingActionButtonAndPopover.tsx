@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {isArchivedRoom} from '@libs/ReportUtils';
 import * as App from '@userActions/App';
 import * as IOU from '@userActions/IOU';
 import * as Policy from '@userActions/Policy';
@@ -181,6 +182,7 @@ function FloatingActionButtonAndPopover(
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
 
+    const {canUseSpotnanaTravel} = usePermissions();
     const canSendInvoice = useMemo(() => PolicyUtils.canSendInvoice(allPolicies as OnyxCollection<OnyxTypes.Policy>), [allPolicies]);
 
     const quickActionAvatars = useMemo(() => {
@@ -217,39 +219,41 @@ function FloatingActionButtonAndPopover(
     }, [personalDetails, quickActionReport, quickAction?.action, quickActionAvatars]);
 
     const navigateToQuickAction = () => {
+        const isValidReport = !(isEmptyObject(quickActionReport) || isArchivedRoom(quickActionReport));
+        const quickActionReportID = isValidReport ? quickActionReport?.reportID ?? '' : ReportUtils.generateReportID();
         switch (quickAction?.action) {
             case CONST.QUICK_ACTIONS.REQUEST_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.REQUEST_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                 return;
             case CONST.QUICK_ACTIONS.REQUEST_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SUBMIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                 return;
             case CONST.QUICK_ACTIONS.SPLIT_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.SPLIT, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
                 return;
             case CONST.QUICK_ACTIONS.SEND_MONEY:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.PAY, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 return;
             case CONST.QUICK_ACTIONS.ASSIGN_TASK:
-                Task.clearOutTaskInfoAndNavigate(quickAction?.chatReportID ?? '', quickActionReport, quickAction.targetAccountID ?? 0, true);
+                Task.clearOutTaskInfoAndNavigate(isValidReport ? quickActionReportID : '', isValidReport ? quickActionReport : undefined, quickAction.targetAccountID ?? 0, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_MANUAL:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.MANUAL, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.MANUAL, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_SCAN:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.SCAN, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, true);
                 break;
             case CONST.QUICK_ACTIONS.TRACK_DISTANCE:
-                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickAction?.chatReportID ?? '', CONST.IOU.REQUEST_TYPE.DISTANCE, true);
+                IOU.startMoneyRequest(CONST.IOU.TYPE.TRACK, quickActionReportID, CONST.IOU.REQUEST_TYPE.DISTANCE, true);
                 break;
             default:
         }
@@ -422,6 +426,15 @@ function FloatingActionButtonAndPopover(
                         text: translate('newTaskPage.assignTask'),
                         onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                     },
+                    ...(canUseSpotnanaTravel
+                        ? [
+                              {
+                                  icon: Expensicons.Suitcase,
+                                  text: translate('travel.bookTravel'),
+                                  onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS)),
+                              },
+                          ]
+                        : []),
                     ...(!isLoading && !Policy.hasActiveChatEnabledPolicies(allPolicies)
                         ? [
                               {
@@ -445,7 +458,7 @@ function FloatingActionButtonAndPopover(
                                   isLabelHoverable: false,
                                   floatRightAvatars: quickActionAvatars,
                                   floatRightAvatarSize: CONST.AVATAR_SIZE.SMALL,
-                                  description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) : '',
+                                  description: !hideQABSubtitle ? ReportUtils.getReportName(quickActionReport) ?? translate('quickAction.updateDestination') : '',
                                   numberOfLinesDescription: 1,
                                   onSelected: () => interceptAnonymousUser(() => navigateToQuickAction()),
                                   shouldShowSubscriptRightAvatar: ReportUtils.isPolicyExpenseChat(quickActionReport),
