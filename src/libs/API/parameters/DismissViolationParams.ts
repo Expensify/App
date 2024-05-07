@@ -1,5 +1,5 @@
 type DismissViolationParams = {
-    transactionViolationName: string;
+    name: string;
     transactionIDList: string;
 };
 

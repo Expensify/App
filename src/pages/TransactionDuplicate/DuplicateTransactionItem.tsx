@@ -8,6 +8,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionItem from '@pages/home/report/ReportActionItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type DuplicateTransactionItemProps = {
     transactionID: string;
@@ -26,10 +27,21 @@ function DuplicateTransactionItem({transactionID, index}: DuplicateTransactionIt
         <View>
             <ReportActionItem
                 transactionThreadReport={transactionThreadReport}
-                action={Object.values(reportActions ?? {})?.find((reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === transactionID)}
-                report={report}
+                action={
+                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                    Object.values(reportActions ?? {})?.find(
+                        (reportAction) => reportAction.actionName === 'IOU' && reportAction.originalMessage.IOUTransactionID === transactionID,
+                    ) as ReportAction
+                }
+                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                report={report as Report}
                 parentReportAction={parentReportAction}
                 index={index}
+                reportActions={Object.values(reportActions ?? {})}
+                displayAsGroup={false}
+                shouldDisplayNewMarker={false}
+                isMostRecentIOUReportAction={false}
+                isFirstVisibleReportAction={false}
             />
         </View>
     );

@@ -1,6 +1,7 @@
 import React from 'react';
 import type {FlatListProps} from 'react-native';
 import FlatList from '@components/FlatList';
+import ScrollView from '@components/ScrollView';
 import variables from '@styles/variables';
 import DuplicateTransactionItem from './DuplicateTransactionItem';
 
@@ -18,17 +19,25 @@ const getItemLayout = (data: ArrayLike<string> | null | undefined, index: number
 
 function DuplicateTransactionsList({transactionIDs}: DuplicateTransactionsListProps) {
     return (
-        <FlatList
-            data={transactionIDs}
-            renderItem={({item, index}) => (
+        // <FlatList
+        //     data={transactionIDs}
+        //     renderItem={({item, index}) => (
+        //         <DuplicateTransactionItem
+        //             transactionID={item}
+        //             index={index}
+        //         />
+        //     )}
+        //     keyExtractor={keyExtractor}
+        //     getItemLayout={getItemLayout}
+        // />
+        <ScrollView>
+            {transactionIDs.map((transactionID, index) => (
                 <DuplicateTransactionItem
-                    transactionID={item}
+                    transactionID={transactionID}
                     index={index}
                 />
-            )}
-            keyExtractor={keyExtractor}
-            getItemLayout={getItemLayout}
-        />
+            ))}
+        </ScrollView>
     );
 }
 

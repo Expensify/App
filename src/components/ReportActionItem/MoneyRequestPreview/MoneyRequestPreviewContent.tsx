@@ -34,7 +34,9 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as Report from '@userActions/Report';
+import * as Transaction from '@userActions/Transaction';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {IOUMessage} from '@src/types/onyx/OriginalMessage';
@@ -104,6 +106,10 @@ function MoneyRequestPreviewContent({
     const isFullySettled = isSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = ReportUtils.isReportApproved(iouReport) && !isSettlementOrApprovalPartial;
     const shouldShowRBR = hasNoticeTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
+
+    const duplicates =
+        transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)
+            ?.data?.duplicates ?? [];
 
     /*
      Show the merchant for IOUs and expenses only if:
@@ -360,6 +366,9 @@ function MoneyRequestPreviewContent({
                     success
                     medium
                     style={styles.p2}
+                    onPress={() => {
+                        Transaction.setReviewDuplicatesKey(transaction?.transactionID ?? '', duplicates);
+                    }}
                 />
             )}
         </PressableWithoutFeedback>

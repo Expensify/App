@@ -7,6 +7,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as Transaction from '@userActions/Transaction';
@@ -28,6 +29,7 @@ function TransactionDuplicateReview() {
     );
     const keepAll = () => {
         Transaction.dismissDuplicateTransactionViolation(transactionID, duplicateTransactionIDs);
+        Navigation.goBack();
     };
     return (
         <ScreenWrapper testID={TransactionDuplicateReview.displayName}>
