@@ -2315,7 +2315,7 @@ export default {
                         case 'xeroSyncTitle':
                             return 'Sincronizando los datos de Xero';
                         case 'xeroSyncStep':
-                            return 'Cargando datos';                            
+                            return 'Cargando datos';
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
