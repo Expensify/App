@@ -2294,6 +2294,28 @@ export default {
                             return 'Actualizando empleados';
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Actualizando clases';
+                        case 'xeroSyncImportChartOfAccounts':
+                            return 'Sincronizando chart of accounts';
+                        case 'xeroSyncImportCategories':
+                            return 'Sincronizando categories';
+                        case 'xeroSyncImportCustomers':
+                            return 'Sincronizando customers';
+                        case 'xeroSyncXeroReimbursedReports':
+                            return 'Marcar Expensify reports como reimbursed';
+                        case 'xeroSyncExpensifyReimbursedReports':
+                            return 'Marcar Xero bills y invoices como paid';
+                        case 'xeroSyncImportTrackingCategories':
+                            return 'Sincronizando tracking categories';
+                        case 'xeroSyncImportBankAccounts':
+                            return 'Sincronizando bank accounts';
+                        case 'xeroSyncImportTaxRates':
+                            return 'Sincronizando tax rates';
+                        case 'xeroCheckConnection':
+                            return 'Comprobando conexión Xero';
+                        case 'xeroSyncTitle':
+                            return 'Sincronizando datos Xero';
+                        case 'xeroSyncStep':
+                            return 'Cargando datos';                            
                         default: {
                             return `Translation missing for stage: ${stage}`;
                         }
