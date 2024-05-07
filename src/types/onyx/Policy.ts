@@ -61,6 +61,9 @@ type TaxRate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Indicates if the tax rate is disabled. */
     isDisabled?: boolean;
 
+    /** Indicates if the tax rate is selected. */
+    isSelected?: boolean;
+
     /** An error message to display to the user */
     errors?: OnyxCommon.Errors;
 
@@ -206,7 +209,7 @@ type Tenant = {
 };
 
 type XeroConnectionData = {
-    bankAccounts: unknown[];
+    bankAccounts: Account[];
     countryCode: string;
     organisationID: string;
     revenueAccounts: Array<{
