@@ -45,17 +45,10 @@ type MoneyRequestParticipantsSelectorProps = {
     iouRequestType: IOURequestType;
 
     /** The action of the IOU, i.e. create, split, move */
-    action?: IOUAction;
+    action: IOUAction;
 };
 
-function MoneyRequestParticipantsSelector({
-    participants = [],
-    onFinish,
-    onParticipantsAdded,
-    iouType,
-    iouRequestType,
-    action = CONST.IOU.ACTION.CREATE,
-}: MoneyRequestParticipantsSelectorProps) {
+function MoneyRequestParticipantsSelector({participants = [], onFinish, onParticipantsAdded, iouType, iouRequestType, action}: MoneyRequestParticipantsSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
