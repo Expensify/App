@@ -20,7 +20,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id ?? '';
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
 
-    const {invoiceCollectionsAccountID} = policy?.connections?.xero?.config.sync ?? {};
+    const {invoiceCollectionsAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
 
     const xeroSelectorOptions = useMemo<SelectorType[]>(
         () =>
@@ -62,6 +62,7 @@ function XeroInvoiceAccountSelectorPage({policy}: WithPolicyConnectionsProps) {
             displayName={XeroInvoiceAccountSelectorPage.displayName}
             sections={[{data: xeroSelectorOptions}]}
             listItem={RadioListItem}
+            shouldBeBlocked={!syncReimbursedReports}
             onSelectRow={updateMode}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             headerContent={listHeaderComponent}

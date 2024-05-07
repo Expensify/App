@@ -320,6 +320,7 @@ export default {
         clear: 'Borrar',
         type: 'Tipo',
         action: 'Acción',
+        expenses: 'Gastos',
     },
     connectionComplete: {
         title: 'Conexión Completa',
@@ -1862,6 +1863,28 @@ export default {
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor, comprueba tu conexión e inténtalo de nuevo.',
     },
+    travel: {
+        header: 'Reservar viajes',
+        title: 'Viaja de forma inteligente',
+        subtitle: 'Utiliza Expensify Travel para obtener las mejores ofertas de viaje y gestionar todos los gastos de tu negocio en un solo lugar.',
+        features: {
+            saveMoney: 'Ahorra dinero en tus reservas',
+            alerts: 'Obtén actualizaciones y alertas en tiempo real',
+        },
+        bookTravel: 'Reservar viajes',
+        termsAndConditions: {
+            header: 'Antes de continuar...',
+            title: 'Por favor, lee los Términos y condiciones para reservar viajes',
+            subtitle: 'Para permitir la opción de reservar viajes en su espacio de trabajo debe aceptar nuestros ',
+            termsconditions: 'términos y condiciones',
+            travelTermsAndConditions: 'términos y condiciones de viaje',
+            helpDocIntro: 'Consulta este ',
+            helpDocOutro: 'para obtener más información o comunícate con Concierge o tu gestor de cuentas.',
+            helpDoc: 'documento de ayuda',
+            agree: 'Acepto los ',
+            error: 'Debes aceptar los Términos y condiciones para que el viaje continúe',
+        },
+    },
     workspace: {
         common: {
             card: 'Tarjetas',
@@ -2036,24 +2059,24 @@ export default {
             notImported: 'No importado',
             export: 'Exportar',
             exportDescription: 'Configura cómo se exportan los datos de Expensify a Xero.',
-            exportCompanyCard: 'Export company card expenses as',
-            purchaseBill: 'Purchase bill',
+            exportCompanyCard: 'Exportar gastos de la tarjeta de empresa como',
+            purchaseBill: 'Factura de compra',
             exportDeepDiveCompanyCard:
-                'Each exported expense posts as a bank transaction to the Xero bank account you select below, and transaction dates will match the dates on your bank statement.',
-            bankTransactions: 'Bank transactions',
-            xeroBankAccount: 'Xero días laborales',
+                'Cada gasto exportado se contabiliza como una transacción bancaria en la cuenta bancaria de Xero que selecciones a continuación. Las fechas de las transacciones coincidirán con las fechas de el extracto bancario.',
+            bankTransactions: 'Transacciones bancarias',
+            xeroBankAccount: 'Cuenta bancaria de Xero',
             preferredExporter: 'Exportador preferido',
-            exportExpenses: 'Exportar gastos de bolsillo como',
-            exportExpensesDescription: 'Reports will export as a purchase bill using the date and with the status you select below.',
-            purchaseBillDate: 'Purchase bill date',
+            exportExpenses: 'Exportar gastos por cuenta propia como',
+            exportExpensesDescription: 'Los informes se exportarán como una factura de compra utilizando la fecha y el estado que seleccione a continuación',
+            purchaseBillDate: 'Fecha de la factura de compra',
             exportInvoices: 'Exportar facturas como',
-            salesInvoice: 'Sales invoice',
-            exportInvoicesDescription: 'Sales invoices always display the date on which the invoice was sent.',
+            salesInvoice: 'Factura de venta',
+            exportInvoicesDescription: 'Las facturas de venta siempre muestran la fecha en la que se envió la factura.',
             advancedConfig: {
                 advanced: 'Avanzado',
                 autoSync: 'Autosincronización',
                 autoSyncDescription: 'Sincroniza Xero y Expensify automáticamente todos los días.',
-                purchaseBillStatusTitle: 'Purchase bill status',
+                purchaseBillStatusTitle: 'Estado de la factura de compra',
                 reimbursedReports: 'Sincronizar informes reembolsados',
                 reimbursedReportsDescription:
                     'Cada vez que se pague un informe utilizando Expensify ACH, se creará el correspondiente pago de la factura en la cuenta de Xero indicadas a continuación.',
@@ -2718,7 +2741,8 @@ export default {
     checkForUpdatesModal: {
         available: {
             title: 'Actualización disponible',
-            message: 'La nueva versión estará disponible dentro de poco. Te notificaremos cuando esté lista.',
+            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
+                `La nueva versión estará disponible dentro de poco.${isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`,
             soundsGood: 'Suena bien',
         },
         notAvailable: {
@@ -3498,5 +3522,8 @@ export default {
         offlineTitle: 'Parece que estás atrapado aquí...',
         offline:
             'Parece que estás desconectado. Desafortunadamente, Expensify Classic no funciona sin conexión, pero New Expensify sí. Si prefieres utilizar Expensify Classic, inténtalo de nuevo cuando tengas conexión a internet.',
+    },
+    systemMessage: {
+        mergedWithCashTransaction: 'encontró un recibo para esta transacción.',
     },
 } satisfies EnglishTranslation;
