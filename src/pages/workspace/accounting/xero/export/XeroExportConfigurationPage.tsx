@@ -1,12 +1,9 @@
 import React from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ConnectionLayout from '@components/ConnectionLayout';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,6 +20,7 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
     const policyOwner = policy?.owner ?? '';
+
     const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
     const menuItems: MenuItem[] = [
         {
@@ -49,6 +47,13 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             error: errorFields?.billDate ? translate('common.genericErrorMessage') : undefined,
         },
         {
+            description: translate('workspace.xero.advancedConfig.purchaseBillStatusTitle'),
+            onPress: () => {},
+            title: exportConfiguration?.billStatus?.purchase,
+            pendingAction: pendingFields?.export,
+            error: errorFields?.purchase ? translate('common.genericErrorMessage') : undefined,
+        },
+        {
             description: translate('workspace.xero.exportInvoices'),
             title: translate('workspace.xero.salesInvoice'),
             interactive: false,
@@ -73,38 +78,34 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     ];
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
+        <ConnectionLayout
+            displayName={XeroExportConfigurationPage.displayName}
+            headerTitle="workspace.xero.export"
+            title="workspace.xero.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={XeroExportConfigurationPage.displayName}
-            >
-                <HeaderWithBackButton title={translate('workspace.xero.export')} />
-                <ScrollView contentContainerStyle={styles.pb2}>
-                    <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.xero.exportDescription')}</Text>
-                    {menuItems.map((menuItem) => (
-                        <OfflineWithFeedback
-                            key={menuItem.description}
-                            pendingAction={menuItem.pendingAction}
-                        >
-                            <MenuItemWithTopDescription
-                                title={menuItem.title}
-                                interactive={menuItem?.interactive ?? true}
-                                description={menuItem.description}
-                                shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
-                                onPress={menuItem?.onPress}
-                                brickRoadIndicator={menuItem?.brickRoadIndicator}
-                                helperText={menuItem?.helperText}
-                                error={menuItem?.error}
-                            />
-                        </OfflineWithFeedback>
-                    ))}
-                </ScrollView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+            {menuItems.map((menuItem) => (
+                <OfflineWithFeedback
+                    key={menuItem.description}
+                    pendingAction={menuItem.pendingAction}
+                >
+                    <MenuItemWithTopDescription
+                        title={menuItem.title}
+                        interactive={menuItem?.interactive ?? true}
+                        description={menuItem.description}
+                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                        onPress={menuItem?.onPress}
+                        brickRoadIndicator={menuItem?.brickRoadIndicator}
+                        helperText={menuItem?.helperText}
+                        error={menuItem?.error}
+                    />
+                </OfflineWithFeedback>
+            ))}
+        </ConnectionLayout>
     );
 }
 
