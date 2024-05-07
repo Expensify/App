@@ -23,10 +23,10 @@ type PendingChatMember = {
     pendingAction: OnyxCommon.PendingAction;
 };
 
-type Participant = {
+type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
     hidden?: boolean;
     role?: 'admin' | 'member';
-};
+}>;
 
 type InvoiceReceiver =
     | {

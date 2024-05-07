@@ -35,10 +35,11 @@ function logRequestDetails(message: string, request: Request, response?: Respons
 }
 
 const Logging: Middleware = (response, request) => {
+    const startTime = Date.now();
     logRequestDetails('Making API request', request);
     return response
         .then((data) => {
-            logRequestDetails('Finished API request', request, data);
+            logRequestDetails(`Finished API request in ${Date.now() - startTime}ms`, request, data);
             return data;
         })
         .catch((error) => {

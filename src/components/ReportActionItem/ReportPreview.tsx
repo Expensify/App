@@ -1,4 +1,3 @@
-import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -9,7 +8,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import RenderHTML from '@components/RenderHTML';
 import SettlementButton from '@components/SettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -231,16 +229,14 @@ function ReportPreview({
     const shouldShowScanningSubtitle = numberOfScanningReceipts === 1 && numberOfRequests === 1;
     const shouldShowPendingSubtitle = numberOfPendingRequests === 1 && numberOfRequests === 1;
 
-    const {isSupportTextHtml, supportText} = useMemo(() => {
+    const {supportText} = useMemo(() => {
         if (formattedMerchant) {
-            return {isSupportTextHtml: false, supportText: formattedMerchant};
+            return {supportText: formattedMerchant};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            const parsedSubtitle = new ExpensiMark().replace(formattedDescription ?? moneyRequestComment);
-            return {isSupportTextHtml: !!parsedSubtitle, supportText: parsedSubtitle ? `<muted-text>${parsedSubtitle}</muted-text>` : ''};
+            return {supportText: formattedDescription ?? moneyRequestComment};
         }
         return {
-            isSupportTextHtml: false,
             supportText: translate('iou.expenseCount', {
                 count: numberOfRequests - numberOfScanningReceipts - numberOfPendingRequests,
                 scanningReceipts: numberOfScanningReceipts,
@@ -314,11 +310,7 @@ function ReportPreview({
                                         {shouldShowSubtitle && supportText && (
                                             <View style={styles.flexRow}>
                                                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                                    {isSupportTextHtml ? (
-                                                        <RenderHTML html={supportText} />
-                                                    ) : (
-                                                        <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
-                                                    )}
+                                                    <Text style={[styles.textLabelSupporting, styles.textNormal, styles.lh20]}>{supportText}</Text>
                                                 </View>
                                             </View>
                                         )}

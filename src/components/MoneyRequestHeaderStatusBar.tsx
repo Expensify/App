@@ -23,7 +23,19 @@ function MoneyRequestHeaderStatusBar({title, description, shouldShowBorderBottom
     const styles = useThemeStyles();
     const borderBottomStyle = shouldShowBorderBottom ? styles.borderBottom : {};
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.overflowHidden, styles.ph5, styles.pb3, borderBottomStyle]}>
+        <View
+            style={[
+                styles.dFlex,
+                styles.flexRow,
+                styles.alignItemsCenter,
+                styles.flexGrow1,
+                styles.overflowHidden,
+                styles.ph5,
+                styles.pb3,
+                borderBottomStyle,
+                styles.headerStatusBarContainer,
+            ]}
+        >
             {typeof title === 'string' ? (
                 <View style={[styles.mr3]}>
                     <Badge
