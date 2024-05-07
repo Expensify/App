@@ -1090,6 +1090,7 @@ function MoneyRequestConfirmationList({
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             disableArrowKeysActions
+            disableFocusOptions
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
