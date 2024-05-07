@@ -112,12 +112,12 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.CONSOLE]: {
-        isViaTestToolsModal: boolean;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.SHARE_LOG]: {
         /** URL of the generated file to share logs in a report */
         source: string;
-        isViaTestToolsModal: boolean;
+        backTo: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
     [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;

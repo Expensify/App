@@ -49,7 +49,6 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
     const styles = useThemeStyles();
 
     const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.CONSOLE>>();
-    const isViaTestToolsModal = route.params?.isViaTestToolsModal ?? false;
 
     const logsList = useMemo(
         () =>
@@ -98,7 +97,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 return;
             }
 
-            Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path, isViaTestToolsModal));
+            Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path, ROUTES.SETTINGS_CONSOLE.getRoute(route.params?.backTo)));
         });
     };
 
@@ -122,7 +121,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
                 onBackButtonPress={() => {
-                    Navigation.goBack(isViaTestToolsModal ? undefined : ROUTES.SETTINGS_TROUBLESHOOT);
+                    Navigation.goBack(route.params?.backTo);
                 }}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>

@@ -7,12 +7,7 @@ import ShareLogList from './ShareLogList';
 type ShareLogPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SHARE_LOG>;
 
 function ShareLogPage({route}: ShareLogPageProps) {
-    return (
-        <ShareLogList
-            logSource={route.params.source}
-            isViaTestToolsModal={route.params.isViaTestToolsModal}
-        />
-    );
+    return <ShareLogList logSource={route.params.source} />;
 }
 
 export default ShareLogPage;

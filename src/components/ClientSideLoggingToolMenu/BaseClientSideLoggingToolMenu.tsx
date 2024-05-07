@@ -14,6 +14,7 @@ import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CapturedLogs, Log} from '@src/types/onyx';
+import toggleTestToolsModal from "@userActions/TestTool";
 
 type BaseClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */
@@ -36,8 +37,6 @@ type BaseClientSideLoggingToolProps = {
     displayPath?: string;
     /** Boolean to know if this was opened via test tools modal */
     isViaTestToolsModal: boolean;
-    /** Action to close the test tools modal */
-    closeTestToolsModal?: () => void;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
 function BaseClientSideLoggingToolMenu({
@@ -48,8 +47,7 @@ function BaseClientSideLoggingToolMenu({
     onDisableLogging,
     onEnableLogging,
     displayPath,
-    isViaTestToolsModal,
-    closeTestToolsModal,
+    isViaTestToolsModal
 }: BaseClientSideLoggingToolProps) {
     const {translate} = useLocalize();
 
@@ -93,10 +91,8 @@ function BaseClientSideLoggingToolMenu({
                         small
                         text={translate('initialSettingsPage.debugConsole.viewConsole')}
                         onPress={() => {
-                            if (closeTestToolsModal) {
-                                closeTestToolsModal();
-                            }
-                            Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute(isViaTestToolsModal));
+                            toggleTestToolsModal()
+                            Navigation.navigate(ROUTES.SETTINGS_CONSOLE.getRoute());
                         }}
                     />
                 </TestToolRow>

@@ -6,7 +6,7 @@ import ROUTES from '@src/ROUTES';
 import BaseShareLogList from './BaseShareLogList';
 import type {ShareLogListProps} from './types';
 
-function ShareLogList({logSource, isViaTestToolsModal}: ShareLogListProps) {
+function ShareLogList({logSource, backTo}: ShareLogListProps) {
     const onAttachLogToReport = (reportID: string, filename: string) => {
         FileUtils.readFileAsync(
             logSource,
@@ -21,10 +21,7 @@ function ShareLogList({logSource, isViaTestToolsModal}: ShareLogListProps) {
         );
     };
     return (
-        <BaseShareLogList
-            onAttachLogToReport={onAttachLogToReport}
-            isViaTestToolsModal={isViaTestToolsModal}
-        />
+        <BaseShareLogList onAttachLogToReport={onAttachLogToReport} />
     );
 }
 

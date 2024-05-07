@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 import type ClientSideLoggingToolMenuProps from './types';
 
-function ClientSideLoggingToolMenu({isViaTestToolsModal = false, closeTestToolsModal}: ClientSideLoggingToolMenuProps) {
+function ClientSideLoggingToolMenu({isViaTestToolsModal = false}: ClientSideLoggingToolMenuProps) {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
     const {environment} = useEnvironment();
 
@@ -35,7 +35,6 @@ function ClientSideLoggingToolMenu({isViaTestToolsModal = false, closeTestToolsM
             onShareLogs={shareLogs}
             displayPath={`${CONST.NEW_EXPENSIFY_PATH}${getDownloadFolderPathSuffixForIOS(environment)}/${file?.newFileName ?? ''}`}
             isViaTestToolsModal={isViaTestToolsModal}
-            closeTestToolsModal={closeTestToolsModal}
         />
     );
 }

@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 import type ClientSideLoggingToolMenuProps from './types';
 
-function ClientSideLoggingToolMenu({isViaTestToolsModal = false, closeTestToolsModal}: ClientSideLoggingToolMenuProps) {
+function ClientSideLoggingToolMenu({isViaTestToolsModal = false}: ClientSideLoggingToolMenuProps) {
     const [file, setFile] = useState<{path: string; newFileName: string; size: number}>();
 
     const createAndSaveFile = (logs: Log[]) => {
@@ -42,7 +42,6 @@ function ClientSideLoggingToolMenu({isViaTestToolsModal = false, closeTestToolsM
             onShareLogs={shareLogs}
             displayPath={`${CONST.DOWNLOADS_PATH}/${file?.newFileName ?? ''}`}
             isViaTestToolsModal={isViaTestToolsModal}
-            closeTestToolsModal={closeTestToolsModal}
         />
     );
 }

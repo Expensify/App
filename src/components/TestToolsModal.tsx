@@ -47,7 +47,6 @@ function TestToolsModal({isTestToolsModalOpen = false}: TestToolsModalProps) {
                 <ProfilingToolMenu />
                 <ClientSideLoggingToolMenu
                     isViaTestToolsModal
-                    closeTestToolsModal={toggleTestToolsModal}
                 />
             </View>
         </Modal>

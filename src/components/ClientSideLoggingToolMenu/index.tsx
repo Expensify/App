@@ -4,7 +4,7 @@ import localFileDownload from '@libs/localFileDownload';
 import BaseClientSideLoggingToolMenu from './BaseClientSideLoggingToolMenu';
 import type ClientSideLoggingToolMenuProps from './types';
 
-function ClientSideLoggingToolMenu({isViaTestToolsModal, closeTestToolsModal}: ClientSideLoggingToolMenuProps) {
+function ClientSideLoggingToolMenu({isViaTestToolsModal}: ClientSideLoggingToolMenuProps) {
     const downloadFile = (logs: Log[]) => {
         localFileDownload('logs', JSON.stringify(logs, null, 2));
     };
@@ -13,7 +13,6 @@ function ClientSideLoggingToolMenu({isViaTestToolsModal, closeTestToolsModal}: C
         <BaseClientSideLoggingToolMenu
             onDisableLogging={downloadFile}
             isViaTestToolsModal={isViaTestToolsModal}
-            closeTestToolsModal={closeTestToolsModal}
         />
     );
 }
