@@ -113,6 +113,7 @@ const WRITE_COMMANDS = {
     FLAG_COMMENT: 'FlagComment',
     UPDATE_REPORT_PRIVATE_NOTE: 'UpdateReportPrivateNote',
     RESOLVE_ACTIONABLE_MENTION_WHISPER: 'ResolveActionableMentionWhisper',
+    RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER: 'ResolveActionableReportMentionWhisper',
     DELETE_WORKSPACE: 'DeleteWorkspace',
     DELETE_MEMBERS_FROM_WORKSPACE: 'DeleteMembersFromWorkspace',
     ADD_MEMBERS_TO_WORKSPACE: 'AddMembersToWorkspace',
@@ -317,6 +318,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.FLAG_COMMENT]: Parameters.FlagCommentParams;
     [WRITE_COMMANDS.UPDATE_REPORT_PRIVATE_NOTE]: Parameters.UpdateReportPrivateNoteParams;
     [WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER]: Parameters.ResolveActionableMentionWhisperParams;
+    [WRITE_COMMANDS.RESOLVE_ACTIONABLE_REPORT_MENTION_WHISPER]: Parameters.ResolveActionableReportMentionWhisperParams;
     [WRITE_COMMANDS.CHRONOS_REMOVE_OOO_EVENT]: Parameters.ChronosRemoveOOOEventParams;
     [WRITE_COMMANDS.TRANSFER_WALLET_BALANCE]: Parameters.TransferWalletBalanceParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE]: Parameters.DeleteWorkspaceParams;

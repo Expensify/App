@@ -18,14 +18,14 @@ function QuickbooksImportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '';
-    const {syncClasses, syncCustomers, syncLocations, syncTax, enableNewCategories, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
+    const {syncClasses, syncCustomers, syncLocations, syncTax, pendingFields} = policy?.connections?.quickbooksOnline?.config ?? {};
 
     const sections = [
         {
             description: translate('workspace.accounting.accounts'),
             action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS.getRoute(policyID)),
             hasError: Boolean(policy?.errors?.enableNewCategories),
-            title: enableNewCategories ? translate('workspace.accounting.importAsCategory') : translate('workspace.accounting.importTypes.NONE'),
+            title: translate('workspace.accounting.importAsCategory'),
             pendingAction: pendingFields?.enableNewCategories,
         },
         {
