@@ -127,7 +127,7 @@ async function run() {
             await commentPR(prNumber, deployMessage);
         } catch (error) {
             if ((error as RequestError).status === 404) {
-                console.log(`404 when accessing PR #${prNumber}. Ignoring.`);
+                console.log(`Unable to comment on PR #${prNumber}. GitHub responded with 404.`);
             } else {
                 throw error;
             }
