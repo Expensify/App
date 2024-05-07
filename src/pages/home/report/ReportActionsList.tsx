@@ -598,7 +598,6 @@ function ReportActionsList({
             mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             shouldDisplayNewMarker,
-            sortedReportActions.length,
             shouldShowStaticDateIndicator,
             parentReportActionForTransactionThread,
             shouldUseThreadDividerLine,
