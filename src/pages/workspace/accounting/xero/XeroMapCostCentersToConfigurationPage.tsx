@@ -55,6 +55,7 @@ function XeroMapCostCentersToConfigurationPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             titleStyle={[styles.pb2, styles.ph5]}
             contentContainerStyle={[styles.flex1]}
+            shouldUseScrollView={false}
         >
             <SelectionList
                 sections={[{data: optionsList}]}
