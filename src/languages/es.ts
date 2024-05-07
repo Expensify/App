@@ -2295,25 +2295,25 @@ export default {
                         case 'quickbooksOnlineSyncApplyClassesLocations':
                             return 'Actualizando clases';
                         case 'xeroSyncImportChartOfAccounts':
-                            return 'Sincronizando chart of accounts';
+                            return 'Sincronizando plan de cuentas';
                         case 'xeroSyncImportCategories':
-                            return 'Sincronizando categories';
+                            return 'Sincronizando categorias';
                         case 'xeroSyncImportCustomers':
-                            return 'Sincronizando customers';
+                            return 'Sincronizando clientes';
                         case 'xeroSyncXeroReimbursedReports':
-                            return 'Marcar Expensify reports como reimbursed';
+                            return 'Marcar los informes de Expensify como reembolsados';
                         case 'xeroSyncExpensifyReimbursedReports':
-                            return 'Marcar Xero bills y invoices como paid';
+                            return 'Marcar facturas y recibos de Xero como pagados';
                         case 'xeroSyncImportTrackingCategories':
-                            return 'Sincronizando tracking categories';
+                            return 'Sincronizando categorías de seguimiento';
                         case 'xeroSyncImportBankAccounts':
-                            return 'Sincronizando bank accounts';
+                            return 'Sincronizando cuentas bancarias';
                         case 'xeroSyncImportTaxRates':
-                            return 'Sincronizando tax rates';
+                            return 'Sincronizando las tasas de impuesto';
                         case 'xeroCheckConnection':
-                            return 'Comprobando conexión Xero';
+                            return 'Comprobando la conexión a Xero';
                         case 'xeroSyncTitle':
-                            return 'Sincronizando datos Xero';
+                            return 'Sincronizando los datos de Xero';
                         case 'xeroSyncStep':
                             return 'Cargando datos';                            
                         default: {
