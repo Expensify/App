@@ -7,7 +7,6 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -19,36 +18,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
 import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
 import BaseListItem from './BaseListItem';
+import TextWithIconCell from './TextWithIconCell';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
-
-type TextWithIconCellProps = {
-    icon: IconAsset;
-    text: string;
-    showTooltip: boolean;
-};
-
-function TextWithIconCell({icon, text, showTooltip}: TextWithIconCellProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    return (
-        <Tooltip
-            shouldRender={showTooltip}
-            text={text}
-        >
-            <View style={[styles.flexRow, styles.gap1]}>
-                <Icon
-                    src={icon}
-                    fill={theme.icon}
-                    height={12}
-                    width={12}
-                />
-                <Text style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter, styles.textMicro, styles.textSupporting]}>{text}</Text>
-            </View>
-        </Tooltip>
-    );
-}
 
 const getTypeIcon = (type?: SearchTransactionType) => {
     switch (type) {
@@ -137,19 +109,31 @@ function TransactionListItem<TItem extends ListItem>({
         );
     };
 
-    const categoryCell = (
+    const categoryCell = isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem?.category}
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
         />
+    ) : (
+        <TextWithIconCell
+            icon={Expensicons.Folder}
+            showTooltip={showTooltip}
+            text={transactionItem?.category}
+        />
     );
 
-    const tagCell = (
+    const tagCell = isLargeScreenWidth ? (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
             text={transactionItem?.tag}
             style={[styles.optionDisplayName, styles.label, styles.pre, styles.justifyContentCenter]}
+        />
+    ) : (
+        <TextWithIconCell
+            icon={Expensicons.Tag}
+            showTooltip={showTooltip}
+            text={transactionItem?.tag}
         />
     );
 
@@ -185,22 +169,6 @@ function TransactionListItem<TItem extends ListItem>({
     const listItemPressableStyle = [styles.selectionListPressableItemWrapper, styles.pv3, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive];
 
     if (!isLargeScreenWidth) {
-        const smallCategoryCell = transactionItem?.category ? (
-            <TextWithIconCell
-                icon={Expensicons.Folder}
-                showTooltip={showTooltip}
-                text={transactionItem?.category}
-            />
-        ) : null;
-
-        const smallTagCell = transactionItem?.tag ? (
-            <TextWithIconCell
-                icon={Expensicons.Tag}
-                showTooltip={showTooltip}
-                text={transactionItem?.tag}
-            />
-        ) : null;
-
         return (
             <BaseListItem
                 item={item}
@@ -240,8 +208,8 @@ function TransactionListItem<TItem extends ListItem>({
                             <View style={[styles.flex1, styles.gap1]}>
                                 {merchantCell}
                                 <View style={[styles.flexRow, styles.alignItemsEnd, styles.gap3]}>
-                                    {smallCategoryCell}
-                                    {smallTagCell}
+                                    {categoryCell}
+                                    {tagCell}
                                 </View>
                             </View>
                             <View style={[styles.alignItemsEnd, styles.gap1]}>
