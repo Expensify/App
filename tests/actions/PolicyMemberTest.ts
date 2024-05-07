@@ -167,7 +167,7 @@ describe('actions/PolicyMember', () => {
             // @ts-expect-error TODO: Remove this once TestHelper (https://github.com/Expensify/App/issues/25318) is migrated to TypeScript.
             await fetch.resume();
             await waitForBatchedUpdates();
-            new Promise<void>((resolve) => {
+            await new Promise<void>((resolve) => {
                 const connectionID = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     waitForCollectionCallback: false,
