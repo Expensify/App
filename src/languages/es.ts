@@ -2072,7 +2072,7 @@ export default {
                 invoiceAccountSelectorDescription:
                     'Como ha activado la exportación de facturas de Expensify a Xero, esta es la cuenta en la que aparecerá la factura una vez marcada como pagada.',
                 xeroBillPaymentAccountDescription:
-                    "As you’ve enabled sync reimbursed reports, you will need to select the bank account your reimbursements are coming out of, and we'll create the payment in Xero.",
+                    "Como has activado la sincronización de los informes reembolsados, tendrás que seleccionar la cuenta bancaria de la que se producen estos reembolsos y crearemos el pago en Xero.",
             },
         },
         type: {
