@@ -84,11 +84,9 @@ function ReportActionItemSingle({
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails[actorAccountID ?? -1] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const displayAllActors = useMemo(
-        () => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && iouReport && !ReportUtils.isInvoiceReport(iouReport),
-        [action?.actionName, iouReport],
-    );
-    const isWorkspaceActor = ReportUtils.isInvoiceReport(iouReport ?? {}) || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
+    const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && iouReport, [action?.actionName, iouReport]);
+    const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? {});
+    const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     let avatarSource = UserUtils.getAvatar(avatar ?? '', actorAccountID);
 
     if (isWorkspaceActor) {
@@ -110,10 +108,14 @@ function ReportActionItemSingle({
     const primaryDisplayName = displayName;
     if (displayAllActors) {
         // The ownerAccountID and actorAccountID can be the same if the a user submits an expense back from the IOU's original creator, in that case we need to use managerID to avoid displaying the same user twice
-        const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID ? iouReport?.managerID : iouReport?.ownerAccountID;
+        const secondaryAccountId = iouReport?.ownerAccountID === actorAccountID || isInvoiceReport ? iouReport?.managerID : iouReport?.ownerAccountID;
         const secondaryUserAvatar = personalDetails?.[secondaryAccountId ?? -1]?.avatar ?? '';
         const secondaryDisplayName = ReportUtils.getDisplayNameForParticipant(secondaryAccountId);
-        displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
+
+        if (!isInvoiceReport) {
+            displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
+        }
+
         secondaryAvatar = {
             source: UserUtils.getAvatar(secondaryUserAvatar, secondaryAccountId),
             type: CONST.ICON_TYPE_AVATAR,
