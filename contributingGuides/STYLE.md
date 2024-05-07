@@ -22,8 +22,6 @@
     - [Satisfies Operator](#satisfies-operator)
     - [Type imports/exports](#type-importsexports)
     - [Refs](#refs)
-    - [Exception to Rules](#exception-to-rules)
-    - [Communication Items](#communication-items)
     - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
 - [Naming Conventions](#naming-conventions)
     - [Type names](#type-names)
@@ -85,7 +83,7 @@ type Foo = {
 
 ### `d.ts` Extension
 
-Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and JavaScript's built-in modules (e.g. `window` object) can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
+Do not use `d.ts` file extension even when a file contains only type declarations. Only exceptions are `src/types/global.d.ts` and `src/types/modules/*.d.ts` files in which third party packages and JavaScript's built-in modules (e.g. `window` object) can be modified using module augmentation.
 
 > Why? Type errors in `d.ts` files are not checked by TypeScript.
 
@@ -458,33 +456,6 @@ if (ref.current && 'getBoundingClientRect' in ref.current) {
 <View ref={viewRef(ref)} onPointerDown={e => {#DO SOMETHING}}>
 ```
 
-### Exception to Rules
-
-Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. The internal engineer assigned to the PR should be the one that approves each exception, however all discussion regarding granting exceptions should happen in the public channel instead of the GitHub PR page so that the TS migration team can access them easily.
-
-When an exception is granted, link the relevant Slack conversation in your PR. Suppress ESLint or TypeScript warnings/errors with comments if necessary.
-
-This rule will apply until the migration is done. After the migration, discussion on granting exception can happen inside the PR page and doesn't need take place in the Slack channel.
-
-### Communication Items
-
-> Comment in the `#expensify-open-source` Slack channel if any of the following situations are encountered. Each comment should be prefixed with `TS ATTENTION:`. Internal engineers will access each situation and prescribe solutions to each case. Internal engineers should refer to general solutions to each situation that follows each list item.
-
-- I think types definitions in a third party library or JavaScript's built-in module are incomplete or incorrect
-
-When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/types/modules/*.d.ts`, each library as a separate file.
-
-```ts
-// external-library-name.d.ts
-
-declare module "external-library-name" {
-    interface LibraryComponentProps {
-        // Add or modify typings
-        additionalProp: string;
-    }
-}
-```
-
 ### Other Expensify Resources on TypeScript
 
 - [Expensify TypeScript React Native CheatSheet](./TS_CHEATSHEET.md)
@@ -545,20 +516,6 @@ declare module "external-library-name" {
     function MyComponent({}: MyComponentProps) {
         // component's code
     }
-    ```
-
-  - Use {ComponentName}Handle for custon ref handle types.
-
-    ```tsx
-    // BAD
-    type MyComponentRef = {
-        onPressed: () => void;
-    };
-
-    // GOOD
-    type MyComponentHandle = {
-        onPressed: () => void;
-    };s
     ```
 
   - For generic type parameters, use `T` if you have only one type parameter. Don't use the `T`, `U`, `V`... sequence. Make type parameter names descriptive, each prefixed with `T`.
@@ -653,20 +610,6 @@ export {
 }
 ```
 
-Using named functions is the preferred way to write a callback method.
-
-```tsx
-// Bad
-people.map(function (item) {/* Long and complex logic */});
-people.map((item) => {/* Long and complex logic with many inner loops*/});
-useEffect/useMemo/useCallback(() => {/* Long and complex logic */}, []);
-
-// Good
-function mappingPeople(person) {/* Long and complex logic */};
-people.map(mappingPeople);
-useEffect/useMemo/useCallback(function handlingConnection() {/* Long and complex logic */}, []);
-```
-
 You can still use arrow function for declarations or simple logics to keep them readable.
 
 ```tsx
@@ -697,17 +640,6 @@ useEffect(() => {
 
 ```
 
-Empty functions (noop) should be declared as arrow functions with no whitespace inside. Avoid _.noop()
-
-```tsx
-// Bad
-const callback = _.noop;
-const callback = () => { };
-
-// Good
-const callback = () => {};
-```
-
 ## `var`, `const` and `let`
 
 - Never use `var`
@@ -733,7 +665,7 @@ if (someCondition) {
 
 ## Object / Array Methods
 
-We have standardized on using the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods) instead of [underscore.js](https://underscorejs.org/) methods for objects and collections. As the vast majority of code is written in TypeScript, we can safaly use the native methods.
+We have standardized on using the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods) instead of [lodash](https://lodash.com/) methods for objects and collections. As the vast majority of code is written in TypeScript, we can safely use the native methods.
 
 ```ts
 // Bad
@@ -911,8 +843,6 @@ So, if a new language feature isn't something we have agreed to support it's off
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
 - **Async/Await** - Use the native `Promise` instead
-- **Optional Chaining** - Yes, don't use `lodashGet()`
-- **Null Coalescing Operator** - Yes, don't use `lodashGet()` or `||` to set a default value for a possibly `undefined` or `null` variable
 
 ## React Coding Standards
 
