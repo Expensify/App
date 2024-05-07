@@ -41,7 +41,7 @@ function TextPicker({value, description, placeholder = '', errorText = '', onInp
                 description={description}
                 onPress={showPickerModal}
                 furtherDetails={furtherDetails}
-                rightLabel={rightLabel}
+                rightLabel={!errorText ? rightLabel : undefined}
                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={errorText}
                 style={[styles.moneyRequestMenuItem]}
