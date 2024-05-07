@@ -1,14 +1,17 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import React, {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {withOnyx} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import * as IOUUtils from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PolicyUtils from '@libs/PolicyUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import * as Policy from '@userActions/Policy';
+import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -17,29 +20,42 @@ import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const POLICY_ACCESS_VARIANTS = {
+const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPaidGroupPolicy(policy) && !!policy?.isPolicyExpenseChatEnabled,
     [CONST.POLICY.ACCESS_VARIANTS.ADMIN]: (policy: OnyxEntry<OnyxTypes.Policy>) => PolicyUtils.isPolicyAdmin(policy),
-} as const satisfies Record<string, (policy: OnyxTypes.Policy) => boolean>;
+    [CONST.IOU.ACCESS_VARIANTS.CREATE]: (policy: OnyxEntry<OnyxTypes.Policy>, report: OnyxEntry<OnyxTypes.Report>, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) =>
+        // Allow the user to submit the expense if we are submitting the expense in global menu or the report can create the expense
+        (isEmptyObject(report?.reportID) || ReportUtils.canCreateRequest(report, policy, iouType)) &&
+        (iouType !== CONST.IOU.TYPE.INVOICE || PolicyUtils.canSendInvoice(allPolicies)),
+} as const satisfies Record<string, (policy: OnyxTypes.Policy, report: OnyxTypes.Report, allPolicies: OnyxCollection<OnyxTypes.Policy>, iouType?: IOUType) => boolean>;
 
-type PolicyAccessVariant = keyof typeof POLICY_ACCESS_VARIANTS;
+type AccessVariant = keyof typeof ACCESS_VARIANTS;
 type AccessOrNotFoundWrapperOnyxProps = {
+    /** The report that holds the transaction */
+    report: OnyxEntry<OnyxTypes.Report>;
+
     /** The report currently being looked at */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Indicated whether the report data is loading */
     isLoadingReportData: OnyxEntry<boolean>;
+
+    /** The list of all policies */
+    allPolicies: OnyxCollection<OnyxTypes.Policy>;
 };
 
 type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
     /** The children to render */
     children: ((props: AccessOrNotFoundWrapperOnyxProps) => React.ReactNode) | React.ReactNode;
 
+    /** The id of the report that holds the transaction */
+    reportID?: string;
+
     /** The report currently being looked at */
-    policyID: string;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
-    accessVariants?: PolicyAccessVariant[];
+    accessVariants?: AccessVariant[];
 
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
@@ -49,6 +65,9 @@ type AccessOrNotFoundWrapperProps = AccessOrNotFoundWrapperOnyxProps & {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
+
+    /** The type of the transaction */
+    iouType?: IOUType;
 } & Pick<FullPageNotFoundViewProps, 'subtitleKey' | 'onLinkPress'>;
 
 type PageNotFoundFallbackProps = Pick<AccessOrNotFoundWrapperProps, 'policyID' | 'fullPageNotFoundViewProps'> & {shouldShowFullScreenFallback: boolean};
@@ -64,7 +83,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
         />
     ) : (
         <NotFoundPage
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
+            onBackButtonPress={() => !!policyID && Navigation.goBack(ROUTES.WORKSPACE_PROFILE.getRoute(policyID))}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
         />
@@ -72,7 +91,7 @@ function PageNotFoundFallback({policyID, shouldShowFullScreenFallback, fullPageN
 }
 
 function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps, shouldBeBlocked, ...props}: AccessOrNotFoundWrapperProps) {
-    const {policy, policyID, featureName, isLoadingReportData} = props;
+    const {policy, policyID, report, iouType, allPolicies, featureName, isLoadingReportData} = props;
 
     const isPolicyIDInRoute = !!policyID?.length;
 
@@ -91,12 +110,16 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
     const isFeatureEnabled = featureName ? PolicyUtils.isPolicyFeatureEnabled(policy, featureName) : true;
 
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
-        const accessFunction = POLICY_ACCESS_VARIANTS[variant];
-        return acc && accessFunction(policy);
+        const accessFunction = ACCESS_VARIANTS[variant];
+        return acc && accessFunction(policy, report, allPolicies, iouType);
     }, true);
 
+    const isIOU = !!iouType && IOUUtils.isValidMoneyRequestType(iouType);
+    const isFromGlobalCreate = isEmptyObject(report?.reportID);
+
+    const isPolicyNotAccessible = isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id;
     const shouldShowNotFoundPage =
-        isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors)) || !policy?.id || !isPageAccessible || !isFeatureEnabled || shouldBeBlocked;
+        isPolicyNotAccessible || !isPageAccessible || !isFeatureEnabled || shouldBeBlocked;
 
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator />;
@@ -115,13 +138,19 @@ function AccessOrNotFoundWrapper({accessVariants = [], fullPageNotFoundViewProps
     return callOrReturn(props.children, props);
 }
 
-export type {PolicyAccessVariant};
+export type {AccessVariant};
 
 export default withOnyx<AccessOrNotFoundWrapperProps, AccessOrNotFoundWrapperOnyxProps>({
+    report: {
+        key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+    },
     policy: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID ?? ''}`,
+        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
     },
     isLoadingReportData: {
         key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    },
+    allPolicies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
     },
 })(AccessOrNotFoundWrapper);
