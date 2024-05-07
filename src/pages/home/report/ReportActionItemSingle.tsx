@@ -85,7 +85,7 @@ function ReportActionItemSingle({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     let actorHint = (login || (displayName ?? '')).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const displayAllActors = useMemo(() => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && iouReport, [action?.actionName, iouReport]);
-    const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? {});
+    const isInvoiceReport = ReportUtils.isInvoiceReport(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (ReportUtils.isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
     let avatarSource = UserUtils.getAvatar(avatar ?? '', actorAccountID);
 

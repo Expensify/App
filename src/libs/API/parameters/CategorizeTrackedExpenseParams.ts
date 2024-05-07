@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 type CategorizeTrackedExpenseParams = {
@@ -16,7 +17,7 @@ type CategorizeTrackedExpenseParams = {
     reportPreviewReportActionID: string;
     category?: string;
     tag?: string;
-    receipt?: Receipt;
+    receipt: OnyxEntry<Receipt>;
     taxCode: string;
     taxAmount: number;
     billable?: boolean;

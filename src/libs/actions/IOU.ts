@@ -1101,7 +1101,7 @@ function buildOnyxDataForTrackExpense(
     iouAction: OptimisticIOUReportAction,
     reportPreviewAction: OnyxEntry<ReportAction>,
     transactionThreadReport: OptimisticChatReport,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction,
+    transactionThreadCreatedReportAction: OnyxEntry<OptimisticCreatedReportAction>,
     shouldCreateNewMoneyRequestReport: boolean,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
@@ -1403,7 +1403,7 @@ function buildOnyxDataForTrackExpense(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
             value: {
-                [transactionThreadCreatedReportAction.reportActionID]: {
+                [transactionThreadCreatedReportAction?.reportActionID ?? '']: {
                     errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
                 },
             },
@@ -1598,7 +1598,7 @@ function getSendInvoiceInformation(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     currentUserAccountID: number,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
-    receipt?: Receipt,
+    receipt?: OnyxEntry<Receipt>,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
@@ -1954,7 +1954,7 @@ function getTrackExpenseInformation(
     currency: string,
     created: string,
     merchant: string,
-    receipt: Receipt | undefined,
+    receipt: OnyxEntry<Receipt>,
     category: string | undefined,
     tag: string | undefined,
     billable: boolean | undefined,
@@ -2098,7 +2098,7 @@ function getTrackExpenseInformation(
         iouAction,
         reportPreviewAction,
         optimisticTransactionThread ?? {},
-        (optimisticCreatedActionForTransactionThread as OptimisticCreatedReportAction) ?? {}, // Add type assertion here
+        optimisticCreatedActionForTransactionThread ?? null, // Add type assertion here
         shouldCreateNewMoneyRequestReport,
         policy,
         policyTagList,
@@ -3076,7 +3076,7 @@ function categorizeTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    receipt?: Receipt,
+    receipt: OnyxEntry<Receipt> = null,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3146,7 +3146,7 @@ function shareTrackedExpense(
     taxCode = '',
     taxAmount = 0,
     billable?: boolean,
-    receipt?: Receipt,
+    receipt: OnyxEntry<Receipt> = null,
 ) {
     const {optimisticData, successData, failureData} = onyxData ?? {};
 
@@ -3339,7 +3339,7 @@ function sendInvoice(
     currentUserAccountID: number,
     transaction: OnyxEntry<OnyxTypes.Transaction>,
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
-    receiptFile?: Receipt,
+    receiptFile?: OnyxEntry<Receipt>,
     policy?: OnyxEntry<OnyxTypes.Policy>,
     policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
     policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
@@ -3394,7 +3394,7 @@ function trackExpense(
     payeeAccountID: number,
     participant: Participant,
     comment: string,
-    receipt?: Receipt,
+    receipt: OnyxEntry<Receipt> = null,
     category?: string,
     tag?: string,
     taxCode = '',

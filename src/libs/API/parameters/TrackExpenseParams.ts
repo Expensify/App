@@ -1,3 +1,4 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -15,7 +16,7 @@ type TrackExpenseParams = {
     createdChatReportActionID: string;
     createdIOUReportActionID?: string;
     reportPreviewReportActionID?: string;
-    receipt?: Receipt;
+    receipt?: OnyxEntry<Receipt>;
     receiptState?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
     category?: string;
     tag?: string;

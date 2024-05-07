@@ -739,7 +739,7 @@ function isCanceledTaskReport(report: OnyxEntry<Report>, parentReportAction: Ony
  *
  * @param parentReportAction - The parent report action of the report (Used to check if the task has been canceled)
  */
-function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction>): boolean {
+function isOpenTaskReport(report: OnyxEntry<Report>, parentReportAction: OnyxEntry<ReportAction> = null): boolean {
     return (
         isTaskReport(report) && !isCanceledTaskReport(report, parentReportAction) && report?.stateNum === CONST.REPORT.STATE_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN
     );
@@ -3927,7 +3927,7 @@ function buildOptimisticIOUReportAction(
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
-function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID: string = ''): OptimisticApprovedReportAction {
+function buildOptimisticApprovedReportAction(amount: number, currency: string, expenseReportID = ''): OptimisticApprovedReportAction {
     const originalMessage = {
         amount,
         currency,
@@ -6162,7 +6162,7 @@ function getAllAncestorReportActions(report: Report | null | undefined): Ancesto
             break;
         }
 
-        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport ?? {}, parentReportAction);
+        const isParentReportActionUnread = ReportActionsUtils.isCurrentActionUnread(parentReport ?? null, parentReportAction);
         allAncestors.push({
             report: currentReport,
             reportAction: parentReportAction,

@@ -24,7 +24,7 @@ function OptionRowLHNData({
     receiptTransactions,
     parentReportAction,
     transaction,
-    lastReportActionTransaction = {},
+    lastReportActionTransaction = null,
     transactionViolations,
     canUseViolations,
     ...propsToForward
