@@ -471,9 +471,8 @@ function MoneyRequestConfirmationList({
                 let amount: number | undefined = 0;
                 if (iouAmount > 0) {
                     amount =
-                        isPolicyExpenseChat || !transaction?.comment?.splits
-                            ? IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer)
-                            : transaction.comment.splits.find((split) => split.accountID === participantOption.accountID)?.amount;
+                        transaction?.comment?.splits?.find((split) => split.accountID === participantOption.accountID)?.amount ??
+                        IOUUtils.calculateAmount(selectedParticipants.length, iouAmount, iouCurrencyCode ?? '', isPayer);
                 }
                 return {
                     ...participantOption,
@@ -500,7 +499,7 @@ function MoneyRequestConfirmationList({
                 onAmountChange: (value: string) => onSplitShareChange(participantOption.accountID ?? 0, Number(value)),
             },
         }));
-    }, [transaction, iouCurrencyCode, isPolicyExpenseChat, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
+    }, [transaction, iouCurrencyCode, onSplitShareChange, payeePersonalDetails, selectedParticipants, currencyList, iouAmount, shouldShowReadOnlySplits, StyleUtils]);
 
     const isSplitModified = useMemo(() => {
         if (!transaction?.splitShares) {
@@ -1090,6 +1089,7 @@ function MoneyRequestConfirmationList({
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             disableArrowKeysActions
+            disableFocusOptions
             boldStyle
             showTitleTooltip
             shouldTextInputAppearBelowOptions
