@@ -34,7 +34,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroCostCentersTo'),
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_COST_CENTERS.getRoute(policyID)),
-                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${costCenterCategoryValue.toLowerCase()}` as TranslationPaths): '',
+                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${costCenterCategoryValue.toLowerCase()}` as TranslationPaths) : '',
             });
         }
 
@@ -43,7 +43,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             availableCategories.push({
                 description: translate('workspace.xero.mapXeroRegionsTo'),
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP_REGION.getRoute(policyID)),
-                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${regionCategoryValue.toLowerCase()}` as TranslationPaths): '',
+                title: isValidOption ? translate(`workspace.xero.trackingCategoriesOptions.${regionCategoryValue.toLowerCase()}` as TranslationPaths) : '',
             });
         }
         return availableCategories;
