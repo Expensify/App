@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -14,11 +15,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import * as SearchUtils from '@libs/SearchUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {TranslationPaths} from '@src/languages/types';
+import type {SearchTransactionAction, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TextWithIconCell from './TextWithIconCell';
 import UserInfoCell from './UserInfoCell';
@@ -35,8 +38,8 @@ type TransactionCellProps = {
 } & CellProps;
 
 type ActionCellProps = {
-    onButtonPress: () => void;
-} & CellProps;
+    goToItem: () => void;
+} & TransactionCellProps;
 
 type TotalCellProps = {
     isChildListItem: boolean;
@@ -62,6 +65,18 @@ const getTypeIcon = (type?: SearchTransactionType) => {
         default:
             return Expensicons.Cash;
     }
+};
+
+const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> = {
+    view: 'common.view',
+    // Todo add translation for Review
+    review: 'common.view',
+    done: 'common.done',
+    paid: 'iou.settledExpensify',
+    approve: 'iou.approve',
+    pay: 'iou.pay',
+    submit: 'common.submit',
+    hold: 'iou.hold',
 };
 
 function ReceiptCell({transactionItem}: TransactionCellProps) {
@@ -148,17 +163,50 @@ function TypeCell({transactionItem, isLargeScreenWidth}: TransactionCellProps) {
     );
 }
 
-function ActionCell({onButtonPress}: ActionCellProps) {
+function ActionCell({transactionItem, goToItem}: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const {action, amount} = transactionItem;
+
+    const text = translate(actionTranslationsMap[action]);
+
+    if (['done', 'paid'].includes(action)) {
+        return (
+            <Badge
+                success
+                text={text}
+                icon={Expensicons.Checkmark}
+                badgeStyles={[styles.badgeBordered]}
+                textStyles={[{fontWeight: '700'}]}
+            />
+        );
+    }
+
+    if (['view', 'review'].includes(action)) {
+        return (
+            <Button
+                text={translate('common.view')}
+                onPress={goToItem}
+                small
+                pressOnEnter
+                style={[styles.w100]}
+            />
+        );
+    }
+
+    const command = SearchUtils.getTransactionActionCommand(action);
+    const reportsAndAmounts = {[transactionItem.reportID ?? -1]: amount};
+
     return (
         <Button
-            text={translate('common.view')}
-            onPress={onButtonPress}
+            text={text}
+            onPress={() => {
+                command('', reportsAndAmounts);
+            }}
             small
             pressOnEnter
-            style={[styles.w100]}
+            style={[styles.p0]}
         />
     );
 }
@@ -364,7 +412,8 @@ function TransactionListItemRow({item, showTooltip, onButtonPress, showItemHeade
                 </View>
                 <View style={[StyleUtils.getSearchTableColumnStyles(CONST.SEARCH_TABLE_COLUMNS.ACTION)]}>
                     <ActionCell
-                        onButtonPress={onButtonPress}
+                        transactionItem={item}
+                        goToItem={onButtonPress}
                         showTooltip={false}
                         isLargeScreenWidth={false}
                     />

@@ -5,7 +5,16 @@ import type {ReportListItemType, TransactionListItemType} from '@components/Sele
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchAccountDetails, SearchDataTypes, SearchPersonalDetails, SearchTransaction, SearchTypeToItemMap, SectionsType} from '@src/types/onyx/SearchResults';
+import type {
+    SearchAccountDetails,
+    SearchDataTypes,
+    SearchPersonalDetails,
+    SearchTransaction,
+    SearchTransactionAction,
+    SearchTypeToItemMap,
+    SectionsType,
+} from '@src/types/onyx/SearchResults';
+import * as SearchActions from './actions/Search';
 import DateUtils from './DateUtils';
 import getTopmostCentralPaneRoute from './Navigation/getTopmostCentralPaneRoute';
 import navigationRef from './Navigation/navigationRef';
@@ -269,10 +278,26 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     });
 }
 
+function getTransactionActionCommand(action: Omit<SearchTransactionAction, 'view' | 'done' | 'paid'>): (searchHash: string, reportsAndAmounts: Record<string, number>) => void {
+    if (action === 'pay') {
+        return SearchActions.payMoneyRequest;
+    }
+
+    if (action === 'approve') {
+        return SearchActions.approveMoneyRequest;
+    }
+
+    if (action === 'hold') {
+        return SearchActions.holdMoneyRequest;
+    }
+
+    return SearchActions.submitMoneyRequest;
+}
+
 function getSearchParams() {
     const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
     return topmostCentralPaneRoute?.params as CentralPaneNavigatorParamList['Search_Central_Pane'];
 }
 
-export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getSearchParams, shouldShowYear};
+export {getListItem, getQueryHash, getSections, getSortedSections, getShouldShowMerchant, getSearchType, getTransactionActionCommand, getSearchParams, shouldShowYear};
 export type {SearchColumnType, SortOrder};

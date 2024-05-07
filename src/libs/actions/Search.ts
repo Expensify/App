@@ -57,8 +57,27 @@ function createTransactionThread(hash: number, transactionID: string, reportID: 
             },
         },
     };
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, onyxUpdate);
 }
 
-export {search, createTransactionThread};
+// Todo finalize the action methods and api calls
+function payMoneyRequest(searchHash: string, reportsAndAmounts: Record<string, number>) {
+    const optimisticData = {
+        onyxMethod: 'merge',
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+        value: {isLoading: true},
+    };
+    const finallyData = {
+        onyxMethod: 'merge',
+        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+        value: {isLoading: false},
+    };
+
+    API.write('Request', {paymentType, reportsAndAmounts}, {optimisticData, finallyData});
+}
+
+function approveMoneyRequest() {}
+function holdMoneyRequest() {}
+function submitMoneyRequest() {}
+
+export {search, createTransactionThread, payMoneyRequest, approveMoneyRequest, holdMoneyRequest, submitMoneyRequest};

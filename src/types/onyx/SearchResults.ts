@@ -99,6 +99,8 @@ type SearchReport = {
     action?: string;
 };
 
+type SearchTransactionAction = 'done' | 'paid' | 'view' | 'review' | 'pay' | 'approve' | 'hold' | 'submit';
+
 /** Model of transaction search result */
 type SearchTransaction = {
     /** The ID of the transaction */
@@ -183,7 +185,7 @@ type SearchTransaction = {
     transactionThreadReportID: string;
 
     /** The action that can be performed for the transaction */
-    action: string;
+    action: SearchTransactionAction;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
@@ -219,6 +221,7 @@ export type {
     SearchQuery,
     SearchTransaction,
     SearchTransactionType,
+    SearchTransactionAction,
     SearchPersonalDetails,
     SearchPolicyDetails,
     SearchAccountDetails,
