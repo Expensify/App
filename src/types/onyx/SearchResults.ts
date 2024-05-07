@@ -69,15 +69,34 @@ type SearchTransaction = {
     /** The ID of the policy the transaction is associated with */
     policyID: string;
 
+    /** The ID of the parent of the transaction */
     parentTransactionID?: string;
+
+    /** If the transaction has an Ereceipt */
     hasEReceipt?: boolean;
+
+    /** The transaction description */
     description: string;
+
+    /** The transaction sender ID */
     accountID: number;
+
+    /** The transaction recipient ID */
     managerID: number;
+
+    /** If the transaction has a Ereceipt */
     hasViolation: boolean;
+
+    /** The transaction tax amount */
     taxAmount?: number;
+
+    /** The ID of the report the transaction is associated with */
     reportID: string;
+
+    /** The report ID of the transaction thread associated with the transaction */
     transactionThreadReportID: string;
+
+    /** The action that can be performed for the transaction */
     action: string;
 };
 

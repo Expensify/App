@@ -134,6 +134,7 @@ type TransactionListItemType = ListItem &
 
         /** The personal details of the user paying the request */
         to: SearchAccountDetails;
+
         /** Whether we should show the merchant column */
         shouldShowMerchant: boolean;
 
