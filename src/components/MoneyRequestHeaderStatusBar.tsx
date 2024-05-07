@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
-import {StyleProp, View, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Badge from './Badge';
 import Text from './Text';
