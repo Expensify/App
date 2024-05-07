@@ -10,6 +10,8 @@ const getIconForAction = (actionType: ValueOf<typeof CONST.IOU.TYPE>) => {
             return Expensicons.Receipt;
         case CONST.IOU.TYPE.SEND:
             return Expensicons.Cash;
+        case CONST.IOU.TYPE.SPLIT:
+            return Expensicons.Transfer;
         default:
             return Expensicons.MoneyCircle;
     }

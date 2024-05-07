@@ -49,7 +49,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
-    const isWorkspaceRequest = ReportUtils.isGroupPolicy(report);
+    const isWorkspaceRequest = ReportUtils.isReportInGroupPolicy(report);
     const parentReportAction = ReportActionsUtils.getReportAction(report?.parentReportID ?? '', report?.parentReportActionID ?? '');
 
     const navigateBack = () => {
