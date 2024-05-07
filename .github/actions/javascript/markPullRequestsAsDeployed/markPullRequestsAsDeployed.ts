@@ -4,7 +4,7 @@ import {context} from '@actions/github';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
-import {RequestError} from '@octokit/types';
+import {type as RequestError} from '@octokit/types';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
