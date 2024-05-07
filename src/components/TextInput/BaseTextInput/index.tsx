@@ -296,7 +296,6 @@ function BaseTextInput(
                     ]}
                 >
                     <View
-                        id="youssef"
                         style={[
                             newTextInputContainerStyles,
 
