@@ -236,14 +236,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         return (
             <View style={[styles.w100, styles.flexRow, isSmallScreenWidth && styles.mb3]}>
-                <Button
-                    medium
-                    success
-                    onPress={navigateToCreateTagPage}
-                    icon={Expensicons.Plus}
-                    text={translate('workspace.tags.addTag')}
-                    style={[styles.mr3, isSmallScreenWidth && styles.w50]}
-                />
+                {!PolicyUtils.hasAccountingConnections(policy) && (
+                    <Button
+                        medium
+                        success
+                        onPress={navigateToCreateTagPage}
+                        icon={Expensicons.Plus}
+                        text={translate('workspace.tags.addTag')}
+                        style={[styles.mr3, isSmallScreenWidth && styles.w50]}
+                    />
+                )}
                 {policyTags && (
                     <Button
                         medium
