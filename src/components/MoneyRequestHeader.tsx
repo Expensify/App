@@ -129,9 +129,6 @@ function MoneyRequestHeader({
         if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '', transactionViolations))) {
             return {pendingType: 'RTER', pendingTitle: Expensicons.Hourglass, pendingDescription: translate('iou.pendingMatchWithCreditCardDescription')};
         }
-        if (isOnHold) {
-            return {pendingType: 'HOLD', pendingTitle: translate('iou.hold'), pendingDescription: translate('iou.expenseOnHold')};
-        }
         return {};
     };
 
@@ -226,13 +223,20 @@ function MoneyRequestHeader({
                                     height={variables.iconSizeSmall}
                                     width={variables.iconSizeSmall}
                                     fill={theme.textSupporting}
-                                    additionalStyles={[styles.mr2]}
                                 />
                             )
                         }
                         description={pendingDescription}
+                        shouldShowBorderBottom={!isOnHold}
+                        additionalViewStyle={[styles.mr2]}
+                    />
+                )}
+                {isOnHold && (
+                    <MoneyRequestHeaderStatusBar
+                        title={translate('iou.hold')}
+                        description={translate('iou.expenseOnHold')}
                         shouldShowBorderBottom
-                        danger={isOnHold}
+                        danger
                     />
                 )}
             </View>

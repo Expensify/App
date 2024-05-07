@@ -320,7 +320,6 @@ function ReportPreview({
                                                     height={variables.iconSizeExtraSmall}
                                                     width={variables.iconSizeExtraSmall}
                                                     fill={theme.textSupporting}
-                                                    additionalStyles={[styles.mr1]}
                                                 />
                                                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml1, styles.amountSplitPadding]}>
                                                     {translate('iou.pendingMatchWithCreditCard')}

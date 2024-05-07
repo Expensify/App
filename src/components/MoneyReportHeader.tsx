@@ -255,11 +255,11 @@ function MoneyReportHeader({
                             height={variables.iconSizeSmall}
                             width={variables.iconSizeSmall}
                             fill={theme.textSupporting}
-                            additionalStyles={[styles.mr2]}
                         />
                     }
                     description={translate('iou.pendingMatchWithCreditCardDescription')}
                     shouldShowBorderBottom
+                    additionalViewStyle={[styles.mr2]}
                 />
             )}
             <View style={isMoreContentShown ? [styles.dFlex, styles.flexColumn, styles.borderBottom] : []}>
