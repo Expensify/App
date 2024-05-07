@@ -556,7 +556,7 @@ function MoneyRequestConfirmationList({
         }
         // Keep 'transaction' out to ensure that we autoselect the option only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyTagLists, policyTags, canUseViolations]);
+    }, [policyTagLists, policyTags]);
 
     /**
      */
@@ -870,14 +870,14 @@ function MoneyRequestConfirmationList({
                     titleStyle={styles.flex1}
                     disabled={didConfirm}
                     interactive={!isReadOnly}
-                    rightLabel={isCategoryRequired ? translate('common.required') : ''}
+                    rightLabel={isCategoryRequired && canUseViolations ? translate('common.required') : ''}
                 />
             ),
             shouldShow: shouldShowCategories,
             isSupplementary: action === CONST.IOU.ACTION.CATEGORIZE ? false : !isCategoryRequired,
         },
         ...policyTagLists.map(({name, required}, index) => {
-            const isTagRequired = required === undefined ? false : canUseViolations && required;
+            const isTagRequired = required ?? false;
             return {
                 item: (
                     <MenuItemWithTopDescription
@@ -894,7 +894,7 @@ function MoneyRequestConfirmationList({
                         style={[styles.moneyRequestMenuItem]}
                         disabled={didConfirm}
                         interactive={!isReadOnly}
-                        rightLabel={isTagRequired ? translate('common.required') : ''}
+                        rightLabel={isTagRequired && canUseViolations ? translate('common.required') : ''}
                     />
                 ),
                 shouldShow: shouldShowTags,
