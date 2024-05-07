@@ -89,9 +89,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ),
             }));
         }
-        return policyTagLists
-            .map((policyTagList) => Object.values(policyTagList.tags))
-            .flat()
+        const tags = Object.values(policyTagLists[0].tags);
+        return tags
             .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
             .map((tag) => ({
                 value: tag.name,

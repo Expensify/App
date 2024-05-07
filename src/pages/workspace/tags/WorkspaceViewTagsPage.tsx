@@ -65,12 +65,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         setSelectedTags({});
     }, [isFocused]);
 
-    const policyTagLists = useMemo(() => PolicyUtils.getTagLists(policyTags).filter((policyTag) => policyTag.name === currentTagListName), [currentTagListName, policyTags]);
+    const policyTagList = useMemo(() => PolicyUtils.getTagLists(policyTags).find((policyTag) => policyTag.name === currentTagListName), [currentTagListName, policyTags]);
     const tagList = useMemo<TagListItem[]>(
         () =>
-            policyTagLists
-                .map((policyTagList) => Object.values(policyTagList.tags))
-                .flat()
+            Object.values(policyTagList?.tags ?? {})
                 .sort((tagA, tagB) => localeCompare(tagA.name, tagB.name))
                 .map((tag) => ({
                     value: tag.name,
@@ -83,7 +81,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     rightElement: <ListItemRightCaretWithLabel labelText={tag.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
                 })),
-        [policyTagLists, selectedTags, translate],
+        [policyTagList, selectedTags, translate],
     );
 
     const tagListKeyedByName = useMemo(
