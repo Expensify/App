@@ -203,7 +203,6 @@ function ReportCardLostPage({
                             onSubmit={handleSubmitFirstStep}
                             message="reportCardLostOrDamaged.reasonError"
                             buttonText={translate('reportCardLostOrDamaged.nextButtonLabel')}
-                            containerStyles={[styles.m5]}
                         />
                     </>
                 )}

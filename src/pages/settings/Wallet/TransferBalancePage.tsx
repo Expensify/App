@@ -219,7 +219,7 @@ function TransferBalancePage({bankAccountList, fundList, userWallet, walletTrans
                         isDisabled={isButtonDisabled || isOffline}
                         message={errorMessage}
                         isAlertVisible={!isEmptyObject(errorMessage)}
-                        containerStyles={!paddingBottom ? styles.pb5 : null}
+                        containerStyles={[styles.ph5, !paddingBottom ? styles.pb5 : null]}
                     />
                 </View>
             </FullPageNotFoundView>
