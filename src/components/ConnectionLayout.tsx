@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -45,7 +46,24 @@ type ConnectionLayoutProps = {
 
     /** Style of the subtitle text */
     subTitleStyle?: StyleProp<TextStyle> | undefined;
+
+    /** Whether to use ScrollView or not */
+    shouldUseScrollView?: boolean;
 };
+
+type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'subtitle' | 'subTitleStyle' | 'children'>;
+
+function ConnectionLayoutContent({title, titleStyle, subtitle, subTitleStyle, children}: ConnectionLayoutContentProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    return (
+        <>
+            {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
+            {subtitle && <Text style={[styles.textLabelSupporting, subTitleStyle]}>{translate(subtitle)}</Text>}
+            {children}
+        </>
+    );
+}
 
 function ConnectionLayout({
     displayName,
@@ -59,9 +77,23 @@ function ConnectionLayout({
     contentContainerStyle,
     titleStyle,
     subTitleStyle,
+    shouldUseScrollView = true,
 }: ConnectionLayoutProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const renderSelectionContent = useMemo(
+        () => (
+            <ConnectionLayoutContent
+                title={title}
+                subtitle={subtitle}
+                subTitleStyle={subTitleStyle}
+                titleStyle={titleStyle}
+            >
+                {children}
+            </ConnectionLayoutContent>
+        ),
+        [title, subtitle, titleStyle, subTitleStyle, children],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -78,11 +110,11 @@ function ConnectionLayout({
                     title={translate(headerTitle)}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <ScrollView contentContainerStyle={contentContainerStyle}>
-                    {title && <Text style={[styles.pb5, titleStyle]}>{translate(title)}</Text>}
-                    {subtitle && <Text style={[styles.textLabelSupporting, subTitleStyle]}>{translate(subtitle)}</Text>}
-                    {children}
-                </ScrollView>
+                {shouldUseScrollView ? (
+                    <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
+                ) : (
+                    <View style={contentContainerStyle}>{renderSelectionContent}</View>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
