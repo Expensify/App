@@ -2,6 +2,11 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import '@formatjs/intl-locale/polyfill';
+import '@formatjs/intl-pluralrules/polyfill';
+import '@formatjs/intl-pluralrules/locale-data/en';
+
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,

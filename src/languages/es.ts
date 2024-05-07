@@ -1,5 +1,8 @@
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import '@formatjs/intl-locale/polyfill';
+import '@formatjs/intl-pluralrules/locale-data/es';
+import '@formatjs/intl-pluralrules/polyfill';
 import type {
     AddressLineParams,
     AdminCanceledRequestParams,
