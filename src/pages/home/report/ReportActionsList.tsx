@@ -503,7 +503,10 @@ function ReportActionsList({
 
             const unreadMessageIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === currentUnreadMarker);
 
-            if (unreadMessageIndex !== -1) {
+            // Checking that we have a valid unread message index and the user scroll
+            // offset is less than the threshold since we don't want to auto-scroll when
+            // the report is already open and New Messages marker is shown as user might be reading.
+            if (unreadMessageIndex !== -1 && scrollingVerticalOffset.current < VERTICAL_OFFSET_THRESHOLD) {
                 // We're passing viewPosition: 1 to scroll to the top of the
                 // unread message (marker) since we're using an inverted FlatList.
                 reportScrollManager?.scrollToIndex(unreadMessageIndex, false, 1);
