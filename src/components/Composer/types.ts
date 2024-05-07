@@ -70,6 +70,9 @@ type ComposerProps = TextInputProps & {
 
     /** Should make the input only scroll inside the element avoid scroll out to parent */
     shouldContainScroll?: boolean;
+
+    /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
+    isGroupPolicyReport?: boolean;
 };
 
 export type {TextSelection, ComposerProps};
