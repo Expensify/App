@@ -3361,6 +3361,7 @@ function renamePolicyCategory(policyID: string, policyCategory: {oldName: string
                         pendingFields: {
                             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                         },
+                        previousCategoryName: policyCategory.oldName,
                     },
                 },
             },
@@ -3673,6 +3674,7 @@ function renamePolicyTag(policyID: string, policyTag: {oldName: string; newName:
                                 pendingFields: {
                                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
+                                previousTagName: policyTag.oldName,
                             },
                         },
                     },
