@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Receipt} from './Transaction';
 
 type SearchResultsInfo = {
     offset: number;
@@ -22,36 +21,67 @@ type SearchPolicyDetails = {
 };
 
 type SearchTransaction = {
+    /** The ID of the transaction */
     transactionID: string;
-    parentTransactionID?: string;
-    receipt?: Receipt;
-    hasEReceipt?: boolean;
+
+    /** The transaction created date */
     created: string;
+
+    /** The edited transaction created date */
+    modifiedCreated: string;
+
+    /** The transaction amount */
+    amount: number;
+
+    /** The edited transaction amount */
+    modifiedAmount: number;
+
+    /** The transaction currency */
+    currency: string;
+
+    /** The edited transaction currency */
+    modifiedCurrency: string;
+
+    /** The transaction merchant */
     merchant: string;
-    modifiedCreated?: string;
-    modifiedMerchant?: string;
+
+    /** The edited transaction merchant */
+    modifiedMerchant: string;
+
+    /** The receipt object */
+    receipt?: {source?: string};
+
+    /** The transaction tag */
+    tag: string;
+
+    /** The transaction description */
+    comment: {comment: string};
+
+    /** The transaction category */
+    category: string;
+
+    /** The type of request */
+    type: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
+
+    /** The type of report the transaction is associated with */
+    reportType: string;
+
+    /** The ID of the policy the transaction is associated with */
+    policyID: string;
+
+    parentTransactionID?: string;
+    hasEReceipt?: boolean;
     description: string;
     accountID: number;
     managerID: number;
-    from: SearchPersonalDetails | SearchPolicyDetails;
-    to: SearchPersonalDetails | SearchPolicyDetails;
-    amount: number;
-    modifiedAmount?: number;
-    category?: string;
-    currency: string;
-    tag?: string;
-    type: SearchTransactionType;
     hasViolation: boolean;
     taxAmount?: number;
     reportID: string;
-    reportType: string;
-    policyID: string;
     transactionThreadReportID: string;
-    shouldShowMerchant: boolean;
-    shouldShowCategory: boolean;
-    shouldShowTag: boolean;
     action: string;
 };
+
+type SearchAccountDetails = Partial<SearchPolicyDetails & SearchPersonalDetails>;
 
 type SearchTransactionType = ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
 
@@ -64,4 +94,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails};
+export type {SearchQuery, SearchTransaction, SearchTransactionType, SearchPersonalDetails, SearchPolicyDetails, SearchAccountDetails};

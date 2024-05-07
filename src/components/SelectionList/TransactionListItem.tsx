@@ -17,7 +17,7 @@ import * as TransactionUtils from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import type {SearchPersonalDetails, SearchPolicyDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchTransactionType} from '@src/types/onyx/SearchResults';
 import BaseListItem from './BaseListItem';
 import TextWithIconCell from './TextWithIconCell';
 import type {ListItem, TransactionListItemProps, TransactionListItemType} from './types';
@@ -83,7 +83,7 @@ function TransactionListItem<TItem extends ListItem>({
         />
     );
 
-    const userCell = (participant: SearchPersonalDetails & SearchPolicyDetails) => {
+    const userCell = (participant: SearchAccountDetails) => {
         const displayName = participant?.name ?? participant?.displayName ?? participant?.login;
         const avatarURL = participant?.avatarURL ?? participant?.avatar;
         const isWorkspace = participant?.avatarURL !== undefined;

@@ -1,9 +1,9 @@
 import type {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
 import TransactionListItem from '@components/SelectionList/TransactionListItem';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import * as UserUtils from './UserUtils';
 
 function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
@@ -17,7 +17,7 @@ function getShouldShowColumn(data: OnyxTypes.SearchResults['data'], columnName: 
     return Object.values(data).some((item) => !!item[columnName]);
 }
 
-function getTransactionsSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
+function getTransactionsSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const shouldShowCategory = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.CATEGORY);
     const shouldShowTag = getShouldShowColumn(data, CONST.SEARCH_TABLE_COLUMNS.TAG);
@@ -57,7 +57,7 @@ function getListItem(): typeof TransactionListItem {
     return searchTypeToItemMap.transaction.listItem;
 }
 
-function getSections(data: OnyxTypes.SearchResults['data']): SearchTransaction[] {
+function getSections(data: OnyxTypes.SearchResults['data']): TransactionListItemType[] {
     return searchTypeToItemMap.transaction.getSections(data);
 }
 
@@ -65,4 +65,4 @@ function getQueryHash(query: string): number {
     return UserUtils.hashText(query, 2 ** 32);
 }
 
-export {getListItem, getQueryHash, getSections, getShouldShowMerchant, getShouldShowColumn};
+export {getListItem, getQueryHash, getSections, getShouldShowColumn, getShouldShowMerchant};

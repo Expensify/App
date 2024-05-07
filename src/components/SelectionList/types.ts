@@ -1,11 +1,10 @@
 import type {MutableRefObject, ReactElement, ReactNode} from 'react';
 import type {GestureResponderEvent, InputModeOptions, LayoutChangeEvent, SectionListData, StyleProp, TextInput, TextStyle, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {MaybePhraseKey} from '@libs/Localize';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type CONST from '@src/CONST';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchPolicyDetails} from '@src/types/onyx/SearchResults';
+import type {SearchAccountDetails, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -128,70 +127,22 @@ type ListItem = {
     brickRoadIndicator?: BrickRoad | '' | null;
 };
 
-type TransactionListItemType = ListItem & {
-    /** The ID of the transaction */
-    transactionID: string;
+type TransactionListItemType = ListItem &
+    SearchTransaction & {
+        /** The personal details of the user requesting money */
+        from: SearchAccountDetails;
 
-    /** The transaction created date */
-    created: string;
+        /** The personal details of the user paying the request */
+        to: SearchAccountDetails;
+        /** Whether we should show the merchant column */
+        shouldShowMerchant: boolean;
 
-    /** The edited transaction created date */
-    modifiedCreated: string;
+        /** Whether we should show the category column */
+        shouldShowCategory: boolean;
 
-    /** The transaction amount */
-    amount: number;
-
-    /** The edited transaction amount */
-    modifiedAmount: number;
-
-    /** The transaction currency */
-    currency: string;
-
-    /** The edited transaction currency */
-    modifiedCurrency: string;
-
-    /** The transaction merchant */
-    merchant: string;
-
-    /** The edited transaction merchant */
-    modifiedMerchant: string;
-
-    /** The receipt object */
-    receipt?: {source?: string};
-
-    /** The personal details of the user requesting money */
-    from: SearchPersonalDetails & SearchPolicyDetails;
-
-    /** The personal details of the user paying the request */
-    to: SearchPersonalDetails & SearchPolicyDetails;
-
-    /** The transaction tag */
-    tag: string;
-
-    /** The transaction description */
-    comment: {comment: string};
-
-    /** The transaction category */
-    category: string;
-
-    /** The type of request */
-    type: ValueOf<typeof CONST.SEARCH_TRANSACTION_TYPE>;
-
-    /** The type of report the transaction is associated with */
-    reportType: string;
-
-    /** The ID of the policy the transaction is associated with */
-    policyID: string;
-
-    /** Whether we should show the merchant column */
-    shouldShowMerchant: boolean;
-
-    /** Whether we should show the category column */
-    shouldShowCategory: boolean;
-
-    /** Whether we should show the tag column */
-    shouldShowTag: boolean;
-};
+        /** Whether we should show the tag column */
+        shouldShowTag: boolean;
+    };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -454,7 +405,7 @@ export type {
     SelectionListHandle,
     TableListItemProps,
     TransactionListItemProps,
+    TransactionListItemType,
     UserListItemProps,
     ValidListItem,
-    TransactionListItemType,
 };

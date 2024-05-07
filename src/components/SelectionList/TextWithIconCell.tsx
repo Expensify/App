@@ -9,7 +9,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type TextWithIconCellProps = {
     icon: IconAsset;
-    text: string;
+    text?: string;
     showTooltip: boolean;
 };
 
