@@ -20,6 +20,7 @@ function SearchPageBottomTab() {
     const styles = useThemeStyles();
 
     const currentQuery = activeRoute?.params && 'query' in activeRoute.params ? activeRoute?.params?.query : '';
+    const offset = activeRoute?.params && 'offset' in activeRoute.params ? parseInt(activeRoute?.params?.offset as string, 10) : 0;
     const query = currentQuery as SearchQuery;
     const isValidQuery = Object.values(CONST.TAB_SEARCH).includes(query);
 
@@ -40,7 +41,7 @@ function SearchPageBottomTab() {
                     shouldDisplaySearch={false}
                 />
                 <SearchFilters query={query} />
-                {isSmallScreenWidth && <Search query={query} />}
+                {isSmallScreenWidth && <Search query={query} offset={offset} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
