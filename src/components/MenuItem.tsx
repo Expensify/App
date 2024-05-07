@@ -719,7 +719,7 @@ function MenuItem(
                             </PressableWithSecondaryInteraction>
                         )}
                     </Hoverable>
-            {!!helperText && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>}
+                    {!!helperText && <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, helperTextStyle]}>{helperText}</Text>}
                 </View>
             </EducationalTooltip>
         </View>
