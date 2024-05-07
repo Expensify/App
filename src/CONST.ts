@@ -148,6 +148,14 @@ const CONST = {
         RESERVED_NAMES: ['Expensify', 'Concierge'],
     },
 
+    GPS: {
+        // It's OK to get a cached location that is up to an hour old because the only accuracy needed is the country the user is in
+        MAX_AGE: 3600000,
+
+        // 15 seconds, don't wait too long because the server can always fall back to using the IP address
+        TIMEOUT: 15000,
+    },
+
     LEGAL_NAME: {
         MAX_LENGTH: 40,
     },
@@ -644,6 +652,7 @@ const CONST = {
             TYPE: {
                 ACTIONABLE_JOIN_REQUEST: 'ACTIONABLEJOINREQUEST',
                 ACTIONABLE_MENTION_WHISPER: 'ACTIONABLEMENTIONWHISPER',
+                ACTIONABLE_REPORT_MENTION_WHISPER: 'ACTIONABLEREPORTMENTIONWHISPER',
                 ACTIONABLE_TRACK_EXPENSE_WHISPER: 'ACTIONABLETRACKEXPENSEWHISPER',
                 ADD_COMMENT: 'ADDCOMMENT',
                 APPROVED: 'APPROVED',
@@ -781,6 +790,10 @@ const CONST = {
             NOTHING: 'nothing',
         },
         ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION: {
+            NOTHING: 'nothing',
+        },
+        ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION: {
+            CREATE: 'created',
             NOTHING: 'nothing',
         },
         ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION: {
@@ -1134,6 +1147,11 @@ const CONST = {
         SEARCH: 'search',
         EMAIL: 'email',
         URL: 'url',
+    },
+
+    INPUT_AUTOGROW_DIRECTION: {
+        LEFT: 'left',
+        RIGHT: 'right',
     },
 
     YOUR_LOCATION_TEXT: 'Your Location',
@@ -4125,7 +4143,7 @@ const CONST = {
             "unit": "km"
         },
         "CHF": {
-            "rate": 100,
+            "rate": 70,
             "unit": "km"
         },
         "CLP": {
@@ -4165,7 +4183,7 @@ const CONST = {
             "unit": "km"
         },
         "DKK": {
-            "rate": 673,
+            "rate": 379,
             "unit": "km"
         },
         "DOP": {
@@ -4193,7 +4211,7 @@ const CONST = {
             "unit": "km"
         },
         "EUR": {
-            "rate": 3,
+            "rate": 30,
             "unit": "km"
         },
         "FJD": {
@@ -4261,7 +4279,7 @@ const CONST = {
             "unit": "km"
         },
         "ILS": {
-            "rate": 356,
+            "rate": 540,
             "unit": "km"
         },
         "INR": {
@@ -4409,7 +4427,7 @@ const CONST = {
             "unit": "km"
         },
         "MXN": {
-            "rate": 2219,
+            "rate": 93,
             "unit": "km"
         },
         "MYR": {
@@ -4433,7 +4451,7 @@ const CONST = {
             "unit": "km"
         },
         "NOK": {
-            "rate": 917,
+            "rate": 350,
             "unit": "km"
         },
         "NPR": {
@@ -4441,7 +4459,7 @@ const CONST = {
             "unit": "km"
         },
         "NZD": {
-            "rate": 151,
+            "rate": 95,
             "unit": "km"
         },
         "OMR": {
@@ -4469,7 +4487,7 @@ const CONST = {
             "unit": "km"
         },
         "PLN": {
-            "rate": 415,
+            "rate": 89,
             "unit": "km"
         },
         "PYG": {
@@ -4513,7 +4531,7 @@ const CONST = {
             "unit": "km"
         },
         "SEK": {
-            "rate": 917,
+            "rate": 250,
             "unit": "km"
         },
         "SGD": {
@@ -4657,7 +4675,7 @@ const CONST = {
             "unit": "km"
         },
         "ZAR": {
-            "rate": 1588,
+            "rate": 464,
             "unit": "km"
         },
         "ZMK": {
