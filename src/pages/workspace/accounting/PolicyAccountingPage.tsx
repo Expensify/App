@@ -119,7 +119,8 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME).filter((name) => !(name === CONST.POLICY.CONNECTIONS.NAME.XERO && !canUseXeroIntegration));
     const connectedIntegration = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]) ?? connectionSyncProgress?.connectionName;
     const policyID = policy?.id ?? '';
-    const datetime = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate ?? '';
+    const successfulDate = policy?.connections?.quickbooksOnline?.lastSync?.successfulDate;
+    const formatedDate = successfulDate ? new Date(successfulDate).toString() : '';
 
     const policyConnectedToXero = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
 
@@ -146,15 +147,15 @@ function PolicyAccountingPage({policy, connectionSyncProgress, preferredLocale}:
 
     useEffect(() => {
         const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
-        setDateTimeToRelative(DateUtils.datetimeToRelative(locale, datetime));
+        setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formatedDate));
         const interval = setInterval(() => {
-            setDateTimeToRelative(DateUtils.datetimeToRelative(locale, datetime));
+            setDateTimeToRelative(DateUtils.datetimeToRelative(locale, formatedDate));
         }, 60 * 1000);
 
         return () => {
             clearInterval(interval);
         };
-    }, [datetime, preferredLocale]);
+    }, [formatedDate, preferredLocale]);
 
     const connectionsMenuItems: MenuItemProps[] = useMemo(() => {
         if (isEmptyObject(policy?.connections) && !isSyncInProgress) {
