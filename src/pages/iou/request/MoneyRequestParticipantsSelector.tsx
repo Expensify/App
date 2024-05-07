@@ -197,7 +197,7 @@ function MoneyRequestParticipantsSelector({
             ];
 
             if (iouType === CONST.IOU.TYPE.INVOICE) {
-                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID ?? undefined);
+                const primaryPolicy = Policy.getPrimaryPolicy(activePolicyID);
 
                 newParticipants.push({
                     policyID: primaryPolicy?.id,
@@ -276,7 +276,8 @@ function MoneyRequestParticipantsSelector({
 
     // canUseP2PDistanceRequests is true if the iouType is track expense, but we don't want to allow splitting distance with track expense yet
     const isAllowedToSplit =
-        (canUseP2PDistanceRequests ?? iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        (canUseP2PDistanceRequests || iouRequestType !== CONST.IOU.REQUEST_TYPE.DISTANCE) &&
         ![CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.TRACK, CONST.IOU.TYPE.INVOICE].some((option) => option === iouType) &&
         ![CONST.IOU.ACTION.SHARE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE].some((option) => option === action);
 
