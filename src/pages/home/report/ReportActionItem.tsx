@@ -677,6 +677,7 @@ function ReportActionItem({
                             ref={textInputRef}
                             // Avoid defining within component due to an existing Onyx bug
                             preferredSkinTone={preferredSkinTone}
+                            policyID={policy?.id}
                             shouldDisableEmojiPicker={(ReportUtils.chatIncludesConcierge(report) && User.isBlockedFromConcierge(blockedFromConcierge)) || ReportUtils.isArchivedRoom(report)}
                         />
                     )}

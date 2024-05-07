@@ -44,6 +44,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerWithSuggestionsProps} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import {useSuggestionsContext} from './ComposerWithSuggestionsEdit/SuggestionsContext';
 import SendButton from './SendButton';
 
 type ComposerRef = {
@@ -124,6 +125,7 @@ function ReportActionCompose({
     const animatedRef = useAnimatedRef();
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
     const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
+    const {clearActiveSuggestionsRef} = useSuggestionsContext();
 
     /**
      * Updates the Highlight state of the composer
@@ -320,7 +322,8 @@ function ReportActionCompose({
     const onFocus = useCallback(() => {
         setIsFocused(true);
         onComposerFocus?.();
-    }, [onComposerFocus]);
+        clearActiveSuggestionsRef();
+    }, [onComposerFocus, clearActiveSuggestionsRef]);
 
     // resets the composer to normal size when
     // the send button is pressed.

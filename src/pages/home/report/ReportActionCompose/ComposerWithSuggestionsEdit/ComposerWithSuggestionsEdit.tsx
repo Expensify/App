@@ -22,6 +22,7 @@ type ComposerWithSuggestionsEditProps = ComposerProps & {
     value: string;
     selection: Selection;
     isGroupPolicyReport: boolean;
+    policyID?: string;
 };
 
 function ComposerWithSuggestionsEdit(
@@ -47,6 +48,7 @@ function ComposerWithSuggestionsEdit(
         measureParentContainer,
         id = undefined,
         isGroupPolicyReport,
+        policyID,
     }: ComposerWithSuggestionsEditProps,
     ref: ForwardedRef<TextInput>,
 ) {
@@ -84,12 +86,14 @@ function ComposerWithSuggestionsEdit(
                 composerHeight={composerHeight}
                 measureParentContainer={measureParentContainer}
                 isAutoSuggestionPickerLarge
+                isGroupPolicyReport={isGroupPolicyReport}
+                policyID={policyID}
+                // Input
                 value={value}
                 setValue={setValue}
                 selection={selection}
                 setSelection={setSelection}
                 resetKeyboardInput={resetKeyboardInput}
-                isGroupPolicyReport={isGroupPolicyReport}
             />
         </>
     );

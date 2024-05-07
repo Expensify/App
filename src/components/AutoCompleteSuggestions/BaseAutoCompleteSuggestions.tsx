@@ -46,6 +46,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     isSuggestionPickerLarge,
     keyExtractor,
     shouldBeDisplayedBelowParentContainer = false,
+    containerHeight,
 }: AutoCompleteSuggestionsProps<TSuggestion>) {
     const {windowWidth, isLargeScreenWidth} = useWindowDimensions();
     const styles = useThemeStyles();
@@ -74,7 +75,9 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
-    const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, shouldBeDisplayedBelowParentContainer, Boolean(activeID)));
+    const animatedStyles = useAnimatedStyle(() =>
+        StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, shouldBeDisplayedBelowParentContainer, Boolean(activeID), containerHeight ?? 0),
+    );
     const estimatedListSize = useMemo(
         () => ({
             height: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length,
@@ -82,6 +85,7 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         }),
         [isLargeScreenWidth, suggestions.length, windowWidth],
     );
+
     useEffect(() => {
         rowHeight.value = withTiming(measureHeightOfSuggestionRows(suggestions.length, isSuggestionPickerLarge), {
             duration: 100,

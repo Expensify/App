@@ -59,6 +59,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string;
 
+    /** The policyID of the report */
+    policyID?: string;
+
     /** If current composer is connected with report from group policy */
     isGroupPolicyReport: boolean;
 
@@ -80,7 +83,16 @@ const isMobileSafari = Browser.isMobileSafari();
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
 
 function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, isGroupPolicyReport, index, shouldDisableEmojiPicker = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE}: ReportActionItemMessageEditProps,
+    {
+        action,
+        draftMessage,
+        reportID,
+        policyID,
+        isGroupPolicyReport,
+        index,
+        shouldDisableEmojiPicker = false,
+        preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE,
+    }: ReportActionItemMessageEditProps,
     forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
 ) {
     const theme = useTheme();
@@ -204,6 +216,10 @@ function ReportActionItemMessageEdit(
             InputFocus.callback(() => setIsFocused(false));
             InputFocus.inputFocusChange(false);
 
+            if (isActiveSuggestions(action.reportActionID)) {
+                clearActiveSuggestionsRef();
+            }
+
             // Skip if the current report action is not active
             if (!isActive()) {
                 return;
@@ -214,10 +230,6 @@ function ReportActionItemMessageEdit(
             }
             if (ReportActionContextMenu.isActiveReportAction(action.reportActionID)) {
                 ReportActionContextMenu.clearActiveReportAction();
-            }
-
-            if (isActiveSuggestions(action.reportActionID)) {
-                clearActiveSuggestionsRef();
             }
 
             // Show the main composer when the focused message is deleted from another client
@@ -405,6 +417,7 @@ function ReportActionItemMessageEdit(
         if (!containerRef.current) {
             return;
         }
+
         containerRef.current.measureInWindow(callback);
     }, []);
 
@@ -442,6 +455,7 @@ function ReportActionItemMessageEdit(
         <>
             <View
                 ref={containerRef}
+                collapsable={false}
                 style={[styles.chatItemMessage, styles.flexRow]}
             >
                 <PortalHost name={`suggestions_${action.reportActionID}`} />
@@ -513,6 +527,8 @@ function ReportActionItemMessageEdit(
                                 // clearActiveSuggestionsRef();
                                 // @ts-expect-error TODO: TextInputFocusEventData doesn't contain relatedTarget.
                                 const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
+                                suggestionsRef.current?.resetSuggestions();
+                                clearActiveSuggestionsRef();
                                 if ((relatedTargetId && [messageEditInput, emojiButtonID].includes(relatedTargetId)) || EmojiPickerAction.isEmojiPickerVisible()) {
                                     return;
                                 }
@@ -531,6 +547,7 @@ function ReportActionItemMessageEdit(
                             updateDraft={updateDraft}
                             measureParentContainer={measureContainer}
                             isGroupPolicyReport={isGroupPolicyReport}
+                            policyID={policyID}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>
