@@ -4,6 +4,7 @@ import {context} from '@actions/github';
 import * as ActionUtils from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
+import {RequestError} from '@octokit/types';
 
 type PlatformResult = 'success' | 'cancelled' | 'skipped' | 'failure';
 
@@ -113,16 +114,24 @@ async function run() {
          *   1. For regular staging deploys, the person who merged the PR.
          *   2. For CPs, the person who committed the cherry-picked commit (not necessarily the author of the commit).
          */
-        const {data: pr} = await GithubUtils.octokit.pulls.get({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            pull_number: prNumber,
-        });
-        const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
+        try {
+            const {data: pr} = await GithubUtils.octokit.pulls.get({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                pull_number: prNumber,
+            });
+            const deployer = isCP ? commit.committer.name : pr.merged_by?.login;
 
-        const title = pr.title;
-        const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
-        await commentPR(prNumber, deployMessage);
+            const title = pr.title;
+            const deployMessage = deployer ? getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', title) : '';
+            await commentPR(prNumber, deployMessage);
+        } catch (error) {
+            if ((error as RequestError).status === 404) {
+                console.log(`404 when accessing PR #${prNumber}. Ignoring.`);
+            } else {
+                throw error;
+            }
+        }
     }
 }
 
