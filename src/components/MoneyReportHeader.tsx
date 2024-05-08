@@ -105,7 +105,7 @@ function MoneyReportHeader({
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const transactionIDs = TransactionUtils.getAllReportTransactions(moneyRequestReport?.reportID).map((transaction) => transaction.transactionID);
-    const hasAllPendingRTERViolation = TransactionUtils.hasAllPendingRTERViolation(transactionIDs);
+    const hasAllPendingRTERViolation = TransactionUtils.hasAllPendingRTERViolations(transactionIDs);
 
     const cancelPayment = useCallback(() => {
         if (!chatReport) {
