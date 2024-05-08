@@ -191,7 +191,7 @@ const MapView = forwardRef<MapViewHandle, ComponentProps>(
         return !isOffline && Boolean(accessToken) && Boolean(currentPosition) ? (
             <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
                 <Mapbox.MapView
-                    onTouchEnd={() => toggleCenterButton(true)}
+                    onTouchCancel={() => toggleCenterButton(true)}
                     style={{flex: 1}}
                     styleURL={styleURL}
                     onMapIdle={setMapIdle}
