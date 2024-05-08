@@ -82,6 +82,10 @@ export default {
         maxWidth: 'auto',
     },
 
+    mw50: {
+        maxWidth: '50%',
+    },
+
     mw75: {
         maxWidth: '75%',
     },

@@ -21,6 +21,10 @@ describe('OptionsListUtils', () => {
             reportID: '1',
             participantAccountIDs: [2, 1],
             visibleChatMemberAccountIDs: [2, 1],
+            participants: {
+                2: {},
+                1: {},
+            },
             reportName: 'Iron Man, Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -31,6 +35,9 @@ describe('OptionsListUtils', () => {
             reportID: '2',
             participantAccountIDs: [3],
             visibleChatMemberAccountIDs: [3],
+            participants: {
+                3: {},
+            },
             reportName: 'Spider-Man',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -43,6 +50,9 @@ describe('OptionsListUtils', () => {
             reportID: '3',
             participantAccountIDs: [1],
             visibleChatMemberAccountIDs: [1],
+            participants: {
+                1: {},
+            },
             reportName: 'Mister Fantastic',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -53,6 +63,9 @@ describe('OptionsListUtils', () => {
             reportID: '4',
             participantAccountIDs: [4],
             visibleChatMemberAccountIDs: [4],
+            participants: {
+                4: {},
+            },
             reportName: 'Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -63,6 +76,9 @@ describe('OptionsListUtils', () => {
             reportID: '5',
             participantAccountIDs: [5],
             visibleChatMemberAccountIDs: [5],
+            participants: {
+                5: {},
+            },
             reportName: 'Invisible Woman',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -73,6 +89,9 @@ describe('OptionsListUtils', () => {
             reportID: '6',
             participantAccountIDs: [6],
             visibleChatMemberAccountIDs: [6],
+            participants: {
+                6: {},
+            },
             reportName: 'Thor',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -85,6 +104,9 @@ describe('OptionsListUtils', () => {
             reportID: '7',
             participantAccountIDs: [7],
             visibleChatMemberAccountIDs: [7],
+            participants: {
+                7: {},
+            },
             reportName: 'Captain America',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -97,6 +119,9 @@ describe('OptionsListUtils', () => {
             reportID: '8',
             participantAccountIDs: [12],
             visibleChatMemberAccountIDs: [12],
+            participants: {
+                12: {},
+            },
             reportName: 'Silver Surfer',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -109,6 +134,9 @@ describe('OptionsListUtils', () => {
             reportID: '9',
             participantAccountIDs: [8],
             visibleChatMemberAccountIDs: [8],
+            participants: {
+                8: {},
+            },
             reportName: 'Mister Sinister',
             iouReportID: '100',
             type: CONST.REPORT.TYPE.CHAT,
@@ -122,6 +150,10 @@ describe('OptionsListUtils', () => {
             isPinned: false,
             participantAccountIDs: [2, 7],
             visibleChatMemberAccountIDs: [2, 7],
+            participants: {
+                2: {},
+                7: {},
+            },
             reportName: '',
             oldPolicyName: "SHIELD's workspace",
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -212,6 +244,9 @@ describe('OptionsListUtils', () => {
             reportID: '11',
             participantAccountIDs: [999],
             visibleChatMemberAccountIDs: [999],
+            participants: {
+                999: {},
+            },
             reportName: 'Concierge',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -226,6 +261,9 @@ describe('OptionsListUtils', () => {
             reportID: '12',
             participantAccountIDs: [1000],
             visibleChatMemberAccountIDs: [1000],
+            participants: {
+                1000: {},
+            },
             reportName: 'Chronos',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -240,6 +278,9 @@ describe('OptionsListUtils', () => {
             reportID: '13',
             participantAccountIDs: [1001],
             visibleChatMemberAccountIDs: [1001],
+            participants: {
+                1001: {},
+            },
             reportName: 'Receipts',
             type: CONST.REPORT.TYPE.CHAT,
         },
@@ -254,6 +295,11 @@ describe('OptionsListUtils', () => {
             reportID: '14',
             participantAccountIDs: [1, 10, 3],
             visibleChatMemberAccountIDs: [1, 10, 3],
+            participants: {
+                1: {},
+                10: {},
+                3: {},
+            },
             reportName: '',
             oldPolicyName: 'Avengers Room',
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
@@ -271,6 +317,10 @@ describe('OptionsListUtils', () => {
             reportID: '15',
             participantAccountIDs: [3, 4],
             visibleChatMemberAccountIDs: [3, 4],
+            participants: {
+                3: {},
+                4: {},
+            },
             reportName: 'Spider-Man, Black Panther',
             type: CONST.REPORT.TYPE.CHAT,
             chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
@@ -1017,8 +1067,8 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
                     },
                 ],
             },
@@ -1186,8 +1236,8 @@ describe('OptionsListUtils', () => {
                         keyForList: 'Medical',
                         searchText: 'Medical',
                         tooltipText: 'Medical',
-                        isDisabled: false,
-                        isSelected: false,
+                        isDisabled: true,
+                        isSelected: true,
                     },
                 ],
             },
@@ -2537,6 +2587,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Tax exempt 1 (0%) • Default',
                         tooltipText: 'Tax exempt 1 (0%) • Default',
                         isDisabled: undefined,
+                        isSelected: undefined,
                         // creates a data option.
                         data: {
                             name: 'Tax exempt 1',
@@ -2551,6 +2602,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Tax option 3 (5%)',
                         tooltipText: 'Tax option 3 (5%)',
                         isDisabled: undefined,
+                        isSelected: undefined,
                         data: {
                             name: 'Tax option 3',
                             code: 'CODE3',
@@ -2564,6 +2616,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
+                        isSelected: undefined,
                         data: {
                             name: 'Tax rate 2',
                             code: 'CODE2',
@@ -2587,6 +2640,7 @@ describe('OptionsListUtils', () => {
                         searchText: 'Tax rate 2 (3%)',
                         tooltipText: 'Tax rate 2 (3%)',
                         isDisabled: undefined,
+                        isSelected: undefined,
                         data: {
                             name: 'Tax rate 2',
                             code: 'CODE2',

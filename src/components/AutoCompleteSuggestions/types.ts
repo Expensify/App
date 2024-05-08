@@ -1,6 +1,6 @@
 import type {ReactElement} from 'react';
 
-type MeasureParentContainerCallback = (x: number, y: number, width: number, height: number) => void;
+type MeasureParentContainerCallback = (x: number, y: number, width: number) => void;
 
 type RenderSuggestionMenuItemProps<TSuggestion> = {
     item: TSuggestion;
@@ -33,9 +33,6 @@ type AutoCompleteSuggestionsProps<TSuggestion> = {
 
     /** Meaures the parent container's position and dimensions. */
     measureParentContainer?: (callback: MeasureParentContainerCallback) => void;
-
-    /** Whether suggestion should be displayed below the parent container or not */
-    shouldBeDisplayedBelowParentContainer?: boolean;
 };
 
 export type {AutoCompleteSuggestionsProps, RenderSuggestionMenuItemProps};
