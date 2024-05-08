@@ -97,7 +97,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
                 return;
             }
 
-            Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path, ROUTES.SETTINGS_CONSOLE.getRoute(route.params?.backTo)));
+            Navigation.navigate(ROUTES.SETTINGS_SHARE_LOG.getRoute(path));
         });
     };
 
@@ -120,9 +120,7 @@ function ConsolePage({capturedLogs, shouldStoreLogs}: ConsolePageProps) {
         <ScreenWrapper testID={ConsolePage.displayName}>
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.troubleshoot.debugConsole')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(route.params?.backTo);
-                }}
+                onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
             />
             <View style={[styles.border, styles.highlightBG, styles.borderNone, styles.mh5, styles.flex1]}>
                 <InvertedFlatList

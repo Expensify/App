@@ -10,11 +10,8 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import * as Console from '@libs/actions/Console';
 import {parseStringifiedMessages} from '@libs/Console';
-import Navigation from '@navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {CapturedLogs, Log} from '@src/types/onyx';
-import toggleTestToolsModal from "@userActions/TestTool";
 
 type BaseClientSideLoggingToolMenuOnyxProps = {
     /** Logs captured on the current device */
@@ -37,15 +34,7 @@ type BaseClientSideLoggingToolProps = {
     displayPath?: string;
 } & BaseClientSideLoggingToolMenuOnyxProps;
 
-function BaseClientSideLoggingToolMenu({
-    shouldStoreLogs,
-    capturedLogs,
-    file,
-    onShareLogs,
-    onDisableLogging,
-    onEnableLogging,
-    displayPath,
-}: BaseClientSideLoggingToolProps) {
+function BaseClientSideLoggingToolMenu({shouldStoreLogs, capturedLogs, file, onShareLogs, onDisableLogging, onEnableLogging, displayPath}: BaseClientSideLoggingToolProps) {
     const {translate} = useLocalize();
 
     const onToggle = () => {
@@ -72,7 +61,6 @@ function BaseClientSideLoggingToolMenu({
         Console.disableLoggingAndFlushLogs();
     };
     const styles = useThemeStyles();
-
     return (
         <>
             <TestToolRow title={translate('initialSettingsPage.troubleshoot.clientSideLogging')}>

@@ -8,11 +8,7 @@ function ClientSideLoggingToolMenu() {
         localFileDownload('logs', JSON.stringify(logs, null, 2));
     };
 
-    return (
-        <BaseClientSideLoggingToolMenu
-            onDisableLogging={downloadFile}
-        />
-    );
+    return <BaseClientSideLoggingToolMenu onDisableLogging={downloadFile} />;
 }
 
 ClientSideLoggingToolMenu.displayName = 'ClientSideLoggingToolMenu';

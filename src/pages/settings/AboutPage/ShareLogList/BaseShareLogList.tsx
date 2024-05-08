@@ -15,11 +15,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
-import type {SettingsNavigatorParamList} from "@navigation/types";
-import type SCREENS from "@src/SCREENS";
-import type {RouteProp} from "@react-navigation/native";
-import {useRoute} from "@react-navigation/native";
 import type {BaseShareLogListProps} from './types';
 
 function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
@@ -29,8 +26,6 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
     const betas = useBetas();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const {options, areOptionsInitialized} = useOptionsList();
-
-    const route = useRoute<RouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.SHARE_LOG>>();
 
     const searchOptions = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -104,7 +99,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
                 <>
                     <HeaderWithBackButton
                         title={translate('initialSettingsPage.debugConsole.shareLog')}
-                        onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONSOLE)}
                     />
                     <SelectionList
                         ListItem={UserListItem}

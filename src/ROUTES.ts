@@ -185,7 +185,7 @@ const ROUTES = {
     },
     SETTINGS_SHARE_LOG: {
         route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string, backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console/share-log?source=${encodeURI(source)}`, backTo),
+        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
     },
 
     SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
